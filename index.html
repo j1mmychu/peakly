@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0284c7" />
+  <meta name="description" content="Peakly — Find surf, ski &amp; adventure spots when conditions and cheap flights align." />
+  <title>Peakly ⛰️</title>
+
+  <!-- Favicon (emoji fallback) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>" />
+
+  <!-- React 18 + ReactDOM (UMD, no build step needed) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel standalone — transforms JSX in the browser -->
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; width: 100%; }
+    body { background: #f5f5f5; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Load app (Babel transforms JSX on the fly) -->
+  <script type="text/babel" src="./app.jsx" data-presets="react"></script>
+</body>
+</html>
