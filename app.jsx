@@ -966,21 +966,18 @@ function scoreVenue(venue, wx, marine) {
   return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
 }
 
-// ─── Travelpayouts affiliate flight pricing ──────────────────────────────────
-// CORS-enabled, free, no backend needed — safe for client-side use
-const TRAVELPAYOUTS_TOKEN = "d55e708966b22b9ec93a9dcfdaa233ff";
+// ─── Flight pricing via VPS proxy ────────────────────────────────────────────
+// API token lives server-side on the VPS — never exposed in client code
+const FLIGHT_PROXY = "http://104.131.82.242:3001";
 
 // Returns the cheapest one-way economy price found, or null on failure.
 // Falls back to estimate prices when API is unavailable.
 async function fetchTravelpayoutsPrice(origin, destination) {
   try {
-    // Travelpayouts v1/prices/cheap — returns cheapest prices found in the last 48h
-    // CORS-enabled, free, no backend proxy needed
-    const url = `https://api.travelpayouts.com/v1/prices/cheap`
+    // Calls our VPS proxy which injects the Travelpayouts token server-side
+    const url = `${FLIGHT_PROXY}/api/flights`
       + `?origin=${encodeURIComponent(origin)}`
-      + `&destination=${encodeURIComponent(destination)}`
-      + `&currency=usd`
-      + `&token=${TRAVELPAYOUTS_TOKEN}`;
+      + `&destination=${encodeURIComponent(destination)}`;
 
     const r = await fetch(url);
     if (!r.ok) return null;
