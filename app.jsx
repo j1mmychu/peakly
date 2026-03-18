@@ -984,45 +984,42 @@ function scoreVenue(venue, wx, marine) {
 // ─── duffel flight pricing ────────────────────────────────────────────────────
 // ⚠️  SECURITY: This is a TEST token only — safe to expose in dev.
 // Before production: move to a backend proxy (env var), never ship a live token in client code.
-const DUFFEL_TOKEN = "duffel_test_ctwQzxpvVpws6sAhimWj3tDA7lgXNyOPBh7pHsGSAjx";
+// ─── Travelpayouts affiliate token (CORS-enabled, free, no backend needed) ───
+const TRAVELPAYOUTS_TOKEN = "d55e708966b22b9ec93a9dcfdaa233ff";
 
 // Returns the cheapest one-way economy price found, or null on failure.
 // Note: Duffel is a server-side API — CORS will block this in a plain browser.
 // It will work seamlessly in React Native (Phase 2) with no changes needed.
 // For the web build, prices fall back to estimates when blocked.
-async function fetchDuffelPrice(origin, destination) {
+async function fetchTravelpayoutsPrice(origin, destination) {
   try {
-    // target next Friday for the search
-    const d = new Date();
-    d.setDate(d.getDate() + ((5 - d.getDay() + 7) % 7 || 7));
-    const depDate = d.toISOString().split("T")[0];
+    // Travelpayouts v1/prices/cheap — returns cheapest prices found in the last 48h
+    // CORS-enabled, free, no backend proxy needed
+    const url = `https://api.travelpayouts.com/v1/prices/cheap`
+      + `?origin=${encodeURIComponent(origin)}`
+      + `&destination=${encodeURIComponent(destination)}`
+      + `&currency=usd`
+      + `&token=${TRAVELPAYOUTS_TOKEN}`;
 
-    const r = await fetch(
-      "https://api.duffel.com/air/offer_requests?return_offers=true",
-      {
-        method: "POST",
-        headers: {
-          Authorization:    `Bearer ${DUFFEL_TOKEN}`,
-          "Duffel-Version": "v2",
-          "Content-Type":   "application/json",
-          Accept:           "application/json",
-        },
-        body: JSON.stringify({
-          data: {
-            slices:      [{ origin, destination, departure_date: depDate }],
-            passengers:  [{ type: "adult" }],
-            cabin_class: "economy",
-          },
-        }),
-      }
-    );
+    const r = await fetch(url);
     if (!r.ok) return null;
-    const json   = await r.json();
-    const offers = json.data?.offers ?? [];
-    if (!offers.length) return null;
-    return Math.round(Math.min(...offers.map(o => parseFloat(o.total_amount))));
+    const json = await r.json();
+    if (!json.success) return null;
+
+    // Response: { data: { "NRT": { "0": { price: 450 }, "1": { price: 520 } } } }
+    // Keys are number of stops: "0" = direct, "1" = 1 stop, etc.
+    const destData = json.data?.[destination];
+    if (!destData) return null;
+
+    // Get cheapest price across all stop counts
+    const prices = Object.values(destData)
+      .map(d => d.price)
+      .filter(p => typeof p === "number" && p > 0);
+
+    if (prices.length === 0) return null;
+    return Math.round(Math.min(...prices));
   } catch {
-    return null; // CORS in browser → silent fallback to estimate
+    return null; // Silent fallback to estimate
   }
 }
 const BASE_PRICES = {
@@ -1145,18 +1142,13 @@ function buildFlightUrl(from, to, whenId = "anytime") {
   return `https://www.google.com/flights?hl=en#flt=${from}.${to}.${dep}*${to}.${from}.${ret};c:USD;e:1;sd:1;t:f`;
 }
 
-// ─── Travelpayouts real pricing (future) ──────────────────────────────────────
-// TODO: When you have your Travelpayouts affiliate token, replace getFlightDeal()
-// with a call to the Travelpayouts Data API:
-//   GET https://api.travelpayouts.com/v1/prices/cheap
-//     ?origin=JFK&destination=NRT&currency=USD&token=YOUR_TOKEN
-// This is CORS-enabled and free to use — no backend proxy needed.
-// Sign up at: https://www.travelpayouts.com/programs/100/tools/affiliate
-// Docs at:    https://support.travelpayouts.com/hc/en-us/articles/203956073
+// ─── Travelpayouts real pricing (LIVE) ────────────────────────────────────────
+// Real prices fetched via fetchTravelpayoutsPrice() in the App useEffect.
+// getFlightDeal() is the instant fallback when API hasn't responded yet.
 // ─────────────────────────────────────────────────────────────────────────────
 function getFlightDeal(ap, homeAirport = "JFK") {
   const base = BASE_PRICES[ap]?.[homeAirport] ?? 800;
-  // Simulated prices — replace with Travelpayouts API once token is obtained
+  // Instant estimate shown while Travelpayouts API loads real prices
   const seed = (ap + homeAirport).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const pct  = 28 + (seed % 48); // 28–75% off
   const price = Math.max(49, Math.round(base * (1 - pct / 100) / 5) * 5);
@@ -4901,24 +4893,30 @@ function App() {
     return () => { alive = false; };
   }, []);
 
-  // Fetch real Duffel prices after weather loads (re-fetches when home airport changes)
+  // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   useEffect(() => {
     if (loading) return;
     let alive = true;
     (async () => {
-      const results = await Promise.allSettled(
-        VENUES.map(async v => {
-          const price = await fetchDuffelPrice(profile.homeAirport || "JFK", v.ap);
-          return { id: v.id, price };
-        })
-      );
-      if (!alive) return;
+      // Travelpayouts rate limit: batch in groups of 5 with small delays
       const prices = {};
-      results.forEach(r => {
-        if (r.status === "fulfilled" && r.value.price !== null) {
-          prices[r.value.id] = r.value.price;
-        }
-      });
+      for (let i = 0; i < VENUES.length; i += 5) {
+        const batch = VENUES.slice(i, i + 5);
+        const results = await Promise.allSettled(
+          batch.map(async v => {
+            const price = await fetchTravelpayoutsPrice(profile.homeAirport || "JFK", v.ap);
+            return { id: v.id, price };
+          })
+        );
+        if (!alive) return;
+        results.forEach(r => {
+          if (r.status === "fulfilled" && r.value.price !== null) {
+            prices[r.value.id] = r.value.price;
+          }
+        });
+        // Small delay between batches to be respectful of rate limits
+        if (i + 5 < VENUES.length) await new Promise(r => setTimeout(r, 300));
+      }
       if (Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
