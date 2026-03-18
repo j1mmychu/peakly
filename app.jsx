@@ -1,5 +1,70 @@
 const { useState, useEffect, useRef, useCallback } = React;
 
+// ─── error monitoring & crash detection ──────────────────────────────────────
+(() => {
+  // Sentry-lite: lightweight error reporter (free tier compatible)
+  const SENTRY_DSN = ""; // TODO: Add Sentry DSN after signup
+  const errorLog = [];
+  const MAX_ERRORS = 50;
+
+  const reportError = (error, context = {}) => {
+    const entry = {
+      msg: error?.message || String(error),
+      stack: error?.stack?.split("\n").slice(0, 5).join("\n"),
+      url: window.location.href,
+      ts: new Date().toISOString(),
+      ua: navigator.userAgent,
+      ...context,
+    };
+    errorLog.push(entry);
+    if (errorLog.length > MAX_ERRORS) errorLog.shift();
+
+    // Store locally for debugging
+    try { localStorage.setItem("peakly_errors", JSON.stringify(errorLog)); } catch(e) {}
+
+    // Send to Sentry if configured
+    if (SENTRY_DSN) {
+      fetch(SENTRY_DSN, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exception: { values: [{ type: "Error", value: entry.msg, stacktrace: entry.stack }] }, tags: context }),
+      }).catch(() => {});
+    }
+
+    console.error("[Peakly Error Monitor]", entry.msg, context);
+  };
+
+  // Global error handler — catches unhandled exceptions
+  window.addEventListener("error", (e) => {
+    reportError(e.error || e.message, { type: "uncaught", filename: e.filename, line: e.lineno, col: e.colno });
+  });
+
+  // Promise rejection handler — catches async errors
+  window.addEventListener("unhandledrejection", (e) => {
+    reportError(e.reason, { type: "unhandled_promise" });
+  });
+
+  // Performance monitoring
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      const perf = performance.getEntriesByType("navigation")[0];
+      if (perf) {
+        const metrics = {
+          dns: Math.round(perf.domainLookupEnd - perf.domainLookupStart),
+          ttfb: Math.round(perf.responseStart - perf.requestStart),
+          domReady: Math.round(perf.domContentLoadedEventEnd - perf.startTime),
+          fullLoad: Math.round(perf.loadEventEnd - perf.startTime),
+        };
+        try { localStorage.setItem("peakly_perf", JSON.stringify(metrics)); } catch(e) {}
+      }
+    }, 1000);
+  });
+
+  // Expose for debugging from console or scheduled tasks
+  window.__peaklyErrors = errorLog;
+  window.__peaklyReport = reportError;
+})();
+
 // ─── inject styles ────────────────────────────────────────────────────────────
 (() => {
   const s = document.createElement("style");
@@ -4981,6 +5046,33 @@ function BottomNav({ active, setActive, alertCount }) {
   );
 }
 
+// ─── error boundary ──────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) {
+    if (window.__peaklyReport) window.__peaklyReport(error, { type: "react_crash", component: info.componentStack?.split("\n")[1]?.trim() });
+  }
+  render() {
+    if (this.state.hasError) {
+      return React.createElement("div", {
+        style: { display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                 height:"100vh", fontFamily:F, padding:32, textAlign:"center", background:"#f5f5f5" }
+      },
+        React.createElement("div", { style:{ fontSize:28, fontWeight:900, color:"#222", marginBottom:12 } }, "Something went wrong"),
+        React.createElement("div", { style:{ fontSize:14, color:"#717171", marginBottom:24, maxWidth:320 } },
+          "Peakly hit an unexpected error. This has been logged automatically."),
+        React.createElement("button", {
+          onClick: () => { this.setState({ hasError:false, error:null }); window.location.reload(); },
+          style: { background:"#0284c7", color:"white", border:"none", borderRadius:14,
+                   padding:"14px 28px", fontSize:14, fontWeight:800, fontFamily:F, cursor:"pointer" }
+        }, "Reload App")
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
   const [activeTab,    setActiveTab]    = useState("explore");
@@ -5286,6 +5378,6 @@ function App() {
 }
 
 
-// Mount the app
+// Mount the app with error boundary
 const _root = ReactDOM.createRoot(document.getElementById("root"));
-_root.render(React.createElement(App));
+_root.render(React.createElement(ErrorBoundary, null, React.createElement(App)));
