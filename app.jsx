@@ -142,7 +142,6 @@ const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
   { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
   { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"tanning", label:"Beach & Tan",emoji:"☀️" },
 ];
 
@@ -227,14 +226,6 @@ const VENUES = [
     icon:"🏝️", rating:4.96, reviews:988,
     gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
     accent:"#a5d6a7", tags:["UV 11","Crystal Water"],
-  },
-  {
-    id:"patagonia", category:"hiking",
-    title:"Torres del Paine", location:"Patagonia, Chile",
-    lat:-50.9423, lon:-73.4068, ap:"PUQ",
-    icon:"⛰️", rating:4.98, reviews:3122,
-    gradient:"linear-gradient(160deg,#2e1a00,#7c4d00,#ffa726)",
-    accent:"#ffcc80", tags:["Epic Views","W-Trek"],
   },
   {
     id:"gbr",       category:"diving",
@@ -455,49 +446,6 @@ const VENUES = [
   {id:"chiba_surf",  category:"surfing",title:"Chiba Coast",             location:"Chiba Prefecture, Japan",  lat:35.3200,lon:140.3800,ap:"NRT",icon:"🏄",rating:4.78,reviews:2100,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#0099bb",tags:["Tokyo's Backyard","Beach Break Frenzy"]},
 
   // ═══════════════════════════════════════════════════════════════════
-  // ─── HIKING ─────────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════════════
-  {id:"hike_inca",      category:"hiking",title:"Inca Trail",              location:"Cusco, Peru",                   lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.98,reviews:8420,gradient:"linear-gradient(160deg,#1a2e00,#2d5a00,#4a8c00)",accent:"#8bc34a",tags:["Machu Picchu","4-Day Classic"]},
-  {id:"hike_milford",   category:"hiking",title:"Milford Track",           location:"Fiordland, New Zealand",        lat:-44.6414,lon:167.9222,ap:"ZQN",icon:"🥾",rating:4.97,reviews:5630,gradient:"linear-gradient(160deg,#0a2918,#0f4a2a,#1a7040)",accent:"#4caf70",tags:["World's Finest Walk","Rainforest + Fiord"]},
-  {id:"hike_grand",     category:"hiking",title:"Grand Canyon Bright Angel",location:"Arizona, USA",                  lat:36.0544,lon:-112.1401,ap:"PHX",icon:"🥾",rating:4.96,reviews:12500,gradient:"linear-gradient(160deg,#3d1500,#7a2a00,#b35000)",accent:"#ff6d00",tags:["Iconic Gorge","Sunrise Rim Views"]},
-  {id:"hike_zion",      category:"hiking",title:"Zion Narrows",            location:"Utah, USA",                     lat:37.2902,lon:-112.9522,ap:"LAS",icon:"🥾",rating:4.95,reviews:9800,gradient:"linear-gradient(160deg,#1a0a00,#5c1a00,#a03000)",accent:"#ff7043",tags:["Slot Canyon Wade","Red Rock Walls"]},
-  {id:"hike_everest",   category:"hiking",title:"Everest Base Camp",       location:"Khumbu, Nepal",                 lat:28.0026,lon:86.8528,ap:"KTM",icon:"🥾",rating:4.99,reviews:14200,gradient:"linear-gradient(160deg,#0d1f35,#1a3d6e,#2b62a8)",accent:"#5c9ee8",tags:["5,364m Summit","Legendary Trek"]},
-  {id:"hike_annapurna", category:"hiking",title:"Annapurna Circuit",       location:"Nepal",                         lat:28.5969,lon:84.0002,ap:"KTM",icon:"🥾",rating:4.97,reviews:9100,gradient:"linear-gradient(160deg,#12263d,#1e4a77,#2e73b8)",accent:"#64a8e0",tags:["Thorong La Pass","Himalayan Villages"]},
-  {id:"hike_tmt",       category:"hiking",title:"Tour du Mont Blanc",      location:"Alps, France/Italy/Switzerland",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🥾",rating:4.97,reviews:11600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055a8)",accent:"#4d94d8",tags:["170km Loop","3-Country Route"]},
-  {id:"hike_dolomites", category:"hiking",title:"Dolomites Alta Via",      location:"South Tyrol, Italy",            lat:46.4102,lon:11.8440,ap:"VCE",icon:"🥾",rating:4.96,reviews:7300,gradient:"linear-gradient(160deg,#1a0a30,#3d1870,#6933b8)",accent:"#9b66e8",tags:["Vertical Limestone","Cable Car Access"]},
-  {id:"hike_camino",    category:"hiking",title:"Camino de Santiago",      location:"Galicia, Spain",                lat:42.8805,lon:-8.5459,ap:"SCQ",icon:"🥾",rating:4.94,reviews:28400,gradient:"linear-gradient(160deg,#2d1a00,#6b4000,#a36000)",accent:"#ffb74d",tags:["800km Pilgrimage","Ancient Route"]},
-  {id:"hike_iceland",   category:"hiking",title:"Laugavegur Trail",        location:"Iceland",                       lat:63.9900,lon:-19.0500,ap:"KEF",icon:"🥾",rating:4.96,reviews:6800,gradient:"linear-gradient(160deg,#001428,#003460,#005ca8)",accent:"#4499d8",tags:["Volcanic Highlands","Geothermal Springs"]},
-  {id:"hike_kilimanjaro",category:"hiking",title:"Kilimanjaro Summit",     location:"Tanzania",                      lat:-3.0758,lon:37.3533,ap:"JRO",icon:"🥾",rating:4.97,reviews:9200,gradient:"linear-gradient(160deg,#0d1f00,#1e3d00,#2e5c00)",accent:"#7cb342",tags:["Africa's Roof","5,895m"]},
-  {id:"hike_chaltén",   category:"hiking",title:"El Chaltén / FitzRoy",   location:"Patagonia, Argentina",          lat:-49.3317,lon:-72.8897,ap:"FTE",icon:"🥾",rating:4.98,reviews:7400,gradient:"linear-gradient(160deg,#001428,#00254f,#003d80)",accent:"#3399cc",tags:["World Trekking Capital","Iconic Spires"]},
-  {id:"hike_banff",     category:"hiking",title:"Banff Backcountry",       location:"Alberta, Canada",               lat:51.4968,lon:-115.9281,ap:"YYC",icon:"🥾",rating:4.95,reviews:8800,gradient:"linear-gradient(160deg,#001d33,#003d6e,#0065b3)",accent:"#33aaee",tags:["Rockies Wilderness","Grizzly Country"]},
-  {id:"hike_routeburn", category:"hiking",title:"Routeburn Track",         location:"New Zealand",                   lat:-44.7100,lon:168.0800,ap:"ZQN",icon:"🥾",rating:4.96,reviews:4900,gradient:"linear-gradient(160deg,#0a2818,#154d30,#1e7548)",accent:"#4caf78",tags:["Fiordland + Mt Aspiring","Ridgeline Views"]},
-  {id:"hike_overland",  category:"hiking",title:"Overland Track",          location:"Tasmania, Australia",           lat:-41.6388,lon:145.9564,ap:"LST",icon:"🥾",rating:4.93,reviews:3800,gradient:"linear-gradient(160deg,#1a2a00,#304d00,#4a7000)",accent:"#88bb44",tags:["Cradle Mountain","6-Day Traverse"]},
-  {id:"hike_skye",      category:"hiking",title:"Cuillin Ridge, Skye",     location:"Isle of Skye, Scotland",        lat:57.2150,lon:-6.2300,ap:"INV",icon:"🥾",rating:4.94,reviews:5600,gradient:"linear-gradient(160deg,#0a0d1a,#181e40,#253070)",accent:"#5566a8",tags:["Scrambler's Paradise","Dramatic Sea Views"]},
-  {id:"hike_faroe",     category:"hiking",title:"Faroe Islands Trails",    location:"Faroe Islands, Denmark",        lat:61.8926,lon:-6.9118,ap:"FAE",icon:"🥾",rating:4.95,reviews:4200,gradient:"linear-gradient(160deg,#001a28,#003850,#005880)",accent:"#3399bb",tags:["Sea Cliffs + Puffins","Off the Grid"]},
-  {id:"hike_havasupai", category:"hiking",title:"Havasupai Falls",         location:"Arizona, USA",                  lat:36.2553,lon:-112.6987,ap:"PHX",icon:"🥾",rating:4.99,reviews:15600,gradient:"linear-gradient(160deg,#00142b,#002855,#004891)",accent:"#00c4e6",tags:["Turquoise Waterfalls","Lottery Permit"]},
-  {id:"hike_fuji",      category:"hiking",title:"Mount Fuji",              location:"Shizuoka, Japan",               lat:35.3606,lon:138.7274,ap:"NRT",icon:"🥾",rating:4.88,reviews:22000,gradient:"linear-gradient(160deg,#0d1530,#1a2d60,#2a4890)",accent:"#6688cc",tags:["Iconic Sunrise","Yoshida Trail"]},
-  {id:"hike_petra",     category:"hiking",title:"Petra & Wadi Rum",        location:"Jordan",                        lat:30.3285,lon:35.4444,ap:"AMM",icon:"🥾",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#2d1800,#6b3c00,#a86000)",accent:"#e0944d",tags:["Rose-Red City","Nabataean Trail"]},
-  {id:"hike_madeira",   category:"hiking",title:"Madeira Levada Walks",    location:"Madeira, Portugal",             lat:32.7607,lon:-16.9595,ap:"FNC",icon:"🥾",rating:4.92,reviews:7200,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#66bb44",tags:["Jungle Watercourses","Laurissilva Forest"]},
-  {id:"hike_azores",    category:"hiking",title:"Azores Sete Cidades",     location:"São Miguel, Azores",            lat:37.7412,lon:-25.6756,ap:"PDL",icon:"🥾",rating:4.94,reviews:5900,gradient:"linear-gradient(160deg,#001a14,#003828,#006045)",accent:"#2abf8a",tags:["Twin Crater Lakes","Volcanic Islands"]},
-  {id:"hike_cinque",    category:"hiking",title:"Cinque Terre Via dell'Amore",location:"Liguria, Italy",            lat:44.1231,lon:9.7218,ap:"PSA",icon:"🥾",rating:4.88,reviews:24000,gradient:"linear-gradient(160deg,#001432,#002d6b,#004aaa)",accent:"#3399ee",tags:["Coastal Clifftop Path","Five Villages"]},
-  {id:"hike_smoky",     category:"hiking",title:"Great Smoky Mountains",   location:"Tennessee/NC, USA",             lat:35.6532,lon:-83.5070,ap:"TYS",icon:"🥾",rating:4.91,reviews:16400,gradient:"linear-gradient(160deg,#0a1a0a,#1a3d1a,#2a5e2a)",accent:"#66aa44",tags:["Appalachian Trail","Mist-Cloaked Peaks"]},
-  {id:"hike_olympic",   category:"hiking",title:"Olympic NP Hoh Rainforest",location:"Washington, USA",             lat:47.8021,lon:-123.6044,ap:"SEA",icon:"🥾",rating:4.93,reviews:7800,gradient:"linear-gradient(160deg,#001a0a,#003820,#005e38)",accent:"#33aa66",tags:["Temperate Rainforest","Coastline Beaches"]},
-  {id:"hike_langtang",  category:"hiking",title:"Langtang Valley Trek",    location:"Nepal",                         lat:28.2107,lon:85.5170,ap:"KTM",icon:"🥾",rating:4.94,reviews:6100,gradient:"linear-gradient(160deg,#0d1e35,#1a3c6e,#2b5fa8)",accent:"#5588d8",tags:["Off the Beaten Path","Tamang Culture"]},
-  {id:"hike_bhutan",    category:"hiking",title:"Tiger's Nest Trek",       location:"Paro Valley, Bhutan",           lat:27.4760,lon:89.3630,ap:"PBH",icon:"🥾",rating:4.99,reviews:8900,gradient:"linear-gradient(160deg,#1a1000,#3d2800,#6b4800)",accent:"#ddaa44",tags:["Sacred Monastery","3,120m Cliff"]},
-  {id:"hike_snowdonia", category:"hiking",title:"Snowdon Summit",          location:"Wales, UK",                     lat:53.0684,lon:-4.0757,ap:"MAN",icon:"🥾",rating:4.88,reviews:11200,gradient:"linear-gradient(160deg,#0d1e28,#1a3d52,#286080)",accent:"#5599bb",tags:["Wales' Highest Peak","Mountain Railway"]},
-  {id:"hike_pyrenees",  category:"hiking",title:"Pyrenees GR10",           location:"France/Spain",                  lat:42.7534,lon:0.2140,ap:"BOD",icon:"🥾",rating:4.95,reviews:5400,gradient:"linear-gradient(160deg,#1a0a00,#3d1a00,#6b3000)",accent:"#cc7744",tags:["Spain to Atlantic","850km Challenge"]},
-  {id:"hike_gr20",      category:"hiking",title:"GR20 Corsica",            location:"Corsica, France",               lat:42.1546,lon:9.1500,ap:"AJA",icon:"🥾",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#0a1a2d,#143358,#1f4e8c)",accent:"#4477bb",tags:["Europe's Toughest Trail","Granite Ridges"]},
-  {id:"hike_kalalau",   category:"hiking",title:"Kalalau Trail",           location:"Kauai, Hawaii",                 lat:22.2178,lon:-159.6502,ap:"LIH",icon:"🥾",rating:4.97,reviews:6300,gradient:"linear-gradient(160deg,#001a00,#003800,#006600)",accent:"#44aa44",tags:["Nā Pali Coast","Permit Required"]},
-  {id:"hike_redwood",   category:"hiking",title:"Redwood Cathedral Grove", location:"California, USA",               lat:41.2132,lon:-124.0046,ap:"SFO",icon:"🥾",rating:4.92,reviews:9100,gradient:"linear-gradient(160deg,#0d2200,#1e4400,#2e6800)",accent:"#6db33f",tags:["Tallest Trees on Earth","Coastal Fog Belt"]},
-  {id:"hike_jasper",    category:"hiking",title:"Jasper Skyline Trail",    location:"Alberta, Canada",               lat:52.8737,lon:-117.9543,ap:"YEG",icon:"🥾",rating:4.95,reviews:3600,gradient:"linear-gradient(160deg,#001428,#002b55,#004488)",accent:"#4488cc",tags:["Above Treeline","Glacier Views"]},
-  {id:"hike_tablemin",  category:"hiking",title:"Table Mountain",          location:"Cape Town, South Africa",       lat:-33.9628,lon:18.4098,ap:"CPT",icon:"🥾",rating:4.95,reviews:14200,gradient:"linear-gradient(160deg,#001428,#00254f,#003c80)",accent:"#3377cc",tags:["Cable Car Optional","City + Ocean Views"]},
-  {id:"hike_colca",     category:"hiking",title:"Colca Canyon",            location:"Arequipa, Peru",                lat:-15.5366,lon:-72.0011,ap:"AQP",icon:"🥾",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#2d1a00,#5c3400,#8c5000)",accent:"#e09050",tags:["Condor Spotting","World's Deepest Canyon"]},
-  {id:"hike_rockymtn",  category:"hiking",title:"Rocky Mountain NP",       location:"Colorado, USA",                 lat:40.3428,lon:-105.6836,ap:"DEN",icon:"🥾",rating:4.93,reviews:18700,gradient:"linear-gradient(160deg,#001428,#002855,#003d80)",accent:"#4488cc",tags:["Trail Ridge Road","Elk Meadows"]},
-  {id:"hike_adirondacks",category:"hiking",title:"Adirondack High Peaks",  location:"New York, USA",                 lat:44.1126,lon:-73.9236,ap:"BTV",icon:"🥾",rating:4.89,reviews:7200,gradient:"linear-gradient(160deg,#0d2200,#1e4400,#2e6800)",accent:"#55aa44",tags:["46 Peaks Challenge","Fall Colors"]},
-  {id:"hike_volcano_hi",category:"hiking",title:"Hawaii Volcanoes NP",     location:"Big Island, Hawaii",            lat:19.4194,lon:-155.2885,ap:"KOA",icon:"🥾",rating:4.92,reviews:11400,gradient:"linear-gradient(160deg,#1a0000,#3d0000,#6b0000)",accent:"#ff5500",tags:["Active Lava Flows","Kilauea Crater"]},
-  {id:"hike_brecon",    category:"hiking",title:"Brecon Beacons",          location:"Wales, UK",                     lat:51.8836,lon:-3.4360,ap:"CWL",icon:"🥾",rating:4.88,reviews:5600,gradient:"linear-gradient(160deg,#0d1e0d,#1a3d1a,#275f27)",accent:"#55aa55",tags:["Waterfall Country","Open Moorland"]},
-  {id:"hike_patagosur",  category:"hiking",title:"Patagonia W Circuit",    location:"Torres del Paine, Chile",       lat:-50.9423,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:6400,gradient:"linear-gradient(160deg,#001428,#00274f,#003c7a)",accent:"#3399cc",tags:["Grey Glacier","Los Torres Sunrise"]},
-
   // ═══════════════════════════════════════════════════════════════════
   // ─── BEACH & TAN (TOP BEACHES WORLDWIDE) ────────────────────────
   // ═══════════════════════════════════════════════════════════════════
@@ -926,34 +874,6 @@ function scoreVenue(venue, wx, marine) {
       period = sunny && bestDays > 1 ? `${Math.min(bestDays, 7)}-day clear window`
              : clear ? "Clear day ahead"
              : "Clear stretches";
-      break;
-    }
-
-    case "hiking": {
-      const perfectTemp = tempMax >= 55 && tempMax <= 72;
-      const warmOk = tempMax > 72 && tempMax <= 85;
-      const storm  = wCode >= 80;
-      const rain   = wCode >= 61 && wCode < 80;
-      if      (!storm && !rain && precip < 2 && perfectTemp && wind < 15)
-        score = 85 + Math.min(13, bestDays * 1.8);
-      else if (!storm && !rain && precip < 5 && (perfectTemp || warmOk) && wind < 22)
-        score = 76 + Math.min(10, bestDays);
-      else if (!storm && !rain && precip < 5)
-        score = 68;
-      else if (rain && !storm)
-        score = 48 + Math.max(0, 5 - precip);
-      else if (storm)
-        score = 28;
-      else
-        score = 62;
-      if (wind > 30) score -= 10;
-      const cond = storm ? "⛈️ Storm risk" : rain ? "🌧️ Rain showers" : wCode >= 3 ? "⛅ Overcast" : "🌤️ Clear";
-      label  = `${cond} · ${tempMax}°F`;
-      period = score >= 90 ? `Rare ${bestDays}-day clear spell`
-             : score >= 80 ? `${bestDays}-day perfect window`
-             : score >= 70 ? "Good conditions today"
-             : score >= 50 ? "Marginal — check forecast"
-             : "Wait for dry weather";
       break;
     }
 
@@ -1910,7 +1830,6 @@ const VIBE_PROMPTS = [
   "Powder day with epic views and cozy lodge vibes after",
   "Remote tropical beach, no crowds, crystal water",
   "Big wave surf, warm water, laid-back beach culture",
-  "Alpine hiking to glacial lakes, raw wilderness",
   "Luxury beach resort, turquoise sea, total relaxation",
   "Underwater paradise — coral reefs, visibility 30m+",
   "Steep off-piste skiing, deep powder, real adventure",
@@ -1934,7 +1853,6 @@ function scoreVibeMatch(listings, text) {
     // activities
     ski:       /\b(ski|snowboard|powder|piste|mogul|lodge|après|apres|backcountry|off.piste|gondola)\b/.test(t),
     surf:      /\b(surf|wave|barrel|swell|board|break|set|reef|point.break|hang.ten)\b/.test(t),
-    hike:      /\b(hike|hiking|trek|trail|summit|peak|backpack|camp|elevation|wilderness|ridge)\b/.test(t),
     dive:      /\b(dive|diving|snorkel|underwater|reef|coral|fish|visibility|marine|scuba)\b/.test(t),
     kayak:     /\b(kayak|paddle|sea kayak|coastal|flat.water)\b/.test(t),
     beach:     /\b(beach|sand|tan|lounge|shore|coast|turquoise|crystal|clear water|sunbathe)\b/.test(t),
@@ -1961,7 +1879,6 @@ function scoreVibeMatch(listings, text) {
     // ── category match (strongest signal) ──────────────────────────────────
     if (f.ski   && l.category === "skiing")  s += 44;
     if (f.surf  && l.category === "surfing") s += 44;
-    if (f.hike  && l.category === "hiking")  s += 44;
     if (f.dive  && l.category === "diving")  s += 44;
     if (f.kayak && l.category === "kayak")   s += 44;
     if (f.beach && l.category === "tanning") s += 44;
@@ -1976,7 +1893,7 @@ function scoreVibeMatch(listings, text) {
     if (f.hot  && isCold)  s -= 14;
 
     // ── intensity / vibe ────────────────────────────────────────────────────
-    const isAdrenalineCat = ["skiing","surfing","hiking","kayak"].includes(l.category);
+    const isAdrenalineCat = ["skiing","surfing","kayak"].includes(l.category);
     if (f.adrenaline && isAdrenalineCat) s += 16;
     if (f.relax && l.category === "tanning") s += 18;
     if (f.relax && l.category === "diving")  s += 10;
@@ -2531,7 +2448,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
   const [newListEmoji, setNewListEmoji] = useState("🗺️");
 
   const savedAll  = listings.filter(l => wishlists.includes(l.id));
-  const EMOJIS    = ["🗺️","🎿","🏄","🥾","☀️","🏔️","🌊","🏝️","🌿","⛷️","🛫","🎒"];
+  const EMOJIS    = ["🗺️","🎿","🏄","☀️","🌊","🏝️","⛷️","🛫","🎒"];
 
   const createList = () => {
     if (!newListName.trim()) return;
@@ -3394,7 +3311,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
         {/* ── Share & Refer (combined) ── */}
         <div style={{ marginBottom:20 }}>
           <button className="pressable" onClick={() => {
-            const msg = "Check out Peakly — find surf, ski & adventure spots when conditions + cheap flights align 🏄⛷️🏔️ https://peakly.app";
+            const msg = "Check out Peakly — find surf, ski & beach spots when conditions + cheap flights align. https://peakly.app";
             const doCopy = () => {
               try {
                 if (navigator.clipboard?.writeText) {
@@ -3712,7 +3629,7 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                             borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800,
                             color: l.conditionScore >= 82 ? "#ff385c" : l.conditionScore >= 68 ? "#ea580c" : "#666",
                             fontFamily:F,
-                          }}>🔥 {l.conditionScore}pts</span>
+                          }}>🔥 {l.conditionScore}</span>
                           <span style={{ background:"#f0fff4", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800, color:"#16a34a", fontFamily:F }}>
                             ✈️ ${l.flight.price}
                           </span>
@@ -4043,7 +3960,6 @@ function wxEmoji(code) { for (const [k,v] of WX_CODE_MAP) { if ((code??0) >= k) 
 const LOCAL_TIPS = {
   skiing:   ["🎿 Book ski rentals online 2+ days ahead — 30% cheaper than on-mountain","⏰ Hit the slopes at 8am — first 2 hours have the freshest groomed corduroy","🌤️ Overcast days = no wind & flat light is actually great for carving","🧴 Reapply SPF every 2h — UV reflects off snow and burns fast at altitude"],
   surfing:  ["🌅 Dawn patrol has the glassiest water and thinnest crowds of the day","🏄 Paddle out via the channel, not through the break — saves 80% of your energy","📱 Check swell reports the night before, not morning — you need lead time","🦈 Avoid surfing at dawn/dusk near river mouths — peak shark feeding windows"],
-  hiking:   ["💧 Pack 2× the water you think you'll need — resupply is never guaranteed","⛅ Start alpine routes by 6am to summit before afternoon lightning builds","📱 Download trail maps offline before leaving — no signal in the backcountry","🥾 Tighten your laces on descents to protect toenails from repeated impact"],
   tanning:  ["🌅 Arrive at the beach before 10am to claim the best real estate","🧴 Apply SPF 50+ 20 min before sun exposure — it needs time to bind to skin","🌊 Stake out near the shoreline for natural cooling sea breezes","🕐 The 10am–2pm window has the strongest UV — find shade between those hours"],
   diving:   ["🐠 Early morning dives have the clearest visibility before particles stir","🌡️ Bring a wetsuit even in warm water — decompression chills are real","📸 Shoot with the sun behind you and fish in frame — colors pop instantly","🎓 Book a local guide — they know the secret macro critters and wall overhangs"],
   climbing: ["🕐 Arrive at the crag early — popular routes have queues on weekends","🤲 Tape fingers before the first route, not after pain starts","🌡️ Rock temps below 15°C (59°F) give noticeably better friction","☁️ Cloudy days are often better — direct sun makes granite and sandstone slick"],
@@ -4059,7 +3975,6 @@ const LOCAL_TIPS = {
 const MONTH_SCORES = {
   skiing:   [3,3,2,1,0,0,0,0,0,1,2,3],
   surfing:  [2,2,2,2,2,3,3,2,2,2,2,2],
-  hiking:   [1,1,2,2,3,3,3,3,3,2,1,1],
   tanning:  [2,2,2,3,3,3,3,3,3,2,2,2],
   diving:   [2,2,2,3,3,3,3,3,3,2,2,2],
   climbing: [1,2,3,3,2,1,0,1,3,3,2,1],
@@ -4118,7 +4033,6 @@ function ConditionSparkline({ forecast }) {
 const PACKING = {
   skiing:   ["🧥 Base + mid + shell layers","🥽 Goggles (anti-fog)","⛷️ Ski/snowboard boots","🧤 Waterproof gloves","🪖 Helmet","🧴 SPF 50+ (UV reflects off snow)","💊 Altitude meds if needed"],
   surfing:  ["🏄 Surfboard (check bag fees)","🤿 Wetsuit (right thickness)","🧴 Board wax","👟 Reef booties","🌞 SPF 50+ water-resistant","🔌 Earplugs","🧴 After-surf skin care"],
-  hiking:   ["👟 Trail shoes / boots","🪄 Trekking poles","🧥 Packable rain jacket","🗺️ Offline map / GPS","🔦 Headlamp + spare battery","🩹 First aid kit","💧 Water filter / purification tabs"],
   tanning:  ["🧴 SPF 50+ sunscreen (re-apply!)","🕶️ UV400 sunglasses","👒 Wide-brim sun hat","🏖️ Beach towel","💆 After-sun / aloe vera","👟 Flip flops","💊 Electrolyte tablets"],
   diving:   ["🤿 Mask, fins & snorkel","🧥 Wetsuit (correct temp rating)","🦺 BCD + regulator","⌚ Dive computer","📜 Certification card","💊 Seasickness meds","🩹 First aid kit"],
   climbing: ["🪢 Harness + belay device","👟 Rock shoes","🤲 Chalk bag","🪖 Climbing helmet","🪢 60m dynamic rope","⚡ 12× quickdraws","🩹 Finger tape"],
@@ -4131,7 +4045,6 @@ const PACKING = {
 const BEST_MONTHS = {
   skiing:   "Dec – Mar (Northern Hemi) · Jun – Sep (AU / NZ / Southern Hemi)",
   surfing:  "Year-round · Peak swells vary by coast and swell window",
-  hiking:   "Jun – Sep (alpine routes) · Oct – Apr (tropical & desert routes)",
   tanning:  "Jun – Aug (Mediterranean) · Nov – Mar (tropics & Caribbean)",
   diving:   "Year-round in tropics · Apr – Oct in temperate zones",
   climbing: "Mar – May & Sep – Nov (dry season optimal)",
@@ -4146,28 +4059,22 @@ const BEST_MONTHS = {
 // TODO: Replace AFFILIATE_ID placeholders with your real REI/Backcountry IDs
 const GEAR_ITEMS = {
   skiing:   [
-    { emoji:"🎿", name:"Atomic Bent 100 Skis",         store:"REI",         price:"$699",  commission:"5%",  url:"https://www.rei.com/product/atomic-bent-100?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🥽", name:"Smith 4D MAG Goggles",          store:"Backcountry", price:"$230",  commission:"8%",  url:"https://www.backcountry.com/smith-4d-mag-goggles?sc=AFFILIATE_ID" },
-    { emoji:"🧥", name:"Arc'teryx Sabre AR Jacket",     store:"REI",         price:"$750",  commission:"5%",  url:"https://www.rei.com/product/arcteryx-sabre?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🧤", name:"Black Diamond Guide Gloves",    store:"REI",         price:"$85",   commission:"5%",  url:"https://www.rei.com/product/black-diamond-guide?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🎿", name:"Skis",                          store:"REI",         price:"$599+",  commission:"5%",  url:"https://www.rei.com/search?q=skis" },
+    { emoji:"🥽", name:"Ski Goggles",                   store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+goggles" },
+    { emoji:"🧥", name:"Ski Jacket",                    store:"REI",         price:"$299+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+jacket" },
+    { emoji:"🧤", name:"Ski Gloves",                    store:"REI",         price:"$49+",   commission:"5%",  url:"https://www.rei.com/search?q=ski+gloves" },
   ],
   surfing:  [
-    { emoji:"🏄", name:"JS Industries Monsta Box",      store:"Degree 33",   price:"$650",  commission:"7%",  url:"https://degree33surfboards.com/products/monsta-box?ref=AFFILIATE_ID" },
-    { emoji:"🤿", name:"O'Neill Psycho Tech 3/2 Suit",  store:"REI",         price:"$320",  commission:"5%",  url:"https://www.rei.com/product/oneill-psycho-tech?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🧴", name:"Sticky Bumps Original Wax",     store:"Amazon",      price:"$12",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🌞", name:"Manda Organic SPF 50 Sunscreen",store:"REI",         price:"$24",   commission:"5%",  url:"https://www.rei.com/product/manda-spf50?cm_mmc=aff_AL-AFFILIATE_ID" },
-  ],
-  hiking:   [
-    { emoji:"🥾", name:"Salomon X Ultra 4 GTX",         store:"REI",         price:"$185",  commission:"5%",  url:"https://www.rei.com/product/salomon-x-ultra-4?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🧥", name:"Patagonia Houdini Jacket",       store:"Patagonia",   price:"$129",  commission:"8%",  url:"https://www.patagonia.com/product/houdini?ref=AFFILIATE_ID" },
-    { emoji:"💧", name:"Katadyn BeFree Water Filter",    store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/product/katadyn-befree?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🎒", name:"Osprey Atmos AG 65L Pack",       store:"REI",         price:"$320",  commission:"5%",  url:"https://www.rei.com/product/osprey-atmos-65?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🏄", name:"Surfboard",                     store:"REI",         price:"$349+",  commission:"5%",  url:"https://www.rei.com/search?q=surfboard" },
+    { emoji:"🤿", name:"Wetsuit",                       store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=wetsuit" },
+    { emoji:"🧴", name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?k=surf+wax" },
+    { emoji:"🌞", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?k=reef+safe+sunscreen" },
   ],
   tanning:  [
-    { emoji:"🧴", name:"Supergoop Unseen Sunscreen SPF40",store:"Sephora",   price:"$38",   commission:"6%",  url:"https://www.sephora.com/product/unseen-sunscreen?ref=AFFILIATE_ID" },
-    { emoji:"🕶️", name:"Ray-Ban Wayfarer Polarized",     store:"Sunglass Hut",price:"$195", commission:"5%",  url:"https://www.sunglasshut.com/ray-ban-wayfarer?ref=AFFILIATE_ID" },
-    { emoji:"🏖️", name:"Rumpl Original Puffy Blanket",   store:"REI",         price:"$99",   commission:"5%",  url:"https://www.rei.com/product/rumpl-puffy-blanket?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"💊", name:"Liquid IV Hydration Multiplier", store:"Amazon",      price:"$29",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🧴", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?k=reef+safe+sunscreen" },
+    { emoji:"🕶️", name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?k=polarized+sunglasses" },
+    { emoji:"🏖️", name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?k=beach+towel" },
+    { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?k=hydration+drink+mix" },
   ],
   diving:   [
     { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
@@ -4214,60 +4121,55 @@ const GEAR_ITEMS = {
 };
 
 // ─── guided experiences per category ──────────────────────────────────────────
-// TODO: Replace with real GetYourGuide / Viator affiliate links after signup
+// Links are generated dynamically based on venue location
 const EXPERIENCES = {
   skiing:   [
-    { emoji:"🎿", name:"Private ski lesson (beginner)",  price:120, duration:"2 hrs",  url:"https://www.getyourguide.com/activity/skiing-lesson?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🏔️", name:"Off-piste powder guide",         price:280, duration:"Full day",url:"https://www.getyourguide.com/activity/off-piste-guide?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🌅", name:"Sunrise first tracks tour",      price:160, duration:"3 hrs",  url:"https://www.getyourguide.com/activity/first-tracks?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🎿", name:"Private ski lesson (beginner)",  price:120, duration:"2 hrs" },
+    { emoji:"🏔️", name:"Off-piste powder guide",         price:280, duration:"Full day" },
+    { emoji:"🌅", name:"Sunrise first tracks tour",      price:160, duration:"3 hrs" },
   ],
   surfing:  [
-    { emoji:"🏄", name:"Beginner surf lesson",           price:65,  duration:"2 hrs",  url:"https://www.getyourguide.com/activity/surf-lesson?ref=PEAKLY_AFFILIATE" },
-    { emoji:"📸", name:"In-water surf photography",      price:120, duration:"2 hrs",  url:"https://www.getyourguide.com/activity/surf-photo?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🚤", name:"Dawn patrol boat surf charter",  price:200, duration:"4 hrs",  url:"https://www.getyourguide.com/activity/surf-charter?ref=PEAKLY_AFFILIATE" },
-  ],
-  hiking:   [
-    { emoji:"🥾", name:"Guided summit attempt",          price:95,  duration:"Full day",url:"https://www.getyourguide.com/activity/guided-hike?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🌿", name:"Wilderness survival skills",     price:140, duration:"Half day",url:"https://www.getyourguide.com/activity/survival-course?ref=PEAKLY_AFFILIATE" },
-    { emoji:"📸", name:"Landscape photography hike",    price:85,  duration:"3 hrs",  url:"https://www.getyourguide.com/activity/photo-hike?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🏄", name:"Beginner surf lesson",           price:65,  duration:"2 hrs" },
+    { emoji:"📸", name:"In-water surf photography",      price:120, duration:"2 hrs" },
+    { emoji:"🚤", name:"Dawn patrol boat surf charter",  price:200, duration:"4 hrs" },
   ],
   tanning:  [
-    { emoji:"🚤", name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs",  url:"https://www.getyourguide.com/activity/snorkel-tour?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🧘", name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr",   url:"https://www.getyourguide.com/activity/beach-yoga?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🪂", name:"Parasailing over the water",     price:89,  duration:"30 min", url:"https://www.getyourguide.com/activity/parasailing?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🚤", name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs" },
+    { emoji:"🧘", name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr" },
+    { emoji:"🪂", name:"Parasailing over the water",     price:89,  duration:"30 min" },
   ],
   diving:   [
-    { emoji:"🤿", name:"Discover scuba intro dive",      price:110, duration:"Half day",url:"https://www.getyourguide.com/activity/intro-dive?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🐠", name:"Night dive with marine biologist",price:145,duration:"2 hrs",  url:"https://www.getyourguide.com/activity/night-dive?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🐋", name:"Whale shark snorkel (seasonal)", price:175, duration:"4 hrs",  url:"https://www.getyourguide.com/activity/whale-shark?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🤿", name:"Discover scuba intro dive",      price:110, duration:"Half day" },
+    { emoji:"🐠", name:"Night dive with marine biologist",price:145,duration:"2 hrs" },
+    { emoji:"🐋", name:"Whale shark snorkel (seasonal)", price:175, duration:"4 hrs" },
   ],
   climbing: [
-    { emoji:"🪢", name:"Rock climbing intro lesson",     price:95,  duration:"Half day",url:"https://www.getyourguide.com/activity/climbing-lesson?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🏔️", name:"Multi-pitch guided climb",       price:340, duration:"Full day",url:"https://www.getyourguide.com/activity/multi-pitch?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🧗", name:"Via ferrata (iron road) tour",   price:110, duration:"4 hrs",  url:"https://www.getyourguide.com/activity/via-ferrata?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🪢", name:"Rock climbing intro lesson",     price:95,  duration:"Half day" },
+    { emoji:"🏔️", name:"Multi-pitch guided climb",       price:340, duration:"Full day" },
+    { emoji:"🧗", name:"Via ferrata (iron road) tour",   price:110, duration:"4 hrs" },
   ],
   kayak:    [
-    { emoji:"🛶", name:"Sea kayak guided day tour",      price:85,  duration:"Full day",url:"https://www.getyourguide.com/activity/kayak-tour?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🌙", name:"Bioluminescent night kayak",     price:65,  duration:"2 hrs",  url:"https://www.getyourguide.com/activity/bio-kayak?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🦦", name:"Wildlife wildlife kayak tour",   price:90,  duration:"3 hrs",  url:"https://www.getyourguide.com/activity/wildlife-kayak?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🛶", name:"Sea kayak guided day tour",      price:85,  duration:"Full day" },
+    { emoji:"🌙", name:"Bioluminescent night kayak",     price:65,  duration:"2 hrs" },
+    { emoji:"🦦", name:"Wildlife wildlife kayak tour",   price:90,  duration:"3 hrs" },
   ],
   mtb:      [
-    { emoji:"🚵", name:"Guided enduro trail descent",    price:120, duration:"4 hrs",  url:"https://www.getyourguide.com/activity/enduro-guide?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🚐", name:"Uplift shuttle + guided flow",   price:85,  duration:"3 hrs",  url:"https://www.getyourguide.com/activity/mtb-shuttle?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🔧", name:"Trail skills clinic",            price:75,  duration:"Half day",url:"https://www.getyourguide.com/activity/mtb-skills?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🚵", name:"Guided enduro trail descent",    price:120, duration:"4 hrs" },
+    { emoji:"🚐", name:"Uplift shuttle + guided flow",   price:85,  duration:"3 hrs" },
+    { emoji:"🔧", name:"Trail skills clinic",            price:75,  duration:"Half day" },
   ],
   kite:     [
-    { emoji:"🪁", name:"IKO kitesurf beginner course",   price:220, duration:"3 days", url:"https://www.getyourguide.com/activity/kite-course?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🏄", name:"Foil kiteboard intro lesson",    price:140, duration:"2 hrs",  url:"https://www.getyourguide.com/activity/foil-lesson?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🤿", name:"Downwinder + snorkel combo",     price:95,  duration:"4 hrs",  url:"https://www.getyourguide.com/activity/downwinder?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🪁", name:"IKO kitesurf beginner course",   price:220, duration:"3 days" },
+    { emoji:"🏄", name:"Foil kiteboard intro lesson",    price:140, duration:"2 hrs" },
+    { emoji:"🤿", name:"Downwinder + snorkel combo",     price:95,  duration:"4 hrs" },
   ],
   fishing:  [
-    { emoji:"🎣", name:"Full-day offshore charter",      price:220, duration:"Full day",url:"https://www.getyourguide.com/activity/offshore-fishing?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🪄", name:"Fly fishing guided wade trip",   price:180, duration:"Full day",url:"https://www.getyourguide.com/activity/fly-fishing?ref=PEAKLY_AFFILIATE" },
-    { emoji:"🌅", name:"Sunrise kayak fishing tour",     price:95,  duration:"4 hrs",  url:"https://www.getyourguide.com/activity/kayak-fishing?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🎣", name:"Full-day offshore charter",      price:220, duration:"Full day" },
+    { emoji:"🪄", name:"Fly fishing guided wade trip",   price:180, duration:"Full day" },
+    { emoji:"🌅", name:"Sunrise kayak fishing tour",     price:95,  duration:"4 hrs" },
   ],
   paraglide:[
-    { emoji:"🪂", name:"Tandem paraglide flight",        price:175, duration:"30 min", url:"https://www.getyourguide.com/activity/tandem-paraglide?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🪂", name:"Tandem paraglide flight",        price:175, duration:"30 min" },
     { emoji:"🎓", name:"P2 paragliding course (5 days)", price:950, duration:"5 days", url:"https://www.getyourguide.com/activity/p2-course?ref=PEAKLY_AFFILIATE" },
     { emoji:"📸", name:"Aerial photography flight",      price:220, duration:"1 hr",   url:"https://www.getyourguide.com/activity/aerial-photo?ref=PEAKLY_AFFILIATE" },
   ],
@@ -4293,10 +4195,10 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     wave:  md?.wave_height_max?.[i]   ?? null,
   })) : [];
 
-  const packing    = PACKING[listing.category]      || PACKING.hiking;
+  const packing    = PACKING[listing.category]      || PACKING.surfing;
   const bestMonth  = BEST_MONTHS[listing.category]  || "Varies by location and season";
-  const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.hiking;
-  const monthScores = MONTH_SCORES[listing.category] || MONTH_SCORES.hiking;
+  const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
+  const monthScores = MONTH_SCORES[listing.category] || MONTH_SCORES.surfing;
   const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap);
 
   // Similar venues: same category, excluding current, sorted by score
@@ -4322,7 +4224,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     setNewListName(""); setShowListPicker(false);
   };
   const copyShareLink = (textOverride) => {
-    const text = textOverride || `Check out ${listing.title} on Peakly! 🏔️\nConditions: ${listing.conditionScore}pts · Flight from $${listing.flight.price}\n\nFind your next adventure at peakly.app`;
+    const text = textOverride || `Check out ${listing.title} on Peakly!\nConditions: ${listing.conditionScore} · Flight from $${listing.flight.price}\n\nFind your next adventure at peakly.app`;
     const finish = () => { setShareVenueCopied(true); setTimeout(() => setShareVenueCopied(false), 2200); };
     try {
       navigator.clipboard?.writeText(text).then(finish).catch(finish);
@@ -4376,7 +4278,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>{shareVenueCopied ? "Copied!" : "Copy link"}</span>
               </button>
               <button onClick={() => {
-                const card = `🏔️ ${listing.title}\n📍 ${listing.location}\n⚡ Conditions: ${listing.conditionScore}pts — ${listing.conditionLabel}\n✈️ Flights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → peakly.app`;
+                const card = `${listing.title}\n📍 ${listing.location}\n⚡ Conditions: ${listing.conditionScore} — ${listing.conditionLabel}\n✈️ Flights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → peakly.app`;
                 copyShareLink(card);
               }} className="pressable" style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"10px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <span style={{ fontSize:14 }}>📋</span>
@@ -4386,7 +4288,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ background:"rgba(255,255,255,0.08)", borderRadius:12, padding:"10px 12px" }}>
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontFamily:F, lineHeight:1.6 }}>
                 🏔️ <strong style={{ color:"white" }}>{listing.title}</strong><br />
-                ⚡ {listing.conditionScore}pts · ✈️ From ${listing.flight.price}<br />
+                ⚡ {listing.conditionScore} · ✈️ From ${listing.flight.price}<br />
                 <span style={{ color:"rgba(255,255,255,0.45)" }}>Find your next adventure → peakly.app</span>
               </div>
             </div>
@@ -4398,7 +4300,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           <div style={{ display:"flex", gap:10, marginBottom:14 }}>
             <div style={{ flex:1, background: listing.conditionScore >= 85 ? "#f0f9ff" : listing.conditionScore >= 70 ? "#fff7ed" : "#f7f7f7", borderRadius:14, padding:"12px 14px" }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Conditions now</div>
-              <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}<span style={{ fontSize:12, fontWeight:600 }}>pts</span></div>
+              <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}</div>
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.conditionLabel}</div>
             </div>
             <div style={{ flex:1, background:"#f0fff4", borderRadius:14, padding:"12px 14px" }}>
@@ -4436,52 +4338,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           )}
 
-          {/* Conditions trend sparkline + Quick alert */}
-          {forecast.length > 0 && (
-            <div style={{ background:"#f7f7f7", borderRadius:14, padding:"13px 14px", marginBottom:14 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>📈 7-Day Trend</div>
-                {onAlert && (
-                  <button onClick={() => { onAlert(listing); }} className="pressable" style={{ background:"#0284c7", border:"none", borderRadius:20, padding:"5px 11px", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-                    <span style={{ fontSize:10 }}>🔔</span>
-                    <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>Alert me</span>
-                  </button>
-                )}
-              </div>
-              <ConditionSparkline forecast={forecast} />
-              <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-                <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>Today</span>
-                <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>Day 7</span>
-              </div>
-            </div>
-          )}
-
-          {/* Best months heatmap — 12-month visual grid */}
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>🗓️ Best Months</div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:4 }}>
-              {monthScores.map((score, i) => {
-                const bg = score === 3 ? "#22c55e" : score === 2 ? "#84cc16" : score === 1 ? "#fef3c7" : "#f0f0f0";
-                const clr = score >= 2 ? "white" : score === 1 ? "#92400e" : "#ccc";
-                const isNow = new Date().getMonth() === i;
-                return (
-                  <div key={i} style={{ background:bg, borderRadius:8, padding:"5px 2px", textAlign:"center", border: isNow ? "2px solid #0284c7" : "2px solid transparent" }}>
-                    <div style={{ fontSize:9, fontWeight:700, color:clr, fontFamily:F, lineHeight:1.2 }}>{MONTHS_SHORT[i]}</div>
-                    <div style={{ fontSize:11, marginTop:1 }}>{score===3?"🔥":score===2?"✅":score===1?"〜":"❌"}</div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ display:"flex", gap:8, marginTop:7, alignItems:"center" }}>
-              {[["#22c55e","Peak"],["#84cc16","Good"],["#fef3c7","Shoulder"],["#f0f0f0","Off"]].map(([c,l]) => (
-                <div key={l} style={{ display:"flex", alignItems:"center", gap:3 }}>
-                  <div style={{ width:8, height:8, borderRadius:2, background:c, border:"1px solid #e0e0e0" }} />
-                  <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>{l}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Rating + tags */}
           <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:14, alignItems:"center" }}>
             <div style={{ display:"flex", alignItems:"center", gap:4, background:"#f7f7f7", borderRadius:10, padding:"6px 12px" }}>
@@ -4504,7 +4360,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative" }}>
                       <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
-                        <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}pts</span>
+                        <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
                       </div>
                     </div>
                     <div style={{ padding:"7px 9px 9px" }}>
@@ -4563,22 +4419,25 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>via GetYourGuide</span>
               </div>
               <div style={{ display:"flex", gap:9, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-                {EXPERIENCES[listing.category].map((exp, i) => (
-                  <a key={i} href={exp.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
-                    <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
-                      <div style={{ height:68, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
-                        <span style={{ fontSize:32, opacity:0.65 }}>{exp.emoji}</span>
-                        <div style={{ position:"absolute", bottom:5, right:7, background:"rgba(0,0,0,0.45)", borderRadius:8, padding:"2px 6px" }}>
-                          <span style={{ fontSize:9, color:"white", fontWeight:700, fontFamily:F }}>{exp.duration}</span>
+                {EXPERIENCES[listing.category].map((exp, i) => {
+                  const expUrl = `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}&partner_id=PEAKLY`;
+                  return (
+                    <a key={i} href={expUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
+                      <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
+                        <div style={{ height:68, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
+                          <span style={{ fontSize:32, opacity:0.65 }}>{exp.emoji}</span>
+                          <div style={{ position:"absolute", bottom:5, right:7, background:"rgba(0,0,0,0.45)", borderRadius:8, padding:"2px 6px" }}>
+                            <span style={{ fontSize:9, color:"white", fontWeight:700, fontFamily:F }}>{exp.duration}</span>
+                          </div>
+                        </div>
+                        <div style={{ padding:"8px 9px 10px" }}>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3 }}>{exp.name}</div>
+                          <div style={{ fontSize:11, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:4 }}>from ${exp.price}</div>
                         </div>
                       </div>
-                      <div style={{ padding:"8px 9px 10px" }}>
-                        <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3 }}>{exp.name}</div>
-                        <div style={{ fontSize:11, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:4 }}>from ${exp.price}</div>
-                      </div>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -4597,8 +4456,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </a>
 
           {/* 🛡️ Trip insurance — SafetyWing affiliate */}
-          {/* TODO: Replace referenceID with your real SafetyWing affiliate ID after signup at safetywing.com/affiliate */}
-          <a href="https://safetywing.com/nomad-insurance/?referenceID=PEAKLY_PLACEHOLDER&utm_source=peakly&utm_medium=affiliate" target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+          <a href="https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate" target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"#f0fdf4", border:"1.5px solid #bbf7d0", borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:12 }}>
               <span style={{ fontSize:26 }}>🛡️</span>
               <div style={{ flex:1 }}>
@@ -4720,7 +4578,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
     }
 
     const flightPrice = duffelPrices[`${departureAirport}-${bestVenue.ap}`] || Math.floor(Math.random() * 800) + 200;
-    const hotelNightly = { skiing: 180, surfing: 150, hiking: 120, tanning: 140 }[sport] || 150;
+    const hotelNightly = { skiing: 180, surfing: 150, tanning: 140 }[sport] || 150;
     const totalHotel = hotelNightly * days;
     const activitiesPerDay = 2;
     const activitiesCost = days * activitiesPerDay * 75;
@@ -4735,7 +4593,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
       days,
       sport,
       flight: { from: departureAirport, to: bestVenue.ap, price: flightPrice },
-      hotel: { name: { skiing: "Mountain Lodge", surfing: "Beachfront Resort", hiking: "Eco Lodge", tanning: "Tropical Paradise" }[sport] || "Resort", nightly: hotelNightly, total: totalHotel },
+      hotel: { name: { skiing: "Mountain Lodge", surfing: "Beachfront Resort", tanning: "Tropical Paradise" }[sport] || "Resort", nightly: hotelNightly, total: totalHotel },
       itinerary: Array.from({length: days}, (_, i) => ({
         day: i+1,
         activity: [
@@ -4905,7 +4763,6 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
               {[
                 { id:"skiing", label:"Skiing" },
                 { id:"surfing", label:"Surfing" },
-                { id:"hiking", label:"Hiking" },
                 { id:"tanning", label:"Beach & Tan" }
               ].map(s => (
                 <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
@@ -5017,6 +4874,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
 // ─── trips tab ────────────────────────────────────────────────────────────────
 function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, onOpenDetail, duffelPrices, profile, savedTrips, setSavedTrips }) {
   const [showBuilder, setShowBuilder] = useState(false);
+  const [showVibeSearch, setShowVibeSearch] = useState(false);
 
   const onSaveTrip = (trip) => {
     setSavedTrips(t => [...t, trip]);
@@ -5039,6 +4897,22 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
               </div>
             </div>
             <span style={{ fontSize:18 }}>→</span>
+          </button>
+        </div>
+
+        {/* Vibe Search card */}
+        <div style={{ padding:"16px 24px 0" }}>
+          <button onClick={() => setShowVibeSearch(true)} className="card" style={{
+            width:"100%", background:"linear-gradient(135deg,#1a1a2e,#302b63)", borderRadius:16, padding:20,
+            border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:14, color:"white",
+          }}>
+            <div style={{ flex:1, textAlign:"left" }}>
+              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Find your vibe</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.8)", fontFamily:F, marginTop:2 }}>
+                AI-powered adventure search
+              </div>
+            </div>
+            <span style={{ fontSize:18 }}>✨</span>
           </button>
         </div>
 
@@ -5080,6 +4954,16 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
           profile={profile}
           onClose={() => setShowBuilder(false)}
           onSaveTrip={onSaveTrip}
+        />
+      )}
+
+      {showVibeSearch && (
+        <VibeSearchSheet
+          listings={listings}
+          wishlists={wishlists}
+          onToggle={onToggle}
+          onOpenDetail={onOpenDetail}
+          onClose={() => setShowVibeSearch(false)}
         />
       )}
     </>
@@ -5326,23 +5210,10 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
-                    peakly
-                  </span>
-                </div>
-                {/* ✨ AI Vibe Search button */}
-                <button className="pressable" onClick={() => setShowVibeSearch(true)} style={{
-                  display:"flex", alignItems:"center", gap:6,
-                  background:"linear-gradient(135deg,#1a1a2e,#302b63)",
-                  border:"none", borderRadius:20, padding:"8px 14px", cursor:"pointer",
-                  boxShadow:"0 2px 14px rgba(48,43,99,0.28)",
-                }}>
-                  <span style={{ fontSize:14 }}>✨</span>
-                  <span style={{ fontSize:12, fontWeight:800, color:"white", fontFamily:F }}>Vibe Search</span>
-                  <span style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.6)", fontFamily:F, background:"rgba(255,255,255,0.12)", borderRadius:6, padding:"1px 5px" }}>AI</span>
-                </button>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                  peakly
+                </span>
               </div>
               <SearchBar search={search} onOpen={() => setShowSearch(true)} />
             </div>
