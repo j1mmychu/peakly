@@ -1169,14 +1169,13 @@ function useLocalStorage(key, initial) {
 
 // ─── score dot ────────────────────────────────────────────────────────────────
 function ScoreDot({ score }) {
-  const color = score >= 93 ? "#ff385c" : score >= 85 ? "#ff8c00" : "#00a699";
+  const color = score >= 90 ? "#22c55e" : score >= 75 ? "#84cc16" : score >= 60 ? "#eab308" : score >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-      <div className={score >= 90 ? "pulse" : ""} style={{
+    <div style={{ display:"flex", alignItems:"center" }}>
+      <div style={{
         width:8, height:8, borderRadius:"50%", background:color,
         boxShadow:`0 0 6px ${color}`,
       }} />
-      <span style={{ fontSize:11, fontWeight:700, color, fontFamily:F }}>{score}</span>
     </div>
   );
 }
@@ -1198,8 +1197,9 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         <div className="card-img" style={{
           position:"absolute", inset:0, background:listing.gradient,
@@ -1237,20 +1237,18 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           )}
         </div>
 
-        {/* Condition + score */}
+        {/* Condition label only */}
         <div style={{
           position:"absolute", bottom:12, left:12, right:12,
-          display:"flex", justifyContent:"space-between", alignItems:"flex-end",
         }}>
           <div style={{
             background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
             borderRadius:8, padding:"4px 10px",
             color:"white", fontSize:12, fontWeight:600, fontFamily:F,
-            border:"1px solid rgba(255,255,255,0.25)", maxWidth:"78%",
+            border:"1px solid rgba(255,255,255,0.25)", maxWidth:"100%", display:"inline-block",
           }}>
             {listing.conditionLabel}
           </div>
-          <ScoreDot score={listing.conditionScore} />
         </div>
       </div>
 
@@ -1300,8 +1298,9 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
 function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
@@ -1325,15 +1324,13 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           )}
         </div>
         <div style={{
-          position:"absolute", bottom:10, left:12, right:12,
-          display:"flex", justifyContent:"space-between", alignItems:"flex-end",
+          position:"absolute", bottom:10, left:12,
         }}>
           <span style={{
             background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
             borderRadius:8, padding:"3px 8px", color:"white", fontSize:11, fontWeight:600, fontFamily:F,
-            border:"1px solid rgba(255,255,255,0.2)", maxWidth:"78%",
+            border:"1px solid rgba(255,255,255,0.2)", display:"inline-block",
           }}>{listing.conditionLabel}</span>
-          <ScoreDot score={listing.conditionScore} />
         </div>
       </div>
       <div style={{ padding:"12px 14px 14px" }}>
@@ -1364,8 +1361,9 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
+  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         <div style={{
           position:"absolute", inset:0, background:listing.gradient,
@@ -1390,17 +1388,15 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>✈️ {listing.flight.pct}%</span>
         </div>
 
-        {/* Score + condition */}
+        {/* Condition label only */}
         <div style={{
-          position:"absolute", bottom:5, left:5, right:5,
-          display:"flex", justifyContent:"space-between", alignItems:"flex-end",
+          position:"absolute", bottom:5, left:5,
         }}>
           <span style={{
             color:"#fff", fontSize:9, fontWeight:600, fontFamily:F,
             textShadow:"0 1px 3px rgba(0,0,0,0.8)",
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"70%",
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"100%",
           }}>{listing.conditionLabel}</span>
-          <ScoreDot score={listing.conditionScore} />
         </div>
       </div>
 
@@ -1818,13 +1814,13 @@ function AlertBanner({ count, onView }) {
       margin:"0 24px 20px",
     }}>
       <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-        <div className="pulse" style={{ fontSize:24 }}>🔔</div>
+        <div style={{ fontSize:24 }}>📍</div>
         <div>
           <div style={{ color:"white", fontWeight:800, fontSize:14, fontFamily:F }}>
-            {count} condition{count !== 1 ? "s" : ""} firing right now
+            {count} top pick{count !== 1 ? "s" : ""}
           </div>
           <div style={{ color:"rgba(255,255,255,0.82)", fontSize:12, fontFamily:F }}>
-            Conditions + flights aligned
+            Best conditions available
           </div>
         </div>
       </div>
@@ -2110,14 +2106,6 @@ function FilterChip({ label, onRemove }) {
 }
 
 function CategoryPills({ active, setActive, listings, noBorder = false }) {
-  const firingByCategory = {};
-  listings.forEach(l => {
-    if (l.conditionScore >= 90) {
-      firingByCategory[l.category] = (firingByCategory[l.category] || 0) + 1;
-      firingByCategory["all"]      = (firingByCategory["all"]      || 0) + 1;
-    }
-  });
-
   return (
     <div style={{
       display:"grid",
@@ -2126,7 +2114,6 @@ function CategoryPills({ active, setActive, listings, noBorder = false }) {
       background:"#fff", flexShrink:0,
     }}>
       {CATEGORIES.map(cat => {
-        const count = firingByCategory[cat.id] || 0;
         const isActive = active === cat.id;
         return (
           <button key={cat.id} className="pill" onClick={() => setActive(cat.id)} style={{
@@ -2136,19 +2123,6 @@ function CategoryPills({ active, setActive, listings, noBorder = false }) {
             gap:4, color: isActive ? "#222" : "#aaa", fontFamily:F,
             position:"relative", minHeight:54,
           }}>
-            <div style={{ position:"relative" }}>
-              <span style={{ fontSize:22 }}>{cat.emoji}</span>
-              {count > 0 && (
-                <div style={{
-                  position:"absolute", top:-5, right:-7,
-                  background:"#0284c7", borderRadius:10,
-                  minWidth:16, height:16, display:"flex", alignItems:"center", justifyContent:"center",
-                  padding:"0 3px", boxShadow:"0 1px 4px rgba(2,132,199,0.4)",
-                }}>
-                  <span style={{ fontSize:9, fontWeight:900, color:"white", fontFamily:F }}>{count}</span>
-                </div>
-              )}
-            </div>
             <span style={{ fontSize:10, fontWeight:700, whiteSpace:"nowrap" }}>{cat.label}</span>
           </button>
         );
@@ -2179,7 +2153,6 @@ function applyFilters(listings, activeCat, filters, search = {}) {
   if (search.continent && search.continent !== "all") {
     out = out.filter(l => AP_CONTINENT[l.ap] === search.continent);
   }
-  if (filters.minScore  > 0)    out = out.filter(l => l.conditionScore >= filters.minScore);
   if (filters.maxPrice  < 2000) out = out.filter(l => l.flight.price   <= filters.maxPrice);
   if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
   if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price   - b.flight.price);
@@ -2204,13 +2177,13 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const topScore  = firingTab[0]?.conditionScore ?? 0;
   const isTrulyFiring = topScore >= 85;
   const isGood        = topScore >= 70;
-  // Always say "Firing right now" — intensity varies by score
-  const firingLabel = isTrulyFiring ? "🔥 Firing right now" : isGood ? "🔥 Firing right now" : "🔥 Firing right now";
+  // "Best Conditions" label instead of "Firing"
+  const firingLabel = "Best Conditions";
   const catNameFull = CATEGORIES.find(c => c.id === activeCat)?.label || "";
   const firingSubLabel = isTrulyFiring
-    ? (activeCat === "all" ? "Conditions peak · Cheap flights converging" : `Peak ${catNameFull} conditions today`)
+    ? (activeCat === "all" ? "Peak conditions · Cheap flights converging" : `Peak ${catNameFull} conditions today`)
     : isGood
-      ? (activeCat === "all" ? "Good windows open across all sports" : `Solid ${catNameFull} conditions right now`)
+      ? (activeCat === "all" ? "Good conditions across all sports" : `Solid ${catNameFull} conditions right now`)
       : (activeCat === "all" ? "Best available across all sports" : `Best ${catNameFull} spots available`);
   // Value score = condition score weighted against price (higher = better value)
   const bestValue = firingTab.length > 0
@@ -2229,7 +2202,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
-  const hasActiveFilters = filters.minScore > 0 || filters.maxPrice < 2000 || filters.sort !== "score";
+  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate;
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -2253,13 +2226,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             cursor:"pointer", zIndex:20,
             minWidth:62,
           }}>
-          <span style={{ fontSize:13 }}>⚙️</span>
           <span style={{ fontSize:10, fontWeight:700, fontFamily:F, color: hasActiveFilters ? "white" : "#555" }}>
             {hasActiveFilters ? "On" : "Filter"}
           </span>
           {hasActiveFilters && (
             <span style={{ fontSize:9, background:"rgba(255,255,255,0.28)", borderRadius:8, padding:"1px 5px", color:"white", fontWeight:800, fontFamily:F }}>
-              {[filters.minScore > 0, filters.maxPrice < 2000, filters.sort !== "score"].filter(Boolean).length}
+              {[filters.maxPrice < 2000, filters.sort !== "score", filters.startDate || filters.endDate].filter(Boolean).length}
             </span>
           )}
         </button>
@@ -2278,29 +2250,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               padding:"16px",
               border:"1px solid #f0f0f0",
             }}>
-              {/* Activities */}
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Activity</div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {CATEGORIES.filter(cat => cat.id !== "all").map(cat => (
-                    <button key={cat.id} onClick={() => { setActiveCat(cat.id); setShowFilterMenu(false); }} style={{
-                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
-                      background: activeCat === cat.id ? "#0284c7" : "#f7f7f7",
-                      color: activeCat === cat.id ? "#fff" : "#333",
-                      border:"1.5px solid", borderColor: activeCat === cat.id ? "#0284c7" : "#ebebeb",
-                      fontSize:11, fontWeight:700, fontFamily:F,
-                      display:"flex", alignItems:"center", gap:4,
-                    }}>
-                      <span>{cat.emoji}</span>
-                      <span>{cat.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div style={{ height:1, background:"#f0f0f0", margin:"0 0 14px" }} />
-
               {/* Sort */}
               <div style={{ marginBottom:14 }}>
                 <div style={{ fontSize:10, fontWeight:800, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Sort by</div>
@@ -2321,7 +2270,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               </div>
 
               {/* Max price */}
-              <div style={{ marginBottom:12 }}>
+              <div style={{ marginBottom:14 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                   <span style={{ fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>Max flight price</span>
                   <span style={{ fontSize:12, fontWeight:800, color:"#0284c7", fontFamily:F }}>
@@ -2337,26 +2286,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 </div>
               </div>
 
-              {/* Min score */}
+              {/* Date range */}
               <div style={{ marginBottom:14 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                  <span style={{ fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>Min condition score</span>
-                  <span style={{ fontSize:12, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                    {filters.minScore || "Any"}
-                  </span>
-                </div>
-                <input type="range" min={0} max={95} step={5} value={filters.minScore}
-                  onChange={e => setFilters(f => ({...f, minScore:+e.target.value}))}
-                  style={{ width:"100%", accentColor:"#0284c7" }} />
-                <div style={{ display:"flex", justifyContent:"space-between", marginTop:3 }}>
-                  <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>Any</span>
-                  <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>95+ only</span>
+                <div style={{ fontSize:10, fontWeight:800, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Travel dates</div>
+                <div style={{ display:"flex", gap:6 }}>
+                  <input type="text" placeholder="mm/dd/yyyy" value={filters.startDate || ""}
+                    onChange={e => setFilters(f => ({...f, startDate:e.target.value}))}
+                    style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222" }} />
+                  <input type="text" placeholder="mm/dd/yyyy" value={filters.endDate || ""}
+                    onChange={e => setFilters(f => ({...f, endDate:e.target.value}))}
+                    style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222" }} />
                 </div>
               </div>
 
               {/* Reset + Done */}
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={() => setFilters({ sort:"score", maxPrice:2000, minScore:0 })} style={{
+                <button onClick={() => setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" })} style={{
                   flex:1, padding:"10px", borderRadius:12, background:"#f7f7f7",
                   border:"1.5px solid #ebebeb", cursor:"pointer",
                   fontSize:12, fontWeight:700, color:"#555", fontFamily:F,
@@ -2376,56 +2321,20 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       {hasActiveFilters && (
         <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
           {filters.sort !== "score" && (
-            <FilterChip label={`📊 ${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
-          )}
-          {filters.minScore > 0 && (
-            <FilterChip label={`⚡ Score ${filters.minScore}+`} onRemove={() => setFilters(f => ({...f, minScore:0}))} />
+            <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
           {filters.maxPrice < 2000 && (
-            <FilterChip label={`✈️ Max $${filters.maxPrice}`} onRemove={() => setFilters(f => ({...f, maxPrice:2000}))} />
+            <FilterChip label={`Max $${filters.maxPrice}`} onRemove={() => setFilters(f => ({...f, maxPrice:2000}))} />
           )}
-          <button onClick={() => setFilters({ sort:"score", maxPrice:2000, minScore:0 })} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          {(filters.startDate || filters.endDate) && (
+            <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
+          )}
+          <button onClick={() => setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" })} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
       <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
         <div style={{ height:16 }} />
-        {!loading && <AlertBanner count={firingAll.length} onView={onViewAlerts} />}
-
-        {/* Top picks / Firing right now — only on "All" tab, venues won't repeat in grid below */}
-        {!loading && isAll && firingTab.length > 0 && (
-          <div style={{ marginBottom:24 }}>
-            <div style={{ padding:"0 24px 12px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-              <div>
-                <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>{firingLabel}</div>
-                <div style={{ fontSize:12, color:"#aaa", marginTop:3, fontFamily:F }}>{firingSubLabel}</div>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-                <div style={{ background: isTrulyFiring ? "#f0f9ff" : isGood ? "#fff7ed" : "#f5f5f5", borderRadius:10, padding:"4px 10px" }}>
-                  <span style={{ fontSize:11, fontWeight:800, color: isTrulyFiring ? "#ff385c" : isGood ? "#ea580c" : "#666", fontFamily:F }}>
-                    {firingTab[0]?.conditionScore ?? 0}pts
-                  </span>
-                </div>
-                {bestValue && bestValue !== firingTab[0] && (
-                  <div style={{ background:"#f0fdf4", borderRadius:10, padding:"4px 10px" }}>
-                    <span style={{ fontSize:10, fontWeight:700, color:"#16a34a", fontFamily:F }}>⚡ Best value</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div style={{
-              display:"flex", gap:14, overflowX:"auto", padding:"4px 24px 8px",
-              scrollbarWidth:"none", WebkitOverflowScrolling:"touch",
-              scrollSnapType:"x mandatory",
-            }}>
-              {firingTab.map(l => (
-                <div key={l.id} style={{ scrollSnapAlign:"start", flexShrink:0 }}>
-                  <FeaturedCard listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Grid header */}
         <div style={{ padding:"0 24px 14px" }}>
@@ -2975,51 +2884,63 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               />
             </div>
 
-            {/* Home airport */}
+            {/* Home airports (up to 3) */}
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airport</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
-                {US_AIRPORTS.map(ap => (
-                  <button key={ap.code} onClick={() => { setProfile(p => ({...p, homeAirport:ap.code})); setAirportQuery(""); }} style={{
-                    padding:"7px 12px", borderRadius:20, cursor:"pointer",
-                    background: profile.homeAirport === ap.code ? "#222" : "#f7f7f7",
-                    color: profile.homeAirport === ap.code ? "#fff" : "#222",
-                    border:"1.5px solid", borderColor: profile.homeAirport === ap.code ? "#222" : "#e8e8e8",
-                    fontSize:11, fontWeight:600, fontFamily:F,
-                  }}>{ap.code} · {ap.label}</button>
-                ))}
-              </div>
-              <div style={{ position:"relative" }}>
-                <input type="text" placeholder="🔍 Search any airport…" value={airportQuery}
-                  onChange={e => setAirportQuery(e.target.value)}
-                  onFocus={() => setAirportFocused(true)}
-                  onBlur={() => setTimeout(() => setAirportFocused(false), 150)}
-                  style={{ width:"100%", padding:"10px 14px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222" }}
-                />
-                {airportFocused && airportQuery.length >= 2 && (() => {
-                  const q = airportQuery.toLowerCase();
-                  const results = ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)).slice(0, 6);
-                  return results.length > 0 ? (
-                    <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12, marginTop:4, overflow:"hidden", boxShadow:"0 6px 20px rgba(0,0,0,0.12)", zIndex:10 }}>
-                      {results.map((ap, i) => (
-                        <button key={ap.code} onMouseDown={() => { setProfile(p => ({...p, homeAirport:ap.code})); setAirportQuery(""); setAirportFocused(false); }} style={{
-                          width:"100%", padding:"10px 14px",
-                          background: profile.homeAirport === ap.code ? "#fff5f5" : "#fff",
-                          border:"none", borderBottom: i < results.length - 1 ? "1px solid #f0f0f0" : "none",
-                          textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:10,
-                        }}>
-                          <span style={{ fontSize:15 }}>{ap.flag}</span>
-                          <div style={{ flex:1 }}>
-                            <span style={{ fontSize:13, fontWeight:700, color:"#222" }}>{ap.code}</span>
-                            <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
-                          </div>
-                          {profile.homeAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
-                        </button>
-                      ))}
+                {(profile.homeAirports || []).map((code, idx) => {
+                  const airport = ALL_AIRPORTS.find(a => a.code === code);
+                  return (
+                    <div key={idx} style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, background:"#222", color:"#fff" }}>
+                      <span style={{ fontSize:11, fontWeight:600, fontFamily:F }}>{code}</span>
+                      <button onClick={() => setProfile(p => ({ ...p, homeAirports: (p.homeAirports || []).filter((_, i) => i !== idx) }))} style={{ background:"none", border:"none", color:"#fff", cursor:"pointer", fontSize:14, padding:"0", marginLeft:4 }}>×</button>
                     </div>
-                  ) : <div style={{ background:"#f9f9f9", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"10px 14px", marginTop:4, fontSize:12, color:"#aaa", fontFamily:F }}>No airports found</div>;
-                })()}
+                  );
+                })}
               </div>
+              {(!profile.homeAirports || profile.homeAirports.length < 3) && (
+                <div style={{ position:"relative" }}>
+                  <input type="text" placeholder="Add airport…" value={airportQuery}
+                    onChange={e => setAirportQuery(e.target.value)}
+                    onFocus={() => setAirportFocused(true)}
+                    onBlur={() => setTimeout(() => setAirportFocused(false), 150)}
+                    style={{ width:"100%", padding:"10px 14px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222" }}
+                  />
+                  {airportFocused && airportQuery.length >= 2 && (() => {
+                    const q = airportQuery.toLowerCase();
+                    const results = ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)).slice(0, 6);
+                    return results.length > 0 ? (
+                      <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12, marginTop:4, overflow:"hidden", boxShadow:"0 6px 20px rgba(0,0,0,0.12)", zIndex:10 }}>
+                        {results.map((ap, i) => {
+                          const alreadyAdded = (profile.homeAirports || []).includes(ap.code);
+                          return (
+                            <button key={ap.code} onMouseDown={() => {
+                              if (!alreadyAdded && (profile.homeAirports || []).length < 3) {
+                                setProfile(p => ({ ...p, homeAirports: [...(p.homeAirports || []), ap.code] }));
+                                setAirportQuery("");
+                                setAirportFocused(false);
+                              }
+                            }} style={{
+                              width:"100%", padding:"10px 14px",
+                              background: alreadyAdded ? "#f0f0f0" : "#fff",
+                              border:"none", borderBottom: i < results.length - 1 ? "1px solid #f0f0f0" : "none",
+                              textAlign:"left", cursor: alreadyAdded ? "default" : "pointer", fontFamily:F, display:"flex", alignItems:"center", gap:10,
+                              opacity: alreadyAdded ? 0.6 : 1,
+                            }}>
+                              <span style={{ fontSize:15 }}>{ap.flag}</span>
+                              <div style={{ flex:1 }}>
+                                <span style={{ fontSize:13, fontWeight:700, color:"#222" }}>{ap.code}</span>
+                                <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
+                              </div>
+                              {alreadyAdded && <span style={{ color:"#999", fontSize:14 }}>✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : <div style={{ background:"#f9f9f9", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"10px 14px", marginTop:4, fontSize:12, color:"#aaa", fontFamily:F }}>No airports found</div>;
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Sports + skill levels */}
@@ -4462,337 +4383,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 }
 
 // ─── map tab ──────────────────────────────────────────────────────────────────
-function MapTab({ listings, wishlists, onToggle, onOpenDetail }) {
-  const wrapRef   = useRef(null);
-  const dragRef   = useRef(null);
-  const [selected,      setSelected]      = useState(null);
-  const [hovered,       setHovered]       = useState(null);
-  const [mapCat,        setMapCat]        = useState("all");
-  const [showMapFilter, setShowMapFilter] = useState(false);
-  const [worldGeo,  setWorldGeo]  = useState(null);
-  const [libsReady, setLibsReady] = useState(false);
-  const [dims,      setDims]      = useState({ w:430, h:480 });
-  const [vb,        setVb]        = useState({ x:0, y:0, k:1 });
-
-  useEffect(() => {
-    let loaded = 0;
-    const done = () => { loaded++; if (loaded === 2) setLibsReady(true); };
-    const load = (src, cb) => {
-      if (document.querySelector(`script[data-src="${src}"]`)) { cb(); return; }
-      const s = document.createElement("script"); s.src = src; s.setAttribute("data-src", src);
-      s.onload = cb; s.onerror = cb; document.head.appendChild(s);
-    };
-    load("https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js", done);
-    load("https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js", done);
-  }, []);
-
-  useEffect(() => {
-    if (!libsReady || !window.d3 || !window.topojson) return;
-    fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json")
-      .then(r => r.json())
-      .then(topo => setWorldGeo(window.topojson.feature(topo, topo.objects.countries)))
-      .catch(() => setWorldGeo({ type:"FeatureCollection", features:[] }));
-  }, [libsReady]);
-
-  useEffect(() => {
-    if (!wrapRef.current) return;
-    const ro = new ResizeObserver(([e]) => {
-      const { width, height } = e.contentRect;
-      if (width > 10 && height > 10) setDims({ w:width, h:height });
-    });
-    ro.observe(wrapRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  const proj = libsReady && window.d3
-    ? window.d3.geoNaturalEarth1().scale(dims.w / 6.4).translate([dims.w / 2, dims.h / 2])
-    : null;
-  const pathFn     = proj ? window.d3.geoPath().projection(proj) : null;
-  const gratPath   = proj ? window.d3.geoPath().projection(proj)(window.d3.geoGraticule()()) : null;
-  const spherePath = proj ? window.d3.geoPath().projection(proj)({ type:"Sphere" }) : null;
-
-  // Pan / zoom with zoom-toward-cursor
-  const onPtrDown = (e) => {
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_) {}
-    dragRef.current = { sx: e.clientX - vb.x, sy: e.clientY - vb.y };
-  };
-  const onPtrMove = (e) => {
-    const drag = dragRef.current;
-    if (!drag) return;
-    setVb(v => ({ ...v, x: e.clientX - drag.sx, y: e.clientY - drag.sy }));
-  };
-  const onPtrUp = () => { dragRef.current = null; };
-  const onWheel = (e) => {
-    e.preventDefault();
-    const rect = wrapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const f  = e.deltaY < 0 ? 1.18 : 0.85;
-    setVb(v => {
-      const newK = Math.max(0.3, Math.min(12, v.k * f));
-      return { x: mx - (mx - v.x) * (newK / v.k), y: my - (my - v.y) * (newK / v.k), k: newK };
-    });
-  };
-
-  // Light natural land color palette
-  const landColor  = (i) => { const cols = ["#d4dfe6","#c8d8c4","#ddd8c4","#d8d0c4","#c8d0dc","#d4ccc8"]; return cols[i % cols.length]; };
-
-  const visible = mapCat === "all" ? listings : listings.filter(l => l.category === mapCat);
-  const xfm     = `translate(${vb.x},${vb.y}) scale(${vb.k})`;
-
-  // Color ring: green (top scores) → yellow → orange → red (low scores)
-  const markerRing = (sc) =>
-    sc >= 90 ? "#22c55e" :
-    sc >= 80 ? "#84cc16" :
-    sc >= 70 ? "#eab308" :
-    sc >= 55 ? "#f97316" :
-    "#ef4444";
-
-  const mapCatLabel = CATEGORIES.find(c => c.id === mapCat)?.label || "All";
-  const mapCatEmoji = CATEGORIES.find(c => c.id === mapCat)?.emoji || "✨";
-
-  return (
-    <div style={{ display:"flex", flexDirection:"column", flex:1, minHeight:0, overflow:"hidden" }}>
-      {/* SVG map — filter button floats on right side */}
-      <div ref={wrapRef} style={{ flex:1, position:"relative", background:"#b8d4e8", overflow:"hidden", minHeight:0, cursor: dragRef.current ? "grabbing" : "grab", touchAction:"none" }}
-        onPointerDown={onPtrDown} onPointerMove={onPtrMove}
-        onPointerUp={onPtrUp} onPointerCancel={onPtrUp}
-        onWheel={onWheel}
-      >
-        {/* ── Floating filter button (right side) ── */}
-        <div style={{ position:"absolute", top:12, right:12, zIndex:30, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:0 }}>
-          {/* Dismiss backdrop */}
-          {showMapFilter && <div onClick={() => setShowMapFilter(false)} style={{ position:"fixed", inset:0, zIndex:28 }} />}
-          {/* Toggle button */}
-          <button
-            className="pressable"
-            onClick={e => { e.stopPropagation(); setShowMapFilter(v => !v); }}
-            style={{
-              background: mapCat !== "all" ? "#0284c7" : "rgba(255,255,255,0.92)",
-              border: mapCat !== "all" ? "none" : "1.5px solid rgba(0,0,0,0.10)",
-              borderRadius:22, padding:"7px 13px",
-              boxShadow:"0 3px 14px rgba(0,0,0,0.18)",
-              display:"flex", alignItems:"center", gap:6, cursor:"pointer", zIndex:30,
-            }}>
-            <span style={{ fontSize:14 }}>{mapCatEmoji}</span>
-            <span style={{ fontSize:11, fontWeight:800, fontFamily:F, color: mapCat !== "all" ? "white" : "#333" }}>
-              {mapCat === "all" ? "Filter" : mapCatLabel}
-            </span>
-            <span style={{ fontSize:9, color: mapCat !== "all" ? "rgba(255,255,255,0.7)" : "#aaa" }}>{showMapFilter ? "▲" : "▼"}</span>
-          </button>
-          {/* Dropdown */}
-          {showMapFilter && (
-            <div className="bounce-in" style={{ marginTop:6, background:"rgba(255,255,255,0.97)", borderRadius:16, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", padding:"8px", display:"flex", flexDirection:"column", gap:5, minWidth:150, zIndex:29 }}>
-              {CATEGORIES.map(c => {
-                const sel = mapCat === c.id;
-                return (
-                  <button key={c.id} className="pressable" onClick={e => { e.stopPropagation(); setMapCat(c.id); setSelected(null); setShowMapFilter(false); }} style={{
-                    width:"100%", padding:"8px 12px", borderRadius:10, border:"none", cursor:"pointer",
-                    background: sel ? "#0284c7" : "transparent",
-                    color: sel ? "white" : "#333",
-                    fontSize:12, fontWeight:700, fontFamily:F,
-                    display:"flex", alignItems:"center", gap:8, textAlign:"left",
-                  }}>
-                    <span style={{ fontSize:15 }}>{c.emoji}</span>
-                    <span>{c.label}</span>
-                    {sel && <span style={{ marginLeft:"auto", fontSize:11 }}>✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <svg width="100%" height="100%" style={{ position:"absolute", inset:0, touchAction:"none" }}>
-          <defs>
-            {/* Glow filter for hot venues */}
-            <filter id="glow-hot" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="glow-warm" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="1.5" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          {/* ── Map geography (scales with zoom) ── */}
-          <g transform={xfm}>
-            {spherePath && <path d={spherePath} fill="#b8d4e8" stroke="#9ab8cc" strokeWidth={0.8} />}
-            {gratPath && <path d={gratPath} fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth={0.4} />}
-            {worldGeo && pathFn && worldGeo.features.map((f, i) => {
-              const isHov = hovered === i;
-              return (
-                <path key={i} d={pathFn(f)}
-                  fill={isHov ? "#bcccd8" : landColor(i)}
-                  stroke={isHov ? "#8aacc0" : "#b0bec8"}
-                  strokeWidth={isHov ? 0.9 : 0.45}
-                  onMouseEnter={() => setHovered(i)}
-                  onMouseLeave={() => setHovered(null)}
-                  style={{ transition:"fill 0.15s, stroke 0.15s" }}
-                />
-              );
-            })}
-          </g>
-
-          {/* ── Venue markers — fixed screen size regardless of zoom ── */}
-          {proj && visible.map(l => {
-            const pt = proj([l.lon, l.lat]);
-            if (!pt) return null;
-            // Convert projection coords → screen coords using current pan/zoom
-            const sx = vb.x + pt[0] * vb.k;
-            const sy = vb.y + pt[1] * vb.k;
-            // Clip off-screen markers (with padding for rings)
-            if (sx < -30 || sx > dims.w + 30 || sy < -30 || sy > dims.h + 30) return null;
-            const sc    = l.conditionScore;
-            const cat   = CATEGORIES.find(c => c.id === l.category);
-            const em    = cat?.emoji || "📍";
-            // Fixed pixel size — no growth on zoom
-            const sz    = sc >= 85 ? 13 : sc >= 70 ? 11 : 9;
-            const ring  = markerRing(sc);
-            const isSel = selected?.id === l.id;
-            const hot   = sc >= 85;
-            const warm  = sc >= 70;
-            return (
-              <g key={l.id} onClick={() => setSelected(isSel ? null : l)} style={{ cursor:"pointer" }}>
-                {/* Outer glow ring for hot venues */}
-                {hot && !isSel && (
-                  <circle cx={sx} cy={sy} r={sz + 6} fill={`${ring}18`} stroke={`${ring}44`} strokeWidth={1} />
-                )}
-                {/* Selection halo */}
-                {isSel && <circle cx={sx} cy={sy} r={sz + 8} fill={`${ring}28`} stroke={ring} strokeWidth={2} />}
-                {/* Score-ringed white background disc */}
-                <circle cx={sx} cy={sy} r={sz + 1}
-                  fill="white"
-                  stroke={ring}
-                  strokeWidth={isSel ? 2.5 : 1.8}
-                  style={{ filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.18))" }}
-                />
-                {/* Emoji centred on disc */}
-                <text x={sx} y={sy} fontSize={sz * 1.45} textAnchor="middle" dominantBaseline="central"
-                  style={{ userSelect:"none" }}>
-                  {em}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Loading */}
-        {!worldGeo && (
-          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <div style={{ color:"rgba(0,0,0,0.4)", fontFamily:F, fontSize:13, background:"rgba(255,255,255,0.7)", padding:"8px 16px", borderRadius:20 }}>{libsReady ? "Fetching world map…" : "Loading libraries…"}</div>
-          </div>
-        )}
-
-        {/* Zoom controls */}
-        <div style={{ position:"absolute", bottom: selected ? 220 : 18, right:12, display:"flex", flexDirection:"column", gap:6, zIndex:10 }}>
-          {[["+", 1.5, 20], ["−", 0.67, 20]].map(([lbl, f, fs]) => (
-            <button key={lbl} onClick={(e) => {
-              e.stopPropagation();
-              const rect = wrapRef.current?.getBoundingClientRect();
-              if (!rect) return;
-              const cx = rect.width / 2, cy = rect.height / 2;
-              setVb(v => {
-                const newK = Math.max(0.3, Math.min(12, v.k * f));
-                return { x: cx - (cx - v.x) * (newK / v.k), y: cy - (cy - v.y) * (newK / v.k), k: newK };
-              });
-            }} style={{
-              width:36, height:36, borderRadius:10, fontSize:fs, fontWeight:700,
-              background:"rgba(255,255,255,0.85)", border:"1px solid rgba(0,0,0,0.12)",
-              color:"#333", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:"0 2px 8px rgba(0,0,0,0.12)",
-              backdropFilter:"blur(4px)",
-            }}>{lbl}</button>
-          ))}
-          <button onClick={(e) => { e.stopPropagation(); setVb({x:0,y:0,k:1}); }} style={{
-            width:36, height:36, borderRadius:10, fontSize:14,
-            background:"rgba(255,255,255,0.7)", border:"1px solid rgba(0,0,0,0.1)",
-            color:"#666", cursor:"pointer",
-            boxShadow:"0 2px 6px rgba(0,0,0,0.10)",
-          }}>↺</button>
-        </div>
-
-        {/* Legend */}
-        <div style={{ position:"absolute", top:10, left:10, background:"rgba(255,255,255,0.92)", backdropFilter:"blur(8px)", borderRadius:12, padding:"8px 12px", zIndex:10, border:"1px solid rgba(0,0,0,0.08)", boxShadow:"0 2px 12px rgba(0,0,0,0.10)" }}>
-          {[["🟢","90+ Peak",  "#22c55e"],["🟡","70+ Good","#eab308"],["🔴","<70 Fair","#ef4444"]].map(([em,lbl,col]) => (
-            <div key={lbl} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-              <span style={{ fontSize:11 }}>{em}</span>
-              <span style={{ fontSize:10, color:col, fontFamily:F, fontWeight:700 }}>{lbl}</span>
-            </div>
-          ))}
-          <div style={{ marginTop:5, paddingTop:5, borderTop:"1px solid #f0f0f0", fontSize:9, color:"#999", fontFamily:F }}>Scroll to zoom · Drag to pan</div>
-        </div>
-
-        {/* Venue count badge */}
-        {worldGeo && (
-          <div style={{ position:"absolute", top:10, right:12, background:"rgba(255,255,255,0.92)", backdropFilter:"blur(6px)", borderRadius:20, padding:"5px 11px", zIndex:10, border:"1px solid rgba(0,0,0,0.08)", boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:"#333", fontFamily:F }}>{visible.length} spots</span>
-          </div>
-        )}
-      </div>
-
-      {/* Selected venue card */}
-      {selected && (
-        <div className="bounce-in" style={{ background:"#fff", borderRadius:"22px 22px 0 0", padding:"14px 16px 28px", boxShadow:"0 -6px 32px rgba(0,0,0,0.28)", flexShrink:0 }}>
-          {/* Handle */}
-          <div style={{ display:"flex", justifyContent:"center", marginBottom:10 }}>
-            <div style={{ width:32, height:3, borderRadius:2, background:"#e0e0e0" }} />
-          </div>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{selected.title}</div>
-              <div style={{ fontSize:12, color:"#999", fontFamily:F, marginTop:2 }}>📍 {selected.location}</div>
-            </div>
-            <button onClick={() => setSelected(null)} style={{ background:"#f5f5f5", border:"none", borderRadius:"50%", width:30, height:30, fontSize:14, cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
-          </div>
-          <div style={{ display:"flex", gap:8, marginBottom:10 }}>
-            <div style={{ background: selected.conditionScore >= 85 ? "#f0f9ff" : selected.conditionScore >= 70 ? "#fff7ed" : "#f5f5f5", borderRadius:12, padding:"8px 12px", flex:1 }}>
-              <div style={{ fontSize:11, fontWeight:800, color: selected.conditionScore >= 85 ? "#ff385c" : selected.conditionScore >= 70 ? "#ea580c" : "#666", fontFamily:F }}>{selected.conditionScore}pts · {selected.conditionLabel}</div>
-              <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2 }}>{selected.period}</div>
-            </div>
-            <div style={{ background:"#f0fff4", borderRadius:12, padding:"8px 12px", flex:1 }}>
-              <div style={{ fontSize:11, fontWeight:800, color:"#16a34a", fontFamily:F }}>✈️ ${selected.flight.price}</div>
-              <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2 }}>{selected.flight.pct}% off normal</div>
-            </div>
-          </div>
-          <div style={{ display:"flex", gap:8 }}>
-            <button onClick={() => onToggle(selected.id)} className="pressable" style={{
-              flex:1, background: wishlists.includes(selected.id) ? "#0284c7" : "#f7f7f7",
-              border:"none", borderRadius:12, padding:"11px 0",
-              color: wishlists.includes(selected.id) ? "white" : "#222",
-              fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer",
-            }}>{wishlists.includes(selected.id) ? "❤️ Saved" : "🤍 Save"}</button>
-            {onOpenDetail && (
-              <button onClick={() => onOpenDetail(selected)} className="pressable" style={{
-                flex:2, background:"#222", border:"none", borderRadius:12, padding:"11px 0",
-                color:"white", fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer",
-              }}>View details →</button>
-            )}
-            <a href={buildFlightUrl(selected.flight.from, selected.ap)} target="_blank" rel="noopener noreferrer" style={{ flex:1, textDecoration:"none" }}>
-              <div className="pressable" style={{
-                background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:12, padding:"11px 0",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:5, height:"100%",
-              }}>
-                <span style={{ fontSize:14 }}>✈️</span>
-                <span style={{ fontSize:12, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
-              </div>
-            </a>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── bottom nav ───────────────────────────────────────────────────────────────
 function BottomNav({ active, setActive, alertCount }) {
   const tabs = [
-    { id:"explore",   icon:"🔍", label:"Explore" },
-    { id:"wishlists", icon:"🛫", label:"Wishlists" },
-    { id:"map",       icon:"🗺️", label:"Map" },
-    { id:"alerts",    icon:"🔔", label:"Alerts" },
-    { id:"profile",   icon:"👤", label:"Profile" },
+    { id:"explore",   label:"Explore" },
+    { id:"wishlists", label:"Trips" },
+    { id:"alerts",    label:"Alerts" },
+    { id:"profile",   label:"Profile" },
   ];
   return (
     <div style={{
@@ -4813,8 +4410,7 @@ function BottomNav({ active, setActive, alertCount }) {
               border:"1.5px solid white",
             }} />
           )}
-          <span style={{ fontSize:20 }}>{t.icon}</span>
-          <span style={{ fontSize:10, fontWeight:600, fontFamily:F }}>{t.label}</span>
+          <span style={{ fontSize:11, fontWeight:600, fontFamily:F }}>{t.label}</span>
           {active === t.id && (
             <div style={{ width:4, height:4, background:"#222", borderRadius:"50%", marginTop:1 }} />
           )}
@@ -4832,7 +4428,7 @@ function App() {
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, minScore:0 });
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
@@ -4843,7 +4439,7 @@ function App() {
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
-    name:"", email:"", homeAirport:"JFK", sports:[], skillLevels:{},
+    name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
@@ -4852,7 +4448,11 @@ function App() {
   const [search, setSearch] = useState(() => ({
     activities: [], destination: "", when: "anytime", continent: "",
     fromAirport: (() => {
-      try { const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}"); return p.homeAirport || "JFK"; } catch { return "JFK"; }
+      try {
+        const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
+        const airports = p.homeAirports || [p.homeAirport] || ["JFK"];
+        return airports[0] || "JFK";
+      } catch { return "JFK"; }
     })(),
   }));
 
@@ -5043,9 +4643,6 @@ function App() {
               namedLists={namedLists} setNamedLists={setNamedLists}
               onOpenDetail={openDetail}
             />
-          )}
-          {activeTab === "map" && (
-            <MapTab listings={listings} wishlists={wishlists} onToggle={toggleWishlist} onOpenDetail={openDetail} />
           )}
           {activeTab === "alerts" && (
             <AlertsTab
