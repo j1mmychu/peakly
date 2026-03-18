@@ -3141,7 +3141,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               border:"2px solid rgba(2,132,199,0.32)",
               boxShadow:"0 0 30px rgba(2,132,199,0.18)",
               flexShrink:0,
-            }}>⛰️</div>
+            }}>P</div>
             <div>
               <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Join Peakly</div>
               <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3 }}>
@@ -3433,7 +3433,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
         {/* ── About ── */}
         <div style={{ background:"#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
-            <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>⛰️ Peakly</div>
+            <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Peakly</div>
             <div style={{ fontSize:12, color:"#aaa", fontFamily:F, marginTop:2 }}>Version 1.0 · Built for adventure</div>
           </div>
           <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
@@ -5328,8 +5328,7 @@ function App() {
             <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:24 }}>⛰️</span>
-                  <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                  <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                     peakly
                   </span>
                 </div>
@@ -5349,8 +5348,7 @@ function App() {
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:20 }}>⛰️</span>
-              <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
             </div>
