@@ -147,12 +147,12 @@ const CATEGORIES = [
 
 // ─── continents for filtering ─────────────────────────────────────────────────
 const CONTINENTS = [
-  { id:"na",      label:"N. America", emoji:"🌎" },
-  { id:"europe",  label:"Europe",     emoji:"🌍" },
-  { id:"asia",    label:"Asia",       emoji:"🌏" },
-  { id:"oceania", label:"Oceania",    emoji:"🦘" },
-  { id:"latam",   label:"S. America", emoji:"🌿" },
-  { id:"africa",  label:"Africa",     emoji:"🌍" },
+  { id:"na",      label:"N. America" },
+  { id:"europe",  label:"Europe" },
+  { id:"asia",    label:"Asia" },
+  { id:"oceania", label:"Oceania" },
+  { id:"latam",   label:"S. America" },
+  { id:"africa",  label:"Africa" },
 ];
 
 // Map airport code → continent (used for venue continent lookup)
@@ -1413,27 +1413,31 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
 // ─── search sheet ─────────────────────────────────────────────────────────────
 const WHEN_OPTIONS = [
-  { id:"anytime",    label:"Any time",     emoji:"📅" },
-  { id:"weekend",    label:"This weekend", emoji:"🎯" },
-  { id:"nextweek",   label:"Next week",    emoji:"📆" },
-  { id:"twoweeks",   label:"In 2 weeks",   emoji:"🗓️" },
-  { id:"month",      label:"This month",   emoji:"📅" },
-  { id:"nextmonth",  label:"Next month",   emoji:"🌙" },
-  { id:"60days",     label:"Next 60 days", emoji:"📊" },
-  { id:"90days",     label:"Next 90 days", emoji:"🔭" },
-  { id:"winter",     label:"Winter",       emoji:"❄️" },
-  { id:"spring",     label:"Spring",       emoji:"🌸" },
-  { id:"summer",     label:"Summer",       emoji:"☀️" },
-  { id:"fall",       label:"Fall",         emoji:"🍂" },
+  { id:"anytime",    label:"Any time" },
+  { id:"weekend",    label:"This weekend" },
+  { id:"nextweek",   label:"Next week" },
+  { id:"twoweeks",   label:"In 2 weeks" },
+  { id:"month",      label:"This month" },
+  { id:"nextmonth",  label:"Next month" },
+  { id:"60days",     label:"Next 60 days" },
+  { id:"90days",     label:"Next 90 days" },
+  { id:"winter",     label:"Winter" },
+  { id:"spring",     label:"Spring" },
+  { id:"summer",     label:"Summer" },
+  { id:"fall",       label:"Fall" },
 ];
 
-function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
+function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, setFilters }) {
   const [local, setLocal] = useState({
     activities: search.activities || [],
     destination: search.destination || "",
     when: search.when || "anytime",
     continent: search.continent || "",
     fromAirport: search.fromAirport || "JFK",
+    sort: filters?.sort || "score",
+    maxPrice: filters?.maxPrice ?? 2000,
+    startDate: filters?.startDate || "",
+    endDate: filters?.endDate || "",
   });
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
@@ -1476,8 +1480,9 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
   })();
 
   const apply = () => {
-    const next = { ...local };
+    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport };
     setSearch(next);
+    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
     onClose();
   };
@@ -1513,7 +1518,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
           </div>
           <div style={{ padding:"0 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
               style={{ background:"#f5f5f5", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -1555,7 +1560,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
                     display:"inline-flex", alignItems:"center", gap:6,
                     boxShadow: sel ? "0 2px 12px rgba(0,0,0,0.18)" : "none",
                 }}>
-                  <span style={{ fontSize:16 }}>{cat.emoji}</span> {cat.label}
+                  {cat.label}
                   {sel && <span style={{ fontSize:11, marginLeft:2, opacity:0.7 }}>✓</span>}
                 </button>
               );
@@ -1613,7 +1618,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
                     display:"inline-flex", alignItems:"center", gap:5,
                     boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.14)" : "none",
                 }}>
-                  {opt.emoji} {opt.label}
+                  {opt.label}
                 </button>
               );
             })}
@@ -1639,7 +1644,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
                     display:"inline-flex", alignItems:"center", gap:5,
                     boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.28)" : "none",
                 }}>
-                  {cont.emoji} {cont.label}
+                  {cont.label}
                 </button>
               );
             })}
@@ -1721,6 +1726,61 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings }) {
           )}
         </div>
 
+        <Divider />
+
+        {/* ── Sort by ── */}
+        <div style={{ padding:"16px 24px 0" }}>
+          <SectionLabel>Sort by</SectionLabel>
+          <div style={{ display:"flex", gap:8 }}>
+            {SORT_OPTIONS.map(opt => {
+              const sel = local.sort === opt.id;
+              return (
+                <button key={opt.id} className="pressable" onClick={() => setLocal(l => ({...l, sort:opt.id}))} style={{
+                  flex:1, padding:"11px 6px", borderRadius:14, cursor:"pointer",
+                  background: sel ? "#222" : "#f5f5f5",
+                  color: sel ? "#fff" : "#444",
+                  border:"2px solid", borderColor: sel ? "#222" : "transparent",
+                  fontSize:12, fontWeight:700, fontFamily:F, textAlign:"center",
+                }}>{opt.label}</button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Max price ── */}
+        <div style={{ padding:"16px 24px 0" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+            <SectionLabel style={{ marginBottom:0 }}>Max flight price</SectionLabel>
+            <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{local.maxPrice >= 2000 ? "Any" : `$${local.maxPrice}`}</span>
+          </div>
+          <input type="range" min={100} max={2000} step={50} value={local.maxPrice}
+            onChange={e => setLocal(l => ({...l, maxPrice:+e.target.value}))}
+            style={{ width:"100%", accentColor:"#0284c7" }} />
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
+            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>$100</span>
+            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>Any price</span>
+          </div>
+        </div>
+
+        {/* ── Travel dates ── */}
+        <div style={{ padding:"16px 24px 0" }}>
+          <SectionLabel>Travel dates</SectionLabel>
+          <div style={{ display:"flex", gap:8 }}>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:9, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:3, display:"block" }}>From</label>
+              <input type="date" value={local.startDate || ""}
+                onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
+                style={{ width:"100%", padding:"10px 10px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222", background:"#fafafa" }} />
+            </div>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:9, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:3, display:"block" }}>To</label>
+              <input type="date" value={local.endDate || ""}
+                onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
+                style={{ width:"100%", padding:"10px 10px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222", background:"#fafafa" }} />
+            </div>
+          </div>
+        </div>
+
         {/* ── Apply button ── */}
         <div style={{ padding:"24px 24px 8px" }}>
           <button onClick={apply} className="pressable" style={{
@@ -1749,15 +1809,15 @@ function SearchBar({ search, onOpen }) {
     : acts.length === 1
       ? CATEGORIES.find(c => c.id === acts[0])?.label ?? "Anywhere"
       : acts.length > 1
-        ? acts.map(a => CATEGORIES.find(c => c.id === a)?.emoji).join("") + ` ${acts.length} sports`
+        ? `${acts.length} sports`
         : "Anywhere";
 
-  // Subtitle: activity emoji(s) only when destination is shown | timing | airport | continent
-  const actEmojis = acts.length > 0
-    ? acts.map(a => CATEGORIES.find(c => c.id === a)?.emoji).join("") + " "
-    : "✨ ";
+  // Subtitle: activity label(s) only when destination is shown | timing | continent
+  const actLabel = acts.length > 0
+    ? acts.map(a => CATEGORIES.find(c => c.id === a)?.label).join(", ") + " "
+    : "";
   const whenLabel = WHEN_OPTIONS.find(w => w.id === search.when)?.label ?? "Any time";
-  const contEmoji = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.emoji ?? "") : "";
+  const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
     <div onClick={onOpen} className="pressable" style={{
@@ -1771,7 +1831,7 @@ function SearchBar({ search, onOpen }) {
           {topLine}
         </div>
         <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:2 }}>
-          {actEmojis}{whenLabel} · ✈️ {search.fromAirport}{contEmoji}
+          {actLabel}{whenLabel} · {search.fromAirport}{contLabel}
         </div>
       </div>
       <div style={{
@@ -1973,142 +2033,12 @@ function scoreVibeMatch(listings, text) {
   return { venues, summary, themes };
 }
 
-function FilterSheet({ filters, setFilters, onClose, totalResults }) {
-  const [local, setLocal] = useState(filters);
-
-  const apply = () => { setFilters(local); onClose(); };
-  const reset = () => setLocal({ sort:"score", maxPrice:2000, minScore:0 });
-
-  return (
-    <>
-      {/* backdrop */}
-      <div className="backdrop" onClick={onClose} style={{
-        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:100,
-      }} />
-
-      {/* sheet */}
-      <div className="sheet" style={{
-        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
-        width:"min(430px,100vw)", background:"#fff",
-        borderRadius:"24px 24px 0 0", zIndex:101,
-        paddingBottom:"env(safe-area-inset-bottom,20px)",
-      }}>
-        {/* handle */}
-        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
-          <div style={{ width:36, height:4, borderRadius:2, background:"#e0e0e0" }} />
-        </div>
-
-        <div style={{ padding:"8px 24px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <span style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>Filter & Sort</span>
-          <button onClick={reset} className="pressable" style={{
-            background:"none", border:"none", fontSize:13, color:"#717171",
-            fontWeight:600, fontFamily:F, cursor:"pointer",
-          }}>Reset</button>
-        </div>
-
-        {/* sort */}
-        <div style={{ padding:"20px 24px 0" }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F, marginBottom:10 }}>Sort by</div>
-          <div style={{ display:"flex", gap:8 }}>
-            {SORT_OPTIONS.map(opt => (
-              <button key={opt.id} className="pressable" onClick={() => setLocal(l => ({...l, sort:opt.id}))} style={{
-                flex:1, padding:"12px 6px", borderRadius:14, cursor:"pointer",
-                background: local.sort === opt.id ? "#222" : "#f7f7f7",
-                color:      local.sort === opt.id ? "#fff" : "#222",
-                border:"1.5px solid", borderColor: local.sort === opt.id ? "#222" : "#e8e8e8",
-                display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-              }}>
-                <span style={{ fontSize:20 }}>{opt.emoji}</span>
-                <span style={{ fontSize:11, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.2 }}>
-                  {opt.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* max price */}
-        <div style={{ padding:"24px 24px 0" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Max flight price</span>
-            <span style={{ fontSize:14, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-              {local.maxPrice >= 2000 ? "Any" : `$${local.maxPrice}`}
-            </span>
-          </div>
-          <input type="range" min={100} max={2000} step={50} value={local.maxPrice}
-            onChange={e => setLocal(l => ({...l, maxPrice:+e.target.value}))}
-            style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
-          />
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-            <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>$100</span>
-            <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>Any price</span>
-          </div>
-        </div>
-
-        {/* min score */}
-        <div style={{ padding:"20px 24px 0" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Minimum condition score</span>
-            <span style={{ fontSize:14, fontWeight:800, color:"#0284c7", fontFamily:F }}>{local.minScore || "Any"}</span>
-          </div>
-          <input type="range" min={0} max={95} step={5} value={local.minScore}
-            onChange={e => setLocal(l => ({...l, minScore:+e.target.value}))}
-            style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
-          />
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-            <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>Any</span>
-            <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>95+ only</span>
-          </div>
-        </div>
-
-        {/* apply */}
-        <div style={{ padding:"24px 24px 16px" }}>
-          <button onClick={apply} className="pressable" style={{
-            width:"100%", background:"#0284c7", border:"none",
-            borderRadius:16, padding:16, cursor:"pointer",
-            color:"white", fontSize:15, fontWeight:800, fontFamily:F,
-          }}>
-            Show {totalResults} result{totalResults !== 1 ? "s" : ""}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ─── category pills (with live firing counts) ─────────────────────────────────
 // ─── filter chip (active filter badge with ×) ─────────────────────────────────
 function FilterChip({ label, onRemove }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:4, background:"#f0f9ff", border:"1.5px solid #bae6fd", borderRadius:20, padding:"4px 10px", flexShrink:0, cursor:"default" }}>
       <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, whiteSpace:"nowrap" }}>{label}</span>
       <button onClick={onRemove} style={{ background:"none", border:"none", cursor:"pointer", padding:0, lineHeight:1, fontSize:11, color:"#0284c7", fontWeight:900, display:"flex", alignItems:"center" }}>✕</button>
-    </div>
-  );
-}
-
-function CategoryPills({ active, setActive, listings, noBorder = false }) {
-  return (
-    <div style={{
-      display:"grid",
-      gridTemplateColumns:`repeat(${CATEGORIES.length}, 1fr)`,
-      borderBottom: noBorder ? "none" : "1px solid #f0f0f0",
-      background:"#fff", flexShrink:0,
-    }}>
-      {CATEGORIES.map(cat => {
-        const isActive = active === cat.id;
-        return (
-          <button key={cat.id} className="pill" onClick={() => setActive(cat.id)} style={{
-            display:"flex", flexDirection:"column", alignItems:"center",
-            padding:"11px 4px 9px", background:"none", border:"none",
-            borderBottom: isActive ? "3px solid #222" : "3px solid transparent",
-            gap:4, color: isActive ? "#222" : "#aaa", fontFamily:F,
-            position:"relative", minHeight:54,
-          }}>
-            <span style={{ fontSize:10, fontWeight:700, whiteSpace:"nowrap" }}>{cat.label}</span>
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -2162,7 +2092,6 @@ function applyFilters(listings, activeCat, filters, search = {}) {
 }
 
 function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail }) {
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   // Both "All" and sport tabs: always show top 5 picks. Label shifts based on how hot they are.
   const firingAll   = listings.filter(l => l.conditionScore >= 85); // used for AlertBanner count
@@ -2203,117 +2132,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills + filter button row — flex side-by-side so nothing is covered */}
-      <div style={{ display:"flex", alignItems:"stretch", borderBottom:"1px solid #f0f0f0", background:"#fff", flexShrink:0, position:"relative" }}>
-        {/* Pills take remaining width */}
-        <div style={{ flex:1, overflow:"hidden" }}>
-          <CategoryPills active={activeCat} setActive={setActiveCat} listings={listings} noBorder />
-        </div>
-        {/* Filter button pinned to the right — never overlaps pills */}
-        <button
-          className="pressable"
-          onClick={() => setShowFilterMenu(v => !v)}
-          style={{
-            flexShrink:0,
-            background: hasActiveFilters ? "#0284c7" : "transparent",
-            border:"none",
-            borderLeft: hasActiveFilters ? "none" : "1px solid #f0f0f0",
-            padding:"0 14px",
-            display:"flex", alignItems:"center", gap:5,
-            cursor:"pointer", zIndex:20,
-            minWidth:62,
-          }}>
-          <span style={{ fontSize:10, fontWeight:700, fontFamily:F, color: hasActiveFilters ? "white" : "#555" }}>
-            {hasActiveFilters ? "On" : "Filter"}
-          </span>
-          {hasActiveFilters && (
-            <span style={{ fontSize:9, background:"rgba(255,255,255,0.28)", borderRadius:8, padding:"1px 5px", color:"white", fontWeight:800, fontFamily:F }}>
-              {[filters.maxPrice < 2000, filters.sort !== "score", filters.startDate || filters.endDate].filter(Boolean).length}
-            </span>
-          )}
-        </button>
-
-        {/* Active filter chips strip — shows what's filtered */}
-
-        {/* Right-side filter dropdown */}
-        {showFilterMenu && (
-          <>
-            {/* Backdrop */}
-            <div onClick={() => setShowFilterMenu(false)} style={{ position:"fixed", inset:0, zIndex:18 }} />
-            <div style={{
-              position:"absolute", right:10, top:"calc(100% + 8px)",
-              width:290, background:"#fff", borderRadius:18,
-              boxShadow:"0 8px 40px rgba(0,0,0,0.16)", zIndex:30,
-              padding:"16px",
-              border:"1px solid #f0f0f0",
-            }}>
-              {/* Sort */}
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Sort by</div>
-                <div style={{ display:"flex", gap:6 }}>
-                  {SORT_OPTIONS.map(opt => (
-                    <button key={opt.id} onClick={() => setFilters(f => ({...f, sort:opt.id}))} style={{
-                      flex:1, padding:"10px 4px", borderRadius:10, cursor:"pointer",
-                      background: filters.sort === opt.id ? "#222" : "#f7f7f7",
-                      color: filters.sort === opt.id ? "#fff" : "#333",
-                      border:"1.5px solid", borderColor: filters.sort === opt.id ? "#222" : "#ebebeb",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                    }}>
-                      <span style={{ fontSize:10, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.3 }}>{opt.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Max price */}
-              <div style={{ marginBottom:14 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                  <span style={{ fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>Max flight price</span>
-                  <span style={{ fontSize:12, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                    {filters.maxPrice >= 2000 ? "Any" : `$${filters.maxPrice}`}
-                  </span>
-                </div>
-                <input type="range" min={100} max={2000} step={50} value={filters.maxPrice}
-                  onChange={e => setFilters(f => ({...f, maxPrice:+e.target.value}))}
-                  style={{ width:"100%", accentColor:"#0284c7" }} />
-                <div style={{ display:"flex", justifyContent:"space-between", marginTop:3 }}>
-                  <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>$100</span>
-                  <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>Any price</span>
-                </div>
-              </div>
-
-              {/* Date range */}
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Travel dates</div>
-                <div style={{ display:"flex", gap:6 }}>
-                  <input type="text" placeholder="mm/dd/yyyy" value={filters.startDate || ""}
-                    onChange={e => setFilters(f => ({...f, startDate:e.target.value}))}
-                    style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222" }} />
-                  <input type="text" placeholder="mm/dd/yyyy" value={filters.endDate || ""}
-                    onChange={e => setFilters(f => ({...f, endDate:e.target.value}))}
-                    style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222" }} />
-                </div>
-              </div>
-
-              {/* Reset + Done */}
-              <div style={{ display:"flex", gap:8 }}>
-                <button onClick={() => setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" })} style={{
-                  flex:1, padding:"10px", borderRadius:12, background:"#f7f7f7",
-                  border:"1.5px solid #ebebeb", cursor:"pointer",
-                  fontSize:12, fontWeight:700, color:"#555", fontFamily:F,
-                }}>Reset</button>
-                <button onClick={() => setShowFilterMenu(false)} style={{
-                  flex:1, padding:"10px", borderRadius:12, background:"#222",
-                  border:"none", cursor:"pointer",
-                  fontSize:12, fontWeight:700, color:"white", fontFamily:F,
-                }}>Done</button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Active filter chips strip */}
+      {/* Active filter summary strip — compact pills showing what's active */}
       {hasActiveFilters && (
         <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
           {filters.sort !== "score" && (
@@ -3236,9 +3055,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12 }}>Default filters</div>
           <div style={{ display:"flex", gap:8, marginBottom:14 }}>
             {[
-              { id:"score", label:"Best conditions", emoji:"🔥" },
-              { id:"price", label:"Cheapest flights", emoji:"✈️" },
-              { id:"value", label:"Best value",       emoji:"⚡" },
+              { id:"score", label:"Best conditions" },
+              { id:"price", label:"Cheapest flights" },
+              { id:"value", label:"Best value" },
             ].map(opt => (
               <button key={opt.id} className="pressable" onClick={() => setFilters(f => ({...f, sort:opt.id}))} style={{
                 flex:1, padding:"10px 4px", borderRadius:12, cursor:"pointer",
@@ -3247,7 +3066,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                 border:"1.5px solid", borderColor: filters.sort === opt.id ? "#222" : "#e8e8e8",
                 display:"flex", flexDirection:"column", alignItems:"center", gap:3,
               }}>
-                <span style={{ fontSize:18 }}>{opt.emoji}</span>
                 <span style={{ fontSize:10, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.2 }}>{opt.label}</span>
               </button>
             ))}
@@ -3255,7 +3073,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           <div style={{ marginBottom:12 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
               <span style={{ fontSize:12, fontWeight:600, color:"#555", fontFamily:F }}>Max flight price</span>
-              <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{filters.maxPrice >= 2000 ? "Any 💸" : `$${filters.maxPrice}`}</span>
+              <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{filters.maxPrice >= 2000 ? "Any" : `$${filters.maxPrice}`}</span>
             </div>
             <input type="range" min={100} max={2000} step={50} value={filters.maxPrice}
               onChange={e => setFilters(f => ({...f, maxPrice:+e.target.value}))}
@@ -3267,23 +3085,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
               <span style={{ fontSize:10, color:"#22c55e", fontWeight:700, fontFamily:F }}>$100 Budget</span>
               <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F }}>Any price</span>
-            </div>
-          </div>
-          <div>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-              <span style={{ fontSize:12, fontWeight:600, color:"#555", fontFamily:F }}>Min condition score</span>
-              <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{filters.minScore ? `${filters.minScore}+ 🔥` : "Any"}</span>
-            </div>
-            <input type="range" min={0} max={95} step={5} value={filters.minScore}
-              onChange={e => setFilters(f => ({...f, minScore:+e.target.value}))}
-              style={{
-                width:"100%", accentColor:"#0284c7",
-                background:`linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${Math.round((filters.minScore/95)*100)}%, #0284c7 ${Math.round((filters.minScore/95)*100)}%, #22c55e 100%)`,
-              }}
-            />
-            <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-              <span style={{ fontSize:10, color:"#888", fontWeight:700, fontFamily:F }}>Any score</span>
-              <span style={{ fontSize:10, color:"#22c55e", fontWeight:700, fontFamily:F }}>95+ Elite only 🔥</span>
             </div>
           </div>
         </div>
@@ -3326,7 +3127,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               } catch (_) {}
             };
             if (navigator.share) {
-              navigator.share({ title:"Peakly ⛰️", text:msg, url:"https://peakly.app" }).catch(doCopy);
+              navigator.share({ title:"Peakly", text:msg, url:"https://peakly.app" }).catch(doCopy);
             } else { doCopy(); }
           }} style={{
             width:"100%",
@@ -3629,12 +3430,12 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                             borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800,
                             color: l.conditionScore >= 82 ? "#ff385c" : l.conditionScore >= 68 ? "#ea580c" : "#666",
                             fontFamily:F,
-                          }}>🔥 {l.conditionScore}</span>
+                          }}>{l.conditionScore}</span>
                           <span style={{ background:"#f0fff4", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800, color:"#16a34a", fontFamily:F }}>
-                            ✈️ ${l.flight.price}
+                            ${l.flight.price}
                           </span>
                           <span style={{ background:"#f7f7f7", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>
-                            {cat?.emoji} {cat?.label}
+                            {cat?.label}
                           </span>
                           {l.flight.pct > 10 && (
                             <span style={{ background:"#ecfdf5", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#059669", fontFamily:F }}>
@@ -3970,65 +3771,6 @@ const LOCAL_TIPS = {
   paraglide:["🌅 Thermal windows open 2–3 hours after sunrise once the ground heats","⛅ Cumulus clouds mark active thermals — fly toward their bases","🌬️ Never launch in gusty conditions — steady laminar flow is everything","📟 Check your reserve handle position on every single pre-flight inspection"],
 };
 
-// Per category: month quality 0=off, 1=shoulder, 2=good, 3=peak
-// [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
-const MONTH_SCORES = {
-  skiing:   [3,3,2,1,0,0,0,0,0,1,2,3],
-  surfing:  [2,2,2,2,2,3,3,2,2,2,2,2],
-  tanning:  [2,2,2,3,3,3,3,3,3,2,2,2],
-  diving:   [2,2,2,3,3,3,3,3,3,2,2,2],
-  climbing: [1,2,3,3,2,1,0,1,3,3,2,1],
-  kayak:    [1,1,2,3,3,3,3,3,3,2,1,1],
-  mtb:      [1,1,2,3,3,2,2,2,3,3,2,1],
-  kite:     [2,2,1,1,1,2,2,2,2,2,3,3],
-  fishing:  [1,1,2,3,3,3,2,2,2,2,1,1],
-  paraglide:[1,1,2,3,3,3,2,2,3,3,2,1],
-};
-const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-// ─── condition sparkline ───────────────────────────────────────────────────────
-// Renders a 7-day condition-score trend line as an inline SVG
-function ConditionSparkline({ forecast }) {
-  if (!forecast || forecast.length < 2) return null;
-  // Compute a daily condition score proxy from weather data
-  const scores = forecast.map(f => {
-    let s = 70;
-    const hi = typeof f.hi === "number" ? f.hi : parseFloat(f.hi) || 15;
-    if (hi >= 22 && hi <= 30) s += 10; else if (hi < 5 || hi > 36) s -= 15;
-    if (f.precip > 15) s -= 20; else if (f.precip > 5) s -= 8;
-    if (f.wind > 60) s -= 15; else if (f.wind > 35) s -= 6;
-    if (f.wave != null) { if (f.wave >= 1 && f.wave <= 3) s += 12; else if (f.wave > 5) s -= 10; }
-    return Math.max(20, Math.min(100, s));
-  });
-  const W = 200, H = 44;
-  const pad = 6;
-  const maxS = Math.max(...scores), minS = Math.min(...scores);
-  const range = maxS - minS || 1;
-  const pts = scores.map((s, i) => {
-    const x = pad + (i / (scores.length - 1)) * (W - pad * 2);
-    const y = pad + (1 - (s - minS) / range) * (H - pad * 2);
-    return [x, y];
-  });
-  const pathD = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
-  const areaD = pathD + ` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
-  const scoreColor = s => s >= 85 ? "#22c55e" : s >= 70 ? "#84cc16" : s >= 55 ? "#f59e0b" : "#f97316";
-  const lineColor = scoreColor(scores[0]);
-  return (
-    <svg width={W} height={H} style={{ overflow:"visible" }}>
-      <defs>
-        <linearGradient id="spkGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={lineColor} stopOpacity={0.22} />
-          <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      <path d={areaD} fill="url(#spkGrad)" />
-      <path d={pathD} fill="none" stroke={lineColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i === 0 ? 4 : 2.5} fill={i === 0 ? lineColor : "#fff"} stroke={lineColor} strokeWidth={1.5} />
-      ))}
-    </svg>
-  );
-}
 
 const PACKING = {
   skiing:   ["🧥 Base + mid + shell layers","🥽 Goggles (anti-fog)","⛷️ Ski/snowboard boots","🧤 Waterproof gloves","🪖 Helmet","🧴 SPF 50+ (UV reflects off snow)","💊 Altitude meds if needed"],
@@ -4041,18 +3783,6 @@ const PACKING = {
   kite:     ["🪁 Kite + bar","🏄 Twin-tip or directional","👊 Spreader bar harness","🧥 Wetsuit","🔗 Safety leash","🔪 Hook knife (mandatory)","☀️ Waterproof SPF 50+"],
   fishing:  ["🎣 Rod, reel + spare line","📦 Tackle box / lures","🧲 Polarized sunglasses","📜 Fishing license","🥾 Neoprene waders","🧤 Landing gloves","🌡️ Insulated cooler"],
   paraglide:["🪂 Wing + speed bar","👊 Paragliding harness","⚡ Reserve parachute","🪖 Open-face helmet","📟 Variometer / GPS","🌡️ Anemometer","💊 Anti-nausea tabs"],
-};
-const BEST_MONTHS = {
-  skiing:   "Dec – Mar (Northern Hemi) · Jun – Sep (AU / NZ / Southern Hemi)",
-  surfing:  "Year-round · Peak swells vary by coast and swell window",
-  tanning:  "Jun – Aug (Mediterranean) · Nov – Mar (tropics & Caribbean)",
-  diving:   "Year-round in tropics · Apr – Oct in temperate zones",
-  climbing: "Mar – May & Sep – Nov (dry season optimal)",
-  kayak:    "May – Sep (temperate) · Year-round (tropical coasts & fjords)",
-  mtb:      "Mar – Oct (temperate) · Oct – May (Southern Hemi / tropics)",
-  kite:     "Nov – Mar most spots · Tarifa & Cape Verde virtually year-round",
-  fishing:  "May – Aug peak run season (varies by species & latitude)",
-  paraglide:"Apr – Oct (Alpine thermals) · Year-round (warm coastal climates)",
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
@@ -4196,9 +3926,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   })) : [];
 
   const packing    = PACKING[listing.category]      || PACKING.surfing;
-  const bestMonth  = BEST_MONTHS[listing.category]  || "Varies by location and season";
   const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
-  const monthScores = MONTH_SCORES[listing.category] || MONTH_SCORES.surfing;
   const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap);
 
   // Similar venues: same category, excluding current, sorted by score
@@ -4278,7 +4006,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>{shareVenueCopied ? "Copied!" : "Copy link"}</span>
               </button>
               <button onClick={() => {
-                const card = `${listing.title}\n📍 ${listing.location}\n⚡ Conditions: ${listing.conditionScore} — ${listing.conditionLabel}\n✈️ Flights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → peakly.app`;
+                const card = `${listing.title}\n${listing.location}\nConditions: ${listing.conditionScore} — ${listing.conditionLabel}\nFlights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → peakly.app`;
                 copyShareLink(card);
               }} className="pressable" style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"10px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <span style={{ fontSize:14 }}>📋</span>
@@ -4287,8 +4015,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
             <div style={{ background:"rgba(255,255,255,0.08)", borderRadius:12, padding:"10px 12px" }}>
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontFamily:F, lineHeight:1.6 }}>
-                🏔️ <strong style={{ color:"white" }}>{listing.title}</strong><br />
-                ⚡ {listing.conditionScore} · ✈️ From ${listing.flight.price}<br />
+                <strong style={{ color:"white" }}>{listing.title}</strong><br />
+                Conditions: {listing.conditionScore} · From ${listing.flight.price}<br />
                 <span style={{ color:"rgba(255,255,255,0.45)" }}>Find your next adventure → peakly.app</span>
               </div>
             </div>
@@ -4322,7 +4050,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {/* 7-day forecast */}
           {forecast.length > 0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>📅 7-Day Forecast</div>
+              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>7-Day Forecast</div>
               <div style={{ display:"flex", gap:6, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {forecast.map((f, i) => (
                   <div key={i} style={{ flexShrink:0, background:"#f7f7f7", borderRadius:12, padding:"9px 8px", minWidth:62, textAlign:"center", border: i===0 ? "2px solid #0284c7" : "2px solid transparent" }}>
@@ -5270,6 +4998,8 @@ function App() {
           <SearchSheet
             search={search}
             setSearch={setSearch}
+            filters={filters}
+            setFilters={setFilters}
             onApply={(s) => {
               // If exactly one activity selected, switch the tab pill to it; otherwise stay on "all"
               if (s.activities?.length === 1) setActiveCat(s.activities[0]);

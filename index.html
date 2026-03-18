@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0284c7" />
   <meta name="description" content="Peakly — Find surf, ski &amp; adventure spots when conditions and cheap flights align." />
-  <title>Peakly ⛰️</title>
+  <title>Peakly</title>
 
-  <!-- Favicon (emoji fallback) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>" />
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
 
   <!-- React 18 + ReactDOM (UMD, no build step needed) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -28,5 +28,20 @@
 
   <!-- Load app (Babel transforms JSX on the fly) -->
   <script type="text/babel" src="./app.jsx" data-presets="react"></script>
+
+  <!-- Babel parse error fallback -->
+  <script>
+    window.addEventListener("error", function(e) {
+      if (e.message && (e.message.includes("SyntaxError") || e.message.includes("Unexpected token"))) {
+        var root = document.getElementById("root");
+        root.innerHTML = '<div style="padding:40px;text-align:center;font-family:system-ui">' +
+          '<h2 style="color:#ef4444;margin-bottom:12px">Peakly failed to load</h2>' +
+          '<p style="color:#666;margin-bottom:8px">A syntax error was detected in app.jsx.</p>' +
+          '<p style="color:#999;font-size:13px">' + e.message + '</p>' +
+          '<button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;border-radius:10px;border:none;background:#0284c7;color:white;font-weight:700;cursor:pointer">Retry</button>' +
+          '</div>';
+      }
+    });
+  </script>
 </body>
 </html>
