@@ -2525,20 +2525,58 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
 // ─── alerts tab ───────────────────────────────────────────────────────────────
 function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
   const [adding, setAdding] = useState(false);
-  const [draft, setDraft]   = useState({ sport:"", scoreThreshold:85, priceMax:500 });
+  const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
+
+  // Helper to get condition score threshold
+  const getScoreThreshold = (condition) => {
+    switch(condition) {
+      case "insane": return 95;
+      case "great": return 85;
+      case "good": return 70;
+      case "custom": return draft.customScore || 85;
+      case "powder": return 93;
+      case "swell": return 92;
+      default: return 85;
+    }
+  };
+
+  // Helper to check if a listing matches a powder/swell condition
+  const matchesSpecialCondition = (listing, condition) => {
+    if (condition === "powder" && listing.category === "skiing") {
+      return listing.tags?.includes("Powder Day") || listing.conditionScore >= 93;
+    }
+    if (condition === "swell" && listing.category === "surfing") {
+      return listing.tags?.includes("Offshore Winds") || listing.conditionScore >= 92;
+    }
+    return false;
+  };
 
   const firing = listings.filter(l =>
-    userAlerts.some(a =>
-      (a.sport === "all" || a.sport === l.category) &&
-      l.conditionScore >= a.scoreThreshold &&
-      l.flight.price <= a.priceMax
-    )
+    userAlerts.some(a => {
+      const sportMatch = a.sport === "all" || a.sport === l.category;
+      const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
+      const priceMatch = l.flight.price <= a.priceMax;
+
+      let scoreMatch = false;
+      if (a.condition === "powder" || a.condition === "swell") {
+        scoreMatch = matchesSpecialCondition(l, a.condition);
+      } else {
+        const threshold = getScoreThreshold(a.condition);
+        scoreMatch = l.conditionScore >= threshold;
+      }
+
+      return sportMatch && locationMatch && priceMatch && scoreMatch;
+    })
   );
 
   const addAlert  = () => {
     if (!draft.sport) return;
-    setUserAlerts(p => [...p, { ...draft, id: Date.now() }]);
-    setDraft({ sport:"", scoreThreshold:85, priceMax:500 });
+    const alertData = { ...draft, id: Date.now() };
+    if (draft.condition === "custom") {
+      alertData.customScore = draft.customScore || 85;
+    }
+    setUserAlerts(p => [...p, alertData]);
+    setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
   };
   const delAlert  = id => setUserAlerts(p => p.filter(a => a.id !== id));
@@ -2575,19 +2613,118 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 
         {draft.sport && (
           <div className="fade-in">
-            {/* Score threshold */}
+            {/* Condition presets */}
             <div style={{ marginTop:28 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-                <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>Min condition score</span>
-                <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>{draft.scoreThreshold}</span>
+              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Trigger condition</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {draft.sport === "skiing" && (
+                  <button onClick={() => setDraft(d => ({...d, condition:"powder"}))} style={{
+                    padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                    background: draft.condition === "powder" ? "#222" : "#f7f7f7",
+                    color: draft.condition === "powder" ? "#fff" : "#222",
+                    borderColor: draft.condition === "powder" ? "#222" : "#e8e8e8",
+                    fontSize:13, fontWeight:600, textAlign:"left",
+                  }}>
+                    Powder Day (score ≥ 93)
+                  </button>
+                )}
+                {draft.sport === "surfing" && (
+                  <button onClick={() => setDraft(d => ({...d, condition:"swell"}))} style={{
+                    padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                    background: draft.condition === "swell" ? "#222" : "#f7f7f7",
+                    color: draft.condition === "swell" ? "#fff" : "#222",
+                    borderColor: draft.condition === "swell" ? "#222" : "#e8e8e8",
+                    fontSize:13, fontWeight:600, textAlign:"left",
+                  }}>
+                    Perfect Swell (score ≥ 92)
+                  </button>
+                )}
+                <button onClick={() => setDraft(d => ({...d, condition:"insane"}))} style={{
+                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                  background: draft.condition === "insane" ? "#222" : "#f7f7f7",
+                  color: draft.condition === "insane" ? "#fff" : "#222",
+                  borderColor: draft.condition === "insane" ? "#222" : "#e8e8e8",
+                  fontSize:13, fontWeight:600, textAlign:"left",
+                }}>
+                  Insane conditions (score ≥ 95)
+                </button>
+                <button onClick={() => setDraft(d => ({...d, condition:"great"}))} style={{
+                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                  background: draft.condition === "great" ? "#222" : "#f7f7f7",
+                  color: draft.condition === "great" ? "#fff" : "#222",
+                  borderColor: draft.condition === "great" ? "#222" : "#e8e8e8",
+                  fontSize:13, fontWeight:600, textAlign:"left",
+                }}>
+                  Great conditions (score ≥ 85)
+                </button>
+                <button onClick={() => setDraft(d => ({...d, condition:"good"}))} style={{
+                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                  background: draft.condition === "good" ? "#222" : "#f7f7f7",
+                  color: draft.condition === "good" ? "#fff" : "#222",
+                  borderColor: draft.condition === "good" ? "#222" : "#e8e8e8",
+                  fontSize:13, fontWeight:600, textAlign:"left",
+                }}>
+                  Good conditions (score ≥ 70)
+                </button>
+                <button onClick={() => setDraft(d => ({...d, condition:"custom", customScore: 85}))} style={{
+                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                  background: draft.condition === "custom" ? "#222" : "#f7f7f7",
+                  color: draft.condition === "custom" ? "#fff" : "#222",
+                  borderColor: draft.condition === "custom" ? "#222" : "#e8e8e8",
+                  fontSize:13, fontWeight:600, textAlign:"left",
+                }}>
+                  Custom score
+                </button>
               </div>
-              <input type="range" min={60} max={98} value={draft.scoreThreshold}
-                onChange={e => setDraft(d => ({...d, scoreThreshold:+e.target.value}))}
-                style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
-              />
-              <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-                <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>60 · Any good day</span>
-                <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>98 · Perfect only</span>
+            </div>
+
+            {draft.condition === "custom" && (
+              <div style={{ marginTop:20 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>Min score</span>
+                  <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>{draft.customScore}</span>
+                </div>
+                <input type="range" min={60} max={98} value={draft.customScore}
+                  onChange={e => setDraft(d => ({...d, customScore:+e.target.value}))}
+                  style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
+                />
+              </div>
+            )}
+
+            {/* Location selection */}
+            <div style={{ marginTop:28 }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Locations</div>
+              <button onClick={() => setDraft(d => ({...d, locations:[]}))} style={{
+                padding:"8px 12px", borderRadius:10, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                background: draft.locations.length === 0 ? "#222" : "#f7f7f7",
+                color: draft.locations.length === 0 ? "#fff" : "#222",
+                borderColor: draft.locations.length === 0 ? "#222" : "#e8e8e8",
+                fontSize:13, fontWeight:600, width:"100%", textAlign:"center", marginBottom:8,
+              }}>
+                Any location
+              </button>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {listings
+                  .filter(l => draft.sport === "all" || l.category === draft.sport)
+                  .map(venue => (
+                    <button key={venue.id} onClick={() => {
+                      setDraft(d => {
+                        const locs = [...d.locations];
+                        const idx = locs.indexOf(venue.id);
+                        if (idx >= 0) locs.splice(idx, 1);
+                        else locs.push(venue.id);
+                        return {...d, locations: locs};
+                      });
+                    }} style={{
+                      padding:"6px 11px", borderRadius:8, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                      background: draft.locations.includes(venue.id) ? "#0284c7" : "#f7f7f7",
+                      color: draft.locations.includes(venue.id) ? "#fff" : "#222",
+                      borderColor: draft.locations.includes(venue.id) ? "#0284c7" : "#e8e8e8",
+                      fontSize:12, fontWeight:600,
+                    }}>
+                      {venue.title.split(",")[0]}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -2616,7 +2753,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
               borderRadius:14, padding:16, marginTop:32,
               color:"white", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
             }}>
-              🔔 Create Alert
+              Create Alert
             </button>
           </div>
         )}
@@ -2644,10 +2781,10 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
         <div style={{ margin:"0 24px 20px" }}>
           <div style={{
             background:"linear-gradient(90deg,#0284c7,#38bdf8)",
-            borderRadius:16, padding:"14px 18px",
+            borderRadius:16, padding:"14px 18px", borderLeft:"4px solid #0284c7",
           }}>
             <div className="pulse" style={{ fontSize:14, fontWeight:800, color:"white", fontFamily:F, marginBottom:6 }}>
-              🔔 {firing.length} alert{firing.length > 1 ? "s" : ""} firing now
+              {firing.length} alert{firing.length > 1 ? "s" : ""} firing now
             </div>
             {firing.slice(0, 3).map(l => (
               <div key={l.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6 }}>
@@ -2665,14 +2802,13 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
       {/* Empty state */}
       {userAlerts.length === 0 ? (
         <div style={{ padding:"40px 24px", textAlign:"center" }}>
-          <div style={{ fontSize:60, marginBottom:16 }}>🔔</div>
-          <div style={{ fontSize:18, fontWeight:700, color:"#222", fontFamily:F, marginBottom:8 }}>No alerts yet</div>
-          <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24 }}>
+          <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:8 }}>No alerts yet</div>
+          <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:24 }}>
             Create an alert and we'll tell you when conditions + cheap flights align
           </div>
           <button onClick={() => setAdding(true)} style={{
             background:"#0284c7", border:"none", borderRadius:14,
-            padding:"14px 28px", color:"white", fontSize:14, fontWeight:800,
+            padding:"12px 24px", color:"white", fontSize:13, fontWeight:800,
             fontFamily:F, cursor:"pointer",
           }}>Create your first alert</button>
         </div>
@@ -2680,35 +2816,60 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
         <div style={{ padding:"0 24px" }}>
           {userAlerts.map(a => {
             const cat    = CATEGORIES.find(c => c.id === a.sport);
-            const active = firing.some(l =>
-              (a.sport === "all" || a.sport === l.category) &&
-              l.conditionScore >= a.scoreThreshold && l.flight.price <= a.priceMax
-            );
+            const active = firing.some(l => {
+              const sportMatch = a.sport === "all" || a.sport === l.category;
+              const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
+              const priceMatch = l.flight.price <= a.priceMax;
+              let scoreMatch = false;
+              if (a.condition === "powder" || a.condition === "swell") {
+                scoreMatch = matchesSpecialCondition(l, a.condition);
+              } else {
+                const threshold = getScoreThreshold(a.condition);
+                scoreMatch = l.conditionScore >= threshold;
+              }
+              return sportMatch && locationMatch && priceMatch && scoreMatch;
+            });
+
+            const conditionLabels = {
+              "insane": "Insane (≥95)",
+              "great": "Great (≥85)",
+              "good": "Good (≥70)",
+              "powder": "Powder Day",
+              "swell": "Perfect Swell",
+              "custom": `Custom (≥${a.customScore})`
+            };
+
             return (
               <div key={a.id} style={{
-                background: active ? "#fff5f5" : "#f9f9f9",
-                border:`1.5px solid ${active ? "#ffb3b3" : "#e8e8e8"}`,
-                borderRadius:14, padding:16, marginBottom:12,
-                display:"flex", justifyContent:"space-between", alignItems:"center",
+                background: active ? "#f0f9ff" : "#f9f9f9",
+                borderLeft: active ? "4px solid #0284c7" : "4px solid #e8e8e8",
+                borderRadius:0, padding:16, marginBottom:12,
+                display:"flex", justifyContent:"space-between", alignItems:"flex-start",
               }}>
-                <div>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-                    <span style={{ fontSize:16 }}>{cat?.emoji || "✨"}</span>
-                    <span style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                    <span style={{ fontWeight:700, fontSize:13, color:"#222", fontFamily:F }}>
                       {cat?.label || "Any sport"}
                     </span>
-                    {active && (
-                      <span className="pulse" style={{ fontSize:11, color:"#0284c7", fontWeight:800, fontFamily:F }}>
-                        ● FIRING
-                      </span>
-                    )}
+                    <span style={{
+                      fontSize:10, fontWeight:700, background:"#e8e8e8", color:"#222",
+                      padding:"4px 8px", borderRadius:4, fontFamily:F, textTransform:"uppercase",
+                      letterSpacing:"0.05em"
+                    }}>
+                      {conditionLabels[a.condition] || a.condition}
+                    </span>
                   </div>
-                  <div style={{ fontSize:12, color:"#717171", fontFamily:F }}>
-                    Score ≥ {a.scoreThreshold} · Flights ≤ {a.priceMax >= 2100 ? "any price" : `$${a.priceMax}`}
+                  {a.locations.length > 0 && (
+                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginBottom:6 }}>
+                      {a.locations.length} location{a.locations.length > 1 ? "s" : ""} selected
+                    </div>
+                  )}
+                  <div style={{ fontSize:11, color:"#aaa", fontFamily:F }}>
+                    Flights ≤ {a.priceMax >= 2100 ? "any price" : `$${a.priceMax}`}
                   </div>
                 </div>
                 <button onClick={() => delAlert(a.id)} style={{
-                  background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#bbb",
+                  background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#bbb", padding:0, marginLeft:12,
                 }}>×</button>
               </div>
             );
@@ -4382,6 +4543,406 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   );
 }
 
+// ─── trip builder sheet ───────────────────────────────────────────────────────
+function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile }) {
+  const [step, setStep] = useState(0);
+  const [sport, setSport] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [budget, setBudget] = useState(5000);
+  const [days, setDays] = useState(5);
+  const [departureAirport, setDepartureAirport] = useState(profile.homeAirport || "JFK");
+  const [generating, setGenerating] = useState(false);
+  const [trip, setTrip] = useState(null);
+
+  const steps = [
+    { label: "Adventure?", field: "sport" },
+    { label: "When?", field: "dates" },
+    { label: "Budget?", field: "budget" },
+    { label: "Days?", field: "days" },
+    { label: "From where?", field: "airport" }
+  ];
+
+  const buildTrip = async () => {
+    if (!sport || !startDate || !endDate || !budget || !days || !departureAirport) return;
+    setGenerating(true);
+
+    // Mock trip generation
+    const sportVenues = listings.filter(l => l.category === sport);
+    const bestVenue = sportVenues.reduce((a, b) => (b.conditionScore || 0) - (a.conditionScore || 0))[0] || sportVenues[0];
+
+    if (!bestVenue) {
+      setGenerating(false);
+      return;
+    }
+
+    const flightPrice = duffelPrices[`${departureAirport}-${bestVenue.ap}`] || Math.floor(Math.random() * 800) + 200;
+    const hotelNightly = { skiing: 180, surfing: 150, hiking: 120, tanning: 140 }[sport] || 150;
+    const totalHotel = hotelNightly * days;
+    const activitiesPerDay = 2;
+    const activitiesCost = days * activitiesPerDay * 75;
+    const totalCost = flightPrice + totalHotel + activitiesCost;
+
+    const generatedTrip = {
+      id: Date.now().toString(),
+      destination: bestVenue.title,
+      venue: bestVenue,
+      startDate,
+      endDate,
+      days,
+      sport,
+      flight: { from: departureAirport, to: bestVenue.ap, price: flightPrice },
+      hotel: { name: { skiing: "Mountain Lodge", surfing: "Beachfront Resort", hiking: "Eco Lodge", tanning: "Tropical Paradise" }[sport] || "Resort", nightly: hotelNightly, total: totalHotel },
+      itinerary: Array.from({length: days}, (_, i) => ({
+        day: i+1,
+        activity: [
+          "Lesson & practice",
+          "Explore local spots",
+          "Free time / relax",
+          "Advanced session",
+          "Scenic adventure"
+        ][i % 5],
+        meals: "Breakfast & lunch included"
+      })),
+      totalCost,
+      budget
+    };
+
+    // Simulate loading
+    await new Promise(r => setTimeout(r, 1200));
+    setTrip(generatedTrip);
+    setGenerating(false);
+  };
+
+  if (generating) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        <div style={{
+          background:"white", borderRadius:20, padding:40, textAlign:"center", maxWidth:300,
+        }}>
+          <div className="vibe-spin" style={{ fontSize:32, marginBottom:20, display:"inline-block" }}>↻</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:8 }}>Building your trip</div>
+          <div style={{ fontSize:12, color:"#aaa", fontFamily:F }}>Finding the perfect match...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (trip) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"flex-end",
+      }} onClick={onClose}>
+        <div className="sheet" onClick={e => e.stopPropagation()} style={{
+          background:"white", borderRadius:"24px 24px 0 0", width:"100%", maxHeight:"90vh", overflowY:"auto",
+          padding:"28px 24px 40px",
+        }}>
+          <button onClick={onClose} style={{
+            position:"absolute", top:16, right:16, background:"none", border:"none", fontSize:24, cursor:"pointer", color:"#bbb",
+          }}>×</button>
+
+          {/* Trip header */}
+          <div style={{
+            background: trip.venue.gradient, borderRadius:16, height:180, marginBottom:20,
+            backgroundSize:"cover", backgroundPosition:"center", position:"relative",
+          }}>
+            <div style={{
+              position:"absolute", inset:0, background:"rgba(0,0,0,0.2)", borderRadius:16,
+              display:"flex", alignItems:"flex-end", padding:16,
+            }}>
+              <div>
+                <div style={{ fontSize:12, color:"rgba(255,255,255,0.8)", fontFamily:F }}>Discover</div>
+                <div style={{ fontSize:22, fontWeight:900, color:"white", fontFamily:F, marginTop:4 }}>{trip.destination}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trip details */}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+              <div style={{ background:"#f7f7f7", borderRadius:12, padding:14 }}>
+                <div style={{ fontSize:10, color:"#aaa", fontFamily:F, fontWeight:700, textTransform:"uppercase", marginBottom:4 }}>Flight</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>
+                  {trip.flight.from} → {trip.flight.to}
+                </div>
+                <div style={{ fontSize:14, fontWeight:800, color:"#0284c7", fontFamily:F, marginTop:4 }}>
+                  ${trip.flight.price}
+                </div>
+              </div>
+              <div style={{ background:"#f7f7f7", borderRadius:12, padding:14 }}>
+                <div style={{ fontSize:10, color:"#aaa", fontFamily:F, fontWeight:700, textTransform:"uppercase", marginBottom:4 }}>Hotel</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>
+                  {trip.hotel.name}
+                </div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:4 }}>
+                  ${trip.hotel.nightly}/night · {trip.days} nights
+                </div>
+              </div>
+            </div>
+
+            {/* Itinerary */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Itinerary</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {trip.itinerary.map((day, i) => (
+                  <div key={i} style={{ background:"#f9f9f9", borderLeft:"3px solid #0284c7", padding:12, borderRadius:8 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F }}>Day {day.day}</div>
+                    <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{day.activity}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cost breakdown */}
+            <div style={{ background:"#f7f7f7", borderRadius:12, padding:14, marginBottom:16 }}>
+              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Cost breakdown</div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8, fontSize:12, fontFamily:F }}>
+                <span style={{ color:"#717171" }}>Flight</span>
+                <span style={{ color:"#222", fontWeight:700 }}>${trip.flight.price}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8, fontSize:12, fontFamily:F }}>
+                <span style={{ color:"#717171" }}>Hotel ({trip.days}n)</span>
+                <span style={{ color:"#222", fontWeight:700 }}>${trip.hotel.total}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12, fontSize:12, fontFamily:F }}>
+                <span style={{ color:"#717171" }}>Activities</span>
+                <span style={{ color:"#222", fontWeight:700 }}>${trip.totalCost - trip.flight.price - trip.hotel.total}</span>
+              </div>
+              <div style={{ borderTop:"1px solid #e8e8e8", paddingTop:12, display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:800, fontFamily:F }}>
+                <span>Total</span>
+                <span style={{ color:"#0284c7" }}>${trip.totalCost}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display:"flex", gap:12 }}>
+            <button onClick={() => onSaveTrip(trip)} style={{
+              flex:1, background:"#0284c7", border:"none", borderRadius:12, padding:14,
+              color:"white", fontSize:14, fontWeight:800, fontFamily:F, cursor:"pointer",
+            }}>
+              Save Trip
+            </button>
+            <button onClick={() => setTrip(null)} style={{
+              flex:1, background:"#f7f7f7", border:"none", borderRadius:12, padding:14,
+              color:"#222", fontSize:14, fontWeight:800, fontFamily:F, cursor:"pointer",
+            }}>
+              Build Another
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"flex-end",
+    }} onClick={onClose}>
+      <div className="sheet" onClick={e => e.stopPropagation()} style={{
+        background:"white", borderRadius:"24px 24px 0 0", width:"100%", maxHeight:"90vh", overflowY:"auto",
+        padding:"28px 24px 40px",
+      }}>
+        <button onClick={onClose} style={{
+          position:"absolute", top:16, right:16, background:"none", border:"none", fontSize:24, cursor:"pointer", color:"#bbb",
+        }}>×</button>
+
+        <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, marginBottom:6 }}>Build a Trip with AI</div>
+        <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:28 }}>
+          Step {step + 1} of {steps.length}
+        </div>
+
+        {/* Step 0: Sport */}
+        {step === 0 && (
+          <div className="fade-in">
+            <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {[
+                { id:"skiing", label:"Skiing" },
+                { id:"surfing", label:"Surfing" },
+                { id:"hiking", label:"Hiking" },
+                { id:"tanning", label:"Beach & Tan" }
+              ].map(s => (
+                <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
+                  padding:14, borderRadius:12, border:"1.5px solid #e8e8e8", cursor:"pointer", fontFamily:F,
+                  background:"#fff", color:"#222", fontSize:13, fontWeight:700, textAlign:"left",
+                }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Dates */}
+        {step === 1 && (
+          <div className="fade-in">
+            <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>When are you going?</div>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{
+              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:10,
+            }} />
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{
+              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:14,
+            }} />
+            <button onClick={() => setStep(2)} disabled={!startDate || !endDate} style={{
+              width:"100%", background: startDate && endDate ? "#222" : "#ddd", border:"none", borderRadius:12, padding:12,
+              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+            }}>
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Budget */}
+        {step === 2 && (
+          <div className="fade-in">
+            <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Budget per person?</div>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+              <span style={{ fontSize:13, color:"#717171", fontFamily:F }}>$500</span>
+              <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>${budget}</span>
+              <span style={{ fontSize:13, color:"#717171", fontFamily:F }}>$10,000</span>
+            </div>
+            <input type="range" min={500} max={10000} step={100} value={budget} onChange={e => setBudget(+e.target.value)} style={{
+              width:"100%", marginBottom:20, accentColor:"#0284c7", background:"#e8e8e8",
+            }} />
+            <button onClick={() => setStep(3)} style={{
+              width:"100%", background:"#222", border:"none", borderRadius:12, padding:12,
+              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+            }}>
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Step 3: Days */}
+        {step === 3 && (
+          <div className="fade-in">
+            <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>How many days?</div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:20 }}>
+              {[3, 5, 7, 10, 14].map(d => (
+                <button key={d} onClick={() => setDays(d)} style={{
+                  flex:"1 1 calc(50% - 4px)", padding:12, borderRadius:10, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                  background: days === d ? "#222" : "#f7f7f7",
+                  color: days === d ? "#fff" : "#222",
+                  borderColor: days === d ? "#222" : "#e8e8e8",
+                  fontSize:13, fontWeight:700,
+                }}>
+                  {d} days
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setStep(4)} style={{
+              width:"100%", background:"#222", border:"none", borderRadius:12, padding:12,
+              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+            }}>
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Step 4: Airport */}
+        {step === 4 && (
+          <div className="fade-in">
+            <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Departure airport?</div>
+            <input type="text" placeholder="E.g. JFK, LAX, LHR" value={departureAirport} onChange={e => setDepartureAirport(e.target.value.toUpperCase())} style={{
+              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:14,
+            }} />
+            <button onClick={buildTrip} disabled={!departureAirport} style={{
+              width:"100%", background: departureAirport ? "#0284c7" : "#ddd", border:"none", borderRadius:12, padding:12,
+              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+            }}>
+              Build My Trip
+            </button>
+          </div>
+        )}
+
+        {/* Step indicators */}
+        <div style={{ display:"flex", gap:4, marginTop:24, justifyContent:"center" }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{
+              width:6, height:6, borderRadius:"50%", background: i <= step ? "#0284c7" : "#e8e8e8",
+            }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── trips tab ────────────────────────────────────────────────────────────────
+function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, onOpenDetail, duffelPrices, profile, savedTrips, setSavedTrips }) {
+  const [showBuilder, setShowBuilder] = useState(false);
+
+  const onSaveTrip = (trip) => {
+    setSavedTrips(t => [...t, trip]);
+    setShowBuilder(false);
+  };
+
+  return (
+    <>
+      <div style={{ flex:1, overflowY:"auto" }}>
+        {/* Trip builder card */}
+        <div style={{ padding:"24px 24px 0" }}>
+          <button onClick={() => setShowBuilder(true)} className="card" style={{
+            width:"100%", background:"linear-gradient(135deg,#0284c7,#0ea5e9)", borderRadius:16, padding:20,
+            border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:14, color:"white",
+          }}>
+            <div style={{ flex:1, textAlign:"left" }}>
+              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Build a Trip with AI</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.8)", fontFamily:F, marginTop:2 }}>
+                Get a personalized itinerary
+              </div>
+            </div>
+            <span style={{ fontSize:18 }}>→</span>
+          </button>
+        </div>
+
+        {/* Saved trips section */}
+        {savedTrips.length > 0 && (
+          <div style={{ padding:"20px 24px 0" }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>
+              Saved trips
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+              {savedTrips.map(trip => (
+                <div key={trip.id} className="card" style={{
+                  background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:16, overflow:"hidden",
+                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+                }}>
+                  <div style={{
+                    height:120, background:trip.venue.gradient, backgroundSize:"cover",
+                  }} />
+                  <div style={{ padding:14 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
+                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:4 }}>
+                      {trip.days} days · ${trip.totalCost} total
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Wishlists section */}
+        <WishlistsTab listings={listings} wishlists={wishlists} onToggle={onToggle} namedLists={namedLists} setNamedLists={setNamedLists} onOpenDetail={onOpenDetail} />
+      </div>
+
+      {showBuilder && (
+        <TripBuilderSheet
+          listings={listings}
+          duffelPrices={duffelPrices}
+          profile={profile}
+          onClose={() => setShowBuilder(false)}
+          onSaveTrip={onSaveTrip}
+        />
+      )}
+    </>
+  );
+}
+
 // ─── map tab ──────────────────────────────────────────────────────────────────
 // ─── bottom nav ───────────────────────────────────────────────────────────────
 function BottomNav({ active, setActive, alertCount }) {
@@ -4438,6 +4999,7 @@ function App() {
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
+  const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
     name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
@@ -4638,10 +5200,14 @@ function App() {
             />
           )}
           {activeTab === "wishlists" && (
-            <WishlistsTab
+            <TripsTab
               listings={listings} wishlists={wishlists} onToggle={toggleWishlist}
               namedLists={namedLists} setNamedLists={setNamedLists}
               onOpenDetail={openDetail}
+              duffelPrices={duffelPrices}
+              profile={profile}
+              savedTrips={savedTrips}
+              setSavedTrips={setSavedTrips}
             />
           )}
           {activeTab === "alerts" && (
