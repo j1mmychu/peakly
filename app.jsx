@@ -1900,9 +1900,9 @@ function AlertBanner({ count, onView }) {
 
 // ─── filter sheet ─────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
-  { id:"score",  label:"Best conditions", emoji:"🔥" },
-  { id:"price",  label:"Cheapest flights", emoji:"✈️" },
-  { id:"value",  label:"Best value",       emoji:"⚡" },
+  { id:"score",  label:"Best conditions" },
+  { id:"price",  label:"Cheapest flights" },
+  { id:"value",  label:"Best value" },
 ];
 
 // ─── vibe search engine ────────────────────────────────────────────────────────
@@ -2219,6 +2219,21 @@ function applyFilters(listings, activeCat, filters, search = {}) {
     out = out.filter(l => AP_CONTINENT[l.ap] === search.continent);
   }
   if (filters.maxPrice  < 2000) out = out.filter(l => l.flight.price   <= filters.maxPrice);
+  // Date range filter
+  if (filters.startDate) {
+    const start = new Date(filters.startDate);
+    if (!isNaN(start)) out = out.filter(l => {
+      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
+      return !dep || dep >= start;
+    });
+  }
+  if (filters.endDate) {
+    const end = new Date(filters.endDate);
+    if (!isNaN(end)) out = out.filter(l => {
+      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
+      return !dep || dep <= end;
+    });
+  }
   if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
   if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price   - b.flight.price);
   if (filters.sort === "value") out = [...out].sort((a,b) => {
@@ -2321,14 +2336,13 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 <div style={{ display:"flex", gap:6 }}>
                   {SORT_OPTIONS.map(opt => (
                     <button key={opt.id} onClick={() => setFilters(f => ({...f, sort:opt.id}))} style={{
-                      flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
+                      flex:1, padding:"10px 4px", borderRadius:10, cursor:"pointer",
                       background: filters.sort === opt.id ? "#222" : "#f7f7f7",
                       color: filters.sort === opt.id ? "#fff" : "#333",
                       border:"1.5px solid", borderColor: filters.sort === opt.id ? "#222" : "#ebebeb",
-                      display:"flex", flexDirection:"column", alignItems:"center", gap:3,
+                      display:"flex", alignItems:"center", justifyContent:"center",
                     }}>
-                      <span style={{ fontSize:17 }}>{opt.emoji}</span>
-                      <span style={{ fontSize:9, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.3 }}>{opt.label}</span>
+                      <span style={{ fontSize:10, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.3 }}>{opt.label}</span>
                     </button>
                   ))}
                 </div>
@@ -2401,6 +2415,71 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
         <div style={{ height:16 }} />
 
+        {/* Firing right now section */}
+        {!loading && firingTab.length > 0 && (
+          <div style={{ marginBottom:20 }}>
+            <div style={{ padding:"0 24px 10px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F, display:"flex", alignItems:"center", gap:8 }}>
+                  {firingLabel}
+                  {isTrulyFiring && (
+                    <span className="pulse" style={{ display:"inline-block", width:8, height:8, borderRadius:"50%", background:"#22c55e" }} />
+                  )}
+                </div>
+                <div style={{ fontSize:12, color:"#717171", marginTop:2, fontFamily:F }}>{firingSubLabel}</div>
+              </div>
+              <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F }}>{firingTab.length} spots</span>
+            </div>
+            <div style={{
+              display:"flex", gap:12, overflowX:"auto", scrollbarWidth:"none",
+              WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+            }}>
+              {firingTab.map((l, i) => {
+                const scoreColor = l.conditionScore >= 90 ? "#22c55e" : l.conditionScore >= 75 ? "#84cc16" : l.conditionScore >= 60 ? "#eab308" : l.conditionScore >= 45 ? "#f97316" : "#ef4444";
+                return (
+                  <div key={l.id} className="card bounce-in" onClick={() => onOpenDetail(l)}
+                    style={{
+                      minWidth:200, maxWidth:200, scrollSnapAlign:"start",
+                      background:"#fff", borderRadius:16, overflow:"hidden",
+                      border:`2px solid ${scoreColor}`,
+                      boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
+                      animationDelay:`${i * 0.06}s`, animationFillMode:"both",
+                    }}>
+                    <div style={{
+                      height:110, background:l.gradient, position:"relative",
+                      display:"flex", alignItems:"flex-end", padding:10,
+                    }}>
+                      <div style={{
+                        background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)",
+                        borderRadius:8, padding:"4px 8px",
+                        display:"flex", alignItems:"center", gap:5,
+                      }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:scoreColor }} />
+                        <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>{l.conditionScore}</span>
+                      </div>
+                      {bestValue && bestValue.id === l.id && (
+                        <div style={{
+                          position:"absolute", top:8, right:8,
+                          background:"#0284c7", borderRadius:6, padding:"3px 7px",
+                          fontSize:9, fontWeight:800, color:"white", fontFamily:F,
+                        }}>Best value</div>
+                      )}
+                    </div>
+                    <div style={{ padding:"10px 12px" }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
+                      <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6 }}>
+                        <span style={{ fontSize:13, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
+                        <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>round trip</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Grid header */}
         <div style={{ padding:"0 24px 14px" }}>
           <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
@@ -2428,7 +2507,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 )
               : (
                 <div style={{ gridColumn:"1/-1", padding:"40px 0", textAlign:"center" }}>
-                  <div style={{ fontSize:48, marginBottom:12 }}>🔍</div>
                   <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>No matches</div>
                   <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20 }}>Try a different destination or activity</div>
                   <button onClick={() => setActiveCat("all")} className="pressable" style={{
