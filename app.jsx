@@ -981,16 +981,12 @@ function scoreVenue(venue, wx, marine) {
   return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
 }
 
-// ─── duffel flight pricing ────────────────────────────────────────────────────
-// ⚠️  SECURITY: This is a TEST token only — safe to expose in dev.
-// Before production: move to a backend proxy (env var), never ship a live token in client code.
-// ─── Travelpayouts affiliate token (CORS-enabled, free, no backend needed) ───
+// ─── Travelpayouts affiliate flight pricing ──────────────────────────────────
+// CORS-enabled, free, no backend needed — safe for client-side use
 const TRAVELPAYOUTS_TOKEN = "d55e708966b22b9ec93a9dcfdaa233ff";
 
 // Returns the cheapest one-way economy price found, or null on failure.
-// Note: Duffel is a server-side API — CORS will block this in a plain browser.
-// It will work seamlessly in React Native (Phase 2) with no changes needed.
-// For the web build, prices fall back to estimates when blocked.
+// Falls back to estimate prices when API is unavailable.
 async function fetchTravelpayoutsPrice(origin, destination) {
   try {
     // Travelpayouts v1/prices/cheap — returns cheapest prices found in the last 48h
@@ -4894,30 +4890,48 @@ function App() {
   }, []);
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
+  // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
   useEffect(() => {
     if (loading) return;
     let alive = true;
     (async () => {
-      // Travelpayouts rate limit: batch in groups of 5 with small delays
-      const prices = {};
-      for (let i = 0; i < VENUES.length; i += 5) {
-        const batch = VENUES.slice(i, i + 5);
+      // 1. Build a map of unique airport codes → venue IDs that use them
+      const apToVenues = {};
+      VENUES.forEach(v => {
+        if (!apToVenues[v.ap]) apToVenues[v.ap] = [];
+        apToVenues[v.ap].push(v.id);
+      });
+      const uniqueAirports = Object.keys(apToVenues);
+
+      // 2. Fetch prices only for unique airports, batched in groups of 5
+      const apPrices = {}; // airport code → cheapest price
+      const origin = profile.homeAirport || "JFK";
+      for (let i = 0; i < uniqueAirports.length; i += 5) {
+        const batch = uniqueAirports.slice(i, i + 5);
         const results = await Promise.allSettled(
-          batch.map(async v => {
-            const price = await fetchTravelpayoutsPrice(profile.homeAirport || "JFK", v.ap);
-            return { id: v.id, price };
+          batch.map(async ap => {
+            const price = await fetchTravelpayoutsPrice(origin, ap);
+            return { ap, price };
           })
         );
         if (!alive) return;
         results.forEach(r => {
           if (r.status === "fulfilled" && r.value.price !== null) {
-            prices[r.value.id] = r.value.price;
+            apPrices[r.value.ap] = r.value.price;
           }
         });
-        // Small delay between batches to be respectful of rate limits
-        if (i + 5 < VENUES.length) await new Promise(r => setTimeout(r, 300));
+        if (i + 5 < uniqueAirports.length) await new Promise(r => setTimeout(r, 300));
       }
-      if (Object.keys(prices).length > 0) setDuffelPrices(prices);
+
+      // 3. Map airport prices back to venue IDs
+      const prices = {};
+      Object.entries(apPrices).forEach(([ap, price]) => {
+        apToVenues[ap].forEach(venueId => {
+          prices[venueId] = price;
+        });
+      });
+
+      if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
   }, [loading, profile.homeAirport]);
