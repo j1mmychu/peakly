@@ -143,6 +143,9 @@ const CATEGORIES = [
   { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
   { id:"surfing", label:"Surfing",    emoji:"🏄" },
   { id:"tanning", label:"Beach & Tan",emoji:"☀️" },
+  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
+  { id:"diving",  label:"Diving",     emoji:"🤿" },
+  { id:"climbing",label:"Climbing",   emoji:"🧗" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -182,19 +185,19 @@ const AP_CONTINENT = {
   AJA:"europe", BOD:"europe", PSA:"europe", NAP:"europe",
   CAG:"europe", FAO:"europe", JTR:"europe", JMK:"europe",
   ZTH:"europe", SPU:"europe", DBV:"europe", MLO:"europe",
-  IBZ:"europe", MAH:"europe", NCE:"europe",
+  IBZ:"europe", MAH:"europe", NCE:"europe", KEF:"europe",
   MAN:"europe", CWL:"europe",
   // Asia
   NRT:"asia", CTS:"asia", HND:"asia", DPS:"asia", PDG:"asia", CEB:"asia",
   KTM:"asia", KBV:"asia", HKT:"asia", USM:"asia", ENI:"asia", MPH:"asia",
-  LOP:"asia", PBH:"asia", AMM:"asia",
+  LOP:"asia", PBH:"asia", AMM:"asia", PKR:"asia", LUA:"asia",
   // Oceania / Pacific
   ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania",
   MEL:"oceania", OOL:"oceania", PER:"oceania", AKL:"oceania",
   NAN:"oceania", MLE:"oceania", PPT:"oceania",
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
   // Latin America / S. America
-  SCL:"latam", PUQ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
+  SCL:"latam", PUQ:"latam", CUZ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
   // Africa
   CPT:"africa", PLZ:"africa", AGA:"africa", WDH:"africa",
   JRO:"africa", MBA:"africa", ZNZ:"africa", SEZ:"africa",
@@ -526,6 +529,20 @@ const VENUES = [
   {id:"beach_whitehaven",category:"tanning",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"]},
   {id:"beach_cable",    category:"tanning",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"]},
   {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"]},
+
+  // ── Hiking ─────────────────────────────────────────────────────────
+  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"]},
+  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"]},
+  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"]},
+  {id:"gr20",         category:"hiking",title:"GR20 Corsica",location:"Corsica, France",lat:42.1750,lon:9.0833,ap:"AJA",icon:"🥾",rating:4.94,reviews:4200,gradient:"linear-gradient(160deg,#2a1a2a,#5a3a5a,#8a6a8a)",accent:"#aa8aaa",tags:["Europe's Toughest","16 Stages"]},
+  {id:"appalachian",  category:"hiking",title:"Appalachian Trail (Smokies)",location:"North Carolina, USA",lat:35.5634,lon:-83.4984,ap:"TYS",icon:"🥾",rating:4.93,reviews:15200,gradient:"linear-gradient(160deg,#1a2a1a,#3a5a3a,#6a8a6a)",accent:"#8aaa8a",tags:["Thru-Hike Section","Great Smoky Mtns"]},
+  {id:"annapurna",    category:"hiking",title:"Annapurna Circuit",location:"Gandaki, Nepal",lat:28.5960,lon:83.8200,ap:"PKR",icon:"🥾",rating:4.97,reviews:6800,gradient:"linear-gradient(160deg,#0a1a3a,#1a4a7a,#3a8aba)",accent:"#5aaada",tags:["Thorong La Pass","Tea Houses"]},
+  {id:"milford_track",category:"hiking",title:"Milford Track",location:"Fiordland, New Zealand",lat:-44.8937,lon:167.9188,ap:"ZQN",icon:"🥾",rating:4.96,reviews:5400,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#3a8a6a)",accent:"#5aaa8a",tags:["Finest Walk","Sutherland Falls"]},
+  {id:"camino",       category:"hiking",title:"Camino de Santiago",location:"Galicia, Spain",lat:42.8782,lon:-8.5448,ap:"SCQ",icon:"🥾",rating:4.95,reviews:18600,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["French Way","800km Pilgrimage"]},
+  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"]},
+  {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:46.0207,lon:7.7491,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"]},
+  {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"]},
+  {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"]},
 ];
 
 const US_AIRPORTS = [
@@ -956,6 +973,18 @@ function scoreVenue(venue, wx, marine) {
             : wind > 25 ? 32 : 55;
       label  = thermalW && clearSky ? `🪂 Thermals ideal · ${tempMax}°F` : `⛅ ${wind.toFixed(0)}mph · ${tempMax}°F`;
       period = thermalW && clearSky && bestDays > 1 ? `High pressure · ${Math.min(bestDays, 5)} days` : "Good thermals today";
+      break;
+    }
+
+    case "hiking": {
+      const dry3 = precip < 3;
+      const idealTemp = tempMax > 45 && tempMax < 88;
+      score = dry3 && idealTemp && wind < 18 ? 85 + Math.min(12, bestDays * 2)
+            : dry3 && idealTemp               ? 76
+            : dry3                            ? 62
+            : 42;
+      label  = dry3 ? `🥾 Clear trail · ${tempMax}°F · ${wind.toFixed(0)}mph` : `🌧️ Wet · wait for clear`;
+      period = dry3 && bestDays > 2 ? `${bestDays}-day hiking window` : dry3 ? "Good today" : "Rain expected";
       break;
     }
 
