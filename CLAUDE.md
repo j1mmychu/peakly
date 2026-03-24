@@ -185,7 +185,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-23, evening)
+## Current State (Updated 2026-03-24)
 
 ### What's Been Shipped
 
@@ -199,7 +199,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Tanning category fixed in CATEGORIES array
 - Affiliate links updated for Booking.com, SafetyWing
 - Share URLs updated to use peakly.app domain
-- 109 venue photos added (Unsplash URLs) to VENUES array
+- All 171 venue photos added (Unsplash URLs) to VENUES array
 - Card components (CompactCard, ListingCard, FeaturedCard) updated with conditional photo rendering
 - GuidesTab added with featured cards and photo support
 - Guides tab wired into BottomNav (4th tab)
@@ -207,21 +207,30 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - 7-agent automated team created (daily Cowork scheduled tasks)
 - Agent prompts written and stored in tasks/agents/
 - CLAUDE.md established as shared brain across all sessions
-- .nojekyll file added to fix GitHub Pages deployment
+- .nojekyll file added and pushed to fix GitHub Pages deployment
+- Cache-busting query param on app.jsx script tag
+- Swipe-down-to-dismiss gesture on VenueDetailSheet (touch drag > 120px closes)
+- Date-aware condition scoring (scoreVenue accepts dayIndex, scores use selected day's forecast)
+- Best Window indicator on ListingCard and CompactCard (shows peak day from 7-day forecast)
+- Profile-based hero card personalization (boosts user's preferred sports by 15 points)
+- Alert region/continent filter (UI + matching logic using AP_CONTINENT)
+- Alert date range filter (UI + matching logic, fires only when today is within travel window)
+- Flight API error handling improved (5s timeout, status tracking, "Estimated prices" banner)
+- 22 new US domestic airports added (CLT, IND, CVG, TUS, OKC, MEM, SDF, PBI, SYR, PWM, GRR, DSM, ICT, LIT, TUL, BOI, GEG, BHM, RIC, ORF, GSP)
+- AIRPORT_CITY lookup expanded with ~40 new entries
 
 ### What's Broken / Missing (Priority Order)
 
-1. **DEPLOYMENT BLOCKED** — GitHub Pages builds have been failing because Jekyll was processing the repo and choking on Liquid syntax in CLAUDE.md and reports. `.nojekyll` file has been created locally but **needs to be pushed**. Run: `push "Add .nojekyll to fix GitHub Pages deployment"`. Until this is pushed, the live site serves a stale version WITHOUT photos.
-2. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (Amazon Associates, GetYourGuide, REI), and domain registration (peakly.app).
-3. **HTTPS not configured on VPS** — Mixed content blocks live flight prices. Need Cloudflare or Let's Encrypt + nginx.
-4. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Blocked by LLC approval.
-5. **No analytics** — No GA4 or Plausible. Can't measure anything. Not blocked — can add now.
-6. **No PWA manifest** — Can't install to home screen on mobile. Not blocked — can add now.
-7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
-8. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
-9. **Trips + Wishlists tabs** — Built but still hidden in BottomNav. Guides tab was added instead. Need to decide: add all 5 tabs or keep it lean.
+1. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (Amazon Associates, GetYourGuide, REI), and domain registration (peakly.app).
+2. **HTTPS not configured on VPS** — Mixed content blocks live flight prices. Need Cloudflare or Let's Encrypt + nginx.
+3. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Blocked by LLC approval.
+4. **No analytics** — No GA4 or Plausible. Can't measure anything. Not blocked — can add now.
+5. **No PWA manifest** — Can't install to home screen on mobile. Not blocked — can add now.
+6. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
+7. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
+8. **Trips + Wishlists tabs** — Built but still hidden in BottomNav. Guides tab was added instead. Need to decide: add all 5 tabs or keep it lean.
 
-### Decisions Made (2026-03-23)
+### Decisions Made (2026-03-23 / 2026-03-24)
 
 - **Photos before features.** A polished app with fewer features beats a feature-rich app that looks unfinished.
 - **PWA + SEO first, native apps later.** Validate with 1K web users before investing in React Native.
@@ -230,21 +239,38 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **Remove emoji from UI chrome.** Emoji in category pills, section headers, and badges look amateur. Clean text + SVG only.
 - **"windows available" to "spots"** — nobody understands "windows."
 - **Jekyll was breaking deploys.** Added .nojekyll to bypass Jekyll on GitHub Pages. All future deploys will serve static files directly.
+- **Critical UX fixes first, expansion later.** Ship swipe gestures, date-aware scoring, airport coverage, alert filters, best window display before expanding to 400 ski towns or Epic/Ikon integration.
+- **Cowork for vision/design/strategy, Claude Code for large codebase overhauls.** Use Cowork scheduled agents for daily monitoring and mobile-friendly check-ins. Use Claude Code for multi-hundred-line refactors.
 
 ### Pre-Launch Checklist (Ordered)
 
-1. [x] Add venue photos (Unsplash URLs) — 109 venues done
+1. [x] Add venue photos (Unsplash URLs) — all 171 venues done
 2. [x] Update card components to render photos — CompactCard, ListingCard, FeaturedCard, GuidesTab done
 3. [x] Create agent team + scheduled tasks — 7 agents + Chief of Staff briefing running daily
-4. [ ] **PUSH .nojekyll file** — critical, unblocks everything (run: `push "Add .nojekyll to fix GitHub Pages deployment"`)
-5. [ ] Add PWA manifest + service worker basics
-6. [ ] Add GA4 analytics
-7. [ ] Build onboarding flow for new users
-8. [ ] Configure HTTPS on VPS (Cloudflare or Let's Encrypt)
-9. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
-10. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
-11. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
-12. [ ] Reddit + TikTok launch campaign
+4. [x] Push .nojekyll file + cache-busting fix — deployed, GitHub Pages working
+5. [x] Swipe-down dismissal on venue detail sheet
+6. [x] Date-aware condition scoring + best window display on cards
+7. [x] Profile-based hero personalization
+8. [x] Alert region + date filters (UI + matching logic)
+9. [x] All domestic US airports added (22 new)
+10. [x] Flight API error handling + status indicator
+11. [ ] Add PWA manifest + service worker basics
+12. [ ] Add GA4 analytics
+13. [ ] Build onboarding flow for new users
+14. [ ] Configure HTTPS on VPS (Cloudflare or Let's Encrypt)
+15. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
+16. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
+17. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
+18. [ ] Reddit + TikTok launch campaign
+
+### Phase 2 — Expansion (After Launch)
+
+- Expand venue list to 400 ski towns worldwide
+- Epic/Ikon/Independent pass integration + filter
+- Enhanced search with autocomplete, recent searches, trending destinations
+- Peakly Pro features: extended forecasts, strike missions, historical data
+- Group trip coordination
+- Crowd intelligence estimates
 
 ### Blocked by LLC
 
@@ -259,7 +285,6 @@ These items cannot proceed until the LLC is approved:
 ### Not Blocked — Can Ship Now
 
 These items can be worked on immediately:
-- Push .nojekyll fix (just needs `push` command)
 - PWA manifest + service worker
 - GA4 / Plausible analytics
 - Onboarding flow for new users
