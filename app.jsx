@@ -145,6 +145,7 @@ const CATEGORIES = [
   { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"diving",  label:"Diving",     emoji:"🤿" },
   { id:"climbing",label:"Climbing",   emoji:"🧗" },
+  { id:"tanning", label:"Beach",      emoji:"🏖️" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -996,7 +997,7 @@ function scoreVenue(venue, wx, marine) {
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
 // API token lives server-side on the VPS — never exposed in client code
-const FLIGHT_PROXY = "http://104.131.82.242:3001";
+const FLIGHT_PROXY = "https://104.131.82.242:3001";
 
 // Returns the cheapest one-way economy price found, or null on failure.
 // Falls back to estimate prices when API is unavailable.
@@ -1305,7 +1306,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>{listing.location}</div>
         <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
         <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
-          {listing.tags.map(t => (
+          {(listing.tags || []).map(t => (
             <span key={t} style={{
               background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:20,
               padding:"3px 8px", fontSize:11, color:"#444", fontWeight:600, fontFamily:F,
@@ -2186,9 +2187,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Default categories: skiing + surfing, rest behind "+" button
-  const defaultCatIds = ["all", "skiing", "surfing"];
-  const visibleCats = showAllCats ? CATEGORIES.filter(c => c.id !== "tanning") : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+  // Default categories: skiing + surfing + beach, rest behind "+" button
+  const defaultCatIds = ["all", "skiing", "surfing", "tanning"];
+  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -4223,7 +4224,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{listing.rating}</span>
               <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>({(listing.reviews||0).toLocaleString()})</span>
             </div>
-            {listing.tags.map(t => (
+            {(listing.tags || []).map(t => (
               <span key={t} style={{ background:"#f0f0f0", borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, color:"#555", fontFamily:F }}>{t}</span>
             ))}
           </div>
@@ -4524,7 +4525,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
 
           {/* Trip header */}
           <div style={{
-            background: trip.venue.gradient, borderRadius:16, height:180, marginBottom:20,
+            background: trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)", borderRadius:16, height:180, marginBottom:20,
             backgroundSize:"cover", backgroundPosition:"center", position:"relative",
           }}>
             <div style={{
@@ -4807,7 +4808,7 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
                   boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
                 }}>
                   <div style={{
-                    height:120, background:trip.venue.gradient, backgroundSize:"cover",
+                    height:120, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)", backgroundSize:"cover",
                   }} />
                   <div style={{ padding:14 }}>
                     <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
