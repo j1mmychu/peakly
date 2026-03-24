@@ -146,6 +146,11 @@ const CATEGORIES = [
   { id:"diving",  label:"Diving",     emoji:"🤿" },
   { id:"climbing",label:"Climbing",   emoji:"🧗" },
   { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
+  { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
+  { id:"kayak",   label:"Kayak",     emoji:"🛶" },
+  { id:"mtb",     label:"MTB",       emoji:"🚵" },
+  { id:"fishing", label:"Fishing",   emoji:"🎣" },
+  { id:"paraglide",label:"Paraglide",emoji:"🪂" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://j1mmychu.github.io/peakly/sitemap.xml
