@@ -1412,6 +1412,12 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>{listing.location}</div>
         <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
         <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
+          {(() => {
+            const si = getSeasonInfo(listing);
+            return si.inSeason && si.label ? (
+              <span style={{ background:"#dcfce7", border:"1px solid #bbf7d0", borderRadius:20, padding:"3px 8px", fontSize:11, color:"#16a34a", fontWeight:600, fontFamily:F }}>🟢 {si.label}</span>
+            ) : null;
+          })()}
           {(listing.tags || []).map(t => (
             <span key={t} style={{
               background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:20,
@@ -4022,6 +4028,33 @@ const LOCAL_TIPS = {
   paraglide:["🌅 Thermal windows open 2–3 hours after sunrise once the ground heats","⛅ Cumulus clouds mark active thermals — fly toward their bases","🌬️ Never launch in gusty conditions — steady laminar flow is everything","📟 Check your reserve handle position on every single pre-flight inspection"],
 };
 
+// ─── seasonal intelligence (month 0 = Jan, 11 = Dec) ────────────────────────
+// Each category → hemisphere-aware best months + label
+const SEASONS = {
+  skiing:    { north:[11,0,1,2,3], south:[5,6,7,8,9], label:"ski season" },
+  surfing:   { north:[9,10,11,0,1,2], south:[3,4,5,6,7,8], label:"swell season" },
+  tanning:   { north:[5,6,7,8], south:[11,0,1,2], label:"beach season" },
+  diving:    { north:[4,5,6,7,8,9], south:[10,11,0,1,2,3], label:"dive season" },
+  climbing:  { north:[3,4,5,8,9,10], south:[9,10,11,2,3,4], label:"climbing season" },
+  hiking:    { north:[4,5,6,7,8,9], south:[10,11,0,1,2,3], label:"hiking season" },
+  kayak:     { north:[5,6,7,8], south:[11,0,1,2], label:"paddling season" },
+  kite:      { north:[5,6,7,8], south:[11,0,1,2], label:"wind season" },
+  mtb:       { north:[4,5,6,7,8,9], south:[10,11,0,1,2,3], label:"riding season" },
+  fishing:   { north:[4,5,6,7,8,9], south:[10,11,0,1,2,3], label:"fishing season" },
+  paraglide: { north:[5,6,7,8,9], south:[11,0,1,2,3], label:"thermal season" },
+};
+
+function getSeasonInfo(venue) {
+  const s = SEASONS[venue.category];
+  if (!s) return { inSeason:true, label:"" };
+  const month = new Date().getMonth();
+  const hemi = venue.lat >= 0 ? "north" : "south";
+  const months = s[hemi];
+  const inSeason = months.includes(month);
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const bestRange = `${MONTH_NAMES[months[0]]}–${MONTH_NAMES[months[months.length-1]]}`;
+  return { inSeason, label: s.label, bestRange };
+}
 
 const PACKING = {
   skiing:   ["🧥 Base + mid + shell layers","🥽 Goggles (anti-fog)","⛷️ Ski/snowboard boots","🧤 Waterproof gloves","🪖 Helmet","🧴 SPF 50+ (UV reflects off snow)","💊 Altitude meds if needed"],
@@ -4243,6 +4276,15 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
             <div style={{ fontSize:20, fontWeight:900, color:"white", fontFamily:F, lineHeight:1.15 }}>{listing.title}</div>
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:3 }}>📍 {listing.location}</div>
+            {(() => {
+              const si = getSeasonInfo(listing);
+              return si.label ? (
+                <div style={{ marginTop:6, display:"inline-flex", alignItems:"center", gap:5, background: si.inSeason ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.12)", borderRadius:20, padding:"3px 10px", border: si.inSeason ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(255,255,255,0.15)" }}>
+                  <span style={{ fontSize:10 }}>{si.inSeason ? "🟢" : "📅"}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:"white", fontFamily:F }}>{si.inSeason ? `In ${si.label}` : `Best: ${si.bestRange}`}</span>
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
 
@@ -5191,7 +5233,10 @@ function App() {
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { const p = JSON.parse(localStorage.getItem("peakly_profile")); return !p || !p.hasAccount; }
+    catch { return true; }
+  });
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
