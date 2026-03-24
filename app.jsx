@@ -1500,7 +1500,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           position:"absolute", bottom:5, left:5,
         }}>
           <span style={{
-            color:"#fff", fontSize:9, fontWeight:600, fontFamily:F,
+            color:"#fff", fontSize:10, fontWeight:600, fontFamily:F,
             textShadow:"0 1px 3px rgba(0,0,0,0.8)",
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"100%",
           }}>{listing.conditionLabel}</span>
@@ -1518,7 +1518,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           {shortLoc}
         </div>
         {listing.bestWindow && (
-          <div style={{ fontSize:8, color:"#0284c7", fontWeight:700, fontFamily:F, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+          <div style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             Peak: {listing.bestWindow.day}
           </div>
         )}
@@ -1528,7 +1528,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           </span>
           {listing.flight.live ? (
             <span style={{
-              fontSize:8, fontWeight:800, color:"#16a34a", background:"#dcfce7",
+              fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
               borderRadius:5, padding:"1px 4px", fontFamily:F,
             }}>LIVE</span>
           ) : (
@@ -2349,7 +2349,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 }}>
                   <div style={{ height:70, background:l.gradient, position:"relative" }}>
                     <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                      position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12,
+                      position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:12,
+                      width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
                     }}>❤️</button>
                   </div>
                   <div style={{ padding:"6px 8px" }}>
@@ -2388,12 +2389,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               </div>
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
                 <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
                   <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
                   <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
                 </div>
                 <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
                   <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
                     ${hero.flight.price}
                     {!hero.flight.live && <span style={{ fontSize:9, color:"#aaa", fontWeight:600 }}> est.</span>}
