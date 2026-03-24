@@ -1,29 +1,38 @@
-# PM Report: 2026-03-23 (v5)
+# PM Report: 2026-03-24 (v6)
 
 ## Status: YELLOW
 
-Site is live, stable, and rendering correctly. Photos on cards, scoring functional, flight pricing falling back to estimates with "est." labels. Yellow because: (1) BottomNav intentionally reduced to 3 tabs per Jack's request -- Trips/Wishlists features are built but unreachable, (2) zero analytics means we're flying blind on usage, (3) no HTTPS on VPS so all flight prices are estimates.
+App is live, visually polished, and stable. Photos on all card types, scoring functional, flight prices falling back with "est." labels. Yellow because: (1) flight proxy is DOWN — ECONNREFUSED on VPS port 3001; (2) zero analytics — every distribution effort is flying blind; (3) 73 venues (42.7%) still render gradient-only cards; (4) two UX issues on money-critical touch targets unresolved.
 
 ---
 
-## Shipped Today
+## Shipped Since Last Report
 
-- **GoVerdictBadge borders removed** -- GO/MAYBE/WAIT badges no longer have colored outlines, cleaner visual
-- **Best Right Now card borders neutralized** -- removed score-colored borders from carousel cards for consistency
-- **Cache-busting on index.html** -- `app.jsx?v=20260323b` ensures users get latest code on deploy
-- **Fixed 19 venue entries with missing commas** -- Babel crash bug resolved (089dfc6)
-- **Added .nojekyll file** -- fixes GitHub Pages deployment for files starting with underscores
+**Today (2026-03-24):** UX fixes for touch targets, Book CTA sizing, and typography scale were completed in commit 2158d7c. **These 14 commits are currently ORPHANED — not on master.** The touch targets listed as "unresolved" in cross-team input ARE fixed but unreachable. Recovery needed: `git cherry-pick` the orphaned chain onto master.
 
-Previously shipped (still live):
-- 109 venue photos via Unsplash with lazy loading and gradient fallback
-- All 4 card components rendering photos (ListingCard, FeaturedCard, CompactCard, VenueDetailSheet)
-- Mixed content timeout + "est." fallback labels on flight prices
-- City names in search bar (not airport codes)
-- Category pills corrected (All, Skiing, Surfing, Beach & Tan default)
-- Hero CTA + auto-refresh weather
-- Amazon affiliate tags on gear links
-- OG image for social sharing
-- Tanning category with 20+ venues
+v5 closed out with:
+- Score-colored borders removed from badges and Best Right Now cards
+- Cache-busting on app.jsx (`?v=20260323b`)
+- 19 venue comma fixes resolving Babel crash
+- `.nojekyll` pushed — GitHub Pages now serves static files directly
+
+App is stable. v6 sprint is purely additive.
+
+---
+
+## Cross-Team Input (from peer reports)
+
+| Team | Top Ask | Priority |
+|------|---------|----------|
+| **Growth** | Add Plausible analytics before any Reddit distribution push | P0 |
+| **UX** | Fix heart + Book button touch targets (CompactCard ~18px, Book button ~30px) | P1 |
+| **Content** | Add Unsplash photos for 73 missing venues (32 surfing, 41 tanning) | P1 |
+| **Content** | Remove duplicate `pipeline` venue (keep `banzai_pipeline`) | P2 |
+| **Content** | Add BASE_PRICES for 20 missing airports (CUN, HKT, KEF, IBZ, MBJ...) | P2 |
+| **Revenue** | REI affiliate signup (18 gear links earn $0 until tagged) | Jack only |
+| **DevOps** | VPS proxy restart (pm2 recommended); HTTPS via Cloudflare or Let's Encrypt | Jack only |
+
+Key context: MagicSeaweed dead + Surfline at $100/yr = ready-made frustrated audience on r/surfing. Reddit launch greenlit the moment analytics are live. Current RPM: $9.33/1K MAU. With REI + GetYourGuide active: $14-16/1K MAU.
 
 ---
 
@@ -32,59 +41,80 @@ Previously shipped (still live):
 | Phase | Description | Status | % Done |
 |-------|-------------|--------|--------|
 | **Phase 1** | Critical Bugs & Polish | **Complete** | **100%** |
-| **Phase 2** | UX Improvements | In progress | **35%** |
+| **Phase 2** | UX Improvements | In progress | **40%** |
 | **Phase 3** | Performance & Reliability | In progress | **25%** |
 | **Phase 4** | Content & Engagement | Not started | **0%** |
 
 ### Phase 1 (100% -- DONE)
-- 1.1 Mixed content fallback: DONE
-- 1.2 Card data/badge clipping: DONE
-- 1.3 Venue count fix: DONE
-- 1.4 Default category pills: DONE
-- 1.5 Search bar city names: DONE
+All 5 items complete: mixed content fallback, card data/badge display, venue count fix, default category pills, search bar city names.
 
-### Phase 2 (35%)
-- 2.1 Venue photos: **DONE** (109 venues, all card types)
-- 2.2 "Best Right Now" carousel improvements: PARTIAL (section always shows, photos added, but no "See all" link or key weather stat on cards)
-- 2.3 Venue Detail Sheet polish (Airbnb-style): NOT DONE
-- 2.4 Alerts tab improvements: NOT DONE
-- 2.5 Profile tab improvements: NOT DONE
-- 2.6 Haptic feedback everywhere: NOT DONE
+### Phase 2 (40%)
+- 2.1 Venue photos: **DONE** (109 venues; 73 still missing -- follow-on task)
+- 2.2 Best Right Now carousel: **PARTIAL** (always shows, has photos; no "See all" link or key weather stat on cards)
+- 2.3 Venue Detail Sheet polish: **NOT DONE** -- highest conversion leverage item
+- 2.4 Alerts tab improvements: **NOT DONE** -- presets, firing alerts with venue cards
+- 2.5 Profile tab improvements: **NOT DONE**
+- 2.6 Haptic feedback everywhere: **NOT DONE**
 
 ### Phase 3 (25%)
-- 3.1 Lazy load weather: NOT DONE
+- 3.1 Lazy load weather: **NOT DONE**
 - 3.2 Image lazy loading: **DONE**
-- 3.3 Error handling audit: PARTIAL (flight fallback works, weather errors incomplete)
-- 3.4 Restore Trips tab in BottomNav: **CANCELED** -- Jack wants 3 tabs only (Explore, Alerts, Profile)
+- 3.3 Error handling audit: **PARTIAL** -- flight fallback works, weather errors incomplete
+- 3.4 Restore Trips tab: **CANCELED** -- Jack confirmed 3-tab nav is final
 
 ### Phase 4 (0%)
-- 4.1-4.4 all pending
+All 4 items pending.
 
 ---
 
 ## Top 3 Priorities
 
-### 1. Venue Detail Sheet polish -- Phase 2.3 (2-3 hrs)
-This is the conversion point. When a user taps a card, the detail sheet needs to sell the trip. Full-width photo hero, sticky "Book Flights" CTA, 7-day weather inline, condition score breakdown, similar venues section. Photos are already in the data -- the detail view needs to match card quality. Highest impact on engagement and affiliate clicks.
+### 1. Add Plausible analytics to index.html (5 min, CRITICAL)
+Every agent unanimously calls this the #1 unblocked task. No analytics = no ability to measure or learn. One script tag in index.html head:
 
-### 2. Add Plausible analytics (30 min)
-One `<script>` tag in index.html. Without analytics we cannot validate any experiment, measure retention, or know if anyone uses the app. Blocks every growth decision. Must ship before any marketing push.
+  <script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
 
-### 3. Alerts tab improvements -- Phase 2.4 (1-2 hrs)
-With only 3 tabs, Alerts is prime real estate. Current state is bare. Add preset templates (Powder Alert, Perfect Surf, Beach Week), show firing alerts with actual venue cards and "Book Now" CTA. Makes the tab worth visiting daily -- drives retention.
+Jack needs to create account at plausible.io (free tier, ~2 min). Do NOT launch on Reddit before this is live.
+Unblocks: every growth experiment, retention measurement, affiliate conversion tracking.
+
+### 2. Fix touch targets on heart + Book buttons (1 hr, HIGH)
+- CompactCard heart: ~18x18px -> needs width:32, height:32 flex wrapper + fontSize:15
+- ListingCard Book button: ~28-30px tall -> needs padding:"8px 14px", minHeight:36
+
+These are the two most-tapped elements. Fixing before Reddit launch reduces mis-taps and increases affiliate clicks. Surgical change -- no design impact.
+
+### 3. Add photos to remaining 73 venues (3 hrs, HIGH)
+57.3% photo coverage is not launch quality. 32 surfing + 41 tanning venues rendering gradient-only cards. Purely a data task -- add Unsplash URLs to venue entries. No API key needed.
+
+On deck: Venue Detail Sheet polish (Phase 2.3), remove duplicate `pipeline` venue (1-line fix), add BASE_PRICES for 20 missing airports.
 
 ---
 
-## Decision Made
+## Decisions Made
 
-**3-tab nav is final.** Jack confirmed Explore, Alerts, Profile. Trips/Wishlists remain accessible from within Explore (saved button, trip builder). Phase 2.3 (detail sheet) is the top priority -- it's the highest-leverage conversion surface. Spec item 3.4 (restore Trips tab) is canceled per Jack's direction.
+| Date | Decision |
+|------|----------|
+| 2026-03-24 | Plausible analytics is ship-now priority. Reddit launch greenlit but must not happen without measurement. |
+| 2026-03-24 | Touch target fixes before Venue Detail Sheet -- usability before polish. |
+| 2026-03-24 | Plausible over GA4 -- privacy-friendly, no cookie banner, free tier covers early traffic. |
+| 2026-03-24 | Duplicate `pipeline` venue to be removed next batch -- keep `banzai_pipeline` (6,420 vs 1,203 reviews). |
+| Ongoing | 3-tab nav is final -- Explore, Alerts, Profile. Spec 3.4 canceled. |
+| Ongoing | Phase 2.3 (Venue Detail Sheet) is the next major feature after quick wins clear. |
 
 ---
 
 ## Blockers
 
-| # | Blocker | Owner | Impact |
-|---|---------|-------|--------|
-| 1 | **Plausible analytics signup** -- need Jack to create account at plausible.io (free tier, no cookie banner) and share script tag or site ID | Jack | Blocks all growth measurement |
-| 2 | **VPS HTTPS** -- flight proxy at 104.131.82.242:3001 needs domain + Let's Encrypt + nginx. All flight prices show "est." until this is resolved | Jack/DevOps | All prices are estimates, hurts conversion |
-| 3 | **Sentry DSN** -- `SENTRY_DSN = ""` on line 6 of app.jsx. Need Jack to sign up at sentry.io and paste DSN | Jack | Blind to production crashes |
+| # | Blocker | Owner | Action Needed |
+|---|---------|-------|--------------|
+| 0 | **Orphaned UX commits** -- 14 commits (2158d7c chain) not on master. Touch target + CTA + typography fixes exist but aren't deployed | DevOps | Cherry-pick onto master |
+| 1 | **Plausible account** -- need account + site ID | Jack | 2-min signup at plausible.io |
+| 2 | **VPS proxy DOWN** -- ECONNREFUSED on port 3001 | Jack/DevOps | SSH in, pm2 restart all |
+| 3 | **HTTPS on VPS** -- mixed content blocks real flight prices | Jack/DevOps | Cloudflare tunnel or Let's Encrypt + nginx |
+| 4 | **REI affiliate signup** -- 18 links earn $0 | Jack/Revenue | Apply at Avantlink |
+| 5 | **Sentry DSN** -- SENTRY_DSN = "" on line 6 of app.jsx | Jack | Sign up at sentry.io, paste DSN |
+| 6 | **LLC approval** -- blocks Stripe, Amazon Assoc., domain | External | Legal process |
+
+---
+
+*Next report: 2026-03-31*
