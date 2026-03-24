@@ -8,7 +8,7 @@ App is live, visually polished, and earning-ready. Yellow because: (1) flight pr
 
 ## Shipped Since Last Report
 
-Nothing code-shipped since v5. The `Sync agent reports` commit (fb8970b) pushed all agent reports to master but no product changes landed. The detached HEAD state at session start (4 commits floating — 7c2145f) suggests some prior session commits did not land cleanly on master. Those commits were: `Daily Content report`, `Daily PM report`, `Daily DevOps report`, and a merge. Their contents appear to be agent report files only — no product code lost.
+Nothing code-shipped since v5. Remote had additional agent report commits (content, devops) from other sessions that are now merged in. No product code was lost.
 
 ---
 
@@ -46,61 +46,55 @@ All items pending.
 ## Cross-Team Findings (2026-03-24)
 
 ### DevOps (RED FLAG)
-- **Flight proxy DOWN** — `104.131.82.242:3001` returning ECONNREFUSED. VPS Node process has crashed or stopped. Needs `pm2 restart` or equivalent via SSH. This is not a code issue — needs Jack to SSH in and restart.
-- **Possible Babel error in production** — WebFetch detected error handler HTML on live site. Unclear if this is a false positive from the index.html fallback content or a real parse error. The `089dfc6` commit fixed 19 missing commas — this should be clean. Verify by loading live URL in browser.
-- app.jsx is 5,446 lines / 356KB — healthy range, no action needed.
+- **Flight proxy DOWN** — 104.131.82.242:3001 returning ECONNREFUSED. VPS Node process has crashed. Needs SSH restart — not a code issue.
+- **Possible Babel error in production** — WebFetch detected error handler HTML on live site. Likely a false positive from index.html fallback content. Commit 089dfc6 fixed 19 missing commas — should be clean. Verify in browser.
+- app.jsx is 5,446 lines / 356KB — healthy, no action needed.
 
 ### Content (HIGH PRIORITY)
-- **73 venues missing photos** — 32 surfing, 41 tanning/beach. Gradient-only fallback is noticeably weaker than photo cards.
-- **Duplicate Pipeline venue** still present: `id:"pipeline"` (line ~218) and `id:"banzai_pipeline"` (line ~356). Same wave, same airport. Remove `pipeline`, keep `banzai_pipeline` (6,420 reviews vs 1,203).
-- **7 thin categories** with 1 venue each (Diving, Climbing, Kite, Kayak, Fishing, MTB, Paraglide) — appear in UI, feel empty. Defer expansion to v7.
-- **58 venue airports** missing BASE_PRICES — fall back to $800 default (inaccurate for Caribbean/domestic US).
+- **73 venues missing photos** — 32 surfing, 41 tanning/beach. Gradient-only fallback is noticeably weaker.
+- **Duplicate Pipeline venue** — id:"pipeline" (line ~218) and id:"banzai_pipeline" (line ~356). Same wave. Remove pipeline, keep banzai_pipeline (6,420 reviews vs 1,203).
+- **7 thin categories** with 1 venue each (Diving, Climbing, Kite, Kayak, Fishing, MTB, Paraglide) — defer expansion to v7.
+- **58 venue airports** missing BASE_PRICES — fall back to $800 default (inaccurate).
 
 ### Growth (URGENT)
-- **Plausible analytics still not added.** Every distribution experiment is blind without it. Growth, Revenue, and PM unanimously call this the #1 unblocked task. It's a 5-minute `<script>` tag in index.html.
+- **Plausible analytics still not added.** Every distribution experiment is blind without it. Growth, Revenue, and PM unanimously call this the #1 unblocked task.
 - Reddit soft launch is greenlit — app is visually polished, OG tags live, conditions data useful. Only blocker is analytics.
 - 90-day projection: 4,000–6,000 users with zero ad spend.
 - MagicSeaweed death + Surfline $100/yr paywall = ready-made audience on r/surfing.
 
 ### Revenue
-- Amazon (20 links, `tag=peakly-20`): **LIVE**
-- Booking.com (`aid=2311236`): **LIVE**
-- SafetyWing (`referenceID=peakly`): **LIVE**
-- REI (18 links): **NO AFFILIATE TAG** — waiting on Avantlink approval. ~$4-5 RPM left on the table.
-- GetYourGuide (2 links): **NO PARTNER ID** — waiting on signup.
-- Backcountry (2 links): **NO AFFILIATE TAG**
-- Current RPM: **$9.33/1K MAU**. With REI + GYG active: **$14-16/1K MAU**.
+- Amazon (20 links, tag=peakly-20): LIVE
+- Booking.com (aid=2311236): LIVE
+- SafetyWing (referenceID=peakly): LIVE
+- REI (18 links): NO AFFILIATE TAG — waiting on Avantlink approval. ~$4-5 RPM left on the table.
+- GetYourGuide (2 links): NO PARTNER ID
+- Backcountry (2 links): NO AFFILIATE TAG
+- Current RPM: $9.33/1K MAU. With REI + GYG active: $14-16/1K MAU.
 
 ### UX
-- **CompactCard heart button: 18x18px touch target** — Apple minimum is 44x44pt. Fix: add `width:32, height:32` flex wrapper to all heart buttons, bump CompactCard heart to fontSize:15.
-- **ListingCard "Book" button: ~28-30px tall** — primary revenue CTA is too small. Fix: `padding:"8px 14px"`, `fontSize:11`, `minHeight:36`.
-- **Section header type scale inconsistent** — "Best Right Now" at fontSize:16 vs page titles at 22-24. Medium priority after touch targets.
-- Design score: **8.1/10** (up from 7.2 in v4).
+- **CompactCard heart button: 18x18px touch target** — Apple minimum is 44x44pt. Fix: add width:32, height:32 flex wrapper, bump fontSize to 15.
+- **ListingCard "Book" button: ~28-30px tall** — primary revenue CTA too small. Fix: padding:"8px 14px", minHeight:36.
+- **Section header type scale inconsistent** — "Best Right Now" at fontSize:16 vs page titles at 22-24. Medium priority.
+- Design score: 8.1/10 (up from 7.2 in v4).
 
 ---
 
 ## Top 3 Priorities
 
 ### 1. Add Plausible analytics to index.html (5 min, CRITICAL)
-Every agent agrees: no analytics = no data = no ability to learn. This is the single highest-leverage unblocked task in the entire backlog. One `<script>` tag:
-```html
-<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
-```
-Requires Jack to create account at plausible.io (free tier, ~2 minutes) and confirm the site domain. Then this ships in one commit. **Do not launch on Reddit before this is live.**
+Every agent agrees: no analytics = no data = no ability to learn. One script tag in index.html:
+  <script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
+Requires Jack to create account at plausible.io (free tier, ~2 min). Do not launch on Reddit before this is live.
 
 ### 2. Fix touch targets on heart + Book buttons (1 hr, HIGH)
-The UX agent identified two undersized interactive elements that directly cost conversions:
 - CompactCard heart: 18x18px → needs 32x32px wrapper + fontSize:15
-- ListingCard Book button: 28-30px → needs `padding:"8px 14px"`, minHeight:36
-
-These are the two most-tapped elements in the app. Fixing before Reddit launch reduces mis-taps and increases affiliate clicks on the primary revenue CTA. Surgical changes, ~10 lines.
+- ListingCard Book button: 28-30px → needs padding:"8px 14px", minHeight:36
+These are the two most-tapped elements in the app. Fixing before Reddit launch reduces mis-taps and increases affiliate clicks.
 
 ### 3. Add photos to remaining 73 venues (3 hrs, HIGH)
-57.3% photo coverage is not launch quality. 32 surfing + 41 tanning venues are rendering gradient-only cards. Since the card components already handle photos gracefully, this is purely a data task — add Unsplash URLs to 73 venue entries.
+57.3% photo coverage is not launch quality. 32 surfing + 41 tanning venues rendering gradient-only cards. Purely a data task — add Unsplash URLs to 73 venue entries.
 
-**On deck (after top 3):**
-- Venue Detail Sheet polish (Phase 2.3) — highest conversion leverage feature
-- Remove duplicate `pipeline` venue — 1-line fix
+**On deck:** Venue Detail Sheet polish (Phase 2.3), remove duplicate pipeline venue (1-line fix).
 
 ---
 
@@ -108,20 +102,20 @@ These are the two most-tapped elements in the app. Fixing before Reddit launch r
 
 | Date | Decision |
 |------|----------|
-| 2026-03-24 | **Plausible analytics is ship-now priority** — Reddit launch is greenlit but must not happen without measurement. Jack needs to create plausible.io account (2 min) then Claude Code ships the tag. |
-| 2026-03-24 | **Touch target fixes before Venue Detail Sheet** — usability before polish. Two ~10-line fixes that improve every user's most common actions. |
-| 2026-03-24 | **No distribution push before analytics** — confirmed. Any Reddit traffic without Plausible = wasted signal. |
-| 2026-03-24 | **Duplicate `pipeline` venue to be removed** — keep `banzai_pipeline` (richer data). 1-line delete, ships with next batch. |
-| Ongoing | **3-tab nav is final** — Explore, Alerts, Profile. Spec 3.4 canceled. |
+| 2026-03-24 | Plausible analytics is ship-now priority. Reddit launch greenlit but must not happen without measurement. Jack needs plausible.io account (2 min). |
+| 2026-03-24 | Touch target fixes before Venue Detail Sheet — usability before polish. |
+| 2026-03-24 | No distribution push before analytics — any Reddit traffic without Plausible is wasted signal. |
+| 2026-03-24 | Duplicate pipeline venue to be removed — keep banzai_pipeline (richer data). 1-line delete, ships with next batch. |
+| Ongoing | 3-tab nav is final — Explore, Alerts, Profile. Spec 3.4 canceled. |
 
 ---
 
 ## Blockers
 
-| # | Blocker | Owner | Impact | Unblocked by |
-|---|---------|-------|--------|--------------|
-| 1 | **Flight proxy DOWN** — VPS at 104.131.82.242:3001 not responding. Node process crashed. | Jack | All flight prices are "est." fallbacks — hurts conversion | SSH to VPS, `pm2 restart all` |
-| 2 | **Plausible account needed** — sign up at plausible.io (free), add site `j1mmychu.github.io/peakly` | Jack | Blocks all growth measurement and Reddit launch | 2-minute signup |
-| 3 | **LLC approval pending** — blocks Stripe, REI/GYG affiliate signups, peakly.app domain | Jack/Legal | Blocks $79/yr Pro, REI 18-link activation | Legal process |
-| 4 | **Sentry DSN empty** — line 6 of app.jsx: `SENTRY_DSN = ""` | Jack | Production crashes go undetected | Sign up at sentry.io |
-| 5 | **VPS HTTPS** — proxy is HTTP-only, mixed content on HTTPS frontend | Jack/DevOps | Real flight prices blocked by browsers | Cloudflare tunnel or Let's Encrypt + nginx |
+| # | Blocker | Owner | Unblocked by |
+|---|---------|-------|--------------|
+| 1 | Flight proxy DOWN — VPS port 3001 not responding | Jack | SSH to VPS, pm2 restart all |
+| 2 | Plausible account needed | Jack | 2-minute signup at plausible.io |
+| 3 | LLC approval pending — blocks Stripe, REI/GYG signups, domain | Jack/Legal | Legal process |
+| 4 | Sentry DSN empty — line 6 of app.jsx | Jack | Sign up at sentry.io |
+| 5 | VPS HTTPS — mixed content blocks real flight prices | Jack/DevOps | Cloudflare tunnel or Let's Encrypt + nginx |
