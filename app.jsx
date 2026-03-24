@@ -181,7 +181,9 @@ const AP_CONTINENT = {
   // USA additional
   KOA:"na", OGG:"na", LIH:"na", BTV:"na", TYS:"na", CWL:"na",
   // S. America
-  FEN:"latam", AQP:"latam", BOG:"latam",
+  FEN:"latam", AQP:"latam", BOG:"latam", MDE:"latam", CLO:"latam",
+  PMC:"latam", MAO:"latam", GPS:"latam", FOR:"latam", LPB:"latam",
+  BRC:"latam", IPC:"latam",
   // Europe
   GVA:"europe", ZRH:"europe", AGP:"europe", INN:"europe", CMF:"europe",
   GNB:"europe", SZG:"europe", VCE:"europe", TRN:"europe",
@@ -204,10 +206,18 @@ const AP_CONTINENT = {
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
   // Latin America / S. America
   SCL:"latam", PUQ:"latam", CUZ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
-  // Africa
+  // Africa & Middle East
   CPT:"africa", PLZ:"africa", AGA:"africa", WDH:"africa",
   JRO:"africa", MBA:"africa", ZNZ:"africa", SEZ:"africa",
-  PRI:"africa", MRU:"africa",
+  PRI:"africa", MRU:"africa", SSH:"africa", ASW:"africa",
+  VNX:"africa", LVI:"africa", ADD:"africa", EBB:"africa",
+  HRG:"africa", DLM:"europe",
+  // Europe additional
+  CDG:"europe", RAK:"africa", SVJ:"europe", GOA:"europe",
+  AES:"europe", JKL:"europe",
+  // Asia additional
+  HAN:"asia", TWU:"asia", CMB:"asia", LGK:"asia",
+  IXZ:"asia", LBJ:"asia",
 };
 
 // ─── venues with real coordinates ────────────────────────────────────────────
@@ -565,6 +575,70 @@ const VENUES = [
   {id:"whistlerbike", category:"mtb",title:"Whistler Bike Park",location:"British Columbia, Canada",lat:50.0860,lon:-122.9590,ap:"YVR",icon:"🚵",rating:4.97,reviews:1840,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Lift Access","World Class Downhill"],photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&q=80"},
   {id:"bristol",      category:"kayak",title:"Bristol Bay Sea Kayaking",location:"Alaska, USA",lat:58.8300,lon:-157.0000,ap:"ANC",icon:"🛶",rating:4.94,reviews:620,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Whales","Remote Wilderness"],photo:"https://images.unsplash.com/photo-1472745433479-4556f22e32c2?w=800&h=600&fit=crop&q=80"},
   {id:"cabarete",     category:"kite",title:"Cabarete Kite Beach",location:"Dominican Republic",lat:19.7583,lon:-70.4167,ap:"POP",icon:"🪁",rating:4.95,reviews:980,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Steady Trade Winds","Warm Water"],photo:"https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop&q=80"},
+
+  // ─── Africa expansion ───────────────────────────────────────────────────────
+  {id:"dahab_dive",   category:"diving",title:"Dahab Blue Hole",location:"Sinai, Egypt",lat:28.4898,lon:34.5186,ap:"SSH",icon:"🤿",rating:4.96,reviews:2400,gradient:"linear-gradient(160deg,#0a1a3d,#1a3a7a,#3a6abf)",accent:"#5a8ae6",tags:["Blue Hole","Red Sea"],photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&q=80"},
+  {id:"cape_kite",    category:"kite",title:"Langebaan Kite Lagoon",location:"Western Cape, South Africa",lat:-33.0972,lon:18.0266,ap:"CPT",icon:"🪁",rating:4.93,reviews:860,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Flat Water","Consistent Wind"]},
+  {id:"nile_kayak",   category:"kayak",title:"White Nile Kayaking",location:"Jinja, Uganda",lat:0.4244,lon:33.2041,ap:"EBB",icon:"🛶",rating:4.91,reviews:540,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Class V Rapids","Source of the Nile"]},
+  {id:"skeleton_fish",category:"fishing",title:"Skeleton Coast Fishing",location:"Namibia",lat:-19.8000,lon:12.6500,ap:"WDH",icon:"🎣",rating:4.89,reviews:380,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["Shore Angling","Remote"]},
+  {id:"nile_fish",    category:"fishing",title:"Lake Nasser Nile Perch",location:"Aswan, Egypt",lat:23.0150,lon:32.8961,ap:"ASW",icon:"🎣",rating:4.90,reviews:620,gradient:"linear-gradient(160deg,#3a2a0a,#6a4a1a,#9a7a3a)",accent:"#bba044",tags:["Trophy Nile Perch","Desert Lake"]},
+  {id:"toubkal_climb",category:"climbing",title:"Mount Toubkal",location:"Atlas Mountains, Morocco",lat:31.0596,lon:-7.9153,ap:"RAK",icon:"🧗",rating:4.88,reviews:1240,gradient:"linear-gradient(160deg,#3b2a1a,#7a5c3a,#c49a6c)",accent:"#d4a574",tags:["North Africa's Highest","4,167m"]},
+  {id:"oludeniz_para",category:"paraglide",title:"Ölüdeniz Paragliding",location:"Fethiye, Turkey",lat:36.5498,lon:29.1156,ap:"DLM",icon:"🪂",rating:4.97,reviews:3200,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["Babadağ Mountain","Blue Lagoon Views"]},
+  {id:"bazaruto_dive",category:"diving",title:"Bazaruto Archipelago Diving",location:"Mozambique",lat:-21.6500,lon:35.4700,ap:"VNX",icon:"🤿",rating:4.92,reviews:480,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Dugongs","Pristine Reefs"]},
+  {id:"capetown_mtb", category:"mtb",title:"Cape Town MTB Trails",location:"Western Cape, South Africa",lat:-33.9600,lon:18.4010,ap:"CPT",icon:"🚵",rating:4.91,reviews:920,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Table Mountain","Tokai Forest"]},
+  {id:"victoria_kayak",category:"kayak",title:"Victoria Falls Kayaking",location:"Zambia / Zimbabwe",lat:-17.9243,lon:25.8572,ap:"LVI",icon:"🛶",rating:4.95,reviews:720,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Zambezi River","Class IV Rapids"]},
+  {id:"diani_kite",   category:"kite",title:"Diani Beach Kite",location:"Kenya",lat:-4.3477,lon:39.5682,ap:"MBA",icon:"🪁",rating:4.90,reviews:640,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Indian Ocean","Year-Round Wind"]},
+  {id:"simien_hike",  category:"hiking",title:"Simien Mountains Trek",location:"Ethiopia",lat:13.2500,lon:38.3833,ap:"ADD",icon:"🥾",rating:4.94,reviews:1400,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["Gelada Baboons","4,500m Peaks"]},
+
+  // ─── South America expansion ────────────────────────────────────────────────
+  {id:"medellin_para",category:"paraglide",title:"Medellín Paragliding",location:"Antioquia, Colombia",lat:6.2518,lon:-75.5636,ap:"MDE",icon:"🪂",rating:4.95,reviews:2100,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["Andean Thermals","City Views"]},
+  {id:"chalten_climb",category:"climbing",title:"Fitz Roy, El Chaltén",location:"Patagonia, Argentina",lat:-49.2714,lon:-72.9659,ap:"FTE",icon:"🧗",rating:4.98,reviews:1600,gradient:"linear-gradient(160deg,#3b2a1a,#7a5c3a,#c49a6c)",accent:"#d4a574",tags:["Patagonia Granite","Alpine"]},
+  {id:"futaleuf_kayak",category:"kayak",title:"Futaleufú River Kayaking",location:"Patagonia, Chile",lat:-43.1862,lon:-71.8683,ap:"PMC",icon:"🛶",rating:4.96,reviews:580,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Turquoise Water","Class V"]},
+  {id:"amazon_fish",  category:"fishing",title:"Amazon Peacock Bass",location:"Amazonas, Brazil",lat:-3.1190,lon:-60.0217,ap:"MAO",icon:"🎣",rating:4.93,reviews:880,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Trophy Bass","Jungle Lodge"]},
+  {id:"galapagos_dive",category:"diving",title:"Galápagos Diving",location:"Ecuador",lat:-0.9538,lon:-90.9656,ap:"GPS",icon:"🤿",rating:4.99,reviews:1800,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Hammerhead Sharks","Marine Iguanas"]},
+  {id:"jeri_kite",    category:"kite",title:"Jericoacoara Kite",location:"Ceará, Brazil",lat:-2.7947,lon:-40.5127,ap:"FOR",icon:"🪁",rating:4.96,reviews:1400,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Lagoon Flat Water","Trade Winds"]},
+  {id:"cochabamba_mtb",category:"mtb",title:"Death Road MTB",location:"Yungas, Bolivia",lat:-16.3030,lon:-68.0212,ap:"LPB",icon:"🚵",rating:4.94,reviews:2800,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["World's Most Dangerous Road","4,700m Drop"]},
+  {id:"bariloche_fish",category:"fishing",title:"Bariloche Fly Fishing",location:"Patagonia, Argentina",lat:-41.1335,lon:-71.3103,ap:"BRC",icon:"🎣",rating:4.95,reviews:1200,gradient:"linear-gradient(160deg,#0a2e4a,#1a4a6a,#3a7a9a)",accent:"#5a9aba",tags:["Brown Trout","Andean Lakes"]},
+  {id:"sucre_climb",  category:"climbing",title:"Huayna Potosí",location:"La Paz, Bolivia",lat:-16.3369,lon:-68.1450,ap:"LPB",icon:"🧗",rating:4.91,reviews:1540,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["6,088m Glacier","Beginner Friendly"]},
+  {id:"rapanui_dive", category:"diving",title:"Easter Island Diving",location:"Rapa Nui, Chile",lat:-27.1127,lon:-109.3497,ap:"IPC",icon:"🤿",rating:4.90,reviews:340,gradient:"linear-gradient(160deg,#0a1a3d,#1a3a7a,#3a6abf)",accent:"#5a8ae6",tags:["Crystal Clarity","Moai Underwater"]},
+  {id:"roca_para",    category:"paraglide",title:"Roldanillo Paragliding",location:"Valle del Cauca, Colombia",lat:4.4139,lon:-76.1553,ap:"CLO",icon:"🪂",rating:4.93,reviews:1100,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["World Cup Venue","Andean Thermals"]},
+  {id:"colca_hike",   category:"hiking",title:"Colca Canyon Trek",location:"Arequipa, Peru",lat:-15.6079,lon:-71.8876,ap:"AQP",icon:"🥾",rating:4.93,reviews:3200,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["Condor Spotting","Twice Grand Canyon Depth"]},
+
+  // ─── Southeast Asia expansion ───────────────────────────────────────────────
+  {id:"komodo_dive",  category:"diving",title:"Komodo National Park Diving",location:"Flores, Indonesia",lat:-8.5500,lon:119.4833,ap:"LBJ",icon:"🤿",rating:4.97,reviews:2200,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Manta Rays","Strong Currents"]},
+  {id:"halong_kayak", category:"kayak",title:"Hạ Long Bay Kayaking",location:"Vietnam",lat:20.9101,lon:107.1839,ap:"HAN",icon:"🛶",rating:4.95,reviews:4200,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Limestone Karsts","UNESCO"]},
+  {id:"krabi_climb",  category:"climbing",title:"Railay Beach Rock Climbing",location:"Krabi, Thailand",lat:8.0107,lon:98.8369,ap:"KBV",icon:"🧗",rating:4.96,reviews:3400,gradient:"linear-gradient(160deg,#3b2a1a,#7a5c3a,#c49a6c)",accent:"#d4a574",tags:["Limestone Walls","Beach Access"]},
+  {id:"sipadan_dive", category:"diving",title:"Sipadan Island Diving",location:"Sabah, Malaysia",lat:4.1147,lon:118.6292,ap:"TWU",icon:"🤿",rating:4.98,reviews:1900,gradient:"linear-gradient(160deg,#0a1a3d,#1a3a7a,#3a6abf)",accent:"#5a8ae6",tags:["Barracuda Tornado","Turtle Tomb"]},
+  {id:"boracay_kite", category:"kite",title:"Boracay Kite Station",location:"Philippines",lat:11.9674,lon:121.9270,ap:"MPH",icon:"🪁",rating:4.92,reviews:1100,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Bulabog Beach","Amihan Season"]},
+  {id:"bali_mtb",     category:"mtb",title:"Bali Downhill MTB",location:"Kintamani, Indonesia",lat:-8.2439,lon:115.3736,ap:"DPS",icon:"🚵",rating:4.89,reviews:780,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Volcano Trails","Rice Terrace Rides"]},
+  {id:"sri_fish",     category:"fishing",title:"Sri Lanka Deep Sea Fishing",location:"Mirissa, Sri Lanka",lat:5.9449,lon:80.4525,ap:"CMB",icon:"🎣",rating:4.88,reviews:520,gradient:"linear-gradient(160deg,#0a2e4a,#1a4a6a,#3a7a9a)",accent:"#5a9aba",tags:["Blue Marlin","Whale Watching"]},
+  {id:"sapa_hike",    category:"hiking",title:"Sapa Rice Terraces Trek",location:"Lào Cai, Vietnam",lat:22.3363,lon:103.8438,ap:"HAN",icon:"🥾",rating:4.93,reviews:5400,gradient:"linear-gradient(160deg,#1a3300,#3a6600,#6a9932)",accent:"#8acc44",tags:["Hill Tribes","Terraced Fields"]},
+  {id:"phangan_dive", category:"diving",title:"Koh Tao Diving",location:"Surat Thani, Thailand",lat:10.0956,lon:99.8375,ap:"USM",icon:"🤿",rating:4.94,reviews:6800,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Beginner Friendly","Whale Sharks"]},
+  {id:"palawan_kayak",category:"kayak",title:"El Nido Island Hopping Kayak",location:"Palawan, Philippines",lat:11.1784,lon:119.4068,ap:"ENI",icon:"🛶",rating:4.96,reviews:2600,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Hidden Lagoons","Crystal Water"]},
+  {id:"langkawi_para",category:"paraglide",title:"Langkawi Paragliding",location:"Kedah, Malaysia",lat:6.3500,lon:99.7833,ap:"LGK",icon:"🪂",rating:4.88,reviews:640,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["Geopark Views","Island Thermals"]},
+  {id:"andaman_fish", category:"fishing",title:"Andaman Islands Fishing",location:"India",lat:11.6234,lon:92.7265,ap:"IXZ",icon:"🎣",rating:4.91,reviews:420,gradient:"linear-gradient(160deg,#0a2e4a,#1a4a6a,#3a7a9a)",accent:"#5a9aba",tags:["Giant Trevally","Untouched Reefs"]},
+
+  // ─── Global category expansion (fishing, paraglide, diving, climbing, mtb, kayak, kite) ──
+  {id:"lofoten_fish", category:"fishing",title:"Lofoten Islands Fishing",location:"Nordland, Norway",lat:68.2000,lon:14.4000,ap:"SVJ",icon:"🎣",rating:4.95,reviews:1600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Cod & Halibut","Arctic Circle"]},
+  {id:"taupo_fish",   category:"fishing",title:"Lake Taupō Trout Fishing",location:"North Island, New Zealand",lat:-38.6857,lon:176.0702,ap:"AKL",icon:"🎣",rating:4.93,reviews:2200,gradient:"linear-gradient(160deg,#0a2e4a,#1a4a6a,#3a7a9a)",accent:"#5a9aba",tags:["Rainbow Trout","Volcanic Lake"]},
+  {id:"kenai_fish",   category:"fishing",title:"Kenai River Salmon",location:"Alaska, USA",lat:60.4831,lon:-149.7906,ap:"ANC",icon:"🎣",rating:4.97,reviews:3400,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["King Salmon","Sockeye Run"]},
+  {id:"chamonix_para",category:"paraglide",title:"Chamonix Paragliding",location:"Haute-Savoie, France",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🪂",rating:4.96,reviews:2800,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["Mont Blanc Views","Alpine Thermals"]},
+  {id:"pokhara_para", category:"paraglide",title:"Pokhara Paragliding",location:"Nepal",lat:28.2096,lon:83.9856,ap:"PKR",icon:"🪂",rating:4.97,reviews:4600,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["Himalaya Views","Phewa Lake Landing"]},
+  {id:"interlaken_para",category:"paraglide",title:"Interlaken Paragliding",location:"Bernese Oberland, Switzerland",lat:46.6863,lon:7.8632,ap:"ZRH",icon:"🪂",rating:4.95,reviews:3200,gradient:"linear-gradient(160deg,#0a2a4a,#1a5a8a,#3a8aca)",accent:"#5aabe6",tags:["Jungfrau Views","Lake Brienz"]},
+  {id:"cozumel_dive", category:"diving",title:"Cozumel Reef Diving",location:"Quintana Roo, Mexico",lat:20.4318,lon:-86.9203,ap:"CZM",icon:"🤿",rating:4.96,reviews:5200,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Drift Diving","Palancar Reef"]},
+  {id:"maldives_dive",category:"diving",title:"Maldives Diving",location:"North Malé Atoll",lat:4.1755,lon:73.5093,ap:"MLE",icon:"🤿",rating:4.98,reviews:4800,gradient:"linear-gradient(160deg,#0a1a3d,#1a3a7a,#3a6abf)",accent:"#5a8ae6",tags:["Manta Point","Overwater Luxury"]},
+  {id:"moab_mtb",     category:"mtb",title:"Moab Slickrock Trail",location:"Utah, USA",lat:38.5733,lon:-109.5498,ap:"SLC",icon:"🚵",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#3b2a1a,#7a4a2a,#ba7a4a)",accent:"#da9a6a",tags:["Slickrock","Desert Singletrack"]},
+  {id:"finale_mtb",   category:"mtb",title:"Finale Ligure MTB",location:"Liguria, Italy",lat:44.1693,lon:8.3415,ap:"GOA",icon:"🚵",rating:4.94,reviews:2200,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["EWS Venue","Mediterranean Trails"]},
+  {id:"rotorua_mtb",  category:"mtb",title:"Rotorua Redwoods MTB",location:"North Island, New Zealand",lat:-38.1368,lon:176.2497,ap:"AKL",icon:"🚵",rating:4.95,reviews:3600,gradient:"linear-gradient(160deg,#1a3300,#3a5500,#5a8800)",accent:"#7aaa22",tags:["Redwood Forest","Volcanic Soil"]},
+  {id:"queenstown_mtb",category:"mtb",title:"Queenstown Bike Park",location:"South Island, New Zealand",lat:-45.0312,lon:168.6626,ap:"ZQN",icon:"🚵",rating:4.93,reviews:1800,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Gondola Access","The Remarkables"]},
+  {id:"tarifa_kite",  category:"kite",title:"Tarifa Kite Beach",location:"Cádiz, Spain",lat:36.0143,lon:-5.6044,ap:"AGP",icon:"🪁",rating:4.95,reviews:2800,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Levante Wind","Europe's Kite Capital"]},
+  {id:"hurghada_kite",category:"kite",title:"El Gouna Kite",location:"Red Sea, Egypt",lat:27.1825,lon:33.8008,ap:"HRG",icon:"🪁",rating:4.93,reviews:1600,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Flat Lagoon","Year-Round Sun"]},
+  {id:"milford_kayak",category:"kayak",title:"Milford Sound Kayaking",location:"Fiordland, New Zealand",lat:-44.6717,lon:167.9256,ap:"ZQN",icon:"🛶",rating:4.97,reviews:3800,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Fjord Kayaking","Waterfalls"]},
+  {id:"fjord_kayak",  category:"kayak",title:"Geirangerfjord Kayaking",location:"Norway",lat:62.1008,lon:7.0960,ap:"AES",icon:"🛶",rating:4.94,reviews:1400,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["UNESCO Fjord","Seven Sisters Waterfall"]},
+  {id:"krabi_kayak",  category:"kayak",title:"Ao Thalane Sea Kayaking",location:"Krabi, Thailand",lat:8.1800,lon:98.7400,ap:"KBV",icon:"🛶",rating:4.90,reviews:1200,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Mangrove Caves","Limestone Caves"]},
+  {id:"kalymnos_climb",category:"climbing",title:"Kalymnos Rock Climbing",location:"Dodecanese, Greece",lat:36.9833,lon:26.9833,ap:"JKL",icon:"🧗",rating:4.97,reviews:3200,gradient:"linear-gradient(160deg,#3b2a1a,#7a5c3a,#c49a6c)",accent:"#d4a574",tags:["Limestone Paradise","3000+ Routes"]},
+  {id:"fontaine_climb",category:"climbing",title:"Fontainebleau Bouldering",location:"Île-de-France, France",lat:48.4082,lon:2.6987,ap:"CDG",icon:"🧗",rating:4.96,reviews:4200,gradient:"linear-gradient(160deg,#3a2a0a,#6a4a1a,#9a7a3a)",accent:"#bba044",tags:["World's Best Bouldering","Sandstone"]},
+  {id:"everest_climb", category:"climbing",title:"Everest Base Camp Climb",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🧗",rating:4.99,reviews:1200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["8,849m Summit","Expedition"]},
 ];
 
 const US_AIRPORTS = [
@@ -791,6 +865,37 @@ const ALL_AIRPORTS = [
   { code:"YEG", city:"Edmonton Alberta",        flag:"🇨🇦" },
   { code:"FAT", city:"Fresno CA",               flag:"🇺🇸" },
   { code:"POP", city:"Puerto Plata",            flag:"🇩🇴" },
+  // ── Expansion: Africa & Middle East ──
+  { code:"SSH", city:"Sharm El-Sheikh",          flag:"🇪🇬" },
+  { code:"ASW", city:"Aswan",                    flag:"🇪🇬" },
+  { code:"HRG", city:"Hurghada",                 flag:"🇪🇬" },
+  { code:"EBB", city:"Entebbe",                  flag:"🇺🇬" },
+  { code:"ADD", city:"Addis Ababa",              flag:"🇪🇹" },
+  { code:"VNX", city:"Vilanculos",               flag:"🇲🇿" },
+  { code:"LVI", city:"Livingstone",              flag:"🇿🇲" },
+  { code:"DLM", city:"Dalaman",                  flag:"🇹🇷" },
+  // ── Expansion: South America ──
+  { code:"MDE", city:"Medellín",                 flag:"🇨🇴" },
+  { code:"CLO", city:"Cali",                     flag:"🇨🇴" },
+  { code:"PMC", city:"Puerto Montt",             flag:"🇨🇱" },
+  { code:"MAO", city:"Manaus",                   flag:"🇧🇷" },
+  { code:"GPS", city:"Galápagos",                flag:"🇪🇨" },
+  { code:"FOR", city:"Fortaleza",                flag:"🇧🇷" },
+  { code:"LPB", city:"La Paz",                   flag:"🇧🇴" },
+  { code:"BRC", city:"Bariloche",                flag:"🇦🇷" },
+  { code:"IPC", city:"Easter Island",            flag:"🇨🇱" },
+  // ── Expansion: Southeast Asia ──
+  { code:"HAN", city:"Hanoi",                    flag:"🇻🇳" },
+  { code:"LBJ", city:"Labuan Bajo",              flag:"🇮🇩" },
+  { code:"TWU", city:"Tawau",                    flag:"🇲🇾" },
+  { code:"CMB", city:"Colombo",                  flag:"🇱🇰" },
+  { code:"LGK", city:"Langkawi",                 flag:"🇲🇾" },
+  { code:"IXZ", city:"Port Blair",               flag:"🇮🇳" },
+  // ── Expansion: Europe ──
+  { code:"SVJ", city:"Svolvær Lofoten",          flag:"🇳🇴" },
+  { code:"GOA", city:"Genoa",                    flag:"🇮🇹" },
+  { code:"AES", city:"Ålesund",                  flag:"🇳🇴" },
+  { code:"JKL", city:"Kalymnos",                 flag:"🇬🇷" },
 ];
 
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
@@ -1145,6 +1250,37 @@ const BASE_PRICES = {
   AKL:{ JFK:2100,LAX:1580,SFO:1620,ORD:2050,MIA:2000,SEA:1780,BOS:2200,ATL:2050,DEN:1880,DFW:1960, LAS:1760,PHX:1740,MSP:2090,DTW:2080 },
   FAT:{ JFK:340, LAX:120, SFO:100, ORD:280, MIA:380, SEA:240, BOS:380, ATL:360, DEN:240, DFW:260, LAS:120, PHX:140, MSP:320, DTW:310 },
   POP:{ JFK:380, LAX:580, SFO:600, ORD:440, MIA:280, SEA:640, BOS:360, ATL:340, DEN:480, DFW:420, LAS:520, PHX:540, MSP:460, DTW:440 },
+  // ── Africa & Middle East expansion ──
+  SSH:{ JFK:900, LAX:1200,SFO:1180,ORD:980, MIA:1040,SEA:1260,BOS:860, ATL:980, DEN:1080,DFW:1040, LAS:1140,PHX:1160,MSP:1020,DTW:1010 },
+  ASW:{ JFK:1100,LAX:1400,SFO:1380,ORD:1180,MIA:1240,SEA:1460,BOS:1060,ATL:1180,DEN:1280,DFW:1240, LAS:1340,PHX:1360,MSP:1220,DTW:1210 },
+  HRG:{ JFK:880, LAX:1180,SFO:1160,ORD:960, MIA:1020,SEA:1240,BOS:840, ATL:960, DEN:1060,DFW:1020, LAS:1120,PHX:1140,MSP:1000,DTW:990 },
+  EBB:{ JFK:1100,LAX:1380,SFO:1360,ORD:1180,MIA:1240,SEA:1440,BOS:1060,ATL:1160,DEN:1280,DFW:1240, LAS:1340,PHX:1320,MSP:1220,DTW:1210 },
+  ADD:{ JFK:1000,LAX:1300,SFO:1280,ORD:1080,MIA:1140,SEA:1360,BOS:960, ATL:1060,DEN:1180,DFW:1140, LAS:1240,PHX:1220,MSP:1120,DTW:1110 },
+  VNX:{ JFK:1400,LAX:1600,SFO:1580,ORD:1480,MIA:1360,SEA:1680,BOS:1440,ATL:1400,DEN:1560,DFW:1480, LAS:1580,PHX:1560,MSP:1520,DTW:1510 },
+  LVI:{ JFK:1300,LAX:1500,SFO:1480,ORD:1380,MIA:1260,SEA:1580,BOS:1340,ATL:1300,DEN:1460,DFW:1380, LAS:1480,PHX:1460,MSP:1420,DTW:1410 },
+  DLM:{ JFK:780, LAX:1080,SFO:1060,ORD:860, MIA:920, SEA:1140,BOS:740, ATL:860, DEN:960, DFW:920, LAS:1020,PHX:1040,MSP:900, DTW:890 },
+  // ── South America expansion ──
+  MDE:{ JFK:400, LAX:520, SFO:560, ORD:480, MIA:260, SEA:620, BOS:440, ATL:360, DEN:500, DFW:420, LAS:540, PHX:520, MSP:520, DTW:510 },
+  CLO:{ JFK:420, LAX:540, SFO:580, ORD:500, MIA:280, SEA:640, BOS:460, ATL:380, DEN:520, DFW:440, LAS:560, PHX:540, MSP:540, DTW:530 },
+  PMC:{ JFK:1200,LAX:1080,SFO:1120,ORD:1300,MIA:1000,SEA:1300,BOS:1250,ATL:1150,DEN:1200,DFW:1200, LAS:1160,PHX:1180,MSP:1340,DTW:1330 },
+  MAO:{ JFK:800, LAX:980, SFO:1020,ORD:880, MIA:660, SEA:1080,BOS:840, ATL:740, DEN:900, DFW:820, LAS:940, PHX:960, MSP:920, DTW:910 },
+  GPS:{ JFK:780, LAX:720, SFO:760, ORD:860, MIA:660, SEA:880, BOS:820, ATL:720, DEN:800, DFW:740, LAS:780, PHX:800, MSP:900, DTW:890 },
+  FOR:{ JFK:860, LAX:1100,SFO:1080,ORD:940, MIA:760, SEA:1180,BOS:820, ATL:800, DEN:980, DFW:900, LAS:1040,PHX:1060,MSP:980, DTW:970 },
+  LPB:{ JFK:860, LAX:780, SFO:820, ORD:940, MIA:740, SEA:960, BOS:900, ATL:800, DEN:860, DFW:820, LAS:840, PHX:860, MSP:980, DTW:970 },
+  BRC:{ JFK:1100,LAX:1000,SFO:1040,ORD:1200,MIA:920, SEA:1220,BOS:1150,ATL:1050,DEN:1100,DFW:1100, LAS:1060,PHX:1080,MSP:1240,DTW:1230 },
+  IPC:{ JFK:1400,LAX:1200,SFO:1240,ORD:1500,MIA:1200,SEA:1500,BOS:1450,ATL:1350,DEN:1400,DFW:1380, LAS:1360,PHX:1380,MSP:1540,DTW:1530 },
+  // ── Southeast Asia expansion ──
+  HAN:{ JFK:1200,LAX:1000,SFO:980, ORD:1150,MIA:1280,SEA:1100,BOS:1260,ATL:1300,DEN:1120,DFW:1180, LAS:1080,PHX:1060,MSP:1190,DTW:1180 },
+  LBJ:{ JFK:1500,LAX:1200,SFO:1180,ORD:1450,MIA:1580,SEA:1300,BOS:1560,ATL:1600,DEN:1420,DFW:1480, LAS:1380,PHX:1360,MSP:1490,DTW:1480 },
+  TWU:{ JFK:1450,LAX:1150,SFO:1130,ORD:1400,MIA:1530,SEA:1250,BOS:1510,ATL:1550,DEN:1370,DFW:1430, LAS:1330,PHX:1310,MSP:1440,DTW:1430 },
+  CMB:{ JFK:1200,LAX:1100,SFO:1080,ORD:1150,MIA:1280,SEA:1200,BOS:1260,ATL:1280,DEN:1180,DFW:1200, LAS:1180,PHX:1160,MSP:1190,DTW:1180 },
+  LGK:{ JFK:1350,LAX:1080,SFO:1060,ORD:1300,MIA:1430,SEA:1180,BOS:1410,ATL:1450,DEN:1280,DFW:1340, LAS:1240,PHX:1220,MSP:1340,DTW:1330 },
+  IXZ:{ JFK:1400,LAX:1200,SFO:1180,ORD:1350,MIA:1480,SEA:1300,BOS:1460,ATL:1500,DEN:1320,DFW:1380, LAS:1280,PHX:1260,MSP:1390,DTW:1380 },
+  // ── Europe expansion ──
+  SVJ:{ JFK:900, LAX:1200,SFO:1180,ORD:980, MIA:1040,SEA:1260,BOS:860, ATL:960, DEN:1060,DFW:1020, LAS:1120,PHX:1140,MSP:1020,DTW:1010 },
+  GOA:{ JFK:720, LAX:1000,SFO:980, ORD:800, MIA:860, SEA:1060,BOS:680, ATL:800, DEN:880, DFW:860, LAS:940, PHX:960, MSP:840, DTW:830 },
+  AES:{ JFK:880, LAX:1180,SFO:1160,ORD:960, MIA:1020,SEA:1240,BOS:840, ATL:940, DEN:1040,DFW:1000, LAS:1100,PHX:1120,MSP:1000,DTW:990 },
+  JKL:{ JFK:800, LAX:1100,SFO:1080,ORD:880, MIA:940, SEA:1160,BOS:760, ATL:880, DEN:960, DFW:940, LAS:1040,PHX:1060,MSP:920, DTW:910 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD)
@@ -4107,7 +4243,6 @@ const PACKING = {
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
-// TODO: Replace AFFILIATE_ID placeholders with your real REI/Backcountry IDs
 const GEAR_ITEMS = {
   skiing:   [
     { emoji:"🎿", name:"Skis",                          store:"REI",         price:"$599+",  commission:"5%",  url:"https://www.rei.com/search?q=skis" },
@@ -4128,46 +4263,46 @@ const GEAR_ITEMS = {
     { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?k=hydration+drink+mix" },
   ],
   diving:   [
-    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Divers Direct",price:"$299", commission:"6%",  url:"https://www.diversdirect.com/scubapro-everflex?ref=AFFILIATE_ID" },
-    { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/product/garmin-descent?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?k=cressi+big+eyes+evo+mask" },
+    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?k=scubapro+everflex+wetsuit" },
+    { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/search?q=garmin+descent+dive+watch" },
+    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+dive+housing" },
   ],
   climbing: [
-    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/product/bd-momentum?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/product/la-sportiva-tarantulace?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/product/bd-half-dome?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/product/bd-loose-chalk?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+momentum+harness" },
+    { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/search?q=la+sportiva+tarantulace" },
+    { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+half+dome+helmet" },
+    { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+chalk" },
   ],
   kayak:    [
-    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/product/nrs-chinook?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/product/ortlieb-dry-bag?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/product/kokatat-meridian?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/product/garmin-inreach-mini?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/search?q=nrs+chinook+pfd" },
+    { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/search?q=ortlieb+dry+bag" },
+    { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/search?q=kokatat+dry+suit" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
   ],
   mtb:      [
-    { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-a3?sc=AFFILIATE_ID" },
-    { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/product/fox-ranger-gloves?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-launch-pro?sc=AFFILIATE_ID" },
-    { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/product/camelbak-mule?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-designs-a3-mips-helmet" },
+    { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/search?q=fox+ranger+mtb+gloves" },
+    { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-racing-launch-pro-d3o-knee-guard" },
+    { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/search?q=camelbak+mule+hydration" },
   ],
   kite:     [
-    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Real Watersports",price:"$1,299",commission:"6%",url:"https://realwatersports.com/cabrinha-moto?ref=AFFILIATE_ID" },
-    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Real Watersports",price:"$280",commission:"6%",url:"https://realwatersports.com/ion-element?ref=AFFILIATE_ID" },
-    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Real Watersports",price:"$1,299",commission:"6%",url:"https://www.realwatersports.com/search?q=cabrinha+moto" },
+    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Real Watersports",price:"$280",commission:"6%",url:"https://www.realwatersports.com/search?q=ion+element+wetsuit" },
+    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?k=dakine+kite+line+cutter" },
+    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://www.amazon.com/s?k=thinksport+spf+50+sunscreen" },
   ],
   fishing:  [
-    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Bass Pro",    price:"$45",   commission:"5%",  url:"https://www.basspro.com/ugly-stik-gx2?source=AFFILIATE_ID" },
-    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Backcountry", price:"$230",  commission:"8%",  url:"https://www.backcountry.com/simms-g3-guide?sc=AFFILIATE_ID" },
-    { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/product/coleman-steel-belted?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Bass Pro",    price:"$45",   commission:"5%",  url:"https://www.basspro.com/shop/en/ugly-stik-gx2-spinning-combo" },
+    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?k=costa+del+mar+permit+sunglasses" },
+    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Backcountry", price:"$230",  commission:"8%",  url:"https://www.backcountry.com/simms-g3-guide-wading-boot" },
+    { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/search?q=coleman+steel+belted+cooler" },
   ],
   paraglide:[
-    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Paragliding Earth",price:"$180",commission:"6%",url:"https://paraglidingearth.com/supair-pilot?ref=AFFILIATE_ID" },
-    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Paragliding Earth",price:"$590",commission:"6%",url:"https://paraglidingearth.com/skytraxx-5?ref=AFFILIATE_ID" },
-    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?k=paragliding+helmet" },
+    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Amazon",      price:"$590",  commission:"4%",  url:"https://www.amazon.com/s?k=skytraxx+vario+gps" },
+    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?k=bonine+motion+sickness" },
+    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+chest+mount" },
   ],
 };
 
