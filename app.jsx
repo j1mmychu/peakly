@@ -1304,6 +1304,34 @@ function getVenuePhoto(venue) {
   return photos[Math.abs(hash) % photos.length];
 }
 
+// ─── lazy background image (loads only when in viewport) ─────────────────────
+function LazyBg({ src, gradient, style, children, ...rest }) {
+  const ref = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !src) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        const img = new Image();
+        img.onload = () => setLoaded(true);
+        img.src = src;
+        obs.disconnect();
+      }
+    }, { rootMargin:"200px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [src]);
+  return (
+    <div ref={ref} style={{
+      ...style,
+      background: gradient,
+      backgroundImage: loaded ? `url(${src})` : "none",
+      backgroundSize: "cover", backgroundPosition: "center",
+    }} {...rest}>{children}</div>
+  );
+}
+
 // ─── skeleton loader ──────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
@@ -1325,13 +1353,9 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   return (
     <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
-        <div className="card-img" style={{
-          position:"absolute", inset:0, background:listing.gradient,
-          backgroundImage:`url(${getVenuePhoto(listing)})`,
-          backgroundSize:"cover", backgroundPosition:"center",
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-        </div>
+        <LazyBg className="card-img" src={getVenuePhoto(listing)} gradient={listing.gradient}
+          style={{ position:"absolute", inset:0 }}>
+        </LazyBg>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
         {/* Heart */}
@@ -1423,12 +1447,8 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
     <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
-      <div style={{
-        height:180, background:listing.gradient,
-        backgroundImage:`url(${getVenuePhoto(listing)})`,
-        backgroundSize:"cover", backgroundPosition:"center",
-        position:"relative",
-      }}>
+      <LazyBg src={getVenuePhoto(listing)} gradient={listing.gradient}
+        style={{ height:180, position:"relative" }}>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:10, right:10, background:"none", border:"none", fontSize:18,
@@ -1455,7 +1475,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
             border:"1px solid rgba(255,255,255,0.2)", display:"inline-block",
           }}>{listing.conditionLabel}</span>
         </div>
-      </div>
+      </LazyBg>
       <div style={{ padding:"12px 14px 14px" }}>
         <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F }}>{listing.title}</div>
         <div style={{ color:"#717171", fontSize:12, fontFamily:F, marginTop:2 }}>
@@ -1488,12 +1508,9 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   return (
     <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
-        <div style={{
-          position:"absolute", inset:0, background:listing.gradient,
-          backgroundImage:`url(${getVenuePhoto(listing)})`,
-          backgroundSize:"cover", backgroundPosition:"center",
-        }}>
-        </div>
+        <LazyBg src={getVenuePhoto(listing)} gradient={listing.gradient}
+          style={{ position:"absolute", inset:0 }}>
+        </LazyBg>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
@@ -5100,6 +5117,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 function BottomNav({ active, setActive, alertCount }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
+    { id:"trips",     label:"Trips",    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> },
     { id:"alerts",    label:"Alerts",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
     { id:"profile",   label:"Profile",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
@@ -5199,36 +5217,45 @@ function App() {
     })(),
   }));
 
-  // Fetch live weather for all 12 venues in parallel
+  // Fetch live weather in batches of 15 to avoid hammering the API
   useEffect(() => {
     let alive = true;
     (async () => {
-      const results = await Promise.allSettled(
-        VENUES.map(async v => {
-          const needsMarine = ["surfing","diving","kayak"].includes(v.category);
-          const [wx, mar] = await Promise.allSettled([
-            fetchWeather(v.lat, v.lon),
-            needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
-          ]);
-          return {
-            id:     v.id,
-            wx:     wx.status  === "fulfilled" ? wx.value  : null,
-            marine: mar.status === "fulfilled" ? mar.value : null,
-          };
-        })
-      );
-      if (!alive) return;
       const wx = {}, mar = {};
-      results.forEach(r => {
-        if (r.status === "fulfilled") {
-          wx[r.value.id]  = r.value.wx;
-          mar[r.value.id] = r.value.marine;
+      const BATCH = 15;
+      for (let i = 0; i < VENUES.length; i += BATCH) {
+        const batch = VENUES.slice(i, i + BATCH);
+        const results = await Promise.allSettled(
+          batch.map(async v => {
+            const needsMarine = ["surfing","diving","kayak"].includes(v.category);
+            const [wxr, marr] = await Promise.allSettled([
+              fetchWeather(v.lat, v.lon),
+              needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
+            ]);
+            return {
+              id:     v.id,
+              wx:     wxr.status  === "fulfilled" ? wxr.value  : null,
+              marine: marr.status === "fulfilled" ? marr.value : null,
+            };
+          })
+        );
+        if (!alive) return;
+        results.forEach(r => {
+          if (r.status === "fulfilled") {
+            wx[r.value.id]  = r.value.wx;
+            mar[r.value.id] = r.value.marine;
+          }
+        });
+        // Update after first batch so UI loads fast
+        if (i === 0) {
+          setWxData({...wx});
+          setMarData({...mar});
+          setLoading(false);
         }
-      });
-      setWxData(wx);
-      setMarData(mar);
+      }
+      setWxData({...wx});
+      setMarData({...mar});
       setWxLastUpdated(new Date());
-      setLoading(false);
     })();
     return () => { alive = false; };
   }, []);
@@ -5374,6 +5401,14 @@ function App() {
               onOpenDetail={openDetail}
               namedLists={namedLists} setNamedLists={setNamedLists}
               wxLastUpdated={wxLastUpdated} profile={profile}
+            />
+          )}
+          {activeTab === "trips" && (
+            <TripsTab
+              listings={listings} wishlists={wishlists}
+              onToggle={toggleWishlist} namedLists={namedLists}
+              setNamedLists={setNamedLists} onOpenDetail={openDetail}
+              profile={profile} savedTrips={savedTrips} setSavedTrips={setSavedTrips}
             />
           )}
           {activeTab === "alerts" && (
