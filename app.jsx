@@ -126,9 +126,13 @@ const { useState, useEffect, useRef, useCallback } = React;
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
     .vibe-spin { animation: spin 1.8s linear infinite; display:inline-block; }
     /* ── inputs ── */
-    input[type=range] { -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; outline: none; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #0284c7; cursor: pointer; box-shadow: 0 2px 8px rgba(2,132,199,0.45); transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1); }
-    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.3); }
+    input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; background: #e8e8e8; }
+    input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: #e8e8e8; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #0284c7; cursor: pointer; box-shadow: 0 1px 4px rgba(2,132,199,0.35); margin-top: -7px; }
+    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+    input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: #e8e8e8; border: none; }
+    input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #0284c7; cursor: pointer; border: none; }
+    input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
   `;
@@ -1427,7 +1431,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
           {listing.flight.live && (
             <span style={{
-              fontSize:9, fontWeight:800, color:"#16a34a", fontFamily:F,
+              fontSize:10, fontWeight:800, color:"#16a34a", fontFamily:F,
               background:"#dcfce7", borderRadius:6, padding:"1px 5px",
             }}>LIVE</span>
           )}
@@ -1537,7 +1541,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
               borderRadius:5, padding:"1px 4px", fontFamily:F,
             }}>LIVE</span>
           ) : (
-            <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>est.</span>
+            <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
           )}
         </div>
       </div>
@@ -1622,13 +1626,9 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   };
 
   const SectionLabel = ({ children }) => (
-    <div style={{ fontSize:12, fontWeight:800, color:"#888", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12 }}>
+    <div style={{ fontSize:11, fontWeight:800, color:"#999", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
       {children}
     </div>
-  );
-
-  const Divider = () => (
-    <div style={{ height:1, background:"#f0f0f0", margin:"4px 0" }} />
   );
 
   return (
@@ -1645,39 +1645,36 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
         {/* Handle + header */}
         <div style={{
           position:"sticky", top:0, background:"#fff", zIndex:2,
-          borderBottom:"1px solid #f5f5f5", paddingBottom:12,
+          borderBottom:"1px solid #f0f0f0", paddingBottom:10,
         }}>
-          <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 8px" }}>
-            <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
+          <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 6px" }}>
+            <div style={{ width:36, height:4, borderRadius:2, background:"#ddd" }} />
           </div>
-          <div style={{ padding:"0 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
+          <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
             <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
-              style={{ background:"#f5f5f5", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer" }}>
+              style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
           </div>
         </div>
 
-        {/* ── Activity (multi-select) ── */}
-        <div style={{ padding:"20px 24px 0" }}>
-          <SectionLabel>Activity — pick any</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-            {/* All option */}
+        {/* ── Activity ── */}
+        <div style={{ padding:"16px 20px 0" }}>
+          <SectionLabel>Activity</SectionLabel>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
             {(() => {
               const selAll = local.activities.length === 0;
               return (
                 <button className={"pill" + (selAll ? " pill-selected" : "")}
                   onClick={() => setLocal(l => ({...l, activities:[]}))} style={{
-                    padding:"10px 16px", borderRadius:24, cursor:"pointer", minHeight:44,
-                    background: selAll ? "#0284c7" : "#f5f5f5",
-                    color:      selAll ? "#fff" : "#444",
-                    border:"2px solid", borderColor: selAll ? "#0284c7" : "transparent",
-                    fontSize:13, fontWeight:700, fontFamily:F,
-                    display:"inline-flex", alignItems:"center", gap:6,
-                    boxShadow: selAll ? "0 2px 12px rgba(2,132,199,0.28)" : "none",
+                    padding:"7px 14px", borderRadius:20, cursor:"pointer",
+                    background: selAll ? "#222" : "#f5f5f5",
+                    color:      selAll ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:12, fontWeight:700, fontFamily:F,
                 }}>
-                  ✨ All
+                  All
                 </button>
               );
             })()}
@@ -1686,71 +1683,97 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               return (
                 <button key={cat.id} className={"pill" + (sel ? " pill-selected" : "")}
                   onClick={() => toggleActivity(cat.id)} style={{
-                    padding:"10px 16px", borderRadius:24, cursor:"pointer", minHeight:44,
+                    padding:"7px 14px", borderRadius:20, cursor:"pointer",
                     background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#444",
-                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
-                    fontSize:13, fontWeight:700, fontFamily:F,
-                    display:"inline-flex", alignItems:"center", gap:6,
-                    boxShadow: sel ? "0 2px 12px rgba(0,0,0,0.18)" : "none",
+                    color:      sel ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:12, fontWeight:700, fontFamily:F,
                 }}>
                   {cat.label}
-                  {sel && <span style={{ fontSize:11, marginLeft:2, opacity:0.7 }}>✓</span>}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <Divider />
-
         {/* ── Where ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <SectionLabel>Where?</SectionLabel>
+        <div style={{ padding:"14px 20px 0" }}>
+          <SectionLabel>Destination</SectionLabel>
           <div style={{ position:"relative" }}>
-            <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-            <input type="text" placeholder="Resort, mountain, beach, country…"
+            <svg style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search destinations…"
               value={local.destination}
               onChange={e => setLocal(l => ({...l, destination:e.target.value}))}
               style={{
-                width:"100%", padding:"13px 36px 13px 40px", borderRadius:14,
-                border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222",
+                width:"100%", padding:"10px 32px 10px 36px", borderRadius:10,
+                border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222",
                 background:"#fafafa",
               }}
             />
             {local.destination && (
               <button onClick={() => setLocal(l => ({...l, destination:""}))} style={{
-                position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                background:"#ddd", border:"none", width:22, height:22, borderRadius:"50%",
-                fontSize:14, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+                position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
+                background:"#ddd", border:"none", width:20, height:20, borderRadius:"50%",
+                fontSize:12, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
               }}>×</button>
             )}
           </div>
           {local.destination && (
-            <div className="bounce-in" style={{ fontSize:12, color:"#0284c7", fontFamily:F, marginTop:6, fontWeight:700 }}>
+            <div style={{ fontSize:11, color:"#0284c7", fontFamily:F, marginTop:4, fontWeight:700 }}>
               {matchCount} match{matchCount !== 1 ? "es" : ""}
             </div>
           )}
         </div>
 
-        <Divider />
+        {/* ── Travel dates + Budget (compact row) ── */}
+        <div style={{ padding:"14px 20px 0" }}>
+          <div style={{ display:"flex", gap:10 }}>
+            <div style={{ flex:1 }}>
+              <SectionLabel>Dates</SectionLabel>
+              <div style={{ display:"flex", gap:6 }}>
+                <input type="date" value={local.startDate || ""}
+                  onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                <input type="date" value={local.endDate || ""}
+                  onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+              </div>
+            </div>
+            <div style={{ width:100 }}>
+              <SectionLabel>Budget</SectionLabel>
+              <div style={{ background:"#fafafa", border:"1.5px solid #e8e8e8", borderRadius:8, padding:"8px 10px", textAlign:"center" }}>
+                <span style={{ fontSize:13, fontWeight:800, color: local.maxPrice >= 2000 ? "#999" : "#0284c7", fontFamily:F }}>
+                  {local.maxPrice >= 2000 ? "Any" : `$${local.maxPrice}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {/* ── When ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <SectionLabel>When?</SectionLabel>
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+        {/* ── Max flight price slider ── */}
+        <div style={{ padding:"4px 20px 0" }}>
+          <input type="range" min={100} max={2000} step={50} value={local.maxPrice}
+            onChange={e => setLocal(l => ({...l, maxPrice:+e.target.value}))}
+            style={{ width:"100%", accentColor:"#0284c7" }} />
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:2 }}>
+            <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>$100</span>
+            <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>Any</span>
+          </div>
+        </div>
+
+        {/* ── When (presets) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>When</SectionLabel>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {WHEN_OPTIONS.map(opt => {
               const sel = local.when === opt.id;
               return (
-                <button key={opt.id} className={"pill" + (sel ? " pill-selected" : "")}
-                  onClick={() => setLocal(l => ({...l, when: opt.id}))} style={{
-                    padding:"10px 14px", borderRadius:24, cursor:"pointer", minHeight:44,
+                <button key={opt.id} onClick={() => setLocal(l => ({...l, when: opt.id}))} style={{
+                    padding:"6px 12px", borderRadius:16, cursor:"pointer",
                     background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#444",
-                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
-                    fontSize:12, fontWeight:700, fontFamily:F,
-                    display:"inline-flex", alignItems:"center", gap:5,
-                    boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.14)" : "none",
+                    color:      sel ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:11, fontWeight:700, fontFamily:F,
                 }}>
                   {opt.label}
                 </button>
@@ -1759,172 +1782,119 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
-        <Divider />
-
-        {/* ── Continent ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <SectionLabel>Which part of the world?</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+        {/* ── Region ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Region</SectionLabel>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
             {CONTINENTS.map(cont => {
               const sel = local.continent === cont.id;
               return (
-                <button key={cont.id} className={"pill" + (sel ? " pill-selected" : "")}
-                  onClick={() => toggleContinent(cont.id)} style={{
-                    padding:"10px 14px", borderRadius:24, cursor:"pointer", minHeight:44,
+                <button key={cont.id} onClick={() => toggleContinent(cont.id)} style={{
+                    padding:"6px 12px", borderRadius:16, cursor:"pointer",
                     background: sel ? "#0284c7" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#444",
-                    border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
-                    fontSize:12, fontWeight:700, fontFamily:F,
-                    display:"inline-flex", alignItems:"center", gap:5,
-                    boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.28)" : "none",
+                    color:      sel ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:11, fontWeight:700, fontFamily:F,
                 }}>
                   {cont.label}
                 </button>
               );
             })}
           </div>
-          {local.continent && (
-            <div style={{ fontSize:11, color:"#aaa", fontFamily:F, marginTop:8 }}>
-              Tap again to deselect
-            </div>
-          )}
         </div>
 
-        <Divider />
-
-        {/* ── Flying from ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <SectionLabel>Flying from?</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:12 }}>
-            {US_AIRPORTS.map(ap => {
-              const sel = local.fromAirport === ap.code;
-              return (
-                <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
-                  onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                    padding:"9px 13px", borderRadius:20, cursor:"pointer", minHeight:40,
-                    background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#555",
-                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
-                    fontSize:12, fontWeight:700, fontFamily:F,
-                    boxShadow: sel ? "0 2px 8px rgba(0,0,0,0.14)" : "none",
-                }}>{ap.flag} {ap.code}</button>
-              );
-            })}
-          </div>
-          <div style={{ position:"relative" }}>
-            <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:15, pointerEvents:"none" }}>✈️</span>
-            <input type="text" placeholder="Search any airport…"
-              value={apQuery}
-              onChange={e => setApQuery(e.target.value)}
-              onFocus={() => setApFocus(true)}
-              onBlur={() => setTimeout(() => setApFocus(false), 180)}
-              style={{
-                width:"100%", padding:"12px 14px 12px 40px", borderRadius:14,
-                border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222",
-                background:"#fafafa",
-              }}
-            />
-          </div>
-          {apFocus && apResults.length > 0 && (
-            <div className="bounce-in" style={{
-              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14,
-              marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)",
-            }}>
-              {apResults.map((ap, i) => (
-                <button key={ap.code} onMouseDown={() => {
-                  setLocal(l => ({...l, fromAirport: ap.code}));
-                  setApQuery(""); setApFocus(false);
-                }} style={{
-                  width:"100%", padding:"12px 16px",
-                  background: local.fromAirport === ap.code ? "#fff5f5" : "#fff",
-                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
-                  textAlign:"left", cursor:"pointer", fontFamily:F,
-                  display:"flex", alignItems:"center", gap:12, minHeight:48,
-                }}>
-                  <span style={{ fontSize:20 }}>{ap.flag}</span>
-                  <div style={{ flex:1 }}>
-                    <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                    <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
-                  </div>
-                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:16, fontWeight:800 }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-          {local.fromAirport && (
-            <div style={{ marginTop:8, fontSize:12, color:"#717171", fontFamily:F }}>
-              ✈️ <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
-              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
-                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
-            </div>
-          )}
-        </div>
-
-        <Divider />
-
-        {/* ── Sort by ── */}
-        <div style={{ padding:"16px 24px 0" }}>
+        {/* ── Sort ── */}
+        <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Sort by</SectionLabel>
-          <div style={{ display:"flex", gap:8 }}>
+          <div style={{ display:"flex", gap:6 }}>
             {SORT_OPTIONS.map(opt => {
               const sel = local.sort === opt.id;
               return (
-                <button key={opt.id} className="pressable" onClick={() => setLocal(l => ({...l, sort:opt.id}))} style={{
-                  flex:1, padding:"11px 6px", borderRadius:14, cursor:"pointer",
+                <button key={opt.id} onClick={() => setLocal(l => ({...l, sort:opt.id}))} style={{
+                  flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
                   background: sel ? "#222" : "#f5f5f5",
-                  color: sel ? "#fff" : "#444",
-                  border:"2px solid", borderColor: sel ? "#222" : "transparent",
-                  fontSize:12, fontWeight:700, fontFamily:F, textAlign:"center",
+                  color: sel ? "#fff" : "#555",
+                  border:"none",
+                  fontSize:11, fontWeight:700, fontFamily:F, textAlign:"center",
                 }}>{opt.label}</button>
               );
             })}
           </div>
         </div>
 
-        {/* ── Max price ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-            <SectionLabel style={{ marginBottom:0 }}>Max flight price</SectionLabel>
-            <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{local.maxPrice >= 2000 ? "Any" : `$${local.maxPrice}`}</span>
+        {/* ── Flying from (moved to bottom) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Flying from</SectionLabel>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+            {US_AIRPORTS.map(ap => {
+              const sel = local.fromAirport === ap.code;
+              return (
+                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
+                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                    background: sel ? "#222" : "#f5f5f5",
+                    color:      sel ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:11, fontWeight:700, fontFamily:F,
+                }}>{ap.code}</button>
+              );
+            })}
           </div>
-          <input type="range" min={100} max={2000} step={50} value={local.maxPrice}
-            onChange={e => setLocal(l => ({...l, maxPrice:+e.target.value}))}
-            style={{ width:"100%", accentColor:"#0284c7" }} />
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>$100</span>
-            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>Any price</span>
+          <div style={{ position:"relative" }}>
+            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search airports…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              style={{
+                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                background:"#fafafa",
+              }}
+            />
           </div>
+          {apFocus && apResults.length > 0 && (
+            <div className="bounce-in" style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => {
+                  setLocal(l => ({...l, fromAirport: ap.code}));
+                  setApQuery(""); setApFocus(false);
+                }} style={{
+                  width:"100%", padding:"10px 14px",
+                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F,
+                  display:"flex", alignItems:"center", gap:10,
+                }}>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                  </div>
+                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          {local.fromAirport && (
+            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
+              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
+                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
+            </div>
+          )}
         </div>
 
-        {/* ── Travel dates ── */}
-        <div style={{ padding:"16px 24px 0" }}>
-          <SectionLabel>Travel dates</SectionLabel>
-          <div style={{ display:"flex", gap:8 }}>
-            <div style={{ flex:1 }}>
-              <label style={{ fontSize:9, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:3, display:"block" }}>From</label>
-              <input type="date" value={local.startDate || ""}
-                onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                style={{ width:"100%", padding:"10px 10px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222", background:"#fafafa" }} />
-            </div>
-            <div style={{ flex:1 }}>
-              <label style={{ fontSize:9, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:3, display:"block" }}>To</label>
-              <input type="date" value={local.endDate || ""}
-                onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                style={{ width:"100%", padding:"10px 10px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222", background:"#fafafa" }} />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Apply button ── */}
-        <div style={{ padding:"24px 24px 8px" }}>
+        {/* ── Apply ── */}
+        <div style={{ padding:"20px 20px 8px" }}>
           <button onClick={apply} className="pressable" style={{
-            width:"100%", background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:18, padding:"18px 0", cursor:"pointer",
-            color:"white", fontSize:16, fontWeight:900, fontFamily:F,
-            boxShadow:"0 4px 20px rgba(2,132,199,0.38)",
-            letterSpacing:"-0.2px",
+            width:"100%", background:"#222",
+            border:"none", borderRadius:14, padding:"14px 0", cursor:"pointer",
+            color:"white", fontSize:14, fontWeight:800, fontFamily:F,
           }}>
-            {matchCount > 0 ? `Show ${matchCount} result${matchCount !== 1 ? "s" : ""}` : "Search all"}
+            {matchCount > 0 ? `Show ${matchCount} spot${matchCount !== 1 ? "s" : ""}` : "Search all"}
           </button>
         </div>
       </div>
@@ -2299,8 +2269,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               fontSize:12, fontWeight:700, fontFamily:F,
           }}>
             {c.emoji} {c.label}
-            {c.id !== "all" && !loading && (
-              <span style={{ fontSize:9, fontWeight:600, opacity:0.7, marginLeft:2 }}>
+            {c.id !== "all" && !loading && listings.filter(l => l.category === c.id).length >= 3 && (
+              <span style={{ fontSize:10, fontWeight:600, opacity:0.8, marginLeft:2 }}>
                 {listings.filter(l => l.category === c.id).length}
               </span>
             )}
@@ -2361,7 +2331,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ padding:"6px 8px" }}>
                     <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:9, color:"#717171", fontFamily:F }}>${l.flight.price}</div>
+                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>${l.flight.price}</div>
                   </div>
                 </div>
               ))}
@@ -2424,7 +2394,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
                   <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
                     ${hero.flight.price}
-                    {!hero.flight.live && <span style={{ fontSize:9, color:"#aaa", fontWeight:600 }}> est.</span>}
+                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600 }}> est.</span>}
                   </div>
                   <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
                 </div>
@@ -2499,8 +2469,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
-                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
-                        <span style={{ fontSize:9, color:"#717171", fontFamily:F }}>{l.conditionScore}/100</span>
+                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#aaa", fontFamily:F, marginLeft:2 }}>rt</span>
+                        <span style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
                   </div>
