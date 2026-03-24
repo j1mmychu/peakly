@@ -2,8 +2,21 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── error monitoring & crash detection ──────────────────────────────────────
 (() => {
-  // Sentry-lite: lightweight error reporter (free tier compatible)
-  const SENTRY_DSN = ""; // TODO: Add Sentry DSN after signup
+  // Sentry DSN — set this after signing up at sentry.io
+  const SENTRY_DSN = ""; // e.g. "https://abc123@o456.ingest.sentry.io/789"
+
+  // Initialize Sentry SDK if available and DSN is set
+  if (SENTRY_DSN && window.Sentry) {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      integrations: [Sentry.browserTracingIntegration()],
+      tracesSampleRate: 0.2,
+      environment: location.hostname === "localhost" ? "development" : "production",
+      release: "peakly@1.0.0",
+    });
+  }
+
+  // Local error log (always active, even without Sentry)
   const errorLog = [];
   const MAX_ERRORS = 50;
 
@@ -19,27 +32,20 @@ const { useState, useEffect, useRef, useCallback } = React;
     errorLog.push(entry);
     if (errorLog.length > MAX_ERRORS) errorLog.shift();
 
-    // Store locally for debugging
     try { localStorage.setItem("peakly_errors", JSON.stringify(errorLog)); } catch(e) {}
 
-    // Send to Sentry if configured
-    if (SENTRY_DSN) {
-      fetch(SENTRY_DSN, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exception: { values: [{ type: "Error", value: entry.msg, stacktrace: entry.stack }] }, tags: context }),
-      }).catch(() => {});
+    // Report to Sentry SDK if initialized
+    if (window.Sentry && SENTRY_DSN) {
+      Sentry.captureException(error instanceof Error ? error : new Error(entry.msg), { extra: context });
     }
 
     console.error("[Peakly Error Monitor]", entry.msg, context);
   };
 
-  // Global error handler — catches unhandled exceptions
   window.addEventListener("error", (e) => {
     reportError(e.error || e.message, { type: "uncaught", filename: e.filename, line: e.lineno, col: e.colno });
   });
 
-  // Promise rejection handler — catches async errors
   window.addEventListener("unhandledrejection", (e) => {
     reportError(e.reason, { type: "unhandled_promise" });
   });
@@ -60,7 +66,6 @@ const { useState, useEffect, useRef, useCallback } = React;
     }, 1000);
   });
 
-  // Expose for debugging from console or scheduled tasks
   window.__peaklyErrors = errorLog;
   window.__peaklyReport = reportError;
 })();
@@ -132,11 +137,33 @@ const { useState, useEffect, useRef, useCallback } = React;
     input[type=range]::-webkit-slider-thumb:active { transform: scale(1.3); }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    /* ── Dark mode overrides ── */
+    body.dark { background: #111 !important; color: #e0e0e0; }
+    body.dark .shimmer { background: linear-gradient(90deg,#222 25%,#2a2a2a 50%,#222 75%) !important; background-size: 200% 100% !important; }
   `;
   document.head.appendChild(s);
 })();
 
 const F = "'Plus Jakarta Sans', sans-serif";
+
+// Dark mode theme helper
+const T = (dark) => ({
+  bg: dark ? "#111" : "#f5f5f5",
+  card: dark ? "#1a1a1a" : "#fff",
+  cardBorder: dark ? "1px solid #2a2a2a" : "1px solid #f0f0f0",
+  text: dark ? "#e0e0e0" : "#222",
+  textSecondary: dark ? "#999" : "#717171",
+  textMuted: dark ? "#666" : "#aaa",
+  surface: dark ? "#222" : "#f7f7f7",
+  surfaceBorder: dark ? "#333" : "#ebebeb",
+  inputBg: dark ? "#1a1a1a" : "#fff",
+  inputBorder: dark ? "#333" : "#e8e8e8",
+  navBg: dark ? "rgba(17,17,17,0.95)" : "rgba(255,255,255,0.97)",
+  navBorder: dark ? "#222" : "#eee",
+  pillBg: dark ? "#222" : "#f0f0f0",
+  pillActiveBg: dark ? "#0284c7" : "#0284c7",
+  overlay: dark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.45)",
+});
 
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -906,7 +933,7 @@ async function fetchWeather(lat, lon) {
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
-    `snow_depth_max,wind_speed_10m_max,uv_index_max,weather_code` +
+    `snow_depth_max,wind_speed_10m_max,wind_direction_10m_dominant,uv_index_max,weather_code` +
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) throw new Error("weather fetch failed");
@@ -916,7 +943,9 @@ async function fetchWeather(lat, lon) {
 async function fetchMarine(lat, lon) {
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=wave_height_max,wave_period_max&forecast_days=7&timezone=auto`;
+    `&daily=wave_height_max,wave_period_max,wave_direction_dominant` +
+    `&hourly=wave_height,swell_wave_height,swell_wave_period,swell_wave_direction` +
+    `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
   return r.json();
@@ -952,6 +981,11 @@ function scoreVenue(venue, wx, marine) {
       const sIn  = Math.round(snow * 0.394);   // cm → inches fresh
       const dIn  = Math.round(depth * 39.4);   // m  → inches base
       const baseDepthCm = depth * 100;
+      // Recent snowfall over 3 days (avalanche risk indicator)
+      const snow3d = (d.snowfall_sum ?? []).slice(0, 3).reduce((a, b) => a + (b ?? 0), 0);
+      const warmingTrend = (d.temperature_2m_max?.[1] ?? tempMax) > tempMax + 10;
+      // Avalanche risk: heavy recent snow + wind + warming = elevated risk
+      const avyRisk = snow3d > 50 && wind > 20 ? "high" : snow3d > 30 && wind > 15 ? "moderate" : "low";
       // Score from fresh snow
       if      (snow > 30) score = 97;
       else if (snow > 20) score = 93 + (snow - 20) * 0.15;
@@ -959,19 +993,20 @@ function scoreVenue(venue, wx, marine) {
       else if (snow > 5)  score = 80 + (snow - 5) * 1.4;
       else if (snow > 0)  score = 72 + snow * 1.6;
       else {
-        // No fresh snow — base-dependent
         if      (baseDepthCm > 200) score = 74;
         else if (baseDepthCm > 150) score = 69;
         else if (baseDepthCm > 100) score = 62;
         else if (baseDepthCm > 50)  score = 53;
         else                        score = 36;
       }
-      // Modifiers
       if (tempMax < 30 && snow > 5) score += 3;  // cold = dry powder
       if (tempMax > 36) score -= 18;              // spring slush
+      if (warmingTrend && snow > 10) score -= 5;  // warming = wet heavy snow
       if (wind > 45)    score -= 12;              // lift-closing winds
       else if (wind > 30) score -= 5;
-      label  = snow > 0 ? `❄️ ${sIn}" fresh · ${dIn}" base` : `🏔️ ${dIn}" base · ${tempMax}°F`;
+      if (avyRisk === "high") score -= 6;         // safety concern
+      const avyTag = avyRisk === "high" ? " · ⚠️ Avy risk high" : avyRisk === "moderate" ? " · ⚠️ Avy caution" : "";
+      label  = snow > 0 ? `❄️ ${sIn}" fresh · ${dIn}" base${avyTag}` : `🏔️ ${dIn}" base · ${tempMax}°F${avyTag}`;
       period = snow > 20 ? "🔥 Powder day — go now"
              : snow > 10 ? "Fresh snow overnight"
              : snow > 0  ? "New snow on trail"
@@ -982,8 +1017,17 @@ function scoreVenue(venue, wx, marine) {
 
     case "surfing": {
       const fFt  = Math.round(waveH * 3.28 * 1.5); // face height in feet
+      const windDir = d.wind_direction_10m_dominant?.[0] ?? 0;
+      const swellDir = marine?.daily?.wave_direction_dominant?.[0] ?? 0;
+      // Swell quality: ground swell (period > 12s) vs wind swell
+      const swellH = marine?.hourly?.swell_wave_height?.[12] ?? waveH; // midday swell
+      const swellPer = marine?.hourly?.swell_wave_period?.[12] ?? wavePer;
+      const isGroundSwell = swellPer > 12;
       const glassy = wind < 8;
       const blown  = wind > 22;
+      // Offshore detection: wind blowing opposite to swell direction (±60°)
+      const windSwellAngle = Math.abs(((windDir - swellDir + 180) % 360) - 180);
+      const offshore = windSwellAngle < 60 && wind > 5 && wind < 20;
       // Base score from wave height + period quality
       if      (waveH > 3   && wavePer > 14) score = 93 + Math.min(6, (wavePer - 14) * 0.5 + (waveH - 3) * 0.4);
       else if (waveH > 2   && wavePer > 12) score = 85 + (wavePer - 12) * 0.8 + (waveH - 2) * 2;
@@ -991,12 +1035,16 @@ function scoreVenue(venue, wx, marine) {
       else if (waveH > 1)                   score = 65 + waveH * 6;
       else if (waveH > 0.5)                 score = 50 + waveH * 14;
       else                                   score = 30;
-      // Wind modifier
-      if (glassy) score += 4;
+      // Ground swell bonus (cleaner, more power)
+      if (isGroundSwell && waveH > 1) score += 3;
+      // Offshore/glassy modifiers
+      if (offshore) score += 5;
+      else if (glassy) score += 4;
       else if (blown) score -= 14;
       if (waveH > 6) score -= 8; // storm surf danger
-      const windLabel = glassy ? " · Glassy" : blown ? " · Choppy" : "";
-      label  = waveH > 0.5 ? `🌊 ${fFt}ft faces · ${wavePer.toFixed(0)}s${windLabel}` : `🌊 Small surf · building`;
+      const windLabel = offshore ? " · Offshore 🤙" : glassy ? " · Glassy" : blown ? " · Choppy" : "";
+      const swellType = isGroundSwell ? "Ground swell" : "Wind swell";
+      label  = waveH > 0.5 ? `🌊 ${fFt}ft faces · ${wavePer.toFixed(0)}s ${swellType}${windLabel}` : `🌊 Small surf · building`;
       period = waveH > 3   ? `🔥 Firing — peak ${Math.min(bestDays, 3)}d`
              : waveH > 1.5 ? `Good swell · ${Math.min(bestDays, 3)}d window`
              : waveH > 0.5 ? "Fun conditions"
@@ -1086,10 +1134,23 @@ function scoreVenue(venue, wx, marine) {
     case "fishing": {
       const calmF = wind < 15 && precip < 5;
       const mo = new Date().getMonth() + 1;
-      const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
+      // Seasonal peaks per venue
+      const FISH_SEASONS = {
+        kenai_fish:     { months:[6,7],    label:"King Salmon run" },
+        skeleton_fish:  { months:[11,12,1],label:"Shark season" },
+        nile_fish:      { months:[10,11,12],label:"Nile Perch peak" },
+        amazon_fish:    { months:[9,10,11],label:"Low water · best access" },
+        bariloche_fish: { months:[11,12,1,2,3],label:"Trout season open" },
+        lofoten_fish:   { months:[1,2,3,4],label:"Skrei cod season" },
+        taupo_fish:     { months:[3,4,5,10,11],label:"Trophy trout run" },
+        sri_fish:       { months:[11,12,1,2,3],label:"Blue marlin season" },
+        andaman_fish:   { months:[10,11,12,1,2],label:"GT season" },
+      };
+      const seasonal = FISH_SEASONS[venue.id];
+      const peak = seasonal && seasonal.months.includes(mo);
       score = peak && calmF ? 96 : peak ? 87 : calmF ? 72 + bestDays : 58;
-      label  = peak ? `🎣 King Salmon run · Peak` : `🎣 ${tempMax}°F · ${calmF ? "Calm" : "Choppy"}`;
-      period = peak ? "Run peaks this week" : calmF ? `${Math.min(bestDays, 5)} good days` : "Calmer days ahead";
+      label  = peak ? `🎣 ${seasonal.label} · Peak` : `🎣 ${tempMax}°F · ${calmF ? "Calm" : "Choppy"}`;
+      period = peak ? "Peak season this week" : calmF ? `${Math.min(bestDays, 5)} good days` : "Calmer days ahead";
       break;
     }
 
@@ -3677,13 +3738,36 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           )}
         </div>
 
-        {/* ── About ── */}
-        <div style={{ background:"#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div>
-            <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Peakly</div>
-            <div style={{ fontSize:12, color:"#aaa", fontFamily:F, marginTop:2 }}>Version 1.0 · Built for adventure</div>
+        {/* ── Dark Mode Toggle ── */}
+        <div style={{ background: profile.darkMode ? "#1a1a1a" : "#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center", border: profile.darkMode ? "1px solid #2a2a2a" : "none" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:20 }}>{profile.darkMode ? "🌙" : "☀️"}</span>
+            <div>
+              <div style={{ fontSize:13, fontWeight:700, color: profile.darkMode ? "#e0e0e0" : "#222", fontFamily:F }}>Dark Mode</div>
+              <div style={{ fontSize:11, color: profile.darkMode ? "#666" : "#aaa", fontFamily:F, marginTop:1 }}>{profile.darkMode ? "On" : "Off"}</div>
+            </div>
           </div>
-          <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
+          <button className="pressable" onClick={() => setProfile(p => ({...p, darkMode: !p.darkMode}))} style={{
+            width:50, height:28, borderRadius:14, border:"none", cursor:"pointer", position:"relative",
+            background: profile.darkMode ? "#0284c7" : "#ddd", transition:"background 0.3s",
+          }}>
+            <div style={{
+              width:22, height:22, borderRadius:"50%", background:"white",
+              position:"absolute", top:3,
+              left: profile.darkMode ? 25 : 3,
+              transition:"left 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.2)",
+            }} />
+          </button>
+        </div>
+
+        {/* ── About ── */}
+        <div style={{ background: profile.darkMode ? "#1a1a1a" : "#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center", border: profile.darkMode ? "1px solid #2a2a2a" : "none" }}>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color: profile.darkMode ? "#e0e0e0" : "#222", fontFamily:F }}>Peakly</div>
+            <div style={{ fontSize:12, color: profile.darkMode ? "#666" : "#aaa", fontFamily:F, marginTop:2 }}>Version 1.0 · Built for adventure</div>
+          </div>
+          <div style={{ fontSize:11, color: profile.darkMode ? "#444" : "#ccc", fontFamily:F }}>Open Beta</div>
         </div>
 
         {/* ── Sign Out ── */}
@@ -4217,14 +4301,53 @@ const SEASONS = {
   paraglide: { north:[5,6,7,8,9], south:[11,0,1,2,3], label:"thermal season" },
 };
 
+// Venue-specific season overrides (months are 0-indexed: Jan=0, Dec=11)
+const VENUE_SEASONS = {
+  // Surf spots with unique windows
+  pipeline:      { months:[10,11,0,1], label:"North Shore winter swell" },
+  uluwatu:       { months:[4,5,6,7,8,9], label:"dry season swell" },
+  padang_padang: { months:[4,5,6,7,8], label:"Bali swell season" },
+  chicama:       { months:[3,4,5,6,7,8,9], label:"long left season" },
+  jeffreys_bay:  { months:[5,6,7,8], label:"J-Bay winter swell" },
+  // Dive spots
+  komodo_dive:   { months:[3,4,5,9,10,11], label:"manta season" },
+  sipadan_dive:  { months:[3,4,5,6,7,8,9], label:"turtle season" },
+  maldives_dive: { months:[0,1,2,3,4], label:"NE monsoon · best vis" },
+  galapagos_dive:{ months:[5,6,7,8,9,10,11], label:"hammerhead season" },
+  cozumel_dive:  { months:[11,0,1,2,3], label:"eagle ray season" },
+  phangan_dive:  { months:[2,3,4,5,6,7,8,9], label:"whale shark season" },
+  // Kite spots
+  cabarete:      { months:[5,6,7], label:"trade wind peak" },
+  tarifa_kite:   { months:[5,6,7,8], label:"Levante peak" },
+  jeri_kite:     { months:[7,8,9,10,11], label:"trade wind season" },
+  hurghada_kite: { months:[3,4,5,6,7,8,9], label:"thermal wind season" },
+  // Climbing
+  fontaine_climb:{ months:[2,3,4,9,10], label:"friction season" },
+  kalymnos_climb:{ months:[2,3,4,9,10,11], label:"climbing season" },
+  krabi_climb:   { months:[10,11,0,1,2,3], label:"dry season" },
+  // Paraglide
+  pokhara_para:  { months:[9,10,11,0,1,2], label:"post-monsoon thermals" },
+  oludeniz_para: { months:[4,5,6,7,8,9,10], label:"thermal season" },
+  // Ski with specific windows
+  portillo:      { months:[5,6,7,8,9], label:"Chilean ski season" },
+  corralco:      { months:[5,6,7,8,9], label:"Araucanía ski season" },
+};
+
 function getSeasonInfo(venue) {
   const s = SEASONS[venue.category];
   if (!s) return { inSeason:true, label:"" };
   const month = new Date().getMonth();
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  // Check venue-specific override first
+  const override = VENUE_SEASONS[venue.id];
+  if (override) {
+    const inSeason = override.months.includes(month);
+    const bestRange = `${MONTH_NAMES[override.months[0]]}–${MONTH_NAMES[override.months[override.months.length-1]]}`;
+    return { inSeason, label: override.label, bestRange };
+  }
   const hemi = venue.lat >= 0 ? "north" : "south";
   const months = s[hemi];
   const inSeason = months.includes(month);
-  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const bestRange = `${MONTH_NAMES[months[0]]}–${MONTH_NAMES[months[months.length-1]]}`;
   return { inSeason, label: s.label, bestRange };
 }
@@ -5357,7 +5480,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 }
 
 // ─── bottom nav ───────────────────────────────────────────────────────────────
-function BottomNav({ active, setActive, alertCount }) {
+function BottomNav({ active, setActive, alertCount, darkMode }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
     { id:"trips",     label:"Trips",    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> },
@@ -5367,8 +5490,8 @@ function BottomNav({ active, setActive, alertCount }) {
   return (
     <div style={{
       display:"flex", justifyContent:"space-around",
-      padding:"4px 0 max(env(safe-area-inset-bottom, 0px), 12px)", background:"#fff",
-      borderTop:"1px solid #e8e8e8", flexShrink:0,
+      padding:"4px 0 max(env(safe-area-inset-bottom, 0px), 12px)", background: darkMode ? "#111" : "#fff",
+      borderTop: darkMode ? "1px solid #222" : "1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => { setActive(t.id); haptic(); }} className="tab-btn" style={{
@@ -5449,7 +5572,14 @@ function App() {
     name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
+    darkMode:false,
   });
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    document.body.classList.toggle("dark", !!profile.darkMode);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", profile.darkMode ? "#111111" : "#0284c7");
+  }, [profile.darkMode]);
 
   // Init search with user's saved home airport (reads localStorage directly before profile state is set)
   const [search, setSearch] = useState(() => ({
@@ -5600,17 +5730,17 @@ function App() {
 
   return (
     <div style={{
-      width:"100%", minHeight:"100vh", background:"#f5f5f5",
+      width:"100%", minHeight:"100vh", background: profile.darkMode ? "#000" : "#f5f5f5",
       display:"flex", justifyContent:"center", fontFamily:F,
     }}>
       <div style={{
-        width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
+        width:430, height:"100vh", maxHeight:"100vh", background: profile.darkMode ? "#111" : "#fff",
         display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
       }}>
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 14px", background: profile.darkMode ? "#111" : "#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                   peakly
@@ -5732,7 +5862,7 @@ function App() {
           />
         )}
 
-        <BottomNav active={activeTab} setActive={setActiveTab} alertCount={firingCount} />
+        <BottomNav active={activeTab} setActive={setActiveTab} alertCount={firingCount} darkMode={profile.darkMode} />
       </div>
     </div>
   );
