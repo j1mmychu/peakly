@@ -8,7 +8,9 @@ App is live, visually polished, and stable. Photos on all card types, scoring fu
 
 ## Shipped Since Last Report
 
-No new features shipped in this cycle. v5 closed out with:
+**Today (2026-03-24):** UX fixes for touch targets, Book CTA sizing, and typography scale were completed in commit 2158d7c. **These 14 commits are currently ORPHANED — not on master.** The touch targets listed as "unresolved" in cross-team input ARE fixed but unreachable. Recovery needed: `git cherry-pick` the orphaned chain onto master.
+
+v5 closed out with:
 - Score-colored borders removed from badges and Best Right Now cards
 - Cache-busting on app.jsx (`?v=20260323b`)
 - 19 venue comma fixes resolving Babel crash
@@ -105,6 +107,7 @@ On deck: Venue Detail Sheet polish (Phase 2.3), remove duplicate `pipeline` venu
 
 | # | Blocker | Owner | Action Needed |
 |---|---------|-------|--------------|
+| 0 | **Orphaned UX commits** -- 14 commits (2158d7c chain) not on master. Touch target + CTA + typography fixes exist but aren't deployed | DevOps | Cherry-pick onto master |
 | 1 | **Plausible account** -- need account + site ID | Jack | 2-min signup at plausible.io |
 | 2 | **VPS proxy DOWN** -- ECONNREFUSED on port 3001 | Jack/DevOps | SSH in, pm2 restart all |
 | 3 | **HTTPS on VPS** -- mixed content blocks real flight prices | Jack/DevOps | Cloudflare tunnel or Let's Encrypt + nginx |
