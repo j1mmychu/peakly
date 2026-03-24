@@ -145,6 +145,7 @@ const CATEGORIES = [
   { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"diving",  label:"Diving",     emoji:"🤿" },
   { id:"climbing",label:"Climbing",   emoji:"🧗" },
+  { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -3395,7 +3396,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
         {/* ── Share & Refer (combined) ── */}
         <div style={{ marginBottom:20 }}>
           <button className="pressable" onClick={() => {
-            const msg = "Check out Peakly — find surf, ski & beach spots when conditions + cheap flights align. https://peakly.app";
+            const msg = "Check out Peakly — find surf, ski & beach spots when conditions + cheap flights align. https://j1mmychu.github.io/peakly";
             const doCopy = () => {
               try {
                 if (navigator.clipboard?.writeText) {
@@ -3410,7 +3411,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               } catch (_) {}
             };
             if (navigator.share) {
-              navigator.share({ title:"Peakly", text:msg, url:"https://peakly.app" }).catch(doCopy);
+              navigator.share({ title:"Peakly", text:msg, url:"https://j1mmychu.github.io/peakly" }).catch(doCopy);
             } else { doCopy(); }
           }} style={{
             width:"100%",
@@ -3970,7 +3971,7 @@ const PACKING = {
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
-// TODO: Replace AFFILIATE_ID placeholders with your real REI/Backcountry IDs
+// NOTE: REI/Backcountry/Amazon links use search URLs. Add affiliate tags once approved.
 const GEAR_ITEMS = {
   skiing:   [
     { emoji:"🎿", name:"Skis",                          store:"REI",         price:"$599+",  commission:"5%",  url:"https://www.rei.com/search?q=skis" },
@@ -3991,46 +3992,46 @@ const GEAR_ITEMS = {
     { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?k=hydration+drink+mix" },
   ],
   diving:   [
-    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Divers Direct",price:"$299", commission:"6%",  url:"https://www.diversdirect.com/scubapro-everflex?ref=AFFILIATE_ID" },
-    { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/product/garmin-descent?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?k=cressi+big+eyes+evo+mask" },
+    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?k=scubapro+everflex+wetsuit" },
+    { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/search?q=garmin+descent+dive+watch" },
+    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+dive+housing" },
   ],
   climbing: [
-    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/product/bd-momentum?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/product/la-sportiva-tarantulace?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/product/bd-half-dome?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/product/bd-loose-chalk?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+momentum+harness" },
+    { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/search?q=la+sportiva+tarantulace" },
+    { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+half+dome+helmet" },
+    { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+loose+chalk" },
   ],
   kayak:    [
-    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/product/nrs-chinook?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/product/ortlieb-dry-bag?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/product/kokatat-meridian?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/product/garmin-inreach-mini?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/search?q=nrs+chinook+pfd" },
+    { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/search?q=ortlieb+dry+bag" },
+    { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/search?q=kokatat+meridian+dry+suit" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
   ],
   mtb:      [
-    { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-a3?sc=AFFILIATE_ID" },
-    { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/product/fox-ranger-gloves?cm_mmc=aff_AL-AFFILIATE_ID" },
-    { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-launch-pro?sc=AFFILIATE_ID" },
-    { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/product/camelbak-mule?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-designs-a3-mips-helmet" },
+    { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/search?q=fox+ranger+gel+gloves" },
+    { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-racing-launch-pro-d3or-knee-guard" },
+    { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/search?q=camelbak+mule+hydration" },
   ],
   kite:     [
-    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Real Watersports",price:"$1,299",commission:"6%",url:"https://realwatersports.com/cabrinha-moto?ref=AFFILIATE_ID" },
-    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Real Watersports",price:"$280",commission:"6%",url:"https://realwatersports.com/ion-element?ref=AFFILIATE_ID" },
-    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Amazon",      price:"$1,299",commission:"4%",  url:"https://www.amazon.com/s?k=cabrinha+moto+kite" },
+    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Amazon",      price:"$280",  commission:"4%",  url:"https://www.amazon.com/s?k=ion+element+wetsuit" },
+    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?k=dakine+kite+line+cutter" },
+    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://www.amazon.com/s?k=thinksport+spf+50+sunscreen" },
   ],
   fishing:  [
-    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Bass Pro",    price:"$45",   commission:"5%",  url:"https://www.basspro.com/ugly-stik-gx2?source=AFFILIATE_ID" },
-    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Backcountry", price:"$230",  commission:"8%",  url:"https://www.backcountry.com/simms-g3-guide?sc=AFFILIATE_ID" },
-    { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/product/coleman-steel-belted?cm_mmc=aff_AL-AFFILIATE_ID" },
+    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?k=ugly+stik+gx2+spinning+combo" },
+    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?k=costa+del+mar+permit+sunglasses" },
+    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Amazon",      price:"$230",  commission:"4%",  url:"https://www.amazon.com/s?k=simms+g3+guide+wading+boots" },
+    { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/search?q=coleman+steel+belted+cooler" },
   ],
   paraglide:[
-    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Paragliding Earth",price:"$180",commission:"6%",url:"https://paraglidingearth.com/supair-pilot?ref=AFFILIATE_ID" },
-    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Paragliding Earth",price:"$590",commission:"6%",url:"https://paraglidingearth.com/skytraxx-5?ref=AFFILIATE_ID" },
-    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
-    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://amzn.to/AFFILIATE_ID" },
+    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?k=supair+pilot+paragliding+helmet" },
+    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Amazon",      price:"$590",  commission:"4%",  url:"https://www.amazon.com/s?k=skytraxx+vario+gps+paragliding" },
+    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?k=bonine+motion+sickness" },
+    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+chest+mount+kit" },
   ],
 };
 
@@ -4084,8 +4085,8 @@ const EXPERIENCES = {
   ],
   paraglide:[
     { emoji:"🪂", name:"Tandem paraglide flight",        price:175, duration:"30 min" },
-    { emoji:"🎓", name:"P2 paragliding course (5 days)", price:950, duration:"5 days", url:"https://www.getyourguide.com/activity/p2-course?ref=PEAKLY_AFFILIATE" },
-    { emoji:"📸", name:"Aerial photography flight",      price:220, duration:"1 hr",   url:"https://www.getyourguide.com/activity/aerial-photo?ref=PEAKLY_AFFILIATE" },
+    { emoji:"🎓", name:"P2 paragliding course (5 days)", price:950, duration:"5 days" },
+    { emoji:"📸", name:"Aerial photography flight",      price:220, duration:"1 hr" },
   ],
 };
 
@@ -4136,7 +4137,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     setNewListName(""); setShowListPicker(false);
   };
   const copyShareLink = (textOverride) => {
-    const text = textOverride || `Check out ${listing.title} on Peakly!\nConditions: ${listing.conditionScore} · Flight from $${listing.flight.price}\n\nFind your next adventure at peakly.app`;
+    const text = textOverride || `Check out ${listing.title} on Peakly!\nConditions: ${listing.conditionScore} · Flight from $${listing.flight.price}\n\nFind your next adventure at j1mmychu.github.io/peakly`;
     const finish = () => { setShareVenueCopied(true); setTimeout(() => setShareVenueCopied(false), 2200); };
     try {
       navigator.clipboard?.writeText(text).then(finish).catch(finish);
@@ -4190,7 +4191,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>{shareVenueCopied ? "Copied!" : "Copy link"}</span>
               </button>
               <button onClick={() => {
-                const card = `${listing.title}\n${listing.location}\nConditions: ${listing.conditionScore} — ${listing.conditionLabel}\nFlights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → peakly.app`;
+                const card = `${listing.title}\n${listing.location}\nConditions: ${listing.conditionScore} — ${listing.conditionLabel}\nFlights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → j1mmychu.github.io/peakly`;
                 copyShareLink(card);
               }} className="pressable" style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"10px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <span style={{ fontSize:14 }}>📋</span>
@@ -4201,7 +4202,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontFamily:F, lineHeight:1.6 }}>
                 <strong style={{ color:"white" }}>{listing.title}</strong><br />
                 Conditions: {listing.conditionScore} · From ${listing.flight.price}<br />
-                <span style={{ color:"rgba(255,255,255,0.45)" }}>Find your next adventure → peakly.app</span>
+                <span style={{ color:"rgba(255,255,255,0.45)" }}>Find your next adventure → j1mmychu.github.io/peakly</span>
               </div>
             </div>
           </div>
@@ -4332,7 +4333,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
               <div style={{ display:"flex", gap:9, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {EXPERIENCES[listing.category].map((exp, i) => {
-                  const expUrl = `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}&partner_id=PEAKLY`;
+                  const expUrl = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
                   return (
                     <a key={i} href={expUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
                       <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
@@ -4355,7 +4356,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           )}
 
           {/* 🏨 Stay nearby — Booking.com affiliate */}
-          {/* TODO: Replace aid=2311236 with your real Booking.com affiliate ID */}
           <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#003580,#0057b8)", borderRadius:14, padding:"13px 15px", display:"flex", alignItems:"center", gap:12, boxShadow:"0 4px 14px rgba(0,53,128,0.28)" }}>
               <span style={{ fontSize:26 }}>🏨</span>
