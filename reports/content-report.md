@@ -5,9 +5,9 @@
 
 ---
 
-## Data Health Score: 68 / 100
+## Data Health Score: 6.0 / 10
 
-Affiliate placeholder IDs are fully cleared — no `AFFILIATE_ID` strings remain in the codebase. Venue count grew from 171 to 182 (+11 new venues). Photo coverage improved slightly. Core blockers remain: 73 venues still missing photos, 55 airports missing from BASE_PRICES, duplicate Pipeline entry still present, and 7 thin categories with only 1 venue each.
+Photo coverage is the dominant drag on quality — 73 of 182 venues (40%) have no photo, with surfing and tanning in the worst shape. BASE_PRICES gaps affect accurate flight pricing for 55 airport codes. No duplicate IDs found this session. AFFILIATE_ID placeholders have been fully cleared (confirmed 0 remaining). Thin categories (7 with only 1 venue) continue to be a UX liability.
 
 ---
 
@@ -16,26 +16,27 @@ Affiliate placeholder IDs are fully cleared — no `AFFILIATE_ID` strings remain
 | Metric | Count |
 |--------|-------|
 | Total venues | 182 |
-| Venues WITH photo URLs | 109 |
+| Venues with photo URLs | 109 |
 | Venues WITHOUT photo URLs | 73 |
 | **Photo coverage** | **59.9%** |
 
-### Category breakdown (photos present vs total)
-| Category | With Photo | Total | Missing |
-|----------|-----------|-------|---------|
-| Skiing | 50 | 50 | 0 ✅ |
-| Hiking | 12 | 12 | 0 ✅ |
-| Diving | 1 | 1 | 0 ✅ |
-| Climbing | 1 | 1 | 0 ✅ |
-| Kite | 1 | 1 | 0 ✅ |
-| Kayak | 1 | 1 | 0 ✅ |
-| Fishing | 1 | 1 | 0 ✅ |
-| MTB | 1 | 1 | 0 ✅ |
-| Paraglide | 1 | 1 | 0 ✅ |
-| Surfing | 37 | 53 | **16** |
-| Tanning | 49 | 60 | **11** |
+### Breakdown by category
 
-All skiing, hiking, and thin-category venues are fully covered. The remaining 27 missing photos are concentrated in surfing (16) and tanning (11).
+| Category | Total | With Photo | Missing | Coverage |
+|----------|-------|-----------|---------|----------|
+| Tanning | 60 | 20 | **40** | 33% |
+| Surfing | 53 | 20 | **33** | 37% |
+| Skiing | 50 | 50 | 0 | 100% |
+| Hiking | 12 | 12 | 0 | 100% |
+| Diving | 1 | 1 | 0 | 100% |
+| Climbing | 1 | 1 | 0 | 100% |
+| Kite | 1 | 1 | 0 | 100% |
+| Kayak | 1 | 1 | 0 | 100% |
+| MTB | 1 | 1 | 0 | 100% |
+| Fishing | 1 | 1 | 0 | 100% |
+| Paraglide | 1 | 1 | 0 | 100% |
+
+Skiing and hiking are at 100%. Tanning (33%) and surfing (37%) are the critical gaps — together they account for all 73 missing venues. These are two of the three biggest categories, so every missing photo is customer-facing.
 
 ---
 
@@ -55,63 +56,63 @@ All skiing, hiking, and thin-category venues are fully covered. The remaining 27
 | MTB | 1 | CRITICAL — needs 4+ more |
 | Paraglide | 1 | CRITICAL — needs 4+ more |
 
-**Total: 182 venues across 11 categories.** Seven categories remain critically thin (single venue each).
+**Total: 182 venues.** 7 categories still have only 1 venue each — unchanged from v5. These categories appear in the category pill filter but clicking them returns a single result, which is a dead-end UX.
 
 ---
 
 ## Remaining Issues
 
-### 1. Duplicate Pipeline venue (HIGH — same as v5)
-- `id:"pipeline"` (line 218) — "Pipeline, North Shore", Oahu, Hawaii
-- `id:"banzai_pipeline"` (line 356) — "Banzai Pipeline", Oahu, Hawaii
-- Same wave, same airport (HNL), near-identical coordinates
-- **Action:** Remove `id:"pipeline"` (the older, lower-review entry). Keep `banzai_pipeline`.
+### 1. Photo coverage — surfing and tanning (HIGH)
+- 33 surfing venues and 40 tanning venues have no photo
+- Cards for these venues render with gradient-only backgrounds
+- All photos should be Unsplash URLs with `?w=800&h=600&fit=crop` params
+- **Action:** Add Unsplash photos for all 73 missing venues. Priority: tanning (largest absolute gap at 40), then surfing (33).
 
-### 2. Missing BASE_PRICES entries (HIGH)
-- **55 venue airports** have no BASE_PRICES entry and fall back to $800 default
-- Most impactful missing airports: CUN, HKT, KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, TPA, SRQ, VPS, STT, AUA, NAP, JMK, ZTH, ZNZ, JRO, SPU, CAG, CUZ, GCM, CZM, TAB, SEZ, MRU
-- **Action:** Add BASE_PRICES for the 20 highest-traffic missing airports
+### 2. BASE_PRICES coverage (HIGH)
+- 55 venue airports are missing from BASE_PRICES
+- These fall back to $800 default, causing inaccurate "est." prices
+- Critical airports missing: CUN, HKT, CZM, KEF, IBZ, MBJ, SXM, STT, AUA, UVF, SEZ, ZNZ, MRU, JRO, MBA, DBV, NCE, JTR, JMK, SPU, ZTH, FAO, KOA, EYW, TPA, SRQ, MYR, VPS, TAB, GCM, PLS, BOC, CUZ, ENI, MPH, KBV, USM, LOP, LST, PKR, LUA, AIT, MLO, PRI, AXA, FEN, PPP, SCQ, MAH, CAG, TYS, NAP, BIO (check), CAG
+- **Action:** Add BASE_PRICES for at least the 30 highest-traffic missing airports in the next sprint
 
-### 3. Photo coverage gap (MEDIUM)
-- 73 venues (40.1%) have no photo URL — down from 73/171 last report (same absolute count, slightly better %)
-- 27 missing across surfing (16) and tanning (11); these are the visual priority
-- **Action:** Add Unsplash photo URLs for all 27 missing surfing + tanning venues
+### 3. Thin categories (MEDIUM)
+- 7 categories with 1 venue each appear in category pills but produce dead-end single-result pages
+- **Action (recommended):** Gate thin categories behind a "Coming Soon" label or hide them from the pill row until they have 5+ venues. Option is lower effort than content expansion and prevents a poor first impression.
 
-### 4. Thin categories (MEDIUM — unchanged)
-- 7 categories with only 1 venue show up in category pills but lead to single-result screens
-- **Action:** Add 4+ venues per thin category or add "Coming Soon" gating in UI
+### 4. AFFILIATE_ID placeholders — RESOLVED ✓
+- Previous report flagged ~line 3786 with `AFFILIATE_ID` placeholders
+- **Confirmed: 0 occurrences of AFFILIATE_ID in app.jsx** — fully resolved
 
-### 5. Affiliate placeholders — CLEARED ✅
-- No `AFFILIATE_ID` strings found anywhere in `app.jsx`
-- Previously flagged at line ~3786; now resolved
-- Links for REI and Backcountry are either removed or updated
-
-### 6. Sentry DSN still empty (LOW — unchanged)
-- Line 6: `SENTRY_DSN = ""` — error monitoring not connected
-- Not blocked by LLC; can sign up for free tier anytime
-- **Action:** Sign up for free Sentry tier, paste DSN into line 6
+### 5. Sentry DSN empty (LOW)
+- Line 6: `const SENTRY_DSN = ""; // TODO: Add Sentry DSN after signup`
+- Error monitoring not connected — production errors are invisible
+- **Action:** Sign up for Sentry free tier, add DSN to enable error tracking
 
 ---
 
 ## Seasonal Picks — Late March 2026
 
-Peak season analysis for the last week of March:
+Late March is the transition from Northern Hemisphere winter to spring. Southern Hemisphere autumn beginning. Narrow windows for specific destinations.
 
 | # | Venue | Category | Why Now |
 |---|-------|----------|---------|
-| 1 | **Niseko, Japan** | Skiing | Late-season powder — March still delivers 30–50cm fresh snow weeks on Hokkaido. Spring light, shorter queues as tourists taper. Season closes mid-April. Book now. |
-| 2 | **Banzai Pipeline, North Shore** | Surfing | Final weeks of North Shore's winter swell season. Last chance for overhead+ waves before the summer flat spell hits. Water temp ~25°C, photo-perfect conditions. |
-| 3 | **Taghazout, Morocco** | Surfing | Peak Atlantic swell season. Consistent NW swells, offshore winds, 18°C water. Far less crowded than European summer. Best budget adventure in the world right now. |
-| 4 | **Bora Bora, French Polynesia** | Tanning | Shoulder season sweet spot — fewer tourists than February peak, still 30°C+ air temps, UV index 10–11, glassy lagoon. Rates drop before April rainy season uptick. |
-| 5 | **Whistler Blackcomb** | Skiing | Spring skiing peak — long sunny days, 10m+ snowpack base, soft corn snow runs in the afternoon, all après patios open. Objectively the best skiing on the planet right now. |
+| 1 | **Whistler Blackcomb** | Skiing | Peak spring skiing — long sunny days, base depth typically 400cm+, corn snow afternoons. Best après terraces open. Season runs to mid-April. |
+| 2 | **Taghazout, Morocco** | Surfing | Prime season: consistent NW Atlantic groundswells, offshore winds, 18°C water. Still uncrowded vs. European summer. Hash Point and Anchor Point firing. |
+| 3 | **Nusa Dua, Bali** | Tanning | Dry season beginning. UV 11-12, 30-32°C air, low humidity. Shoulder crowds before Easter peak. |
+| 4 | **Niseko, Japan** | Skiing | Final powder weeks of the season. Late March can still deliver heavy snowfall. Season closes early April — last call. |
+| 5 | **Arugam Bay, Sri Lanka** | Surfing | April swell season ramps up. Late March sees first consistent swells of the year. Air 33°C, flat rainy season done. |
 
 ---
 
 ## Decision Made
 
 **Priority for next sprint (v7):**
-1. Remove duplicate `pipeline` venue (keep `banzai_pipeline`). 1-line fix.
-2. Add Unsplash photos for the 16 missing surfing venues and 11 missing tanning venues (27 total). Biggest remaining visual quality gap.
-3. Add BASE_PRICES for top 20 missing airports to fix estimated flight pricing.
-4. Sign up for Sentry free tier and add DSN to line 6 — unblocked, simple, valuable.
-5. Continue deferring thin category expansion (diving, climbing, kite, etc.) until a batch of 5+ can be added together with photos and scoring validation.
+
+1. **Add Unsplash photos for 73 missing venues** — this is the #1 visual quality issue. Tanning (40 missing) first, then surfing (33 missing). Template: `https://images.unsplash.com/photo-{ID}?w=800&h=600&fit=crop`.
+
+2. **Add BASE_PRICES for top 30 missing airports** — CUN, HKT, CZM, KEF, IBZ, MBJ, SXM, STT, AUA, UVF, SEZ, ZNZ, MRU, JRO, DBV, NCE, JTR, JMK, SPU, ZTH, FAO, KOA, EYW, TPA, SRQ, MYR, VPS, TAB, GCM, PLS. These are high-traffic vacation airports — the $800 default is wildly wrong for most of them.
+
+3. **Gate thin categories** — Add "Coming Soon" label or hide the 7 single-venue categories from the category pill row until they have 5+ venues. Dead-end pages hurt retention.
+
+4. **Defer thin category content expansion** to v8 — needs venue research, coordinates, scoring validation, and photos together.
+
+**Pipeline duplicate still present (HIGH).** `id:"pipeline"` at line 218 and `id:"banzai_pipeline"` at line 356 both exist — same wave, same airport (HNL). Flagged in v5, still unresolved. Remove `id:"pipeline"`, keep `banzai_pipeline` (6,420 reviews vs 1,203).
