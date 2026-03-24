@@ -1223,6 +1223,87 @@ function ScoreDot({ score }) {
   );
 }
 
+// ─── venue photos (curated Unsplash, category-based with per-venue overrides) ─
+const VENUE_PHOTOS = {
+  skiing: [
+    "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1565992441121-4367c2967103?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1548345680-f5475ea5df84?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1486673748761-a8d18475c757?w=800&h=600&fit=crop&q=80",
+  ],
+  surfing: [
+    "https://images.unsplash.com/photo-1502680390548-bdbac40529ce?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1455729552457-5c322b5db8c5?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&q=80",
+  ],
+  tanning: [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1476673160081-cf065607f449?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1414609245224-afa02bfb3fda?w=800&h=600&fit=crop&q=80",
+  ],
+  hiking: [
+    "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1445363692815-ebcd599f7621?w=800&h=600&fit=crop&q=80",
+  ],
+  diving: [
+    "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1682687221038-404670f01d03?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=800&h=600&fit=crop&q=80",
+  ],
+  climbing: [
+    "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1516911995233-80d8ef21017a?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1452573992436-6d508f200b30?w=800&h=600&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=800&h=600&fit=crop&q=80",
+  ],
+};
+// Fallback for categories not in the map (kite, kayak, mtb, fishing, paraglide, etc.)
+VENUE_PHOTOS.kite = [
+  "https://images.unsplash.com/photo-1559310589-2673bfe16970?w=800&h=600&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1496200186026-4c2a2e27d064?w=800&h=600&fit=crop&q=80",
+];
+VENUE_PHOTOS.kayak = [
+  "https://images.unsplash.com/photo-1472745433479-4556f22e32c2?w=800&h=600&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1544009400-2f2bdffe3291?w=800&h=600&fit=crop&q=80",
+];
+VENUE_PHOTOS.mtb = [
+  "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1605235186583-a8272b7f9c9e?w=800&h=600&fit=crop&q=80",
+];
+VENUE_PHOTOS.fishing = [
+  "https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=800&h=600&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1440557653082-e40aea5ed5ca?w=800&h=600&fit=crop&q=80",
+];
+VENUE_PHOTOS.paraglide = [
+  "https://images.unsplash.com/photo-1501262170142-192e2641e3f3?w=800&h=600&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1536500152956-8e1c8a0ad388?w=800&h=600&fit=crop&q=80",
+];
+
+// Deterministic photo picker based on venue ID hash
+function getVenuePhoto(venue) {
+  if (venue.photo) return venue.photo;
+  const photos = VENUE_PHOTOS[venue.category] || VENUE_PHOTOS.hiking;
+  let hash = 0;
+  for (let i = 0; i < venue.id.length; i++) hash = ((hash << 5) - hash + venue.id.charCodeAt(i)) | 0;
+  return photos[Math.abs(hash) % photos.length];
+}
+
 // ─── skeleton loader ──────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
@@ -1242,13 +1323,14 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         <div className="card-img" style={{
           position:"absolute", inset:0, background:listing.gradient,
+          backgroundImage:`url(${getVenuePhoto(listing)})`,
+          backgroundSize:"cover", backgroundPosition:"center",
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
-          <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
         </div>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
@@ -1340,14 +1422,15 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{
-        height:180, background:listing.gradient, position:"relative",
-        display:"flex", alignItems:"center", justifyContent:"center",
+        height:180, background:listing.gradient,
+        backgroundImage:`url(${getVenuePhoto(listing)})`,
+        backgroundSize:"cover", backgroundPosition:"center",
+        position:"relative",
       }}>
-        <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:10, right:10, background:"none", border:"none", fontSize:18,
         }}>{saved ? "❤️" : "🤍"}</button>
         <div style={{
@@ -1403,13 +1486,13 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
   const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         <div style={{
           position:"absolute", inset:0, background:listing.gradient,
-          display:"flex", alignItems:"center", justifyContent:"center",
+          backgroundImage:`url(${getVenuePhoto(listing)})`,
+          backgroundSize:"cover", backgroundPosition:"center",
         }}>
-          <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
         </div>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
@@ -2255,7 +2338,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
                   border:"1.5px solid #fecaca",
                 }}>
-                  <div style={{ height:70, background:l.gradient, position:"relative" }}>
+                  <div style={{ height:70, background:l.gradient, backgroundImage:`url(${getVenuePhoto(l)})`, backgroundSize:"cover", backgroundPosition:"center", position:"relative" }}>
                     <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
                       position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12,
                     }}>❤️</button>
@@ -2342,7 +2425,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       border:`1.5px solid ${v.color}33`,
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
-                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
+                    <div style={{ height:90, background:l.gradient, backgroundImage:`url(${getVenuePhoto(l)})`, backgroundSize:"cover", backgroundPosition:"center", position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
                         position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
@@ -2640,7 +2723,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
         <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Pick a sport</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => c.id !== "all")].map(cat => (
-            <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={{
+            <button key={cat.id} onClick={() => { setDraft(d => ({...d, sport:cat.id})); haptic(); }} style={{
               padding:"8px 14px", borderRadius:20, cursor:"pointer", fontFamily:F,
               background: draft.sport === cat.id ? "#222" : "#f7f7f7",
               color:      draft.sport === cat.id ? "#fff" : "#222",
@@ -2659,7 +2742,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
               <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Trigger condition</div>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {draft.sport === "skiing" && (
-                  <button onClick={() => setDraft(d => ({...d, condition:"powder"}))} style={{
+                  <button onClick={() => { setDraft(d => ({...d, condition:"powder"})); haptic(); }} style={{
                     padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                     background: draft.condition === "powder" ? "#222" : "#f7f7f7",
                     color: draft.condition === "powder" ? "#fff" : "#222",
@@ -2670,7 +2753,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                   </button>
                 )}
                 {draft.sport === "surfing" && (
-                  <button onClick={() => setDraft(d => ({...d, condition:"swell"}))} style={{
+                  <button onClick={() => { setDraft(d => ({...d, condition:"swell"})); haptic(); }} style={{
                     padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                     background: draft.condition === "swell" ? "#222" : "#f7f7f7",
                     color: draft.condition === "swell" ? "#fff" : "#222",
@@ -2680,7 +2763,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                     Perfect Swell (score ≥ 92)
                   </button>
                 )}
-                <button onClick={() => setDraft(d => ({...d, condition:"insane"}))} style={{
+                <button onClick={() => { setDraft(d => ({...d, condition:"insane"})); haptic(); }} style={{
                   padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                   background: draft.condition === "insane" ? "#222" : "#f7f7f7",
                   color: draft.condition === "insane" ? "#fff" : "#222",
@@ -2689,7 +2772,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                 }}>
                   Insane conditions (score ≥ 95)
                 </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"great"}))} style={{
+                <button onClick={() => { setDraft(d => ({...d, condition:"great"})); haptic(); }} style={{
                   padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                   background: draft.condition === "great" ? "#222" : "#f7f7f7",
                   color: draft.condition === "great" ? "#fff" : "#222",
@@ -2698,7 +2781,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                 }}>
                   Great conditions (score ≥ 85)
                 </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"good"}))} style={{
+                <button onClick={() => { setDraft(d => ({...d, condition:"good"})); haptic(); }} style={{
                   padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                   background: draft.condition === "good" ? "#222" : "#f7f7f7",
                   color: draft.condition === "good" ? "#fff" : "#222",
@@ -2707,7 +2790,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                 }}>
                   Good conditions (score ≥ 70)
                 </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"custom", customScore: 85}))} style={{
+                <button onClick={() => { setDraft(d => ({...d, condition:"custom", customScore: 85})); haptic(); }} style={{
                   padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
                   background: draft.condition === "custom" ? "#222" : "#f7f7f7",
                   color: draft.condition === "custom" ? "#fff" : "#222",
@@ -2789,7 +2872,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
               </div>
             </div>
 
-            <button onClick={addAlert} style={{
+            <button onClick={() => { addAlert(); haptic("heavy"); }} style={{
               width:"100%", background:"#0284c7", border:"none",
               borderRadius:14, padding:16, marginTop:32,
               color:"white", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
@@ -2909,7 +2992,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                     Flights ≤ {a.priceMax >= 2100 ? "any price" : `$${a.priceMax}`}
                   </div>
                 </div>
-                <button onClick={() => delAlert(a.id)} style={{
+                <button onClick={() => { delAlert(a.id); haptic(); }} style={{
                   background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#bbb", padding:0, marginLeft:12,
                 }}>×</button>
               </div>
@@ -3302,7 +3385,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                   background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, overflow:"hidden",
                   boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
                 }}>
-                  <div style={{ height:80, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)" }} />
+                  <div style={{ height:80, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)", backgroundImage:trip.venue ? `url(${getVenuePhoto(trip.venue)})` : "none", backgroundSize:"cover", backgroundPosition:"center" }} />
                   <div style={{ padding:12 }}>
                     <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
                     <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:3 }}>
@@ -3324,7 +3407,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
               {listings.filter(l => wishlists.includes(l.id)).slice(0, 6).map(l => (
                 <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
-                  <div style={{ height:80, background:l.gradient, position:"relative" }}>
+                  <div style={{ height:80, background:l.gradient, backgroundImage:`url(${getVenuePhoto(l)})`, backgroundSize:"cover", backgroundPosition:"center", position:"relative" }}>
                     <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
                       position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
                     }}>❤️</button>
@@ -4130,15 +4213,14 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         </div>
         {/* Hero */}
         <div style={{ position:"relative", height:190, margin:"12px 16px 0", borderRadius:20, overflow:"hidden" }}>
-          <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
+          <div style={{ position:"absolute", inset:0, background:listing.gradient, backgroundImage:`url(${getVenuePhoto(listing)})`, backgroundSize:"cover", backgroundPosition:"center" }}>
           </div>
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 55%)" }} />
           <div style={{ position:"absolute", top:12, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
             <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             <div style={{ display:"flex", gap:7 }}>
-              <button onClick={() => setShowSharePanel(v => !v)} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
-              <button onClick={() => onToggle(listing.id)} className="pressable" style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
+              <button onClick={() => { setShowSharePanel(v => !v); haptic(); }} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
+              <button onClick={() => { onToggle(listing.id); haptic("medium"); }} className="pressable" style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
             </div>
           </div>
           <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
@@ -4236,8 +4318,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
-                    <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative" }}>
-                      <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                    <div style={{ height:62, background:sv.gradient, backgroundImage:`url(${getVenuePhoto(sv)})`, backgroundSize:"cover", backgroundPosition:"center", borderRadius:"14px 14px 0 0", position:"relative" }}>
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
                         <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
                       </div>
@@ -4525,8 +4606,10 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
 
           {/* Trip header */}
           <div style={{
-            background: trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)", borderRadius:16, height:180, marginBottom:20,
-            backgroundSize:"cover", backgroundPosition:"center", position:"relative",
+            background: trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)",
+            backgroundImage: trip.venue ? `url(${getVenuePhoto(trip.venue)})` : "none",
+            backgroundSize:"cover", backgroundPosition:"center", borderRadius:16, height:180, marginBottom:20,
+            position:"relative",
           }}>
             <div style={{
               position:"absolute", inset:0, background:"rgba(0,0,0,0.2)", borderRadius:16,
@@ -4808,7 +4891,9 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
                   boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
                 }}>
                   <div style={{
-                    height:120, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)", backgroundSize:"cover",
+                    height:120, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)",
+                    backgroundImage: trip.venue ? `url(${getVenuePhoto(trip.venue)})` : "none",
+                    backgroundSize:"cover", backgroundPosition:"center",
                   }} />
                   <div style={{ padding:14 }}>
                     <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
@@ -5025,7 +5110,7 @@ function BottomNav({ active, setActive, alertCount }) {
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
+        <button key={t.id} onClick={() => { setActive(t.id); haptic(); }} className="tab-btn" style={{
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
