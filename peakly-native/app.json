@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Peakly",
+    "slug": "peakly",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "peakly",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0284c7"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.peakly.app",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "Peakly uses this to show you relevant travel deals and improve your experience."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0284c7",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.peakly.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-tracking-transparency",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0284c7"
+        }
+      ]
+    ]
+  }
+}
