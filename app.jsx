@@ -1201,7 +1201,7 @@ function GoVerdictBadge({ score, size = "sm" }) {
       display:"inline-flex", alignItems:"center", gap: isSm ? 3 : 5,
       background: v.bg, borderRadius: isSm ? 6 : 8,
       padding: isSm ? "2px 6px" : "3px 10px",
-      border:`1.5px solid ${v.color}`,
+      border:"none",
     }}>
       <div style={{ width: isSm ? 6 : 8, height: isSm ? 6 : 8, borderRadius:"50%", background: v.color }} />
       <span style={{ fontSize: isSm ? 9 : 11, fontWeight:800, color: v.color, fontFamily:F }}>{v.label}</span>
@@ -2388,7 +2388,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                     style={{
                       minWidth:170, maxWidth:170, scrollSnapAlign:"start",
                       background:"#fff", borderRadius:14, overflow:"hidden",
-                      border:`1.5px solid ${v.color}33`,
+                      border:"1.5px solid #f0f0f0",
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
                     <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
