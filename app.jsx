@@ -172,7 +172,7 @@ const AP_CONTINENT = {
   JAC:"na", BZN:"na", MTJ:"na", YYC:"na", DEN:"na", RNO:"na", HDN:"na",
   SUN:"na", YLW:"na", SAF:"na", HNL:"na", OGG:"na", LIH:"na", SAN:"na",
   OAX:"na", PVR:"na", SJO:"na", LIR:"na", SAL:"na",
-  LAS:"na", PHX:"na", MSP:"na", DTW:"na", ORF:"na",
+  LAS:"na", PHX:"na", MSP:"na", DTW:"na", ORF:"na", FAT:"na", POP:"na",
   // Caribbean / Mex / Central Am
   SJU:"na", BGI:"na", GCM:"na", PLS:"na", AXA:"na", AUA:"na", SXM:"na", STT:"na",
   UVF:"na", TAB:"na", MBJ:"na", HAV:"na", CUN:"na", CZM:"na", PVR:"na", SJD:"na",
@@ -560,6 +560,11 @@ const VENUES = [
   {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:46.0207,lon:7.7491,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"]},
   {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"]},
   {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"]},
+  {id:"silfra",       category:"diving",title:"Silfra Fissure",location:"Thingvellir, Iceland",lat:64.2558,lon:-21.1147,ap:"KEF",icon:"🤿",rating:4.98,reviews:1120,gradient:"linear-gradient(160deg,#0a2342,#1b4d7a,#3a8fbf)",accent:"#5cb8e6",tags:["Crystal Visibility","Tectonic Plates"],photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&q=80"},
+  {id:"elcapitan",    category:"climbing",title:"El Capitan, Yosemite",location:"California, USA",lat:37.7341,lon:-119.6370,ap:"FAT",icon:"🧗",rating:4.99,reviews:2050,gradient:"linear-gradient(160deg,#3b2a1a,#7a5c3a,#c49a6c)",accent:"#d4a574",tags:["Big Wall","Iconic"],photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop&q=80"},
+  {id:"whistlerbike", category:"mtb",title:"Whistler Bike Park",location:"British Columbia, Canada",lat:50.0860,lon:-122.9590,ap:"YVR",icon:"🚵",rating:4.97,reviews:1840,gradient:"linear-gradient(160deg,#1a3300,#336600,#66a832)",accent:"#88cc44",tags:["Lift Access","World Class Downhill"],photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&q=80"},
+  {id:"bristol",      category:"kayak",title:"Bristol Bay Sea Kayaking",location:"Alaska, USA",lat:58.8300,lon:-157.0000,ap:"ANC",icon:"🛶",rating:4.94,reviews:620,gradient:"linear-gradient(160deg,#0a2e4a,#1a5c80,#3a9cc0)",accent:"#66c2e8",tags:["Whales","Remote Wilderness"],photo:"https://images.unsplash.com/photo-1472745433479-4556f22e32c2?w=800&h=600&fit=crop&q=80"},
+  {id:"cabarete",     category:"kite",title:"Cabarete Kite Beach",location:"Dominican Republic",lat:19.7583,lon:-70.4167,ap:"POP",icon:"🪁",rating:4.95,reviews:980,gradient:"linear-gradient(160deg,#1a0a3d,#3a1a7a,#6a3abf)",accent:"#9966e6",tags:["Steady Trade Winds","Warm Water"],photo:"https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop&q=80"},
 ];
 
 const US_AIRPORTS = [
@@ -784,6 +789,8 @@ const ALL_AIRPORTS = [
   { code:"PBH", city:"Paro Bhutan",             flag:"🇧🇹" },
   { code:"AMM", city:"Amman Jordan",            flag:"🇯🇴" },
   { code:"YEG", city:"Edmonton Alberta",        flag:"🇨🇦" },
+  { code:"FAT", city:"Fresno CA",               flag:"🇺🇸" },
+  { code:"POP", city:"Puerto Plata",            flag:"🇩🇴" },
 ];
 
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
@@ -1136,6 +1143,8 @@ const BASE_PRICES = {
   OOL:{ JFK:2020,LAX:1520,SFO:1570,ORD:1970,MIA:1920,SEA:1720,BOS:2120,ATL:1970,DEN:1820,DFW:1900, LAS:1700,PHX:1680,MSP:2010,DTW:2000 },
   PER:{ JFK:2200,LAX:1700,SFO:1750,ORD:2150,MIA:2100,SEA:1900,BOS:2300,ATL:2150,DEN:2000,DFW:2080, LAS:1880,PHX:1860,MSP:2190,DTW:2180 },
   AKL:{ JFK:2100,LAX:1580,SFO:1620,ORD:2050,MIA:2000,SEA:1780,BOS:2200,ATL:2050,DEN:1880,DFW:1960, LAS:1760,PHX:1740,MSP:2090,DTW:2080 },
+  FAT:{ JFK:340, LAX:120, SFO:100, ORD:280, MIA:380, SEA:240, BOS:380, ATL:360, DEN:240, DFW:260, LAS:120, PHX:140, MSP:320, DTW:310 },
+  POP:{ JFK:380, LAX:580, SFO:600, ORD:440, MIA:280, SEA:640, BOS:360, ATL:340, DEN:480, DFW:420, LAS:520, PHX:540, MSP:460, DTW:440 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD)
