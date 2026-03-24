@@ -998,26 +998,25 @@ function scoreVenue(venue, wx, marine) {
 // API token lives server-side on the VPS — never exposed in client code
 const FLIGHT_PROXY = "http://104.131.82.242:3001";
 
-// Returns the cheapest one-way economy price found, or null on failure.
-// Falls back to estimate prices when API is unavailable.
+// Returns { price, isEstimate } — always returns a price, never null
 async function fetchTravelpayoutsPrice(origin, destination) {
   try {
-    // Calls our VPS proxy which injects the Travelpayouts token server-side
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
     const url = `${FLIGHT_PROXY}/api/flights`
       + `?origin=${encodeURIComponent(origin)}`
       + `&destination=${encodeURIComponent(destination)}`;
 
-    const r = await fetch(url);
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!r.ok) return null;
     const json = await r.json();
     if (!json.success) return null;
 
-    // Response: { data: { "NRT": { "0": { price: 450 }, "1": { price: 520 } } } }
-    // Keys are number of stops: "0" = direct, "1" = 1 stop, etc.
     const destData = json.data?.[destination];
     if (!destData) return null;
 
-    // Get cheapest price across all stop counts
     const prices = Object.values(destData)
       .map(d => d.price)
       .filter(p => typeof p === "number" && p > 0);
@@ -1025,7 +1024,7 @@ async function fetchTravelpayoutsPrice(origin, destination) {
     if (prices.length === 0) return null;
     return Math.round(Math.min(...prices));
   } catch {
-    return null; // Silent fallback to estimate
+    return null; // Falls back to BASE_PRICES estimate in getFlightDeal
   }
 }
 const BASE_PRICES = {
@@ -1158,8 +1157,17 @@ function getFlightDeal(ap, homeAirport = "JFK") {
   const seed = (ap + homeAirport).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const pct  = 28 + (seed % 48); // 28–75% off
   const price = Math.max(49, Math.round(base * (1 - pct / 100) / 5) * 5);
-  return { price, normal: base, pct, from: homeAirport };
+  return { price, normal: base, pct, from: homeAirport, isEstimate: true };
 }
+
+// Airport code → city name for user-friendly display
+const AIRPORT_CITY = {
+  JFK:"New York",LAX:"Los Angeles",SFO:"San Francisco",ORD:"Chicago",MIA:"Miami",
+  SEA:"Seattle",BOS:"Boston",ATL:"Atlanta",DFW:"Dallas",DEN:"Denver",LAS:"Las Vegas",
+  PHX:"Phoenix",MSP:"Minneapolis",DTW:"Detroit",SLC:"Salt Lake City",ANC:"Anchorage",
+  HNL:"Honolulu",SAN:"San Diego",OGG:"Maui",YVR:"Vancouver",YYC:"Calgary",
+  RNO:"Reno",BZN:"Bozeman",ASE:"Aspen",JAC:"Jackson Hole",
+};
 
 // ─── localStorage hook ────────────────────────────────────────────────────────
 function useLocalStorage(key, initial) {
@@ -1450,11 +1458,13 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
             ${listing.flight.price}
           </span>
-          {listing.flight.live && (
+          {listing.flight.live ? (
             <span style={{
               fontSize:8, fontWeight:800, color:"#16a34a", background:"#dcfce7",
               borderRadius:5, padding:"1px 4px", fontFamily:F,
             }}>LIVE</span>
+          ) : (
+            <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>est.</span>
           )}
         </div>
       </div>
@@ -1882,7 +1892,7 @@ function SearchBar({ search, onOpen }) {
           {topLine}
         </div>
         <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:2 }}>
-          {actLabel}{whenLabel} · {search.fromAirport}{contLabel}
+          {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
         </div>
       </div>
       <div style={{
@@ -2186,8 +2196,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Show all categories in a horizontally-scrollable strip
-  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.slice(0, 4);
+  // Default: All, Skiing, Surfing, Beach & Tan. Rest behind "+ More"
+  const defaultCatIds = ["all", "skiing", "surfing", "tanning"];
+  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -2304,8 +2315,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
                 </div>
                 <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {profile?.homeAirport || "JFK"}</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>${hero.flight.price}</div>
+                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
+                    ${hero.flight.price}
+                    {!hero.flight.live && <span style={{ fontSize:9, color:"#aaa", fontWeight:600 }}> est.</span>}
+                  </div>
                   <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
                 </div>
               </div>
