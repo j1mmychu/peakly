@@ -226,3 +226,14 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
+
+## Interaction Rules (IMPORTANT)
+
+- **Just do it.** If you can do the work yourself, do it. Don't explain what needs to happen — make it happen.
+- **Never ask "should I...?" if the answer is obvious.** Just do it and show the result.
+- **Only ask Y/N questions** when you genuinely need a decision from Jack (e.g., design direction, spending money, destructive actions).
+- **Don't teach git.** Jack doesn't want to learn git commands. Handle all git operations yourself. If you can't push (e.g., from Cowork sandbox), give Jack ONE copy-paste command — never multi-step instructions.
+- **The push shortcut exists.** Jack has `push "message"` aliased in ~/.zshrc. When code needs pushing, just tell him: `run: push "description"` — nothing else.
+- **When writing files from Cowork:** Files written to the outputs folder may not appear in git status due to filesystem mount timing. If this happens, give Jack a single `cat > filepath << 'EOF' ... EOF` command to create the file directly. Don't waste time debugging the sync.
+- **Ship > discuss.** Bias toward action. Write the code, make the edit, fix the bug. Summarize what you did after, not before.
+- **Keep Claude Code on a leash.** When giving specs to Claude Code, always include a "Do NOT Do" section. Claude Code tends to go rogue with major refactors nobody asked for.
