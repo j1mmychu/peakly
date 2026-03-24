@@ -1,99 +1,128 @@
-# Peakly QA Report
+# QA Report: 2026-03-24 (v2)
 
-**Date:** 2026-03-24
 **Agent:** QA Agent (Claude Opus 4.6)
-**File under test:** `app.jsx` (5,607 lines)
+**Date:** 2026-03-24
+**Scope:** New categories (kite, kayak, mtb, fishing, paraglide), Plausible analytics, SEO files, general app.jsx integrity
+**File under test:** `app.jsx` (5,631 lines)
 **Deployed URL:** https://j1mmychu.github.io/peakly/
 
 ---
 
 ## Check Results
 
-### 1. Site Loads (HTTPS)
-**PASS** -- `https://j1mmychu.github.io/peakly/` returns HTTP 200. HTML includes React 18, ReactDOM, Babel Standalone 7.24.7, and loads `app.jsx?v=20260323b` via `<script type="text/babel">`. A Babel parse-error fallback script is present in `index.html`.
+### 1. Live Site Load
+**PASS** -- `https://j1mmychu.github.io/peakly/` returns HTTP 200. Site is reachable and serving content.
 
-### 2. Babel-Breaking Syntax Patterns
-**PASS** -- No issues found.
+### 2. CATEGORIES Array (app.jsx lines 141-154)
+**PASS** -- 12 entries confirmed:
 
-| Check | Result |
-|-------|--------|
-| Brace balance `{}` | 3,877 open / 3,877 close -- balanced |
-| Paren balance `()` | 2,126 open / 2,126 close -- balanced |
-| Bracket balance `[]` | 541 open / 541 close -- balanced |
-| Double commas `,,` | None found |
-| Duplicate `photo:` on same line | None found |
+| # | id | label |
+|---|-----|-------|
+| 1 | all | All |
+| 2 | skiing | Skiing |
+| 3 | surfing | Surfing |
+| 4 | hiking | Hiking |
+| 5 | diving | Diving |
+| 6 | climbing | Climbing |
+| 7 | tanning | Beach & Tan |
+| 8 | kite | Kitesurf |
+| 9 | kayak | Kayak |
+| 10 | mtb | MTB |
+| 11 | fishing | Fishing |
+| 12 | paraglide | Paraglide |
 
-### 3. Core Components Exist
-**PASS** -- All five required components are defined:
+All entries have id, label, and emoji fields. No syntax issues.
 
-| Component | Line |
-|-----------|------|
-| `function ExploreTab` | 2223 |
-| `function AlertsTab` | 2685 |
-| `function ProfileTab` | 3093 |
-| `function BottomNav` | 5223 |
-| `function VenueDetailSheet` | 4227 |
+### 3. New Category Venues
+**PASS** -- At least 1 venue per new category:
 
-### 4. Category Pills
-**PASS** -- `CATEGORIES` (line 141) includes all expected entries:
+| Category | Venue | Photo | Fields Complete |
+|----------|-------|-------|-----------------|
+| kite | Tarifa Wind Coast | Yes | Yes |
+| kayak | Milford Sound | Yes | Yes |
+| mtb | Moab Slickrock Trail | Yes | Yes |
+| fishing | Kenai River | Yes | Yes |
+| paraglide | Interlaken | Yes | Yes |
 
-- `all`, `skiing`, `surfing`, `hiking`, `diving`, `climbing`, `tanning` (labeled "Beach & Tan")
+All have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo.
 
-Default visible pills (line 2278): `["all", "skiing", "surfing", "tanning"]`. Remaining categories revealed via "show all" toggle (line 2279). Tanning is confirmed present in both the constant and the default set.
+### 4. Scoring Logic for New Categories
+**PASS** -- `scoreVenue` contains `case` branches for all 5 new categories:
+- `case "kite"` (line 948)
+- `case "kayak"` (line 960)
+- `case "mtb"` (line 974)
+- `case "fishing"` (line 985)
+- `case "paraglide"` (line 995)
 
-### 5. Card Rendering & `listing.photo` Handling
-**PASS** -- All three card components handle `listing.photo` correctly with a ternary fallback:
+### 5. Syntax Integrity
+**PASS**
+- No duplicate `photo:` fields on any venue line (0 matches)
+- No missing commas between venue objects (no `}\n{` without comma)
+- 182 venues have photo URLs
+- Total venue count: 182 (177 original categories + 5 new categories)
 
-| Component | Line | Photo present | Fallback |
-|-----------|------|---------------|----------|
-| `ListingCard` | 1291 | `<img>` tag | Gradient + icon |
-| `FeaturedCard` | 1405 | `<img>` tag | Gradient + icon |
-| `CompactCard` | 1471 | `<img>` tag | Gradient + icon |
+### 6. index.html -- Plausible Analytics
+**PASS** -- Line 27: `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>`
+- Correctly placed in `<head>` with `defer` attribute.
 
-All use `listing.photo ? <img> : <gradient-div>`, so missing photos do not cause crashes.
+### 7. index.html -- Title Tag
+**PASS** -- Line 23: `<title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>`
+- Descriptive, keyword-rich.
 
-### 6. Broken References in UI Strings
-**PASS** -- No UI-facing `"undefined"`, `"NaN"`, or `"TODO"` string literals found.
+### 8. index.html -- Canonical URL
+**PASS** -- Line 24: `<link rel="canonical" href="https://j1mmychu.github.io/peakly/" />`
 
-- The only `TODO` is a code comment on line 6 (`// TODO: Add Sentry DSN after signup`) -- not user-visible.
-- Two `isNaN()` calls (lines 2201, 2208) are guard checks in filter logic -- correct usage, not broken output.
-- No `AFFILIATE_ID` placeholders remain (previously noted in CLAUDE.md but now clean).
+### 9. robots.txt
+**PASS** -- File exists. Contents:
+```
+User-agent: *
+Allow: /
+Sitemap: https://j1mmychu.github.io/peakly/sitemap.xml
+```
+
+### 10. sitemap.xml
+**PASS** -- File exists. Valid XML with root URL, lastmod 2026-03-24, daily changefreq, priority 1.0.
 
 ---
 
-## Console Error Risks
+## Summary Table
 
-### HIGH: Mixed Content Block on Flight Prices
-- **Line 1023:** `FLIGHT_PROXY = "http://104.131.82.242:3001"` -- this is plain HTTP.
-- The deployed site is served over HTTPS (`j1mmychu.github.io`).
-- **All modern browsers block mixed HTTP requests from HTTPS pages.** Flight price fetches will silently fail.
-- The code handles this gracefully (5s timeout, catches abort, falls back to `BASE_PRICES`), so the app does not crash. But users never see real flight prices -- only hardcoded estimates.
-- **Impact:** Moderate UX degradation. Price labels show "est." fallback values.
+| Check | Result |
+|-------|--------|
+| Live site loads (HTTP 200) | PASS |
+| CATEGORIES has 12 entries (all + 11 sports) | PASS |
+| New category venues exist with complete fields | PASS |
+| New category scoring logic exists | PASS |
+| No duplicate photo fields | PASS |
+| No missing commas / syntax issues | PASS |
+| Plausible analytics script | PASS |
+| Title tag (SEO) | PASS |
+| Canonical URL | PASS |
+| robots.txt exists and correct | PASS |
+| sitemap.xml exists and valid | PASS |
 
-### LOW: Sentry DSN Not Configured
-- **Line 6:** `SENTRY_DSN = ""` -- error reporting is effectively disabled.
-- The code guards on `if (SENTRY_DSN)` before sending, so no runtime errors result.
-- **Impact:** No crash telemetry in production. Bugs go undetected.
+**Overall: ALL 11 CHECKS PASS**
 
-### LOW: Unsplash Images Without Rate Limit Awareness
-- All venue photos are Unsplash hotlinks with `?w=800&h=600&fit=crop` parameters.
-- Unsplash's free hotlinking is not guaranteed for production apps at scale.
-- **Impact:** No immediate risk, but could become an issue at 100K+ users.
+---
+
+## Minor Issues (Non-Blocking)
+
+1. **Thin venue coverage for new categories.** Each of the 5 new categories has only 1 venue. Users filtering by kite/kayak/mtb/fishing/paraglide will see a near-empty list. Recommend adding 5-10 venues per new category.
+
+2. **CLAUDE.md docs drift.** The constants section still says "~170+ venues" and does not list the 5 new categories. Should be updated to reflect 182 venues and 12 category entries (all + 11 sports).
+
+3. **Plausible data-domain.** Set to `j1mmychu.github.io` -- must be updated when migrating to `peakly.app`.
+
+4. **Cache-busting param stale.** `app.jsx?v=20260323b` in index.html has not been bumped since last deploy. Should increment on each code push.
+
+5. **Mixed content (known).** `FLIGHT_PROXY` uses HTTP. Flight prices fall back to estimates. Documented in CLAUDE.md; not a new issue.
 
 ---
 
 ## Recommended Fixes
 
-| Priority | Issue | Fix |
-|----------|-------|-----|
-| **P0** | Mixed content blocks flight API | Enable HTTPS on the VPS proxy (Let's Encrypt + Nginx) or use a Cloudflare tunnel. Update `FLIGHT_PROXY` to `https://`. |
-| **P2** | No error telemetry | Sign up for Sentry, add DSN to line 6. |
-| **P3** | Unsplash hotlinking at scale | Migrate venue photos to a CDN bucket or use Unsplash Source API with proper attribution. |
-
----
-
-## Summary
-
-**Overall: PASS (6/6 checks passed)**
-
-The codebase is syntactically sound. All core components, category pills, and card renderers are present and correctly structured. No Babel-breaking patterns, no broken UI string references. The only operational concern is the HTTP flight proxy being blocked by mixed-content policy on the HTTPS deployment -- this is a known issue (documented in CLAUDE.md) that degrades pricing accuracy but does not break the app.
+| Priority | Fix |
+|----------|-----|
+| Medium | Add 5-10 venues per new category (kite, kayak, mtb, fishing, paraglide) |
+| Low | Update CLAUDE.md constants section for 182 venues and new categories |
+| Low | Bump cache-bust param `?v=20260324` in index.html on next deploy |

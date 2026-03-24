@@ -1,59 +1,60 @@
-# Peakly Growth Report: 2026-03-24 (v7)
+# Peakly Growth Report: 2026-03-24 (v8)
 
 ---
 
 ## Growth Stage
 
-**Pre-launch: UX-ready, infrastructure incomplete.**
+**Pre-launch: Measurement layer live. Reddit soft launch is unblocked.**
 
-The UX agent's recommendations have shipped. Heart button touch targets are 36x36px (verified in ListingCard, FeaturedCard, CompactCard). Book CTA is prominent with gradient background and 14px padding. Typography hierarchy is enforced (24/22/18 for headings, 16 for body, 12-13 for metadata). The app looks like a product, not a prototype. Design score: 9/10.
+Three infrastructure items shipped since v7: Plausible analytics is live and verified on the production site (script tag with `data-domain="j1mmychu.github.io"` confirmed in both local index.html and the fetched live page at j1mmychu.github.io/peakly). SEO foundations are in place -- title tag is keyword-rich ("Find Surf, Ski & Adventure Spots with Cheap Flights"), canonical URL is set, robots.txt allows all crawlers and points to the sitemap, and sitemap.xml exists with a lastmod of 2026-03-24. Five missing categories were added to the app.
 
-What remains incomplete is the infrastructure layer beneath the design: no analytics, no PWA, no venue deep links, no push notifications. The app is a polished storefront with no way to measure foot traffic or bring people back after they leave.
+The app is now a polished, measurable, crawlable product. The blocker that held up distribution for three consecutive reports is resolved. The binding constraint has shifted from "can we measure" (yes) to "are we distributing" (not yet).
 
 ---
 
-## Shareability Score: 7/10
+## Shareability Score: 7.5/10 (up from 7/10)
 
-| Factor | Score | Notes |
-|--------|-------|-------|
-| OG tags (live site) | 9/10 | og:title, og:description, og:image, og:type, og:url, og:site_name, twitter:card all present and verified live at j1mmychu.github.io/peakly |
-| OG image quality | 7/10 | Generic Unsplash mountain photo (1200x630). Works but not branded. No Peakly logo overlay. |
-| Share mechanism (Profile) | 6/10 | navigator.share() with clipboard fallback. Shares generic homepage URL. Works. |
-| Share mechanism (Venue) | 4/10 | Copies venue text card to clipboard. No deep link -- recipient lands on homepage and must find venue manually. |
-| Venue deep links | 0/10 | Not implemented. No hash routing, no query params. Every share points to the same URL regardless of venue. |
-| apple-touch-icon | 0/10 | Missing. iOS home screen bookmark shows blank white square. |
-| PWA manifest | 0/10 | Missing. Android "Add to Home Screen" unavailable. |
+| Factor | Score | Delta vs v7 | Notes |
+|--------|-------|-------------|-------|
+| OG tags (live site) | 9/10 | -- | All OG + Twitter Card tags verified live. Clean preview on share. |
+| OG image quality | 7/10 | -- | Generic Unsplash mountain. No Peakly branding. Functional but not distinctive. |
+| SEO (title, canonical, robots, sitemap) | 8/10 | NEW | Title tag is keyword-optimized. Canonical set. robots.txt + sitemap.xml live and valid. Google can now discover and index the site. |
+| Share mechanism (Profile) | 6/10 | -- | navigator.share() with clipboard fallback. Generic URL. |
+| Share mechanism (Venue) | 4/10 | -- | Clipboard text card. No deep link. Recipient lands on homepage. |
+| Venue deep links | 0/10 | -- | Still not implemented. The viral loop remains broken. |
+| apple-touch-icon | 0/10 | -- | Missing. iOS home screen shows blank square. |
+| PWA manifest | 0/10 | -- | Missing. No "Add to Home Screen" on Android. |
 
-**What changed since v6:** Nothing on shareability. No code push has occurred. UX improvements are local-only until pushed.
+**What moved the score:** SEO presence is new and meaningful. Search engines can now index the site, which creates a passive acquisition channel over time. The Plausible script does not directly improve shareability, but it enables measuring which shares convert -- making future shareability improvements data-driven rather than guesswork.
 
-**Blocking 9+/10:** Venue deep links (the viral loop is broken without them), branded OG image, apple-touch-icon.
+**Blocking 9+/10:** Venue deep links (highest leverage -- every share should open the specific venue), branded OG image, apple-touch-icon.
 
 ---
 
 ## Launch Readiness
 
-### Reddit Soft Launch: CONDITIONAL GO -- same blocker as yesterday
+### Reddit Soft Launch: GO
 
 | Requirement | Status |
 |-------------|--------|
-| App looks professional | YES -- 109+ venue photos, clean cards, enforced typography, 36x36 touch targets |
+| App looks professional | YES -- 170+ venue photos, clean cards, enforced typography, tactile touch targets |
 | OG tags render clean previews | YES -- verified live |
-| UX polished to 9/10 | YES -- heart buttons, Book CTA, typography hierarchy all shipped |
+| UX polished to 9/10 | YES -- heart buttons, Book CTA, typography hierarchy |
 | Content angle exists | YES -- real-time condition scoring is genuinely novel |
-| Analytics to measure results | **NO -- still not added. Day 3 of asking.** |
-| Ability to track Reddit referrals | **NO -- no UTM support, no analytics** |
+| Analytics to measure results | **YES -- Plausible live on production** |
+| SEO basics for organic discovery | YES -- title, canonical, robots.txt, sitemap all live |
+| Ability to track Reddit referrals | YES -- Plausible tracks referrer by default. Can add UTM params to posted links for granularity |
 
-**Decision: Still do NOT post to Reddit until analytics is live.** The UX improvements make the app more launch-ready than ever, but posting without measurement is still wasted distribution. The gap is now purely operational: one script tag in index.html, one push to main.
+**Decision: GREEN LIGHT for Reddit soft launch.** Post within 48 hours. The three-day analytics blocker is cleared. Every day of delay is now wasted distribution.
 
-### Product Hunt: NOT READY -- 3 blockers remain (down from 4)
+### Product Hunt: NOT READY -- 2 firm blockers remain
 
 | Blocker | Status | Effort |
 |---------|--------|--------|
-| No analytics | Still missing | 5 minutes |
 | No PWA manifest / install prompt | Still missing | 2-3 hours |
 | No venue deep links | Still missing | 4-6 hours |
 
-Push notifications dropped from "blocker" to "nice-to-have" for PH. The UX quality is now strong enough that PH reviewers will focus on the core value prop (conditions + flights) rather than missing notifications. But the other three remain firm blockers.
+Analytics is no longer a PH blocker. SEO is not a PH requirement but helps with post-launch organic tail. The remaining two blockers (PWA + deep links) are what separate "interesting demo" from "product worth upvoting."
 
 **Target PH date: Late April 2026** (unchanged).
 
@@ -61,55 +62,60 @@ Push notifications dropped from "blocker" to "nice-to-have" for PH. The UX quali
 
 ## This Week's Experiment: Reddit Condition Cards
 
-### Status: BLOCKED by analytics (Day 3)
+### Status: UNBLOCKED -- Execute now
 
-The UX improvements actually make this experiment stronger when it does launch. A screenshot of the app now will show polished cards with proper touch targets and clean typography -- a much better first impression than 48 hours ago.
+Analytics is live. The experiment can proceed immediately.
 
-**Revised unblock sequence:**
+**Execution plan (48-hour window):**
 
-1. Add Plausible analytics script to index.html (5 minutes)
-2. Push to main: `push "Add Plausible analytics + UX polish"` (this also deploys the UX fixes to live site)
-3. Verify Plausible dashboard registers pageviews (wait 1 hour)
-4. Screenshot a venue card showing "Epic" or "Firing" conditions with the new polished UI
-5. Post to r/surfing with conditions-first framing: "I built a free tool that scores surf spots by live conditions and shows you flights"
-6. Monitor Plausible for 72 hours -- track unique visitors, time on site, top venues viewed
+1. Open Plausible dashboard and confirm pageview tracking is registering (visit the live site, check dashboard after 5 minutes).
+2. Screenshot a venue card showing "Epic" or "Firing" conditions with the polished UI. Pick a surf spot with high scores -- Pipeline, Uluwatu, or Hossegor depending on current conditions.
+3. Post to r/surfing (785K members). Title: "I built a free tool that scores surf spots by live conditions and shows you flights." Link to https://j1mmychu.github.io/peakly/?ref=reddit. Include the screenshot as the post image.
+4. Cross-post or adapt for r/solotravel (2.8M members) within 24 hours if r/surfing gets traction.
+5. Monitor Plausible for 72 hours. Key metrics: unique visitors, referral source breakdown, bounce rate, time on site, top pages.
 
-**The experiment design is ready. The app UI is ready. Only the measurement layer is missing.**
+**Success criteria:**
+- 200+ unique visitors from Reddit in 72 hours = promising signal
+- 50+ visitors = weak but learn from comments
+- <50 = rethink the hook/framing, not the channel
+
+**Fallback:** If r/surfing post gets removed (self-promo rules), pivot to r/digitalnomad or r/travel with a "weekend trip planning" angle instead.
 
 ---
 
-## Retention Score: 5/10 (up from 4.5/10)
+## Retention Score: 5/10 (unchanged)
 
-| Factor | Score | Delta vs v6 | Notes |
-|--------|-------|-------------|-------|
-| Core value loop | 7/10 | +1 | UX polish makes browsing genuinely enjoyable. Cards look professional. Touch targets feel right. |
-| Reason to return | 3/10 | -- | Conditions change daily but nothing triggers the return visit |
-| Notifications | 1/10 | -- | Alert toggles exist in UI, fire nothing |
-| Personalization | 4/10 | -- | Onboarding captures prefs, explore uses them lightly |
-| Data lock-in | 4/10 | -- | localStorage works but fragile (clear cache = gone) |
-| Social / viral | 2/10 | -- | Share buttons exist but no deep links kills the loop |
-| Content freshness | 6/10 | -- | Weather + flights update live. 109 photos. |
-| UX quality / delight | 7/10 | NEW | Tactile feedback on hearts, clean typography, polished CTAs. Users who DO return will enjoy the experience. |
+| Factor | Score | Notes |
+|--------|-------|-------|
+| Core value loop | 7/10 | Browsing is enjoyable. Condition scores are genuinely useful. Photos make venues desirable. |
+| Reason to return | 3/10 | Conditions change daily but nothing triggers the return. No push, no email, no SMS. |
+| Notifications | 1/10 | Alert toggles in UI fire nothing. Zero outbound re-engagement. |
+| Personalization | 4/10 | Onboarding captures prefs, explore uses them lightly for hero personalization. |
+| Data lock-in | 4/10 | localStorage wishlists/alerts/trips. Clear cache = gone. No account sync. |
+| Social / viral | 2/10 | Share buttons exist but no deep links kills the loop. |
+| Content freshness | 6/10 | Weather + flights update live. 170+ venue photos. 5 new categories added. |
+| UX quality / delight | 7/10 | Tactile feedback, clean typography, polished CTAs. |
+| Analytics feedback loop | NEW | Plausible now enables measuring what retains users. Not a retention mechanism itself, but makes improving retention possible. |
 
-**Overall: 5/10** (up from 4.5 in v6). The UX improvements raise the floor of the experience -- users who do come back have a better session. But the ceiling is unchanged because there is still no outbound re-engagement mechanism.
+**Overall: 5/10.** No change in the score because no new retention mechanisms shipped. What changed is our ability to *measure* retention behavior, which is the prerequisite to improving it. After the Reddit launch, Plausible data will reveal: do users come back? How many sessions per user? What's the return visit rate after day 1?
 
-**Path to 7/10 (unchanged):** Push notifications + email capture + venue deep links + PWA install. The UX layer is no longer the bottleneck. The re-engagement layer is.
+**Path to 7/10:** Push notifications + email capture + venue deep links + PWA install. The order matters: deep links first (unlocks viral re-engagement from shared links), then PWA (unlocks home screen presence), then push notifications (unlocks direct re-engagement).
 
 ---
 
 ## Decision Made
 
-**The UX layer is done. Shift all engineering effort to the distribution and retention stack.**
+**Launch Reddit distribution this week. No more infrastructure gatekeeping.**
 
-Rationale: The UX agent delivered. Heart touch targets (36x36), Book CTA (enlarged, gradient, prominent), and typography hierarchy (24/22/18) are shipped. Design score is at 9/10 -- further UX polish has diminishing returns. The binding constraint on growth has shifted from "does the app look good enough to share" (yes) to "can we measure, retain, and re-engage users" (no).
+Rationale: The measurement layer is live. SEO foundations are set. The app is at 9/10 design quality. Every previous report identified analytics as the singular blocker to distribution. That blocker is now resolved. Continuing to build infrastructure (deep links, PWA, push) before any real users see the product is a classic pre-launch trap. Ship distribution now, learn from real traffic, then prioritize the next infrastructure piece based on data.
 
-The priority stack is now entirely infrastructure:
+The priority stack shifts from "build before you launch" to "launch, then iterate":
 
-1. **Plausible analytics** -- add script tag to index.html, push to main. 5 minutes. This is Day 3. No more reports should be written about this; it should be done.
-2. **Push everything to main** -- the UX fixes, .nojekyll, and analytics tag all need to be live. One push deploys all of it.
-3. **First Reddit post** -- within 24 hours of Plausible going live. r/surfing. Conditions screenshot with new polished UI.
-4. **Venue deep links** -- hash routing (#venue/pipeline). 4-6 hours. Unlocks the viral loop.
-5. **PWA manifest + apple-touch-icon** -- 2-3 hours. Unlocks installability and home screen presence.
+1. **Reddit soft launch** -- r/surfing within 48 hours. This is the single highest-priority action.
+2. **Venue deep links** -- hash routing (#venue/pipeline). 4-6 hours. Build this the moment after the Reddit post, while traffic is arriving. Users who want to share a specific venue will try and fail -- deep links become urgent, not theoretical.
+3. **PWA manifest + apple-touch-icon** -- 2-3 hours. Build after deep links. Enables "Add to Home Screen" for users who want to keep Peakly.
+4. **Analyze Plausible data** -- 72 hours post-Reddit. Use real user behavior to decide what to build next instead of guessing.
+5. **Push notification basics** -- browser Notification API. Build only if Plausible shows return visits are happening (users want to come back but forget). If no return visits, push won't help -- the problem is value, not reminder.
 
 ---
 
@@ -117,21 +123,21 @@ The priority stack is now entirely infrastructure:
 
 | Timeframe | Milestone | Cumulative Users |
 |-----------|-----------|-----------------|
-| Week 1 | Analytics live + push deployed + Reddit soft launch | 150-400 |
-| Week 2-3 | Venue deep links + PWA shipped | 500-1,500 |
-| Week 4-5 | Product Hunt launch (Top 15 target) | 2,000-4,000 |
-| Week 6-8 | Second Reddit push + TikTok test + email capture | 3,000-5,500 |
-| Week 9-12 | SEO content + push notifications + affiliate rev live | 4,000-7,000 |
+| Week 1 (Now) | Reddit r/surfing launch + monitor Plausible | 150-400 |
+| Week 2-3 | Venue deep links + PWA + second Reddit push (r/solotravel, r/skiing) | 600-1,800 |
+| Week 4-5 | Product Hunt launch (Top 15 target) | 2,500-5,000 |
+| Week 6-8 | TikTok test + email capture + push notifications | 3,500-6,500 |
+| Week 9-12 | SEO content pages ranking + affiliate revenue live + iterate on retention | 5,000-8,000 |
 
-**Realistic 90-day number: 4,000-7,000 users** with zero ad spend. Revised up from 3,500-5,500 in v6 because the UX improvements meaningfully increase conversion from first visit to return visit. A polished app converts Reddit traffic better than an unpolished one. The UX work was not wasted -- it raises the conversion rate at every stage of the funnel.
+**Realistic 90-day number: 5,000-8,000 users** with zero ad spend. Revised up from 4,000-7,000 in v7 because two compounding factors are now in play: (a) SEO foundations mean organic search traffic begins accruing from week 1, and (b) Plausible data will enable optimizing conversion at each funnel stage rather than guessing.
 
 ### Path to 100K
 
 90 days will not reach 100K. The bridge requires:
 
-1. **Working viral loop** -- venue deep links + shareable condition cards. Each share must open the specific venue. This is the highest-leverage feature remaining.
-2. **Native store presence** -- Android TWA wrapping the PWA, iOS Safari PWA with proper icons. Unlocks ASO discovery and "app store" credibility.
-3. **SEO content engine** -- programmatic pages ("best surf in Bali March 2026") that rank and compound. Each page is an acquisition channel.
+1. **Working viral loop** -- venue deep links + shareable condition cards. Each share must open the specific venue. Highest-leverage feature remaining. Build this week.
+2. **SEO content engine** -- programmatic pages ("best surf in Bali March 2026") that rank and compound. Each page is a permanent acquisition channel. The sitemap and robots.txt are now in place to support this.
+3. **Native store presence** -- Android TWA wrapping the PWA, iOS Safari PWA with proper icons. Unlocks ASO discovery.
 4. **Push notifications** -- driving D7 retention above 15%. Currently estimated at 3-5% with no outbound re-engagement.
 5. **Affiliate revenue** reinvested into targeted paid acquisition once organic PMF is proven.
 
@@ -143,12 +149,12 @@ The priority stack is now entirely infrastructure:
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-24 (v7) | Shift all effort from UX to distribution/retention infrastructure | UX is at 9/10. Further polish has diminishing returns. Analytics, deep links, and PWA are now the binding constraints. |
-| 2026-03-24 (v7) | Retention score upgraded to 5/10 | UX improvements raise session quality for returning users, even though re-engagement mechanisms remain absent. |
-| 2026-03-24 (v7) | 90-day projection raised to 4,000-7,000 | Better UX = higher conversion at every funnel stage. The polish compounds across all channels. |
-| 2026-03-24 (v6) | Do NOT launch Reddit until Plausible is live | Unmeasured distribution is wasted distribution. |
-| 2026-03-24 (v6) | Retention score set at 4.5/10 | Share audit revealed deep link gap worse than assumed. |
-| 2026-03-23 | Reddit soft launch this week | App visually polished, OG tags live, conditions data useful. |
+| 2026-03-24 (v8) | GREEN LIGHT Reddit launch within 48 hours | Analytics blocker resolved. Three days of gatekeeping is enough. Real users > more infrastructure. |
+| 2026-03-24 (v8) | 90-day projection raised to 5,000-8,000 | SEO foundations + analytics-driven optimization compound across all channels. |
+| 2026-03-24 (v8) | Shareability score raised to 7.5/10 | SEO presence (robots.txt, sitemap, canonical, title tag) adds a passive discovery channel. |
+| 2026-03-24 (v8) | Build deep links immediately after Reddit post, not before | Real user friction > theoretical friction. Let traffic reveal the pain point urgently. |
+| 2026-03-24 (v7) | Shift all effort from UX to distribution/retention infrastructure | UX at 9/10. Diminishing returns. |
+| 2026-03-24 (v6) | Do NOT launch Reddit until Plausible is live | Unmeasured distribution is wasted distribution. (NOW RESOLVED) |
 | 2026-03-23 | Target displaced MagicSeaweed users first | MSW dead + Surfline paywall = frustrated free-tier surf community. |
 | 2026-03-23 | Venue share links = #1 feature priority post-analytics | Without shareable venues, growth ceiling is low. |
 | 2026-03-23 | Product Hunt delayed to late April | PWA + venue links must ship first. |
@@ -156,15 +162,15 @@ The priority stack is now entirely infrastructure:
 
 ---
 
-## Priority Stack (Unchanged Except UX is Done)
+## Priority Stack
 
-1. ~~UX polish (touch targets, CTA, typography)~~ **DONE -- shipped 2026-03-24**
-2. **Plausible analytics** -- one script tag, one push. Day 3.
-3. **Push to main** -- deploys UX fixes + analytics + .nojekyll to live site.
-4. **First Reddit post** -- r/surfing, within 24 hours of analytics going live.
-5. **Venue deep links** -- hash routing, 4-6 hours, unlocks viral sharing.
-6. **PWA manifest + apple-touch-icon** -- 2-3 hours, unlocks installability.
-7. **Push notification basics** -- browser Notification API, 1-2 days, makes alerts tab functional.
+1. **Reddit r/surfing post** -- within 48 hours. No more delays. This is job #1.
+2. **Venue deep links** -- hash routing (#venue/pipeline). Build immediately after posting. 4-6 hours.
+3. **PWA manifest + apple-touch-icon** -- 2-3 hours. Enables installability.
+4. **Analyze Plausible data** -- 72 hours post-Reddit. First real user data. Inform all subsequent priorities.
+5. **Push notification basics** -- browser Notification API. Build only if data shows return intent.
+6. **Second Reddit wave** -- r/solotravel, r/skiing, r/snowboarding. Adapt messaging per community.
+7. **Product Hunt prep** -- branded OG image, deep links working, PWA installable. Target late April.
 
 ---
 
