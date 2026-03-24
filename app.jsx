@@ -111,6 +111,7 @@ const { useState, useEffect, useRef, useCallback } = React;
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     .fade-in { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes imgFadeIn { from{opacity:0} to{opacity:1} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
     .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
@@ -139,13 +140,18 @@ const F = "'Plus Jakarta Sans', sans-serif";
 
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id:"all",     label:"All",        emoji:"✨" },
-  { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
-  { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
-  { id:"diving",  label:"Diving",     emoji:"🤿" },
-  { id:"climbing",label:"Climbing",   emoji:"🧗" },
-  { id:"tanning", label:"Beach",      emoji:"🏖️" },
+  { id:"all",      label:"All" },
+  { id:"skiing",   label:"Skiing" },
+  { id:"surfing",  label:"Surfing" },
+  { id:"hiking",   label:"Hiking" },
+  { id:"diving",   label:"Diving" },
+  { id:"climbing", label:"Climbing" },
+  { id:"tanning",  label:"Beach" },
+  { id:"kite",     label:"Kite" },
+  { id:"kayak",    label:"Kayak" },
+  { id:"mtb",      label:"MTB" },
+  { id:"fishing",  label:"Fishing" },
+  { id:"paraglide",label:"Paraglide" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -213,6 +219,7 @@ const VENUES = [
     icon:"🏔️", rating:4.97, reviews:2840,
     gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
     accent:"#6db3f2", tags:["Powder Day","All Levels"],
+    photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"pipeline",  category:"surfing",
@@ -221,6 +228,7 @@ const VENUES = [
     icon:"🌊", rating:4.99, reviews:1203,
     gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
     accent:"#40c4a8", tags:["Expert","Offshore Winds"],
+    photo:"https://images.unsplash.com/photo-1502680390548-bdbac40529ce?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"borabora",  category:"tanning",
@@ -229,6 +237,7 @@ const VENUES = [
     icon:"🏝️", rating:4.96, reviews:988,
     gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
     accent:"#a5d6a7", tags:["UV 11","Crystal Water"],
+    photo:"https://images.unsplash.com/photo-1589197331516-4d84b72ebde3?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"gbr",       category:"diving",
@@ -237,6 +246,7 @@ const VENUES = [
     icon:"🐠", rating:4.93, reviews:1756,
     gradient:"linear-gradient(160deg,#001a3a,#0040c8,#40a0ff)",
     accent:"#82b1ff", tags:["Visibility 30m","Marine Life"],
+    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"yosemite",  category:"climbing",
@@ -245,6 +255,7 @@ const VENUES = [
     icon:"🧗", rating:4.95, reviews:4201,
     gradient:"linear-gradient(160deg,#3a1a00,#8d4e00,#d4860a)",
     accent:"#ffb74d", tags:["El Capitan","All Grades"],
+    photo:"https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"tarifa",    category:"kite",
@@ -253,6 +264,7 @@ const VENUES = [
     icon:"🪁", rating:4.91, reviews:892,
     gradient:"linear-gradient(160deg,#1a0030,#5c0080,#b040f0)",
     accent:"#ce93d8", tags:["Expert Wind","Warm Water"],
+    photo:"https://images.unsplash.com/photo-1559310589-2673bfe16970?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"chamonix",  category:"skiing",
@@ -261,6 +273,7 @@ const VENUES = [
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
     accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"],
+    photo:"https://images.unsplash.com/photo-1520923642038-b4259acecbd7?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"milford",   category:"kayak",
@@ -269,6 +282,7 @@ const VENUES = [
     icon:"🛶", rating:4.96, reviews:1102,
     gradient:"linear-gradient(160deg,#001a10,#006040,#00c07a)",
     accent:"#69f0ae", tags:["Mirror Water","Dolphins"],
+    photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"moab",      category:"mtb",
@@ -277,6 +291,7 @@ const VENUES = [
     icon:"🚵", rating:4.88, reviews:2208,
     gradient:"linear-gradient(160deg,#3a0a00,#b03000,#ff6030)",
     accent:"#ff8a65", tags:["Intermediate+","Desert Vibes"],
+    photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"kenai",     category:"fishing",
@@ -285,6 +300,7 @@ const VENUES = [
     icon:"🎣", rating:4.92, reviews:744,
     gradient:"linear-gradient(160deg,#0a1a2a,#1a4060,#2e7aba)",
     accent:"#81d4fa", tags:["King Salmon","World Record Waters"],
+    photo:"https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=800&h=600&fit=crop&q=80",
   },
   {
     id:"interlaken",category:"paraglide",
@@ -293,13 +309,14 @@ const VENUES = [
     icon:"🪂", rating:4.97, reviews:1890,
     gradient:"linear-gradient(160deg,#1a1a3a,#3a3a8e,#6868d4)",
     accent:"#b39ddb", tags:["Tandem OK","Alps Views"],
+    photo:"https://images.unsplash.com/photo-1501262170142-192e2641e3f3?w=800&h=600&fit=crop&q=80",
   },
   // ─── North America ski resorts ─────────────────────────────────────────────
-  {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"]},
-  {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"]},
+  {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"],photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop&q=80"},
+  {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"],photo:"https://images.unsplash.com/photo-1565992441121-4367c2967103?w=800&h=600&fit=crop&q=80"},
   {id:"parkcity",    category:"skiing",title:"Park City / Deer Valley", location:"Utah, USA",                lat:40.6461,lon:-111.4980,ap:"SLC",icon:"⛷️",rating:4.95,reviews:3880,gradient:"linear-gradient(160deg,#0d1b38,#1a3c7c,#3570c8)",accent:"#7ab0e4",tags:["Deer Valley Grooming","Best Après"]},
   {id:"alta",        category:"skiing",title:"Alta / Snowbird",         location:"Utah, USA",                lat:40.5883,lon:-111.6358,ap:"SLC",icon:"⛷️",rating:4.96,reviews:2960,gradient:"linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",accent:"#78ace4",tags:["Ski Only","Deep Powder"]},
-  {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"]},
+  {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"],photo:"https://images.unsplash.com/photo-1548345680-f5475ea5df84?w=800&h=600&fit=crop&q=80"},
   {id:"bigsky",      category:"skiing",title:"Big Sky Resort",          location:"Montana, USA",             lat:45.2865,lon:-111.4013,ap:"BZN",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Lone Peak","5,800 Acres"]},
   {id:"telluride",   category:"skiing",title:"Telluride Ski Resort",    location:"Colorado, USA",            lat:37.9364,lon:-107.8123,ap:"MTJ",icon:"⛷️",rating:4.96,reviews:2100,gradient:"linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",accent:"#72a8dc",tags:["Box Canyon","Ski-In/Out Town"]},
   {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"]},
@@ -315,7 +332,7 @@ const VENUES = [
   {id:"taos",        category:"skiing",title:"Taos Ski Valley",         location:"New Mexico, USA",          lat:36.5953,lon:-105.4475,ap:"SAF",icon:"⛷️",rating:4.92,reviews:1640,gradient:"linear-gradient(160deg,#0d1c38,#1a3a78,#2e68b8)",accent:"#72a4d8",tags:["High Altitude","Southwest Vibes"]},
   {id:"grandtarghee",category:"skiing",title:"Grand Targhee Resort",   location:"Wyoming, USA",             lat:43.7883,lon:-110.9426,ap:"JAC",icon:"⛷️",rating:4.90,reviews:1340,gradient:"linear-gradient(160deg,#0c1c36,#1a3876,#2e66b6)",accent:"#74a4d8",tags:["Teton Views","Powder Stash"]},
   // ─── Japan ───────────────────────────────────────────────────────────────
-  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"]},
+  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&q=80"},
   {id:"hakuba",      category:"skiing",title:"Hakuba Valley",           location:"Nagano, Japan",            lat:36.6989,lon:137.8632,ap:"NRT",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0e1e40,#1a4088,#3a7ad2)",accent:"#78b2ec",tags:["10 Resorts","Olympic History"]},
   {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"]},
   {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"]},
@@ -333,7 +350,7 @@ const VENUES = [
   {id:"alpehuez",    category:"skiing",title:"Alpe d'Huez",            location:"French Alps, France",      lat:45.0897,lon:6.0690,ap:"GNB",icon:"⛷️",rating:4.91,reviews:2480,gradient:"linear-gradient(160deg,#0d1432,#1e2e72,#3048c0)",accent:"#6c88e2",tags:["Sun Bowl","21 Pistes"]},
   {id:"avoriaz",     category:"skiing",title:"Avoriaz",                 location:"Portes du Soleil, France", lat:46.1917,lon:6.7795,ap:"GVA",icon:"⛷️",rating:4.90,reviews:2160,gradient:"linear-gradient(160deg,#0c1432,#1e2c70,#2e46be)",accent:"#6a86e0",tags:["Car-Free Village","Linked to Morzine"]},
   // ─── Europe — Switzerland ─────────────────────────────────────────────────
-  {id:"zermatt",     category:"skiing",title:"Zermatt",                 location:"Valais, Switzerland",      lat:46.0207,lon:7.7491,ap:"GVA",icon:"⛷️",rating:4.98,reviews:4280,gradient:"linear-gradient(160deg,#0c1830,#1a3870,#2e60b8)",accent:"#70a8dc",tags:["Matterhorn Views","Year-Round"]},
+  {id:"zermatt",     category:"skiing",title:"Zermatt",                 location:"Valais, Switzerland",      lat:46.0207,lon:7.7491,ap:"GVA",icon:"⛷️",rating:4.98,reviews:4280,gradient:"linear-gradient(160deg,#0c1830,#1a3870,#2e60b8)",accent:"#70a8dc",tags:["Matterhorn Views","Year-Round"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&q=80"},
   {id:"verbier",     category:"skiing",title:"Verbier",                 location:"4 Vallées, Switzerland",   lat:46.0964,lon:7.2283,ap:"GVA",icon:"⛷️",rating:4.95,reviews:3040,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62ba)",accent:"#72a8dc",tags:["Freeride Mecca","Expert Terrain"]},
   {id:"saasfee",     category:"skiing",title:"Saas-Fee",                location:"Valais, Switzerland",      lat:46.1085,lon:7.9287,ap:"GVA",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0c1830,#1a3870,#2c60b6)",accent:"#70a6da",tags:["Glacier Skiing","Car-Free Village"]},
   {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"]},
@@ -353,14 +370,14 @@ const VENUES = [
   // ════════════════════ SURFING — WORLD TOP SPOTS ════════════════════
 
   // ─── Hawaii ───────────────────────────────────────────────────────
-  {id:"pipeline",    category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"]},
-  {id:"jaws",        category:"surfing",title:"Pe'ahi (Jaws)",            location:"Maui, Hawaii",             lat:20.9320,lon:-156.2520,ap:"OGG",icon:"🌊",rating:4.97,reviews:3240,gradient:"linear-gradient(160deg,#001a40,#003580,#0055cc)",accent:"#2288ff",tags:["Big Wave Capital","60ft+ Faces"]},
+  {id:"pipeline",    category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&q=80"},
+  {id:"jaws",        category:"surfing",title:"Pe'ahi (Jaws)",            location:"Maui, Hawaii",             lat:20.9320,lon:-156.2520,ap:"OGG",icon:"🌊",rating:4.97,reviews:3240,gradient:"linear-gradient(160deg,#001a40,#003580,#0055cc)",accent:"#2288ff",tags:["Big Wave Capital","60ft+ Faces"],photo:"https://images.unsplash.com/photo-1455729552457-5c322b5db8c5?w=800&h=600&fit=crop&q=80"},
   {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"]},
   {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"]},
 
   // ─── California ───────────────────────────────────────────────────
-  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"]},
-  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"]},
+  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&q=80"},
+  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&q=80"},
   {id:"blacks",      category:"surfing",title:"Black's Beach",           location:"San Diego, California",    lat:32.8828,lon:-117.2524,ap:"SAN",icon:"🏄",rating:4.88,reviews:3220,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Powerful Beach Break","La Jolla Gem"]},
   {id:"rincon_ca",   category:"surfing",title:"Rincon Point",            location:"Santa Barbara, California", lat:34.3726,lon:-119.4745,ap:"LAX",icon:"🏄",rating:4.92,reviews:3640,gradient:"linear-gradient(160deg,#003355,#005580,#007ab3)",accent:"#3399cc",tags:["Queen of the Coast","Long Point Break"]},
 
@@ -389,7 +406,7 @@ const VENUES = [
   {id:"noronha_surf",category:"surfing",title:"Fernando de Noronha",     location:"Pernambuco, Brazil",       lat:-3.8542,lon:-32.4250,ap:"REC",icon:"🏄",rating:4.96,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005577,#00789f)",accent:"#0099cc",tags:["UNESCO World Heritage","Crystal Waters"]},
 
   // ─── Europe — France ──────────────────────────────────────────────
-  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"]},
+  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"],photo:"https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=800&h=600&fit=crop&q=80"},
 
   // ─── Europe — Spain ───────────────────────────────────────────────
   {id:"mundaka",     category:"surfing",title:"Mundaka",                  location:"Basque Country, Spain",   lat:43.4100,lon:-2.7000,ap:"BIO",icon:"🌊",rating:4.95,reviews:3840,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#0077cc",tags:["Best Left in Europe","River Mouth Barrel"]},
@@ -531,15 +548,15 @@ const VENUES = [
   {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"]},
 
   // ── Hiking ─────────────────────────────────────────────────────────
-  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"]},
-  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"]},
-  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"]},
+  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"],photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&q=80"},
+  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"],photo:"https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800&h=600&fit=crop&q=80"},
+  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"],photo:"https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800&h=600&fit=crop&q=80"},
   {id:"gr20",         category:"hiking",title:"GR20 Corsica",location:"Corsica, France",lat:42.1750,lon:9.0833,ap:"AJA",icon:"🥾",rating:4.94,reviews:4200,gradient:"linear-gradient(160deg,#2a1a2a,#5a3a5a,#8a6a8a)",accent:"#aa8aaa",tags:["Europe's Toughest","16 Stages"]},
   {id:"appalachian",  category:"hiking",title:"Appalachian Trail (Smokies)",location:"North Carolina, USA",lat:35.5634,lon:-83.4984,ap:"TYS",icon:"🥾",rating:4.93,reviews:15200,gradient:"linear-gradient(160deg,#1a2a1a,#3a5a3a,#6a8a6a)",accent:"#8aaa8a",tags:["Thru-Hike Section","Great Smoky Mtns"]},
   {id:"annapurna",    category:"hiking",title:"Annapurna Circuit",location:"Gandaki, Nepal",lat:28.5960,lon:83.8200,ap:"PKR",icon:"🥾",rating:4.97,reviews:6800,gradient:"linear-gradient(160deg,#0a1a3a,#1a4a7a,#3a8aba)",accent:"#5aaada",tags:["Thorong La Pass","Tea Houses"]},
   {id:"milford_track",category:"hiking",title:"Milford Track",location:"Fiordland, New Zealand",lat:-44.8937,lon:167.9188,ap:"ZQN",icon:"🥾",rating:4.96,reviews:5400,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#3a8a6a)",accent:"#5aaa8a",tags:["Finest Walk","Sutherland Falls"]},
   {id:"camino",       category:"hiking",title:"Camino de Santiago",location:"Galicia, Spain",lat:42.8782,lon:-8.5448,ap:"SCQ",icon:"🥾",rating:4.95,reviews:18600,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["French Way","800km Pilgrimage"]},
-  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"]},
+  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"],photo:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop&q=80"},
   {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:46.0207,lon:7.7491,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"]},
   {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"]},
   {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"]},
@@ -1323,12 +1340,14 @@ function LazyBg({ src, gradient, style, children, ...rest }) {
     return () => obs.disconnect();
   }, [src]);
   return (
-    <div ref={ref} style={{
-      ...style,
-      background: gradient,
-      backgroundImage: loaded ? `url(${src})` : "none",
-      backgroundSize: "cover", backgroundPosition: "center",
-    }} {...rest}>{children}</div>
+    <div ref={ref} style={{ ...style, background: gradient, position:"relative", overflow:"hidden" }} {...rest}>
+      {loaded && <div style={{
+        position:"absolute", inset:0,
+        backgroundImage:`url(${src})`, backgroundSize:"cover", backgroundPosition:"center",
+        animation:"imgFadeIn 0.4s ease-out forwards",
+      }} />}
+      <div style={{ position:"relative", zIndex:1, width:"100%", height:"100%" }}>{children}</div>
+    </div>
   );
 }
 
@@ -1349,10 +1368,10 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
+
   return (
-    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
-      <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 8px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.08)" }}>
+      <div style={{ position:"relative", height:220, overflow:"hidden" }}>
         <LazyBg className="card-img" src={getVenuePhoto(listing)} gradient={listing.gradient}
           style={{ position:"absolute", inset:0 }}>
         </LazyBg>
@@ -1450,9 +1469,9 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
 function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
+
   return (
-    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 8px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.08)" }}>
       <LazyBg src={getVenuePhoto(listing)} gradient={listing.gradient}
         style={{ height:180, position:"relative" }}>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
@@ -1510,9 +1529,9 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
+
   return (
-    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => { onOpen && onOpen(listing); haptic(); }} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         <LazyBg src={getVenuePhoto(listing)} gradient={listing.gradient}
           style={{ position:"absolute", inset:0 }}>
@@ -2311,7 +2330,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
               fontSize:12, fontWeight:700, fontFamily:F,
           }}>
-            {c.emoji} {c.label}
+            {c.label}
           </button>
         ))}
         {!showAllCats && (
@@ -2384,34 +2403,36 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           const hero = bestRightNow[0];
           const verdict = getGoVerdict(hero.conditionScore);
           return (
-            <div style={{ margin:"12px 14px 0", padding:16, borderRadius:16,
-              background:`linear-gradient(135deg, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[1] || "#0284c7"}18, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[2] || "#38bdf8"}12)`,
-              border:`2px solid ${verdict.color}33`,
-            }} onClick={() => onOpenDetail(hero)} className="card">
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                <div>
-                  <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                    Your best window right now
+            <div style={{ margin:"12px 14px 0", borderRadius:20, overflow:"hidden", position:"relative" }}
+              onClick={() => { onOpenDetail(hero); haptic(); }} className="card">
+              <LazyBg src={getVenuePhoto(hero)} gradient={hero.gradient}
+                style={{ height:210, position:"relative" }}>
+                <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.25) 100%)" }} />
+                <div style={{ position:"absolute", top:14, left:14 }}>
+                  <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)", borderRadius:20, padding:"4px 10px", border:"1px solid rgba(255,255,255,0.2)", display:"inline-block" }}>
+                    <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Best right now</span>
                   </div>
-                  <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:4, lineHeight:1.2 }}>
+                </div>
+                <div style={{ position:"absolute", top:14, right:14 }}>
+                  <GoVerdictBadge score={hero.conditionScore} size="lg" />
+                </div>
+                <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
+                  <div style={{ fontSize:22, fontWeight:900, color:"white", fontFamily:F, lineHeight:1.15, textShadow:"0 1px 4px rgba(0,0,0,0.4)" }}>
                     {hero.title}
                   </div>
-                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", fontFamily:F, marginTop:3 }}>{hero.location}</div>
+                  <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                    <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)", borderRadius:10, padding:"7px 12px", flex:1, textAlign:"center", border:"1px solid rgba(255,255,255,0.12)" }}>
+                      <div style={{ fontSize:15, fontWeight:900, color:"white", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>/100</span></div>
+                      <div style={{ fontSize:9, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:1 }}>{hero.conditionLabel}</div>
+                    </div>
+                    <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)", borderRadius:10, padding:"7px 12px", flex:1, textAlign:"center", border:"1px solid rgba(255,255,255,0.12)" }}>
+                      <div style={{ fontSize:15, fontWeight:900, color:"white", fontFamily:F }}>${hero.flight.price}</div>
+                      <div style={{ fontSize:9, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:1 }}>from {profile?.homeAirport || "JFK"}</div>
+                    </div>
+                  </div>
                 </div>
-                <GoVerdictBadge score={hero.conditionScore} size="lg" />
-              </div>
-              <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
-                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
-                </div>
-                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {profile?.homeAirport || "JFK"}</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>${hero.flight.price}</div>
-                  <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
-                </div>
-              </div>
+              </LazyBg>
             </div>
           );
         })()}
@@ -2476,7 +2497,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             {isAll ? "All experiences" : catLabel}
           </div>
           <div style={{ fontSize:13, color:"#717171", marginTop:2, fontFamily:F }}>
-            {loading ? "Fetching live conditions…" : `${gridListings.length} windows available`}
+            {loading ? "Fetching live conditions…" : `${gridListings.length} spots`}
           </div>
         </div>
 
@@ -2636,7 +2657,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
                   </div>
                   {previewListings.length > 0 && (
                     <div style={{ display:"flex", gap:4, flexShrink:0 }}>
-                      {previewListings.map(v => <span key={v.id} style={{ fontSize:16 }}>{CATEGORIES.find(c=>c.id===v.category)?.emoji||"📍"}</span>)}
+                      {previewListings.map(v => <span key={v.id} style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F }}>{CATEGORIES.find(c=>c.id===v.category)?.label||"Spot"}</span>)}
                     </div>
                   )}
                   <span style={{ color:"#ccc", fontSize:16 }}>›</span>
@@ -2753,7 +2774,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
               border:"1.5px solid", borderColor: draft.sport === cat.id ? "#222" : "#e8e8e8",
               fontSize:13, fontWeight:600, display:"flex", alignItems:"center", gap:5,
             }}>
-              {cat.emoji} {cat.label}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -3100,7 +3121,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                     padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:5,
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
-                    <span style={{ fontSize:13 }}>{cat?.emoji}</span>
+                    <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:F }}>{cat?.label}</span>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
                       {skillLevels[s] || "Intermediate"}
                     </span>
@@ -3264,7 +3285,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                       borderColor: sel ? "#222" : "#e8e8e8",
                       display:"flex", alignItems:"center", gap:10, cursor:"pointer",
                     }}>
-                      <span style={{ fontSize:17 }}>{cat.emoji}</span>
+                      <span style={{ fontSize:13, fontWeight:700, color:"#0284c7", fontFamily:F }}>{cat.label}</span>
                       <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color: sel ? "#fff" : "#222", fontFamily:F }}>{cat.label}</span>
                       {sel && <span style={{ fontSize:11, color:"rgba(255,255,255,0.6)", fontFamily:F }}>{skillLevels[cat.id] || "Intermediate"}</span>}
                       <span style={{ color: sel ? "#0284c7" : "#ccc", fontWeight:900, fontSize:16 }}>{sel ? "✓" : "+"}</span>
@@ -3964,7 +3985,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                     display:"flex", alignItems:"center", gap:8,
                     boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
                   }}>
-                    <span style={{ fontSize:22 }}>{cat.emoji}</span>
+                    <span style={{ fontSize:14, fontWeight:700, fontFamily:F }}>{cat.label}</span>
                     {cat.label}
                     {sel && <span style={{ fontSize:13 }}>✓</span>}
                   </button>
@@ -4255,12 +4276,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
       <div className="sheet" style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
-        zIndex:301, maxHeight:"94vh", overflowY:"auto",
-        paddingBottom:"max(env(safe-area-inset-bottom,0px),24px)",
+        zIndex:301, maxHeight:"94vh", display:"flex", flexDirection:"column",
       }}>
-        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
+        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0", flexShrink:0 }}>
           <div style={{ width:36, height:4, borderRadius:2, background:"#ddd" }} />
         </div>
+        <div style={{ flex:1, overflowY:"auto", paddingBottom:80 }}>
         {/* Hero */}
         <div style={{ position:"relative", height:190, margin:"12px 16px 0", borderRadius:20, overflow:"hidden" }}>
           <div style={{ position:"absolute", inset:0, background:listing.gradient, backgroundImage:`url(${getVenuePhoto(listing)})`, backgroundSize:"cover", backgroundPosition:"center" }}>
@@ -4275,7 +4296,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
           <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
             <div style={{ fontSize:20, fontWeight:900, color:"white", fontFamily:F, lineHeight:1.15 }}>{listing.title}</div>
-            <div style={{ fontSize:13, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:3 }}>📍 {listing.location}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:3 }}>{listing.location}</div>
             {(() => {
               const si = getSeasonInfo(listing);
               return si.label ? (
@@ -4373,7 +4394,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {/* You'd also like — similar venues */}
           {similarVenues.length > 0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
+              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>You'd also like</div>
               <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
@@ -4395,7 +4416,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
           {/* Local insider tips */}
           <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>🎯 Insider Tips</div>
+            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Insider Tips</div>
             <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
               {localTips.map((tip, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:"#f7f7f7", borderRadius:12 }}>
@@ -4406,11 +4427,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </div>
 
-          {/* 🛍️ Gear — affiliate */}
+          {/* Gear — affiliate */}
           {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
+                <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>Gear for this trip</div>
                 <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>Affiliate links · no extra cost</span>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
@@ -4514,7 +4535,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
           {/* Save to named list */}
           <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>📂 Save to list</div>
+            <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Save to list</div>
             {!showListPicker ? (
               <button onClick={() => setShowListPicker(true)} className="pressable" style={{
                 width:"100%", background:"#f7f7f7", border:"2px dashed #d0d0d0", borderRadius:14,
@@ -4557,6 +4578,35 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             )}
           </div>
+        </div>
+        </div>{/* end scroll wrapper */}
+        {/* Sticky bottom CTA */}
+        <div style={{
+          position:"absolute", bottom:0, left:0, right:0,
+          padding:"12px 16px", paddingBottom:"max(env(safe-area-inset-bottom,12px),12px)",
+          background:"linear-gradient(to top, #fff 80%, transparent)",
+          display:"flex", gap:10,
+        }}>
+          <a href={buildFlightUrl(listing.flight?.from || profile?.homeAirport || "JFK", listing.ap)}
+            target="_blank" rel="noopener noreferrer"
+            onClick={() => haptic("heavy")}
+            style={{ flex:1, textDecoration:"none" }}>
+            <div className="pressable" style={{
+              background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:14,
+              padding:"14px 16px", textAlign:"center",
+              boxShadow:"0 4px 14px rgba(2,132,199,0.35)",
+            }}>
+              <span style={{ fontSize:14, fontWeight:800, color:"white", fontFamily:F }}>Flights from ${listing.flight?.price || "—"}</span>
+            </div>
+          </a>
+          <button onClick={() => { onToggle(listing.id); haptic("medium"); }}
+            className="pressable" style={{
+              background: saved ? "#0284c7" : "#f5f5f5",
+              border:"none", borderRadius:14, padding:"14px 16px", cursor:"pointer",
+              minWidth:52, display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+            <span style={{ fontSize:18 }}>{saved ? "❤️" : "🤍"}</span>
+          </button>
         </div>
       </div>
     </>
@@ -5111,7 +5161,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
           <div key={cat.id} style={{ padding: "20px 0 4px" }}>
             <div style={{ padding: "0 24px 12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: "#222", fontFamily: F }}>
-                {cat.emoji} {cat.title}
+                {cat.title}
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#717171", fontFamily: F }}>{venues.length} guides</span>
             </div>
