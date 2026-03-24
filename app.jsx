@@ -1267,8 +1267,9 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Heart */}
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:12, right:12,
+          position:"absolute", top:8, right:8,
           background:"none", border:"none", fontSize:20,
+          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
         }}>
           {saved ? "❤️" : "🤍"}
@@ -1336,10 +1337,10 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
-              padding:"5px 10px", display:"flex", alignItems:"center", gap:4,
+              padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4,
             }}>
-              <span style={{ fontSize:10 }}>✈️</span>
-              <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
+              <span style={{ fontSize:11 }}>✈️</span>
+              <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
             </div>
           </a>
         </div>
@@ -1366,7 +1367,8 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
-          position:"absolute", top:10, right:10, background:"none", border:"none", fontSize:18,
+          position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
+          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
         <div style={{
           position:"absolute", top:10, left:10,
@@ -1403,7 +1405,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
-            <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center", gap:4 }}>
+            <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
             </div>
@@ -1438,8 +1440,9 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Heart */}
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:5, right:5,
-          background:"none", border:"none", fontSize:13,
+          position:"absolute", top:2, right:2,
+          background:"none", border:"none", fontSize:15,
+          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
@@ -1594,7 +1597,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
             <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
           </div>
           <div style={{ padding:"0 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
+            <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
             <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
               style={{ background:"#f5f5f5", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer" }}>
               Reset
@@ -2375,7 +2378,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
-                <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>
+                <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
                   Best Right Now
                 </div>
                 <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
@@ -2400,7 +2403,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                        position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
+                        position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:14,
+                        width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
                         filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
                       }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
                     </div>
@@ -2530,7 +2534,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
     <div style={{ flex:1, overflowY:"auto" }}>
       <div style={{ padding:"22px 20px 16px", display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
         <div>
-          <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F }}>Wishlists</div>
+          <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F }}>Wishlists</div>
           <div style={{ fontSize:13, color:"#aaa", marginTop:3, fontFamily:F }}>Your saved adventures</div>
         </div>
         <button onClick={() => setCreatingList(true)} className="pressable" style={{
@@ -2685,7 +2689,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
           background:"none", border:"none", fontSize:14, color:"#717171", cursor:"pointer", fontFamily:F,
           display:"flex", alignItems:"center", gap:4,
         }}>← Back</button>
-        <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, marginTop:14 }}>Create Alert</div>
+        <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginTop:14 }}>Create Alert</div>
         <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F, lineHeight:1.4 }}>
           We'll text you when conditions peak AND flights are cheap — so you never miss your window.
         </div>
@@ -4118,6 +4122,36 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [shareVenueCopied, setShareVenueCopied] = useState(false);
   const saved = wishlists.includes(listing.id);
+
+  // ─── Swipe-down-to-dismiss ──────────────────────────────────────────────────
+  const sheetRef = useRef(null);
+  const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
+  const onTouchStart = useCallback((e) => {
+    const el = sheetRef.current;
+    if (!el || el.scrollTop > 5) return; // only swipe when at top
+    dragRef.current = { startY: e.touches[0].clientY, currentY: e.touches[0].clientY, dragging:true };
+  }, []);
+  const onTouchMove = useCallback((e) => {
+    const d = dragRef.current;
+    if (!d.dragging) return;
+    d.currentY = e.touches[0].clientY;
+    const dy = d.currentY - d.startY;
+    if (dy > 0 && sheetRef.current) {
+      sheetRef.current.style.transform = `translateX(-50%) translateY(${dy}px)`;
+      sheetRef.current.style.transition = "none";
+    }
+  }, []);
+  const onTouchEnd = useCallback(() => {
+    const d = dragRef.current;
+    if (!d.dragging) return;
+    d.dragging = false;
+    const dy = d.currentY - d.startY;
+    if (dy > 120) { onClose(); }
+    else if (sheetRef.current) {
+      sheetRef.current.style.transform = "translateX(-50%)";
+      sheetRef.current.style.transition = "transform 0.25s ease";
+    }
+  }, [onClose]);
   const d  = rawWx?.daily;
   const md = rawMar?.daily;
 
