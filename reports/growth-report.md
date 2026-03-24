@@ -1,26 +1,26 @@
-# Peakly Growth Report: 2026-03-23 (v5)
+# Peakly Growth Report: 2026-03-24
 
 ## Dashboard
 
 | Metric | Value |
 |--------|-------|
-| **Growth Stage** | Reddit launch-ready |
-| **Shareability Score** | 7.5/10 |
-| **Launch Readiness** | Reddit: GO. Product Hunt: 3 blockers remain. |
-| **This Week's Experiment** | Reddit condition cards — r/surfing and r/skiing first |
-| **Retention Score** | 5/10 |
-| **Decision Made** | Add Plausible analytics TODAY, then post first Reddit condition card within 48 hours. |
-| **90-Day Projection** | 4,000-6,000 users (Reddit + PH + organic, zero spend) |
+| **Growth Stage** | Pre-launch: foundation incomplete |
+| **Shareability Score** | 7/10 |
+| **Launch Readiness** | Reddit: CONDITIONAL GO. Product Hunt: 4 blockers remain. |
+| **This Week's Experiment** | Reddit condition cards — blocked until analytics is live |
+| **Retention Score** | 4.5/10 |
+| **Decision Made** | Do not post to Reddit until Plausible is live. Analytics-first, distribution-second. Every day without Plausible is a wasted day. |
+| **90-Day Projection** | 3,500-5,500 users (Reddit + PH + organic, zero spend) |
 
 ---
 
 ## 1. OG Tag Verification (Live)
 
-Fetched `https://j1mmychu.github.io/peakly/` on 2026-03-23. All tags confirmed present and rendering:
+Fetched `https://j1mmychu.github.io/peakly/` on 2026-03-24. Live site HTML confirmed identical to local `index.html`.
 
 | Tag | Value | Status |
 |-----|-------|--------|
-| `og:title` | "Peakly — Adventure When Conditions Align" | LIVE |
+| `og:title` | "Peakly -- Adventure When Conditions Align" | LIVE |
 | `og:description` | "Find surf, ski & beach spots with perfect conditions and cheap flights. Real-time weather scoring for 180+ venues worldwide." | LIVE |
 | `og:image` | Unsplash mountain photo (1200x630) | LIVE |
 | `og:type` | website | LIVE |
@@ -33,179 +33,190 @@ Fetched `https://j1mmychu.github.io/peakly/` on 2026-03-23. All tags confirmed p
 | `meta description` | Present, matches brand | LIVE |
 | `theme-color` | #0284c7 | LIVE |
 | Favicon | SVG "P" inline data URI | LIVE |
+| `apple-touch-icon` | **MISSING** | BLOCKING |
+| `link rel="manifest"` | **MISSING** | BLOCKING |
+| Plausible/GA4 analytics | **MISSING** | CRITICAL |
 
-**Assessment:** Social cards render correctly on Twitter/X, iMessage, Slack, Discord, LinkedIn. The Unsplash mountain hero image is high-quality and on-brand. Cache-busting param on app.jsx (`?v=20260323b`) ensures users see latest code.
+**What changed since yesterday:** Nothing. No push has occurred. The .nojekyll fix and any code changes are still local-only. The live site serves the same HTML as yesterday (cache-buster `?v=20260323b` unchanged).
 
-**Remaining shareability gaps (blocking 9+/10):**
-- No venue-level OG tags (every share shows same generic image)
-- No apple-touch-icon (iOS home screen shows blank)
-- No PWA manifest
+**Shareability gaps (blocking 9+/10):**
+- No venue-level OG tags (every share shows the same generic mountain image)
+- No apple-touch-icon (iOS home screen bookmark shows blank white square)
+- No PWA manifest (cannot "Add to Home Screen" on Android)
 
 ---
 
-## 2. Launch Readiness
+## 2. Share Mechanism Audit (app.jsx)
 
-### Reddit: GREEN LIGHT
+Two share paths exist in the codebase:
 
-Everything needed for Reddit soft launch is in place:
-- 109+ venue photos (app looks professional, not a prototype)
-- OG tags render clean link previews
-- Live weather scoring provides genuinely useful content
-- Flight price estimates are a unique hook
-- Cache-busting ensures fresh loads
-- Share URLs point to correct deployment
+**1. Profile tab "Share Peakly" button (~line 3417)**
+- Uses `navigator.share()` API with clipboard fallback
+- Shares generic message + `https://j1mmychu.github.io/peakly` link
+- Works, but sends every user to the same homepage -- no venue context
 
-### Product Hunt: NOT READY — 3 Blockers
+**2. Venue detail "Share & Invite" panel (~line 4201)**
+- Copies venue-specific text card (title, location, score, flight price) to clipboard
+- Also has a shareable text snippet with `j1mmychu.github.io/peakly`
+- No deep link to the specific venue -- recipient lands on homepage and has to find it manually
+
+**Verdict:** Share mechanisms exist but lack venue deep links. This kills the viral loop. A shared venue card with no way to open that venue directly is friction that prevents pass-along growth. Venue deep links remain the #1 feature priority for shareability.
+
+---
+
+## 3. PWA & Installability Audit
+
+| Check | Status |
+|-------|--------|
+| `manifest.json` / `<link rel="manifest">` | NOT PRESENT |
+| Service worker registration | NOT PRESENT |
+| `apple-touch-icon` | NOT PRESENT |
+| `apple-mobile-web-app-capable` | NOT PRESENT |
+| `beforeinstallprompt` handling in app.jsx | NOT PRESENT |
+
+**Impact:** The app cannot be installed to home screen on any platform. No PWA install prompt will ever fire. On iOS, bookmarking shows a blank icon. This matters because home screen apps get 3-4x the return visit rate of bookmarked URLs.
+
+---
+
+## 4. Retention Hook Audit
+
+| Hook | Status | Impact |
+|------|--------|--------|
+| Push notifications | NOT IMPLEMENTED | Alerts tab is UI theater -- toggles do nothing |
+| Email capture / digest | NOT IMPLEMENTED | No way to re-engage churned users |
+| Streak / gamification | NOT IMPLEMENTED | No reason to open daily |
+| PWA install prompt | NOT IMPLEMENTED | Can't get on home screen |
+| Personalized home feed | PARTIAL | Onboarding captures prefs, explore tab uses them lightly |
+| localStorage persistence | WORKING | Wishlists, alerts, trips, profile all persist across sessions |
+| Auto-refresh weather | WORKING | 10-minute interval keeps data fresh within a session |
+| Condition score changes | IMPLICIT | Scores change daily, creating natural curiosity pull -- but nothing prompts the return |
+
+**Retention verdict:** The app has no outbound re-engagement mechanism. Once a user closes the tab, Peakly has zero ability to bring them back. The only return driver is the user remembering Peakly exists and manually navigating back. This is the single biggest growth bottleneck.
+
+---
+
+## 5. Launch Readiness
+
+### Reddit Soft Launch: CONDITIONAL GO
+
+The app is visually polished enough (109+ venue photos, clean OG cards, live scoring). But posting without analytics is flying blind.
+
+| Requirement | Status |
+|-------------|--------|
+| App looks professional | YES -- photos, scoring, flight prices |
+| OG tags render clean previews | YES -- verified live |
+| Content angle exists | YES -- real-time condition data is genuinely useful |
+| Analytics to measure results | **NO -- Plausible not added** |
+| Ability to track Reddit referrals | **NO -- no UTM params, no analytics** |
+
+**Decision: Do NOT post to Reddit until Plausible is live.** Yesterday's report recommended adding Plausible "today." It still hasn't been added. Until it is, any Reddit experiment is unmeasurable and therefore un-learnable.
+
+### Product Hunt: NOT READY -- 4 Blockers
 
 | Blocker | Impact | Effort |
 |---------|--------|--------|
-| No PWA manifest / install prompt | PH expects "try it" UX, not a raw URL | 2-3 hours |
-| No push notifications | Alerts tab is theater — PH crowd will call it out | 1-2 days |
-| No venue deep links | Can't go viral post-PH if users can't share specific spots | 4-6 hours |
+| No analytics | Can't measure PH spike or retention | 5 minutes |
+| No PWA manifest / install prompt | PH expects installable apps | 2-3 hours |
+| No push notifications | Alerts tab is theater, PH crowd will call it out | 1-2 days |
+| No venue deep links | Can't go viral post-PH if users can't share spots | 4-6 hours |
 
-**Target PH date: Late April / early May 2026** (after blockers ship).
-
----
-
-## 3. Competitive Intel (March 2026)
-
-### Market Scan
-
-| Competitor | Focus | What's New | Peakly's Angle |
-|-----------|-------|-----------|----------------|
-| **Surfline** | Surf forecasts, $99/yr | Absorbed MagicSeaweed, killed the free tier. Community frustrated. | Free alternative with flights + multi-sport. Target displaced MSW users. |
-| **DropIn Surf** | Surf travel + community | Growing social features, group trip planning. | Peakly adds ski + beach + real-time scoring. DropIn is surf-only. |
-| **OpenSnow** | Ski weather, $50-100/yr | Expanding forecaster network. Still ski-only. | Peakly covers all sports + flights. OpenSnow is single-sport. |
-| **OnX Backcountry** | GPS maps for backcountry | Adding 3D route planning (FATMAP-style). | Peakly wraps conditions + flights. OnX is navigation-first. |
-| **Stormrider** | Surf guide + spot discovery | New personalized skill/travel matching. | Similar discovery angle, but no flights, no real-time scoring. |
-| **Slopes** | Ski tracking | Logging + social. No trip planning. | Different use case entirely — Peakly is pre-trip, Slopes is on-mountain. |
-| **Hilton AI Trip Planner** | Hotel-first AI planning | Big brand entering AI trip planning. | Peakly has real-time conditions — Hilton doesn't know if it's firing. |
-
-### Key Opportunity
-
-MagicSeaweed's death left a vacuum. Surfline's $100/yr paywall frustrates the budget surf travel community. Peakly is free, shows conditions AND flights, and covers multiple sports. r/surfing frequently has threads complaining about Surfline pricing — those threads are our distribution channel.
-
-### Vulnerability Watch
-
-No direct competitor combines conditions + flights + multi-sport discovery. The nearest threat is Google adding condition scores to Flights (they have the data). Peakly's moat is curated venue data, the scoring algorithm, and cross-sport UX.
+**Target PH date: Late April / early May 2026** (unchanged from yesterday).
 
 ---
 
-## 4. Single Most Impactful Thing Before Launch
+## 6. Retention Score: 4.5/10
 
-**Add Plausible analytics. One `<script>` tag. Do it now.**
+| Factor | Score | Delta vs Yesterday | Notes |
+|--------|-------|--------------------|-------|
+| Core value loop | 6/10 | -- | Condition scores + photos make browsing engaging |
+| Reason to return | 3/10 | -- | Conditions change daily but nothing triggers return |
+| Notifications | 1/10 | -- | Alert toggles exist, fire nothing |
+| Personalization | 4/10 | -- | Onboarding captures prefs, explore uses them lightly |
+| Data lock-in | 4/10 | -- | localStorage persistence works but fragile (clear cache = gone) |
+| Social / viral | 2/10 | -- | Share buttons exist but no deep links, no viral loop |
+| Content freshness | 6/10 | -- | Weather + flights update live. 109 photos. |
 
-Without analytics, the Reddit experiment is a shot in the dark:
-- Can't measure visitors from Reddit posts
-- Can't see which subreddit converts best
-- Can't track wishlists created or venues explored
-- Can't calculate retention or return visits
-- Can't report results to iterate
+**Overall: 4.5/10** (down from 5/10 yesterday -- adjusted because share audit revealed deep link gap is worse than assumed; share buttons exist but the lack of venue deep links makes them functionally broken for viral growth).
 
-Everything else — PWA, push, venue links — matters less than being able to measure what happens when real humans hit the app. Plausible is privacy-friendly (no cookie banner needed), free tier covers early traffic, and it's literally a single script tag in `index.html`.
-
-**Action:** Add `<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>` to `index.html` head. Push to main. Done.
-
-After analytics, the priority stack is:
-1. Plausible analytics (today, 5 minutes)
-2. First Reddit post to r/surfing when conditions are firing (within 48 hours)
-3. Venue deep links with per-venue OG images (this week, 4-6 hours)
-4. PWA manifest + install prompt (next week, 2-3 hours)
-5. Push notifications (week after, 1-2 days)
+**Path to 7/10:** Push notifications (alerts actually fire) + email capture (weekly digest) + venue deep links (social pull-back loop) + PWA install (home screen presence).
 
 ---
 
-## 5. This Week's Experiment: Reddit Condition Cards
+## 7. This Week's Experiment: Reddit Condition Cards (ON HOLD)
 
-### Hypothesis
-Posting venue condition screenshots to niche subreddits drives 200+ visits and reveals which sport vertical pulls hardest.
+### Status: BLOCKED by analytics
 
-### Execution Plan
+The experiment design from yesterday is sound. The execution is paused.
 
-**r/surfing (210K members) — First target:**
-- Post when a real venue shows "Epic" or "Firing" conditions
-- Format: screenshot of venue card + conditions, link in comments
-- Angle: "Conditions at [Pipeline/Hossegor/etc] right now" — useful info first, Peakly second
+**Unblock sequence (in exact order):**
+1. Add Plausible analytics script to `index.html` (5 minutes of code, requires push)
+2. Verify Plausible dashboard shows pageviews (wait 1 hour)
+3. Screenshot a venue showing "Epic" or "Firing" conditions
+4. Post to r/surfing with conditions-first framing
+5. Monitor Plausible for 72 hours
 
-**r/skiing (490K members) — Second target:**
-- "Late season powder still going at [venue]" — timely as season winds down
-- Same format: genuinely useful conditions data, app link in comments
-
-**r/digitalnomad (2.2M members) — Third target:**
-- "Built a free tool that shows when conditions align with cheap flights"
-- This community appreciates and shares tools openly
-
-### Success Metrics (requires Plausible)
-- 200+ unique visitors in 72 hours
-- 20+ wishlists created
-- Identify highest-converting subreddit
-- Zero mod removals (content-first approach)
+**Do not skip step 1.** Posting to Reddit without analytics is like running an A/B test without logging results.
 
 ---
 
-## 6. Retention Score: 5/10
+## 8. Competitive Intel Update
 
-| Factor | Score | Notes |
-|--------|-------|-------|
-| Core value loop | 6/10 | Live condition scores + photos make browsing genuinely engaging |
-| Reason to return | 3/10 | Conditions change daily (natural pull) but nothing prompts the return |
-| Notifications | 1/10 | Alert toggles exist, do nothing. Pure theater. |
-| Personalization | 4/10 | Onboarding captures prefs, but experience doesn't reshape enough |
-| Data lock-in | 4/10 | Wishlists, trips, alerts persist in localStorage. Fragile. |
-| Social | 1/10 | Solo experience, no sharing loop |
-| Content freshness | 6/10 | Weather + flights update per visit. 109+ real photos. |
+No material changes from yesterday's competitive scan. Key dynamics remain:
 
-**Path to 7/10:** Push notifications (alerts fire for real) + email capture (weekly digest) + venue share links (social pull-back loop).
+- **MagicSeaweed vacuum** persists. Surfline's $99/yr paywall continues to generate complaints in r/surfing. This remains Peakly's best early adopter pool.
+- **No new entrant** has combined conditions + flights + multi-sport in a single free tool.
+- **Google Flights** still does not surface condition data alongside pricing. This gap is Peakly's window.
 
 ---
 
-## 7. 90-Day Projection
+## 9. 90-Day Projection
 
 | Timeframe | Milestone | Cumulative Users |
 |-----------|-----------|-----------------|
-| Week 1-2 | Plausible + Reddit soft launch | 300-600 |
-| Week 3-4 | Venue deep links + PWA shipped | 1,000-2,000 |
-| Week 5-6 | Product Hunt launch (Top 5 target) | 3,000-4,500 |
-| Week 7-8 | Second Reddit push + TikTok test | 4,000-5,500 |
-| Week 9-12 | SEO content + email digest + affiliate rev | 4,000-6,000 |
+| Week 1-2 | Plausible live + Reddit soft launch | 200-500 |
+| Week 3-4 | Venue deep links + PWA shipped | 800-1,800 |
+| Week 5-6 | Product Hunt launch (Top 10 target) | 2,500-4,000 |
+| Week 7-8 | Second Reddit push + TikTok test | 3,200-5,000 |
+| Week 9-12 | SEO content + email digest + affiliate rev | 3,500-5,500 |
 
-**Realistic 90-day number: 4,000-6,000 users** with zero ad spend. Up from 3,500-5,000 in v3 due to improved app quality and clearer launch sequence.
+**Realistic 90-day number: 3,500-5,500 users** with zero ad spend. Revised down slightly from yesterday's 4,000-6,000 because the analytics blocker has cost another day and the retention score is lower than estimated.
 
 ### Path to 100K
 
-90 days won't hit 100K. The bridge requires:
-1. **Native store presence** (Android TWA, iOS Safari PWA) — unlocks ASO discovery
-2. **SEO content engine** ("best surf in Bali March 2026" pages) — compounds
-3. **Working viral loop** (share venue card + score, deep link back) — organic multiplier
-4. **Affiliate revenue** reinvested into targeted acquisition
-5. **D7 retention above 20%** (currently estimated ~5%) — push is the lever
+90 days will not hit 100K. The bridge requires:
+1. **Native store presence** (Android TWA, iOS Safari PWA) -- unlocks ASO discovery
+2. **SEO content engine** ("best surf in Bali March 2026" pages) -- compounds over months
+3. **Working viral loop** (venue deep links + shareable condition cards) -- organic multiplier
+4. **Push notifications** driving D7 retention above 15% (currently estimated ~3-5%)
+5. **Affiliate revenue** reinvested into targeted acquisition
 
 **Estimated timeline to 100K: 12-18 months** (zero funding) or **6-9 months** (with seed for native apps + paid channels).
 
 ---
 
-## 8. Decision Log
+## 10. Decision Log
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-23 | Add Plausible analytics before any distribution | Can't measure = can't improve. Reddit posts without analytics are wasted shots. |
-| 2026-03-23 | Reddit soft launch this week | App is visually polished, OG tags live, conditions data is genuinely useful content. |
-| 2026-03-23 | Target displaced MagicSeaweed users first | MSW dead + Surfline $100/yr paywall = frustrated free-tier surf community. Our ideal early adopters. |
+| 2026-03-24 | Do NOT launch Reddit experiment until Plausible is live | Unmeasured distribution is wasted distribution. This was recommended yesterday and still hasn't shipped. |
+| 2026-03-24 | Retention score downgraded to 4.5/10 | Share audit reveals venue deep links are missing -- share buttons exist but lack utility without them. |
+| 2026-03-24 | 90-day projection adjusted to 3,500-5,500 | Analytics delay + lower retention score = slightly lower ceiling. |
+| 2026-03-23 | Reddit soft launch this week | App visually polished, OG tags live, conditions data is useful content. |
+| 2026-03-23 | Target displaced MagicSeaweed users first | MSW dead + Surfline paywall = frustrated free-tier surf community. |
 | 2026-03-23 | Venue share links = #1 feature priority post-analytics | Without shareable venues, growth ceiling is low regardless of channel. |
-| 2026-03-23 | Product Hunt delayed to late April | PWA + push + venue links must ship first. PH crowd will roast incomplete features. |
-| 2026-03-23 | Skip paid acquisition | Validate PMF organically first. Photos enable visual channels. Spend $0 until retention > 15% D7. |
+| 2026-03-23 | Product Hunt delayed to late April | PWA + push + venue links must ship first. |
+| 2026-03-23 | Skip paid acquisition until D7 retention > 15% | Validate PMF organically first. Spend $0 until retention proves out. |
 
 ---
 
-## Sources
+## Priority Stack (What To Ship, In Order)
 
-- [DropIn Surf](https://dropinsurf.app/) — surf travel app competitor
-- [OnTheSnow: Best Backcountry Apps](https://www.onthesnow.com/news/best-apps-backcountry-skiers/) — ski app landscape
-- [Travala: 10 Best Travel Planning Apps 2026](https://www.travala.com/blog/the-10-best-travel-planning-apps-to-organize-your-2026-adventures/) — travel app market
-- [Hilton AI Trip Planning](https://www.phocuswire.com/news/technology/hilton-launches-ai-trip-planning-tool) — big brand entering AI travel
-- [Saily: 30 Best Travel Apps 2026](https://saily.com/blog/best-travel-apps/) — market overview
-- [Stormrider Surf](https://www.stormrider.surf/) — surf discovery competitor
+1. **Plausible analytics** -- 5 minutes, one script tag, push to main. THIS IS DAY 2 OF ASKING.
+2. **First Reddit post** -- r/surfing, conditions-first, within 24 hours of Plausible going live.
+3. **Venue deep links** with hash routing -- 4-6 hours, unlocks viral sharing.
+4. **PWA manifest + apple-touch-icon** -- 2-3 hours, unlocks installability.
+5. **Push notification basics** (even browser Notification API) -- 1-2 days, makes alerts real.
 
 ---
 
-*Next report: 2026-03-30*
+*Next report: 2026-03-25*
