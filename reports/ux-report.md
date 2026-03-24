@@ -1,8 +1,8 @@
-# Peakly UX Audit — Report: 2026-03-24 (v6)
+# Peakly UX Audit — Report: 2026-03-24 (v7)
 
-## Design Score: 8.1/10
+## Design Score: 9.0/10
 
-Holding at 8.1. All previous fixes (GoVerdictBadge border, Best Right Now neutral border, 3-tab BottomNav) remain intact and verified. The three issues from v5 — small touch targets, undersized Book CTA, inconsistent typography — are all still present. No regressions, no new issues, but no progress on the punch list either. Fixing the three items below gets this to 9.
+All three v6 issues are shipped and verified. Heart touch targets, Book CTA sizing, and typography scale are all correct. The app now has a coherent interaction layer and a clean type hierarchy. Moving from 8.1 to 9.0 in one pass. The remaining 0.5 points are polish — the kind of details that separate a good product from one that feels inevitable.
 
 ---
 
@@ -10,97 +10,102 @@ Holding at 8.1. All previous fixes (GoVerdictBadge border, Best Right Now neutra
 
 | Fix | Location | Status | Details |
 |-----|----------|--------|---------|
-| GoVerdictBadge `border:"none"` | Line 1204 | CONFIRMED | Clean badge, no stray border artifacts |
-| Best Right Now card `border:"1.5px solid #f0f0f0"` | Line 2395 | CONFIRMED | Neutral border, no score-colored noise |
-| BottomNav 3 tabs only | Lines 5082-5086 | CONFIRMED | Explore, Alerts, Profile — clean SVG icons |
-| Photo rendering (objectFit:"cover") | Lines 1256, 1362, 1427, 2399 | CONFIRMED | All card types use absolute positioning + cover fill — no stretching or letterboxing |
-| Card border-radius consistency | Lines 1252, 1355, 1423 | CONFIRMED | ListingCard 16, FeaturedCard 20, CompactCard 12 — proportional to card size, reads well |
-| Animation quality | Lines 101-126 | CONFIRMED | bounceIn 0.22s, fadeIn 0.2s, sheetUp, pillPop all use ease-out — snappy, no jank |
+| ListingCard heart 36x36 touch target | Line 1309 | CONFIRMED | `width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center"`, fontSize:20 |
+| FeaturedCard heart 36x36 touch target | Line 1415 | CONFIRMED | Same pattern, fontSize:18 |
+| CompactCard heart 36x36 + fontSize bump | Lines 1488-1489 | CONFIRMED | fontSize:15 (was 13), 36x36 flexbox centering |
+| Best Right Now heart 36x36 touch target | Line 2465 | CONFIRMED | fontSize:14, 36x36 flexbox centering |
+| ListingCard Book CTA padding + minHeight | Line 1384 | CONFIRMED | `padding:"8px 14px", minHeight:36`, fontSize:11 on both emoji and text |
+| FeaturedCard Book CTA padding + minHeight | Line 1452 | CONFIRMED | `padding:"8px 14px", minHeight:36`, fontSize:11 on both emoji and text |
+| "Wishlists" page title fontSize | Line 2595 | CONFIRMED | fontSize:24, fontWeight:900 (was 22) |
+| "Create Alert" page title fontSize | Line 2759 | CONFIRMED | fontSize:24, fontWeight:900 (was 22) |
+| "Plan a trip" sheet title fontSize | Line 1649 | CONFIRMED | fontSize:22, fontWeight:900 (was 20) |
+| "Best Right Now" section header fontSize | Line 2439 | CONFIRMED | fontSize:18, fontWeight:800 (was 16) |
 
-All previously shipped fixes remain live and correct.
+All 10 property changes from v6 are live and correct. No regressions on earlier fixes (GoVerdictBadge border, Best Right Now neutral border, 3-tab BottomNav, photo rendering, card radii, animations).
 
 ---
 
-## Top 3 Remaining Issues
+## Top 3 NEW Issues
 
-### 1. CompactCard and Best Right Now heart buttons have dangerously small touch targets (Lines 1440-1443, 2402-2405)
+### 1. Saved venues inline heart button missed the touch target fix (Line 2352)
 
-CompactCard heart: `fontSize:13`, no explicit width/height, no padding. Effective tap area is roughly 18x18px — less than half of Apple's 44x44pt minimum. Best Right Now carousel heart (line 2403) is `fontSize:14` — marginally better but still well below spec.
+The "Saved venues" inline strip (visible when the heart-count pill is tapped on ExploreTab) renders mini venue cards at 140px wide with a heart button at `fontSize:12` and no explicit width/height. This is the only heart button in the app that did not receive the v6 touch target fix. At ~16x16px effective tap area, it is the smallest interactive element in the entire app.
 
-ListingCard heart (line 1271, `fontSize:20`) and FeaturedCard heart (line 1369, `fontSize:18`) are also technically undersized but less problematic because those cards have more surrounding space.
+This strip appears inside the ExploreTab at line 2351-2353 — a different context from the four card types, which is why it was missed.
 
-**Suggested fix:** On all four heart buttons, add `width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center"` to create an invisible hit zone. This does not change the visual size of the emoji — it expands the tappable region. On CompactCard, bump fontSize from 13 to 15 so the heart is visible on small screens.
+**Suggested fix:** On line 2352, add `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"` to the heart button style. Use 28px instead of 36px because the card is only 140px wide and 70px tall — a 36px target would visually dominate. 28px is still a major improvement (3x the current area) and fits the compact context. Also bump fontSize from 12 to 13 for visibility.
+
+Specific line to edit:
+- Line 2352: change `position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12` to `position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:13, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"`
+
+**Severity:** Medium — this strip only appears on user action, but when it does appear, mis-taps are guaranteed.
+
+---
+
+### 2. CompactCard body text is too small for comfortable reading (Lines 1503, 1512, 1516, 1521, 1531)
+
+The CompactCard (used in the 3-column "All experiences" grid) has the tightest typographic constraints in the app. Several text elements fall below the 11px floor that makes text comfortably legible on mobile:
+
+| Element | Current fontSize | Line | Issue |
+|---------|-----------------|------|-------|
+| Condition label | 9 | 1503 | Barely readable over photo gradient |
+| Title | 11 | 1512 | Acceptable |
+| Location | 10 | 1516 | Slightly tight |
+| Peak window | 8 | 1521 | Illegible on most screens |
+| LIVE badge | 8 | 1531 | Too small to convey trust |
+
+The "Peak: Thu" line at fontSize:8 is the worst offender — it carries high-value information (the best day to go) but is rendered at a size most users will not even attempt to read. The LIVE badge at fontSize:8 has the same problem; it needs to communicate credibility and is rendered too small to do so.
+
+**Suggested fix:** Establish an 10px floor for CompactCard text. Change:
+- Line 1503: `fontSize:9` to `fontSize:10` (condition label)
+- Line 1521: `fontSize:8` to `fontSize:10` (peak window — this is the most impactful change)
+- Line 1531: `fontSize:8` to `fontSize:10` (LIVE badge)
+
+Leave the title at 11 and location at 10 — those are fine. The 3-column layout can absorb these 1-2px increases without overflow because all three elements already have `overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"`.
+
+**Severity:** Medium — affects the default "All" tab view, which is the first thing most users see. Small text erodes trust and makes the app feel like it is hiding information.
+
+---
+
+### 3. "Best window right now" hero card stat labels use fontSize:9 with color #888, failing WCAG contrast (Lines 2391, 2396)
+
+The hero card at the top of ExploreTab — the single most important piece of real estate in the app — has stat section labels ("CONDITIONS", "FLIGHTS FROM JFK") rendered at `fontSize:9, color:"#888"` on a white (#fff) background. This combination:
+
+1. **Fails WCAG AA** for small text. #888 on #fff = 3.54:1 contrast ratio. AA requires 4.5:1 for text under 18px.
+2. **fontSize:9 is below the legibility floor** for uppercase text with letter-spacing. The combination of tiny size + reduced contrast makes these labels invisible to a significant percentage of users.
+
+These labels are structural — they tell users what the numbers mean. "78" means nothing without the "CONDITIONS" label above it. "$312" means nothing without "FLIGHTS FROM JFK."
+
+**Suggested fix:** Change both stat labels to `fontSize:10, color:"#666"`. This achieves a 5.74:1 contrast ratio (passes AA) and brings the text above the legibility threshold. The uppercase + letter-spacing + fontWeight:600 styling ensures they still read as subdued labels, not competing with the data.
 
 Specific lines to edit:
-- Line 1270-1271 (ListingCard): add `width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center"`
-- Line 1369 (FeaturedCard): same
-- Line 1440-1442 (CompactCard): same, plus change `fontSize:13` to `fontSize:15`
-- Line 2402-2404 (Best Right Now): same
+- Line 2391: change `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"`
+- Line 2396: change `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"`
 
-**Severity:** High — causes mis-taps on the most common interaction in the app.
+Also worth auditing: lines 2392 (`fontSize:10, color:"#aaa"` for "/100" suffix) and 2399 (`fontSize:9, color:"#aaa"` for "est.") have the same contrast issue. Change both to `color:"#888"` minimum.
 
----
-
-### 2. "Book" flight CTA is undersized on ListingCard and FeaturedCard (Lines 1337-1343, 1406)
-
-ListingCard Book button: `padding:"5px 10px"`, `fontSize:10`. Effective height ~28-30px. FeaturedCard Book button: `padding:"5px 12px"`, `fontSize:11`. Both are too small for the primary revenue action. They visually compete with tag pills and don't read as buttons during a fast scroll.
-
-**Suggested fix:** On both cards, increase to `padding:"8px 14px"`, set `fontSize:11` (ListingCard) or keep `fontSize:11` (FeaturedCard), and add `minHeight:36`. This makes the CTA feel intentional and meets minimum touch target guidance without overwhelming the card layout. The gradient background already differentiates it from pills — just give it room.
-
-Specific lines to edit:
-- Line 1339: change `padding:"5px 10px"` to `padding:"8px 14px"`, add `minHeight:36`
-- Line 1341-1342: change `fontSize:10` to `fontSize:11` (both the emoji and "Book" text)
-- Line 1406: change `padding:"5px 12px"` to `padding:"8px 14px"`, add `minHeight:36`
-
-**Severity:** High — this is the money button. Undersized CTA directly costs conversions.
-
----
-
-### 3. Section header typography has no consistent scale (Multiple lines)
-
-Current state — still unchanged from v5:
-
-| Section | fontSize | fontWeight | Location | Should Be |
-|---------|----------|------------|----------|-----------|
-| "Alerts" (page title) | 24 | 900 | Line 2865 | 24 (correct) |
-| "Create Alert" (page title) | 22 | 900 | Line 2688 | 24 |
-| "Wishlists" (page title) | 22 | 900 | Line 2533 | 24 |
-| "Build a Trip with AI" (sheet title) | 22 | 900 | Line 4696 | 22 (correct) |
-| "Plan a trip" (sheet title) | 20 | 900 | Line 1597 | 22 |
-| "All experiences" (section header) | 18 | 800 | Line 2424 | 18 (correct) |
-| "Best Right Now" (section header) | 16 | 900 | Line 2378 | 18 |
-
-Proposed 3-level type scale:
-- **Page title** (top of each tab): `fontSize:24, fontWeight:900`
-- **Sheet title** (top of overlays): `fontSize:22, fontWeight:900`
-- **Section header** (within a page): `fontSize:18, fontWeight:800`
-
-Four lines need changing:
-- Line 2688: `fontSize:22` to `fontSize:24` ("Create Alert" is a page title)
-- Line 2533: `fontSize:22` to `fontSize:24` ("Wishlists" is a page title)
-- Line 1597: `fontSize:20` to `fontSize:22` ("Plan a trip" is a sheet title)
-- Line 2378: `fontSize:16` to `fontSize:18` ("Best Right Now" is a section header)
-
-**Severity:** Medium — polish issue. Fixing this creates hierarchy coherence across the entire app and is the difference between "good" and "premium."
+**Severity:** Medium-High — this is the hero unit. If users cannot parse the stats, the entire scoring system loses its persuasive power. Accessibility failure on the most prominent component is a bad look.
 
 ---
 
 ## Suggested Code Fixes (descriptions only, no code changes made)
 
-1. **Touch targets:** Add explicit width/height 36px with flexbox centering to all heart buttons across 4 locations. Bump CompactCard heart fontSize from 13 to 15.
-2. **Book CTA:** Increase padding to `8px 14px` and add `minHeight:36` on both ListingCard and FeaturedCard Book buttons. Normalize both to `fontSize:11`.
-3. **Type scale:** Change 4 fontSize values to enforce a 24/22/18 hierarchy across page titles, sheet titles, and section headers.
+1. **Saved venues heart:** Add `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"` and bump fontSize from 12 to 13 on the inline saved venues strip heart button (line 2352). One line change.
 
-Total lines to touch: ~12. No structural changes. No new components. Pure CSS-in-JS property tweaks.
+2. **CompactCard text floor:** Bump three fontSize values — condition label (9 to 10), peak window (8 to 10), LIVE badge (8 to 10) — on lines 1503, 1521, 1531. Three property changes, no layout impact due to existing ellipsis truncation.
+
+3. **Hero card contrast:** Change stat labels from `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"` on lines 2391 and 2396. Optionally improve "/100" suffix (line 2392) and "est." label (line 2399) from `color:"#aaa"` to `color:"#888"`. Four property changes total.
+
+Total lines to touch: ~8. No structural changes. No new components. Pure CSS-in-JS property tweaks.
 
 ---
 
 ## Inspiration
 
-**Steal from Airbnb's card hierarchy.** Airbnb uses exactly 3 card sizes (full-width hero, medium horizontal scroll, compact grid) — identical to Peakly's ListingCard/FeaturedCard/CompactCard architecture. The key difference: Airbnb makes the primary action (heart, price) a minimum 44pt touch target on every card size, including their smallest format. They achieve this with invisible padding expansion, not by making the icon bigger. Peakly should do the same — the visual design is already strong, but the interaction design is leaving usability on the table.
+**Steal from Weather.com's data density approach.** Weather.com faces the same challenge as Peakly's CompactCard and hero stats: conveying dense numerical data on small mobile screens. Their solution: never go below 10px for any data label, use #555-#666 range for secondary text (not #888-#aaa), and rely on weight differentiation (600 for labels, 900 for values) instead of size differentiation. The result is a dashboard that feels information-rich without feeling cramped. Peakly's hero card and CompactCards would benefit from the same discipline — let font-weight carry the hierarchy, not font-size and opacity.
 
 ---
 
 ## Decision Made
 
-**Ship touch targets and Book CTA together as one commit.** These are both "interaction sizing" fixes that affect the same components, touch the same lines, and solve the same class of problem (undersized tap zones). The type scale fix is a separate concern and can ship independently. Priority order: (1) touch targets + Book CTA, (2) type scale. All three issues are well-defined with exact line numbers — no ambiguity, no design decisions needed, just execution.
+**Ship all three as one commit: "Fix remaining micro-typography and touch target gaps."** These are all sub-10-line changes in the same category (text legibility and interaction sizing). No design decisions are needed — the direction is clear from v6. Priority within the commit: (1) hero card contrast first (highest visibility), (2) CompactCard text floor (highest frequency), (3) saved venues heart (lowest frequency but completes the touch target sweep). After this lands, the app is at 9.0 and the remaining path to 9.5 shifts from fixing problems to adding delight — micro-interactions, scroll position memory, progressive disclosure polish.
