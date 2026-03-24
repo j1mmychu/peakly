@@ -1,28 +1,29 @@
-# PM Report: 2026-03-23 (v3)
+# PM Report: 2026-03-23 (v5)
 
 ## Status: YELLOW
 
-## Live Site Health: working
-
-Site loads, cards render with real photos, scoring works, navigation functional. Flight pricing falls back to estimates correctly (mixed content handled gracefully). No critical runtime errors. Yellow because Trips tab is still hidden from nav and we have zero analytics -- flying blind on usage.
+Site is live, stable, and rendering correctly. Photos on cards, scoring functional, flight pricing falling back to estimates with "est." labels. Yellow because: (1) BottomNav intentionally reduced to 3 tabs per Jack's request -- Trips/Wishlists features are built but unreachable, (2) zero analytics means we're flying blind on usage, (3) no HTTPS on VPS so all flight prices are estimates.
 
 ---
 
 ## Shipped Today
 
-- **109 venue photos** -- real Unsplash images on all venue cards with lazy loading and gradient fallback
-- **All 4 card components updated** -- ListingCard, FeaturedCard, CompactCard, VenueDetailSheet all render `listing.photo` with `<img loading="lazy">`
-- **Duplicate pipeline ID fixed**
-- **Amazon affiliate tags added** -- real IDs replacing placeholders
-- **OG image fixed** -- uses Unsplash URL for social sharing previews
+- **GoVerdictBadge borders removed** -- GO/MAYBE/WAIT badges no longer have colored outlines, cleaner visual
+- **Best Right Now card borders neutralized** -- removed score-colored borders from carousel cards for consistency
+- **Cache-busting on index.html** -- `app.jsx?v=20260323b` ensures users get latest code on deploy
+- **Fixed 19 venue entries with missing commas** -- Babel crash bug resolved (089dfc6)
+- **Added .nojekyll file** -- fixes GitHub Pages deployment for files starting with underscores
 
 Previously shipped (still live):
-- Tanning category added with 20+ venues
-- Share URLs fixed (j1mmychu.github.io/peakly)
+- 109 venue photos via Unsplash with lazy loading and gradient fallback
+- All 4 card components rendering photos (ListingCard, FeaturedCard, CompactCard, VenueDetailSheet)
 - Mixed content timeout + "est." fallback labels on flight prices
 - City names in search bar (not airport codes)
 - Category pills corrected (All, Skiing, Surfing, Beach & Tan default)
 - Hero CTA + auto-refresh weather
+- Amazon affiliate tags on gear links
+- OG image for social sharing
+- Tanning category with 20+ venues
 
 ---
 
@@ -35,65 +36,55 @@ Previously shipped (still live):
 | **Phase 3** | Performance & Reliability | In progress | **25%** |
 | **Phase 4** | Content & Engagement | Not started | **0%** |
 
-### Phase 1 breakdown (100%)
-- 1.1 Mixed content fallback: DONE (3s timeout + "est." labels on fallback prices)
-- 1.2 Card data/badge clipping: DONE (cards audited during photo update)
+### Phase 1 (100% -- DONE)
+- 1.1 Mixed content fallback: DONE
+- 1.2 Card data/badge clipping: DONE
 - 1.3 Venue count fix: DONE
-- 1.4 Default category pills: DONE (All, Skiing, Surfing, Beach & Tan)
+- 1.4 Default category pills: DONE
 - 1.5 Search bar city names: DONE
 
-### Phase 2 breakdown (35%)
-- 2.1 Venue photos: **DONE** (109 venues with Unsplash photos, all 4 card types updated)
-- 2.2 "Best Right Now" carousel improvements: NOT DONE
+### Phase 2 (35%)
+- 2.1 Venue photos: **DONE** (109 venues, all card types)
+- 2.2 "Best Right Now" carousel improvements: PARTIAL (section always shows, photos added, but no "See all" link or key weather stat on cards)
 - 2.3 Venue Detail Sheet polish (Airbnb-style): NOT DONE
 - 2.4 Alerts tab improvements: NOT DONE
 - 2.5 Profile tab improvements: NOT DONE
 - 2.6 Haptic feedback everywhere: NOT DONE
 
-### Phase 3 breakdown (25%)
+### Phase 3 (25%)
 - 3.1 Lazy load weather: NOT DONE
-- 3.2 Image lazy loading: **DONE** (loading="lazy" on all img tags)
-- 3.3 Error handling audit: PARTIAL (flight fallback works, weather error handling incomplete)
-- 3.4 Restore Trips tab in BottomNav: **NOT DONE** (TripsTab exists but nav shows only 3 tabs)
+- 3.2 Image lazy loading: **DONE**
+- 3.3 Error handling audit: PARTIAL (flight fallback works, weather errors incomplete)
+- 3.4 Restore Trips tab in BottomNav: **CANCELED** -- Jack wants 3 tabs only (Explore, Alerts, Profile)
 
-### Phase 4 breakdown (0%)
+### Phase 4 (0%)
 - 4.1-4.4 all pending
 
 ---
 
-## Bugs & Issues (Current)
+## Top 3 Priorities
 
-| Priority | Issue | Impact |
-|----------|-------|--------|
-| P1 | **Trips tab hidden** -- BottomNav has 3 tabs (Explore, Alerts, Profile). TripsTab + WishlistsTab fully built but unreachable. | Two major features invisible to users |
-| P1 | **No analytics** -- Zero traffic/usage data | Can't measure anything, blocks all growth work |
-| P2 | **No PWA manifest** -- Can't install to home screen | Blocks mobile distribution |
-| P2 | **HTTPS not on VPS** -- Mixed content = no live flight prices | All prices show as estimates |
-| P3 | **Sentry DSN empty** -- No production error monitoring | Blind to crashes |
-| P3 | **Peakly Pro mockup** -- $79/year button does nothing | No revenue path |
-
----
-
-## Top 3 Priorities (Ship Next)
-
-### 1. Restore Trips tab in BottomNav (30 min)
-TripsTab and WishlistsTab are fully built but users can't reach them. Add Trips to the BottomNav tabs array (4 tabs: Explore, Trips, Alerts, Profile). Wishlists accessible within Explore. This is literally adding one object to an array -- unlocks two entire features.
+### 1. Venue Detail Sheet polish -- Phase 2.3 (2-3 hrs)
+This is the conversion point. When a user taps a card, the detail sheet needs to sell the trip. Full-width photo hero, sticky "Book Flights" CTA, 7-day weather inline, condition score breakdown, similar venues section. Photos are already in the data -- the detail view needs to match card quality. Highest impact on engagement and affiliate clicks.
 
 ### 2. Add Plausible analytics (30 min)
-One `<script>` tag in index.html. Free tier. Without analytics we cannot validate any growth experiment, measure retention, or know if the app is being used. This blocks every growth initiative. Must ship before any marketing push.
+One `<script>` tag in index.html. Without analytics we cannot validate any experiment, measure retention, or know if anyone uses the app. Blocks every growth decision. Must ship before any marketing push.
 
-### 3. Venue Detail Sheet polish -- Phase 2.3 (2-3 hrs)
-The conversion point where users decide to book. Full-width photo hero, sticky "Book Flights" CTA, 7-day weather inline, condition score breakdown, similar venues. Photos are already there -- the detail view needs to match the quality of the cards.
+### 3. Alerts tab improvements -- Phase 2.4 (1-2 hrs)
+With only 3 tabs, Alerts is prime real estate. Current state is bare. Add preset templates (Powder Alert, Perfect Surf, Beach Week), show firing alerts with actual venue cards and "Book Now" CTA. Makes the tab worth visiting daily -- drives retention.
 
 ---
 
 ## Decision Made
 
-**Ship Trips tab + analytics before any more feature work.** We have two fully-built features users can't access and zero data on usage. Both are 30-minute fixes. No point building more things nobody can find or we can't measure. Phase 2.3 (detail sheet) is the first real feature work after these two ship.
+**3-tab nav is final.** Jack confirmed Explore, Alerts, Profile. Trips/Wishlists remain accessible from within Explore (saved button, trip builder). Phase 2.3 (detail sheet) is the top priority -- it's the highest-leverage conversion surface. Spec item 3.4 (restore Trips tab) is canceled per Jack's direction.
 
 ---
 
-## Blockers for Jack
+## Blockers
 
-1. **Plausible analytics** -- Jack needs to sign up at plausible.io (free tier, no cookie banner needed) and share the script tag or site ID. Or approve self-hosted alternative. 30-second signup.
-2. **VPS HTTPS** -- Flight proxy at 104.131.82.242:3001 needs HTTPS (domain + Let's Encrypt + nginx, or Cloudflare). Until then, all flight prices are estimates. DevOps task, not code.
+| # | Blocker | Owner | Impact |
+|---|---------|-------|--------|
+| 1 | **Plausible analytics signup** -- need Jack to create account at plausible.io (free tier, no cookie banner) and share script tag or site ID | Jack | Blocks all growth measurement |
+| 2 | **VPS HTTPS** -- flight proxy at 104.131.82.242:3001 needs domain + Let's Encrypt + nginx. All flight prices show "est." until this is resolved | Jack/DevOps | All prices are estimates, hurts conversion |
+| 3 | **Sentry DSN** -- `SENTRY_DSN = ""` on line 6 of app.jsx. Need Jack to sign up at sentry.io and paste DSN | Jack | Blind to production crashes |

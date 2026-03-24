@@ -1,8 +1,8 @@
-# Peakly Revenue Report: 2026-03-23 (v3)
+# Peakly Revenue Report: 2026-03-23 (v5)
 
-## Revenue Readiness: SOFT LAUNCH
+## Revenue Readiness: SOFT LAUNCH (unchanged)
 
-All affiliate links are in place and functional. No payment infrastructure needed — revenue flows through third-party affiliate programs. The app can earn money today with traffic.
+Three affiliate streams are live and earning-ready. No code changes since v4 -- recent work focused on photos and UX polish, which improves trust signals and affiliate click-through but adds no new revenue streams. The app can earn money today with traffic.
 
 ---
 
@@ -10,59 +10,46 @@ All affiliate links are in place and functional. No payment infrastructure neede
 
 | # | Stream | Type | Status | Notes |
 |---|--------|------|--------|-------|
-| 1 | **Amazon Associates** | Gear affiliate (4%) | **WORKING** | 20 product URLs, all tagged `peakly-20`. Covers surfing, tanning, diving, kite, fishing, paraglide categories. |
-| 2 | **REI** | Gear affiliate (5%) | **NEEDS SIGNUP** | 18 product URLs in place. No affiliate tag appended — REI requires approval first. Links work as plain search URLs. |
-| 3 | **Backcountry** | Gear affiliate (8%) | **NEEDS SIGNUP** | 2 product URLs (MTB helmets/knee pads). No affiliate tag. Highest commission rate of any gear partner. |
-| 4 | **Booking.com** | Hotel affiliate | **WORKING** | `aid=2311236` attached to all hotel search links. Dynamic per-venue location. Commission ~25-40% of Booking's margin. |
-| 5 | **SafetyWing** | Insurance referral | **WORKING** | Single referral link with `referenceID=peakly`. Recurring commission on nomad insurance ($45/mo product). |
-| 6 | **GetYourGuide** | Experiences affiliate | **NEEDS SIGNUP** | Dynamic search URLs per venue/activity. No partner_id in URLs — currently just organic links. Need to apply for affiliate program. |
-| 7 | **Google Flights** | Flight deep links | **NO REVENUE** | Deep links to Google Flights with pre-filled routes/dates. No affiliate program exists — purely a user-value feature. |
-| 8 | **Peakly Pro** | Subscription ($9/mo) | **NOT BUILT** | UI exists with upsell card and feature list. Button shows "coming soon" alert. No payment integration (Stripe, etc.). |
+| 1 | **Amazon Associates** | Gear affiliate (4%) | **WORKING** | 20 product URLs, all tagged `peakly-20`. Covers surf, tanning, diving, kite, fishing, paraglide categories. |
+| 2 | **REI** | Gear affiliate (5%) | **NEEDS SIGNUP** | 18 product URLs in place. No affiliate tag appended -- REI requires Avantlink approval first. Links function as plain search URLs (zero tracking). |
+| 3 | **Backcountry** | Gear affiliate (8%) | **NEEDS SIGNUP** | 2 product URLs (MTB helmet + knee pads). No affiliate tag. Highest commission rate of any gear partner. |
+| 4 | **Booking.com** | Hotel affiliate | **WORKING** | `aid=2311236` attached to hotel search link in VenueDetailSheet. Dynamic per-venue location encoding. Commission ~25-40% of Booking's margin. |
+| 5 | **SafetyWing** | Insurance referral | **WORKING** | 1 referral link with `referenceID=peakly`. Recurring commission on Nomad Insurance ($45/mo product). |
+| 6 | **GetYourGuide** | Experiences affiliate | **NEEDS SIGNUP** | 2 references in codebase. No partner_id in URLs -- currently organic links with zero tracking. |
+| 7 | **Google Flights** | Flight deep links | **NO REVENUE** | Deep links with pre-filled routes/dates via `buildFlightUrl()`. No affiliate program exists -- pure user value. |
+| 8 | **Peakly Pro** | Subscription ($9/mo) | **NOT BUILT** | Upsell UI exists. Button triggers "coming soon" alert. No Stripe or payment integration. |
 
 ---
 
-## Amazon Tag Verified: YES — 20 of 20
+## Amazon Tag Verified: YES -- 20 of 20
 
-Every Amazon URL in GEAR_ITEMS contains `tag=peakly-20`. Confirmed by exact match count: **20 occurrences** across 10 product categories. Zero Amazon URLs missing the tag.
-
----
-
-## Revenue Per Stream — Estimated RPM (per 1,000 MAU)
-
-Assumptions: 10% of users view a venue detail sheet, 3% click an affiliate link, 2% convert on destination site.
-
-| Stream | Click-through | Avg Order | Commission | Est. RPM |
-|--------|--------------|-----------|------------|----------|
-| Amazon gear | 30 clicks/1K users | $120 | 4% | **$2.88** |
-| REI gear | 0 (no tag yet) | — | 5% | **$0.00** |
-| Backcountry | 0 (no tag yet) | — | 8% | **$0.00** |
-| Booking.com | 20 clicks/1K users | $150/night x 2 nights | ~$15/booking | **$6.00** |
-| SafetyWing | 5 clicks/1K users | $45/mo recurring | ~10% | **$0.45** |
-| GetYourGuide | 0 (no partner ID) | — | 8% | **$0.00** |
-| Google Flights | N/A | — | 0% | **$0.00** |
-| Peakly Pro | N/A | $9/mo | 100% | **$0.00** |
-| **Total** | | | | **$9.33** |
-
-With REI + GetYourGuide activated: estimated RPM rises to ~$14-16.
+Grep count of `tag=peakly-20` in app.jsx: **20 exact matches**. Every Amazon URL in GEAR_ITEMS contains the tag. Zero Amazon URLs missing tracking. No change from v3/v4.
 
 ---
 
-## Photo Impact on Conversion
+## Estimated RPM (per 1,000 MAU)
 
-Real venue photos (119 image references in codebase) directly increase:
+Assumptions: 10% view venue detail sheet, 3% click affiliate link, 2% convert on destination site. Photo improvements estimated to lift click-through 25-35% vs. no-photo baseline (not yet reflected in RPM -- insufficient data).
 
-- **Venue card CTR**: +40-60% vs placeholder/emoji-only cards (industry benchmark)
-- **Time on detail sheet**: users who see real photos spend longer scrolling, increasing exposure to Booking.com, gear, and insurance CTAs
-- **Trust signal**: real photos make the "Book Hotel" and "Get Insurance" buttons feel less spammy
-- **Estimated revenue uplift**: 25-35% increase in affiliate click-through vs. no-photo version
+| Stream | Status | Click-through | Avg Order | Commission | Est. RPM |
+|--------|--------|--------------|-----------|------------|----------|
+| Amazon gear | LIVE | 30 clicks/1K | $120 | 4% | **$2.88** |
+| REI gear | NO TAG | 0 | -- | 5% | **$0.00** |
+| Backcountry | NO TAG | 0 | -- | 8% | **$0.00** |
+| Booking.com | LIVE | 20 clicks/1K | $300 (2 nights) | ~$15/booking | **$6.00** |
+| SafetyWing | LIVE | 5 clicks/1K | $45/mo | ~10% | **$0.45** |
+| GetYourGuide | NO ID | 0 | -- | 8% | **$0.00** |
+| Google Flights | N/A | -- | -- | 0% | **$0.00** |
+| Peakly Pro | NOT BUILT | -- | $9/mo | 100% | **$0.00** |
+| **Total (live)** | | | | | **$9.33** |
 
-Photos are the single biggest conversion multiplier already shipped.
+With REI + GetYourGuide activated: estimated RPM ~$14-16.
 
 ---
 
 ## Top Revenue Blocker
 
-**REI affiliate signup.** 18 gear items (the highest-value outdoor equipment: skis, wetsuits, harnesses, GPS units) link to REI with zero commission tracking. At 5% commission on avg $250 items, this is ~$4-5/1K users left on the table. REI's affiliate program (via Avantlink) has straightforward approval for outdoor content sites.
+**REI affiliate signup.** 18 gear items linking to REI (skis, wetsuits, harnesses, GPS units, dry suits -- the highest-value outdoor equipment) generate zero commission. At 5% on avg $250 items, this is ~$4-5/1K users left on the table. REI's Avantlink affiliate program has straightforward approval for outdoor content sites. This is a 30-minute signup task that unlocks revenue on code already shipped.
 
 ---
 
@@ -70,49 +57,57 @@ Photos are the single biggest conversion multiplier already shipped.
 
 **Drive one user to click a Booking.com hotel link and complete a stay.**
 
-Why this and not Amazon:
-- Booking.com is already fully working (aid=2311236 confirmed)
+- Booking.com is fully working (aid=2311236 confirmed in code)
 - Hotel bookings have the highest per-transaction value ($150-300+)
-- Commission is paid on the booking margin (~$15-40 per booking)
-- Every venue detail sheet shows the hotel CTA — no extra click needed
-- Booking.com pays on completed stays, not just clicks — but the payout per conversion dwarfs gear
+- Commission ~$15-40 per completed booking
+- Every venue detail sheet shows the hotel CTA -- no extra UI work needed
+- Photos + UX polish (v5 improvements) increase trust and time-on-page, making hotel click-through more likely
 
-**Specific action:** Share one Peakly venue link on social media/Reddit targeting travelers planning a trip. One hotel booking = first dollar earned.
+**Action:** Share a single Peakly venue link targeting travelers actively planning a trip (Reddit r/travel, surf/ski forums, social). One hotel booking = first dollar.
 
 ---
 
 ## Decision Made
 
-**Prioritize REI affiliate signup this week.** It unlocks revenue on 18 high-value product links that are already built and displayed to users. Zero code changes needed — just add the affiliate tag parameter to existing URLs after approval. This is the highest-leverage 30-minute task available.
+**No change from v4 -- REI affiliate signup remains the top priority.** It unlocks revenue on 18 high-value product links already built and displayed to users. Zero code changes required -- just append the affiliate tag parameter to existing REI URLs after approval. This is the highest-leverage 30-minute task available. Secondary: apply for GetYourGuide partner program.
 
 ---
 
-## 30-Day Revenue Projection
+## 30-Day Projection
 
-| MAU | Amazon | Booking.com | SafetyWing | REI (if approved) | GetYourGuide | Peakly Pro | **Total/mo** |
-|-----|--------|-------------|------------|-------------------|--------------|------------|-------------|
-| **1,000** | $2.88 | $6.00 | $0.45 | $4.50 | $0.00 | $0.00 | **$13.83** |
-| **10,000** | $28.80 | $60.00 | $4.50 | $45.00 | $0.00 | $0.00 | **$138.30** |
-| **100,000** | $288.00 | $600.00 | $45.00 | $450.00 | $0.00 | $0.00 | **$1,383.00** |
+**Current streams only (Amazon + Booking.com + SafetyWing):**
 
-With all streams active (REI, Backcountry, GetYourGuide, Peakly Pro):
+| MAU | Amazon | Booking.com | SafetyWing | **Total/mo** |
+|-----|--------|-------------|------------|-------------|
+| 1,000 | $2.88 | $6.00 | $0.45 | **$9.33** |
+| 10,000 | $28.80 | $60.00 | $4.50 | **$93.30** |
+| 100,000 | $288 | $600 | $45 | **$933** |
+
+**With REI + Backcountry + GetYourGuide activated:**
 
 | MAU | **Projected Total/mo** |
 |-----|----------------------|
-| **1,000** | $25-40 |
-| **10,000** | $250-400 |
-| **100,000** | $2,500-5,000 |
+| 1,000 | $20-35 |
+| 10,000 | $200-350 |
+| 100,000 | $2,000-3,500 |
 
-With Peakly Pro at 2% conversion ($9/mo):
+**With Peakly Pro at 2% conversion ($9/mo):**
 
-| MAU | Pro subscribers | Pro revenue | **Grand Total/mo** |
-|-----|----------------|-------------|-------------------|
-| **1,000** | 20 | $180 | **$200-220** |
-| **10,000** | 200 | $1,800 | **$2,050-2,200** |
-| **100,000** | 2,000 | $18,000 | **$20,500-23,000** |
+| MAU | Pro subs | Pro revenue | **Grand Total/mo** |
+|-----|----------|-------------|-------------------|
+| 1,000 | 20 | $180 | **$200-215** |
+| 10,000 | 200 | $1,800 | **$2,000-2,150** |
+| 100,000 | 2,000 | $18,000 | **$20,000-21,500** |
 
 ---
 
-## Summary
+## v5 Delta (what changed since v4)
 
-Three streams are earning-ready today (Amazon, Booking.com, SafetyWing). Two high-value streams need affiliate signups (REI, GetYourGuide). Peakly Pro is the long-term revenue engine but needs Stripe integration. Real photos are already boosting conversion potential across all streams. The app is in **soft launch** revenue posture — it can make money right now, it just needs traffic.
+- **No new revenue streams added.** Code unchanged on affiliate front.
+- **Photo + UX polish impact:** Real venue photos and improved UI increase trust signals, time-on-page, and affiliate click-through potential. Estimated 25-35% uplift in conversion vs. no-photo baseline, but this is not yet measurable without traffic analytics.
+- **Amazon tag count:** 20 (unchanged).
+- **REI links:** 18 (unchanged, still untagged).
+- **Booking.com:** 1 link with aid (unchanged).
+- **SafetyWing:** 1 link with referenceID (unchanged).
+
+**Bottom line:** Revenue infrastructure is stable. The app needs traffic, not more affiliate plumbing. Ship REI signup, then focus on distribution.
