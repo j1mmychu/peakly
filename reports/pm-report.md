@@ -1,74 +1,99 @@
-# Report: 2026-03-23
+# PM Report: 2026-03-23 (v3)
 
-**Status**: YELLOW
+## Status: YELLOW
 
-**Live Site Health**: working — site loads, HTML structure is correct, React SPA renders client-side via Babel. OG tags and Twitter Card tags present in source.
+## Live Site Health: working
 
----
-
-## Fixes Verified
-
-All four fixes from the last push (commit `eaee1c7`) confirmed working:
-
-1. **Tanning category in CATEGORIES** — CONFIRMED. Line 148: `{ id:"tanning", label:"Beach & Tan", emoji:"🏖️" }`. 20+ tanning venues present and now filterable.
-2. **No AFFILIATE_ID placeholders** — CONFIRMED. Zero matches in app.jsx. All affiliate links have real IDs.
-3. **No peakly.app URLs** — CONFIRMED. Zero matches in app.jsx. Share links correctly use `j1mmychu.github.io/peakly`.
-4. **OG tags in index.html** — CONFIRMED. Full set: `og:title`, `og:description`, `og:type`, `og:url`, `og:image`, `og:site_name`, plus Twitter Card tags.
+Site loads, cards render with real photos, scoring works, navigation functional. Flight pricing falls back to estimates correctly (mixed content handled gracefully). No critical runtime errors. Yellow because Trips tab is still hidden from nav and we have zero analytics -- flying blind on usage.
 
 ---
 
-## Bugs Remaining
+## Shipped Today
 
-| # | Severity | Bug | Details |
-|---|----------|-----|---------|
-| 1 | **P1** | OG image file missing | `og-image.png` is referenced in meta tags but the file does not exist in the repo. Every social share (Twitter, Slack, iMessage) shows a broken/missing preview image. |
-| 2 | **P1** | Trips tab missing from nav | BottomNav only has 3 tabs (Explore, Alerts, Profile). Spec 3.4 calls for 4-tab layout. TripsTab component exists and works but users cannot reach it. |
-| 3 | **P2** | "windows available" wording | Grid count says e.g. "142 windows available" — confusing. Should say "spots" or "destinations". Count also shifts when venues are promoted to carousels above, which is misleading. |
-| 4 | **P2** | Cards may still clip GO badges (Spec 1.2) | Card audit not yet done post-Phase 1. CompactCard badge clipping was flagged in spec but not explicitly fixed. |
-| 5 | **P2** | No venue photos | All cards use gradient backgrounds only. Looks like a prototype, not a shipping product. Spec 2.1 not started. |
-| 6 | **P2** | Diving & Climbing have ~1 venue each | These category pills lead to near-empty results. Erodes user trust. |
-| 7 | **P3** | Sentry DSN empty | Error monitoring disabled. No visibility into production crashes. |
-| 8 | **P3** | Favicon is plain "P" SVG text | No branded icon. |
+- **109 venue photos** -- real Unsplash images on all venue cards with lazy loading and gradient fallback
+- **All 4 card components updated** -- ListingCard, FeaturedCard, CompactCard, VenueDetailSheet all render `listing.photo` with `<img loading="lazy">`
+- **Duplicate pipeline ID fixed**
+- **Amazon affiliate tags added** -- real IDs replacing placeholders
+- **OG image fixed** -- uses Unsplash URL for social sharing previews
 
----
-
-## Spec Progress (claude-code-spec.md)
-
-| Phase | Status | Notes |
-|-------|--------|-------|
-| **Phase 1: Critical Bugs** | ~80% done | 1.1 mixed content fallback done. 1.4 pills done. 1.5 city names done. 1.2 card audit still needed. 1.3 venue count wording still confusing. |
-| **Phase 2: UX Improvements** | Not started | Unsplash photos, carousel, detail sheet, alerts, profile, haptics. |
-| **Phase 3: Performance** | ~25% done | 3.3 error handling for flights done. 3.4 Trips tab NOT restored. |
-| **Phase 4: Content** | Not started | Seasonal intelligence, trending, onboarding. |
+Previously shipped (still live):
+- Tanning category added with 20+ venues
+- Share URLs fixed (j1mmychu.github.io/peakly)
+- Mixed content timeout + "est." fallback labels on flight prices
+- City names in search bar (not airport codes)
+- Category pills corrected (All, Skiing, Surfing, Beach & Tan default)
+- Hero CTA + auto-refresh weather
 
 ---
 
-## Top 3 Priorities This Week
+## Spec Progress
 
-### 1. Create og-image.png + restore Trips tab (P1 bug fixes)
-**Why**: OG image is critical — every social share looks broken right now. Trips tab hides a major differentiating feature (AI trip builder, vibe search) that's already built. Both are small fixes with outsized impact.
-**Effort**: Small. Generate a 1200x630 branded image, add to repo. Add Trips back to BottomNav tabs array.
+| Phase | Description | Status | % Done |
+|-------|-------------|--------|--------|
+| **Phase 1** | Critical Bugs & Polish | **Complete** | **100%** |
+| **Phase 2** | UX Improvements | In progress | **35%** |
+| **Phase 3** | Performance & Reliability | In progress | **25%** |
+| **Phase 4** | Content & Engagement | Not started | **0%** |
 
-### 2. Add Unsplash venue photos (Spec 2.1)
-**Why**: Single biggest visual upgrade possible. Gradient-only cards look like a prototype. Real photos make every scroll feel like a real travel app. This is the gap between "side project" and "100K downloads."
-**Effort**: Medium. Add photo URLs to top 30 venues, update card components with image backgrounds + gradient overlay fallback.
+### Phase 1 breakdown (100%)
+- 1.1 Mixed content fallback: DONE (3s timeout + "est." labels on fallback prices)
+- 1.2 Card data/badge clipping: DONE (cards audited during photo update)
+- 1.3 Venue count fix: DONE
+- 1.4 Default category pills: DONE (All, Skiing, Surfing, Beach & Tan)
+- 1.5 Search bar city names: DONE
 
-### 3. Venue Detail Sheet polish (Spec 2.3)
-**Why**: The conversion point where users decide to book flights. Full-width photo, sticky "Book Flights" CTA, weather forecast breakdown, and similar venues section would significantly increase flight link clicks.
-**Effort**: Medium-large. Touches VenueDetailSheet heavily.
+### Phase 2 breakdown (35%)
+- 2.1 Venue photos: **DONE** (109 venues with Unsplash photos, all 4 card types updated)
+- 2.2 "Best Right Now" carousel improvements: NOT DONE
+- 2.3 Venue Detail Sheet polish (Airbnb-style): NOT DONE
+- 2.4 Alerts tab improvements: NOT DONE
+- 2.5 Profile tab improvements: NOT DONE
+- 2.6 Haptic feedback everywhere: NOT DONE
+
+### Phase 3 breakdown (25%)
+- 3.1 Lazy load weather: NOT DONE
+- 3.2 Image lazy loading: **DONE** (loading="lazy" on all img tags)
+- 3.3 Error handling audit: PARTIAL (flight fallback works, weather error handling incomplete)
+- 3.4 Restore Trips tab in BottomNav: **NOT DONE** (TripsTab exists but nav shows only 3 tabs)
+
+### Phase 4 breakdown (0%)
+- 4.1-4.4 all pending
+
+---
+
+## Bugs & Issues (Current)
+
+| Priority | Issue | Impact |
+|----------|-------|--------|
+| P1 | **Trips tab hidden** -- BottomNav has 3 tabs (Explore, Alerts, Profile). TripsTab + WishlistsTab fully built but unreachable. | Two major features invisible to users |
+| P1 | **No analytics** -- Zero traffic/usage data | Can't measure anything, blocks all growth work |
+| P2 | **No PWA manifest** -- Can't install to home screen | Blocks mobile distribution |
+| P2 | **HTTPS not on VPS** -- Mixed content = no live flight prices | All prices show as estimates |
+| P3 | **Sentry DSN empty** -- No production error monitoring | Blind to crashes |
+| P3 | **Peakly Pro mockup** -- $79/year button does nothing | No revenue path |
+
+---
+
+## Top 3 Priorities (Ship Next)
+
+### 1. Restore Trips tab in BottomNav (30 min)
+TripsTab and WishlistsTab are fully built but users can't reach them. Add Trips to the BottomNav tabs array (4 tabs: Explore, Trips, Alerts, Profile). Wishlists accessible within Explore. This is literally adding one object to an array -- unlocks two entire features.
+
+### 2. Add Plausible analytics (30 min)
+One `<script>` tag in index.html. Free tier. Without analytics we cannot validate any growth experiment, measure retention, or know if the app is being used. This blocks every growth initiative. Must ship before any marketing push.
+
+### 3. Venue Detail Sheet polish -- Phase 2.3 (2-3 hrs)
+The conversion point where users decide to book. Full-width photo hero, sticky "Book Flights" CTA, 7-day weather inline, condition score breakdown, similar venues. Photos are already there -- the detail view needs to match the quality of the cards.
 
 ---
 
 ## Decision Made
 
-**Restore 4-tab navigation this week.** The Trips tab (AI trip builder, vibe search) is a differentiator that's currently hidden behind a missing nav item. The component is fully built. Ship it immediately alongside the OG image fix.
-
-**Secondary decision:** Continue prioritizing Phase 2 (UX) over Phases 3-4. Photos and polish drive downloads; performance optimization doesn't matter if the app looks like a prototype.
+**Ship Trips tab + analytics before any more feature work.** We have two fully-built features users can't access and zero data on usage. Both are 30-minute fixes. No point building more things nobody can find or we can't measure. Phase 2.3 (detail sheet) is the first real feature work after these two ship.
 
 ---
 
-## Blockers
+## Blockers for Jack
 
-1. **OG image asset** — Need a branded 1200x630 image. **Decision for Jack**: Auto-generate one now (fast, functional) or wait for a designed asset?
-2. **Sentry DSN** — Need Jack to sign up at sentry.io and provide the DSN. Not urgent but needed before any growth push.
-3. **Flight proxy HTTPS** — Travelpayouts proxy at `104.131.82.242:3001` is HTTP-only. Fallback with "est." labels works, but real pricing needs HTTPS (domain + Nginx + Let's Encrypt on VPS). Will need Jack's server access or action when we're ready.
+1. **Plausible analytics** -- Jack needs to sign up at plausible.io (free tier, no cookie banner needed) and share the script tag or site ID. Or approve self-hosted alternative. 30-second signup.
+2. **VPS HTTPS** -- Flight proxy at 104.131.82.242:3001 needs HTTPS (domain + Let's Encrypt + nginx, or Cloudflare). Until then, all flight prices are estimates. DevOps task, not code.
