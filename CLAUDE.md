@@ -185,7 +185,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-23)
+## Current State (Updated 2026-03-23, evening)
 
 ### What's Been Shipped
 
@@ -199,17 +199,27 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Tanning category fixed in CATEGORIES array
 - Affiliate links updated for Booking.com, SafetyWing
 - Share URLs updated to use peakly.app domain
+- 109 venue photos added (Unsplash URLs) to VENUES array
+- Card components (CompactCard, ListingCard, FeaturedCard) updated with conditional photo rendering
+- GuidesTab added with featured cards and photo support
+- Guides tab wired into BottomNav (4th tab)
+- UX polish: score badge borders removed, card padding fixed, similar venues photos
+- 7-agent automated team created (daily Cowork scheduled tasks)
+- Agent prompts written and stored in tasks/agents/
+- CLAUDE.md established as shared brain across all sessions
+- .nojekyll file added to fix GitHub Pages deployment
 
 ### What's Broken / Missing (Priority Order)
 
-1. **NO PHOTOS** — Every venue card uses CSS gradients + emoji icons. #1 visual problem. Add `photo` field to VENUES with Unsplash URLs, update CompactCard/ListingCard/FeaturedCard/VenueDetailSheet to render `<img>` with gradient fallback.
-2. **Only 3 tabs in BottomNav** — Trips and Wishlists are built but hidden. Wire them into BottomNav.
+1. **DEPLOYMENT BLOCKED** — GitHub Pages builds have been failing because Jekyll was processing the repo and choking on Liquid syntax in CLAUDE.md and reports. `.nojekyll` file has been created locally but **needs to be pushed**. Run: `push "Add .nojekyll to fix GitHub Pages deployment"`. Until this is pushed, the live site serves a stale version WITHOUT photos.
+2. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (Amazon Associates, GetYourGuide, REI), and domain registration (peakly.app).
 3. **HTTPS not configured on VPS** — Mixed content blocks live flight prices. Need Cloudflare or Let's Encrypt + nginx.
-4. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Replace with real IDs (Jack needs to sign up for these programs).
-5. **No analytics** — No GA4 or Plausible. Can't measure anything.
-6. **No PWA manifest** — Can't install to home screen on mobile.
-7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring.
-8. **Peakly Pro is a UI mockup** — $9/mo button does nothing. Need Stripe/Paddle integration.
+4. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Blocked by LLC approval.
+5. **No analytics** — No GA4 or Plausible. Can't measure anything. Not blocked — can add now.
+6. **No PWA manifest** — Can't install to home screen on mobile. Not blocked — can add now.
+7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
+8. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
+9. **Trips + Wishlists tabs** — Built but still hidden in BottomNav. Guides tab was added instead. Need to decide: add all 5 tabs or keep it lean.
 
 ### Decisions Made (2026-03-23)
 
@@ -218,20 +228,44 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **Peakly Pro pricing: $79/year** (not $9/month). Matches AllTrails Peak, converts better.
 - **CTA buttons use #222 (dark)** not blue. Feels more premium.
 - **Remove emoji from UI chrome.** Emoji in category pills, section headers, and badges look amateur. Clean text + SVG only.
-- **"windows available" → "spots"** — nobody understands "windows."
+- **"windows available" to "spots"** — nobody understands "windows."
+- **Jekyll was breaking deploys.** Added .nojekyll to bypass Jekyll on GitHub Pages. All future deploys will serve static files directly.
 
 ### Pre-Launch Checklist (Ordered)
 
-1. [ ] Add venue photos (Unsplash URLs) to top 30+ venues
-2. [ ] Update card components to render photos
-3. [ ] Add PWA manifest + service worker basics
-4. [ ] Add GA4 analytics
-5. [ ] Expose Trips + Wishlists tabs in BottomNav
-6. [ ] Build onboarding flow for new users
-7. [ ] Configure HTTPS on VPS (Cloudflare or Let's Encrypt)
-8. [ ] Replace placeholder affiliate IDs with real ones
-9. [ ] Launch Peakly Pro with Stripe ($79/year)
-10. [ ] Reddit + TikTok launch campaign
+1. [x] Add venue photos (Unsplash URLs) — 109 venues done
+2. [x] Update card components to render photos — CompactCard, ListingCard, FeaturedCard, GuidesTab done
+3. [x] Create agent team + scheduled tasks — 7 agents + Chief of Staff briefing running daily
+4. [ ] **PUSH .nojekyll file** — critical, unblocks everything (run: `push "Add .nojekyll to fix GitHub Pages deployment"`)
+5. [ ] Add PWA manifest + service worker basics
+6. [ ] Add GA4 analytics
+7. [ ] Build onboarding flow for new users
+8. [ ] Configure HTTPS on VPS (Cloudflare or Let's Encrypt)
+9. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
+10. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
+11. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
+12. [ ] Reddit + TikTok launch campaign
+
+### Blocked by LLC
+
+These items cannot proceed until the LLC is approved:
+- Stripe/Paddle integration for Peakly Pro subscriptions
+- Amazon Associates signup (requires business entity)
+- GetYourGuide affiliate signup
+- REI affiliate signup
+- peakly.app domain registration (if doing it under business name)
+- Terms of Service / Privacy Policy (need legal entity)
+
+### Not Blocked — Can Ship Now
+
+These items can be worked on immediately:
+- Push .nojekyll fix (just needs `push` command)
+- PWA manifest + service worker
+- GA4 / Plausible analytics
+- Onboarding flow for new users
+- HTTPS on VPS (Let's Encrypt)
+- UI polish (emoji removal, "spots" label, etc.)
+- Expose Trips + Wishlists tabs
 
 ---
 
