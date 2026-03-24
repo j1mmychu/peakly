@@ -1,25 +1,72 @@
-# DevOps & Reliability Report: 2026-03-23 (v5)
+# DevOps & Reliability Report: 2026-03-24
 
-## System Status: DEGRADED
+## System Status: STABLE (code-level)
 
-Two of three services have issues. The GitHub Pages frontend serves HTML but app.jsx may have a Babel parse error (error handler detected in page content). The flight proxy is completely down. Open-Meteo returned a 429 (rate-limited), which is transient and not a Peakly-side issue.
+No new Babel parse errors detected. No secrets exposed in client code. File size unchanged from yesterday. Flight proxy status unknown (no live HTTP checks possible from this environment — VPS at 104.131.82.242:3001 remains an open concern from prior reports).
 
-## Uptime
+---
 
-| Service | Status | Detail |
-|---------|--------|--------|
-| GitHub Pages frontend | PARTIAL | Page loads, but Babel error handler text detected — app may not render |
-| Flight proxy (104.131.82.242:3001) | DOWN | ECONNREFUSED — VPS not responding on port 3001 |
-| Open-Meteo Weather API | RATE-LIMITED | HTTP 429 — transient, not a Peakly issue |
+## File Size
 
-## HTTPS Status
+| Metric | Value | Delta vs Yesterday |
+|--------|-------|--------------------|
+| app.jsx lines | 5,446 | No change |
+| app.jsx size | 364,885 bytes (~356 KB) | No change |
+| Cache-bust version | `?v=20260323b` | No change — consider bumping if new deploy happens |
 
-- **Frontend:** HTTPS active via GitHub Pages (j1mmychu.github.io/peakly)
-- **Flight proxy:** HTTP only (port 3001, no TLS). Still a tech-debt item — should be behind HTTPS reverse proxy or Cloudflare tunnel.
+File is stable. No bloat introduced today. Single-file architecture intact.
 
-## Recent Changes (last 10 commits)
+---
+
+## Security Audit
+
+| Check | Result |
+|-------|--------|
+| API tokens / secrets in client code | CLEAN |
+| Passwords or credentials | CLEAN |
+| `AFFILIATE_ID` placeholders | CLEAN — none found |
+| Sentry DSN | EMPTY — `""` on line 6, still TODO |
+| Travelpayouts token | CLEAN — server-side on VPS proxy only |
+| `secret` keyword matches | Benign — "Kelingking Secret Beach" (venue name) and "local secrets" (copy), not credentials |
+
+No security regressions. The one persistent gap: **Sentry DSN is still unconfigured** (`SENTRY_DSN = ""`). Error logging to localStorage works, but no remote alerting. This is a pre-launch blocker for observability.
+
+---
+
+## index.html Audit
+
+| Check | Result |
+|-------|--------|
+| OG / Twitter meta tags | PRESENT — title, description, image all set |
+| Viewport / mobile meta | PRESENT — `user-scalable=no` |
+| Theme color | PRESENT — `#0284c7` |
+| React 18 CDN | OK — unpkg, production build |
+| Babel Standalone 7.24.7 | OK — pinned version |
+| Cache-bust on app.jsx | PRESENT — `?v=20260323b` |
+| Babel error fallback script | PRESENT — shows friendly error UI on SyntaxError |
+| PWA manifest | MISSING — no `<link rel="manifest">` |
+| Canonical URL tag | MISSING — could help SEO |
+| Plausible / GA4 analytics | MISSING — no analytics script |
+
+Three gaps persist: **no PWA manifest**, **no analytics**, **no canonical URL**. All are on the pre-launch checklist and unblocked — can ship any time.
+
+---
+
+## Analytics Status
+
+Neither Plausible nor GA4 is present in `index.html` or `app.jsx`. This means:
+- Zero visibility into actual users, sessions, or conversions
+- Cannot measure the impact of any launch campaign
+- On the pre-launch checklist as unblocked — this should ship before any Reddit/TikTok push
+
+**Recommendation:** Add Plausible script to `index.html` in the next session. Takes ~5 minutes, unblocked, high value.
+
+---
+
+## Recent Commits (last 10)
 
 ```
+fb8970b Sync agent reports
 da6ba3d Cache-bust app.jsx + always show Best Right Now section
 089dfc6 Fix missing commas in 19 venue entries causing Babel crash
 1dd1308 Add .nojekyll to fix GitHub Pages deployment
@@ -29,45 +76,44 @@ da6ba3d Cache-bust app.jsx + always show Best Right Now section
 0027511 Sync agent reports
 aeba256 UX: kill score borders, fix card padding, photos in similar venues
 bad3ae8 Fix duplicate photo fields causing Babel parse error
-0567fcf add photos to all venues and cleanup
 ```
 
-Key: Commit `089dfc6` fixed missing commas in 19 venue entries that caused a Babel crash. Commit `da6ba3d` added cache-busting (`?v=20260323b`) to app.jsx in index.html. Multiple commits dealt with Babel parse errors from venue data issues.
+Recent history shows a Babel crash fix cycle that is now resolved. No new high-risk commits. Agent report syncs are the only activity in the last cycle.
 
-## Performance
+---
 
-| Metric | Value |
-|--------|-------|
-| app.jsx lines | 5,446 |
-| app.jsx size | 364,885 bytes (~356 KB) |
-| Cache-bust version | `?v=20260323b` |
+## Branch Status
 
-The file has grown from the original ~5,057 lines noted in CLAUDE.md to 5,446 lines (+389 lines). Still a single-file SPA — no build step, client-side Babel transpilation. At 356 KB this remains manageable for CDN delivery but is trending upward.
+- Active branch: `master` (GitHub Pages deploys from this)
+- No `main` branch exists on remote — all pushes go to `master`
+- 22 commits exist on a detached HEAD (likely from a prior claude/ session) — not connected to any branch. Not a problem unless work needs to be recovered.
 
-## Security
+---
 
-| Check | Result |
-|-------|--------|
-| API tokens in client code | CLEAN — none found |
-| Secrets / passwords | CLEAN — none found |
-| AFFILIATE_ID placeholders | CLEAN — no placeholder strings detected (previously noted as TODO) |
-| Proxy token handling | OK — comment on line 999 confirms token is server-side only |
+## VPS / Flight Proxy
 
-One venue is named "Kelingking Secret Beach" (contains "secret" in its title, not a credential). No actual secrets, tokens, or API keys are exposed in app.jsx.
+Cannot verify live status from this environment. Based on previous reports, the proxy at `104.131.82.242:3001` has been in an inconsistent state (ECONNREFUSED reported on 2026-03-23). The app has a 5-second timeout + "Estimated prices" fallback banner when the proxy is unreachable — users are not blocked, but live flight prices are unavailable.
 
-## Decision Made
+**Persistent recommendation:** SSH into VPS, ensure Node process is running under `pm2`, add UptimeRobot monitoring. HTTPS (Cloudflare or Let's Encrypt + nginx) is still missing — mixed content blocks flight prices in browsers when served over HTTPS.
 
-**No action taken on flight proxy.** The VPS at 104.131.82.242:3001 is returning ECONNREFUSED, meaning the proxy process is not running or the server is down. This has persisted across multiple report cycles. Recommendation: SSH into the VPS, check if the Node process crashed, and restart it. Consider adding a process manager (pm2) and uptime monitoring (UptimeRobot).
+---
 
-**No action on frontend Babel error.** The WebFetch tool picked up the error handler HTML, but this may be the fallback `<noscript>`-style content that always exists in index.html. The recent commit `089dfc6` specifically fixed missing commas causing a Babel crash. Need browser verification to confirm the app actually renders.
+## Decisions Made
 
-## Cost
+- **No code changes this session.** All findings are observational. No new bugs or regressions detected.
+- **Analytics is the highest-value unblocked item.** Before any launch campaign, Plausible must be added so traffic can be measured. Flagging for next coding session.
+- **Cache-bust version `?v=20260323b` not bumped today** — no new app.jsx deploy, so no change needed. If a deploy happens without a version bump, browsers may serve stale Babel-transpiled cache.
+
+---
+
+## Cost Estimate
 
 | Item | Monthly Cost |
 |------|-------------|
 | GitHub Pages | Free |
-| DigitalOcean VPS (flight proxy) | ~$6/mo (basic droplet) |
-| Open-Meteo API | Free tier |
+| DigitalOcean VPS (flight proxy) | ~$6/mo |
+| Open-Meteo API | Free |
 | Google Fonts CDN | Free |
-| Domain (if any) | N/A — using github.io subdomain |
-| **Total** | **~$6/mo** |
+| Plausible analytics (when added) | $9/mo (or free self-hosted) |
+| **Total (current)** | **~$6/mo** |
+| **Total (with Plausible cloud)** | **~$15/mo** |
