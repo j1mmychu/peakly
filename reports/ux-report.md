@@ -1,8 +1,8 @@
-# Peakly UX Audit — Report: 2026-03-24 (v7)
+# Peakly UX Audit — Report: 2026-03-24 (v8)
 
-## Design Score: 9.0/10
+## Design Score: 9.2/10
 
-All three v6 issues are shipped and verified. Heart touch targets, Book CTA sizing, and typography scale are all correct. The app now has a coherent interaction layer and a clean type hierarchy. Moving from 8.1 to 9.0 in one pass. The remaining 0.5 points are polish — the kind of details that separate a good product from one that feels inevitable.
+All three v7 issues are shipped and verified. The saved venues heart button now has a proper touch target, CompactCard text respects a 10px floor, and the hero stat labels pass WCAG contrast. Five new category pills (Kitesurf, Kayak, MTB, Fishing, Paraglide) are live with correct scoring functions and venue data. The pill bar's progressive disclosure ("+ More" button) keeps the default view clean while surfacing all 12 categories on demand. The remaining 0.3 points to reach 9.5 are about consistency sweep and information density — eliminating the last fontSize:9 holdouts and giving the new categories room to breathe with more than one venue each.
 
 ---
 
@@ -10,102 +10,100 @@ All three v6 issues are shipped and verified. Heart touch targets, Book CTA sizi
 
 | Fix | Location | Status | Details |
 |-----|----------|--------|---------|
-| ListingCard heart 36x36 touch target | Line 1309 | CONFIRMED | `width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center"`, fontSize:20 |
-| FeaturedCard heart 36x36 touch target | Line 1415 | CONFIRMED | Same pattern, fontSize:18 |
-| CompactCard heart 36x36 + fontSize bump | Lines 1488-1489 | CONFIRMED | fontSize:15 (was 13), 36x36 flexbox centering |
-| Best Right Now heart 36x36 touch target | Line 2465 | CONFIRMED | fontSize:14, 36x36 flexbox centering |
-| ListingCard Book CTA padding + minHeight | Line 1384 | CONFIRMED | `padding:"8px 14px", minHeight:36`, fontSize:11 on both emoji and text |
-| FeaturedCard Book CTA padding + minHeight | Line 1452 | CONFIRMED | `padding:"8px 14px", minHeight:36`, fontSize:11 on both emoji and text |
-| "Wishlists" page title fontSize | Line 2595 | CONFIRMED | fontSize:24, fontWeight:900 (was 22) |
-| "Create Alert" page title fontSize | Line 2759 | CONFIRMED | fontSize:24, fontWeight:900 (was 22) |
-| "Plan a trip" sheet title fontSize | Line 1649 | CONFIRMED | fontSize:22, fontWeight:900 (was 20) |
-| "Best Right Now" section header fontSize | Line 2439 | CONFIRMED | fontSize:18, fontWeight:800 (was 16) |
+| Saved venues heart 28x28 touch target | Line 2357-2359 | CONFIRMED | `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"`, fontSize:12, position absolute top:2 right:2 |
+| CompactCard condition label floor | Line 1508 | CONFIRMED | fontSize:10 (was 9) |
+| CompactCard peak window floor | Line 1526 | CONFIRMED | fontSize:10 (was 8) |
+| CompactCard LIVE badge floor | Line 1536 | CONFIRMED | fontSize:10 (was 8) |
+| Hero stat "Conditions" label contrast | Line 2415 | CONFIRMED | fontSize:10, color:"#666" (was fontSize:9, color:"#888") |
+| Hero stat "Flights from" label contrast | Line 2420 | CONFIRMED | fontSize:10, color:"#666" (was fontSize:9, color:"#888") |
+| New category: Kitesurf | Lines 148-149, 255-261, 948-958 | CONFIRMED | Pill, venue (Tarifa), and scoreVenue case all present |
+| New category: Kayak | Lines 149, 271-277, 960-972 | CONFIRMED | Pill, venue (Milford Sound), and scoreVenue case with rain bonus |
+| New category: MTB | Lines 150, 279-285, 974-983 | CONFIRMED | Pill, venue (Moab Slickrock), and scoreVenue case present |
+| New category: Fishing | Lines 151, 287-293, 985-993 | CONFIRMED | Pill, venue (Kenai River), and scoreVenue case with salmon run seasonality |
+| New category: Paraglide | Lines 152, 295-301, 995-1005 | CONFIRMED | Pill, venue (Interlaken), and scoreVenue case with thermal logic |
+| Pill bar progressive disclosure | Lines 2279-2309 | CONFIRMED | Default shows All/Skiing/Surfing/Beach, "+ More" expands to all 12. Clean pattern. |
 
-All 10 property changes from v6 are live and correct. No regressions on earlier fixes (GoVerdictBadge border, Best Right Now neutral border, 3-tab BottomNav, photo rendering, card radii, animations).
+All 12 items verified. No regressions on earlier fixes (GoVerdictBadge border, Best Right Now neutral border, 3-tab BottomNav, photo rendering, card radii, heart targets on ListingCard/FeaturedCard/CompactCard/Best Right Now carousel).
 
 ---
 
 ## Top 3 NEW Issues
 
-### 1. Saved venues inline heart button missed the touch target fix (Line 2352)
+### 1. fontSize:9 holdouts create an inconsistent legibility floor across the app (13 instances remaining)
 
-The "Saved venues" inline strip (visible when the heart-count pill is tapped on ExploreTab) renders mini venue cards at 140px wide with a heart button at `fontSize:12` and no explicit width/height. This is the only heart button in the app that did not receive the v6 touch target fix. At ~16x16px effective tap area, it is the smallest interactive element in the entire app.
+The v7 CompactCard fix established 10px as the minimum readable text size. But 13 other instances of fontSize:9 remain scattered across the app, creating an inconsistent floor. The worst offenders carry meaningful information users need to parse:
 
-This strip appears inside the ExploreTab at line 2351-2353 — a different context from the four card types, which is why it was missed.
+| Element | Line | Current | Problem |
+|---------|------|---------|---------|
+| CompactCard "est." price label | 1540 | fontSize:9, color:"#aaa" | Price credibility signal rendered illegibly; also fails WCAG at 2.32:1 contrast on white |
+| FeaturedCard LIVE badge | 1430 | fontSize:9 | Inconsistent with CompactCard LIVE badge (now 10px) |
+| Hero "est." label | 2423 | fontSize:9, color:"#aaa" | Same contrast failure as CompactCard "est." — on the hero card, no less |
+| Best Right Now carousel score | 2499 | fontSize:9, color:"#717171" | The score/100 is the card's only data density element and it is the smallest text on it |
+| Pill count badges | 2299 | fontSize:9, opacity:0.7 | Category counts appear as noise rather than useful data |
+| Saved venues card price | 2360 | fontSize:9, color:"#717171" | Price — the #1 decision-making data point — rendered at minimum legibility |
 
-**Suggested fix:** On line 2352, add `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"` to the heart button style. Use 28px instead of 36px because the card is only 140px wide and 70px tall — a 36px target would visually dominate. 28px is still a major improvement (3x the current area) and fits the compact context. Also bump fontSize from 12 to 13 for visibility.
+The remaining 7 instances (date picker labels, forecast mini-text, affiliate disclaimers, experience badge durations) are in secondary contexts where fontSize:9 is defensible. But the 6 listed above are on primary surfaces where users make decisions.
 
-Specific line to edit:
-- Line 2352: change `position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12` to `position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:13, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"`
+**Suggested fix:** Sweep all 6 primary-surface instances to fontSize:10. For the two "est." labels (lines 1540 and 2423), also change color from #aaa to #888 to reach WCAG AA. For the pill count badge (line 2299), change fontSize:9 to fontSize:10 and opacity:0.7 to opacity:0.8. Six lines, one principle: no decision-critical text below 10px.
 
-**Severity:** Medium — this strip only appears on user action, but when it does appear, mis-taps are guaranteed.
-
----
-
-### 2. CompactCard body text is too small for comfortable reading (Lines 1503, 1512, 1516, 1521, 1531)
-
-The CompactCard (used in the 3-column "All experiences" grid) has the tightest typographic constraints in the app. Several text elements fall below the 11px floor that makes text comfortably legible on mobile:
-
-| Element | Current fontSize | Line | Issue |
-|---------|-----------------|------|-------|
-| Condition label | 9 | 1503 | Barely readable over photo gradient |
-| Title | 11 | 1512 | Acceptable |
-| Location | 10 | 1516 | Slightly tight |
-| Peak window | 8 | 1521 | Illegible on most screens |
-| LIVE badge | 8 | 1531 | Too small to convey trust |
-
-The "Peak: Thu" line at fontSize:8 is the worst offender — it carries high-value information (the best day to go) but is rendered at a size most users will not even attempt to read. The LIVE badge at fontSize:8 has the same problem; it needs to communicate credibility and is rendered too small to do so.
-
-**Suggested fix:** Establish an 10px floor for CompactCard text. Change:
-- Line 1503: `fontSize:9` to `fontSize:10` (condition label)
-- Line 1521: `fontSize:8` to `fontSize:10` (peak window — this is the most impactful change)
-- Line 1531: `fontSize:8` to `fontSize:10` (LIVE badge)
-
-Leave the title at 11 and location at 10 — those are fine. The 3-column layout can absorb these 1-2px increases without overflow because all three elements already have `overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"`.
-
-**Severity:** Medium — affects the default "All" tab view, which is the first thing most users see. Small text erodes trust and makes the app feel like it is hiding information.
+**Severity:** Medium — individually small, collectively they undermine the polish established by v7 fixes. A user who notices the improved CompactCard text will also notice that the "est." label next to the price is still squinting-small.
 
 ---
 
-### 3. "Best window right now" hero card stat labels use fontSize:9 with color #888, failing WCAG contrast (Lines 2391, 2396)
+### 2. New category pills show "1" count each — the pill bar reads as empty shelves (Line 2298-2301)
 
-The hero card at the top of ExploreTab — the single most important piece of real estate in the app — has stat section labels ("CONDITIONS", "FLIGHTS FROM JFK") rendered at `fontSize:9, color:"#888"` on a white (#fff) background. This combination:
+When a user taps "+ More" and sees Kitesurf (1), Kayak (1), MTB (1), Fishing (1), Paraglide (1), the immediate reaction is: "This app doesn't actually have content for these sports." One venue per category makes the feature feel aspirational rather than useful. The count badge — which exists to signal abundance — is doing the opposite. It is broadcasting scarcity.
 
-1. **Fails WCAG AA** for small text. #888 on #fff = 3.54:1 contrast ratio. AA requires 4.5:1 for text under 18px.
-2. **fontSize:9 is below the legibility floor** for uppercase text with letter-spacing. The combination of tiny size + reduced contrast makes these labels invisible to a significant percentage of users.
+This is a content problem, not a code problem. But there is a design mitigation.
 
-These labels are structural — they tell users what the numbers mean. "78" means nothing without the "CONDITIONS" label above it. "$312" means nothing without "FLIGHTS FROM JFK."
+**Suggested fix (design-side):** Hide the count badge when a category has fewer than 3 venues. Change line 2298-2301: wrap the count `<span>` in a conditional that only renders when `listings.filter(l => l.category === c.id).length >= 3`. This removes the "1" badges from new categories without affecting established ones (Skiing shows 15+, Surfing 20+, etc.). The pills still work — tapping them still filters — they just don't advertise their thinness.
 
-**Suggested fix:** Change both stat labels to `fontSize:10, color:"#666"`. This achieves a 5.74:1 contrast ratio (passes AA) and brings the text above the legibility threshold. The uppercase + letter-spacing + fontWeight:600 styling ensures they still read as subdued labels, not competing with the data.
+Longer term, each new category needs 5-8 venues minimum to feel real. Kitesurf: Cabarete (DOM), Dakhla (Morocco), Cape Town (ZA), Boracay (PHL). Kayak: Ha Long Bay (VN), Glacier Bay (AK), Dubrovnik (HR). MTB: Whistler (BC), Rotorua (NZ), Finale Ligure (IT). Fishing: Cabo San Lucas, Islamorada (FL), Queenstown (NZ). Paraglide: Oludeniz (TR), Pokhara (NPL), Chamonix (FR).
 
-Specific lines to edit:
-- Line 2391: change `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"`
-- Line 2396: change `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"`
+**Severity:** Medium-High — new categories are a major feature addition. If they look barren on first impression, users will mentally classify them as "not ready" and never revisit. First impressions are irreversible.
 
-Also worth auditing: lines 2392 (`fontSize:10, color:"#aaa"` for "/100" suffix) and 2399 (`fontSize:9, color:"#aaa"` for "est.") have the same contrast issue. Change both to `color:"#888"` minimum.
+---
 
-**Severity:** Medium-High — this is the hero unit. If users cannot parse the stats, the entire scoring system loses its persuasive power. Accessibility failure on the most prominent component is a bad look.
+### 3. Best Right Now carousel cards lack a price label context clue — "$312" without "from" or "flights" (Line 2498)
+
+The Best Right Now carousel cards (170px wide, line 2477-2502) show a bold `$312` and a faint `78/100` on the bottom row. There is no label indicating what the dollar figure represents. On ListingCard there is "from JFK" next to the price. On FeaturedCard there is a "Book" CTA that contextualizes the price. On the hero card, there is a "Flights from New York" header above the number.
+
+But on the carousel card, the price floats unlabeled. A user scanning quickly could read it as a hotel price, a package price, or a daily rate. The ambiguity is small but it erodes the "everything is a flight deal" mental model that makes Peakly click.
+
+**Suggested fix:** Add a subtle "flights" or "rt" (round-trip) label after the price. On line 2498, change:
+
+`<span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>`
+
+to include a trailing label:
+
+`<span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#aaa", fontFamily:F, marginLeft:2 }}>rt</span>`
+
+At 170px card width, "rt" (two characters) fits easily. It costs 14px of horizontal space and buys complete clarity. Alternatively, use the flight emoji: `✈️` at fontSize:9 as a prefix to the price instead of text.
+
+Also on line 2499: the score `{l.conditionScore}/100` at fontSize:9 would benefit from the same floor treatment as issue #1 (bump to 10, color to #666).
+
+**Severity:** Medium — only affects the secondary carousel (the hero card above handles this correctly). But the carousel is the primary discovery surface for venues #2-5, so price clarity there matters.
 
 ---
 
 ## Suggested Code Fixes (descriptions only, no code changes made)
 
-1. **Saved venues heart:** Add `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"` and bump fontSize from 12 to 13 on the inline saved venues strip heart button (line 2352). One line change.
+1. **fontSize:9 sweep (6 primary instances):** Bump to fontSize:10 on lines 1430, 1540, 2299, 2360, 2423, 2499. Change color from #aaa to #888 on lines 1540 and 2423. Change opacity from 0.7 to 0.8 on line 2299. Eight property changes total.
 
-2. **CompactCard text floor:** Bump three fontSize values — condition label (9 to 10), peak window (8 to 10), LIVE badge (8 to 10) — on lines 1503, 1521, 1531. Three property changes, no layout impact due to existing ellipsis truncation.
+2. **Hide pill count when < 3 venues:** On lines 2298-2301, wrap the count span in `{listings.filter(l => l.category === c.id).length >= 3 && (...)}` so new single-venue categories don't advertise scarcity. One conditional addition.
 
-3. **Hero card contrast:** Change stat labels from `fontSize:9, color:"#888"` to `fontSize:10, color:"#666"` on lines 2391 and 2396. Optionally improve "/100" suffix (line 2392) and "est." label (line 2399) from `color:"#aaa"` to `color:"#888"`. Four property changes total.
+3. **Carousel price context:** On line 2498, append a `<span>` with "rt" (fontSize:9, color:"#aaa", marginLeft:2) after the price. One element addition.
 
-Total lines to touch: ~8. No structural changes. No new components. Pure CSS-in-JS property tweaks.
+Total lines to touch: ~10. No structural changes. No new components. All changes are CSS-in-JS property tweaks and one conditional wrapper.
 
 ---
 
 ## Inspiration
 
-**Steal from Weather.com's data density approach.** Weather.com faces the same challenge as Peakly's CompactCard and hero stats: conveying dense numerical data on small mobile screens. Their solution: never go below 10px for any data label, use #555-#666 range for secondary text (not #888-#aaa), and rely on weight differentiation (600 for labels, 900 for values) instead of size differentiation. The result is a dashboard that feels information-rich without feeling cramped. Peakly's hero card and CompactCards would benefit from the same discipline — let font-weight carry the hierarchy, not font-size and opacity.
+**Steal from Airbnb's category bar scroll behavior.** Airbnb faces the exact same 12+ category problem. Their solution: the pill bar is always horizontally scrollable with a subtle fade-out gradient on the right edge, signaling "there's more." No "+ More" button needed. The gradient (a 40px linear-gradient from white to transparent overlaid on the scroll container's right edge) is a zero-interaction affordance — users instinctively swipe. Peakly's "+ More" button works, but it requires a deliberate tap to discover new categories. A scroll-fade hybrid would make all 12 pills discoverable without hiding any behind a button. The implementation is ~8 lines: a pseudo-element or an absolutely-positioned gradient div on the right side of the pill scroll container. This also future-proofs for when the venue count grows and categories multiply.
 
 ---
 
 ## Decision Made
 
-**Ship all three as one commit: "Fix remaining micro-typography and touch target gaps."** These are all sub-10-line changes in the same category (text legibility and interaction sizing). No design decisions are needed — the direction is clear from v6. Priority within the commit: (1) hero card contrast first (highest visibility), (2) CompactCard text floor (highest frequency), (3) saved venues heart (lowest frequency but completes the touch target sweep). After this lands, the app is at 9.0 and the remaining path to 9.5 shifts from fixing problems to adding delight — micro-interactions, scroll position memory, progressive disclosure polish.
+**Ship issue #1 (fontSize:9 sweep) and issue #3 (carousel price label) as one commit: "Establish 10px floor app-wide, add price context to carousel cards."** These are pure property changes — zero risk, immediate polish. Issue #2 (hide pill counts < 3) ships alongside or immediately after, but is lower priority because the "+ More" gate already reduces exposure to the thin categories. After these land, the app is at 9.3-9.4 and the path to 9.5 shifts to content (more venues per new category) and interaction refinement (scroll-fade pill bar, scroll position memory). The bones are right. Now it is about filling the shelves.

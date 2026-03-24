@@ -1,8 +1,9 @@
-# Community Agent Report -- Peakly
+# Community Agent Report: 2026-03-24 (v2)
 
 **Date:** 2026-03-24
 **Agent:** Community
-**Status:** Research complete. Reddit direct crawling blocked (Anthropic user-agent excluded by Reddit). All findings sourced from web search results that reference Reddit discussions and related forums.
+**Status:** Reddit soft launch ready. Analytics live. Three draft posts prepared.
+**Constraint:** Reddit direct crawling blocked (Anthropic user-agent excluded). Findings sourced from web search results referencing Reddit and adjacent forums.
 
 ---
 
@@ -10,169 +11,192 @@
 
 **Direct mentions found: ZERO.**
 
-No mentions of "Peakly" as a surf/ski/adventure app were found anywhere on the public web -- not on Reddit, Product Hunt, forums, app review sites, or social media. The brand has zero online footprint outside of the GitHub Pages deployment.
+No new mentions of "Peakly" as a surf/ski/adventure app anywhere on the public web since v1. Zero footprint outside GitHub Pages deployment. This is expected pre-launch and means we have a clean canvas for the Reddit launch.
 
-This is expected for a pre-launch product but confirms: there is no organic awareness yet. The Reddit + TikTok launch campaign (item #18 on the pre-launch checklist) has not started.
-
----
-
-## 2. Brand Risk: Name Conflicts
-
-**CRITICAL FINDING -- Multiple existing businesses use the "Peakly" name:**
-
-| Entity | Domain | What They Do | Risk Level |
-|--------|--------|-------------|------------|
-| Peakly (health app) | peakly on App Store (id1540835009) | Asthma/COPD/allergy symptom tracker | HIGH -- owns "peakly" in App Store |
-| Peakly (L&D platform) | peakly.com | Corporate learning & development (leadership, soft skills) | HIGH -- owns peakly.com |
-| Peakly (web agency) | usepeakly.com | Website building & SEO services | MEDIUM |
-| peakly-app.com | peakly-app.com | Appears to be a German-language hiking/adventure partner platform | MEDIUM-HIGH -- closest to our space |
-
-**Implications:**
-- The peakly.app domain (mentioned in CLAUDE.md as planned) is currently associated with the health/respiratory tracking app on the App Store.
-- Registering peakly.app could create trademark confusion, especially with an existing App Store listing under the same name.
-- If Jack plans to submit to the App Store, the name "Peakly" is already taken (id1540835009).
-- **Recommendation:** Jack needs to verify trademark availability before LLC formation. Consider alternative names or acquire the domain/name rights. This is a blocker-level risk that should be surfaced immediately.
+**Name conflict status (unchanged from v1):**
+- "Peakly" used by 4+ other businesses (health app, L&D platform, web agency, German hiking app)
+- peakly.app tied to health/respiratory app on App Store
+- Trademark search still recommended before LLC filing
 
 ---
 
-## 3. Top 5 Engagement Opportunities
+## 2. Top Engagement Opportunities (Ranked by Receptivity)
 
-### Opportunity 1: MagicSeaweed Refugees (r/surfing, YBW Forum, Jamboards)
+### #1: MagicSeaweed Refugees -- HIGHEST PRIORITY
+**Where:** r/surfing, Jamboards, YBW Forum, Swellinfo Forum, IFish Forum
+**Signal strength:** Very high. MSW merged into Surfline in May 2023, and nearly 3 years later surfers are STILL actively searching for free alternatives. Jamboards thread "Best forecast site nowadays?" (Dec 2024) is still getting replies. YBW Forum thread "Magic Seaweed is no more" remains active. The frustration with Surfline's paywall is durable and unsolved.
+**Current alternatives being recommended:** Windy, Windguru, Surf-forecast.com, Gonna.surf, Surf Captain, NOAA buoy data. None of these combine conditions with flight pricing. Peakly's unique angle (conditions + flights) has zero competition in this space.
+**Action:** This is our #1 entry point. The audience is underserved, frustrated, and actively looking.
 
-**Context:** MagicSeaweed merged into Surfline in May 2023. Ongoing active threads (as recently as 2025-2026) across multiple forums where surfers are looking for free alternatives to Surfline's paywall. Users express frustration that MSW was absorbed and Surfline's free tier is inadequate.
+### #2: Ski Powder Chasers Who Also Book Flights
+**Where:** r/skiing, Powder forums, ski-specific subreddits
+**Signal strength:** Medium-high. OpenSnow, Powderchasers, and OnTheSnow dominate snow forecasting. Thrifty Traveler and futureflights.ai cover flight deals to ski destinations separately. No tool unifies them. Late March is end of season but still relevant (spring skiing + next-season planning threads start appearing in April).
+**Current alternatives:** OpenSnow + Google Flights as separate tools. Powder Chaser app for alerts. Nobody combining condition scores with flight costs.
+**Action:** Post in r/skiing during the spring skiing window. Frame as "end of season trip optimization."
 
-**Relevance:** Peakly offers free surf condition scoring without a paywall. The "conditions + flights" angle differentiates from pure forecast tools.
+### #3: Solo Adventure Travelers
+**Where:** r/solotravel, r/digitalnomad
+**Signal strength:** Medium. "Best apps for solo travelers 2026" roundups are active. Current recommendations: Google Maps, Hostelworld, Fairytrail, Travello, SafetyWing. All are booking/safety/social tools. None are condition-aware trip planning tools. The gap is clear but the audience isn't actively searching for what we offer -- we need to create the demand.
+**Action:** Post framed as "for surfers/skiers who solo travel" rather than generic travel app.
 
-**Draft Response (for a "MagicSeaweed alternatives" thread):**
-> I've been frustrated with the Surfline paywall too. For trip planning specifically, I've been using a free web app that scores surf conditions across 170+ spots worldwide and cross-references with flight prices from your home airport. It won't replace a dedicated forecast tool for your local break, but for figuring out *when and where* to book a surf trip, it's been really useful. It combines wave height, swell period, wind, and water temp into a single score. No login required, works on mobile. [link]
+### #4: Surfline Paywall Bypass Seekers
+**Where:** AlternativeTo.net, G2, general search
+**Signal strength:** Medium. People searching "Surfline alternatives" land on comparison sites. Windy is the top free alternative. Peakly can position on AlternativeTo.net as a free alternative with a differentiated angle (trip planning, not daily forecast).
+**Action:** Submit Peakly to AlternativeTo.net as a Surfline alternative. Low effort, long-tail SEO benefit.
 
----
-
-### Opportunity 2: "Best Surf Apps" Discussions (r/surfing, surf forums)
-
-**Context:** Multiple active "best surf apps 2025/2026" roundup threads and articles. Surfline, Windy, Surf-forecast.com, and Windguru dominate. No app combines conditions with flights.
-
-**Relevance:** Peakly fills a gap none of these apps address -- trip timing intelligence. Every list is forecast-only tools with no travel planning integration.
-
-**Draft Response (for a "best surf apps" thread):**
-> Most of these are great for checking conditions at your local break. But for planning surf trips -- especially figuring out the best *week* to fly somewhere -- there's nothing that combines swell forecasts with flight prices. I built a free tool that scores 170+ spots on real-time conditions and shows estimated flight costs from your airport. It's a PWA so it works like an app on your phone. Anyone else wish the surf apps talked to the flight apps?
-
----
-
-### Opportunity 3: Ski Condition + Flight Deal Seekers (r/skiing, Powder forums)
-
-**Context:** Threads about powder day alerts, when to book ski trips, and how to find cheap flights to ski destinations. OpenSnow and Powderchasers are the go-to for conditions. Dollar Flight Club and Google Flights for deals. Nobody combines them.
-
-**Relevance:** Peakly's ski scoring (snow depth, temp, wind, fresh snow) combined with flight prices from user's home airport is exactly the missing link.
-
-**Draft Response (for a "planning a ski trip" thread):**
-> The hardest part of chasing powder is timing the flights. I use OpenSnow for local forecasts, but for the bigger question of "should I fly to Whistler this week or wait for next week's storm in Jackson Hole?" I've been using a free web app that scores ski conditions across 50+ resorts and shows flight prices from your home airport side by side. It even highlights which day in the 7-day forecast is the peak window. Has saved me from booking too early a couple times.
+### #5: Jamboards "Best forecast site nowadays?" Thread
+**Where:** https://jamboards.com/threads/best-forecast-site-nowadays.20348/
+**Signal strength:** Medium-high. This thread from Dec 2024 directly asks what people use now that Surfline paywalled forecasts. Active community, smaller than Reddit but higher signal-to-noise ratio. Good for a warm-up comment before hitting Reddit.
+**Action:** Drop a value-first comment mentioning Peakly as a trip-planning complement (not a forecast replacement).
 
 ---
 
-### Opportunity 4: Solo Travel App Recommendations (r/solotravel)
+## 3. Draft Reddit Posts (Soft Launch)
 
-**Context:** Active threads asking for "best apps for solo travelers 2025/2026." Lists include Skyscanner, Hostelworld, Google Maps, TripIt, Wanderlog. No adventure-specific condition-aware tools appear.
+### Post 1: r/surfing
 
-**Relevance:** Solo adventure travelers are Peakly's core audience. They plan trips around conditions, travel light, and rely heavily on mobile tools.
+**Title:** I got tired of switching between Surfline and Google Flights, so I built a free surf trip planner -- looking for feedback
 
-**Draft Response (for a "solo travel apps" thread):**
-> For adventure-focused solo trips, most of these apps help you book but none help you decide *when* to go. If you surf, ski, or chase beach weather, conditions matter more than price. There's a free web app I've been using that combines live weather/wave/snow data with flight prices so you can find the best window for your next trip. Works great for "I have a week off next month, where should I go?" decisions.
+**Body:**
 
----
+Hey r/surfing -- like a lot of you, I've been looking for good free options since MSW got absorbed into Surfline. For daily local forecasts, Windy and Windguru are solid. But for a different problem -- figuring out *when and where* to book a surf trip -- nothing combined conditions with travel costs.
 
-### Opportunity 5: Digital Nomad Trip Optimization (r/digitalnomad)
+So I built a free web app that pulls real-time wave data (height, swell period, wind, water temp) for 170+ surf spots worldwide and scores them against estimated flight prices from your home airport. Each spot gets a live condition score so you can see what's firing and whether the flights make sense.
 
-**Context:** Digital nomads actively discuss apps for planning travel around work schedules. Nomadago, Wanderlog, and Hopper are popular. The conversation is shifting toward "experience optimization" -- not just cheap flights but the right time and place.
+What it does:
+- Real-time condition scoring for 170+ spots (Open-Meteo marine data)
+- 7-day forecast with "best window" indicator
+- Estimated flight prices from your airport
+- No login, no paywall, works on any phone browser
 
-**Relevance:** Peakly's multi-sport trip optimization vision (Phase 5 in the roadmap) speaks directly to nomads who want to be in Bali when the surf is pumping, not when it's flat.
+What it does NOT do:
+- HD cams or hyper-local break-by-break forecasts (use Surfline/Windy for that)
+- This is for trip planning, not dawn patrol
 
-**Draft Response (for a "best nomad travel tools" thread):**
-> I'm a nomad who plans my calendar around surf and ski seasons. The hardest part is knowing *exactly when* conditions align with reasonable flights. I've been using a free web app that scores conditions at 170+ adventure spots worldwide and shows flights from wherever I am. It's like having a conditions-aware flight search. Helped me catch an epic swell in Portugal last month because the conditions score spiked and flights from Lisbon were cheap.
+Would genuinely love feedback on whether the scoring feels right. What spots should I add? What's missing?
 
----
-
-## 4. Draft Reddit Posts (Organic, Value-First)
-
-### Post 1: r/surfing -- "I built a free tool to find the best week to book a surf trip"
-
-> **Title:** I built a free tool that scores surf conditions at 170+ spots and shows flight prices -- looking for feedback
->
-> Hey r/surfing -- I'm a developer and surfer who got tired of checking Surfline, then switching to Google Flights, then going back to check conditions for a different spot, repeat x20 whenever I was trying to plan a trip.
->
-> So I built a free web app that pulls real-time wave data (height, swell period, wind, water temp) for 170+ surf spots worldwide and combines it with estimated flight prices from your home airport. Each spot gets a live condition score so you can quickly see what's firing right now and whether the flights are reasonable.
->
-> It's completely free, no login required, works on any phone browser. I'd love feedback from actual surfers on whether the scoring feels accurate and what spots I should add.
->
-> [link to j1mmychu.github.io/peakly]
->
-> Some things it does: 7-day forecast with "best window" indicator, surf/ski/beach categories, estimated flight prices, venue details with local tips.
->
-> What it doesn't do: HD cams, hyper-local forecasts for your home break (use Surfline for that). This is for trip planning, not dawn patrol checks.
-
-### Post 2: r/skiing -- "Free tool: ski condition scores + flight prices for 50+ resorts"
-
-> **Title:** I made a free web app that shows which ski resorts have the best conditions RIGHT NOW + what flights cost
->
-> Fellow powder chasers -- I built this because I was tired of checking OnTheSnow for conditions and then separately searching flights to figure out if a powder day was actually worth chasing.
->
-> The app scores ski conditions (snow depth, fresh snow, temperature, wind) at 50+ resorts worldwide and shows estimated flight prices from your home airport on the same screen. It highlights the peak day in the 7-day forecast so you can see if the powder window is tomorrow or Thursday.
->
-> Free, no login, works on mobile. Would love feedback on whether the condition scoring matches reality for your local mountain.
->
-> [link]
-
-### Post 3: r/solotravel -- "For adventure travelers: a free app that tells you WHEN to go, not just where"
-
-> **Title:** I built a free travel tool for surfers, skiers, and beach lovers that combines live conditions with flight prices
->
-> Most travel apps help you find cheap flights or plan itineraries. But if you're an adventure traveler, *when* you go matters more than *how much* you pay. A $150 flight to Bali is worthless if the surf is flat.
->
-> I built a free web app that scores real-time conditions (waves, snow, weather) at 170+ adventure spots worldwide and shows flight prices from your airport. The idea is simple: find the moment when conditions and flights both align.
->
-> No app download needed -- it's a web app that works on any phone. No login, no paywall. I'm a solo traveler myself and built this for exactly the kind of "I have a week off, where should I go?" decisions.
->
-> Would love to hear if this is useful to the community and what features you'd want.
->
-> [link]
+[link]
 
 ---
 
-## 5. Content Ideas for Future Posts
+### Post 2: r/skiing
 
-1. **"I tracked ski conditions across 50 resorts for a month -- here's when the real powder windows opened"** -- Data-driven post for r/skiing showing how conditions fluctuate and most people miss the best days. FOMO-first strategy from the growth playbook.
+**Title:** Free tool that shows which resorts have the best conditions right now + what flights cost -- feedback welcome
 
-2. **"The Surfline paywall pushed me to build my own surf scoring tool"** -- Origin story post for r/surfing. Authentic, relatable, positions Peakly as an underdog alternative.
+**Body:**
 
-3. **"I'm a digital nomad who plans my year around surf and ski seasons -- here's my system"** -- r/digitalnomad lifestyle post with Peakly woven in naturally as part of the workflow.
+Built this out of frustration with checking OpenSnow for conditions and then separately searching flights to figure out if a powder day is actually worth chasing from out of state.
 
-4. **"Budget surf trip planning: how I find the cheapest week with the best waves"** -- r/solotravel value post with screenshots showing condition scores vs. flight prices.
+It's a free web app that scores ski conditions (snow depth, fresh snow, temp, wind) at 50+ resorts worldwide and shows estimated flight prices from your home airport on the same screen. Highlights the peak day in the 7-day forecast so you can see if the powder window is worth booking around.
 
-5. **TikTok content idea:** 15-second screen recording: "POV: You just found out Bali is firing this week and flights are $300" -- show the app scoring in real time, dramatic music, book-it-now energy.
+Spring skiing is still going strong at a lot of resorts -- curious if anyone finds this useful for squeezing in one more trip this season or planning ahead for next year.
 
----
+Free, no login, works on mobile: [link]
 
-## 6. Brand Risks Summary
-
-| Risk | Severity | Action Needed |
-|------|----------|---------------|
-| "Peakly" name already used by 4+ businesses | HIGH | Trademark search before LLC. Consider name change or acquisition. |
-| peakly.app domain tied to health app | HIGH | May not be acquirable. Explore alternatives (getpeakly.com, peakly.io, etc.) |
-| App Store name "peakly" taken | HIGH | Cannot publish iOS app under this name without resolving conflict. |
-| Zero brand presence online | MEDIUM | Expected pre-launch, but means any negative SEO from name conflicts could dominate search results. |
-| No negative mentions found | LOW (good) | No bad press, complaints, or controversy. Clean slate. |
-| Reddit blocks Anthropic crawler | LOW | Community monitoring requires manual Reddit checks or third-party tools. Cannot automate via this agent. |
+Looking for feedback on:
+- Does the condition scoring match what you see on the mountain?
+- What resorts are missing?
+- Would powder alerts (email/push when conditions spike at your saved resorts) be useful?
 
 ---
 
-## 7. Recommended Next Steps
+### Post 3: r/solotravel
 
-1. **URGENT:** Conduct USPTO trademark search for "Peakly" in Class 9 (software) and Class 39 (travel). Surface findings to Jack before LLC filing.
-2. **Pre-launch:** Create a Reddit account for Peakly community engagement. Age the account with genuine participation in r/surfing, r/skiing, r/solotravel for 2-4 weeks before any promotional posts.
-3. **Week 1 launch:** Post Draft #1 (r/surfing) -- the MagicSeaweed refugee audience is the most receptive and underserved.
-4. **Week 2 launch:** Post Draft #2 (r/skiing) -- ski season is winding down but still active in March.
-5. **Week 3 launch:** Post Draft #3 (r/solotravel) -- broadest audience, summer travel planning is starting.
-6. **Ongoing:** Monitor "MagicSeaweed alternative," "surf forecast app," and "ski condition app" threads on Reddit manually (weekly) and drop value-first comments when relevant.
+**Title:** For adventure travelers: a free tool that tells you WHEN to go based on live conditions + flight prices
+
+**Body:**
+
+Most travel apps help you find cheap flights or plan itineraries. But if you're a surfer, skier, or beach chaser, *when* you go matters more than how much you pay. A $200 flight to Bali is worthless if the surf is flat.
+
+I built a free web app that scores real-time conditions (waves, snow, weather) at 170+ adventure spots worldwide and shows flight prices from your airport. The idea: find the moment when conditions and flights both align.
+
+No app download -- it's a web app that works on any phone. No login, no paywall. I built this for exactly the kind of "I have a week off, where should I go?" decisions that come up in this sub all the time.
+
+Covers surf, ski, and beach/tanning spots across 6 continents. Each spot has a live score, 7-day forecast, local tips, and estimated flight cost.
+
+Would love feedback from this community:
+- Is conditions-aware trip planning actually useful to you?
+- What destinations are missing?
+- What would make this more useful for solo travelers specifically?
+
+[link]
+
+---
+
+## 4. Recommended First Move
+
+**Comment on the Jamboards thread first, then post to r/surfing.**
+
+Here is the specific sequence:
+
+### Step 1: Warm-up comment on Jamboards (this week)
+**Thread:** "Best forecast site nowadays?" -- https://jamboards.com/threads/best-forecast-site-nowadays.20348/
+**Why first:** Smaller, friendlier community. Lower stakes. Tests messaging before Reddit exposure. The thread is directly asking for what Peakly offers. A positive reception here builds a reference point.
+**Draft comment:**
+> Late to this thread, but for a different angle on the problem -- if you're looking for a tool to plan surf *trips* (not daily local checks), I've been working on a free web app that scores conditions at 170+ spots and cross-references with flight prices from your airport. It won't replace Windy for your morning check, but for the "where should I fly next week?" question it's been useful. Free, no login: [link]. Feedback welcome -- especially on whether the condition scoring feels right.
+
+### Step 2: Post Draft #1 to r/surfing (3-5 days after Jamboards)
+**Why r/surfing first:** The MagicSeaweed refugee audience is the most underserved, most frustrated, and most actively searching. The conditions + flights angle is completely differentiated from every other tool being recommended. Highest probability of organic engagement and shares.
+**Timing:** Post Tuesday or Wednesday morning (US time) for best visibility. Avoid weekends when the sub is flooded with video clips.
+
+### Step 3: Post Draft #2 to r/skiing (1 week after r/surfing)
+**Why delay:** Gauge reception from r/surfing first. Adjust messaging if needed. Spring skiing context still valid through mid-April.
+
+### Step 4: Post Draft #3 to r/solotravel (2 weeks after r/surfing)
+**Why last:** Broadest audience but least targeted. Benefits from any early traction/screenshots from surf and ski posts.
+
+---
+
+## 5. Content Pipeline (Post-Launch)
+
+| Week | Platform | Content | Angle |
+|------|----------|---------|-------|
+| 1 | Jamboards | Comment in "Best forecast" thread | Value-first, feedback |
+| 1-2 | r/surfing | Draft Post #1 | MSW refugee, free tool |
+| 2-3 | r/skiing | Draft Post #2 | Spring skiing, powder chaser |
+| 3-4 | r/solotravel | Draft Post #3 | Adventure travel, conditions-aware |
+| 4 | AlternativeTo.net | Submit as Surfline alternative | Long-tail SEO |
+| 4-5 | r/digitalnomad | Organic comment in "best tools" thread | Nomad lifestyle angle |
+| 5-6 | r/surfing | Data post: "I tracked conditions at 50 spots for a month" | FOMO content, value-first |
+| 6+ | TikTok | Screen recording: "POV: Bali is firing and flights are $300" | Viral format |
+
+---
+
+## 6. Competitive Landscape Update
+
+| Tool | Category | Free? | Conditions? | Flights? | Threat to Peakly |
+|------|----------|-------|-------------|----------|-------------------|
+| Surfline | Surf forecast | Freemium (paywall) | Yes (detailed) | No | Low -- different use case |
+| Windy | Weather/marine | Free | Yes (raw data) | No | Low -- no trip planning |
+| Windguru | Wind/wave | Free | Yes | No | Low -- no trip planning |
+| Surf-forecast.com | Surf forecast | Free | Yes | No | Low -- MSW clone |
+| Gonna.surf | Surf forecast | Free | Yes | No | Low -- local forecasts only |
+| OpenSnow | Snow forecast | Freemium | Yes (detailed) | No | Low -- ski only, no flights |
+| Powderchasers | Powder alerts | Freemium | Yes | No | Low -- alerts only |
+| Powder Chaser App | Snow conditions | Free | Yes (ratings) | No | Low -- no flights |
+| Google Flights | Flights | Free | No | Yes | Low -- no conditions |
+| Skyscanner | Flights | Free | No | Yes | Low -- no conditions |
+
+**Key insight:** Nobody combines conditions + flights. This remains Peakly's unique differentiator across all three verticals (surf, ski, adventure travel). The competitive moat is the cross-reference, not the individual data sources.
+
+---
+
+## 7. Sources
+
+- [YBW Forum: Magic Seaweed is no more](https://forums.ybw.com/threads/magic-seaweed-is-no-more-what-alternatives-are-there.598169/)
+- [Jamboards: Magic Seaweed is Going Away](https://jamboards.com/threads/magic-seaweed-is-going-away.15601/)
+- [Jamboards: Best forecast site nowadays?](https://jamboards.com/threads/best-forecast-site-nowadays.20348/)
+- [SurferToday: Best surf forecasting websites and apps](https://www.surfertoday.com/surfing/the-best-surf-forecasting-websites-and-apps/)
+- [Rapture Surfcamps: Best Apps For Surfers 2025](https://www.rapturecamps.com/blog/best-apps-for-surfers/)
+- [Gonna.surf for MagicSeaweed users](https://gonna.surf/help/gonnasurf-for-magicseaweed-users)
+- [Powder.com: 8 Best Skiing Apps](https://www.powder.com/gear/best-apps-for-skiers)
+- [SkiBasics: Top Picks Best Skiing App 2026](https://www.skibasics.com/news/best-skiing-apps/)
+- [Powderchasers](https://powderchasers.com/)
+- [Thrifty Traveler: Cheap Flights to Mountains](https://thriftytraveler.com/deals/airlines/cheap-flights-to-the-mountains/)
+- [TravelBooksFood: 25+ Best Apps For Solo Travellers 2026](https://travelbooksfood.com/best-apps-for-solo-travellers)
+- [AlternativeTo: Surfline Alternatives](https://alternativeto.net/software/surfline/)
+- [G2: Surfline Alternatives 2026](https://www.g2.com/products/surfline-media/competitors/alternatives)
+- [SurferDad: 4 Awesome Alternatives to Magic Seaweed](https://www.surferdad.co.uk/alternatives-magic-seaweed)
 
 ---
 

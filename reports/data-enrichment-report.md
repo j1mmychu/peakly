@@ -1,8 +1,11 @@
-# Data Enrichment Report
+# Report: 2026-03-24 (v2)
+
+## Data Enrichment Audit
 
 **Date:** 2026-03-24
-**Agent:** Data Enrichment Agent
-**File Audited:** `app.jsx` (VENUES array, lines 208-1058)
+**Auditor:** Data Enrichment Agent
+**Scope:** Venue data integrity, photo coverage, category distribution, duplicate detection
+**File:** `app.jsx` (VENUES array)
 
 ---
 
@@ -10,77 +13,82 @@
 
 | Metric | Value |
 |--------|-------|
-| Total venues scanned | 182 |
-| Required fields present | 182/182 (100%) |
-| Venues with photos | 182/182 (100%) |
-| Duplicate IDs | 0 |
-| Duplicate coordinates found | 1 pair (fixed) |
-| Duplicate photos found | 56 venues across 30 URLs (fixed) |
-| Invalid ratings | 0 |
-| Invalid reviews | 0 |
+| Total venues | 182 |
+| Venues with photo URLs | 182 (100%) |
+| Venues without photos | 0 |
+| Duplicate photo URLs | 0 |
+| Duplicate venue IDs | 0 |
+| Defined categories (excl. "all") | 11 |
+| Categories with at least 1 venue | 11 / 11 |
 
 ---
 
-## Issues Found & Fixed
+## Venues Per Category
 
-### CRITICAL: Duplicate Photos (56 venues) -- FIXED
+| Category | Count | % of Total |
+|----------|-------|------------|
+| tanning | 60 | 33.0% |
+| surfing | 53 | 29.1% |
+| skiing | 50 | 27.5% |
+| hiking | 12 | 6.6% |
+| diving | 1 | 0.5% |
+| climbing | 1 | 0.5% |
+| kite | 1 | 0.5% |
+| kayak | 1 | 0.5% |
+| mtb | 1 | 0.5% |
+| fishing | 1 | 0.5% |
+| paraglide | 1 | 0.5% |
 
-56 venues were sharing Unsplash photo URLs with other venues (30 unique URLs reused 2-5 times each). Every duplicate has been replaced with a unique Unsplash photo URL matching the venue's location and category.
+---
 
-**Venues that received new unique photos:**
+## Issues by Severity
 
-**Skiing (2):** beavercreek, snowbasin
+### Critical
+- None
 
-**Surfing (15):** banzai_pipeline, teahupoo, bells_beach, thurso_east, fuerteventura_surf, punta_lobos, the_pass, jailbreaks, la_santa, chiba_surf, keramas, anchor_point, taghazout, lahinch, restaurants_fiji, cloud9, pasta_point, padang_padang
+### High
+- **Severe category imbalance:** 7 of 11 categories have only 1 venue each (diving, climbing, kite, kayak, mtb, fishing, paraglide). Users selecting these filters see a single result, which is a poor experience.
 
-**Beach/Tanning (34):** beach_sayulita, beach_destin, beach_formentera, beach_tobago, beach_myrtle, beach_gilit, beach_shoal, beach_praslin, beach_portdouglas, beach_kapalua, beach_bocas, beach_mauritius, beach_manuelant, beach_nusapenida, beach_negril, beach_keywest, beach_zanzibar, beach_clearwater, beach_ibiza, beach_boracay, beach_ob, beach_cable, beach_hvar, beach_menorca, beach_siestakey, beach_kohsamui, beach_milos, beach_cotedazur, beach_orient, beach_cozumel, beach_hapuna, beach_floripa, beach_dubrovnik, beach_diani
+### Medium
+- **Top-heavy distribution:** tanning (60), surfing (53), and skiing (50) account for 89.6% of all venues. Hiking has 12 -- functional but thin.
+- **Photo quality unverified:** All 182 venues have Unsplash URLs but the 56 replacement URLs from the last run should be visually verified in-browser.
+- **No photo alt text:** Venues lack `photoAlt` or `photoCredit` fields for accessibility and Unsplash attribution compliance.
 
-**Hiking (2):** haute_route, camino
+### Low
+- None
 
-### MEDIUM: Duplicate Coordinates (1 pair) -- FIXED
+---
 
-`zermatt` (skiing) and `haute_route` (hiking) both had coordinates `46.0207, 7.7491`. The Haute Route is a multi-day traverse from Chamonix to Zermatt -- using Zermatt's exact coordinates was a copy-paste error. Fixed `haute_route` to `45.9700, 7.3100` (trail midpoint near Grand Combin).
+## Confirmed Fixes (from prior run)
 
-### LOW: Category Distribution Imbalance
-
-| Category | Count | % |
-|----------|-------|---|
-| tanning | 60 | 33% |
-| surfing | 53 | 29% |
-| skiing | 50 | 27% |
-| hiking | 12 | 7% |
-| diving | 1 | <1% |
-| climbing | 1 | <1% |
-| kite | 1 | <1% |
-| kayak | 1 | <1% |
-| mtb | 1 | <1% |
-| fishing | 1 | <1% |
-| paraglide | 1 | <1% |
-
-Diving, climbing, kite, kayak, mtb, fishing, and paraglide each have only 1 venue. These categories appear in the data but not in the main CATEGORIES filter (which only has: skiing, surfing, hiking, diving, climbing, tanning). Users can't easily discover the single kite/kayak/mtb/fishing/paraglide venues.
+- 56 duplicate photo URLs replaced with unique URLs -- **confirmed: 0 duplicates remain.**
+- haute_route coordinates fixed (46.0207,7.7491 -> 45.9700,7.3100) -- venue present and valid.
+- 5 new categories (kite, kayak, mtb, fishing, paraglide) added to CATEGORIES -- **confirmed: all 11 non-"all" categories have matching venues.**
 
 ---
 
 ## Validation Passed
 
-- All 182 venues have required fields: id, title, location, category, lat, lon, ap, gradient, icon, rating, reviews, tags
-- All ratings are within 1.0-5.0 range
-- All review counts are positive integers
-- No duplicate IDs
-- No duplicate coordinates (after fix)
-- No duplicate photos (after fix)
+- All 182 venues have required fields: id, title, location, category, lat, lon, ap, gradient, icon, rating, reviews, tags, photo
+- 0 duplicate IDs
+- 0 duplicate photo URLs
+- All 11 categories represented in venue data
 
 ---
 
 ## Remaining Gaps
 
-1. **Minor categories under-represented** -- diving (1), climbing (1), kite (1), kayak (1), mtb (1), fishing (1), paraglide (1) could use 5-10 venues each for a meaningful browse experience
-2. **Photo quality unverified** -- All 182 venues have Unsplash URLs but the new URLs should be visually verified in-browser to confirm they load and match the venue's vibe
-3. **No photo alt text** -- Venues have no `photoAlt` or `photoCredit` field for accessibility or Unsplash attribution compliance
+1. **Category depth:** diving, climbing, kite, kayak, mtb, fishing, and paraglide each need 8-15+ additional venues for a meaningful browse experience.
+2. **Hiking needs growth:** 12 venues is functional but thin compared to the big-3 categories (50-60 each).
+3. **No coordinate/airport code validation** -- not audited this run; flagged for a future pass.
+4. **Supporting data arrays:** `LOCAL_TIPS`, `PACKING`, and `GEAR_ITEMS` not yet audited for coverage of the 5 new categories.
 
 ---
 
-## Fixes Applied to `app.jsx`
+## Recommendations (Next Run)
 
-- 57 photo URL replacements (56 duplicate photos + 1 coordinate-related)
-- 1 coordinate fix (haute_route: 46.0207,7.7491 -> 45.9700,7.3100)
+1. Add 10+ venues each for: diving, climbing, kite, kayak, mtb, fishing, paraglide.
+2. Add 8-10 more hiking venues.
+3. Run coordinate/airport code cross-validation.
+4. Audit `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS` for new-category coverage.
+5. Visual spot-check of the 56 replaced photo URLs in-browser.
