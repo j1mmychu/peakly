@@ -98,21 +98,21 @@ const { useState, useEffect, useRef, useCallback } = React;
       cursor: pointer;
     }
     .pressable:active { transform: scale(0.93); opacity: 0.78; }
-    .bounce-in { animation: bounceIn 0.28s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes bounceIn { from{transform:scale(0.82);opacity:0} to{transform:scale(1);opacity:1} }
-    /* ── animations ── */
-    .pulse { animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    .bounce-in { animation: bounceIn 0.22s ease-out; }
+    @keyframes bounceIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    /* ── animations (reduced — reserved for meaningful state changes) ── */
+    .pulse { animation: pulse 2.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
     .shimmer {
       background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
       background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
+      animation: shimmer 1.8s infinite;
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .fade-in { animation: fadeIn 0.26s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:none} }
-    .tab-fade { animation: tabFade 0.22s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes tabFade { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .tab-fade { animation: tabFade 0.18s ease-out; }
+    @keyframes tabFade { from{opacity:0} to{opacity:1} }
     .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
     .backdrop { animation: bdFade 0.22s ease; }
@@ -142,7 +142,9 @@ const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
   { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
   { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"tanning", label:"Beach & Tan",emoji:"☀️" },
+  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
+  { id:"diving",  label:"Diving",     emoji:"🤿" },
+  { id:"climbing",label:"Climbing",   emoji:"🧗" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -182,19 +184,19 @@ const AP_CONTINENT = {
   AJA:"europe", BOD:"europe", PSA:"europe", NAP:"europe",
   CAG:"europe", FAO:"europe", JTR:"europe", JMK:"europe",
   ZTH:"europe", SPU:"europe", DBV:"europe", MLO:"europe",
-  IBZ:"europe", MAH:"europe", NCE:"europe",
+  IBZ:"europe", MAH:"europe", NCE:"europe", KEF:"europe",
   MAN:"europe", CWL:"europe",
   // Asia
   NRT:"asia", CTS:"asia", HND:"asia", DPS:"asia", PDG:"asia", CEB:"asia",
   KTM:"asia", KBV:"asia", HKT:"asia", USM:"asia", ENI:"asia", MPH:"asia",
-  LOP:"asia", PBH:"asia", AMM:"asia",
+  LOP:"asia", PBH:"asia", AMM:"asia", PKR:"asia", LUA:"asia",
   // Oceania / Pacific
   ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania",
   MEL:"oceania", OOL:"oceania", PER:"oceania", AKL:"oceania",
   NAN:"oceania", MLE:"oceania", PPT:"oceania",
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
   // Latin America / S. America
-  SCL:"latam", PUQ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
+  SCL:"latam", PUQ:"latam", CUZ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
   // Africa
   CPT:"africa", PLZ:"africa", AGA:"africa", WDH:"africa",
   JRO:"africa", MBA:"africa", ZNZ:"africa", SEZ:"africa",
@@ -526,6 +528,20 @@ const VENUES = [
   {id:"beach_whitehaven",category:"tanning",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"]},
   {id:"beach_cable",    category:"tanning",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"]},
   {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"]},
+
+  // ── Hiking ─────────────────────────────────────────────────────────
+  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"]},
+  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"]},
+  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"]},
+  {id:"gr20",         category:"hiking",title:"GR20 Corsica",location:"Corsica, France",lat:42.1750,lon:9.0833,ap:"AJA",icon:"🥾",rating:4.94,reviews:4200,gradient:"linear-gradient(160deg,#2a1a2a,#5a3a5a,#8a6a8a)",accent:"#aa8aaa",tags:["Europe's Toughest","16 Stages"]},
+  {id:"appalachian",  category:"hiking",title:"Appalachian Trail (Smokies)",location:"North Carolina, USA",lat:35.5634,lon:-83.4984,ap:"TYS",icon:"🥾",rating:4.93,reviews:15200,gradient:"linear-gradient(160deg,#1a2a1a,#3a5a3a,#6a8a6a)",accent:"#8aaa8a",tags:["Thru-Hike Section","Great Smoky Mtns"]},
+  {id:"annapurna",    category:"hiking",title:"Annapurna Circuit",location:"Gandaki, Nepal",lat:28.5960,lon:83.8200,ap:"PKR",icon:"🥾",rating:4.97,reviews:6800,gradient:"linear-gradient(160deg,#0a1a3a,#1a4a7a,#3a8aba)",accent:"#5aaada",tags:["Thorong La Pass","Tea Houses"]},
+  {id:"milford_track",category:"hiking",title:"Milford Track",location:"Fiordland, New Zealand",lat:-44.8937,lon:167.9188,ap:"ZQN",icon:"🥾",rating:4.96,reviews:5400,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#3a8a6a)",accent:"#5aaa8a",tags:["Finest Walk","Sutherland Falls"]},
+  {id:"camino",       category:"hiking",title:"Camino de Santiago",location:"Galicia, Spain",lat:42.8782,lon:-8.5448,ap:"SCQ",icon:"🥾",rating:4.95,reviews:18600,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["French Way","800km Pilgrimage"]},
+  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"]},
+  {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:46.0207,lon:7.7491,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"]},
+  {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"]},
+  {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"]},
 ];
 
 const US_AIRPORTS = [
@@ -959,6 +975,18 @@ function scoreVenue(venue, wx, marine) {
       break;
     }
 
+    case "hiking": {
+      const dry3 = precip < 3;
+      const idealTemp = tempMax > 45 && tempMax < 88;
+      score = dry3 && idealTemp && wind < 18 ? 85 + Math.min(12, bestDays * 2)
+            : dry3 && idealTemp               ? 76
+            : dry3                            ? 62
+            : 42;
+      label  = dry3 ? `🥾 Clear trail · ${tempMax}°F · ${wind.toFixed(0)}mph` : `🌧️ Wet · wait for clear`;
+      period = dry3 && bestDays > 2 ? `${bestDays}-day hiking window` : dry3 ? "Good today" : "Rain expected";
+      break;
+    }
+
     default:
       score = 70; label = `🌤️ ${tempMax}°F`; period = "Conditions good";
   }
@@ -1002,94 +1030,94 @@ async function fetchTravelpayoutsPrice(origin, destination) {
 }
 const BASE_PRICES = {
   // existing
-  YVR:{ JFK:560, LAX:380, SFO:320, ORD:490, MIA:680, SEA:260, BOS:620, ATL:590, DEN:420, DFW:510 },
-  HNL:{ JFK:840, LAX:380, SFO:420, ORD:740, MIA:780, SEA:560, BOS:900, ATL:800, DEN:640, DFW:700 },
-  PPT:{ JFK:1800,LAX:1200,SFO:1350,ORD:1700,MIA:1600,SEA:1500,BOS:1900,ATL:1700,DEN:1500,DFW:1600 },
-  PUQ:{ JFK:1100,LAX:980, SFO:1050,ORD:1200,MIA:900, SEA:1200,BOS:1150,ATL:1050,DEN:1100,DFW:1100 },
-  CNS:{ JFK:2100,LAX:1600,SFO:1700,ORD:2000,MIA:1900,SEA:1800,BOS:2200,ATL:2000,DEN:1800,DFW:1900 },
-  SFO:{ JFK:380, LAX:160, SFO:80,  ORD:320, MIA:420, SEA:220, BOS:420, ATL:410, DEN:280, DFW:300 },
-  AGP:{ JFK:780, LAX:1100,SFO:1050,ORD:860, MIA:900, SEA:1150,BOS:740, ATL:850, DEN:950, DFW:920 },
-  GVA:{ JFK:740, LAX:1000,SFO:980, ORD:820, MIA:880, SEA:1050,BOS:700, ATL:810, DEN:900, DFW:870 },
-  ZQN:{ JFK:1800,LAX:1400,SFO:1450,ORD:1750,MIA:1700,SEA:1600,BOS:1900,ATL:1750,DEN:1600,DFW:1700 },
-  SLC:{ JFK:380, LAX:240, SFO:220, ORD:300, MIA:420, SEA:260, BOS:420, ATL:390, DEN:180, DFW:300 },
-  ANC:{ JFK:820, LAX:560, SFO:580, ORD:740, MIA:880, SEA:380, BOS:880, ATL:840, DEN:660, DFW:760 },
-  ZRH:{ JFK:720, LAX:980, SFO:950, ORD:800, MIA:860, SEA:1020,BOS:680, ATL:790, DEN:880, DFW:850 },
+  YVR:{ JFK:560, LAX:380, SFO:320, ORD:490, MIA:680, SEA:260, BOS:620, ATL:590, DEN:420, DFW:510, LAS:440, PHX:460, MSP:530, DTW:520 },
+  HNL:{ JFK:840, LAX:380, SFO:420, ORD:740, MIA:780, SEA:560, BOS:900, ATL:800, DEN:640, DFW:700, LAS:420, PHX:440, MSP:780, DTW:770 },
+  PPT:{ JFK:1800,LAX:1200,SFO:1350,ORD:1700,MIA:1600,SEA:1500,BOS:1900,ATL:1700,DEN:1500,DFW:1600, LAS:1400,PHX:1380,MSP:1740,DTW:1730 },
+  PUQ:{ JFK:1100,LAX:980, SFO:1050,ORD:1200,MIA:900, SEA:1200,BOS:1150,ATL:1050,DEN:1100,DFW:1100, LAS:1060,PHX:1080,MSP:1240,DTW:1230 },
+  CNS:{ JFK:2100,LAX:1600,SFO:1700,ORD:2000,MIA:1900,SEA:1800,BOS:2200,ATL:2000,DEN:1800,DFW:1900, LAS:1780,PHX:1760,MSP:2040,DTW:2030 },
+  SFO:{ JFK:380, LAX:160, SFO:80,  ORD:320, MIA:420, SEA:220, BOS:420, ATL:410, DEN:280, DFW:300, LAS:160, PHX:180, MSP:360, DTW:350 },
+  AGP:{ JFK:780, LAX:1100,SFO:1050,ORD:860, MIA:900, SEA:1150,BOS:740, ATL:850, DEN:950, DFW:920, LAS:980, PHX:1000,MSP:900, DTW:890 },
+  GVA:{ JFK:740, LAX:1000,SFO:980, ORD:820, MIA:880, SEA:1050,BOS:700, ATL:810, DEN:900, DFW:870, LAS:940, PHX:960, MSP:860, DTW:850 },
+  ZQN:{ JFK:1800,LAX:1400,SFO:1450,ORD:1750,MIA:1700,SEA:1600,BOS:1900,ATL:1750,DEN:1600,DFW:1700, LAS:1580,PHX:1560,MSP:1790,DTW:1780 },
+  SLC:{ JFK:380, LAX:240, SFO:220, ORD:300, MIA:420, SEA:260, BOS:420, ATL:390, DEN:180, DFW:300, LAS:180, PHX:200, MSP:340, DTW:330 },
+  ANC:{ JFK:820, LAX:560, SFO:580, ORD:740, MIA:880, SEA:380, BOS:880, ATL:840, DEN:660, DFW:760, LAS:620, PHX:640, MSP:780, DTW:770 },
+  ZRH:{ JFK:720, LAX:980, SFO:950, ORD:800, MIA:860, SEA:1020,BOS:680, ATL:790, DEN:880, DFW:850, LAS:920, PHX:940, MSP:840, DTW:830 },
   // Extra US hubs
-  LAS:{ JFK:320, LAX:120, SFO:160, ORD:280, MIA:320, SEA:300, BOS:340, ATL:300, DEN:200, DFW:220 },
-  PHX:{ JFK:340, LAX:140, SFO:160, ORD:300, MIA:360, SEA:280, BOS:360, ATL:320, DEN:200, DFW:200 },
-  MSP:{ JFK:240, LAX:320, SFO:300, ORD:140, MIA:280, SEA:280, BOS:260, ATL:240, DEN:220, DFW:200 },
-  DTW:{ JFK:180, LAX:340, SFO:320, ORD:120, MIA:240, SEA:340, BOS:180, ATL:200, DEN:260, DFW:240 },
-  ORF:{ JFK:200, LAX:400, SFO:380, ORD:280, MIA:220, SEA:420, BOS:220, ATL:180, DEN:360, DFW:320 },
+  LAS:{ JFK:320, LAX:120, SFO:160, ORD:280, MIA:320, SEA:300, BOS:340, ATL:300, DEN:200, DFW:220, LAS:80,  PHX:120, MSP:320, DTW:310 },
+  PHX:{ JFK:340, LAX:140, SFO:160, ORD:300, MIA:360, SEA:280, BOS:360, ATL:320, DEN:200, DFW:200, LAS:120, PHX:80,  MSP:340, DTW:330 },
+  MSP:{ JFK:240, LAX:320, SFO:300, ORD:140, MIA:280, SEA:280, BOS:260, ATL:240, DEN:220, DFW:200, LAS:320, PHX:340, MSP:80,  DTW:160 },
+  DTW:{ JFK:180, LAX:340, SFO:320, ORD:120, MIA:240, SEA:340, BOS:180, ATL:200, DEN:260, DFW:240, LAS:310, PHX:330, MSP:160, DTW:80 },
+  ORF:{ JFK:200, LAX:400, SFO:380, ORD:280, MIA:220, SEA:420, BOS:220, ATL:180, DEN:360, DFW:320, LAS:380, PHX:360, MSP:320, DTW:300 },
   // North America ski airports
-  ASE:{ JFK:550, LAX:420, SFO:390, ORD:480, MIA:620, SEA:560, BOS:600, ATL:590, DEN:160, DFW:480 },
-  EGE:{ JFK:520, LAX:400, SFO:370, ORD:460, MIA:590, SEA:540, BOS:570, ATL:560, DEN:130, DFW:460 },
-  JAC:{ JFK:500, LAX:380, SFO:360, ORD:440, MIA:580, SEA:340, BOS:560, ATL:550, DEN:240, DFW:440 },
-  BZN:{ JFK:420, LAX:320, SFO:300, ORD:380, MIA:520, SEA:280, BOS:480, ATL:500, DEN:200, DFW:380 },
-  MTJ:{ JFK:500, LAX:400, SFO:370, ORD:460, MIA:590, SEA:540, BOS:560, ATL:550, DEN:140, DFW:450 },
-  YYC:{ JFK:520, LAX:400, SFO:380, ORD:460, MIA:580, SEA:360, BOS:560, ATL:560, DEN:240, DFW:460 },
-  DEN:{ JFK:220, LAX:160, SFO:140, ORD:160, MIA:240, SEA:180, BOS:240, ATL:220, DEN:80,  DFW:140 },
-  RNO:{ JFK:320, LAX:120, SFO:100, ORD:300, MIA:380, SEA:200, BOS:340, ATL:360, DEN:200, DFW:280 },
-  HDN:{ JFK:540, LAX:420, SFO:380, ORD:500, MIA:620, SEA:560, BOS:600, ATL:580, DEN:140, DFW:480 },
-  SUN:{ JFK:580, LAX:480, SFO:440, ORD:560, MIA:660, SEA:400, BOS:640, ATL:620, DEN:280, DFW:540 },
-  YLW:{ JFK:620, LAX:480, SFO:460, ORD:580, MIA:700, SEA:400, BOS:680, ATL:680, DEN:380, DFW:580 },
-  SAF:{ JFK:440, LAX:340, SFO:320, ORD:420, MIA:500, SEA:480, BOS:480, ATL:480, DEN:220, DFW:320 },
+  ASE:{ JFK:550, LAX:420, SFO:390, ORD:480, MIA:620, SEA:560, BOS:600, ATL:590, DEN:160, DFW:480, LAS:340, PHX:360, MSP:520, DTW:510 },
+  EGE:{ JFK:520, LAX:400, SFO:370, ORD:460, MIA:590, SEA:540, BOS:570, ATL:560, DEN:130, DFW:460, LAS:320, PHX:340, MSP:500, DTW:490 },
+  JAC:{ JFK:500, LAX:380, SFO:360, ORD:440, MIA:580, SEA:340, BOS:560, ATL:550, DEN:240, DFW:440, LAS:340, PHX:360, MSP:480, DTW:470 },
+  BZN:{ JFK:420, LAX:320, SFO:300, ORD:380, MIA:520, SEA:280, BOS:480, ATL:500, DEN:200, DFW:380, LAS:280, PHX:300, MSP:420, DTW:410 },
+  MTJ:{ JFK:500, LAX:400, SFO:370, ORD:460, MIA:590, SEA:540, BOS:560, ATL:550, DEN:140, DFW:450, LAS:320, PHX:340, MSP:500, DTW:490 },
+  YYC:{ JFK:520, LAX:400, SFO:380, ORD:460, MIA:580, SEA:360, BOS:560, ATL:560, DEN:240, DFW:460, LAS:380, PHX:400, MSP:500, DTW:490 },
+  DEN:{ JFK:220, LAX:160, SFO:140, ORD:160, MIA:240, SEA:180, BOS:240, ATL:220, DEN:80,  DFW:140, LAS:200, PHX:200, MSP:200, DTW:190 },
+  RNO:{ JFK:320, LAX:120, SFO:100, ORD:300, MIA:380, SEA:200, BOS:340, ATL:360, DEN:200, DFW:280, LAS:140, PHX:180, MSP:340, DTW:330 },
+  HDN:{ JFK:540, LAX:420, SFO:380, ORD:500, MIA:620, SEA:560, BOS:600, ATL:580, DEN:140, DFW:480, LAS:340, PHX:360, MSP:540, DTW:530 },
+  SUN:{ JFK:580, LAX:480, SFO:440, ORD:560, MIA:660, SEA:400, BOS:640, ATL:620, DEN:280, DFW:540, LAS:400, PHX:420, MSP:600, DTW:590 },
+  YLW:{ JFK:620, LAX:480, SFO:460, ORD:580, MIA:700, SEA:400, BOS:680, ATL:680, DEN:380, DFW:580, LAS:460, PHX:480, MSP:620, DTW:610 },
+  SAF:{ JFK:440, LAX:340, SFO:320, ORD:420, MIA:500, SEA:480, BOS:480, ATL:480, DEN:220, DFW:320, LAS:280, PHX:260, MSP:460, DTW:450 },
   // Japan
-  NRT:{ JFK:820, LAX:680, SFO:640, ORD:780, MIA:960, SEA:680, BOS:880, ATL:900, DEN:800, DFW:840 },
-  CTS:{ JFK:960, LAX:780, SFO:740, ORD:900, MIA:1100,SEA:760, BOS:1020,ATL:1040,DEN:940, DFW:960 },
-  HND:{ JFK:800, LAX:660, SFO:620, ORD:760, MIA:940, SEA:660, BOS:860, ATL:880, DEN:780, DFW:820 },
+  NRT:{ JFK:820, LAX:680, SFO:640, ORD:780, MIA:960, SEA:680, BOS:880, ATL:900, DEN:800, DFW:840, LAS:740, PHX:760, MSP:820, DTW:810 },
+  CTS:{ JFK:960, LAX:780, SFO:740, ORD:900, MIA:1100,SEA:760, BOS:1020,ATL:1040,DEN:940, DFW:960, LAS:840, PHX:860, MSP:940, DTW:930 },
+  HND:{ JFK:800, LAX:660, SFO:620, ORD:760, MIA:940, SEA:660, BOS:860, ATL:880, DEN:780, DFW:820, LAS:720, PHX:740, MSP:800, DTW:790 },
   // South America
-  SCL:{ JFK:1040,LAX:940, SFO:1000,ORD:1120,MIA:860, SEA:1180,BOS:1080,ATL:980, DEN:1040,DFW:1000 },
-  CBR:{ JFK:2000,LAX:1560,SFO:1600,ORD:1900,MIA:1980,SEA:1700,BOS:2100,ATL:1980,DEN:1820,DFW:1900 },
-  LIM:{ JFK:660, LAX:580, SFO:640, ORD:740, MIA:480, SEA:780, BOS:700, ATL:600, DEN:660, DFW:620 },
-  GRU:{ JFK:780, LAX:860, SFO:920, ORD:860, MIA:560, SEA:1000,BOS:820, ATL:740, DEN:800, DFW:760 },
-  FLN:{ JFK:820, LAX:900, SFO:960, ORD:900, MIA:580, SEA:1040,BOS:860, ATL:780, DEN:840, DFW:800 },
-  REC:{ JFK:760, LAX:1020,SFO:1080,ORD:860, MIA:520, SEA:1120,BOS:800, ATL:720, DEN:860, DFW:820 },
+  SCL:{ JFK:1040,LAX:940, SFO:1000,ORD:1120,MIA:860, SEA:1180,BOS:1080,ATL:980, DEN:1040,DFW:1000, LAS:1020,PHX:1040,MSP:1160,DTW:1150 },
+  CBR:{ JFK:2000,LAX:1560,SFO:1600,ORD:1900,MIA:1980,SEA:1700,BOS:2100,ATL:1980,DEN:1820,DFW:1900, LAS:1740,PHX:1720,MSP:1940,DTW:1930 },
+  LIM:{ JFK:660, LAX:580, SFO:640, ORD:740, MIA:480, SEA:780, BOS:700, ATL:600, DEN:660, DFW:620, LAS:640, PHX:620, MSP:780, DTW:770 },
+  GRU:{ JFK:780, LAX:860, SFO:920, ORD:860, MIA:560, SEA:1000,BOS:820, ATL:740, DEN:800, DFW:760, LAS:840, PHX:820, MSP:900, DTW:890 },
+  FLN:{ JFK:820, LAX:900, SFO:960, ORD:900, MIA:580, SEA:1040,BOS:860, ATL:780, DEN:840, DFW:800, LAS:880, PHX:860, MSP:940, DTW:930 },
+  REC:{ JFK:760, LAX:1020,SFO:1080,ORD:860, MIA:520, SEA:1120,BOS:800, ATL:720, DEN:860, DFW:820, LAS:900, PHX:880, MSP:900, DTW:890 },
   // Europe
-  INN:{ JFK:740, LAX:1020,SFO:980, ORD:820, MIA:900, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880 },
-  CMF:{ JFK:780, LAX:1060,SFO:1020,ORD:860, MIA:940, SEA:1120,BOS:740, ATL:880, DEN:960, DFW:920 },
-  GNB:{ JFK:760, LAX:1040,SFO:1000,ORD:840, MIA:920, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900 },
-  SZG:{ JFK:760, LAX:1040,SFO:1000,ORD:840, MIA:920, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900 },
-  VCE:{ JFK:720, LAX:1000,SFO:960, ORD:800, MIA:880, SEA:1060,BOS:680, ATL:820, DEN:900, DFW:860 },
-  TRN:{ JFK:740, LAX:1020,SFO:980, ORD:820, MIA:900, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880 },
-  BIQ:{ JFK:760, LAX:1060,SFO:1020,ORD:840, MIA:900, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900 },
-  BIO:{ JFK:740, LAX:1040,SFO:1000,ORD:820, MIA:880, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880 },
-  LIS:{ JFK:680, LAX:980, SFO:960, ORD:760, MIA:840, SEA:1020,BOS:640, ATL:780, DEN:860, DFW:820 },
-  NQY:{ JFK:680, LAX:960, SFO:940, ORD:760, MIA:840, SEA:1000,BOS:640, ATL:780, DEN:860, DFW:820 },
-  INV:{ JFK:700, LAX:980, SFO:960, ORD:780, MIA:860, SEA:1020,BOS:660, ATL:800, DEN:880, DFW:840 },
-  SNN:{ JFK:620, LAX:940, SFO:920, ORD:700, MIA:800, SEA:980, BOS:580, ATL:740, DEN:820, DFW:780 },
-  ACE:{ JFK:720, LAX:1020,SFO:1000,ORD:800, MIA:860, SEA:1060,BOS:680, ATL:820, DEN:900, DFW:860 },
-  FUE:{ JFK:740, LAX:1040,SFO:1020,ORD:820, MIA:880, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880 },
+  INN:{ JFK:740, LAX:1020,SFO:980, ORD:820, MIA:900, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880, LAS:960, PHX:980, MSP:860, DTW:850 },
+  CMF:{ JFK:780, LAX:1060,SFO:1020,ORD:860, MIA:940, SEA:1120,BOS:740, ATL:880, DEN:960, DFW:920, LAS:1000,PHX:1020,MSP:900, DTW:890 },
+  GNB:{ JFK:760, LAX:1040,SFO:1000,ORD:840, MIA:920, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900, LAS:980, PHX:1000,MSP:880, DTW:870 },
+  SZG:{ JFK:760, LAX:1040,SFO:1000,ORD:840, MIA:920, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900, LAS:980, PHX:1000,MSP:880, DTW:870 },
+  VCE:{ JFK:720, LAX:1000,SFO:960, ORD:800, MIA:880, SEA:1060,BOS:680, ATL:820, DEN:900, DFW:860, LAS:940, PHX:960, MSP:840, DTW:830 },
+  TRN:{ JFK:740, LAX:1020,SFO:980, ORD:820, MIA:900, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880, LAS:960, PHX:980, MSP:860, DTW:850 },
+  BIQ:{ JFK:760, LAX:1060,SFO:1020,ORD:840, MIA:900, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900, LAS:980, PHX:1000,MSP:880, DTW:870 },
+  BIO:{ JFK:740, LAX:1040,SFO:1000,ORD:820, MIA:880, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880, LAS:960, PHX:980, MSP:860, DTW:850 },
+  LIS:{ JFK:680, LAX:980, SFO:960, ORD:760, MIA:840, SEA:1020,BOS:640, ATL:780, DEN:860, DFW:820, LAS:920, PHX:940, MSP:800, DTW:790 },
+  NQY:{ JFK:680, LAX:960, SFO:940, ORD:760, MIA:840, SEA:1000,BOS:640, ATL:780, DEN:860, DFW:820, LAS:900, PHX:920, MSP:800, DTW:790 },
+  INV:{ JFK:700, LAX:980, SFO:960, ORD:780, MIA:860, SEA:1020,BOS:660, ATL:800, DEN:880, DFW:840, LAS:920, PHX:940, MSP:820, DTW:810 },
+  SNN:{ JFK:620, LAX:940, SFO:920, ORD:700, MIA:800, SEA:980, BOS:580, ATL:740, DEN:820, DFW:780, LAS:880, PHX:900, MSP:740, DTW:730 },
+  ACE:{ JFK:720, LAX:1020,SFO:1000,ORD:800, MIA:860, SEA:1060,BOS:680, ATL:820, DEN:900, DFW:860, LAS:960, PHX:980, MSP:840, DTW:830 },
+  FUE:{ JFK:740, LAX:1040,SFO:1020,ORD:820, MIA:880, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880, LAS:980, PHX:1000,MSP:860, DTW:850 },
   // Africa
-  CPT:{ JFK:1200,LAX:1400,SFO:1380,ORD:1280,MIA:1160,SEA:1480,BOS:1240,ATL:1200,DEN:1360,DFW:1280 },
-  PLZ:{ JFK:1220,LAX:1420,SFO:1400,ORD:1300,MIA:1180,SEA:1500,BOS:1260,ATL:1220,DEN:1380,DFW:1300 },
-  AGA:{ JFK:820, LAX:1120,SFO:1100,ORD:900, MIA:960, SEA:1160,BOS:780, ATL:920, DEN:1000,DFW:960 },
-  WDH:{ JFK:1300,LAX:1500,SFO:1480,ORD:1380,MIA:1260,SEA:1580,BOS:1340,ATL:1300,DEN:1460,DFW:1380 },
+  CPT:{ JFK:1200,LAX:1400,SFO:1380,ORD:1280,MIA:1160,SEA:1480,BOS:1240,ATL:1200,DEN:1360,DFW:1280, LAS:1380,PHX:1360,MSP:1320,DTW:1310 },
+  PLZ:{ JFK:1220,LAX:1420,SFO:1400,ORD:1300,MIA:1180,SEA:1500,BOS:1260,ATL:1220,DEN:1380,DFW:1300, LAS:1400,PHX:1380,MSP:1340,DTW:1330 },
+  AGA:{ JFK:820, LAX:1120,SFO:1100,ORD:900, MIA:960, SEA:1160,BOS:780, ATL:920, DEN:1000,DFW:960, LAS:1060,PHX:1080,MSP:940, DTW:930 },
+  WDH:{ JFK:1300,LAX:1500,SFO:1480,ORD:1380,MIA:1260,SEA:1580,BOS:1340,ATL:1300,DEN:1460,DFW:1380, LAS:1480,PHX:1460,MSP:1420,DTW:1410 },
   // Caribbean / Atlantic
-  SJU:{ JFK:260, LAX:480, SFO:520, ORD:380, MIA:180, SEA:580, BOS:300, ATL:260, DEN:420, DFW:360 },
-  BGI:{ JFK:480, LAX:700, SFO:740, ORD:600, MIA:340, SEA:800, BOS:520, ATL:480, DEN:640, DFW:580 },
+  SJU:{ JFK:260, LAX:480, SFO:520, ORD:380, MIA:180, SEA:580, BOS:300, ATL:260, DEN:420, DFW:360, LAS:440, PHX:400, MSP:420, DTW:400 },
+  BGI:{ JFK:480, LAX:700, SFO:740, ORD:600, MIA:340, SEA:800, BOS:520, ATL:480, DEN:640, DFW:580, LAS:660, PHX:640, MSP:640, DTW:630 },
   // Central America
-  SJO:{ JFK:380, LAX:460, SFO:500, ORD:480, MIA:240, SEA:580, BOS:420, ATL:360, DEN:460, DFW:380 },
-  LIR:{ JFK:400, LAX:480, SFO:520, ORD:500, MIA:260, SEA:600, BOS:440, ATL:380, DEN:480, DFW:400 },
-  SAL:{ JFK:360, LAX:440, SFO:480, ORD:460, MIA:220, SEA:560, BOS:400, ATL:340, DEN:440, DFW:360 },
+  SJO:{ JFK:380, LAX:460, SFO:500, ORD:480, MIA:240, SEA:580, BOS:420, ATL:360, DEN:460, DFW:380, LAS:440, PHX:420, MSP:520, DTW:510 },
+  LIR:{ JFK:400, LAX:480, SFO:520, ORD:500, MIA:260, SEA:600, BOS:440, ATL:380, DEN:480, DFW:400, LAS:460, PHX:440, MSP:540, DTW:530 },
+  SAL:{ JFK:360, LAX:440, SFO:480, ORD:460, MIA:220, SEA:560, BOS:400, ATL:340, DEN:440, DFW:360, LAS:420, PHX:400, MSP:500, DTW:490 },
   // Mexico surf
-  OAX:{ JFK:480, LAX:360, SFO:400, ORD:460, MIA:380, SEA:500, BOS:520, ATL:440, DEN:420, DFW:380 },
-  PVR:{ JFK:440, LAX:300, SFO:340, ORD:420, MIA:360, SEA:460, BOS:480, ATL:400, DEN:360, DFW:320 },
+  OAX:{ JFK:480, LAX:360, SFO:400, ORD:460, MIA:380, SEA:500, BOS:520, ATL:440, DEN:420, DFW:380, LAS:380, PHX:340, MSP:500, DTW:490 },
+  PVR:{ JFK:440, LAX:300, SFO:340, ORD:420, MIA:360, SEA:460, BOS:480, ATL:400, DEN:360, DFW:320, LAS:320, PHX:280, MSP:460, DTW:450 },
   // US West/Hawaii surf
-  OGG:{ JFK:860, LAX:400, SFO:420, ORD:760, MIA:800, SEA:580, BOS:920, ATL:820, DEN:660, DFW:720 },
-  LIH:{ JFK:880, LAX:420, SFO:440, ORD:780, MIA:820, SEA:600, BOS:940, ATL:840, DEN:680, DFW:740 },
-  SAN:{ JFK:340, LAX:120, SFO:140, ORD:320, MIA:380, SEA:280, BOS:360, ATL:340, DEN:220, DFW:260 },
+  OGG:{ JFK:860, LAX:400, SFO:420, ORD:760, MIA:800, SEA:580, BOS:920, ATL:820, DEN:660, DFW:720, LAS:440, PHX:460, MSP:800, DTW:790 },
+  LIH:{ JFK:880, LAX:420, SFO:440, ORD:780, MIA:820, SEA:600, BOS:940, ATL:840, DEN:680, DFW:740, LAS:460, PHX:480, MSP:820, DTW:810 },
+  SAN:{ JFK:340, LAX:120, SFO:140, ORD:320, MIA:380, SEA:280, BOS:360, ATL:340, DEN:220, DFW:260, LAS:140, PHX:160, MSP:360, DTW:350 },
   // Southeast Asia / Pacific
-  DPS:{ JFK:1400,LAX:1100,SFO:1080,ORD:1350,MIA:1480,SEA:1200,BOS:1460,ATL:1500,DEN:1320,DFW:1380 },
-  PDG:{ JFK:1500,LAX:1200,SFO:1180,ORD:1450,MIA:1580,SEA:1300,BOS:1560,ATL:1600,DEN:1420,DFW:1480 },
-  CEB:{ JFK:1300,LAX:1000,SFO:980, ORD:1250,MIA:1380,SEA:1100,BOS:1360,ATL:1400,DEN:1220,DFW:1280 },
-  NAN:{ JFK:1650,LAX:1200,SFO:1250,ORD:1600,MIA:1550,SEA:1380,BOS:1750,ATL:1620,DEN:1480,DFW:1560 },
-  MLE:{ JFK:1350,LAX:1200,SFO:1180,ORD:1300,MIA:1380,SEA:1280,BOS:1400,ATL:1380,DEN:1300,DFW:1320 },
+  DPS:{ JFK:1400,LAX:1100,SFO:1080,ORD:1350,MIA:1480,SEA:1200,BOS:1460,ATL:1500,DEN:1320,DFW:1380, LAS:1280,PHX:1260,MSP:1390,DTW:1380 },
+  PDG:{ JFK:1500,LAX:1200,SFO:1180,ORD:1450,MIA:1580,SEA:1300,BOS:1560,ATL:1600,DEN:1420,DFW:1480, LAS:1380,PHX:1360,MSP:1490,DTW:1480 },
+  CEB:{ JFK:1300,LAX:1000,SFO:980, ORD:1250,MIA:1380,SEA:1100,BOS:1360,ATL:1400,DEN:1220,DFW:1280, LAS:1180,PHX:1160,MSP:1290,DTW:1280 },
+  NAN:{ JFK:1650,LAX:1200,SFO:1250,ORD:1600,MIA:1550,SEA:1380,BOS:1750,ATL:1620,DEN:1480,DFW:1560, LAS:1380,PHX:1360,MSP:1640,DTW:1630 },
+  MLE:{ JFK:1350,LAX:1200,SFO:1180,ORD:1300,MIA:1380,SEA:1280,BOS:1400,ATL:1380,DEN:1300,DFW:1320, LAS:1280,PHX:1260,MSP:1340,DTW:1330 },
   // Australia & NZ
-  SYD:{ JFK:2000,LAX:1500,SFO:1550,ORD:1950,MIA:1900,SEA:1700,BOS:2100,ATL:1950,DEN:1800,DFW:1880 },
-  MEL:{ JFK:2050,LAX:1540,SFO:1590,ORD:2000,MIA:1950,SEA:1740,BOS:2150,ATL:2000,DEN:1840,DFW:1920 },
-  OOL:{ JFK:2020,LAX:1520,SFO:1570,ORD:1970,MIA:1920,SEA:1720,BOS:2120,ATL:1970,DEN:1820,DFW:1900 },
-  PER:{ JFK:2200,LAX:1700,SFO:1750,ORD:2150,MIA:2100,SEA:1900,BOS:2300,ATL:2150,DEN:2000,DFW:2080 },
-  AKL:{ JFK:2100,LAX:1580,SFO:1620,ORD:2050,MIA:2000,SEA:1780,BOS:2200,ATL:2050,DEN:1880,DFW:1960 },
+  SYD:{ JFK:2000,LAX:1500,SFO:1550,ORD:1950,MIA:1900,SEA:1700,BOS:2100,ATL:1950,DEN:1800,DFW:1880, LAS:1680,PHX:1660,MSP:1990,DTW:1980 },
+  MEL:{ JFK:2050,LAX:1540,SFO:1590,ORD:2000,MIA:1950,SEA:1740,BOS:2150,ATL:2000,DEN:1840,DFW:1920, LAS:1720,PHX:1700,MSP:2040,DTW:2030 },
+  OOL:{ JFK:2020,LAX:1520,SFO:1570,ORD:1970,MIA:1920,SEA:1720,BOS:2120,ATL:1970,DEN:1820,DFW:1900, LAS:1700,PHX:1680,MSP:2010,DTW:2000 },
+  PER:{ JFK:2200,LAX:1700,SFO:1750,ORD:2150,MIA:2100,SEA:1900,BOS:2300,ATL:2150,DEN:2000,DFW:2080, LAS:1880,PHX:1860,MSP:2190,DTW:2180 },
+  AKL:{ JFK:2100,LAX:1580,SFO:1620,ORD:2050,MIA:2000,SEA:1780,BOS:2200,ATL:2050,DEN:1880,DFW:1960, LAS:1760,PHX:1740,MSP:2090,DTW:2080 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD)
@@ -1149,6 +1177,38 @@ function useLocalStorage(key, initial) {
   return [val, save];
 }
 
+// ─── go/no-go verdict ────────────────────────────────────────────────────────
+function getGoVerdict(score) {
+  if (score >= 80) return { label:"GO", color:"#22c55e", bg:"#dcfce7" };
+  if (score >= 55) return { label:"MAYBE", color:"#eab308", bg:"#fef9c3" };
+  return { label:"WAIT", color:"#ef4444", bg:"#fee2e2" };
+}
+
+function GoVerdictBadge({ score, size = "sm" }) {
+  const v = getGoVerdict(score);
+  const isSm = size === "sm";
+  return (
+    <div style={{
+      display:"inline-flex", alignItems:"center", gap: isSm ? 3 : 5,
+      background: v.bg, borderRadius: isSm ? 6 : 8,
+      padding: isSm ? "2px 6px" : "3px 10px",
+      border:`1.5px solid ${v.color}`,
+    }}>
+      <div style={{ width: isSm ? 6 : 8, height: isSm ? 6 : 8, borderRadius:"50%", background: v.color }} />
+      <span style={{ fontSize: isSm ? 9 : 11, fontWeight:800, color: v.color, fontFamily:F }}>{v.label}</span>
+    </div>
+  );
+}
+
+// ─── haptic feedback helper ──────────────────────────────────────────────────
+function haptic(style = "light") {
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate(style === "heavy" ? 25 : style === "medium" ? 15 : 8);
+    }
+  } catch(_) {}
+}
+
 // ─── score dot ────────────────────────────────────────────────────────────────
 function ScoreDot({ score }) {
   const color = score >= 90 ? "#22c55e" : score >= 75 ? "#84cc16" : score >= 60 ? "#eab308" : score >= 45 ? "#f97316" : "#ef4444";
@@ -1192,7 +1252,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:12, right:12,
           background:"none", border:"none", fontSize:20,
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
@@ -1200,26 +1260,22 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           {saved ? "❤️" : "🤍"}
         </button>
 
-        {/* Flight deal badge */}
-        <div style={{
-          position:"absolute", top:12, left:12,
-          background:"#fff", borderRadius:20, padding:"4px 10px",
-          display:"flex", alignItems:"center", gap:4,
-          boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-        }}>
-          <span style={{ fontSize:11 }}>✈️</span>
-          <span style={{ fontSize:11, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-            {listing.flight.pct}% off
-          </span>
-          {listing.flight.live && (
-            <span style={{
-              fontSize:9, fontWeight:800, color:"#16a34a", fontFamily:F,
-              background:"#dcfce7", borderRadius:6, padding:"1px 5px", marginLeft:1,
-            }}>LIVE</span>
-          )}
+        {/* Go/No-Go verdict + flight deal */}
+        <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
+          <GoVerdictBadge score={listing.conditionScore} />
+          <div style={{
+            background:"#fff", borderRadius:20, padding:"3px 8px",
+            display:"flex", alignItems:"center", gap:3,
+            boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
+          }}>
+            <span style={{ fontSize:10 }}>✈️</span>
+            <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
+              ${listing.flight.price}
+            </span>
+          </div>
         </div>
 
-        {/* Condition label only */}
+        {/* Condition label */}
         <div style={{
           position:"absolute", bottom:12, left:12, right:12,
         }}>
@@ -1243,6 +1299,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0, marginLeft:8 }}>
             <span style={{ fontSize:12 }}>⭐</span>
             <span style={{ fontSize:12, fontWeight:600, color:"#222", fontFamily:F }}>{listing.rating}</span>
+            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>({listing.reviews})</span>
           </div>
         </div>
         <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>{listing.location}</div>
@@ -1261,7 +1318,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); haptic("heavy"); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
@@ -1356,21 +1413,18 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:5, right:5,
           background:"none", border:"none", fontSize:13,
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
-        {/* Deal */}
-        <div style={{
-          position:"absolute", top:5, left:5,
-          background:"#0284c7", borderRadius:10, padding:"2px 5px",
-        }}>
-          <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>✈️ {listing.flight.pct}%</span>
+        {/* Go/No-Go verdict */}
+        <div style={{ position:"absolute", top:5, left:5 }}>
+          <GoVerdictBadge score={listing.conditionScore} />
         </div>
 
-        {/* Condition label only */}
+        {/* Condition label */}
         <div style={{
           position:"absolute", bottom:5, left:5,
         }}>
@@ -2088,50 +2142,93 @@ function applyFilters(listings, activeCat, filters, search = {}) {
   return out;
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail }) {
+function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile }) {
+  const [showSaved, setShowSaved] = useState(false);
+  const [showAllCats, setShowAllCats] = useState(false);
 
-  // Both "All" and sport tabs: always show top 5 picks. Label shifts based on how hot they are.
-  const firingAll   = listings.filter(l => l.conditionScore >= 85); // used for AlertBanner count
+  // "Best Right Now" — top venues where conditions AND price converge
+  const bestRightNow = [...listings]
+    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+    .sort((a, b) => {
+      const aVal = a.conditionScore - Math.round(a.flight.price / 20);
+      const bVal = b.conditionScore - Math.round(b.flight.price / 20);
+      return bVal - aVal;
+    })
+    .slice(0, 5);
+
+  // Both "All" and sport tabs: always show top 5 picks.
   const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
   const sportTopPicks = activeCat !== "all"
     ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
     : [];
   const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
-  const topScore  = firingTab[0]?.conditionScore ?? 0;
-  const isTrulyFiring = topScore >= 85;
-  const isGood        = topScore >= 70;
-  // "Best Conditions" label instead of "Firing"
-  const firingLabel = "Best Conditions";
-  const catNameFull = CATEGORIES.find(c => c.id === activeCat)?.label || "";
-  const firingSubLabel = isTrulyFiring
-    ? (activeCat === "all" ? "Peak conditions · Cheap flights converging" : `Peak ${catNameFull} conditions today`)
-    : isGood
-      ? (activeCat === "all" ? "Good conditions across all sports" : `Solid ${catNameFull} conditions right now`)
-      : (activeCat === "all" ? "Best available across all sports" : `Best ${catNameFull} spots available`);
-  // Value score = condition score weighted against price (higher = better value)
-  const bestValue = firingTab.length > 0
-    ? firingTab.reduce((best, l) => {
-        const valScore = l.conditionScore - Math.max(0, Math.round(l.flight.price / 30));
-        return valScore > best.val ? { l, val: valScore } : best;
-      }, { l: firingTab[0], val: -Infinity }).l
-    : null;
 
   const filtered = applyFilters(listings, activeCat, filters, search);
-  // Exclude firingTab IDs from the main grid to avoid showing each venue twice
   const firingIds = new Set(firingTab.map(l => l.id));
-  // On sport tabs the firing carousel is hidden, so show all filtered. On "all", subtract firing row.
-  const gridListings = activeCat === "all" ? filtered.filter(l => !firingIds.has(l.id)) : filtered;
+  const bestNowIds = new Set(bestRightNow.map(l => l.id));
+  const gridListings = activeCat === "all"
+    ? filtered.filter(l => !firingIds.has(l.id) && !bestNowIds.has(l.id))
+    : filtered;
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
   const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate;
 
+  // Last checked timestamp
+  const timeAgo = wxLastUpdated ? (() => {
+    const mins = Math.round((Date.now() - wxLastUpdated.getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.round(mins / 60)}h ago`;
+  })() : null;
+
+  // Saved count for quick-access
+  const savedCount = wishlists.length;
+
+  // Default categories: skiing + surfing, rest behind "+" button
+  const defaultCatIds = ["all", "skiing", "surfing"];
+  const visibleCats = showAllCats ? CATEGORIES.filter(c => c.id !== "tanning") : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Active filter summary strip — compact pills showing what's active */}
+      {/* Category pills — 2 default + "+" */}
+      <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        {visibleCats.map(c => (
+          <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
+            onClick={() => { setActiveCat(c.id); haptic(); }}
+            style={{
+              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
+              background: activeCat === c.id ? "#222" : "#f5f5f5",
+              color: activeCat === c.id ? "#fff" : "#555",
+              border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
+              fontSize:12, fontWeight:700, fontFamily:F,
+          }}>
+            {c.emoji} {c.label}
+          </button>
+        ))}
+        {!showAllCats && (
+          <button onClick={() => setShowAllCats(true)} className="pill" style={{
+            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
+            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
+          }}>+</button>
+        )}
+        {/* Saved quick-access */}
+        {savedCount > 0 && (
+          <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
+            padding:"7px 12px", borderRadius:20, cursor:"pointer", marginLeft:"auto",
+            background: showSaved ? "#fee2e2" : "#f5f5f5",
+            border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
+            fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+          }}>
+            ❤️ {savedCount}
+          </button>
+        )}
+      </div>
+
+      {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -2146,64 +2243,117 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       )}
 
       <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
-        <div style={{ height:16 }} />
 
-        {/* Firing right now section */}
-        {!loading && firingTab.length > 0 && (
-          <div style={{ marginBottom:20 }}>
-            <div style={{ padding:"0 24px 10px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
-              <div>
-                <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F, display:"flex", alignItems:"center", gap:8 }}>
-                  {firingLabel}
-                  {isTrulyFiring && (
-                    <span className="pulse" style={{ display:"inline-block", width:8, height:8, borderRadius:"50%", background:"#22c55e" }} />
-                  )}
+        {/* ── Saved venues inline (replaces wishlists tab) ── */}
+        {showSaved && (
+          <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
+            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              {listings.filter(l => wishlists.includes(l.id)).map(l => (
+                <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
+                  minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
+                  border:"1.5px solid #fecaca",
+                }}>
+                  <div style={{ height:70, background:l.gradient, position:"relative" }}>
+                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                      position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12,
+                    }}>❤️</button>
+                  </div>
+                  <div style={{ padding:"6px 8px" }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                    <div style={{ fontSize:9, color:"#717171", fontFamily:F }}>${l.flight.price}</div>
+                  </div>
                 </div>
-                <div style={{ fontSize:12, color:"#717171", marginTop:2, fontFamily:F }}>{firingSubLabel}</div>
+              ))}
+              {wishlists.length === 0 && (
+                <div style={{ fontSize:12, color:"#999", fontFamily:F, padding:"10px 0" }}>Tap the heart on any venue to save it</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Hero moment: Best opportunity right now ── */}
+        {!loading && bestRightNow.length > 0 && !showSaved && (() => {
+          const hero = bestRightNow[0];
+          const verdict = getGoVerdict(hero.conditionScore);
+          return (
+            <div style={{ margin:"12px 14px 0", padding:16, borderRadius:16,
+              background:`linear-gradient(135deg, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[1] || "#0284c7"}18, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[2] || "#38bdf8"}12)`,
+              border:`2px solid ${verdict.color}33`,
+            }} onClick={() => onOpenDetail(hero)} className="card">
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    Your best window right now
+                  </div>
+                  <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:4, lineHeight:1.2 }}>
+                    {hero.title}
+                  </div>
+                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
+                </div>
+                <GoVerdictBadge score={hero.conditionScore} size="lg" />
               </div>
-              <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F }}>{firingTab.length} spots</span>
+              <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
+                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                </div>
+                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {profile?.homeAirport || "JFK"}</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>${hero.flight.price}</div>
+                  <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── Last updated + data freshness ── */}
+        {timeAgo && !loading && (
+          <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end" }}>
+            <span style={{ fontSize:10, color:"#bbb", fontFamily:F }}>Updated {timeAgo}</span>
+          </div>
+        )}
+
+        {/* ── Best Right Now carousel ── */}
+        {!loading && bestRightNow.length > 1 && (
+          <div style={{ marginTop:12, marginBottom:16 }}>
+            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>
+                  Best Right Now
+                </div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
+              </div>
             </div>
             <div style={{
-              display:"flex", gap:12, overflowX:"auto", scrollbarWidth:"none",
+              display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
             }}>
-              {firingTab.map((l, i) => {
-                const scoreColor = l.conditionScore >= 90 ? "#22c55e" : l.conditionScore >= 75 ? "#84cc16" : l.conditionScore >= 60 ? "#eab308" : l.conditionScore >= 45 ? "#f97316" : "#ef4444";
+              {bestRightNow.slice(1).map(l => {
+                const v = getGoVerdict(l.conditionScore);
                 return (
-                  <div key={l.id} className="card bounce-in" onClick={() => onOpenDetail(l)}
+                  <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
                     style={{
-                      minWidth:200, maxWidth:200, scrollSnapAlign:"start",
-                      background:"#fff", borderRadius:16, overflow:"hidden",
-                      border:`2px solid ${scoreColor}`,
-                      boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-                      animationDelay:`${i * 0.06}s`, animationFillMode:"both",
+                      minWidth:170, maxWidth:170, scrollSnapAlign:"start",
+                      background:"#fff", borderRadius:14, overflow:"hidden",
+                      border:`1.5px solid ${v.color}33`,
+                      boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
-                    <div style={{
-                      height:110, background:l.gradient, position:"relative",
-                      display:"flex", alignItems:"flex-end", padding:10,
-                    }}>
-                      <div style={{
-                        background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)",
-                        borderRadius:8, padding:"4px 8px",
-                        display:"flex", alignItems:"center", gap:5,
-                      }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:scoreColor }} />
-                        <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>{l.conditionScore}</span>
-                      </div>
-                      {bestValue && bestValue.id === l.id && (
-                        <div style={{
-                          position:"absolute", top:8, right:8,
-                          background:"#0284c7", borderRadius:6, padding:"3px 7px",
-                          fontSize:9, fontWeight:800, color:"white", fontFamily:F,
-                        }}>Best value</div>
-                      )}
+                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
+                      <GoVerdictBadge score={l.conditionScore} />
+                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                        position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
+                        filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+                      }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
                     </div>
-                    <div style={{ padding:"10px 12px" }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
-                      <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6 }}>
-                        <span style={{ fontSize:13, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
-                        <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>round trip</span>
+                    <div style={{ padding:"8px 10px" }}>
+                      <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
+                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
+                        <span style={{ fontSize:9, color:"#717171", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
                   </div>
@@ -2214,7 +2364,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* Grid header */}
-        <div style={{ padding:"0 24px 14px" }}>
+        <div style={{ padding:"4px 24px 14px" }}>
           <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
             {isAll ? "All experiences" : catLabel}
           </div>
@@ -2239,13 +2389,27 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                 )
               : (
-                <div style={{ gridColumn:"1/-1", padding:"40px 0", textAlign:"center" }}>
-                  <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>No matches</div>
-                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20 }}>Try a different destination or activity</div>
-                  <button onClick={() => setActiveCat("all")} className="pressable" style={{
-                    background:"#0284c7", border:"none", borderRadius:12, padding:"12px 24px",
-                    color:"white", fontSize:14, fontWeight:700, fontFamily:F, cursor:"pointer",
-                  }}>Show all</button>
+                <div style={{ gridColumn:"1/-1", padding:"40px 20px", textAlign:"center" }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
+                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
+                    {bestRightNow.length > 0
+                      ? `But ${bestRightNow[0].title} looks promising in the coming weeks and flights are still $${bestRightNow[0].flight.price}.`
+                      : "Conditions are quiet across the board right now."}
+                  </div>
+                  <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
+                    Set an alert and we'll text you when it's time.
+                  </div>
+                  <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                    <button onClick={onViewAlerts} className="pressable" style={{
+                      background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                      color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                    }}>Set an alert</button>
+                    <button onClick={() => setActiveCat("all")} className="pressable" style={{
+                      background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
+                      color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                    }}>Show all</button>
+                  </div>
                 </div>
               )
           }
@@ -2466,8 +2630,8 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
           display:"flex", alignItems:"center", gap:4,
         }}>← Back</button>
         <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, marginTop:14 }}>Create Alert</div>
-        <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F }}>
-          We'll notify you when the perfect window opens
+        <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F, lineHeight:1.4 }}>
+          We'll text you when conditions peak AND flights are cheap — so you never miss your window.
         </div>
       </div>
 
@@ -2758,7 +2922,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding }) {
+function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
   const [airportQuery,   setAirportQuery]   = useState("");
   const [airportFocused, setAirportFocused] = useState(false);
   const [editMode,       setEditMode]       = useState(false);
@@ -2876,9 +3040,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               flexShrink:0,
             }}>P</div>
             <div>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Join Peakly</div>
-              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3 }}>
-                Get alerts when conditions + flights align
+              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Never miss your window</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3, lineHeight:1.4 }}>
+                We'll tell you when conditions peak and flights drop
               </div>
             </div>
           </div>
@@ -3027,9 +3191,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             Notifications
           </div>
           {[
-            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"When score hits 90+" },
-            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"When prices drop 50%+" },
-            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Top windows every Monday" },
+            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"Conditions 90+ AND cheap flights from your airport" },
+            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"Price drops on venues you've saved or alerted" },
+            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Best windows this week — conditions + flights combined" },
           ].map(({ key, label, desc }) => (
             <div key={key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid #f7f7f7" }}>
               <div>
@@ -3045,6 +3209,45 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── Travel Window ── */}
+        <div style={{ marginBottom:22 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+            Travel Window
+          </div>
+          <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:10 }}>When can you travel? We'll prioritize venues that match.</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {[
+              { id:"anytime", label:"Anytime" },
+              { id:"30days",  label:"Next 30 days" },
+              { id:"jan",     label:"January" },
+              { id:"feb",     label:"February" },
+              { id:"mar",     label:"March" },
+              { id:"apr",     label:"April" },
+              { id:"may",     label:"May" },
+              { id:"jun",     label:"June" },
+              { id:"jul",     label:"July" },
+              { id:"aug",     label:"August" },
+              { id:"sep",     label:"September" },
+              { id:"oct",     label:"October" },
+              { id:"nov",     label:"November" },
+              { id:"dec",     label:"December" },
+            ].map(opt => {
+              const sel = (profile.travelWindow || "anytime") === opt.id;
+              return (
+                <button key={opt.id} className="pressable" onClick={() => setProfile(p => ({...p, travelWindow: opt.id}))} style={{
+                  padding:"7px 12px", borderRadius:14, cursor:"pointer",
+                  background: sel ? "#222" : "#f7f7f7",
+                  color: sel ? "#fff" : "#555",
+                  border:"1.5px solid", borderColor: sel ? "#222" : "#e8e8e8",
+                  fontSize:11, fontWeight:700, fontFamily:F,
+                }}>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── Default filters ── */}
@@ -3085,6 +3288,55 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             </div>
           </div>
         </div>
+
+        {/* ── Saved Trips ── */}
+        {savedTrips.length > 0 && (
+          <div style={{ marginBottom:22 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+              Saved Trips
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {savedTrips.map(trip => (
+                <div key={trip.id} className="card" style={{
+                  background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, overflow:"hidden",
+                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+                }}>
+                  <div style={{ height:80, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)" }} />
+                  <div style={{ padding:12 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
+                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:3 }}>
+                      {trip.days} days · ${trip.totalCost} total
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Wishlists ── */}
+        {wishlists.length > 0 && (
+          <div style={{ marginBottom:22 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+              Saved Venues
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {listings.filter(l => wishlists.includes(l.id)).slice(0, 6).map(l => (
+                <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
+                  <div style={{ height:80, background:l.gradient, position:"relative" }}>
+                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
+                      position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
+                    }}>❤️</button>
+                  </div>
+                  <div style={{ padding:"7px 8px" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>${l.flight.price} · {l.conditionLabel}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Powered by ── */}
         <div style={{ marginBottom:20 }}>
@@ -3480,36 +3732,22 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
-  const [skillLevels, setSkillLevels]= useState(profile.skillLevels || {});
   const [airport,     setAirport]    = useState(profile.homeAirport || "JFK");
-  const [avatarColor, setAvatarColor]= useState(profile.avatarColor || "sunset");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
 
   const toggleSport = id => {
     setSports(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-    if (!skillLevels[id]) setSkillLevels(lv => ({ ...lv, [id]:"Intermediate" }));
   };
 
   const complete = () => {
-    setProfile(p => ({ ...p, name, email, sports, skillLevels, homeAirport: airport, avatarColor, hasAccount:true }));
+    setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
     onClose();
   };
 
   const apResults = apQuery.length >= 2
     ? ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(apQuery.toLowerCase()) || a.code.toLowerCase().includes(apQuery.toLowerCase())).slice(0,5)
     : [];
-
-  const PillBtn = ({ sel, onClick, children, color="#222" }) => (
-    <button className={"pill" + (sel ? " pill-selected" : "")} onClick={onClick} style={{
-      padding:"9px 16px", borderRadius:24, cursor:"pointer", minHeight:42,
-      background: sel ? color : "#f5f5f5", color: sel ? "#fff" : "#444",
-      border:"2px solid", borderColor: sel ? color : "transparent",
-      fontSize:13, fontWeight:700, fontFamily:F,
-      display:"inline-flex", alignItems:"center", gap:5,
-      boxShadow: sel ? `0 2px 10px ${color}55` : "none",
-    }}>{children}</button>
-  );
 
   return (
     <>
@@ -3527,7 +3765,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
 
         {/* Progress dots */}
         <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-          {[1,2,3].map(i => (
+          {[1,2].map(i => (
             <div key={i} style={{
               width: step === i ? 20 : 6, height:6, borderRadius:3,
               background: step >= i ? "#0284c7" : "#e8e8e8",
@@ -3536,66 +3774,17 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           ))}
         </div>
 
-        {/* ── Step 1: Sports + Skill ── */}
+        {/* ── Step 1: Value prop + Airport ── */}
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What do you ride? 🏄</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>Pick any you want alerts for</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              {CATEGORIES.filter(c => c.id !== "all").map(cat => {
-                const sel = sports.includes(cat.id);
-                return (
-                  <div key={cat.id} style={{
-                    border:"2px solid", borderColor: sel ? "#222" : "#e8e8e8",
-                    borderRadius:18, overflow:"hidden",
-                    transition:"border-color 0.2s",
-                    boxShadow: sel ? "0 2px 14px rgba(0,0,0,0.1)" : "none",
-                  }}>
-                    <button onClick={() => toggleSport(cat.id)} style={{
-                      width:"100%", background: sel ? "#222" : "#fff",
-                      border:"none", padding:"14px 18px",
-                      display:"flex", alignItems:"center", gap:12, cursor:"pointer",
-                    }}>
-                      <span style={{ fontSize:28 }}>{cat.emoji}</span>
-                      <span style={{ fontSize:16, fontWeight:800, color: sel ? "#fff" : "#222", fontFamily:F, flex:1, textAlign:"left" }}>{cat.label}</span>
-                      <div style={{
-                        width:24, height:24, borderRadius:"50%",
-                        background: sel ? "#0284c7" : "#f0f0f0",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:14, color:"white",
-                      }}>{sel ? "✓" : ""}</div>
-                    </button>
-                    {sel && (
-                      <div className="bounce-in" style={{ background:"#fafafa", padding:"10px 18px 14px", borderTop:"1px solid #f0f0f0" }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your skill level</div>
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                          {SKILL_LEVELS.map(lv => {
-                            const selLv = skillLevels[cat.id] === lv;
-                            return (
-                              <button key={lv} className="pressable" onClick={() => setSkillLevels(s => ({...s, [cat.id]:lv}))} style={{
-                                padding:"7px 12px", borderRadius:16, border:"1.5px solid",
-                                borderColor: selLv ? "#0284c7" : "#e0e0e0",
-                                background: selLv ? "#fff0f2" : "#fff",
-                                color: selLv ? "#0284c7" : "#666",
-                                fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
-                              }}>{lv}</button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.2 }}>
+              Never miss your window
             </div>
-          </div>
-        )}
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24, lineHeight:1.5 }}>
+              We'll tell you when conditions peak and flights drop — for every adventure on your list.
+            </div>
 
-        {/* ── Step 2: Home Airport ── */}
-        {step === 2 && (
-          <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>Where do you fly from? ✈️</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>We'll show you deals from your home airport</div>
+            <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>Where do you fly from? ✈️</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
               {US_AIRPORTS.map(ap => {
                 const sel = airport === ap.code;
@@ -3620,7 +3809,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               />
             </div>
             {apFocus && apResults.length > 0 && (
-              <div className="bounce-in" style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
+              <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
                 {apResults.map((ap,i) => (
                   <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); }} style={{
                     width:"100%", padding:"12px 16px", background: airport===ap.code?"#fff5f5":"#fff",
@@ -3637,80 +3826,44 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                 ))}
               </div>
             )}
-            {airport && (
-              <div style={{ marginTop:10, padding:"10px 14px", background:"#f5f5f5", borderRadius:12 }}>
-                <span style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>✈️ {airport}</span>
-                {ALL_AIRPORTS.find(a => a.code===airport)?.city && (
-                  <span style={{ fontSize:12, color:"#888", fontFamily:F }}> · {ALL_AIRPORTS.find(a => a.code===airport).city}</span>
-                )}
-              </div>
-            )}
+
+            {/* Name + Email inline */}
+            <div style={{ marginTop:18 }}>
+              <input type="text" placeholder="Your name (optional)" value={name} onChange={e => setName(e.target.value)}
+                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600, marginBottom:10 }}
+              />
+              <input type="email" placeholder="Email (optional, for alerts)" value={email} onChange={e => setEmail(e.target.value)}
+                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
+              />
+            </div>
           </div>
         )}
 
-        {/* ── Step 3: Name + Email ── */}
-        {step === 3 && (
+        {/* ── Step 2: Sports (simple toggle, no skill levels) ── */}
+        {step === 2 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>Almost there! 🙌</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>So we know what to call you</div>
-            <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your name</div>
-              <input type="text" placeholder="First name" value={name} onChange={e => setName(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:16, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into? 🏄</div>
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick activities you want to track</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+              {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
+                const sel = sports.includes(cat.id);
+                return (
+                  <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
+                    padding:"12px 18px", borderRadius:16, cursor:"pointer",
+                    background: sel ? "#222" : "#f5f5f5",
+                    color: sel ? "#fff" : "#444",
+                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
+                    fontSize:14, fontWeight:700, fontFamily:F,
+                    display:"flex", alignItems:"center", gap:8,
+                    boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
+                  }}>
+                    <span style={{ fontSize:22 }}>{cat.emoji}</span>
+                    {cat.label}
+                    {sel && <span style={{ fontSize:13 }}>✓</span>}
+                  </button>
+                );
+              })}
             </div>
-            {/* Avatar preview + color picker */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Profile color</div>
-              <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{
-                  width:52, height:52, borderRadius:"50%", flexShrink:0,
-                  background: AVATAR_COLORS.find(c => c.id === avatarColor)?.grad || AVATAR_COLORS[0].grad,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:22, fontWeight:900, color:"white", fontFamily:F,
-                  boxShadow:`0 4px 16px ${AVATAR_COLORS.find(c=>c.id===avatarColor)?.hex||"#ff385c"}55`,
-                }}>
-                  {name ? name.trim()[0].toUpperCase() : "?"}
-                </div>
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                  {AVATAR_COLORS.map(col => (
-                    <button key={col.id} onClick={() => setAvatarColor(col.id)} style={{
-                      width:32, height:32, borderRadius:"50%", background:col.grad, border:"none", cursor:"pointer",
-                      boxShadow: avatarColor === col.id ? `0 0 0 3px white, 0 0 0 5px ${col.hex}` : "none",
-                      transition:"box-shadow 0.2s",
-                    }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email <span style={{ color:"#bbb", fontWeight:500, textTransform:"none", letterSpacing:"normal" }}>— optional, for alerts</span></div>
-              <input type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
-            </div>
-            {/* Sport summary */}
-            {sports.length > 0 && (
-              <div style={{ background:"#f8f8f8", borderRadius:14, padding:"12px 16px", marginBottom:8 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your profile</div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {sports.map(s => {
-                    const cat = CATEGORIES.find(c => c.id===s);
-                    return (
-                      <div key={s} style={{ background:"#222", borderRadius:20, padding:"4px 10px", display:"inline-flex", alignItems:"center", gap:5 }}>
-                        <span style={{ fontSize:14 }}>{cat?.emoji}</span>
-                        <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>{skillLevels[s] || "Intermediate"}</span>
-                      </div>
-                    );
-                  })}
-                  <div style={{ background:"#f0f0f0", borderRadius:20, padding:"4px 10px", display:"inline-flex", alignItems:"center", gap:4 }}>
-                    <span style={{ fontSize:12 }}>✈️</span>
-                    <span style={{ fontSize:11, color:"#555", fontWeight:700, fontFamily:F }}>{airport}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -3722,8 +3875,8 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               fontSize:20, cursor:"pointer",
             }}>←</button>
           )}
-          {step < 3 ? (
-            <button onClick={() => setStep(s => s+1)} className="pressable" style={{
+          {step < 2 ? (
+            <button onClick={() => setStep(2)} className="pressable" style={{
               flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
               color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
             }}>
@@ -3736,7 +3889,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
               boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
             }}>
-              🏄 Start my adventure
+              Show me what's firing
             </button>
           )}
         </div>
@@ -4695,37 +4848,199 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
   );
 }
 
-// ─── map tab ──────────────────────────────────────────────────────────────────
+// ─── guides tab ──────────────────────────────────────────────────────────────
+function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
+  const guideCategories = [
+    { id: "skiing",   title: "Ski & Snow Guides",   emoji: "\u26F7\uFE0F" },
+    { id: "surfing",  title: "Surf Guides",          emoji: "\uD83C\uDFC4" },
+    { id: "hiking",   title: "Hiking Guides",         emoji: "\uD83E\uDD7E" },
+    { id: "diving",   title: "Diving Guides",         emoji: "\uD83E\uDD3F" },
+    { id: "climbing", title: "Climbing Guides",        emoji: "\uD83E\uDDD7" },
+  ];
+
+  const featured = [...listings].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
+
+  const blurbs = {
+    skiing: "Snow conditions, resort breakdowns & budget tips",
+    surfing: "Swell forecasts, board recs & local secrets",
+    tanning: "UV index intel, hidden beaches & sun safety",
+    hiking: "Trail conditions, gear lists & elevation guides",
+    diving: "Visibility reports, marine life & cert advice",
+    climbing: "Route betas, crag access & seasonal windows",
+  };
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+      {/* Hero section */}
+      <div style={{
+        background: "linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%)",
+        padding: "32px 24px 28px", marginBottom: 8,
+      }}>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontFamily: F, letterSpacing: "-0.5px", marginBottom: 6 }}>
+          Travel Guides
+        </div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", fontFamily: F, lineHeight: 1.5, maxWidth: 320 }}>
+          Original destination guides, insider tips & seasonal travel advice
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: F }}>
+            {listings.length}+ destinations
+          </span>
+          <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.3)" }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: F }}>
+            {guideCategories.length} categories
+          </span>
+          <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.3)" }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: F }}>
+            45 countries
+          </span>
+        </div>
+      </div>
+
+      {/* Featured Guides carousel */}
+      <div style={{ padding: "16px 0 8px" }}>
+        <div style={{ padding: "0 24px 10px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#222", fontFamily: F }}>Featured Guides</div>
+            <div style={{ fontSize: 12, color: "#717171", marginTop: 2, fontFamily: F }}>Editor's picks for this season</div>
+          </div>
+        </div>
+        <div style={{
+          display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch", padding: "0 24px", scrollSnapType: "x mandatory",
+        }}>
+          {featured.map((venue) => (
+            <div
+              key={venue.id}
+              className="card"
+              onClick={() => onOpenDetail(venue)}
+              style={{
+                minWidth: 220, maxWidth: 220, scrollSnapAlign: "start",
+                background: "#fff", borderRadius: 16, overflow: "hidden",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              }}
+            >
+              <div style={{
+                height: 130, background: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
+                display: "flex", alignItems: "flex-end", padding: 14, position: "relative",
+              }}>
+                <div style={{
+                  position: "absolute", top: 10, right: 10,
+                  background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)",
+                  borderRadius: 8, padding: "4px 8px",
+                  fontSize: 10, fontWeight: 700, color: "#fff", fontFamily: F,
+                }}>
+                  Guide
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: F }}>{venue.name}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontFamily: F, marginTop: 2 }}>
+                    {venue.location || venue.country}
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: "12px 14px 14px" }}>
+                <div style={{ fontSize: 11, color: "#717171", fontFamily: F, lineHeight: 1.4, marginBottom: 10 }}>
+                  {blurbs[venue.category] || "Insider tips, conditions & travel advice"}
+                </div>
+                <div style={{
+                  fontSize: 12, fontWeight: 700, color: "#0284c7", fontFamily: F,
+                  display: "flex", alignItems: "center", gap: 4,
+                }}>
+                  Read Guide
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Category guide sections */}
+      {guideCategories.map((cat) => {
+        const venues = listings.filter(l => l.category === cat.id);
+        if (venues.length === 0) return null;
+        return (
+          <div key={cat.id} style={{ padding: "20px 0 4px" }}>
+            <div style={{ padding: "0 24px 12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#222", fontFamily: F }}>
+                {cat.emoji} {cat.title}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#717171", fontFamily: F }}>{venues.length} guides</span>
+            </div>
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "0 24px",
+            }}>
+              {venues.map((venue) => (
+                <div
+                  key={venue.id}
+                  className="card"
+                  onClick={() => onOpenDetail(venue)}
+                  style={{
+                    background: "#fff", borderRadius: 14, padding: "14px 14px 12px",
+                    boxShadow: "0 1px 6px rgba(0,0,0,0.05)", cursor: "pointer",
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#222", fontFamily: F, marginBottom: 3 }}>
+                    {venue.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#717171", fontFamily: F, marginBottom: 10 }}>
+                    {venue.location || venue.country}
+                  </div>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, color: "#0284c7", fontFamily: F,
+                    display: "flex", alignItems: "center", gap: 3,
+                  }}>
+                    Read Guide
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{ height: 32 }} />
+    </div>
+  );
+}
+
 // ─── bottom nav ───────────────────────────────────────────────────────────────
 function BottomNav({ active, setActive, alertCount }) {
   const tabs = [
-    { id:"explore",   label:"Explore" },
-    { id:"wishlists", label:"Trips" },
-    { id:"alerts",    label:"Alerts" },
-    { id:"profile",   label:"Profile" },
+    { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
+    { id:"alerts",    label:"Alerts",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
+    { id:"profile",   label:"Profile",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
   return (
     <div style={{
       display:"flex", justifyContent:"space-around",
-      padding:"8px 0 20px", background:"#fff",
+      padding:"6px 0 20px", background:"#fff",
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
           background:"none", border:"none",
-          display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-          color: active === t.id ? "#222" : "#b0b0b0", position:"relative",
+          display:"flex", flexDirection:"column", alignItems:"center", gap:2,
+          color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
+          padding:"4px 0",
         }}>
           {t.id === "alerts" && alertCount > 0 && (
             <div style={{
-              position:"absolute", top:-2, right:-2,
+              position:"absolute", top:0, right:2,
               width:8, height:8, background:"#0284c7", borderRadius:"50%",
               border:"1.5px solid white",
             }} />
           )}
-          <span style={{ fontSize:11, fontWeight:600, fontFamily:F }}>{t.label}</span>
+          <span style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>{t.icon}</span>
+          <span style={{ fontSize:10, fontWeight:600, fontFamily:F }}>{t.label}</span>
           {active === t.id && (
-            <div style={{ width:4, height:4, background:"#222", borderRadius:"50%", marginTop:1 }} />
+            <div style={{ width:4, height:4, background:"#0284c7", borderRadius:"50%", marginTop:0 }} />
           )}
         </button>
       ))}
@@ -4774,6 +5089,7 @@ function App() {
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
+  const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
@@ -4825,6 +5141,7 @@ function App() {
       });
       setWxData(wx);
       setMarData(mar);
+      setWxLastUpdated(new Date());
       setLoading(false);
     })();
     return () => { alive = false; };
@@ -4935,10 +5252,18 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                   peakly
                 </span>
+                <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
+                  background:"linear-gradient(135deg,#1a1a2e,#302b63)", border:"none",
+                  borderRadius:20, padding:"6px 12px", cursor:"pointer",
+                  display:"flex", alignItems:"center", gap:5,
+                }}>
+                  <span style={{ fontSize:12 }}>✨</span>
+                  <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:F }}>Vibe</span>
+                </button>
               </div>
               <SearchBar search={search} onOpen={() => setShowSearch(true)} />
             </div>
@@ -4961,17 +5286,8 @@ function App() {
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search}
               onOpenDetail={openDetail}
-            />
-          )}
-          {activeTab === "wishlists" && (
-            <TripsTab
-              listings={listings} wishlists={wishlists} onToggle={toggleWishlist}
               namedLists={namedLists} setNamedLists={setNamedLists}
-              onOpenDetail={openDetail}
-              duffelPrices={duffelPrices}
-              profile={profile}
-              savedTrips={savedTrips}
-              setSavedTrips={setSavedTrips}
+              wxLastUpdated={wxLastUpdated} profile={profile}
             />
           )}
           {activeTab === "alerts" && (
@@ -4987,6 +5303,10 @@ function App() {
               filters={filters} setFilters={setFilters}
               wishlists={wishlists}
               onShowOnboarding={() => setShowOnboarding(true)}
+              savedTrips={savedTrips} setSavedTrips={setSavedTrips}
+              listings={listings} onOpenDetail={openDetail}
+              namedLists={namedLists} setNamedLists={setNamedLists}
+              onToggle={toggleWishlist}
             />
           )}
         </div>
