@@ -6,7 +6,7 @@
 
 ## Data Health Score: 63 / 100
 
-Stable from yesterday. No regressions. Photo coverage improved marginally (57.3% → 59.9% — actually unchanged at 109 photos, prior report miscounted total venues as 171 vs actual 182). The pipeline duplicate, 58 missing BASE_PRICES airports, and 73 photoless venues remain the top three unresolved issues.
+Stable from yesterday. No regressions. AFFILIATE_ID placeholders confirmed fully cleared (zero occurrences in app.jsx). Photo coverage holds at 59.9% (182 venues, 109 with photos — prior 57.3% was based on miscounted 171 venues). The pipeline duplicate, 55 missing BASE_PRICES airports, and 73 photo-less venues remain the top three unresolved issues.
 
 ---
 
@@ -20,6 +20,18 @@ Stable from yesterday. No regressions. Photo coverage improved marginally (57.3%
 | **Photo coverage** | **59.9%** |
 
 > Note: Prior report stated 171 venues — actual count is 182. The photo count (109) is unchanged. Coverage recalculated.
+
+### Photo breakdown by category
+
+| Category | Total | With Photo | Without Photo | Coverage |
+|----------|-------|------------|---------------|----------|
+| Tanning | 60 | 20 | **40** | 33% |
+| Surfing | 53 | 20 | **33** | 38% |
+| Skiing | 50 | 50 | 0 | 100% ✓ |
+| Hiking | 12 | 12 | 0 | 100% ✓ |
+| Kite/MTB/Fishing/Climbing/Diving/Paraglide/Kayak | 7 | 7 | 0 | 100% ✓ |
+
+Skiing and hiking are fully covered. Tanning (33%) and surfing (38%) are the critical gaps — these are the two most-browsed categories.
 
 ---
 
@@ -52,33 +64,33 @@ Stable from yesterday. No regressions. Photo coverage improved marginally (57.3%
 - **Action:** Remove the `pipeline` entry (line 218). Keep `banzai_pipeline` — richer data, higher review count.
 - This was flagged yesterday and still not done. It's a 10-line delete.
 
-### 2. Missing BASE_PRICES entries (HIGH — 58 airports still missing)
-Venue airports not covered by BASE_PRICES (will fall back to $800 estimate):
+### 2. Missing BASE_PRICES entries (HIGH — 55 airports confirmed missing)
+Venue airports not covered by BASE_PRICES (confirmed via code audit of all 126 unique venue `ap:` codes):
 
 **Caribbean / Beach (high-impact):** CUN, MBJ, SXM, PLS, STT, AUA, GCM, TAB, UVF, CZM, SJD
-**Mediterranean:** IBZ, DBV, FAO, NCE, NAP, JMK, JTR, ZTH, MAH, SPU, CAG, AJA, MLO
+**Mediterranean:** IBZ, DBV, FAO, NCE, NAP, JMK, JTR, ZTH, MAH, SPU, CAG, AJA, MLO, SCQ
 **Southeast Asia:** HKT, KBV, USM, MPH, LOP
 **US domestic:** KOA, EYW, MYR, SRQ, TPA, VPS, TYS
 **Indian Ocean:** MRU, SEZ, PRI
 **Iceland / Northern Europe:** KEF
 **Africa:** JRO, ZNZ, MBA
-**Pacific islands:** AIT, FEN, PKR, LUA, LST
-**Other:** BOC, BME, ENI, SCQ
+**Pacific islands:** AIT, FEN, PKR, LUA, LST, ENI
+**Other:** BOC, BME, AXA
 
-58 airports still defaulting to $800. This affects predominantly the Caribbean, Mediterranean, and Southeast Asian tanning/surfing venues which should show $200–600 flights, not $800+.
+55 airports still defaulting to $800. This affects predominantly Caribbean, Mediterranean, and SE Asian venues that should show $200–600 flights, not $800+.
 
-### 3. Photo coverage gap (MEDIUM — unchanged)
+### 3. Photo coverage gap (HIGH — upgraded priority)
 - 73 venues have no photo. Cards render gradient-only backgrounds.
-- Breakdown by category (estimated): ~30 tanning, ~30 surfing, ~13 skiing/hiking/specialty
-- **Action:** Prioritize Caribbean and Mediterranean tanning venues — these are the ones most actively searched in spring/summer.
+- Exact breakdown: 40 tanning, 33 surfing — all other categories are at 100%.
+- **Action:** Add Unsplash photo URLs for Caribbean and Mediterranean tanning venues first (most actively searched in spring/summer), then surfing.
 
 ### 4. Thin categories (MEDIUM — deferred from v5)
 - 7 categories with 1 venue each. Category pills appear in UI but lead to single-result lists.
 - Still deferred to allow focused sprint on photos + BASE_PRICES first.
 
-### 5. AFFILIATE_ID placeholders (RESOLVED — no action needed)
-- Previous reports flagged placeholder IDs at line ~3786 (REI, Backcountry)
-- **Status: CLEARED.** Code now uses REI search URLs directly (e.g., `https://www.rei.com/search?q=skis`). No `AFFILIATE_ID` strings remain in app.jsx. Awaiting LLC approval for actual affiliate account signup — links are structurally correct.
+### 5. AFFILIATE_ID placeholders — RESOLVED ✓
+- **Status: CLEARED.** Zero occurrences of "AFFILIATE_ID" remain in app.jsx (confirmed by grep audit).
+- Code uses REI search URLs directly. Real commissions await LLC approval — this is a business process, not a code task.
 
 ### 6. Sentry DSN empty (LOW — unchanged)
 - Line 6: `SENTRY_DSN = ""` — error monitoring not connected.
@@ -105,8 +117,9 @@ Northern hemisphere end-of-winter / spring transition. Southern hemisphere late 
 **Priority order for next sprint (v7):**
 
 1. **Delete duplicate `pipeline` venue (line 218)** — 10-line fix, eliminates a data integrity bug, has been pending for 2 reports.
-2. **Add BASE_PRICES for top 20 missing airports** — Focus on Caribbean (CUN, MBJ, SXM, PLS, STT, AUA, GCM, CZM, SJD) and Mediterranean (IBZ, DBV, FAO, NCE, NAP, JMK, JTR) as these serve the highest-traffic tanning/surfing venues. Secondary: HKT, KOA, KEF.
-3. **Add Unsplash photo URLs for 30 Caribbean + Mediterranean tanning venues** — Matching the same airports above for visual consistency on the cards most likely to be surfaced in spring/summer.
-4. **Continue deferring thin category expansion** — diving, climbing, kite, kayak, fishing, mtb, paraglide need venue research + photos + scoring validation all at once. Not worth partial effort.
+2. **Add BASE_PRICES for top 20 missing airports** — Caribbean (CUN, MBJ, SXM, PLS, STT, AUA, GCM, CZM, SJD) and Mediterranean (IBZ, DBV, FAO, NCE, NAP, JMK, JTR) first. Secondary: HKT, KOA, KEF. Full confirmed-missing list: 55 airports.
+3. **Add Unsplash photo URLs for 40 missing tanning venues** — Caribbean + Mediterranean priority. Exact count confirmed: 40 tanning, 33 surfing need photos.
+4. **Add Unsplash photo URLs for 33 missing surfing venues** — follow tanning batch.
+5. **Continue deferring thin category expansion** — diving, climbing, kite, kayak, fishing, mtb, paraglide need venue research + photos + scoring validation all at once. Not worth partial effort.
 
-**Affiliate status clarification (recorded for future sessions):** The AFFILIATE_ID issue is RESOLVED at the code level. REI links now point to functional search URLs. Real affiliate commissions require LLC approval — that's a business process, not a code task.
+**Affiliate status (recorded for future sessions):** AFFILIATE_ID issue is RESOLVED at the code level. Real commissions require LLC approval — do not re-open as a code task.
