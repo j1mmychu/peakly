@@ -2186,9 +2186,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Default categories: skiing + surfing, rest behind "+" button
-  const defaultCatIds = ["all", "skiing", "surfing"];
-  const visibleCats = showAllCats ? CATEGORIES.filter(c => c.id !== "tanning") : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+  // Show all categories in a horizontally-scrollable strip
+  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.slice(0, 4);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -2205,13 +2204,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               fontSize:12, fontWeight:700, fontFamily:F,
           }}>
             {c.emoji} {c.label}
+            {c.id !== "all" && !loading && (
+              <span style={{ fontSize:9, fontWeight:600, opacity:0.7, marginLeft:2 }}>
+                {listings.filter(l => l.category === c.id).length}
+              </span>
+            )}
           </button>
         ))}
         {!showAllCats && (
           <button onClick={() => setShowAllCats(true)} className="pill" style={{
             padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
             border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
-          }}>+</button>
+          }}>+ More</button>
         )}
         {/* Saved quick-access */}
         {savedCount > 0 && (
@@ -2304,6 +2308,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>${hero.flight.price}</div>
                   <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
                 </div>
+              </div>
+              {/* CTA row */}
+              <div style={{ marginTop:12, display:"flex", gap:8 }}>
+                <button className="pressable" onClick={(e) => { e.stopPropagation(); onOpenDetail(hero); }} style={{
+                  flex:1, background:"#0284c7", border:"none", borderRadius:10, padding:"10px 0",
+                  color:"#fff", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  View Details
+                </button>
+                <button className="pressable" onClick={(e) => { e.stopPropagation(); onToggle(hero.id); haptic("medium"); }} style={{
+                  width:42, background: wishlists.includes(hero.id) ? "#fee2e2" : "#f5f5f5",
+                  border: wishlists.includes(hero.id) ? "1.5px solid #fca5a5" : "1.5px solid #e8e8e8",
+                  borderRadius:10, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center",
+                }}>{wishlists.includes(hero.id) ? "❤️" : "🤍"}</button>
               </div>
             </div>
           );
@@ -4933,9 +4953,9 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                   Guide
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: F }}>{venue.name}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: F }}>{venue.title}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontFamily: F, marginTop: 2 }}>
-                    {venue.location || venue.country}
+                    {venue.location}
                   </div>
                 </div>
               </div>
@@ -4984,10 +5004,10 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                   }}
                 >
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#222", fontFamily: F, marginBottom: 3 }}>
-                    {venue.name}
+                    {venue.title}
                   </div>
                   <div style={{ fontSize: 11, color: "#717171", fontFamily: F, marginBottom: 10 }}>
-                    {venue.location || venue.country}
+                    {venue.location}
                   </div>
                   <div style={{
                     fontSize: 11, fontWeight: 700, color: "#0284c7", fontFamily: F,
@@ -5113,39 +5133,41 @@ function App() {
     })(),
   }));
 
-  // Fetch live weather for all 12 venues in parallel
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      const results = await Promise.allSettled(
-        VENUES.map(async v => {
-          const needsMarine = ["surfing","diving","kayak"].includes(v.category);
-          const [wx, mar] = await Promise.allSettled([
-            fetchWeather(v.lat, v.lon),
-            needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
-          ]);
-          return {
-            id:     v.id,
-            wx:     wx.status  === "fulfilled" ? wx.value  : null,
-            marine: mar.status === "fulfilled" ? mar.value : null,
-          };
-        })
-      );
-      if (!alive) return;
-      const wx = {}, mar = {};
-      results.forEach(r => {
-        if (r.status === "fulfilled") {
-          wx[r.value.id]  = r.value.wx;
-          mar[r.value.id] = r.value.marine;
-        }
-      });
-      setWxData(wx);
-      setMarData(mar);
-      setWxLastUpdated(new Date());
-      setLoading(false);
-    })();
-    return () => { alive = false; };
+  // Fetch live weather for all venues in parallel, auto-refresh every 10 min
+  const fetchAllWeather = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    const results = await Promise.allSettled(
+      VENUES.map(async v => {
+        const needsMarine = ["surfing","diving","kayak"].includes(v.category);
+        const [wx, mar] = await Promise.allSettled([
+          fetchWeather(v.lat, v.lon),
+          needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
+        ]);
+        return {
+          id:     v.id,
+          wx:     wx.status  === "fulfilled" ? wx.value  : null,
+          marine: mar.status === "fulfilled" ? mar.value : null,
+        };
+      })
+    );
+    const wx = {}, mar = {};
+    results.forEach(r => {
+      if (r.status === "fulfilled") {
+        wx[r.value.id]  = r.value.wx;
+        mar[r.value.id] = r.value.marine;
+      }
+    });
+    setWxData(wx);
+    setMarData(mar);
+    setWxLastUpdated(new Date());
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchAllWeather(false);
+    const interval = setInterval(() => fetchAllWeather(true), 10 * 60 * 1000); // refresh every 10 min
+    return () => clearInterval(interval);
+  }, [fetchAllWeather]);
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
