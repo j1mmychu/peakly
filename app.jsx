@@ -98,21 +98,21 @@ const { useState, useEffect, useRef, useCallback } = React;
       cursor: pointer;
     }
     .pressable:active { transform: scale(0.93); opacity: 0.78; }
-    .bounce-in { animation: bounceIn 0.28s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes bounceIn { from{transform:scale(0.82);opacity:0} to{transform:scale(1);opacity:1} }
-    /* ── animations ── */
-    .pulse { animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    .bounce-in { animation: bounceIn 0.22s ease-out; }
+    @keyframes bounceIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    /* ── animations (reduced — reserved for meaningful state changes) ── */
+    .pulse { animation: pulse 2.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
     .shimmer {
       background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
       background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
+      animation: shimmer 1.8s infinite;
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .fade-in { animation: fadeIn 0.26s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:none} }
-    .tab-fade { animation: tabFade 0.22s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes tabFade { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .tab-fade { animation: tabFade 0.18s ease-out; }
+    @keyframes tabFade { from{opacity:0} to{opacity:1} }
     .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
     .backdrop { animation: bdFade 0.22s ease; }
@@ -142,7 +142,6 @@ const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
   { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
   { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"tanning", label:"Beach & Tan",emoji:"☀️" },
   { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"diving",  label:"Diving",     emoji:"🤿" },
   { id:"climbing",label:"Climbing",   emoji:"🧗" },
@@ -1178,6 +1177,38 @@ function useLocalStorage(key, initial) {
   return [val, save];
 }
 
+// ─── go/no-go verdict ────────────────────────────────────────────────────────
+function getGoVerdict(score) {
+  if (score >= 80) return { label:"GO", color:"#22c55e", bg:"#dcfce7" };
+  if (score >= 55) return { label:"MAYBE", color:"#eab308", bg:"#fef9c3" };
+  return { label:"WAIT", color:"#ef4444", bg:"#fee2e2" };
+}
+
+function GoVerdictBadge({ score, size = "sm" }) {
+  const v = getGoVerdict(score);
+  const isSm = size === "sm";
+  return (
+    <div style={{
+      display:"inline-flex", alignItems:"center", gap: isSm ? 3 : 5,
+      background: v.bg, borderRadius: isSm ? 6 : 8,
+      padding: isSm ? "2px 6px" : "3px 10px",
+      border:`1.5px solid ${v.color}`,
+    }}>
+      <div style={{ width: isSm ? 6 : 8, height: isSm ? 6 : 8, borderRadius:"50%", background: v.color }} />
+      <span style={{ fontSize: isSm ? 9 : 11, fontWeight:800, color: v.color, fontFamily:F }}>{v.label}</span>
+    </div>
+  );
+}
+
+// ─── haptic feedback helper ──────────────────────────────────────────────────
+function haptic(style = "light") {
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate(style === "heavy" ? 25 : style === "medium" ? 15 : 8);
+    }
+  } catch(_) {}
+}
+
 // ─── score dot ────────────────────────────────────────────────────────────────
 function ScoreDot({ score }) {
   const color = score >= 90 ? "#22c55e" : score >= 75 ? "#84cc16" : score >= 60 ? "#eab308" : score >= 45 ? "#f97316" : "#ef4444";
@@ -1221,7 +1252,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:12, right:12,
           background:"none", border:"none", fontSize:20,
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
@@ -1229,26 +1260,22 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           {saved ? "❤️" : "🤍"}
         </button>
 
-        {/* Flight deal badge */}
-        <div style={{
-          position:"absolute", top:12, left:12,
-          background:"#fff", borderRadius:20, padding:"4px 10px",
-          display:"flex", alignItems:"center", gap:4,
-          boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-        }}>
-          <span style={{ fontSize:11 }}>✈️</span>
-          <span style={{ fontSize:11, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-            {listing.flight.pct}% off
-          </span>
-          {listing.flight.live && (
-            <span style={{
-              fontSize:9, fontWeight:800, color:"#16a34a", fontFamily:F,
-              background:"#dcfce7", borderRadius:6, padding:"1px 5px", marginLeft:1,
-            }}>LIVE</span>
-          )}
+        {/* Go/No-Go verdict + flight deal */}
+        <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
+          <GoVerdictBadge score={listing.conditionScore} />
+          <div style={{
+            background:"#fff", borderRadius:20, padding:"3px 8px",
+            display:"flex", alignItems:"center", gap:3,
+            boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
+          }}>
+            <span style={{ fontSize:10 }}>✈️</span>
+            <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
+              ${listing.flight.price}
+            </span>
+          </div>
         </div>
 
-        {/* Condition label only */}
+        {/* Condition label */}
         <div style={{
           position:"absolute", bottom:12, left:12, right:12,
         }}>
@@ -1272,6 +1299,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0, marginLeft:8 }}>
             <span style={{ fontSize:12 }}>⭐</span>
             <span style={{ fontSize:12, fontWeight:600, color:"#222", fontFamily:F }}>{listing.rating}</span>
+            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>({listing.reviews})</span>
           </div>
         </div>
         <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>{listing.location}</div>
@@ -1290,7 +1318,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); haptic("heavy"); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
@@ -1385,21 +1413,18 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
           position:"absolute", top:5, right:5,
           background:"none", border:"none", fontSize:13,
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
-        {/* Deal */}
-        <div style={{
-          position:"absolute", top:5, left:5,
-          background:"#0284c7", borderRadius:10, padding:"2px 5px",
-        }}>
-          <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>✈️ {listing.flight.pct}%</span>
+        {/* Go/No-Go verdict */}
+        <div style={{ position:"absolute", top:5, left:5 }}>
+          <GoVerdictBadge score={listing.conditionScore} />
         </div>
 
-        {/* Condition label only */}
+        {/* Condition label */}
         <div style={{
           position:"absolute", bottom:5, left:5,
         }}>
@@ -2117,50 +2142,93 @@ function applyFilters(listings, activeCat, filters, search = {}) {
   return out;
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail }) {
+function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile }) {
+  const [showSaved, setShowSaved] = useState(false);
+  const [showAllCats, setShowAllCats] = useState(false);
 
-  // Both "All" and sport tabs: always show top 5 picks. Label shifts based on how hot they are.
-  const firingAll   = listings.filter(l => l.conditionScore >= 85); // used for AlertBanner count
+  // "Best Right Now" — top venues where conditions AND price converge
+  const bestRightNow = [...listings]
+    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+    .sort((a, b) => {
+      const aVal = a.conditionScore - Math.round(a.flight.price / 20);
+      const bVal = b.conditionScore - Math.round(b.flight.price / 20);
+      return bVal - aVal;
+    })
+    .slice(0, 5);
+
+  // Both "All" and sport tabs: always show top 5 picks.
   const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
   const sportTopPicks = activeCat !== "all"
     ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
     : [];
   const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
-  const topScore  = firingTab[0]?.conditionScore ?? 0;
-  const isTrulyFiring = topScore >= 85;
-  const isGood        = topScore >= 70;
-  // "Best Conditions" label instead of "Firing"
-  const firingLabel = "Best Conditions";
-  const catNameFull = CATEGORIES.find(c => c.id === activeCat)?.label || "";
-  const firingSubLabel = isTrulyFiring
-    ? (activeCat === "all" ? "Peak conditions · Cheap flights converging" : `Peak ${catNameFull} conditions today`)
-    : isGood
-      ? (activeCat === "all" ? "Good conditions across all sports" : `Solid ${catNameFull} conditions right now`)
-      : (activeCat === "all" ? "Best available across all sports" : `Best ${catNameFull} spots available`);
-  // Value score = condition score weighted against price (higher = better value)
-  const bestValue = firingTab.length > 0
-    ? firingTab.reduce((best, l) => {
-        const valScore = l.conditionScore - Math.max(0, Math.round(l.flight.price / 30));
-        return valScore > best.val ? { l, val: valScore } : best;
-      }, { l: firingTab[0], val: -Infinity }).l
-    : null;
 
   const filtered = applyFilters(listings, activeCat, filters, search);
-  // Exclude firingTab IDs from the main grid to avoid showing each venue twice
   const firingIds = new Set(firingTab.map(l => l.id));
-  // On sport tabs the firing carousel is hidden, so show all filtered. On "all", subtract firing row.
-  const gridListings = activeCat === "all" ? filtered.filter(l => !firingIds.has(l.id)) : filtered;
+  const bestNowIds = new Set(bestRightNow.map(l => l.id));
+  const gridListings = activeCat === "all"
+    ? filtered.filter(l => !firingIds.has(l.id) && !bestNowIds.has(l.id))
+    : filtered;
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
   const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate;
 
+  // Last checked timestamp
+  const timeAgo = wxLastUpdated ? (() => {
+    const mins = Math.round((Date.now() - wxLastUpdated.getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.round(mins / 60)}h ago`;
+  })() : null;
+
+  // Saved count for quick-access
+  const savedCount = wishlists.length;
+
+  // Default categories: skiing + surfing, rest behind "+" button
+  const defaultCatIds = ["all", "skiing", "surfing"];
+  const visibleCats = showAllCats ? CATEGORIES.filter(c => c.id !== "tanning") : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Active filter summary strip — compact pills showing what's active */}
+      {/* Category pills — 2 default + "+" */}
+      <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        {visibleCats.map(c => (
+          <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
+            onClick={() => { setActiveCat(c.id); haptic(); }}
+            style={{
+              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
+              background: activeCat === c.id ? "#222" : "#f5f5f5",
+              color: activeCat === c.id ? "#fff" : "#555",
+              border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
+              fontSize:12, fontWeight:700, fontFamily:F,
+          }}>
+            {c.emoji} {c.label}
+          </button>
+        ))}
+        {!showAllCats && (
+          <button onClick={() => setShowAllCats(true)} className="pill" style={{
+            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
+            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
+          }}>+</button>
+        )}
+        {/* Saved quick-access */}
+        {savedCount > 0 && (
+          <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
+            padding:"7px 12px", borderRadius:20, cursor:"pointer", marginLeft:"auto",
+            background: showSaved ? "#fee2e2" : "#f5f5f5",
+            border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
+            fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+          }}>
+            ❤️ {savedCount}
+          </button>
+        )}
+      </div>
+
+      {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -2175,77 +2243,117 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       )}
 
       <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
-        {/* Inventory stats banner */}
-        <div style={{
-          margin: "12px 14px 0", padding: "10px 16px",
-          background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%)",
-          borderRadius: 12, display: "flex", justifyContent: "center", alignItems: "center", gap: 12,
-          border: "1px solid #bae6fd",
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", fontFamily: F }}>2,400+ flight routes</span>
-          <span style={{ color: "#7dd3fc", fontSize: 11 }}>&middot;</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", fontFamily: F }}>500+ hotels</span>
-          <span style={{ color: "#7dd3fc", fontSize: 11 }}>&middot;</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", fontFamily: F }}>45 countries</span>
-        </div>
-        <div style={{ height:12 }} />
 
-        {/* Firing right now section */}
-        {!loading && firingTab.length > 0 && (
-          <div style={{ marginBottom:20 }}>
-            <div style={{ padding:"0 24px 10px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
-              <div>
-                <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F, display:"flex", alignItems:"center", gap:8 }}>
-                  {firingLabel}
-                  {isTrulyFiring && (
-                    <span className="pulse" style={{ display:"inline-block", width:8, height:8, borderRadius:"50%", background:"#22c55e" }} />
-                  )}
+        {/* ── Saved venues inline (replaces wishlists tab) ── */}
+        {showSaved && (
+          <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
+            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              {listings.filter(l => wishlists.includes(l.id)).map(l => (
+                <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
+                  minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
+                  border:"1.5px solid #fecaca",
+                }}>
+                  <div style={{ height:70, background:l.gradient, position:"relative" }}>
+                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                      position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12,
+                    }}>❤️</button>
+                  </div>
+                  <div style={{ padding:"6px 8px" }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                    <div style={{ fontSize:9, color:"#717171", fontFamily:F }}>${l.flight.price}</div>
+                  </div>
                 </div>
-                <div style={{ fontSize:12, color:"#717171", marginTop:2, fontFamily:F }}>{firingSubLabel}</div>
+              ))}
+              {wishlists.length === 0 && (
+                <div style={{ fontSize:12, color:"#999", fontFamily:F, padding:"10px 0" }}>Tap the heart on any venue to save it</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Hero moment: Best opportunity right now ── */}
+        {!loading && bestRightNow.length > 0 && !showSaved && (() => {
+          const hero = bestRightNow[0];
+          const verdict = getGoVerdict(hero.conditionScore);
+          return (
+            <div style={{ margin:"12px 14px 0", padding:16, borderRadius:16,
+              background:`linear-gradient(135deg, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[1] || "#0284c7"}18, ${hero.gradient.match(/#[a-f0-9]+/gi)?.[2] || "#38bdf8"}12)`,
+              border:`2px solid ${verdict.color}33`,
+            }} onClick={() => onOpenDetail(hero)} className="card">
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    Your best window right now
+                  </div>
+                  <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:4, lineHeight:1.2 }}>
+                    {hero.title}
+                  </div>
+                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
+                </div>
+                <GoVerdictBadge score={hero.conditionScore} size="lg" />
               </div>
-              <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F }}>{firingTab.length} spots</span>
+              <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
+                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                </div>
+                <div style={{ background:"#fff", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:9, color:"#888", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {profile?.homeAirport || "JFK"}</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>${hero.flight.price}</div>
+                  <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── Last updated + data freshness ── */}
+        {timeAgo && !loading && (
+          <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end" }}>
+            <span style={{ fontSize:10, color:"#bbb", fontFamily:F }}>Updated {timeAgo}</span>
+          </div>
+        )}
+
+        {/* ── Best Right Now carousel ── */}
+        {!loading && bestRightNow.length > 1 && (
+          <div style={{ marginTop:12, marginBottom:16 }}>
+            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>
+                  Best Right Now
+                </div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
+              </div>
             </div>
             <div style={{
-              display:"flex", gap:12, overflowX:"auto", scrollbarWidth:"none",
+              display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
             }}>
-              {firingTab.map((l, i) => {
-                const scoreColor = l.conditionScore >= 90 ? "#22c55e" : l.conditionScore >= 75 ? "#84cc16" : l.conditionScore >= 60 ? "#eab308" : l.conditionScore >= 45 ? "#f97316" : "#ef4444";
+              {bestRightNow.slice(1).map(l => {
+                const v = getGoVerdict(l.conditionScore);
                 return (
-                  <div key={l.id} className="card bounce-in" onClick={() => onOpenDetail(l)}
+                  <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
                     style={{
-                      minWidth:200, maxWidth:200, scrollSnapAlign:"start",
-                      background:"#fff", borderRadius:16, overflow:"hidden",
-                      border:`2px solid ${scoreColor}`,
-                      boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-                      animationDelay:`${i * 0.06}s`, animationFillMode:"both",
+                      minWidth:170, maxWidth:170, scrollSnapAlign:"start",
+                      background:"#fff", borderRadius:14, overflow:"hidden",
+                      border:`1.5px solid ${v.color}33`,
+                      boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
-                    <div style={{
-                      height:110, background:l.gradient, position:"relative",
-                      display:"flex", alignItems:"flex-end", padding:10,
-                    }}>
-                      <div style={{
-                        background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)",
-                        borderRadius:8, padding:"4px 8px",
-                        display:"flex", alignItems:"center", gap:5,
-                      }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:scoreColor }} />
-                        <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>{l.conditionScore}</span>
-                      </div>
-                      {bestValue && bestValue.id === l.id && (
-                        <div style={{
-                          position:"absolute", top:8, right:8,
-                          background:"#0284c7", borderRadius:6, padding:"3px 7px",
-                          fontSize:9, fontWeight:800, color:"white", fontFamily:F,
-                        }}>Best value</div>
-                      )}
+                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
+                      <GoVerdictBadge score={l.conditionScore} />
+                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                        position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
+                        filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+                      }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
                     </div>
-                    <div style={{ padding:"10px 12px" }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
-                      <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6 }}>
-                        <span style={{ fontSize:13, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
-                        <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>round trip</span>
+                    <div style={{ padding:"8px 10px" }}>
+                      <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
+                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
+                        <span style={{ fontSize:9, color:"#717171", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
                   </div>
@@ -2256,7 +2364,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* Grid header */}
-        <div style={{ padding:"0 24px 14px" }}>
+        <div style={{ padding:"4px 24px 14px" }}>
           <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
             {isAll ? "All experiences" : catLabel}
           </div>
@@ -2281,13 +2389,27 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                 )
               : (
-                <div style={{ gridColumn:"1/-1", padding:"40px 0", textAlign:"center" }}>
-                  <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>No matches</div>
-                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20 }}>Try a different destination or activity</div>
-                  <button onClick={() => setActiveCat("all")} className="pressable" style={{
-                    background:"#0284c7", border:"none", borderRadius:12, padding:"12px 24px",
-                    color:"white", fontSize:14, fontWeight:700, fontFamily:F, cursor:"pointer",
-                  }}>Show all</button>
+                <div style={{ gridColumn:"1/-1", padding:"40px 20px", textAlign:"center" }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
+                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
+                    {bestRightNow.length > 0
+                      ? `But ${bestRightNow[0].title} looks promising in the coming weeks and flights are still $${bestRightNow[0].flight.price}.`
+                      : "Conditions are quiet across the board right now."}
+                  </div>
+                  <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
+                    Set an alert and we'll text you when it's time.
+                  </div>
+                  <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                    <button onClick={onViewAlerts} className="pressable" style={{
+                      background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                      color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                    }}>Set an alert</button>
+                    <button onClick={() => setActiveCat("all")} className="pressable" style={{
+                      background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
+                      color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                    }}>Show all</button>
+                  </div>
                 </div>
               )
           }
@@ -2508,8 +2630,8 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
           display:"flex", alignItems:"center", gap:4,
         }}>← Back</button>
         <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, marginTop:14 }}>Create Alert</div>
-        <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F }}>
-          We'll notify you when the perfect window opens
+        <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F, lineHeight:1.4 }}>
+          We'll text you when conditions peak AND flights are cheap — so you never miss your window.
         </div>
       </div>
 
@@ -2800,7 +2922,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding }) {
+function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
   const [airportQuery,   setAirportQuery]   = useState("");
   const [airportFocused, setAirportFocused] = useState(false);
   const [editMode,       setEditMode]       = useState(false);
@@ -2918,9 +3040,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               flexShrink:0,
             }}>P</div>
             <div>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Join Peakly</div>
-              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3 }}>
-                Get alerts when conditions + flights align
+              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Never miss your window</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3, lineHeight:1.4 }}>
+                We'll tell you when conditions peak and flights drop
               </div>
             </div>
           </div>
@@ -3069,9 +3191,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             Notifications
           </div>
           {[
-            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"When score hits 90+" },
-            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"When prices drop 50%+" },
-            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Top windows every Monday" },
+            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"Conditions 90+ AND cheap flights from your airport" },
+            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"Price drops on venues you've saved or alerted" },
+            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Best windows this week — conditions + flights combined" },
           ].map(({ key, label, desc }) => (
             <div key={key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid #f7f7f7" }}>
               <div>
@@ -3087,6 +3209,45 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── Travel Window ── */}
+        <div style={{ marginBottom:22 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+            Travel Window
+          </div>
+          <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:10 }}>When can you travel? We'll prioritize venues that match.</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {[
+              { id:"anytime", label:"Anytime" },
+              { id:"30days",  label:"Next 30 days" },
+              { id:"jan",     label:"January" },
+              { id:"feb",     label:"February" },
+              { id:"mar",     label:"March" },
+              { id:"apr",     label:"April" },
+              { id:"may",     label:"May" },
+              { id:"jun",     label:"June" },
+              { id:"jul",     label:"July" },
+              { id:"aug",     label:"August" },
+              { id:"sep",     label:"September" },
+              { id:"oct",     label:"October" },
+              { id:"nov",     label:"November" },
+              { id:"dec",     label:"December" },
+            ].map(opt => {
+              const sel = (profile.travelWindow || "anytime") === opt.id;
+              return (
+                <button key={opt.id} className="pressable" onClick={() => setProfile(p => ({...p, travelWindow: opt.id}))} style={{
+                  padding:"7px 12px", borderRadius:14, cursor:"pointer",
+                  background: sel ? "#222" : "#f7f7f7",
+                  color: sel ? "#fff" : "#555",
+                  border:"1.5px solid", borderColor: sel ? "#222" : "#e8e8e8",
+                  fontSize:11, fontWeight:700, fontFamily:F,
+                }}>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── Default filters ── */}
@@ -3127,6 +3288,55 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             </div>
           </div>
         </div>
+
+        {/* ── Saved Trips ── */}
+        {savedTrips.length > 0 && (
+          <div style={{ marginBottom:22 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+              Saved Trips
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {savedTrips.map(trip => (
+                <div key={trip.id} className="card" style={{
+                  background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, overflow:"hidden",
+                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+                }}>
+                  <div style={{ height:80, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)" }} />
+                  <div style={{ padding:12 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
+                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:3 }}>
+                      {trip.days} days · ${trip.totalCost} total
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Wishlists ── */}
+        {wishlists.length > 0 && (
+          <div style={{ marginBottom:22 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+              Saved Venues
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {listings.filter(l => wishlists.includes(l.id)).slice(0, 6).map(l => (
+                <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
+                  <div style={{ height:80, background:l.gradient, position:"relative" }}>
+                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
+                      position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
+                    }}>❤️</button>
+                  </div>
+                  <div style={{ padding:"7px 8px" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>${l.flight.price} · {l.conditionLabel}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Powered by ── */}
         <div style={{ marginBottom:20 }}>
@@ -3522,36 +3732,22 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
-  const [skillLevels, setSkillLevels]= useState(profile.skillLevels || {});
   const [airport,     setAirport]    = useState(profile.homeAirport || "JFK");
-  const [avatarColor, setAvatarColor]= useState(profile.avatarColor || "sunset");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
 
   const toggleSport = id => {
     setSports(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-    if (!skillLevels[id]) setSkillLevels(lv => ({ ...lv, [id]:"Intermediate" }));
   };
 
   const complete = () => {
-    setProfile(p => ({ ...p, name, email, sports, skillLevels, homeAirport: airport, avatarColor, hasAccount:true }));
+    setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
     onClose();
   };
 
   const apResults = apQuery.length >= 2
     ? ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(apQuery.toLowerCase()) || a.code.toLowerCase().includes(apQuery.toLowerCase())).slice(0,5)
     : [];
-
-  const PillBtn = ({ sel, onClick, children, color="#222" }) => (
-    <button className={"pill" + (sel ? " pill-selected" : "")} onClick={onClick} style={{
-      padding:"9px 16px", borderRadius:24, cursor:"pointer", minHeight:42,
-      background: sel ? color : "#f5f5f5", color: sel ? "#fff" : "#444",
-      border:"2px solid", borderColor: sel ? color : "transparent",
-      fontSize:13, fontWeight:700, fontFamily:F,
-      display:"inline-flex", alignItems:"center", gap:5,
-      boxShadow: sel ? `0 2px 10px ${color}55` : "none",
-    }}>{children}</button>
-  );
 
   return (
     <>
@@ -3569,7 +3765,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
 
         {/* Progress dots */}
         <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-          {[1,2,3].map(i => (
+          {[1,2].map(i => (
             <div key={i} style={{
               width: step === i ? 20 : 6, height:6, borderRadius:3,
               background: step >= i ? "#0284c7" : "#e8e8e8",
@@ -3578,66 +3774,17 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           ))}
         </div>
 
-        {/* ── Step 1: Sports + Skill ── */}
+        {/* ── Step 1: Value prop + Airport ── */}
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What do you ride? 🏄</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>Pick any you want alerts for</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              {CATEGORIES.filter(c => c.id !== "all").map(cat => {
-                const sel = sports.includes(cat.id);
-                return (
-                  <div key={cat.id} style={{
-                    border:"2px solid", borderColor: sel ? "#222" : "#e8e8e8",
-                    borderRadius:18, overflow:"hidden",
-                    transition:"border-color 0.2s",
-                    boxShadow: sel ? "0 2px 14px rgba(0,0,0,0.1)" : "none",
-                  }}>
-                    <button onClick={() => toggleSport(cat.id)} style={{
-                      width:"100%", background: sel ? "#222" : "#fff",
-                      border:"none", padding:"14px 18px",
-                      display:"flex", alignItems:"center", gap:12, cursor:"pointer",
-                    }}>
-                      <span style={{ fontSize:28 }}>{cat.emoji}</span>
-                      <span style={{ fontSize:16, fontWeight:800, color: sel ? "#fff" : "#222", fontFamily:F, flex:1, textAlign:"left" }}>{cat.label}</span>
-                      <div style={{
-                        width:24, height:24, borderRadius:"50%",
-                        background: sel ? "#0284c7" : "#f0f0f0",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:14, color:"white",
-                      }}>{sel ? "✓" : ""}</div>
-                    </button>
-                    {sel && (
-                      <div className="bounce-in" style={{ background:"#fafafa", padding:"10px 18px 14px", borderTop:"1px solid #f0f0f0" }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your skill level</div>
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                          {SKILL_LEVELS.map(lv => {
-                            const selLv = skillLevels[cat.id] === lv;
-                            return (
-                              <button key={lv} className="pressable" onClick={() => setSkillLevels(s => ({...s, [cat.id]:lv}))} style={{
-                                padding:"7px 12px", borderRadius:16, border:"1.5px solid",
-                                borderColor: selLv ? "#0284c7" : "#e0e0e0",
-                                background: selLv ? "#fff0f2" : "#fff",
-                                color: selLv ? "#0284c7" : "#666",
-                                fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
-                              }}>{lv}</button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.2 }}>
+              Never miss your window
             </div>
-          </div>
-        )}
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24, lineHeight:1.5 }}>
+              We'll tell you when conditions peak and flights drop — for every adventure on your list.
+            </div>
 
-        {/* ── Step 2: Home Airport ── */}
-        {step === 2 && (
-          <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>Where do you fly from? ✈️</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>We'll show you deals from your home airport</div>
+            <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>Where do you fly from? ✈️</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
               {US_AIRPORTS.map(ap => {
                 const sel = airport === ap.code;
@@ -3662,7 +3809,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               />
             </div>
             {apFocus && apResults.length > 0 && (
-              <div className="bounce-in" style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
+              <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
                 {apResults.map((ap,i) => (
                   <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); }} style={{
                     width:"100%", padding:"12px 16px", background: airport===ap.code?"#fff5f5":"#fff",
@@ -3679,80 +3826,44 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                 ))}
               </div>
             )}
-            {airport && (
-              <div style={{ marginTop:10, padding:"10px 14px", background:"#f5f5f5", borderRadius:12 }}>
-                <span style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>✈️ {airport}</span>
-                {ALL_AIRPORTS.find(a => a.code===airport)?.city && (
-                  <span style={{ fontSize:12, color:"#888", fontFamily:F }}> · {ALL_AIRPORTS.find(a => a.code===airport).city}</span>
-                )}
-              </div>
-            )}
+
+            {/* Name + Email inline */}
+            <div style={{ marginTop:18 }}>
+              <input type="text" placeholder="Your name (optional)" value={name} onChange={e => setName(e.target.value)}
+                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600, marginBottom:10 }}
+              />
+              <input type="email" placeholder="Email (optional, for alerts)" value={email} onChange={e => setEmail(e.target.value)}
+                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
+              />
+            </div>
           </div>
         )}
 
-        {/* ── Step 3: Name + Email ── */}
-        {step === 3 && (
+        {/* ── Step 2: Sports (simple toggle, no skill levels) ── */}
+        {step === 2 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>Almost there! 🙌</div>
-            <div style={{ fontSize:14, color:"#aaa", fontFamily:F, marginBottom:20 }}>So we know what to call you</div>
-            <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your name</div>
-              <input type="text" placeholder="First name" value={name} onChange={e => setName(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:16, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into? 🏄</div>
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick activities you want to track</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+              {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
+                const sel = sports.includes(cat.id);
+                return (
+                  <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
+                    padding:"12px 18px", borderRadius:16, cursor:"pointer",
+                    background: sel ? "#222" : "#f5f5f5",
+                    color: sel ? "#fff" : "#444",
+                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
+                    fontSize:14, fontWeight:700, fontFamily:F,
+                    display:"flex", alignItems:"center", gap:8,
+                    boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
+                  }}>
+                    <span style={{ fontSize:22 }}>{cat.emoji}</span>
+                    {cat.label}
+                    {sel && <span style={{ fontSize:13 }}>✓</span>}
+                  </button>
+                );
+              })}
             </div>
-            {/* Avatar preview + color picker */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Profile color</div>
-              <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{
-                  width:52, height:52, borderRadius:"50%", flexShrink:0,
-                  background: AVATAR_COLORS.find(c => c.id === avatarColor)?.grad || AVATAR_COLORS[0].grad,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:22, fontWeight:900, color:"white", fontFamily:F,
-                  boxShadow:`0 4px 16px ${AVATAR_COLORS.find(c=>c.id===avatarColor)?.hex||"#ff385c"}55`,
-                }}>
-                  {name ? name.trim()[0].toUpperCase() : "?"}
-                </div>
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                  {AVATAR_COLORS.map(col => (
-                    <button key={col.id} onClick={() => setAvatarColor(col.id)} style={{
-                      width:32, height:32, borderRadius:"50%", background:col.grad, border:"none", cursor:"pointer",
-                      boxShadow: avatarColor === col.id ? `0 0 0 3px white, 0 0 0 5px ${col.hex}` : "none",
-                      transition:"box-shadow 0.2s",
-                    }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email <span style={{ color:"#bbb", fontWeight:500, textTransform:"none", letterSpacing:"normal" }}>— optional, for alerts</span></div>
-              <input type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
-            </div>
-            {/* Sport summary */}
-            {sports.length > 0 && (
-              <div style={{ background:"#f8f8f8", borderRadius:14, padding:"12px 16px", marginBottom:8 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your profile</div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {sports.map(s => {
-                    const cat = CATEGORIES.find(c => c.id===s);
-                    return (
-                      <div key={s} style={{ background:"#222", borderRadius:20, padding:"4px 10px", display:"inline-flex", alignItems:"center", gap:5 }}>
-                        <span style={{ fontSize:14 }}>{cat?.emoji}</span>
-                        <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>{skillLevels[s] || "Intermediate"}</span>
-                      </div>
-                    );
-                  })}
-                  <div style={{ background:"#f0f0f0", borderRadius:20, padding:"4px 10px", display:"inline-flex", alignItems:"center", gap:4 }}>
-                    <span style={{ fontSize:12 }}>✈️</span>
-                    <span style={{ fontSize:11, color:"#555", fontWeight:700, fontFamily:F }}>{airport}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -3764,8 +3875,8 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               fontSize:20, cursor:"pointer",
             }}>←</button>
           )}
-          {step < 3 ? (
-            <button onClick={() => setStep(s => s+1)} className="pressable" style={{
+          {step < 2 ? (
+            <button onClick={() => setStep(2)} className="pressable" style={{
               flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
               color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
             }}>
@@ -3778,7 +3889,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
               boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
             }}>
-              🏄 Start my adventure
+              Show me what's firing
             </button>
           )}
         </div>
@@ -4742,7 +4853,6 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
   const guideCategories = [
     { id: "skiing",   title: "Ski & Snow Guides",   emoji: "\u26F7\uFE0F" },
     { id: "surfing",  title: "Surf Guides",          emoji: "\uD83C\uDFC4" },
-    { id: "tanning",  title: "Beach & Sun Guides",   emoji: "\u2600\uFE0F" },
     { id: "hiking",   title: "Hiking Guides",         emoji: "\uD83E\uDD7E" },
     { id: "diving",   title: "Diving Guides",         emoji: "\uD83E\uDD3F" },
     { id: "climbing", title: "Climbing Guides",        emoji: "\uD83E\uDDD7" },
@@ -4904,8 +5014,6 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 function BottomNav({ active, setActive, alertCount }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
-    { id:"guides",    label:"Guides",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg> },
-    { id:"wishlists", label:"Trips",    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
     { id:"alerts",    label:"Alerts",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
     { id:"profile",   label:"Profile",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
@@ -4981,6 +5089,7 @@ function App() {
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
+  const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
@@ -5032,6 +5141,7 @@ function App() {
       });
       setWxData(wx);
       setMarData(mar);
+      setWxLastUpdated(new Date());
       setLoading(false);
     })();
     return () => { alive = false; };
@@ -5142,10 +5252,18 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                   peakly
                 </span>
+                <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
+                  background:"linear-gradient(135deg,#1a1a2e,#302b63)", border:"none",
+                  borderRadius:20, padding:"6px 12px", cursor:"pointer",
+                  display:"flex", alignItems:"center", gap:5,
+                }}>
+                  <span style={{ fontSize:12 }}>✨</span>
+                  <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:F }}>Vibe</span>
+                </button>
               </div>
               <SearchBar search={search} onOpen={() => setShowSearch(true)} />
             </div>
@@ -5168,25 +5286,8 @@ function App() {
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search}
               onOpenDetail={openDetail}
-            />
-          )}
-          {activeTab === "guides" && (
-            <GuidesTab
-              listings={listings}
-              onOpenDetail={openDetail}
-              wishlists={wishlists}
-              onToggle={toggleWishlist}
-            />
-          )}
-          {activeTab === "wishlists" && (
-            <TripsTab
-              listings={listings} wishlists={wishlists} onToggle={toggleWishlist}
               namedLists={namedLists} setNamedLists={setNamedLists}
-              onOpenDetail={openDetail}
-              duffelPrices={duffelPrices}
-              profile={profile}
-              savedTrips={savedTrips}
-              setSavedTrips={setSavedTrips}
+              wxLastUpdated={wxLastUpdated} profile={profile}
             />
           )}
           {activeTab === "alerts" && (
@@ -5202,6 +5303,10 @@ function App() {
               filters={filters} setFilters={setFilters}
               wishlists={wishlists}
               onShowOnboarding={() => setShowOnboarding(true)}
+              savedTrips={savedTrips} setSavedTrips={setSavedTrips}
+              listings={listings} onOpenDetail={openDetail}
+              namedLists={namedLists} setNamedLists={setNamedLists}
+              onToggle={toggleWishlist}
             />
           )}
         </div>
