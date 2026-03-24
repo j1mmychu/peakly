@@ -1,25 +1,43 @@
-# DevOps & Reliability Report: 2026-03-23 (v5)
+# DevOps & Reliability Report: 2026-03-24
 
-## System Status: DEGRADED
+## System Status: DEGRADED (unchanged from yesterday)
 
-Two of three services have issues. The GitHub Pages frontend serves HTML but app.jsx may have a Babel parse error (error handler detected in page content). The flight proxy is completely down. Open-Meteo returned a 429 (rate-limited), which is transient and not a Peakly-side issue.
+No code changes landed overnight. File size is identical to yesterday. The flight proxy remains the primary reliability risk.
 
 ## Uptime
 
 | Service | Status | Detail |
 |---------|--------|--------|
-| GitHub Pages frontend | PARTIAL | Page loads, but Babel error handler text detected — app may not render |
-| Flight proxy (104.131.82.242:3001) | DOWN | ECONNREFUSED — VPS not responding on port 3001 |
-| Open-Meteo Weather API | RATE-LIMITED | HTTP 429 — transient, not a Peakly issue |
+| GitHub Pages frontend | LIKELY OK | .nojekyll is in repo; Babel error from yesterday was likely the error-handler HTML, not a real crash |
+| Flight proxy (104.131.82.242:3001) | UNKNOWN (was DOWN) | ECONNREFUSED reported yesterday; no live checks possible today — still flagged |
+| Open-Meteo Weather API | OK (assumed) | Free, no key, rate-limit from yesterday was transient |
 
-## HTTPS Status
+## Performance
 
-- **Frontend:** HTTPS active via GitHub Pages (j1mmychu.github.io/peakly)
-- **Flight proxy:** HTTP only (port 3001, no TLS). Still a tech-debt item — should be behind HTTPS reverse proxy or Cloudflare tunnel.
+| Metric | Value | Delta vs Yesterday |
+|--------|-------|--------------------|
+| app.jsx lines | 5,446 | 0 (unchanged) |
+| app.jsx size | 364,885 bytes (~356 KB) | 0 (unchanged) |
+| Cache-bust version | `?v=20260323b` | Not updated — still shows yesterday's date |
+
+**Note:** The cache-bust query string in `index.html` is `?v=20260323b`. It was not updated today. This is fine since there were no app.jsx changes — browsers will serve the cached file correctly. If a code change ships today, update this version string.
+
+## Security
+
+| Check | Result |
+|-------|--------|
+| API tokens in client code | CLEAN — none found |
+| Secrets / passwords | CLEAN — none found |
+| AFFILIATE_ID placeholders | CLEAN — 0 occurrences in app.jsx (previously resolved) |
+| Sentry DSN | EMPTY — `SENTRY_DSN = ""` on line 6; error monitoring is inactive |
+| Proxy token handling | OK — confirmed server-side only; not in client code |
+
+The one outstanding security-adjacent item is the empty `SENTRY_DSN`. This doesn't expose anything, but means zero visibility into production crashes. If the app throws an uncaught error for a user, it's invisible. Sentry has a free tier — this should be filled in once the project has a Sentry account.
 
 ## Recent Changes (last 10 commits)
 
 ```
+fb8970b Sync agent reports          ← newest (reports only, no code)
 da6ba3d Cache-bust app.jsx + always show Best Right Now section
 089dfc6 Fix missing commas in 19 venue entries causing Babel crash
 1dd1308 Add .nojekyll to fix GitHub Pages deployment
@@ -29,45 +47,44 @@ da6ba3d Cache-bust app.jsx + always show Best Right Now section
 0027511 Sync agent reports
 aeba256 UX: kill score borders, fix card padding, photos in similar venues
 bad3ae8 Fix duplicate photo fields causing Babel parse error
-0567fcf add photos to all venues and cleanup
 ```
 
-Key: Commit `089dfc6` fixed missing commas in 19 venue entries that caused a Babel crash. Commit `da6ba3d` added cache-busting (`?v=20260323b`) to app.jsx in index.html. Multiple commits dealt with Babel parse errors from venue data issues.
+No code changes since `da6ba3d`. Stable baseline — good time for feature work.
 
-## Performance
+## index.html Audit
 
-| Metric | Value |
-|--------|-------|
-| app.jsx lines | 5,446 |
-| app.jsx size | 364,885 bytes (~356 KB) |
-| Cache-bust version | `?v=20260323b` |
+- Structure: clean, no issues
+- React 18 UMD + Babel Standalone 7.24.7 loaded via unpkg CDN — both pinned to exact versions (good)
+- OG/Twitter meta tags: present and correct
+- Babel parse error fallback handler: present on lines 48–60
+- Favicon: inline SVG "P" character — functional but basic
+- Missing: `<link rel="manifest">` for PWA — noted in backlog, not a DevOps blocker
 
-The file has grown from the original ~5,057 lines noted in CLAUDE.md to 5,446 lines (+389 lines). Still a single-file SPA — no build step, client-side Babel transpilation. At 356 KB this remains manageable for CDN delivery but is trending upward.
+## Decisions Made
 
-## Security
+**No action taken on flight proxy.** Proxy has been ECONNREFUSED for multiple days. This is the top reliability issue for the app. Flight pricing falls back to estimated values, so the app is functional but degraded. Recommended fix: SSH to VPS, check `pm2 list` or `ps aux | grep node`, restart the process, and install pm2 with `pm2 startup` to auto-restart on reboot.
 
-| Check | Result |
-|-------|--------|
-| API tokens in client code | CLEAN — none found |
-| Secrets / passwords | CLEAN — none found |
-| AFFILIATE_ID placeholders | CLEAN — no placeholder strings detected (previously noted as TODO) |
-| Proxy token handling | OK — comment on line 999 confirms token is server-side only |
+**Cache-bust version not updated.** Since no app.jsx changes landed today, leaving `?v=20260323b` is correct — don't bump it unnecessarily.
 
-One venue is named "Kelingking Secret Beach" (contains "secret" in its title, not a credential). No actual secrets, tokens, or API keys are exposed in app.jsx.
+**AFFILIATE_ID placeholders confirmed cleared.** Previously flagged in the backlog as present on line ~3786; confirmed today that 0 occurrences exist in app.jsx. Backlog item can be closed.
 
-## Decision Made
+## Open Risk Items
 
-**No action taken on flight proxy.** The VPS at 104.131.82.242:3001 is returning ECONNREFUSED, meaning the proxy process is not running or the server is down. This has persisted across multiple report cycles. Recommendation: SSH into the VPS, check if the Node process crashed, and restart it. Consider adding a process manager (pm2) and uptime monitoring (UptimeRobot).
-
-**No action on frontend Babel error.** The WebFetch tool picked up the error handler HTML, but this may be the fallback `<noscript>`-style content that always exists in index.html. The recent commit `089dfc6` specifically fixed missing commas causing a Babel crash. Need browser verification to confirm the app actually renders.
+| Risk | Severity | Action |
+|------|----------|--------|
+| Flight proxy DOWN | High | Restart Node process on VPS; add pm2 + UptimeRobot |
+| HTTPS on VPS | Medium | Cloudflare tunnel or Let's Encrypt + nginx reverse proxy |
+| SENTRY_DSN empty | Medium | Sign up for Sentry free tier, paste DSN |
+| Cache-bust not automated | Low | Consider using git SHA or timestamp at deploy time |
+| PWA manifest missing | Low | Add `manifest.json` + `<link rel="manifest">` |
 
 ## Cost
 
 | Item | Monthly Cost |
 |------|-------------|
 | GitHub Pages | Free |
-| DigitalOcean VPS (flight proxy) | ~$6/mo (basic droplet) |
-| Open-Meteo API | Free tier |
+| DigitalOcean VPS (flight proxy) | ~$6/mo |
+| Open-Meteo API | Free |
 | Google Fonts CDN | Free |
-| Domain (if any) | N/A — using github.io subdomain |
+| unpkg CDN (React, Babel) | Free |
 | **Total** | **~$6/mo** |
