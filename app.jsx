@@ -1379,8 +1379,10 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Heart */}
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:12, right:12,
+          position:"absolute", top:4, right:4,
           background:"none", border:"none", fontSize:20,
+          minWidth:44, minHeight:44,
+          display:"flex", alignItems:"center", justifyContent:"center",
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
         }}>
           {saved ? "❤️" : "🤍"}
@@ -1476,7 +1478,8 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         style={{ height:180, position:"relative" }}>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:10, right:10, background:"none", border:"none", fontSize:18,
+          position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:18,
+          minWidth:44, minHeight:44, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
         <div style={{
           position:"absolute", top:10, left:10,
@@ -1540,8 +1543,10 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Heart */}
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:5, right:5,
+          position:"absolute", top:0, right:0,
           background:"none", border:"none", fontSize:13,
+          minWidth:44, minHeight:44,
+          display:"flex", alignItems:"center", justifyContent:"center",
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
@@ -1763,8 +1768,8 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
             />
             {local.destination && (
               <button onClick={() => setLocal(l => ({...l, destination:""}))} style={{
-                position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                background:"#ddd", border:"none", width:22, height:22, borderRadius:"50%",
+                position:"absolute", right:6, top:"50%", transform:"translateY(-50%)",
+                background:"#ddd", border:"none", width:36, height:36, borderRadius:"50%",
                 fontSize:14, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
               }}>×</button>
             )}
@@ -2215,7 +2220,7 @@ function FilterChip({ label, onRemove }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:4, background:"#f0f9ff", border:"1.5px solid #bae6fd", borderRadius:20, padding:"4px 10px", flexShrink:0, cursor:"default" }}>
       <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, whiteSpace:"nowrap" }}>{label}</span>
-      <button onClick={onRemove} style={{ background:"none", border:"none", cursor:"pointer", padding:0, lineHeight:1, fontSize:11, color:"#0284c7", fontWeight:900, display:"flex", alignItems:"center" }}>✕</button>
+      <button onClick={onRemove} style={{ background:"none", border:"none", cursor:"pointer", padding:"8px", marginRight:-8, lineHeight:1, fontSize:11, color:"#0284c7", fontWeight:900, display:"flex", alignItems:"center", minWidth:34, minHeight:34, justifyContent:"center" }}>✕</button>
     </div>
   );
 }
@@ -2324,19 +2329,19 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
             onClick={() => { setActiveCat(c.id); haptic(); }}
             style={{
-              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
+              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap", minHeight:44,
               background: activeCat === c.id ? "#222" : "#f5f5f5",
               color: activeCat === c.id ? "#fff" : "#555",
               border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
-              fontSize:12, fontWeight:700, fontFamily:F,
+              fontSize:12, fontWeight:700, fontFamily:F, display:"inline-flex", alignItems:"center",
           }}>
             {c.label}
           </button>
         ))}
         {!showAllCats && (
           <button onClick={() => setShowAllCats(true)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
-            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
+            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0", minHeight:44, minWidth:44,
+            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F, display:"inline-flex", alignItems:"center", justifyContent:"center",
           }}>+</button>
         )}
         {/* Saved quick-access */}
@@ -2364,7 +2369,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {(filters.startDate || filters.endDate) && (
             <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
           )}
-          <button onClick={() => setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" })} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          <button onClick={() => setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" })} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#717171", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"10px 12px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
@@ -2382,7 +2387,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 }}>
                   <div style={{ height:70, background:l.gradient, backgroundImage:`url(${getVenuePhoto(l)})`, backgroundSize:"cover", backgroundPosition:"center", position:"relative" }}>
                     <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                      position:"absolute", top:4, right:4, background:"none", border:"none", fontSize:12,
+                      position:"absolute", top:0, right:0, background:"none", border:"none", fontSize:12,
+                      minWidth:44, minHeight:44, display:"flex", alignItems:"center", justifyContent:"center",
                     }}>❤️</button>
                   </div>
                   <div style={{ padding:"6px 8px" }}>
@@ -2472,7 +2478,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                     <div style={{ height:90, background:l.gradient, backgroundImage:`url(${getVenuePhoto(l)})`, backgroundSize:"cover", backgroundPosition:"center", position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                        position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
+                        position:"absolute", top:0, right:0, background:"none", border:"none", fontSize:14,
+                        minWidth:44, minHeight:44, display:"flex", alignItems:"center", justifyContent:"center",
                         filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
                       }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
                     </div>
@@ -4288,7 +4295,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 55%)" }} />
           <div style={{ position:"absolute", top:12, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
-            <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+            <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:44, height:44, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             <div style={{ display:"flex", gap:7 }}>
               <button onClick={() => { setShowSharePanel(v => !v); haptic(); }} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
               <button onClick={() => { onToggle(listing.id); haptic("medium"); }} className="pressable" style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
@@ -5216,7 +5223,7 @@ function BottomNav({ active, setActive, alertCount }) {
   return (
     <div style={{
       display:"flex", justifyContent:"space-around",
-      padding:"6px 0 20px", background:"#fff",
+      padding:"4px 0 max(env(safe-area-inset-bottom, 0px), 12px)", background:"#fff",
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
@@ -5224,11 +5231,11 @@ function BottomNav({ active, setActive, alertCount }) {
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
-          padding:"4px 0",
+          padding:"8px 12px", minWidth:56, minHeight:48,
         }}>
           {t.id === "alerts" && alertCount > 0 && (
             <div style={{
-              position:"absolute", top:0, right:2,
+              position:"absolute", top:2, right:4,
               width:8, height:8, background:"#0284c7", borderRadius:"50%",
               border:"1.5px solid white",
             }} />
