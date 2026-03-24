@@ -2173,7 +2173,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const [showAllCats, setShowAllCats] = useState(false);
 
   // "Best Right Now" — top venues where conditions AND price converge
-  const bestRightNow = [...listings]
+  // Try strict filter first; fall back to top-scored venues so section always shows
+  const bestStrict = [...listings]
     .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
     .sort((a, b) => {
       const aVal = a.conditionScore - Math.round(a.flight.price / 20);
@@ -2181,6 +2182,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return bVal - aVal;
     })
     .slice(0, 5);
+  const bestRightNow = bestStrict.length > 0
+    ? bestStrict
+    : [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
 
   // Both "All" and sport tabs: always show top 5 picks.
   const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
