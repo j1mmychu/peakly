@@ -353,7 +353,7 @@ const VENUES = [
   // ════════════════════ SURFING — WORLD TOP SPOTS ════════════════════
 
   // ─── Hawaii ───────────────────────────────────────────────────────
-  {id:"pipeline",    category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"]},
+  {id:"banzai_pipeline", category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"]},
   {id:"jaws",        category:"surfing",title:"Pe'ahi (Jaws)",            location:"Maui, Hawaii",             lat:20.9320,lon:-156.2520,ap:"OGG",icon:"🌊",rating:4.97,reviews:3240,gradient:"linear-gradient(160deg,#001a40,#003580,#0055cc)",accent:"#2288ff",tags:["Big Wave Capital","60ft+ Faces"]},
   {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"]},
   {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"]},
@@ -1252,12 +1252,18 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
-        <div className="card-img" style={{
-          position:"absolute", inset:0, background:listing.gradient,
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
-        </div>
+        {listing.photo ? (
+          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
+            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
+          }} />
+        ) : (
+          <div className="card-img" style={{
+            position:"absolute", inset:0, background:listing.gradient,
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
+          </div>
+        )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
         {/* Heart */}
@@ -1353,7 +1359,13 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
-        <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
+        {listing.photo ? (
+          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
+            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
+          }} />
+        ) : (
+          <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
+        )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
           position:"absolute", top:10, right:10, background:"none", border:"none", fontSize:18,
@@ -1413,12 +1425,18 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
-        <div style={{
-          position:"absolute", inset:0, background:listing.gradient,
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
-        </div>
+        {listing.photo ? (
+          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
+            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
+          }} />
+        ) : (
+          <div style={{
+            position:"absolute", inset:0, background:listing.gradient,
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
+          </div>
+        )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
@@ -3971,7 +3989,7 @@ const PACKING = {
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
-// NOTE: REI/Backcountry/Amazon links use search URLs. Add affiliate tags once approved.
+// Amazon tag: "peakly-20" — update after Associates approval. REI/Backcountry: add tags once approved.
 const GEAR_ITEMS = {
   skiing:   [
     { emoji:"🎿", name:"Skis",                          store:"REI",         price:"$599+",  commission:"5%",  url:"https://www.rei.com/search?q=skis" },
@@ -3982,20 +4000,20 @@ const GEAR_ITEMS = {
   surfing:  [
     { emoji:"🏄", name:"Surfboard",                     store:"REI",         price:"$349+",  commission:"5%",  url:"https://www.rei.com/search?q=surfboard" },
     { emoji:"🤿", name:"Wetsuit",                       store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=wetsuit" },
-    { emoji:"🧴", name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?k=surf+wax" },
-    { emoji:"🌞", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?k=reef+safe+sunscreen" },
+    { emoji:"🧴", name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
+    { emoji:"🌞", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
   ],
   tanning:  [
-    { emoji:"🧴", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?k=reef+safe+sunscreen" },
-    { emoji:"🕶️", name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?k=polarized+sunglasses" },
-    { emoji:"🏖️", name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?k=beach+towel" },
-    { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?k=hydration+drink+mix" },
+    { emoji:"🧴", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
+    { emoji:"🕶️", name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
+    { emoji:"🏖️", name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=beach+towel" },
+    { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+drink+mix" },
   ],
   diving:   [
-    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?k=cressi+big+eyes+evo+mask" },
-    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?k=scubapro+everflex+wetsuit" },
+    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cressi+big+eyes+evo+mask" },
+    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=scubapro+everflex+wetsuit" },
     { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/search?q=garmin+descent+dive+watch" },
-    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+dive+housing" },
+    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+dive+housing" },
   ],
   climbing: [
     { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+momentum+harness" },
@@ -4016,22 +4034,22 @@ const GEAR_ITEMS = {
     { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/search?q=camelbak+mule+hydration" },
   ],
   kite:     [
-    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Amazon",      price:"$1,299",commission:"4%",  url:"https://www.amazon.com/s?k=cabrinha+moto+kite" },
-    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Amazon",      price:"$280",  commission:"4%",  url:"https://www.amazon.com/s?k=ion+element+wetsuit" },
-    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?k=dakine+kite+line+cutter" },
-    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://www.amazon.com/s?k=thinksport+spf+50+sunscreen" },
+    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Amazon",      price:"$1,299",commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cabrinha+moto+kite" },
+    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Amazon",      price:"$280",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=ion+element+wetsuit" },
+    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+kite+line+cutter" },
+    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=thinksport+spf+50+sunscreen" },
   ],
   fishing:  [
-    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?k=ugly+stik+gx2+spinning+combo" },
-    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?k=costa+del+mar+permit+sunglasses" },
-    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Amazon",      price:"$230",  commission:"4%",  url:"https://www.amazon.com/s?k=simms+g3+guide+wading+boots" },
+    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=ugly+stik+gx2+spinning+combo" },
+    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=costa+del+mar+permit+sunglasses" },
+    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Amazon",      price:"$230",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=simms+g3+guide+wading+boots" },
     { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/search?q=coleman+steel+belted+cooler" },
   ],
   paraglide:[
-    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?k=supair+pilot+paragliding+helmet" },
-    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Amazon",      price:"$590",  commission:"4%",  url:"https://www.amazon.com/s?k=skytraxx+vario+gps+paragliding" },
-    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?k=bonine+motion+sickness" },
-    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?k=gopro+hero+chest+mount+kit" },
+    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=supair+pilot+paragliding+helmet" },
+    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Amazon",      price:"$590",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=skytraxx+vario+gps+paragliding" },
+    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=bonine+motion+sickness" },
+    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
 };
 
@@ -4164,9 +4182,15 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         </div>
         {/* Hero */}
         <div style={{ position:"relative", height:190, margin:"12px 16px 0", borderRadius:20, overflow:"hidden" }}>
-          <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
-          </div>
+          {listing.photo ? (
+            <img src={listing.photo} alt={listing.title} loading="lazy" style={{
+              position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
+            }} />
+          ) : (
+            <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
+            </div>
+          )}
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 55%)" }} />
           <div style={{ position:"absolute", top:12, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
             <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
