@@ -1248,9 +1248,8 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy" style={{
@@ -1306,7 +1305,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
       </div>
 
       {/* Body */}
-      <div style={{ padding:"12px 4px 8px" }}>
+      <div style={{ padding:"12px 14px 8px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
             {listing.title}
@@ -1352,9 +1351,8 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
 function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
@@ -1421,9 +1419,8 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
-  const borderColor = listing.conditionScore >= 90 ? "#22c55e" : listing.conditionScore >= 75 ? "#84cc16" : listing.conditionScore >= 60 ? "#eab308" : listing.conditionScore >= 45 ? "#f97316" : "#ef4444";
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:`2px solid ${borderColor}` }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy" style={{
@@ -4294,8 +4291,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
-                    <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative" }}>
-                      <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                    <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
+                      {sv.photo ? (
+                        <img src={sv.photo} alt={sv.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+                      ) : (
+                        <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                      )}
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
                         <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
                       </div>
