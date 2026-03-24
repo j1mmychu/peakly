@@ -2391,7 +2391,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       border:`1.5px solid ${v.color}33`,
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
-                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8 }}>
+                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
                         position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:14,
@@ -4980,9 +4982,11 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
               }}
             >
               <div style={{
-                height: 130, background: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
-                display: "flex", alignItems: "flex-end", padding: 14, position: "relative",
+                height: 130, background: venue.gradient || "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
+                display: "flex", alignItems: "flex-end", padding: 14, position: "relative", overflow: "hidden",
               }}>
+                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)" }} />
                 <div style={{
                   position: "absolute", top: 10, right: 10,
                   background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)",
