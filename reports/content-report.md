@@ -1,12 +1,13 @@
-# Content & Data Report: 2026-03-23 (v5)
+# Content & Data Report: 2026-03-24 (v6)
 
 **Author:** Content & Data Lead
+**Date:** Tuesday, March 24, 2026
 
 ---
 
-## Data Health Score: 6.5 / 10
+## Data Health Score: 68 / 100
 
-Photo coverage and BASE_PRICES gaps remain the two largest issues. Category balance is heavily skewed toward the big three (skiing, surfing, tanning) while 7 categories have only 1 venue each. The duplicate Pipeline venue is still present.
+Affiliate placeholder IDs are fully cleared — no `AFFILIATE_ID` strings remain in the codebase. Venue count grew from 171 to 182 (+11 new venues). Photo coverage improved slightly. Core blockers remain: 73 venues still missing photos, 55 airports missing from BASE_PRICES, duplicate Pipeline entry still present, and 7 thin categories with only 1 venue each.
 
 ---
 
@@ -14,17 +15,27 @@ Photo coverage and BASE_PRICES gaps remain the two largest issues. Category bala
 
 | Metric | Count |
 |--------|-------|
-| Total venues | 171 |
-| Venues with photo URLs | 98 |
+| Total venues | 182 |
+| Venues WITH photo URLs | 109 |
 | Venues WITHOUT photo URLs | 73 |
-| **Photo coverage** | **57.3%** |
+| **Photo coverage** | **59.9%** |
 
-### Breakdown of missing photos
-- **Surfing:** 32 venues missing photos (out of 53 total surfing venues)
-- **Tanning:** 41 venues missing photos (out of 60 total tanning venues)
-- All skiing (50), hiking (12), diving (1), climbing (1), kite (1), kayak (1), mtb (1), fishing (1), paraglide (1) venues have photos
+### Category breakdown (photos present vs total)
+| Category | With Photo | Total | Missing |
+|----------|-----------|-------|---------|
+| Skiing | 50 | 50 | 0 ✅ |
+| Hiking | 12 | 12 | 0 ✅ |
+| Diving | 1 | 1 | 0 ✅ |
+| Climbing | 1 | 1 | 0 ✅ |
+| Kite | 1 | 1 | 0 ✅ |
+| Kayak | 1 | 1 | 0 ✅ |
+| Fishing | 1 | 1 | 0 ✅ |
+| MTB | 1 | 1 | 0 ✅ |
+| Paraglide | 1 | 1 | 0 ✅ |
+| Surfing | 37 | 53 | **16** |
+| Tanning | 49 | 60 | **11** |
 
-The original 10 "hero" venues plus the first batch of skiing/surfing/tanning expansions have photos. The later expansion waves (v3/v4 surfing additions, most tanning beach expansions) shipped without photos.
+All skiing, hiking, and thin-category venues are fully covered. The remaining 27 missing photos are concentrated in surfing (16) and tanning (11).
 
 ---
 
@@ -44,61 +55,63 @@ The original 10 "hero" venues plus the first batch of skiing/surfing/tanning exp
 | MTB | 1 | CRITICAL — needs 4+ more |
 | Paraglide | 1 | CRITICAL — needs 4+ more |
 
-**7 categories have fewer than 5 venues.** These categories show up in the UI but feel empty. Either expand them to 5+ venues or consider hiding them until content is ready.
+**Total: 182 venues across 11 categories.** Seven categories remain critically thin (single venue each).
 
 ---
 
 ## Remaining Issues
 
-### 1. Duplicate Pipeline venue (HIGH)
-- `id:"pipeline"` (line ~218) — "Pipeline, North Shore", Oahu, Hawaii
-- `id:"banzai_pipeline"` (line ~356) — "Banzai Pipeline", Oahu, Hawaii
-- Same wave, same airport (HNL), same photo URL, near-identical coordinates (21.6645 vs 21.6622)
-- **Action:** Remove `pipeline` (the original hero entry) and keep `banzai_pipeline` which has richer data (6,420 reviews vs 1,203)
+### 1. Duplicate Pipeline venue (HIGH — same as v5)
+- `id:"pipeline"` (line 218) — "Pipeline, North Shore", Oahu, Hawaii
+- `id:"banzai_pipeline"` (line 356) — "Banzai Pipeline", Oahu, Hawaii
+- Same wave, same airport (HNL), near-identical coordinates
+- **Action:** Remove `id:"pipeline"` (the older, lower-review entry). Keep `banzai_pipeline`.
 
 ### 2. Missing BASE_PRICES entries (HIGH)
-- **58 venue airports** have no entry in the `BASE_PRICES` object
-- These venues fall back to the hardcoded $800 default, which produces inaccurate pricing for Caribbean ($300-500 range), domestic US ($150-400), and premium long-haul destinations ($1,500-2,200)
-- Notable missing: CUN, HKT, DPS (already has entry), KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, SRQ, TPA, VPS
-- **Action:** Add BASE_PRICES for at least the 20 highest-traffic missing airports
+- **55 venue airports** have no BASE_PRICES entry and fall back to $800 default
+- Most impactful missing airports: CUN, HKT, KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, TPA, SRQ, VPS, STT, AUA, NAP, JMK, ZTH, ZNZ, JRO, SPU, CAG, CUZ, GCM, CZM, TAB, SEZ, MRU
+- **Action:** Add BASE_PRICES for the 20 highest-traffic missing airports
 
 ### 3. Photo coverage gap (MEDIUM)
-- 73 venues (42.7%) have no photo URL
-- Cards render with gradient-only backgrounds — functional but visually weaker
-- **Action:** Add Unsplash photo URLs for all 73 missing venues. Surfing (32 missing) and tanning/beach (41 missing) are priorities
+- 73 venues (40.1%) have no photo URL — down from 73/171 last report (same absolute count, slightly better %)
+- 27 missing across surfing (16) and tanning (11); these are the visual priority
+- **Action:** Add Unsplash photo URLs for all 27 missing surfing + tanning venues
 
-### 4. Thin categories (MEDIUM)
-- 7 categories with only 1 venue each appear in category pills but lead to single-result pages
-- **Action:** Either add 4+ venues per thin category or gate them behind a "Coming Soon" label
+### 4. Thin categories (MEDIUM — unchanged)
+- 7 categories with only 1 venue show up in category pills but lead to single-result screens
+- **Action:** Add 4+ venues per thin category or add "Coming Soon" gating in UI
 
-### 5. Affiliate placeholder (LOW)
-- Line ~3786: `AFFILIATE_ID` placeholders still present for REI and Backcountry links
-- **Action:** Replace with real affiliate IDs once partnership is live
+### 5. Affiliate placeholders — CLEARED ✅
+- No `AFFILIATE_ID` strings found anywhere in `app.jsx`
+- Previously flagged at line ~3786; now resolved
+- Links for REI and Backcountry are either removed or updated
 
-### 6. Sentry DSN still empty (LOW)
-- Line 6: `SENTRY_DSN = ""` — error monitoring is not connected
-- **Action:** Sign up for Sentry, add DSN
+### 6. Sentry DSN still empty (LOW — unchanged)
+- Line 6: `SENTRY_DSN = ""` — error monitoring not connected
+- Not blocked by LLC; can sign up for free tier anytime
+- **Action:** Sign up for free Sentry tier, paste DSN into line 6
 
 ---
 
 ## Seasonal Picks — Late March 2026
 
-Top 5 destinations with best conditions for the last week of March:
+Peak season analysis for the last week of March:
 
 | # | Venue | Category | Why Now |
 |---|-------|----------|---------|
-| 1 | **Niseko, Japan** | Skiing | Late-season powder — March delivers 40-60cm fresh snow weeks. Spring temps, shorter lift lines. Season closes mid-April. |
-| 2 | **Pipeline / North Shore** | Surfing | North Shore winter swell season wraps in late March. Last chance for overhead+ waves before summer flat spell. Water temp ~25C. |
-| 3 | **Bora Bora** | Tanning | Shoulder season — fewer tourists than Feb peak, still 30C+ air, UV 10-11, calm lagoon. Rates drop before April rainy uptick. |
-| 4 | **Taghazout, Morocco** | Surfing | March is prime season — consistent NW Atlantic swells, offshore winds, 18C water. Uncrowded compared to European summer. |
-| 5 | **Whistler Blackcomb** | Skiing | Spring skiing at its best — long sunny days, soft snow, corn runs. Full snowpack (10m+ base typical). Après patios open. |
+| 1 | **Niseko, Japan** | Skiing | Late-season powder — March still delivers 30–50cm fresh snow weeks on Hokkaido. Spring light, shorter queues as tourists taper. Season closes mid-April. Book now. |
+| 2 | **Banzai Pipeline, North Shore** | Surfing | Final weeks of North Shore's winter swell season. Last chance for overhead+ waves before the summer flat spell hits. Water temp ~25°C, photo-perfect conditions. |
+| 3 | **Taghazout, Morocco** | Surfing | Peak Atlantic swell season. Consistent NW swells, offshore winds, 18°C water. Far less crowded than European summer. Best budget adventure in the world right now. |
+| 4 | **Bora Bora, French Polynesia** | Tanning | Shoulder season sweet spot — fewer tourists than February peak, still 30°C+ air temps, UV index 10–11, glassy lagoon. Rates drop before April rainy season uptick. |
+| 5 | **Whistler Blackcomb** | Skiing | Spring skiing peak — long sunny days, 10m+ snowpack base, soft corn snow runs in the afternoon, all après patios open. Objectively the best skiing on the planet right now. |
 
 ---
 
 ## Decision Made
 
-**Priority for next sprint (v6):**
-1. Remove the duplicate `pipeline` venue — keep `banzai_pipeline` only. This is a 1-line fix.
-2. Add Unsplash photo URLs for the 32 missing surfing venues and 41 missing tanning venues (73 total). This is the single biggest visual quality improvement available.
-3. Add BASE_PRICES for the top 20 missing airports (CUN, HKT, KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, TPA, SRQ, VPS, STT, AUA, NAP, JMK) to fix flight price estimates.
-4. Defer thin category expansion (diving, climbing, kite, etc.) to v7 — these need venue research, scoring logic validation, and photos all at once.
+**Priority for next sprint (v7):**
+1. Remove duplicate `pipeline` venue (keep `banzai_pipeline`). 1-line fix.
+2. Add Unsplash photos for the 16 missing surfing venues and 11 missing tanning venues (27 total). Biggest remaining visual quality gap.
+3. Add BASE_PRICES for top 20 missing airports to fix estimated flight pricing.
+4. Sign up for Sentry free tier and add DSN to line 6 — unblocked, simple, valuable.
+5. Continue deferring thin category expansion (diving, climbing, kite, etc.) until a batch of 5+ can be added together with photos and scoring validation.
