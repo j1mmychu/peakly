@@ -1,153 +1,196 @@
-# Peakly Revenue Report: 2026-03-24 (v8)
+# Peakly Revenue Report: 2026-03-24 (v11)
 
-## Revenue Readiness: MEASURABLE (upgraded from SOFT LAUNCH)
+## Revenue Health: YELLOW
 
-Plausible analytics is live (`data-domain="j1mmychu.github.io"` confirmed in index.html). For the first time, Peakly can measure real pageviews, outbound affiliate clicks, and conversion paths. This changes everything: revenue projections are no longer theoretical -- they can be validated within days. Three affiliate streams remain live (Amazon, Booking.com, SafetyWing). Five new categories shipped (diving, climbing, kayak, fishing, paraglide), each with 4 gear items and affiliate links, expanding the monetizable surface area. SEO improvements increase organic discoverability. LLC continues to block REI, Backcountry, GetYourGuide, and Peakly Pro.
-
----
-
-## Streams Status
-
-| # | Stream | Type | Status | Notes |
-|---|--------|------|--------|-------|
-| 1 | **Amazon Associates** | Gear affiliate (4%) | **WORKING** | 20 product URLs, all tagged `peakly-20`. Now spans 10 categories (was 5). New: diving, kite, fishing, paraglide gear. |
-| 2 | **REI** | Gear affiliate (5%) | **NEEDS SIGNUP** | 18 product URLs. No affiliate tag. Spans skiing, surfing, diving, climbing, kayak, mtb, fishing. Blocked by LLC. |
-| 3 | **Backcountry** | Gear affiliate (8%) | **NEEDS SIGNUP** | 2 product URLs (MTB helmet + knee pads). No affiliate tag. Blocked by LLC. |
-| 4 | **Booking.com** | Hotel affiliate | **WORKING** | `aid=2311236` on hotel search link in VenueDetailSheet. Dynamic per-venue location. Commission ~25-40% of Booking's margin. |
-| 5 | **SafetyWing** | Insurance referral | **WORKING** | 1 referral link with `referenceID=peakly`. Recurring commission on Nomad Insurance ($45/mo). |
-| 6 | **GetYourGuide** | Experiences affiliate | **NEEDS SIGNUP** | 1 dynamic link in VenueDetailSheet. No partner_id -- zero tracking. Blocked by LLC. |
-| 7 | **Google Flights** | Flight deep links | **NO REVENUE** | `buildFlightUrl()` powers Book CTAs. No affiliate program. Pure user value and funnel driver. |
-| 8 | **Peakly Pro** | Subscription ($79/year) | **NOT BUILT** | UI still shows **$9/mo** (stale -- should be $79/year). Button triggers `alert()`. No Stripe. Blocked by LLC + Stripe setup. |
-
-### Link Inventory (verified via grep)
-
-| Affiliate | URL Count | Tagged/Tracked |
-|-----------|-----------|----------------|
-| Amazon (`tag=peakly-20`) | 20 | 20/20 (100%) |
-| REI (`rei.com`) | 18 | 0/18 (0%) |
-| Backcountry (`backcountry.com`) | 2 | 0/2 (0%) |
-| Booking.com (`aid=2311236`) | 1 | 1/1 (100%) |
-| SafetyWing (`referenceID=peakly`) | 1 | 1/1 (100%) |
-| GetYourGuide | 1 | 0/1 (0%) |
-| AFFILIATE_ID placeholders | 0 | Clean |
+Three affiliate streams live (Amazon 21 links, Booking.com 1, SafetyWing 1). Peakly Pro pricing correctly shows $79/yr (line 5298). Hiking GEAR_ITEMS shipped (4 items). Zero AFFILIATE_ID placeholders. VPS proxy confirmed HTTPS on peakly-api.duckdns.org (line 1624) -- real flight prices now loading. PWA manifest + service worker deployed. LLC remains the top blocker -- 24 links across REI, Backcountry, and GetYourGuide are structurally ready but earning $0.
 
 ---
 
-## Estimated RPM (per 1,000 MAU)
+## 1. P0: Peakly Pro Pricing Fix
 
-Key change in v8: with Plausible live, these estimates will be replaced by measured data within 7-14 days of meaningful traffic. The 5 new categories (diving, climbing, kayak, fishing, paraglide) expand the gear funnel -- more categories means more venue detail views where affiliate CTAs live. Estimated +20% increase in gear click surface area, though actual per-user conversion may not change.
-
-| Stream | Status | Click-through | Avg Order | Commission | Est. RPM |
-|--------|--------|--------------|-----------|------------|----------|
-| Amazon gear | LIVE | 35 clicks/1K (+17% from expanded categories) | $165 (higher AOV from dive watches, kites, varios) | 4% | **$4.62** |
-| REI gear | NO TAG | 0 | -- | 5% | **$0.00** |
-| Backcountry | NO TAG | 0 | -- | 8% | **$0.00** |
-| Booking.com | LIVE | 23 clicks/1K | $300 (2 nights) | ~$15/booking | **$6.90** |
-| SafetyWing | LIVE | 6 clicks/1K | $45/mo | ~10% | **$0.54** |
-| GetYourGuide | NO ID | 0 | -- | 8% | **$0.00** |
-| Google Flights | N/A | -- | -- | 0% | **$0.00** |
-| Peakly Pro | NOT BUILT | -- | $79/yr | 100% | **$0.00** |
-| **Total (live)** | | | | | **$12.06** |
-
-Previous v7 total: $10.32. The category expansion adds ~$1.74/1K MAU (+16.9%) primarily through higher Amazon AOV (premium gear in new categories: $590 vario GPS, $1,299 kites, $1,099 dive watches) and more entry points into the gear funnel.
-
-With REI + Backcountry + GetYourGuide activated: estimated RPM ~$18-22 (revised up from $15-17 due to expanded category inventory).
+**Status: FIXED (confirmed).** Line 5298: `$79/yr`. No instances of `$9/mo` anywhere in app.jsx. No action needed.
 
 ---
 
-## Top Revenue Blocker
+## 2. Affiliate Link Audit
 
-**LLC approval.** Still the single blocker for four affiliate signups (REI, Backcountry, GetYourGuide) and Peakly Pro (Stripe). However, the severity has decreased slightly: the 5 new categories mean all 20 Amazon links and the Booking.com/SafetyWing links have a wider funnel to capture users from. The active streams now cover 10 sport categories instead of 5.
+### Verified counts (app.jsx, 6,354 lines)
 
-**Secondary blocker (RESOLVED): Analytics.** Plausible is live. This was the #2 blocker in v7 -- now cleared. Within 7-14 days of traffic, we will have real data on: pageviews, outbound click counts per affiliate, category popularity, and bounce rates. This data replaces every assumption in the RPM table above.
+| Affiliate | Link Count | Tagged/Tracked | Status |
+|-----------|-----------|----------------|--------|
+| Amazon (`tag=peakly-20`) | 21 | 21/21 (100%) | LIVE, EARNING |
+| REI (`rei.com`) | 21 | 0/21 -- no affiliate tag | BLOCKED BY LLC |
+| Backcountry (`backcountry.com`) | 2 | 0/2 -- no affiliate tag | BLOCKED BY LLC |
+| Booking.com (`aid=2311236`) | 1 | 1/1 (100%) | LIVE, EARNING |
+| SafetyWing (`referenceID=peakly`) | 1 | 1/1 (100%) | LIVE, EARNING |
+| GetYourGuide | 1 | 0/1 -- no partner_id | BLOCKED BY LLC |
+| AFFILIATE_ID placeholders | 0 | Clean | N/A |
 
-**Tertiary issue: Peakly Pro pricing mismatch.** Line 4591 in app.jsx still shows `$9/mo`. Agreed pricing is `$79/year`. Non-blocking since Pro is not functional, but should be fixed before launch.
+### Changes since v10
 
-**New gap: Hiking has no gear items.** Hiking is a category in `CATEGORIES` but has no entry in `GEAR_ITEMS`. This is the only category (besides "all") with zero monetization through gear. Should be added -- hiking gear (boots, poles, packs, headlamps) is high-AOV and REI/Amazon friendly.
+- **App.jsx grew from 5,666 to 6,354 lines** (+688 lines). Significant expansion.
+- **Link counts unchanged.** Amazon 21, REI 21, Backcountry 2, Booking.com 1, SafetyWing 1, GetYourGuide 1.
+- **VPS proxy now HTTPS.** Flight proxy URL at line 1624 is `https://peakly-api.duckdns.org`. Mixed content errors resolved. Real Travelpayouts prices loading.
+- **PWA added.** manifest.json, sw.js, service worker registration in index.html (lines 61-62, 97-100). Installable on mobile.
 
----
+### Detail on each live stream
 
-## Fastest Path to First Dollar
+**Amazon (21 links):** All tagged `peakly-20`. Distributed across 8 categories: surfing (2), tanning (4), diving (3), kite (4), fishing (3), paraglide (4), hiking (1). Categories with ZERO Amazon links: skiing, climbing, kayak, mtb (all REI/Backcountry only).
 
-**Unchanged: drive one user to click a Booking.com hotel link and complete a stay.**
+**Booking.com (1 link):** Line 5261. Dynamic per-venue: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`. Post-intent placement in VenueDetailSheet. Correctly formatted.
 
-- Booking.com `aid=2311236` confirmed working in code
-- Commission ~$15-40 per completed booking
-- No LLC required
+**SafetyWing (1 link):** Lines 5278-5284. `https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate`. Post-intent placement. UTM params present.
 
-**New advantage with Plausible:** We can now confirm whether Booking.com outbound clicks are actually happening. Set up a Plausible custom event or check outbound link tracking in the dashboard. If clicks are already occurring from organic/direct traffic and no revenue has appeared, the issue is downstream conversion (user doesn't book), not click-through. This diagnosis was impossible before analytics.
+**REI (21 links), Backcountry (2 links), GetYourGuide (1 link):** All structurally correct. URLs work, products relevant, placement proper. Only change needed on LLC approval: add affiliate tags to URLs.
 
-**Immediate action:** Check Plausible dashboard for any existing traffic. Even a handful of sessions with outbound clicks to booking.com validates the entire funnel.
+### Issues found
 
----
-
-## Decision Made
-
-**Plausible changes the game from "guess and build" to "measure and optimize."** The revenue strategy shifts from theoretical RPM modeling to data-driven iteration:
-
-1. **Week 1 (now):** Check Plausible for baseline traffic numbers. Any traffic at all? Which categories get views? Are outbound clicks happening?
-2. **Week 2:** If traffic exists, identify the highest-traffic category and optimize its gear/affiliate placement first. If no traffic, the blocker is distribution, not monetization.
-3. **Week 3-4:** With LLC (if approved), sign up REI/Backcountry/GetYourGuide and immediately measure incremental RPM vs. baseline.
-
-This is the first report where we can say: "we'll know the real numbers soon" instead of "we estimate."
-
-**Non-LLC actions for this week:**
-1. Check Plausible dashboard for current traffic baseline (5 min)
-2. Set up Plausible outbound link tracking if not auto-enabled (15 min)
-3. Add hiking gear items to `GEAR_ITEMS` -- only category with zero gear monetization (30 min)
-4. Fix Pro pricing copy from $9/mo to $79/year at line 4591 (5 min)
-
-**Post-LLC action sequence (unchanged):**
-1. REI Avantlink affiliate signup (30 min, unlocks 18 links)
-2. Backcountry affiliate signup (30 min, unlocks 2 links)
-3. GetYourGuide partner program (30 min, unlocks experience links)
-4. Stripe integration for Peakly Pro ($79/year)
+- **No broken links.** All URLs are valid.
+- **No misplaced links.** All affiliate CTAs in VenueDetailSheet (post-intent).
+- **GetYourGuide (line 5233) has no partner_id parameter.** Dynamic URL template needs `&partner_id=XXXXX` on LLC approval.
+- **GA4 was removed or never deployed.** index.html has Plausible only (line 27). The GA4 gtag.js referenced in CLAUDE.md is not present. Plausible is sufficient for now but GA4 would give richer e-commerce tracking when affiliate volume grows.
 
 ---
 
-## 30-Day Projection
+## 3. Hiking Gear Gap
 
-**Current streams only (Amazon + Booking.com + SafetyWing), with expanded categories:**
+**Status: FIXED (confirmed).** Hiking GEAR_ITEMS at lines 4871-4876 with 4 items:
 
-| MAU | Amazon | Booking.com | SafetyWing | **Total/mo** |
-|-----|--------|-------------|------------|-------------|
-| 1,000 | $4.62 | $6.90 | $0.54 | **$12.06** |
-| 10,000 | $46.20 | $69.00 | $5.40 | **$120.60** |
-| 100,000 | $462 | $690 | $54 | **$1,206** |
+1. Salomon X Ultra 4 GTX Boots -- REI, $165
+2. Black Diamond Trail Trekking Poles -- REI, $90
+3. Osprey Hydraulics 3L Reservoir -- Amazon (`peakly-20`), $42
+4. Garmin inReach Mini 2 GPS -- REI, $350
 
-**With REI + Backcountry + GetYourGuide activated (post-LLC):**
-
-| MAU | **Projected Total/mo** |
-|-----|----------------------|
-| 1,000 | $28-44 |
-| 10,000 | $280-440 |
-| 100,000 | $2,800-4,400 |
-
-**With Peakly Pro at 2% conversion ($79/year = $6.58/mo):**
-
-| MAU | Pro subs | Pro revenue | **Grand Total/mo** |
-|-----|----------|-------------|-------------------|
-| 1,000 | 20 | $132 | **$160-176** |
-| 10,000 | 200 | $1,317 | **$1,597-1,757** |
-| 100,000 | 2,000 | $13,167 | **$15,967-17,567** |
+Revenue status: 1 Amazon link earning immediately. 3 REI links activate on LLC approval. No action needed.
 
 ---
 
-## v8 Delta (what changed since v7)
+## 4. Revenue Modeling
 
-- **Plausible analytics live.** `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js">` confirmed in index.html. Revenue projections can now be validated with real data. Secondary blocker from v7 is resolved.
-- **5 new categories shipped:** diving, climbing, kayak, fishing, paraglide. Each has 4 gear items in `GEAR_ITEMS` with affiliate links. Expands monetizable surface area by ~100% (from 5 to 10 gear categories).
-- **Amazon tag count:** 20 (unchanged count, but now distributed across 10 categories instead of 5 -- wider funnel).
-- **REI links:** 18 (unchanged, still untagged). Now spans 7 categories (added diving, climbing, kayak, fishing).
-- **Backcountry links:** 2 (unchanged, still untagged).
-- **Booking.com:** 1 link with aid (unchanged).
-- **SafetyWing:** 1 link with referenceID (unchanged).
-- **GetYourGuide:** 1 dynamic link, no partner_id (unchanged).
-- **AFFILIATE_ID placeholders:** 0 found (clean).
-- **SEO improvements shipped.** Increases organic discoverability -- the prerequisite for any affiliate revenue at scale.
-- **Hiking gear gap identified.** Only category (besides "all") with no `GEAR_ITEMS` entry.
-- **Peakly Pro pricing mismatch persists:** Line 4591 shows $9/mo, should be $79/year.
-- **RPM revised:** $10.32 -> $12.06 (+$1.74, +16.9%) from higher Amazon AOV in new categories.
-- **Top blocker:** LLC approval (unchanged, but analytics blocker now cleared).
+### Current RPM: $12.18 per 1,000 MAU (unchanged from v10)
 
-**Bottom line:** The analytics gap is closed. For the first time, Peakly can measure what's actually happening. The 5 new categories with gear links expand the monetizable funnel significantly, and SEO improvements increase the chance of organic traffic reaching those funnels. The immediate priority is checking Plausible for any existing traffic -- if users are already visiting, revenue may be closer than projected. If traffic is zero, the focus shifts entirely to distribution (SEO payoff timeline, content marketing, community seeding) because the monetization infrastructure is as complete as it can be without the LLC.
+No new earning links were added since v10. The VPS proxy fix means flight prices now display correctly, which should improve Travelpayouts click-through (users see real prices instead of "est." labels), but Travelpayouts revenue runs through the proxy and is not tracked as affiliate RPM here.
+
+| Stream | Click-through | Avg Order | Commission | Est. RPM |
+|--------|--------------|-----------|------------|----------|
+| Amazon gear (21 links) | 37 clicks/1K | $160 | 4% | **$4.74** |
+| Booking.com (1 link) | 23 clicks/1K | $300 (2 nights) | ~$15/booking | **$6.90** |
+| SafetyWing (1 link) | 6 clicks/1K | $45/mo | ~10% | **$0.54** |
+| REI (21 links, 5%) | 0 (no tag) | -- | 5% | **$0.00** |
+| Backcountry (2 links, 8%) | 0 (no tag) | -- | 8% | **$0.00** |
+| GetYourGuide (1 link, 8%) | 0 (no ID) | -- | 8% | **$0.00** |
+| Peakly Pro | NOT WIRED | -- | -- | **$0.00** |
+| **Total (live)** | | | | **$12.18** |
+
+### Projections at current RPM ($12.18)
+
+| MAU | Monthly Revenue | Math |
+|-----|----------------|------|
+| **1,000** | **$12.18** | 1 x $12.18 |
+| **5,000** (low Reddit) | **$60.90** | 5 x $12.18 |
+| **8,000** (high Reddit) | **$97.44** | 8 x $12.18 |
+| **100,000** | **$1,218** | 100 x $12.18 |
+
+### Biggest lever for improving RPM
+
+**Activate REI affiliate links.** 21 links across 8 categories (skiing, surfing, diving, climbing, kayak, mtb, fishing, hiking) with 5% commission on high-AOV gear ($40-$1,200). Estimated RPM boost: +$5.50-$7.00. Blocked by LLC.
+
+---
+
+## 5. LLC Unblock Plan
+
+### Day-of sequence when LLC approves
+
+1. **REI/Avantlink affiliate signup** (30 min) -- apply at avantlink.com, get affiliate ID
+2. **Backcountry affiliate signup** (30 min) -- apply through their partner program
+3. **GetYourGuide partner signup** (30 min) -- apply at partner.getyourguide.com, get partner_id
+4. **Update app.jsx:** Add affiliate tags to all 21 REI URLs, 2 Backcountry URLs, 1 GetYourGuide URL
+5. **Stripe account setup** (1 hr) -- connect to LLC bank account, configure $79/yr product
+6. **Wire Peakly Pro button** to Stripe Checkout (2-3 hrs dev work)
+7. **Push to main** -- all changes go live immediately via GitHub Pages
+
+### RPM jump estimate post-LLC
+
+| Stream | Pre-LLC RPM | Post-LLC RPM |
+|--------|-------------|--------------|
+| Amazon | $4.74 | $4.74 (unchanged) |
+| REI (21 links, 5%) | $0.00 | **+$5.78** (est. 37 clicks/1K, $312 avg, 5%) |
+| Backcountry (2 links, 8%) | $0.00 | **+$0.56** (est. 4 clicks/1K, $175 avg, 8%) |
+| GetYourGuide (1 link, 8%) | $0.00 | **+$1.28** (est. 8 clicks/1K, $200 avg, 8%) |
+| Booking.com | $6.90 | $6.90 (unchanged) |
+| SafetyWing | $0.54 | $0.54 (unchanged) |
+| Peakly Pro (2% conversion) | $0.00 | **+$13.17** ($79/yr = $6.58/mo x 20 subs per 1K) |
+| **Total** | **$12.18** | **~$32.97** |
+
+**RPM jumps from $12.18 to ~$32.97 (+171%) on LLC approval day.**
+
+### Revenue left on the table per day of delay
+
+At current traffic (likely <100 MAU): negligible, <$1/day.
+
+At projected post-Reddit traffic (5K MAU): **~$3.47/day** in lost affiliate revenue, **~$10.97/day** including Pro subscriptions. That is **$329/month** at 5K MAU sitting on the table waiting for LLC.
+
+---
+
+## 6. The Single Highest-Revenue-Impact Change This Week
+
+**Get LLC approved.** Every remaining RPM gain of significance is gated by LLC:
+
+- REI: +$5.78 RPM (21 links ready)
+- Backcountry: +$0.56 RPM (2 links ready)
+- GetYourGuide: +$1.28 RPM (1 link ready)
+- Peakly Pro: +$13.17 RPM (UI done, needs Stripe)
+- **Total blocked: +$20.79 RPM = +171% improvement**
+
+### If LLC is still weeks away
+
+The next best non-blocked action is **adding Amazon-linked gear items to the 4 categories that currently have zero Amazon links**: skiing (4 REI items, 0 Amazon), climbing (4 REI items, 0 Amazon), kayak (4 REI items, 0 Amazon), mtb (2 REI + 2 Backcountry, 0 Amazon). Adding 1-2 Amazon items per category would create ~6-8 more immediately-earning links, estimated +$1.00-$1.50 RPM.
+
+Paste-ready code for those items (DO NOT edit code -- for reference only):
+
+```javascript
+// Add to skiing array in GEAR_ITEMS:
+{ emoji:"🧣", name:"Smartwool 250 Base Layer",    store:"Amazon", price:"$100", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+250+base+layer" },
+{ emoji:"🧤", name:"Outdoor Research Adrenaline Gloves", store:"Amazon", price:"$45", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=outdoor+research+adrenaline+gloves" },
+
+// Add to climbing array in GEAR_ITEMS:
+{ emoji:"🧲", name:"Petzl GriGri+ Belay Device",  store:"Amazon", price:"$120", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=petzl+grigri+belay+device" },
+{ emoji:"🪢", name:"Sterling Evolution Velocity 60m Rope", store:"Amazon", price:"$180", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sterling+evolution+velocity+climbing+rope" },
+
+// Add to kayak array in GEAR_ITEMS:
+{ emoji:"🧤", name:"NRS Cove Neoprene Gloves",    store:"Amazon", price:"$30",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+cove+neoprene+gloves" },
+{ emoji:"📱", name:"Nite Ize RunOff Waterproof Phone Pouch", store:"Amazon", price:"$35", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=nite+ize+runoff+waterproof+phone+pouch" },
+
+// Add to mtb array in GEAR_ITEMS:
+{ emoji:"🔧", name:"Topeak Ratchet Rocket Multi-Tool", store:"Amazon", price:"$40", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=topeak+ratchet+rocket+multi+tool" },
+{ emoji:"💡", name:"NiteRider Lumina 1200 Headlight", store:"Amazon", price:"$90", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=niterider+lumina+1200+headlight" },
+```
+
+This would bring Amazon links from 21 to 29, adding earning capacity to every category.
+
+---
+
+## v11 Delta (what changed since v10)
+
+- **App.jsx: 5,666 -> 6,354 lines** (+688 lines). Significant code additions since last report.
+- **VPS proxy: NOW HTTPS.** peakly-api.duckdns.org confirmed at line 1624. Mixed content timeout resolved. Real flight prices loading.
+- **PWA: DEPLOYED.** manifest.json, sw.js, service worker registration all in place. App is installable on mobile.
+- **Affiliate link counts: UNCHANGED.** Amazon 21, REI 21, Backcountry 2, Booking.com 1, SafetyWing 1, GetYourGuide 1.
+- **RPM: $12.18 (unchanged).** No new earning links added.
+- **Peakly Pro pricing: STILL CORRECT.** $79/yr at line 5298.
+- **AFFILIATE_ID placeholders: 0.** Still clean.
+- **GA4: NOT PRESENT.** Despite CLAUDE.md noting it was added, gtag.js is not in index.html. Plausible is the only analytics. Not blocking revenue but worth noting.
+- **Top blocker: LLC approval (unchanged).** +$20.79 RPM (+171%) waiting to unlock. Estimated $329/mo lost at 5K MAU.
+
+---
+
+## Summary of Action Items (ordered by impact)
+
+| Priority | Action | Blocked? | Time | Revenue Impact |
+|----------|--------|----------|------|---------------|
+| P0 | **LLC approval** | EXTERNAL | Waiting | **+$20.79/1K MAU RPM (+171%)** |
+| P1 | Add Amazon links to skiing/climbing/kayak/mtb (8 items) | No | 30 min | +$1.00-1.50 RPM |
+| P2 | Check Plausible dashboard for traffic baseline | No | 5 min | Validates all revenue assumptions |
+| P3 | Sign up REI/Backcountry/GetYourGuide (post-LLC) | Yes (LLC) | 90 min | +$7.62 RPM |
+| P4 | Wire Stripe for Peakly Pro (post-LLC) | Yes (LLC) | 3 hrs | +$13.17 RPM |
+| P5 | Add GA4 for e-commerce event tracking | No | 15 min | Enables affiliate conversion tracking |

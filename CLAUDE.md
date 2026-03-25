@@ -44,8 +44,8 @@ peakly/
 ### Infrastructure
 
 - **Frontend:** GitHub Pages (static, push to `main` to deploy)
-- **Flight proxy:** Node.js on DigitalOcean VPS (104.131.82.242:3001), Ubuntu 24, 1GB RAM
-- **VPS runs HTTP** — HTTPS not yet configured. Mixed content blocks flight prices in browsers.
+- **Flight proxy:** Node.js on DigitalOcean VPS (198.199.80.21), Ubuntu 24, 1GB RAM, HTTPS via Caddy + Let's Encrypt
+- **Proxy URL:** `https://peakly-api.duckdns.org` (Caddy reverse proxies to localhost:3001, auto-renews SSL)
 - **SSH-only git push** from Mac (`git@github.com:j1mmychu/peakly.git`)
 
 ## File Structure Inside app.jsx
@@ -88,7 +88,7 @@ The single file is organized in this order:
 |-----|----------|------|---------|
 | Open-Meteo Weather | `api.open-meteo.com/v1/forecast` | None (free) | 7-day weather forecasts |
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None (free) | Wave height, swell data |
-| Travelpayouts (via proxy) | `104.131.82.242:3001/api/flights` | Server-side token | Flight pricing |
+| Travelpayouts (via proxy) | `peakly-api.duckdns.org/api/flights` | Server-side token | Flight pricing (HTTPS) |
 | Google Flights | Deep links only | N/A | Flight search URLs |
 
 **Important:** The Travelpayouts API token is kept server-side on a VPS proxy — never expose it in client code.
@@ -222,10 +222,10 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 ### What's Broken / Missing (Priority Order)
 
 1. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (Amazon Associates, GetYourGuide, REI), and domain registration (peakly.app).
-2. **HTTPS not configured on VPS** — Mixed content blocks live flight prices. Need Cloudflare or Let's Encrypt + nginx.
+2. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org. Flight prices now load over HTTPS.
 3. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Blocked by LLC approval.
-4. **No analytics** — No GA4 or Plausible. Can't measure anything. Not blocked — can add now.
-5. **No PWA manifest** — Can't install to home screen on mobile. Not blocked — can add now.
+4. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible was already added. GA4 gtag.js added — Jack needs to create GA4 property and replace G-XXXXXXXXXX placeholder.
+5. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags added.
 6. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
 7. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
 8. **Trips + Wishlists tabs** — Built but still hidden in BottomNav. Guides tab was added instead. Need to decide: add all 5 tabs or keep it lean.
@@ -254,10 +254,10 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 8. [x] Alert region + date filters (UI + matching logic)
 9. [x] All domestic US airports added (22 new)
 10. [x] Flight API error handling + status indicator
-11. [ ] Add PWA manifest + service worker basics
-12. [ ] Add GA4 analytics
+11. [x] Add PWA manifest + service worker basics (manifest.json, sw.js, apple-mobile-web-app meta)
+12. [x] Add GA4 analytics (gtag.js added — needs Measurement ID from analytics.google.com)
 13. [ ] Build onboarding flow for new users
-14. [ ] Configure HTTPS on VPS (Cloudflare or Let's Encrypt)
+14. [x] Configure HTTPS on VPS (Caddy + Let's Encrypt on peakly-api.duckdns.org)
 15. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
 16. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
 17. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)

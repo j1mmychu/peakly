@@ -1,277 +1,341 @@
-# Competitor Watch Report: 2026-03-24 (v2)
+# Competitor Watch Report: 2026-03-24 (v5)
 
 **Date:** March 24, 2026
-**Agent:** Competitor Watch (Growth Lead)
-**Previous report:** March 24, 2026 (v1)
+**Agent:** Competitor Watch (Competitive Intelligence)
+**Previous report:** March 24, 2026 (v4)
 
 ---
 
-## Per-Competitor Summary
+## 1. Direct Competitors -- Latest Updates
 
-### 1. Surfline
+### Surfline
+**Pricing:** Premium $119.99/yr | Premium w/Ads $69.99/yr | Premium+ $149.99/yr (shareable, 3 accounts)
 
-**What they do:** Surf forecasts, HD live cams, session tracking.
+**Recent moves (app updated March 19, 2026):**
+- **Premium+ launched** with AI-powered Smart Cams -- computer vision analyzing live camera feeds for wave height, frequency, crowd levels, and auto-clipped session replays
+- **Smart Cam features:** Wave Timeline (20-min wave history), Wave Distribution (wave count by height), Crowd Prediction (AI-based lineup density forecast), Smart Clips (auto-edited session video)
+- **Wave Energy feature** -- granular swell energy data beyond wave height. One of the most-requested features.
+- **High-res nearshore model** using bathymetry and local wave physics for better forecast accuracy.
+- **Sessions expanding:** Strava/Garmin import, Apple Watch complication for single-tap session logging, pin-drop logging at any location (secret spots stay private)
+- **Favorites moving to bottom nav** on mobile for regional spot comparison
+- **Surf Windows:** Schedule-aware alerting -- notifies only when conditions are good AND user is free
+- **Cracking down on password sharing**
 
-**Recent moves (since v1):**
-- **High-res nearshore model (early 2026):** New coastal swell detail in charts — when you zoom into a region in the Wave Height tab, swell wrapping around coastal features is rendered using detailed bathymetry and local wave physics. Meaningful forecast quality jump.
-- **Sessions now free:** Session logging (previously Premium) is now available to all users on both iOS and Android. Smart watch integration gives cam wave clips automatically.
-- **Surf Windows:** New notification feature — users set the hours they can actually surf, and Surfline only alerts when conditions are good during those windows. Smart engagement play.
-- **Pricing unchanged:** Premium $119.99/yr, Premium with Ads $69.99/yr, Premium+ $149.99/yr (shareable with 2 accounts).
-- Update cadence appears to have picked back up slightly in early 2026.
+**User sentiment (Trustpilot, App Store, BeachGrit, forums):**
+- Price hike from $99 to $120/yr driving significant anger. BeachGrit ran "price gouging" headline.
+- Free tier now limited to 3-5 condition checks per week. Users furious.
+- User Babac (App Store, 1-star): "This app does its best to annoy you into buying their $100 a year premium"
+- User LTSchnitz4146 (App Store, 2-star): "Half the time they're wildly off-base for the next day"
+- Forecast accuracy remains #1 complaint since LOTUS AI model integration
+- Users report: "a bottomless pit for money and subscriptions with virtually zero support"
+- Cam feeds frequently down. Poor iPad support.
+- Near-monopoly after acquiring MagicSeaweed (2017) and Coastalwatch (2019) -- users say "almost no alternative for the large majority of surf spots"
 
-**Peakly relevance:** Surfline is investing in forecast accuracy (nearshore model) and engagement (Surf Windows, free Sessions). These are retention moves, not expansion moves — still single-sport, still zero flight integration. The "Surf Windows" concept is interesting for Peakly: a time-aware alerting system that respects user schedules. Peakly's alerts could adopt a similar "only notify me when I can actually go" filter.
+**Gap Peakly owns:** Single sport. No flights. No trip planning. No "when should I go?" intelligence. No multi-sport. $120/yr price creates refugees looking for alternatives.
 
 ---
 
-### 2. OnTheSnow
+### AllTrails
+**Pricing:** Plus $35.99/yr | Peak $79.99/yr (ran $18/yr promo in Jan 2026)
 
-**What they do:** Ski conditions, snow reports, webcams for 2,000+ resorts.
+**Recent moves (app updated March 18, 2026):**
+- **AllTrails Peak at $79.99/yr:** AI-powered custom routes (reverse, shorten, reduce elevation, scenic mode)
+- **Trail Conditions tracking:** Weather data + community reports + snow depth overlaid on maps
+- **Community Heatmaps:** Aggregated user activity data showing popular trail segments (Peak only)
+- **Offline Area Maps:** Download entire regions with all routes inside
+- **500,000 mapped viewpoints/amenities** for all members
+- **ChatGPT integration (Nov 2025):** Routes surface directly inside ChatGPT
+- **Apple Watch expansion:** Compass, real-time stats, heart rate, distance remaining
+- **National Parks partnership:** Official Outdoor Exploration Partner for Western National Parks
+
+**User complaints:**
+- Peak at $80/yr seen as $45 price hike from Plus ($36/yr) -- "nickel-and-dimed"
+- AI custom routes criticized by SAR officials as "encouraging overconfidence"
+- Route planning locked behind Peak (was in Plus)
+- Customer support replaced with AI bot
+
+**Gap Peakly owns:** Hiking/biking only. No water sports, no snow sports. No flight integration. No cross-sport "when to go" intelligence. No real-time scoring.
+
+---
+
+### OnTheSnow
+**Pricing:** Free (ad-supported, no premium tier)
+
+**Status:** Effectively stagnant. Last meaningful update December 4, 2025 (v10.4.21).
+- Weekly forecasts from meteorologist Chris Tomer
+- Powder alerts with custom tolerance thresholds
+- 2,000+ ski areas worldwide
+
+**User complaints (Google Play, forums):**
+- "Buggy & unusable" after recent redesign
+- Ads everywhere, slow loading, incorrect snowfall data, terrible color scheme
+- Forced account creation
+- Showing more open lifts than actually exist
+- Search returns spinning dial, never loads
+- Called "free knockoff of OpenSnow" on forums
+- Users actively migrating to OpenSnow
+
+**Gap Peakly owns:** No flights. No multi-sport. No scoring. No recommendations. Technically falling apart. Easiest competitor to leapfrog.
+
+---
+
+### OpenSnow
+**Pricing:** Base $49.99/yr (1 person) | $89.99/yr (4 people)
 
 **Recent moves:**
-- Maintenance updates continue (enhanced resort screens, faster navigation).
-- No major new feature launches detected for 2025-2026 season.
-- Core product unchanged: powder alerts, resort comparison, user photos.
+- **PEAKS model (2025-2026):** In-house forecast model claiming 50% accuracy improvement in mountain terrain
+- **AI Overviews:** Natural-language condition summaries for popular resorts
+- **Premium features paywalled** as of Nov 2025 -- free preview removed
 
-**Peakly relevance:** OnTheSnow remains stagnant. No AI, no flights, no trip planning. Still Peakly's easiest competitor to leapfrog in the ski vertical.
+**User complaints:**
+- $50/yr "far too high for a single recreational skier"
+- Single-user plan discontinued
+
+**Gap Peakly owns:** Ski only. Zero flights. Zero trip planning. Pricing backlash creates opening for Peakly's free tier.
 
 ---
 
-### 3. OpenSnow (NEW ADDITION)
+### Windy.app
+**Pricing:** Pro ~$18.99-29.99/yr (recently hiked ~35%)
 
-**What they do:** Snow forecasts, powder alerts, resort conditions. Positioned as the "meteorologist-grade" ski weather app.
+**Recent moves (updated March 23, 2026):**
+- Faster zoom with new Leaflet GL technology
+- Plugins on iOS/iPad
+- High-res local weather models in widgets (iPhone, iPad, macOS, CarPlay)
+- Expanded airport POIs with METAR, TAF, NOTAM data
+- Faster Route Planner via ICAO/IATA search (Premium)
+- Unified Dark Mode
+- EXPERT profile with wind speed range, rain intensity, CAPE index
+
+**User complaints:**
+- 35% price hike generating community backlash
+- Complex UI not beginner-friendly
+
+**Gap Peakly owns:** Weather tool for experts/pilots, not adventure travelers. No venues, no scoring, no trip planning, no flights.
+
+---
+
+### Hopper
+**Revenue:** $850M in 2024 (+21% YoY). $7.5B annual bookings. 35M users. 40% revenue from fintech. 11.8% US travel app market share.
 
 **Recent moves:**
-- **PEAKS model (2025-2026 season):** New in-house forecast model claims up to 50% more accuracy in mountain terrain. Learns from past storms to sharpen location-specific forecasts. This is a serious technical investment.
-- **AI Overviews:** AI-written condition summaries for popular resorts worldwide — quick plain-English weather descriptions.
-- **Premium tier gating:** 11-15 day forecasts, multi-model comparison, global storm maps, and severe weather alerts moved to Premium only.
-- **Pricing:** Base $49.99/yr (1 person), $89.99/yr (4 people).
+- Hopper Homes: 2M+ managed rentals in 200 countries
+- Added rental cars
+- Hopper Cloud (B2B): licensing fintech to airlines/OTAs, powers Capital One Travel
+- Price Freeze feature lets users hold fares up to 7 days
+- Claims 95% price prediction accuracy for flights up to 1 year out
 
-**Peakly relevance:** OpenSnow is the most technically advanced ski-specific competitor. Their PEAKS model represents genuine IP that would be hard to replicate. However, they remain a pure weather/conditions app with zero flight integration, zero trip planning, and no multi-sport coverage. Their $50/yr price point for ski-only conditions makes Peakly Pro at $79/yr for multi-sport + flights competitive. OpenSnow's AI Overviews feature validates that users want natural-language condition summaries — Peakly should consider similar for venue cards.
-
----
-
-### 4. AllTrails
-
-**What they do:** Hiking/biking trails, maps, navigation. 5M+ downloads.
-
-**Recent moves (since v1):**
-- **ChatGPT integration (Nov 2025):** AllTrails routes now surface directly inside ChatGPT when users ask for trail recommendations. This is a significant distribution play — they're meeting users where they already are.
-- **Trail Conditions expanded:** Now includes detailed ground conditions info (mud, snow, ice) in addition to weather, daylight, bug activity, and snowpack. Available at Plus tier.
-- **CTO interview (Jan 2026):** AllTrails CTO James Graham discussed "the algorithmic outdoors" — using data and AI to personalize outdoor experiences. Signals continued heavy AI investment.
-- **Pricing aggressive:** AllTrails Plus was available for $18/year in a January 2026 promo. Peak remains $80/year.
-
-**Peakly relevance:** The ChatGPT integration is the most significant new move. AllTrails is now embedded in the AI assistant layer where travel planning increasingly happens. If Peakly doesn't pursue similar integrations (ChatGPT plugins, Google Gemini, etc.), it risks being invisible in AI-assisted trip planning flows. The $18/year promo for Plus suggests aggressive user acquisition — they're buying market share. AllTrails still has zero flight integration and remains hiking/biking only.
+**Gap Peakly owns:** Zero conditions awareness. Sport-agnostic. Purely price-driven. Cannot answer "is it worth going?" The B2B (HTS) playbook is worth studying for Peakly's long-term white-label strategy.
 
 ---
 
-### 5. Strava
-
-**What they do:** Activity tracking, social fitness, 3D maps. 52 supported sports.
-
-**Recent moves (since v1):**
-- **Instant Workouts (Jan 2026):** AI-powered personalized workout recommendations based on recent activity and weekly goals. Global launch to all subscribers.
-- **Muscle Map:** New visualization feature for strength training.
-- **Apple Watch navigation:** Route navigation and maps now available on Apple Watch globally.
-- **Five new sports added:** Basketball, volleyball, dance, padel, cricket (total now 52).
-- **Leaderboard cleanup:** Reprocessed top 100 rides across all leaderboards, removing 3.9M activities including 2.3M incorrectly categorized e-bike rides.
-- **Heart rate via AirPods Pro 3.**
-- **Pricing unchanged:** $79.99/year.
-
-**Peakly relevance:** Strava continues to deepen activity tracking and training, not trip planning. The Instant Workouts feature shows their AI investment is going toward training intelligence, not destination/conditions intelligence. No flight integration, no trip planning. Not a direct threat but a potential partner — Strava athletes are Peakly's ideal users.
-
----
-
-### 6. KAYAK
-
-**What they do:** Meta-search for flights, hotels, cars. 50M+ users.
-
-**Recent moves (since v1):**
-- **AI Mode launched (March 2026):** Full AI trip planner integrated into Kayak.com. Uses generative AI to craft detailed itineraries from conversational prompts. Can help find destinations that "fit your vibe and budget."
-- **ChatGPT integration:** AI chatbot powered by ChatGPT embedded directly into the main platform.
-- **2026 Trends:** 55% of Gen Z/Millennials say they'd change their destination if AI suggested a better option. "Soft adventure" continues trending — 25% of travelers mixing adventure with relaxation.
-
-**Peakly relevance:** KAYAK's AI Mode is the biggest competitive development since v1. They now offer vibe-based destination discovery ("find me somewhere warm with good food and hiking") — which overlaps with Peakly's Vibe Search. However, KAYAK AI Mode is generic travel, not conditions-aware. It cannot tell you "the surf is firing in Portugal this week AND flights are cheap." Peakly's conditions + flights combination remains differentiated, but KAYAK is now playing in the "vibe search" space with 50M+ existing users. This raises the urgency on shipping Window Score as a defensible differentiator.
-
----
-
-### 7. Hopper
-
-**What they do:** AI-powered flight price prediction, flexible booking.
-
-**Recent moves (since v1):**
-- **Revenue appears down:** Reports suggest ~$280M in 2026 vs. $850M in 2024. If accurate, significant decline — possibly due to B2B pivot.
-- **B2B expansion:** Hopper Technology Solutions (HTS) is a growing focus, powering white-label travel portals (Capital One Travel).
-- **Fintech dominance:** ~50% of revenue from fintech products (Price Freeze, cancellation insurance, disruption guarantee).
-- No adventure-specific features detected.
-
-**Peakly relevance:** Hopper's apparent revenue decline and B2B pivot suggest the consumer travel app market is harder than it looks. Their fintech model (Price Freeze generating 50% of revenue) is the key lesson — monetize the booking transaction, not just the discovery. Hopper remains conditions-blind and sport-agnostic.
-
----
-
-### 8. SurfTrips.ai
-
-**What they do:** AI-powered surf trip planner combining conditions + flights + accommodation.
-
-**Recent moves (since v1):**
-- Blog content active — publishing surf trip planning guides (Mexico, Costa Rica, etc.).
-- Destinations include Portugal, Mexico, Costa Rica, Hawaii, Puerto Rico, France, Nicaragua, El Salvador, Australia.
-- Filtering by surf style, vibe, and skill level confirmed.
-- Community-sourced feedback appears to be growing.
-- Still web-only, still surf-only. No expansion to other sports detected.
-
-**Peakly relevance:** SurfTrips.ai remains the closest direct competitor. They have NOT expanded beyond surf, which is good news. Their content marketing approach (destination guides with embedded trip planning) is worth noting — they're building SEO authority in the "surf trip planning" space. Peakly should be doing the same across all sports. The conditions + flights model continues to be validated by their existence.
-
----
-
-### 9. Lonely Planet App (NEW ENTRANT)
-
-**What they do:** Expert destination guides, maps, local recommendations, trip planning — all backed by decades of editorial content.
-
+### KAYAK (SIGNIFICANT)
 **Recent moves:**
-- **App launched March 2026:** U.S. availability. Expert-crafted destination guides, dynamic maps, local recommendations, day-by-day itineraries.
-- **AI assistant coming:** Will be trained on decades of Lonely Planet content. Not yet live but announced.
-- **Bookable experiences:** "Lonely Planet Journeys" launched fall 2025 — customized trips to 70+ destinations, crafted by local planning experts.
-- **Free year of membership** for early adopters, with paid tiers coming later in 2026.
-- **450+ on-the-ground experts** worldwide contributing content.
+- **AI Mode launched (March 2026):** Full AI trip planner using generative AI for conversational destination discovery. "Find me somewhere warm with good food and hiking."
+- **ChatGPT integration**
+- 55% of Gen Z/Millennials would change destination if AI suggested a better option
 
-**Peakly relevance:** Lonely Planet entering the app space is significant because of brand authority and content depth. However, their approach is traditional editorial travel (restaurants, museums, cultural experiences) — not conditions-aware adventure travel. No surf forecasts, no ski conditions, no flight price monitoring. Their AI assistant could theoretically add conditions data later, but their DNA is cultural travel, not sport-specific conditions. The free membership year is an aggressive user acquisition move. Watch for whether they add any outdoor adventure or conditions features.
+**Gap Peakly owns:** KAYAK AI Mode is generic travel, not conditions-aware. Cannot say "surf is firing in Portugal AND flights are cheap." But they're in Peakly's vibe-search space at 50M+ user scale.
 
 ---
 
-### 10. Thermal (NEW ADDITION)
+## 2. Adjacent Threats
 
-**What they do:** Marketplace for guided adventure trips — surf, ski, cycling, cooking, yoga. Trips hosted by "local legends."
+### SurfTrips.ai -- DIRECT SURF COMPETITOR (MODERATE-HIGH THREAT)
+- 500+ curated surf breaks with skill level, budget, wave type, season filters
+- Real-time flight comparison across American, United, Delta, Southwest, Emirates
+- Accommodation listings (Airbnb + hotels) near breaks
+- Blog content building SEO authority ("How to Plan a Surf Trip Without Spending Hours on Google")
+- Web-only, no mobile app detected
 
-**Recent moves:**
-- Curated surf trip experiences at major events (e.g., VIP access to surf competitions).
-- Partnered with OMBE for surf development trips.
-- Multi-sport positioning (surf, ski, cycling, fishing, yoga) though surf is primary.
-- Still a guided trip marketplace, not a self-service planning tool.
+**Key gaps vs Peakly:** No live conditions scoring algorithm. No alerts system. No "Window Score" or best-time-to-go intelligence. No trip builder with AI vibe search. Surf-only -- no skiing/multi-sport.
 
-**Peakly relevance:** Thermal is adjacent, not competitive. They sell guided experiences ($1K-$5K trips), while Peakly helps users plan independent trips. Potential partnership opportunity: "Found great conditions on Peakly? Book a guided experience with Thermal." Affiliate revenue potential.
+**If they add live wave data or multi-sport, threat level goes to HIGH.**
 
----
+### Thermal Travel -- LOW THREAT
+Curated luxury surf trips with local guides. VIP access to WSL events. Travel agency model, not a conditions platform. Not a direct threat, but their "local guide" model maps to Peakly's LOCAL_TIPS data.
 
-## Conditions + Flights Matrix (Updated)
+### Stormrider Surf Guides -- LOW THREAT
+Personalized surf break matching by skill + season + preferences. Partners with Windy for conditions. Content-heavy, not real-time.
 
-| Competitor | Conditions | Flights | Combined? | AI Trip Planning |
-|-----------|-----------|---------|-----------|-----------------|
-| Surfline | Yes (surf only) | No | No | No |
-| OnTheSnow | Yes (ski only) | No | No | No |
-| OpenSnow | Yes (ski only, advanced) | No | No | AI Overviews only |
-| AllTrails | Yes (trail weather) | No | No | AI Custom Routes |
-| Strava | Partial (slope data) | No | No | AI Workouts only |
-| KAYAK | No | Yes | No | **Yes (AI Mode)** |
-| Hopper | No | Yes | No | No |
-| Lonely Planet | No | No | No | Coming 2026 |
-| **SurfTrips.ai** | **Yes (surf)** | **Yes** | **YES — surf only** | Partial |
-| **Peakly** | **Yes (multi-sport)** | **Yes** | **YES — multi-sport** | **Yes (Vibe Search + Trip Builder)** |
+### SweetSpot (findsweetspot.app) -- WATCH
+Cross-references live weather with real-time flight prices. Essentially Peakly's tagline but generic (not sport-specific). Monitor closely.
 
-**Verdict:** Peakly remains the only product combining multi-sport conditions + flights + AI trip planning. The gap is narrowing in adjacent areas: KAYAK now has vibe-based AI planning (without conditions), AllTrails has ChatGPT integration (without flights), and OpenSnow has serious forecast IP (without flights). No one has assembled the full stack.
+### FutureFlights.ai -- LOW THREAT
+AI-powered flight search with adventure-specific content (skiing flights article). Content/SEO play, not a product competitor. Building authority in adventure + flights niche.
 
----
+### Lonely Planet App (launched March 2026)
+Expert destination guides, maps, itineraries. AI assistant coming trained on decades of LP content. 450+ experts. Brand authority threat, not product overlap.
 
-## Opportunities to Exploit
-
-### 1. KAYAK AI Mode Lacks Conditions — Peakly Owns the Gap
-KAYAK's new AI Mode can say "go to Bali, it's warm and cheap" but cannot say "the swell is pumping in Bali this Thursday AND flights dropped 40%." This is Peakly's unique value. **Action:** Position Peakly as "the conditions layer KAYAK is missing." Content marketing: "KAYAK found you a cheap flight. Peakly tells you if it's worth going."
-
-### 2. AllTrails' ChatGPT Integration Shows the Distribution Play
-AllTrails embedding in ChatGPT is a masterclass in meeting users where they are. 70% of travelers now use AI for trip planning. If someone asks ChatGPT "where should I surf next week?" and Peakly isn't in the response, that's a lost user. **Action:** Prioritize building a ChatGPT plugin / OpenAI action that surfaces Peakly's conditions + flights data. This is potentially higher-impact than SEO for capturing AI-native travelers.
-
-### 3. Surfline's "Surf Windows" Concept Applied to Multi-Sport
-Surfline's Surf Windows (only alert when conditions are good AND user is available) is a smart engagement feature. Peakly can build this for all sports — "Alert me about epic ski conditions only on weekends I'm free, and only if flights from SFO are under $300." **Action:** Add schedule-aware filtering to Peakly's alert system. This combines conditions + flights + user availability — something no competitor does.
-
-### 4. Surfline Price Refugees (Unchanged, Still Valid)
-Surfline at $120/year vs. Peakly Pro at $79/year with multi-sport + flights. Community frustration with the price hike continues. **Action:** Target r/surfing with comparative messaging.
-
-### 5. OpenSnow's AI Overviews Validate Natural-Language Conditions
-OpenSnow writing AI condition summaries for ski resorts confirms users want plain-English descriptions, not just raw numbers. **Action:** Add AI-generated condition summaries to Peakly venue cards ("Surf is firing — 6ft swell, offshore winds, and flights from LAX are $189 round trip").
+### No direct "conditions + flights + multi-sport" competitor found.
+Peakly's positioning remains unique across the landscape.
 
 ---
 
-## Threats to Watch
+## 3. Keyword Battleground -- 5 Opportunities
 
-### 1. KAYAK AI Mode — Vibe Search at 50M User Scale (ELEVATED from v1)
-KAYAK's AI Mode now offers conversational, vibe-based trip discovery — the same concept as Peakly's Vibe Search, but backed by 50M users and Booking Holdings' resources. They lack conditions intelligence today, but adding a weather/conditions layer to AI Mode would be technically trivial for them. **Mitigation:** Ship Window Score (Phase 2) immediately. Window Score is a proprietary composite metric that is genuinely hard to replicate — it's not just "check the weather," it's a scored, ranked, personalized assessment. Speed matters.
+| # | Keyword | Est. Monthly Volume | Competition | Why Peakly Wins |
+|---|---------|-------------------|-------------|-----------------|
+| 1 | "surf conditions and flights" | 500-1,500 | **Very Low** | Zero apps rank for this exact combination. Peakly should own it with a single landing page. Could rank page 1 in 30 days. |
+| 2 | "best time to surf [destination]" | 5K-15K per dest | Medium (blogs) | Peakly's real-time scoring gives dynamic, authoritative answers that beat static blog posts. Create per-venue landing pages. |
+| 3 | "cheap flights to ski resorts" / "ski conditions cheap flights" | 8K-12K combined | Medium | Peakly uniquely combines flights WITH snow conditions. No competitor has this angle. |
+| 4 | "when to go surfing in [month]" | 3K-8K per country | Medium-Low | Scoring system provides real-time, data-driven answer. Blog + live widget combo. |
+| 5 | "adventure travel conditions app" | 200-800 | **Very Low** | Category-defining keyword. No competitor ranks for it. First-mover advantage. Plant the flag now. |
 
-### 2. ChatGPT / AI Assistants Becoming the Default Trip Planner (ELEVATED)
-70% of travelers use AI for planning. 55% of Gen Z would change their destination based on AI suggestion. AllTrails is already inside ChatGPT. If the default AI trip planning flow does not include Peakly, the app becomes invisible to a growing segment. **Mitigation:** Build a ChatGPT plugin or API that lets AI assistants query Peakly's conditions + flights data. This is a distribution imperative, not a nice-to-have.
+**Context:** "Cheap flights" has 6.1M monthly searches. Peakly cannot compete on that broad term, but long-tail combinations like "cheap flights + surf conditions" or "cheap flights to ski resorts" are wide open.
 
-### 3. SurfTrips.ai — Direct Model Overlap (UNCHANGED)
-Still surf-only, still web-only, but actively publishing content and growing. If they raise funding and expand to ski/adventure, they become a direct Peakly clone. **Mitigation:** Accelerate Window Score and multi-sport depth. Peakly's advantage is breadth (surf + ski + beach + adventure) — widen it.
-
-### 4. Lonely Planet's Brand Authority Entering App Space (NEW)
-Lonely Planet has decades of brand trust and 450+ on-the-ground experts. Their app is free for a year. If they add any conditions or adventure-sport features, their brand alone could pull users. **Mitigation:** Peakly's technical moat (real-time scoring, flight monitoring, conditions API) is deep enough that editorial content alone can't replicate it. But watch for Lonely Planet adding weather/conditions to their guides.
-
-### 5. OpenSnow's PEAKS Model Sets a Forecast Quality Bar (NEW)
-OpenSnow's claim of 50% better mountain accuracy is a high bar. If skiers trust OpenSnow for conditions and use Peakly only for flights, Peakly becomes a secondary tool. **Mitigation:** Peakly doesn't need to out-forecast OpenSnow — it needs to be the layer that combines conditions + flights + trip planning. Consider integrating or linking to OpenSnow forecasts for ski venues rather than competing on raw forecast accuracy.
+**Quick win:** "Surf conditions and flights" has virtually zero competition. A landing page with this as H1 and Peakly's live data could rank page 1 within a month.
 
 ---
 
-## Recommended Actions (Priority Order)
+## 4. Reddit Intelligence
 
-| Priority | Action | Effort | Impact | Urgency |
-|----------|--------|--------|--------|---------|
-| 1 | **Ship Window Score (Phase 2)** — KAYAK AI Mode makes this urgent. Proprietary scoring is the deepest moat. | High | Critical | Immediate |
-| 2 | **Build ChatGPT plugin / OpenAI action** — AllTrails is already there. 70% of travelers use AI. Peakly must be in the AI assistant layer. | Medium | Critical | High |
-| 3 | **Add schedule-aware alerts** — inspired by Surfline's Surf Windows. "Alert me only on weekends when conditions are good AND flights are cheap." No competitor does this. | Medium | High | Medium |
-| 4 | **AI condition summaries on venue cards** — validated by OpenSnow's AI Overviews. Natural-language descriptions of conditions + flight prices. | Low | High | Medium |
-| 5 | **Track SurfTrips.ai expansion** — sign up, test product, document feature gaps. Watch for multi-sport moves. | Low | High | Ongoing |
-| 6 | **SEO content for "conditions + flights" queries** — SurfTrips.ai is building content authority. Peakly needs to own this keyword space across all sports. | Medium | High | Medium |
-| 7 | **Target Surfline price refugees** — Reddit/community posts about $120 price hike. | Low | Medium | Ongoing |
-| 8 | **Explore Thermal partnership** — affiliate revenue from guided trip bookings when users find great conditions on Peakly. | Low | Medium | Low |
+### Pain Points Peakly Solves
+
+**1. The multi-app juggling problem:**
+Surfers describe needing Surfline (conditions) + Google Flights (prices) + Airbnb (stays) + weather apps (wind) + local forums (tips), then trying to align everything manually. Surf travel blogs capture it: "Surf travel isn't like booking a normal vacation -- you're planning around swell windows, wind, tides, board logistics, lineup dynamics, water temps, transportation." Peakly collapses this into one screen.
+
+**2. Surfline price revolt:**
+$120/yr Premium (up from $99) + 3-5 checks/week free tier + password sharing crackdown = surfers actively seeking alternatives. This is a direct acquisition channel for Peakly's free tier.
+
+**3. The powder chasing dilemma:**
+Ski.com guide captures it: "Be prepared to chase at the last minute. Never commit to a destination." But no app combines snow conditions with live flight pricing to enable these chase missions. Peakly's alert system + flight proxy is built for exactly this.
+
+### 3 Comments That Prove Peakly's Value Proposition
+
+**Comment 1 -- Surfline Price Revolt:**
+> "They already get 99% of their forecasts wrong and now an upcharge?"
+>
+> -- Reddit/BeachGrit user, May 2025, re: Surfline $99-to-$120 price hike
+
+**Peakly angle:** Surfers want conditions data without the premium tax. Peakly's free tier with Open-Meteo data + flight prices is the counter-pitch.
+
+**Comment 2 -- OpenSnow Pricing Backlash:**
+> "An OpenSnow subscription for $50/year for a single recreational skier is far too high given the benefits."
+>
+> -- Liftlines forum, Dec 2025
+
+**Peakly angle:** Skiers are price-sensitive. Peakly offers free conditions + flights -- no ski app does this.
+
+**Comment 3 -- The Multi-Tab Nightmare:**
+> "Juggling dozens of tabs... flights sell out, rooms disappear overnight, transfer times stretch longer than expected, and even small decisions start eating up hours."
+>
+> -- Ski vacation planning discussion, 2025
+
+**Peakly angle:** This IS Peakly's core value prop. Should be in marketing copy.
+
+**Community seeding targets:**
+- r/surfing (1.2M+ members) -- Post when Window Score ships. Respond in "Surfline alternative" threads.
+- r/skiing (800K+ members) -- Post early fall before ski season. "I built a free app that shows snow conditions + flights in one view."
+- r/solotravel (2.1M+ members) -- "I built an app that shows when conditions + flights align for adventure travel."
+- r/travel (15M+ screen views) -- 91% of users make booking decisions from Reddit content.
 
 ---
 
-## Key Changes Since v1
+## 5. Pricing Assessment
 
-1. **KAYAK AI Mode launched** — the biggest single development. Vibe-based trip discovery now exists at massive scale, raising urgency on Window Score.
-2. **AllTrails integrated with ChatGPT** — AI assistant distribution is now a proven play, not theoretical.
-3. **Lonely Planet entered the app market** — brand authority with free year of access, but no conditions intelligence.
-4. **OpenSnow added to watchlist** — serious ski forecast IP (PEAKS model) that sets a quality bar.
-5. **Surfline added Surf Windows and free Sessions** — smart engagement moves but still single-sport.
-6. **Strava expanded to 52 sports** — going wide on tracking, not trip planning.
-7. **Hopper revenue possibly declining** — B2B pivot suggests consumer travel apps are a tough market.
+### Current Landscape
+
+| App | Price/Year | Scope |
+|-----|-----------|-------|
+| Surfline Premium+ | $149.99 | Surf only + AI cams |
+| Surfline Premium | $119.99 | Surf only |
+| OpenSnow Group | $89.99 | Ski only (4 users) |
+| AllTrails Peak | $79.99 | Hiking/trails + AI routes |
+| **Peakly Pro** | **$79.00** | **Multi-sport + flights** |
+| Surfline Premium w/Ads | $69.99 | Surf only + ads |
+| OpenSnow Base | $49.99 | Ski only (1 user) |
+| AllTrails Plus | $35.99 | Hiking/trails basic |
+| Windy.app Pro | $18.99-29.99 | Weather only |
+
+### Is $79/yr correct?
+
+**Yes. $79/yr is optimally positioned.**
+
+1. **Anchored against AllTrails Peak ($80/yr)** -- nearly identical price validates the price point for premium outdoor apps
+2. **34% cheaper than Surfline Premium ($120/yr)** while offering more breadth (multi-sport + flights)
+3. **Above OpenSnow ($50/yr)** -- justified because Peakly covers multiple sports + includes flight pricing
+4. **Not so cheap it signals hobby project**, not so expensive it triggers comparison shopping
+5. Adventure travelers spend $2,000-$5,000+ per trip. $79/yr to optimize those trips is a no-brainer.
+
+**Recommendation:** Hold at $79/yr. Consider $49/yr launch price for first 1,000 subscribers to drive early adoption and reviews. Consider a two-tier model ($39/yr Plus + $79/yr Pro) mirroring AllTrails' successful structure.
 
 ---
 
-## Key Takeaway
+## 6. Competitor Moves Worth Copying
 
-The competitive landscape has shifted meaningfully since v1. KAYAK's AI Mode and AllTrails' ChatGPT integration represent the two most important developments: **vibe-based discovery at scale** and **AI assistant distribution**. Peakly's conditions + flights combination remains unique, but the window to establish dominance is narrowing faster than expected. The two highest-priority actions are: (1) ship Window Score to create a defensible proprietary metric, and (2) build a ChatGPT/AI assistant integration to ensure Peakly is part of the AI-native trip planning flow where travelers are increasingly making decisions.
+1. **Surfline's AI Crowd Prediction** -- Using computer vision to predict crowd levels. Peakly can approximate with proxy data (day-of-week, holidays, search trends, Instagram volume). Even "Crowd: Low / Moderate / High" would differentiate.
+2. **Surfline's Surf Windows (schedule-aware alerting)** -- "Alert me when conditions are good AND I'm free AND flights are cheap." Three-variable version is uniquely Peakly.
+3. **AllTrails' ChatGPT integration** -- Get Peakly's conditions+flights data into AI assistants. 70% of travelers now use AI for planning. Distribution imperative.
+4. **Hopper's Price Freeze fintech** -- 40% of Hopper's revenue comes from financial products. Peakly Pro could offer "price lock" feature while waiting for conditions to confirm.
+5. **Windy.app's widget/CarPlay strategy** -- Home screen widget showing top venue's current score drives daily engagement without opening the app.
+6. **AllTrails' Community Heatmaps** -- Crowd intelligence from aggregated user data. Maps to Peakly's Phase 7 vision.
 
 ---
 
-*Sources used in this report:*
-- [SurfTrips.ai](https://surftrips.ai/)
-- [SurfTrips.ai Blog](https://surftrips.ai/blog)
-- [Surfline US Price & Tier Updates](https://support.surfline.com/hc/en-us/articles/35208905809051-US-Price-Tier-Updates)
+## 7. Gaps Peakly Can Own
+
+1. **"Conditions + flights" in one view** -- Nobody does this at multi-sport scale. SurfTrips.ai is closest but surf-only and lacks live scoring.
+2. **The Window Score** -- Single combined metric for conditions + price + timing + crowd. No competitor has this. This is the moat.
+3. **Multi-sport adventure platform** -- Every competitor is single-sport. Peakly is the only cross-sport conditions + flights platform.
+4. **Strike Missions** -- "Drop everything, conditions are perfect, flights are cheap." Nobody does this. Killer feature.
+5. **Free real-time scoring** -- While Surfline locks basic forecasts behind $120/yr, Peakly's scoring is free. Wedge for user acquisition.
+
+---
+
+## 8. One Thing That Should Change Peakly's Roadmap
+
+**Surfline just launched AI-powered crowd prediction, and KAYAK just launched AI Mode for vibe-based travel discovery at 50M+ user scale. The window is closing.**
+
+Surfline's Premium+ uses computer vision to predict crowd levels at surf breaks. Peakly doesn't have cameras, but the concept -- factoring crowd estimates into venue scoring -- is Phase 7 on Peakly's roadmap. Meanwhile, KAYAK's AI Mode lets users say "find me somewhere warm with good surfing" -- that's Peakly's vibe search at massive scale, minus conditions intelligence. And SurfTrips.ai is building content + SEO in Peakly's exact space.
+
+**Recommended priority shift:**
+1. **Ship Window Score in 60 days** -- this is the moat. Before KAYAK or SurfTrips.ai add conditions scoring.
+2. **Create SEO landing pages** for "surf conditions and flights" and per-destination "best time to surf [X]" queries -- claim the keywords before competitors notice.
+3. **Build basic crowd estimation** using proxy data (day-of-week, season, holiday proximity) -- cheap to implement, high differentiation.
+4. **Then** resume pre-launch checklist (onboarding, analytics, affiliate IDs).
+
+---
+
+## Conditions + Flights Matrix
+
+| Competitor | Conditions | Flights | Combined? | AI Planning | Multi-Sport |
+|-----------|-----------|---------|-----------|-------------|-------------|
+| Surfline | Surf only | No | No | AI cams only | No |
+| OnTheSnow | Ski only | No | No | No | No |
+| OpenSnow | Ski only (advanced) | No | No | AI Overviews | No |
+| AllTrails | Trail weather | No | No | AI Routes | No |
+| KAYAK | No | Yes | No | **AI Mode** | N/A |
+| Hopper | No | Yes | No | No | N/A |
+| SweetSpot | Generic weather | Yes | **Yes (generic)** | No | N/A |
+| SurfTrips.ai | Surf only | Yes | **Yes (surf)** | Partial | No |
+| **Peakly** | **Multi-sport** | **Yes** | **YES** | **Vibe Search + Trip Builder** | **YES** |
+
+**Verdict:** Peakly remains the only product combining multi-sport conditions + flights + AI trip planning. The gap is narrowing from multiple directions (KAYAK adding AI, SurfTrips.ai combining surf+flights, Surfline adding crowd AI). No one has assembled the full stack yet. The window to establish dominance is open but closing.
+
+---
+
+*Sources:*
 - [Surfline What's New](https://www.surfline.com/lp/whatsnew/home)
-- [Surfline Review 2026 — Research.com](https://research.com/software/reviews/surfline-media)
+- [Surfline Premium+ (Surfer Magazine)](https://www.surfer.com/news/surfline-artificial-intelligence-premium-plus)
+- [Surfline US Price & Tier Updates](https://support.surfline.com/hc/en-us/articles/35208905809051-US-Price-Tier-Updates)
+- [Surfline Reviews 2026 (JustUseApp)](https://justuseapp.com/en/app/393782096/surfline-surfing-companion/reviews)
+- [Surfline Price Gouging (BeachGrit)](https://beachgrit.com/2025/05/forecasting-giant-surfline-accused-of-price-gouging-beleaguered-americans/)
+- [Surfline Reviews (Trustpilot)](https://www.trustpilot.com/review/surfline.com)
 - [AllTrails Major Update](https://www.alltrails.com/press/alltrails-reveals-major-update)
-- [AllTrails Membership Updates Nov 2025](https://support.alltrails.com/hc/en-us/articles/42701770204820-Membership-updates-Nov-2025)
-- [AllTrails CTO Interview — Globetrender (Jan 2026)](https://globetrender.com/2026/01/26/alltrails-james-graham-algorithmic-outdoors/)
-- [AllTrails Peak Membership — TechCrunch](https://techcrunch.com/2025/05/12/alltrails-debuts-a-80-year-membership-that-includes-ai-powered-smart-routes/)
-- [AllTrails Plus $18 Promo](https://www.yahoo.com/lifestyle/articles/kick-off-2026-full-alltrails-204500085.html)
-- [OpenSnow 2025-2026 Winter Release](https://opensnow.com/news/post/2025-2026-winter-release)
-- [OpenSnow Subscription Plans](https://support.opensnow.com/subscription/updates-to-our-subscription-plans-for-2025-2026)
-- [OpenSnow Pricing](https://opensnow.com/buy)
-- [Strava What's New](https://stories.strava.com/articles/whats-new-on-strava)
-- [Strava Instant Workouts Launch](https://press.strava.com/articles/strava-launches-new-instant-workouts-feature-worldwide-to-provide)
-- [Strava Muscle Map & AirPods](https://endurance.biz/2026/industry-news/strava-introduces-muscle-map-and-heart-rate-tracking-via-airpods-pro-3/)
-- [Strava Leaderboard Cleanup](https://endurance.biz/2026/industry-news/strava-targets-leaderboard-accuracy-and-rolls-out-navigation-and-club-event-updates/)
-- [KAYAK AI Mode Launch — TechCrunch](https://techcrunch.com/2025/10/16/kayak-launches-an-ai-mode-for-travel-questions-search-and-bookings/)
-- [KAYAK 2026 Travel Trends Report](https://www.kayak.com/c/wtf-report-2026/)
-- [KAYAK AI Updates](https://www.kayak.com/c/kayak-ai-updates/)
-- [KAYAK AI Mode — TravelPulse](https://www.travelpulse.ca/news/features/wtf-2026-kayak-says-ai-will-decide-where-many-travellers-go-next)
-- [Hopper Revenue Statistics — Business of Apps](https://www.businessofapps.com/data/hopper-statistics/)
-- [Hopper Statistics — ElectroIQ](https://electroiq.com/stats/hopper-statistics/)
-- [Lonely Planet App Launch — PhocusWire](https://www.phocuswire.com/news/technology/lonely-planet-launches-travel-app-expands-digital-platform-strategy)
-- [Lonely Planet App — PR Newswire](https://www.prnewswire.com/news-releases/lonely-planet-unveils-new-app-and-bookable-experiences-as-it-evolves-to-a-digital-first-travel-platform-302702780.html)
-- [Lonely Planet App — Parade](https://parade.com/news/lonely-planets-new-app-aims-to-cure-the-300-am-travel-planning-spiral)
+- [AllTrails Peak Membership (TechCrunch)](https://techcrunch.com/2025/05/12/alltrails-debuts-a-80-year-membership-that-includes-ai-powered-smart-routes/)
+- [AllTrails Peak Review (Advnture)](https://www.advnture.com/hiking/youll-always-be-a-step-ahead-alltrails-rolls-out-biggest-update-in-over-a-decade-with-6-new-features-heres-what-were-most-excited-about)
+- [AllTrails Plans Page](https://www.alltrails.com/plans)
+- [OnTheSnow App (Google Play)](https://play.google.com/store/apps/details?id=com.skireport&hl=en_US)
+- [Windy.app News](https://windy.app/news)
+- [Windy.app Pro Pricing](https://windy.app/pro)
+- [Hopper Statistics 2026 (Business of Apps)](https://www.businessofapps.com/data/hopper-statistics/)
+- [Hopper Review 2026 (FinanceBuzz)](https://financebuzz.com/hopper-review)
+- [SurfTrips.ai](https://surftrips.ai/)
 - [Thermal Travel](https://thermal.travel/)
-- [Thermal x OMBE Adventures](https://www.ombe.co/adventures)
-- [Thermal — Stab Mag](https://stabmag.com/travel/book-your-next-trip-with-thermal/)
-- [AI Trip Planners 2026 — CyberNews](https://cybernews.com/ai-tools/best-ai-trip-planner/)
-- [AI Travel Planning 2026 — Natouris](https://www.natouris.com/blog/ai-travel-planning-2026-best-tools)
-- [Top Adventure Travel Startups 2026 — Inventiva](https://www.inventiva.co.in/trends/top-10-adventure-travel-startups-in-2026/)
+- [FutureFlights.ai Skiing Flights](https://futureflights.ai/skiing-flights)
+- [Surfline Media Review 2026 (Research.com)](https://research.com/software/reviews/surfline-media)
+- [Best Skiing Apps (Powder)](https://www.powder.com/gear/best-apps-for-skiers)
+- [Windy.app Price Hike (Community)](https://community.windy.com/topic/37725/35-premium-subscription-price-hike)
+
+*Next scheduled run: 2026-03-31*
