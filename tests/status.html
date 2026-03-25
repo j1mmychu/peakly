@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peakly Status</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding: 24px 16px 48px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    header { margin-bottom: 32px; }
+    header h1 { font-size: 22px; font-weight: 700; }
+    header p { font-size: 13px; color: #666; margin-top: 4px; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #d1d5db;
+    }
+    .dot.ok  { background: #22c55e; }
+    .dot.err { background: #ef4444; }
+    .dot.warn { background: #f59e0b; }
+    .dot.checking { background: #d1d5db; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .label { font-size: 15px; font-weight: 500; flex: 1; }
+    .detail { font-size: 12px; color: #888; margin-top: 2px; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #f3f4f6;
+      color: #555;
+    }
+    .badge.ok  { background: #dcfce7; color: #15803d; }
+    .badge.err { background: #fee2e2; color: #b91c1c; }
+    .badge.warn { background: #fef9c3; color: #92400e; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+      margin: 24px 0 8px;
+    }
+    #refresh-btn {
+      margin-top: 24px;
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #last-checked { font-size: 12px; color: #aaa; text-align: center; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Peakly Status</h1>
+  <p id="last-checked">Checking…</p>
+</header>
+
+<p class="section-title">Site</p>
+<div class="card" id="card-site">
+  <div class="dot checking" id="dot-site"></div>
+  <div>
+    <div class="label">GitHub Pages (j1mmychu.github.io/peakly)</div>
+    <div class="detail" id="detail-site">Checking…</div>
+  </div>
+  <span class="badge" id="badge-site">—</span>
+</div>
+
+<p class="section-title">APIs</p>
+<div class="card" id="card-weather">
+  <div class="dot checking" id="dot-weather"></div>
+  <div>
+    <div class="label">Open-Meteo Weather</div>
+    <div class="detail" id="detail-weather">Checking…</div>
+  </div>
+  <span class="badge" id="badge-weather">—</span>
+</div>
+
+<div class="card" id="card-marine">
+  <div class="dot checking" id="dot-marine"></div>
+  <div>
+    <div class="label">Open-Meteo Marine</div>
+    <div class="detail" id="detail-marine">Checking…</div>
+  </div>
+  <span class="badge" id="badge-marine">—</span>
+</div>
+
+<div class="card" id="card-flights">
+  <div class="dot checking" id="dot-flights"></div>
+  <div>
+    <div class="label">Peakly Flight Proxy</div>
+    <div class="detail" id="detail-flights">Checking…</div>
+  </div>
+  <span class="badge" id="badge-flights">—</span>
+</div>
+
+<button id="refresh-btn">Refresh checks</button>
+<p id="last-checked-time" style="font-size:12px;color:#aaa;text-align:center;margin-top:12px;"></p>
+
+<script>
+  function setStatus(id, state, badgeText, detail) {
+    document.getElementById('dot-' + id).className = 'dot ' + state;
+    const badge = document.getElementById('badge-' + id);
+    badge.textContent = badgeText;
+    badge.className = 'badge ' + state;
+    document.getElementById('detail-' + id).textContent = detail;
+  }
+
+  async function checkEndpoint(url, timeoutMs = 10000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const t0 = Date.now();
+    try {
+      const res = await fetch(url, { signal: controller.signal, mode: 'no-cors' });
+      // no-cors means we can't read status, but lack of throw = reachable
+      clearTimeout(timer);
+      return { ok: true, ms: Date.now() - t0 };
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') return { ok: false, error: 'Timed out' };
+      return { ok: false, error: e.message };
+    }
+  }
+
+  async function checkJSON(url, timeoutMs = 10000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const t0 = Date.now();
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      const ms = Date.now() - t0;
+      if (!res.ok) return { ok: false, status: res.status, ms };
+      const data = await res.json();
+      return { ok: true, status: res.status, ms, data };
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') return { ok: false, error: 'Timed out' };
+      return { ok: false, error: e.message };
+    }
+  }
+
+  async function runChecks() {
+    // Reset all to checking
+    ['site','weather','marine','flights'].forEach(id => {
+      setStatus(id, 'checking', '—', 'Checking…');
+    });
+
+    // Site — use no-cors fetch (cross-origin, can't read status but can detect reachability)
+    const siteUrl = 'https://j1mmychu.github.io/peakly/';
+    const site = await checkEndpoint(siteUrl);
+    if (site.ok) {
+      setStatus('site', 'ok', 'UP', `Reachable in ${site.ms}ms`);
+    } else {
+      setStatus('site', 'err', 'DOWN', site.error || 'Not reachable');
+    }
+
+    // Open-Meteo Weather (CORS-friendly)
+    const weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=43.0&longitude=-74.0&daily=temperature_2m_max&forecast_days=1&timezone=UTC';
+    const weather = await checkJSON(weatherUrl);
+    if (weather.ok && weather.data && weather.data.daily) {
+      setStatus('weather', 'ok', 'UP', `HTTP 200 · ${weather.ms}ms`);
+    } else if (weather.status) {
+      setStatus('weather', weather.status === 429 ? 'warn' : 'err',
+        weather.status === 429 ? 'RATE LIMITED' : `HTTP ${weather.status}`,
+        `Response in ${weather.ms}ms`);
+    } else {
+      setStatus('weather', 'err', 'ERROR', weather.error || 'Unknown error');
+    }
+
+    // Open-Meteo Marine (CORS-friendly)
+    const marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=33.9&longitude=-118.4&daily=wave_height_max&forecast_days=1&timezone=UTC';
+    const marine = await checkJSON(marineUrl);
+    if (marine.ok && marine.data && marine.data.daily) {
+      setStatus('marine', 'ok', 'UP', `HTTP 200 · ${marine.ms}ms`);
+    } else if (marine.status) {
+      setStatus('marine', marine.status === 429 ? 'warn' : 'err',
+        marine.status === 429 ? 'RATE LIMITED' : `HTTP ${marine.status}`,
+        `Response in ${marine.ms}ms`);
+    } else {
+      setStatus('marine', 'err', 'ERROR', marine.error || 'Unknown error');
+    }
+
+    // Flight proxy — no-cors (cross-origin, VPS may not have permissive CORS)
+    const flightsUrl = 'https://peakly-api.duckdns.org/api/flights?origin=LAX&destination=CDG&depart_date=2026-06-01&return_date=2026-06-08&currency=USD';
+    const flights = await checkEndpoint(flightsUrl, 12000);
+    if (flights.ok) {
+      setStatus('flights', 'ok', 'UP', `Reachable in ${flights.ms}ms`);
+    } else {
+      setStatus('flights', 'err', 'DOWN', flights.error || 'Not reachable — check VPS (198.199.80.21)');
+    }
+
+    document.getElementById('last-checked-time').textContent =
+      'Last checked: ' + new Date().toLocaleTimeString();
+  }
+
+  document.getElementById('refresh-btn').addEventListener('click', runChecks);
+  runChecks();
+</script>
+</body>
+</html>
