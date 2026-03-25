@@ -1,0 +1,20 @@
+{
+  "name": "Peakly — Adventure When Conditions Align",
+  "short_name": "Peakly",
+  "description": "Find surf, ski & adventure spots with perfect conditions and cheap flights.",
+  "start_url": "/peakly/",
+  "scope": "/peakly/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#0284c7",
+  "orientation": "portrait",
+  "categories": ["travel", "weather", "sports"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230284c7'/><text x='256' y='380' font-size='320' font-family='system-ui' font-weight='700' fill='white' text-anchor='middle'>P</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
