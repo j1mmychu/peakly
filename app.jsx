@@ -917,8 +917,28 @@ const ALL_AIRPORTS = [
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
+const WX_CACHE_TTL = 30 * 60 * 1000; // 30 minutes in ms
+
+function _wxCacheGet(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > WX_CACHE_TTL) return null;
+    return data;
+  } catch { return null; }
+}
+
+function _wxCacheSet(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+  } catch {} // ignore QuotaExceededError
+}
 
 async function fetchWeather(lat, lon) {
+  const cacheKey = `peakly_wx_${lat}_${lon}`;
+  const cached = _wxCacheGet(cacheKey);
+  if (cached) return cached;
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
@@ -928,10 +948,15 @@ async function fetchWeather(lat, lon) {
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) throw new Error("weather fetch failed");
-  return r.json();
+  const data = await r.json();
+  _wxCacheSet(cacheKey, data);
+  return data;
 }
 
 async function fetchMarine(lat, lon) {
+  const cacheKey = `peakly_mar_${lat}_${lon}`;
+  const cached = _wxCacheGet(cacheKey);
+  if (cached) return cached;
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
@@ -940,7 +965,9 @@ async function fetchMarine(lat, lon) {
     `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
-  return r.json();
+  const data = await r.json();
+  _wxCacheSet(cacheKey, data);
+  return data;
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
