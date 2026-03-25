@@ -115,8 +115,12 @@ const { useState, useEffect, useRef, useCallback } = React;
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
     .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
+    .sheet-exit { animation: sheetDown 0.28s cubic-bezier(0.4,0,1,1) forwards; }
+    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(100%)} }
     .backdrop { animation: bdFade 0.22s ease; }
     @keyframes bdFade { from{opacity:0} to{opacity:1} }
+    .backdrop-exit { animation: bdFadeOut 0.28s ease forwards; }
+    @keyframes bdFadeOut { from{opacity:1} to{opacity:0} }
     /* ── pill selected pop ── */
     .pill-selected { animation: pillPop 0.22s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes pillPop { 0%{transform:scale(1)} 40%{transform:scale(1.14)} 100%{transform:scale(1)} }
@@ -1576,6 +1580,43 @@ function getFlightDeal(ap, homeAirport = "JFK") {
   return { price, normal: base, pct, from: homeAirport, isEstimate: true };
 }
 
+// ─── Geolocation: nearest airport detection ──────────────────────────────────
+const AIRPORT_COORDS = {
+  JFK:{lat:40.6413,lon:-73.7781},  LAX:{lat:33.9425,lon:-118.4081}, SFO:{lat:37.6213,lon:-122.3790},
+  ORD:{lat:41.9742,lon:-87.9073},  MIA:{lat:25.7959,lon:-80.2870},  SEA:{lat:47.4502,lon:-122.3088},
+  BOS:{lat:42.3656,lon:-71.0096},  ATL:{lat:33.6407,lon:-84.4277},  DEN:{lat:39.8561,lon:-104.6737},
+  DFW:{lat:32.8998,lon:-97.0403},  LAS:{lat:36.0840,lon:-115.1537}, PHX:{lat:33.4373,lon:-112.0078},
+  PDX:{lat:45.5898,lon:-122.5951}, SLC:{lat:40.7899,lon:-111.9791}, HNL:{lat:21.3245,lon:-157.9251},
+  ANC:{lat:61.1743,lon:-149.9963}, IAD:{lat:38.9531,lon:-77.4565},  DCA:{lat:38.8512,lon:-77.0402},
+  EWR:{lat:40.6895,lon:-74.1745},  PHL:{lat:39.8744,lon:-75.2424},  IAH:{lat:29.9844,lon:-95.3414},
+  DTW:{lat:42.2124,lon:-83.3534},  MSP:{lat:44.8848,lon:-93.2223},  MCO:{lat:28.4312,lon:-81.3081},
+  TPA:{lat:27.9755,lon:-82.5332},  FLL:{lat:26.0726,lon:-80.1527},  SAN:{lat:32.7341,lon:-117.1897},
+  BNA:{lat:36.1263,lon:-86.6774},  RDU:{lat:35.8801,lon:-78.7880},  AUS:{lat:30.1975,lon:-97.6664},
+  SAT:{lat:29.5337,lon:-98.4698},  MSY:{lat:29.9934,lon:-90.2580},  STL:{lat:38.7487,lon:-90.3700},
+  CLE:{lat:41.4058,lon:-81.8498},  SJC:{lat:37.3626,lon:-121.9290}, SMF:{lat:38.6954,lon:-121.5908},
+  RNO:{lat:39.4991,lon:-119.7681}, MDW:{lat:41.7868,lon:-87.7522},  MKE:{lat:42.9472,lon:-87.8966},
+  BUF:{lat:42.9405,lon:-78.7322},  PIT:{lat:40.4915,lon:-80.2329},  CMH:{lat:39.9980,lon:-82.8919},
+  IND:{lat:39.7173,lon:-86.2944},  DSM:{lat:41.5330,lon:-93.6631},  OMA:{lat:41.3032,lon:-95.8942},
+  ICT:{lat:37.6499,lon:-97.4331},  LIT:{lat:34.7294,lon:-92.2243},  MEM:{lat:35.0421,lon:-89.9767},
+  BHM:{lat:33.5629,lon:-86.7535},  RIC:{lat:37.5052,lon:-77.3197},  ORF:{lat:36.8976,lon:-76.0132},
+  GSP:{lat:34.8957,lon:-82.2189},  CHS:{lat:32.8986,lon:-80.0405},  JAX:{lat:30.4941,lon:-81.6879},
+  BOI:{lat:43.5644,lon:-116.2228}, GEG:{lat:47.6199,lon:-117.5338}, ABQ:{lat:35.0402,lon:-106.6090},
+  OKC:{lat:35.3931,lon:-97.6007},  TUL:{lat:36.1984,lon:-95.8881},  MHT:{lat:42.9326,lon:-71.4357},
+  ALB:{lat:42.7483,lon:-73.8019},  SYR:{lat:43.1112,lon:-76.1063},  BDL:{lat:41.9389,lon:-72.6832},
+};
+
+function findNearestAirport(userLat, userLon) {
+  let nearest = "JFK", minDist = Infinity;
+  const toRad = d => d * Math.PI / 180;
+  Object.entries(AIRPORT_COORDS).forEach(([code, c]) => {
+    const dlat = toRad(userLat - c.lat), dlon = toRad(userLon - c.lon);
+    const a = Math.sin(dlat/2)**2 + Math.cos(toRad(userLat)) * Math.cos(toRad(c.lat)) * Math.sin(dlon/2)**2;
+    const dist = 2 * Math.asin(Math.sqrt(a));
+    if (dist < minDist) { minDist = dist; nearest = code; }
+  });
+  return nearest;
+}
+
 // Airport code → city name for user-friendly display
 const AIRPORT_CITY = {
   JFK:"New York",LAX:"Los Angeles",SFO:"San Francisco",ORD:"Chicago",MIA:"Miami",
@@ -1783,9 +1824,9 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
-            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
-          }} />
+          <img src={listing.photo} alt={listing.title} loading="lazy"
+            onLoad={e => { e.target.style.opacity = 1; }}
+            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div className="card-img" style={{
             position:"absolute", inset:0, background:listing.gradient,
@@ -1900,9 +1941,9 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
-            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
-          }} />
+          <img src={listing.photo} alt={listing.title} loading="lazy"
+            onLoad={e => { e.target.style.opacity = 1; }}
+            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
@@ -1966,9 +2007,9 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy" style={{
-            position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
-          }} />
+          <img src={listing.photo} alt={listing.title} loading="lazy"
+            onLoad={e => { e.target.style.opacity = 1; }}
+            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div style={{
             position:"absolute", inset:0, background:listing.gradient,
@@ -3606,9 +3647,10 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
 function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
-  const [airportQuery,   setAirportQuery]   = useState("");
-  const [airportFocused, setAirportFocused] = useState(false);
-  const [editMode,       setEditMode]       = useState(false);
+  const [airportQuery,      setAirportQuery]      = useState("");
+  const [airportFocused,    setAirportFocused]    = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [editMode,          setEditMode]          = useState(false);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
 
@@ -3770,7 +3812,27 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
 
             {/* Home airports (up to 3) */}
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
+                {navigator.geolocation && (
+                  <button className="pressable" onClick={() => {
+                    setDetectingLocation(true);
+                    navigator.geolocation.getCurrentPosition(
+                      pos => {
+                        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+                        const already = (profile.homeAirports || []).includes(code);
+                        if (!already && (profile.homeAirports || []).length < 3) {
+                          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
+                        }
+                        setDetectingLocation(false);
+                      },
+                      () => setDetectingLocation(false)
+                    );
+                  }} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
+                    {detectingLocation ? "Detecting…" : "📍 Detect"}
+                  </button>
+                )}
+              </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
                 {(profile.homeAirports || []).map((code, idx) => {
                   const airport = ALL_AIRPORTS.find(a => a.code === code);
@@ -4839,7 +4901,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [shareVenueCopied, setShareVenueCopied] = useState(false);
   const [scoreVotes, setScoreVotes] = useLocalStorage("peakly_score_votes", {});
+  const [closing, setClosing] = useState(false);
   const saved = wishlists.includes(listing.id);
+
+  const triggerClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(onClose, 270);
+  }, [onClose]);
 
   const currentVote = scoreVotes[listing.id] || null;
   const handleScoreVote = (vote) => {
@@ -4876,10 +4944,15 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     if (!d.dragging) return;
     d.dragging = false;
     const dy = d.currentY - d.startY;
-    if (dy > 120) { onClose(); }
-    else if (sheetRef.current) {
+    if (dy > 120) {
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
+        sheetRef.current.style.transition = "transform 0.25s cubic-bezier(0.4,0,1,1)";
+      }
+      setTimeout(onClose, 240);
+    } else if (sheetRef.current) {
       sheetRef.current.style.transform = "translateX(-50%)";
-      sheetRef.current.style.transition = "transform 0.25s ease";
+      sheetRef.current.style.transition = "transform 0.38s cubic-bezier(0.34,1.56,0.64,1)";
     }
   }, [onClose]);
   const d  = rawWx?.daily;
@@ -4939,8 +5012,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   return (
     <>
-      <div className="backdrop" onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300 }} />
-      <div ref={sheetRef} className="sheet" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
+      <div className={"backdrop" + (closing ? " backdrop-exit" : "")} onClick={triggerClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300 }} />
+      <div ref={sheetRef} className={"sheet" + (closing ? " sheet-exit" : "")} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
         zIndex:301, maxHeight:"94vh", overflow:"hidden",
@@ -4950,9 +5023,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         {/* Hero — full bleed */}
         <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
           {listing.photo ? (
-            <img src={listing.photo} alt={listing.title} loading="lazy" style={{
-              position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
-            }} />
+            <img src={listing.photo} alt={listing.title} loading="lazy"
+              onLoad={e => { e.target.style.opacity = 1; }}
+              style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
           ) : (
             <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
               <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
@@ -4964,7 +5037,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ width:36, height:4, borderRadius:2, background:"rgba(255,255,255,0.45)" }} />
           </div>
           <div style={{ position:"absolute", top:24, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
-            <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+            <button onClick={triggerClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             <div style={{ display:"flex", gap:7 }}>
               <button onClick={() => setShowSharePanel(v => !v)} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
               <button onClick={() => onToggle(listing.id)} className="pressable" style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
@@ -6003,6 +6076,21 @@ function App() {
       const t = setTimeout(() => setShowOnboarding(true), 900);
       return () => clearTimeout(t);
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-detect nearest airport for new users who haven't set one yet
+  useEffect(() => {
+    if (profile.homeAirport && profile.homeAirport !== "JFK") return; // already set
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+        if (code !== "JFK" || !profile.homeAirport) {
+          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
+        }
+      },
+      () => {} // silent fail — user denied or unavailable
+    );
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Init search with user's saved home airport (reads localStorage directly before profile state is set)
