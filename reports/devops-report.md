@@ -1,4 +1,4 @@
-# DevOps & Infrastructure Report — 2026-03-25
+# Peakly DevOps Report — 2026-03-25
 
 **Status: YELLOW** — No secrets exposed, site loads, but the flight proxy is HTTP-only (active mixed-content failure in every browser), analytics are completely absent, and the cache buster is stale. Nothing catastrophic, but two issues are actively blocking revenue and measurement.
 
@@ -31,7 +31,7 @@
 
 **P0: The HTTP proxy causes mixed content blocking in every modern browser.** GitHub Pages serves over HTTPS. The proxy is HTTP. Chrome, Safari, and Firefox silently block HTTP fetches from HTTPS pages with zero error shown to the user. This means `fetchTravelpayoutsPrice()` **never succeeds in production** — users always see estimated fallback prices, and Travelpayouts earns $0. This is not theoretical. It is happening right now to every user.
 
-The proxy process is alive (responding with "Host not allowed"), which suggests the Node.js server is running but has a CORS/origin check rejecting the GitHub Pages domain. Two bugs to fix: no HTTPS, and a host restriction blocking `j1mmychu.github.io`.
+The proxy process is alive (responding with "Host not allowed"), which suggests the Node.js server is running but has a CORS/origin check rejecting the GitHub Pages domain. **Two bugs to fix: no HTTPS, and a host restriction blocking `j1mmychu.github.io`.**
 
 **Fix option A — nginx + Let's Encrypt (requires DNS subdomain, ~30 min):**
 
@@ -130,11 +130,8 @@ cat > /home/user/peakly/.gitignore << 'EOF'
 node_modules/
 .DS_Store
 *.log
-reports/*.md
 EOF
 ```
-
-Note: add `reports/*.md` only if you don't want auto-generated reports committed. Remove that line to keep current behavior.
 
 **Sentry DSN is empty — zero production error visibility.** When users hit bugs you find out via Reddit, not an alert at 3am. Free Sentry tier handles 5K errors/month, sufficient through launch.
 
@@ -161,11 +158,11 @@ const SENTRY_DSN = "https://YOUR_PUBLIC_KEY@oXXXXXX.ingest.sentry.io/PROJECT_ID"
 | ReactDOM 18 prod (gzip) | ~130KB | OK |
 | **Babel Standalone 7.24.7 (gzip)** | **~230KB** | ❌ P1 |
 | **Total estimated first-load gzip** | **~480–500KB** | ❌ Heavy |
-| Images with `loading="lazy"` | All 109 Unsplash images ✓ | OK |
+| Images with `loading="lazy"` | All 7 img tags ✓ | OK |
 | React CDN version pin | `@18` floating — will auto-upgrade | ⚠️ P2 |
 | PWA manifest | **Missing** | ⚠️ P1 |
 
-**Largest single bottleneck: Babel Standalone at ~230KB gzip.** It transpiles JSX at runtime on every cold load. On a mid-range Android on 4G, this adds 1–2 seconds to Time to Interactive before any app code runs. This is a known constraint of the no-build-step architecture in CLAUDE.md. Noting it as a future migration target when the app is ready for production hardening.
+**Largest single bottleneck: Babel Standalone at ~230KB gzip.** It transpiles JSX at runtime on every cold load. On a mid-range Android on 4G, this adds 1–2 seconds to Time to Interactive before any app code runs. This is a known constraint of the no-build-step architecture. Noted as a future migration target.
 
 **Unpinned React version is a silent breaking-change risk:**
 ```html
@@ -178,7 +175,7 @@ const SENTRY_DSN = "https://YOUR_PUBLIC_KEY@oXXXXXX.ingest.sentry.io/PROJECT_ID"
 ```
 If React 18.x ships a breaking UMD change, `@18` will silently break every user simultaneously with no warning.
 
-**Missing PWA manifest blocks home screen installs.** This is a free acquisition channel — mobile users who install to home screen have dramatically higher retention. 20-minute fix:
+**Missing PWA manifest blocks home screen installs.** Mobile users who install to home screen have dramatically higher retention. 20-minute fix.
 
 Add to `index.html` `<head>`:
 ```html
@@ -206,7 +203,21 @@ Create `manifest.json` in repo root:
 }
 ```
 
-(Requires creating 192×192 and 512×512 PNG icon files — can use a free favicon generator.)
+(Requires creating 192×192 and 512×512 PNG icon files — use a free favicon generator.)
+
+**Add Plausible analytics — 2 lines in index.html before `</head>`:**
+```html
+<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
+```
+
+Add custom events in app.jsx for the 5 most important actions:
+```js
+window.plausible && window.plausible('VenueOpen', { props: { venue: v.name, category: v.cat[0] } });
+window.plausible && window.plausible('FlightClick', { props: { venue: v.name, airport: homeAirport } });
+window.plausible && window.plausible('AlertCreated', { props: { category: alertCategory } });
+window.plausible && window.plausible('WishlistAdd', { props: { venue: v.name } });
+window.plausible && window.plausible('OnboardingComplete', { props: { sport: profile.sports[0] } });
+```
 
 ---
 
@@ -219,7 +230,7 @@ Create `manifest.json` in repo root:
 | 10K MAU | DO $12 droplet (2GB RAM) + Cloudflare free | ~$12/mo |
 | 100K MAU | DO $24 droplet + Cloudflare Pro $20 + DO bandwidth overage | ~$60–80/mo |
 
-Infrastructure is not the cost concern. The cost concern is **Unsplash at scale**: 109 images are served from Unsplash CDN with no caching layer. At 100K MAU, Unsplash's demo API rate limit (5K requests/hour) becomes a hard wall. Mitigation: route images through Cloudflare (free caching) or migrate to Cloudinary free tier (25GB bandwidth/month).
+Infrastructure is not the cost concern. The cost concern is **Unsplash at scale**: venue photos are served from Unsplash CDN with no caching layer. At 100K MAU, Unsplash's demo API rate limit (5K requests/hour) becomes a hard wall. Mitigation: route images through Cloudflare (free caching) or migrate to Cloudinary free tier (25GB bandwidth/month).
 
 ---
 
@@ -237,7 +248,8 @@ Infrastructure is not the cost concern. The cost concern is **Unsplash at scale*
 | **P1** | Zero analytics — cannot measure users, clicks, or conversions | 10 min |
 | **P1** | No PWA manifest — cannot install to home screen | 20 min |
 | **P1** | Unpinned `react@18` CDN tag — silent breaking change risk | 2 min |
-| **P2** | No .gitignore — risk of accidental secret commit | 2 min |
+| **P1** | No .gitignore — risk of accidental secret commit | 2 min |
 | **P2** | Sentry DSN empty — no production error visibility | 5 min after signup |
 | **P2** | Cache buster `v=20260323b` is 2 days stale | 1 min |
-| **P2** | Open-Meteo rate limit risk at ~30 concurrent users | 2 hours (lazy fetch + localStorage cache) |
+| **P2** | Open-Meteo rate limit risk at ~30 concurrent users | 2 hours (localStorage weather cache) |
+| **P2** | REI affiliate links earn $0 — no tracking IDs | 30 min (blocked by LLC) |
