@@ -139,6 +139,12 @@ const { useState, useEffect, useRef, useCallback } = React;
     input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    /* ── keyboard focus styles (WCAG 2.4.7) ── */
+    :focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }
+    button:focus-visible, a:focus-visible, [role=button]:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 4px; }
+    /* ── skip-to-content ── */
+    .skip-link { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+    .skip-link:focus { position:fixed; top:16px; left:50%; transform:translateX(-50%); width:auto; height:auto; background:#0284c7; color:#fff; padding:8px 16px; border-radius:8px; font-family:inherit; font-size:14px; font-weight:700; z-index:9999; text-decoration:none; overflow:visible; }
   `;
   document.head.appendChild(s);
 })();
@@ -285,390 +291,8 @@ const AP_CONTINENT = {
   "VLI":"oceania",
 };
 
-// ─── venues with real coordinates ────────────────────────────────────────────
-const VENUES = [
-  {
-    id:"whistler",  category:"skiing",
-    title:"Whistler Blackcomb", location:"British Columbia, Canada",
-    lat:50.1163, lon:-122.9574, ap:"YVR",
-    icon:"🏔️", rating:4.97, reviews:2840,
-    gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-    accent:"#6db3f2", tags:["Powder Day","All Levels"], photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop", skiPass:"epic",
-  },
-  {
-    id:"pipeline",  category:"surfing",
-    title:"Pipeline, North Shore", location:"Oahu, Hawaii",
-    lat:21.6645, lon:-158.0453, ap:"HNL",
-    icon:"🌊", rating:4.99, reviews:1203,
-    gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
-    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1474402656496-6641a08dab21?w=800&h=600&fit=crop",
-  },
-  {
-    id:"borabora",  category:"tanning",
-    title:"Bora Bora Lagoon", location:"French Polynesia",
-    lat:-16.5004, lon:-151.7415, ap:"PPT",
-    icon:"🏝️", rating:4.96, reviews:988,
-    gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
-    accent:"#a5d6a7", tags:["UV 11","Crystal Water"], photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop",
-  },
-  {
-    id:"gbr",       category:"diving",
-    title:"Great Barrier Reef", location:"Queensland, Australia",
-    lat:-18.2871, lon:147.6992, ap:"CNS",
-    icon:"🐠", rating:4.93, reviews:1756,
-    gradient:"linear-gradient(160deg,#001a3a,#0040c8,#40a0ff)",
-    accent:"#82b1ff", tags:["Visibility 30m","Marine Life"], photo:"https://images.unsplash.com/photo-1600426901780-cac7371a5bb0?w=800&h=600&fit=crop",
-  },
-  {
-    id:"yosemite",  category:"climbing",
-    title:"Yosemite Valley", location:"California, USA",
-    lat:37.7459, lon:-119.5332, ap:"SFO",
-    icon:"🧗", rating:4.95, reviews:4201,
-    gradient:"linear-gradient(160deg,#3a1a00,#8d4e00,#d4860a)",
-    accent:"#ffb74d", tags:["El Capitan","All Grades"], photo:"https://images.unsplash.com/photo-1512541405516-020b57532e46?w=800&h=600&fit=crop",
-  },
-  {
-    id:"tarifa",    category:"kite",
-    title:"Tarifa Wind Coast", location:"Andalusia, Spain",
-    lat:36.0144, lon:-5.6044, ap:"AGP",
-    icon:"🪁", rating:4.91, reviews:892,
-    gradient:"linear-gradient(160deg,#1a0030,#5c0080,#b040f0)",
-    accent:"#ce93d8", tags:["Expert Wind","Warm Water"], photo:"https://images.unsplash.com/photo-1643004869571-72c648e999a2?w=800&h=600&fit=crop",
-  },
-  {
-    id:"chamonix",  category:"skiing",
-    title:"Chamonix-Mont-Blanc", location:"Haute-Savoie, France",
-    lat:45.9237, lon:6.8694, ap:"GVA",
-    icon:"🎿", rating:4.94, reviews:3405,
-    gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
-    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop", skiPass:"independent",
-  },
-  {
-    id:"milford",   category:"kayak",
-    title:"Milford Sound", location:"Fiordland, New Zealand",
-    lat:-44.6413, lon:167.8974, ap:"ZQN",
-    icon:"🛶", rating:4.96, reviews:1102,
-    gradient:"linear-gradient(160deg,#001a10,#006040,#00c07a)",
-    accent:"#69f0ae", tags:["Mirror Water","Dolphins"], photo:"https://images.unsplash.com/photo-1523819088009-c3ecf1e34000?w=800&h=600&fit=crop",
-  },
-  {
-    id:"moab",      category:"mtb",
-    title:"Moab Slickrock Trail", location:"Utah, USA",
-    lat:38.5733, lon:-109.5498, ap:"SLC",
-    icon:"🚵", rating:4.88, reviews:2208,
-    gradient:"linear-gradient(160deg,#3a0a00,#b03000,#ff6030)",
-    accent:"#ff8a65", tags:["Intermediate+","Desert Vibes"], photo:"https://images.unsplash.com/photo-1578001647043-3b4c50869f21?w=800&h=600&fit=crop",
-  },
-  {
-    id:"kenai",     category:"fishing",
-    title:"Kenai River", location:"Alaska, USA",
-    lat:60.5544, lon:-150.7848, ap:"ANC",
-    icon:"🎣", rating:4.92, reviews:744,
-    gradient:"linear-gradient(160deg,#0a1a2a,#1a4060,#2e7aba)",
-    accent:"#81d4fa", tags:["King Salmon","World Record Waters"], photo:"https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
-  },
-  {
-    id:"interlaken",category:"paraglide",
-    title:"Interlaken", location:"Bernese Oberland, Switzerland",
-    lat:46.6863, lon:7.8632, ap:"ZRH",
-    icon:"🪂", rating:4.97, reviews:1890,
-    gradient:"linear-gradient(160deg,#1a1a3a,#3a3a8e,#6868d4)",
-    accent:"#b39ddb", tags:["Tandem OK","Alps Views"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
-  },
-  // ─── North America ski resorts ─────────────────────────────────────────────
-  {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1610865383566-6469eedeb76f?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"parkcity",    category:"skiing",title:"Park City / Deer Valley", location:"Utah, USA",                lat:40.6461,lon:-111.4980,ap:"SLC",icon:"⛷️",rating:4.95,reviews:3880,gradient:"linear-gradient(160deg,#0d1b38,#1a3c7c,#3570c8)",accent:"#7ab0e4",tags:["Deer Valley Grooming","Best Après"], photo:"https://images.unsplash.com/photo-1557977398-e147a5de288c?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"alta",        category:"skiing",title:"Alta / Snowbird",         location:"Utah, USA",                lat:40.5883,lon:-111.6358,ap:"SLC",icon:"⛷️",rating:4.96,reviews:2960,gradient:"linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",accent:"#78ace4",tags:["Ski Only","Deep Powder"], photo:"https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"], photo:"https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"bigsky",      category:"skiing",title:"Big Sky Resort",          location:"Montana, USA",             lat:45.2865,lon:-111.4013,ap:"BZN",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Lone Peak","5,800 Acres"], photo:"https://images.unsplash.com/photo-1742222168686-55ec5ffd3c81?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"telluride",   category:"skiing",title:"Telluride Ski Resort",    location:"Colorado, USA",            lat:37.9364,lon:-107.8123,ap:"MTJ",icon:"⛷️",rating:4.96,reviews:2100,gradient:"linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",accent:"#72a8dc",tags:["Box Canyon","Ski-In/Out Town"], photo:"https://images.unsplash.com/photo-1465239040612-be5cc138cba3?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"], photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"breckenridge",category:"skiing",title:"Breckenridge",           location:"Colorado, USA",            lat:39.4817,lon:-106.0384,ap:"DEN",icon:"⛷️",rating:4.93,reviews:4820,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",tags:["Historic Town","Epic Pass"], photo:"https://images.unsplash.com/photo-1547066325-217eee12e52d?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"tahoe",       category:"skiing",title:"Palisades Tahoe",         location:"California, USA",          lat:39.1959,lon:-120.2357,ap:"RNO",icon:"⛷️",rating:4.92,reviews:3240,gradient:"linear-gradient(160deg,#0a1c38,#1a407e,#306ec0)",accent:"#76a8db",tags:["Lake Views","Consistent Snow"], photo:"https://images.unsplash.com/photo-1645648381873-10328d077afe?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"steamboat",   category:"skiing",title:"Steamboat Springs",       location:"Colorado, USA",            lat:40.4572,lon:-106.8045,ap:"HDN",icon:"⛷️",rating:4.91,reviews:2860,gradient:"linear-gradient(160deg,#0d1e38,#1a4280,#3270be)",accent:"#72a4d8",tags:["Champagne Powder","Cowboy Style"], photo:"https://images.unsplash.com/photo-1635022919957-07142bf735d4?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"sunvalley",   category:"skiing",title:"Sun Valley",              location:"Idaho, USA",               lat:43.6936,lon:-114.3536,ap:"SUN",icon:"⛷️",rating:4.94,reviews:2420,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3472c0)",accent:"#74a8da",tags:["Bald Mountain","Original Resort"], photo:"https://images.unsplash.com/photo-1576883600124-64c5aa68b4bc?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"revelstoke",  category:"skiing",title:"Revelstoke Mountain",     location:"British Columbia, Canada", lat:51.0568,lon:-118.1881,ap:"YLW",icon:"⛷️",rating:4.96,reviews:1820,gradient:"linear-gradient(160deg,#0a1c38,#1a3e78,#2e6cbc)",accent:"#76aadb",tags:["5,620ft Vertical","Heli Access"], photo:"https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"kickinghorse",category:"skiing",title:"Kicking Horse",          location:"British Columbia, Canada", lat:51.2981,lon:-117.0374,ap:"YYC",icon:"⛷️",rating:4.93,reviews:1540,gradient:"linear-gradient(160deg,#0c1c38,#1a3e7a,#2e68bc)",accent:"#74a8db",tags:["4,133ft Vert","Extreme Terrain"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"snowbasin",   category:"skiing",title:"Snowbasin",               location:"Utah, USA",                lat:41.2161,lon:-111.8548,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1980,gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",tags:["Olympic Venue","Uncrowded"], photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"beavercreek", category:"skiing",title:"Beaver Creek",            location:"Colorado, USA",            lat:39.5985,lon:-106.5155,ap:"EGE",icon:"⛷️",rating:4.94,reviews:2580,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e6aba)",accent:"#74a8da",tags:["Birds of Prey DH","Luxury Ski"], photo:"https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"taos",        category:"skiing",title:"Taos Ski Valley",         location:"New Mexico, USA",          lat:36.5953,lon:-105.4475,ap:"SAF",icon:"⛷️",rating:4.92,reviews:1640,gradient:"linear-gradient(160deg,#0d1c38,#1a3a78,#2e68b8)",accent:"#72a4d8",tags:["High Altitude","Southwest Vibes"], photo:"https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"grandtarghee",category:"skiing",title:"Grand Targhee Resort",   location:"Wyoming, USA",             lat:43.7883,lon:-110.9426,ap:"JAC",icon:"⛷️",rating:4.90,reviews:1340,gradient:"linear-gradient(160deg,#0c1c36,#1a3876,#2e66b6)",accent:"#74a4d8",tags:["Teton Views","Powder Stash"], photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop", skiPass:"ikon"},
-  // ─── Additional Ikon resorts ──────────────────────────────────────────────
-  {id:"winterpark",  category:"skiing",title:"Winter Park Resort",      location:"Colorado, USA",            lat:39.8868,lon:-105.7625,ap:"DEN",icon:"⛷️",rating:4.93,reviews:3640,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7e,#2e6cc0)",accent:"#76aada",tags:["Mary Jane Bumps","Denver Closest"], photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"copper",      category:"skiing",title:"Copper Mountain",         location:"Colorado, USA",            lat:39.5022,lon:-106.1497,ap:"DEN",icon:"⛷️",rating:4.90,reviews:2840,gradient:"linear-gradient(160deg,#0c1a36,#1a3c7a,#2e68be)",accent:"#74a8dc",tags:["Natural Terrain Split","Woodward"], photo:"https://images.unsplash.com/photo-1610865383566-6469eedeb76f?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"abasin",      category:"skiing",title:"Arapahoe Basin",          location:"Colorado, USA",            lat:39.6426,lon:-105.8718,ap:"DEN",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0a1a34,#1a3876,#2e66ba)",accent:"#72a6d8",tags:["Longest Season CO","The Legend"], photo:"https://images.unsplash.com/photo-1547066325-217eee12e52d?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"deervalley",  category:"skiing",title:"Deer Valley Resort",      location:"Utah, USA",                lat:40.6374,lon:-111.4783,ap:"SLC",icon:"⛷️",rating:4.97,reviews:3240,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7e,#2e6cc0)",accent:"#78aade",tags:["Ski Only","Luxury Grooming"], photo:"https://images.unsplash.com/photo-1557977398-e147a5de288c?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"solitude",    category:"skiing",title:"Solitude Mountain Resort", location:"Utah, USA",                lat:40.6199,lon:-111.5922,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1860,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Big Cottonwood","Uncrowded Powder"], photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"sugarbush",   category:"skiing",title:"Sugarbush Resort",        location:"Vermont, USA",             lat:44.1356,lon:-72.9014,ap:"BTV",icon:"⛷️",rating:4.90,reviews:1940,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2e6abc)",accent:"#76a8da",tags:["Mad River Valley","East Coast Best"], photo:"https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"stratton",    category:"skiing",title:"Stratton Mountain",       location:"Vermont, USA",             lat:43.1134,lon:-72.9076,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Southern VT","Snowboard Birthplace"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"loon",        category:"skiing",title:"Loon Mountain Resort",    location:"New Hampshire, USA",       lat:44.0366,lon:-71.6215,ap:"MHT",icon:"⛷️",rating:4.88,reviews:1780,gradient:"linear-gradient(160deg,#0d1c36,#1a3a78,#2e66b6)",accent:"#72a4d6",tags:["White Mountains","Family Friendly"], photo:"https://images.unsplash.com/photo-1576883600124-64c5aa68b4bc?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"crystalmt",   category:"skiing",title:"Crystal Mountain",        location:"Washington, USA",          lat:46.9282,lon:-121.5045,ap:"SEA",icon:"⛷️",rating:4.90,reviews:2120,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Rainier Views","Pacific NW Powder"], photo:"https://images.unsplash.com/photo-1635022919957-07142bf735d4?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"schweitzer",  category:"skiing",title:"Schweitzer Mountain",     location:"Idaho, USA",               lat:48.3674,lon:-116.6220,ap:"GEG",icon:"⛷️",rating:4.89,reviews:1420,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Lake Pend Oreille","2,900 Acres"], photo:"https://images.unsplash.com/photo-1576883600124-64c5aa68b4bc?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"snowshoe",    category:"skiing",title:"Snowshoe Mountain",       location:"West Virginia, USA",       lat:38.4009,lon:-79.9940,ap:"CRW",icon:"⛷️",rating:4.86,reviews:1680,gradient:"linear-gradient(160deg,#0d1c38,#1a3c7a,#2e68ba)",accent:"#72a6d6",tags:["Southeast Best","4,848ft Summit"], photo:"https://images.unsplash.com/photo-1610865383566-6469eedeb76f?w=800&h=600&fit=crop", skiPass:"ikon"},
-  // ─── Additional Epic resorts ──────────────────────────────────────────────
-  {id:"keystone",    category:"skiing",title:"Keystone Resort",         location:"Colorado, USA",            lat:39.6045,lon:-105.9516,ap:"DEN",icon:"⛷️",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7e,#2e6cc0)",accent:"#76aada",tags:["Night Skiing","3 Peaks"], photo:"https://images.unsplash.com/photo-1547066325-217eee12e52d?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"crestedbutte",category:"skiing",title:"Crested Butte Mountain",  location:"Colorado, USA",            lat:38.8992,lon:-106.9655,ap:"GUC",icon:"⛷️",rating:4.94,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a7a,#2e68be)",accent:"#74a8dc",tags:["Extreme Terrain","Last Great Ski Town"], photo:"https://images.unsplash.com/photo-1465239040612-be5cc138cba3?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"stowe",       category:"skiing",title:"Stowe Mountain Resort",   location:"Vermont, USA",             lat:44.5303,lon:-72.7814,ap:"BTV",icon:"⛷️",rating:4.95,reviews:3120,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2e6abc)",accent:"#76a8da",tags:["East Coast King","Mt Mansfield"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"heavenly",    category:"skiing",title:"Heavenly Mountain",       location:"California, USA",          lat:38.9332,lon:-119.9400,ap:"RNO",icon:"⛷️",rating:4.93,reviews:3580,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3270c2)",accent:"#74a8dc",tags:["Lake Tahoe Views","Gondola Ride"], photo:"https://images.unsplash.com/photo-1645648381873-10328d077afe?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"northstar",   category:"skiing",title:"Northstar California",    location:"California, USA",          lat:39.2745,lon:-120.1210,ap:"RNO",icon:"⛷️",rating:4.91,reviews:2840,gradient:"linear-gradient(160deg,#0c1c38,#1a3e7e,#2e6cbe)",accent:"#76aada",tags:["Luxury Village","Family Favorite"], photo:"https://images.unsplash.com/photo-1645648381873-10328d077afe?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"kirkwood",    category:"skiing",title:"Kirkwood Mountain",       location:"California, USA",          lat:38.6850,lon:-120.0652,ap:"RNO",icon:"⛷️",rating:4.90,reviews:1860,gradient:"linear-gradient(160deg,#0a1c38,#1a407e,#306ec0)",accent:"#74a6da",tags:["Deep Sierra Snow","Expert Terrain"], photo:"https://images.unsplash.com/photo-1645648381873-10328d077afe?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"stevenspass", category:"skiing",title:"Stevens Pass",            location:"Washington, USA",          lat:47.7453,lon:-121.0890,ap:"SEA",icon:"⛷️",rating:4.89,reviews:2260,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#72a6d8",tags:["Cascade Powder","Night Skiing"], photo:"https://images.unsplash.com/photo-1635022919957-07142bf735d4?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"mtsnow",      category:"skiing",title:"Mount Snow",              location:"Vermont, USA",             lat:42.9603,lon:-72.9210,ap:"ALB",icon:"⛷️",rating:4.88,reviews:2440,gradient:"linear-gradient(160deg,#0d1c36,#1a3a78,#2e66b6)",accent:"#72a4d6",tags:["Carinthia Parks","Southern VT"], photo:"https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"okemo",       category:"skiing",title:"Okemo Mountain Resort",   location:"Vermont, USA",             lat:43.4017,lon:-72.7174,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Immaculate Grooming","Family Resort"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop", skiPass:"epic"},
-  // ─── Additional Independent resorts ───────────────────────────────────────
-  {id:"powdermtn",   category:"skiing",title:"Powder Mountain",         location:"Utah, USA",                lat:41.3789,lon:-111.7805,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1460,gradient:"linear-gradient(160deg,#0c1c38,#1a3e7a,#2e6abc)",accent:"#74a8da",tags:["Largest NA by Acreage","Lift Limit"], photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"whitefish",   category:"skiing",title:"Whitefish Mountain",      location:"Montana, USA",             lat:48.4825,lon:-114.3487,ap:"GPI",icon:"⛷️",rating:4.92,reviews:1840,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Glacier NP Gateway","3,000 Acres"], photo:"https://images.unsplash.com/photo-1742222168686-55ec5ffd3c81?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"mthood",      category:"skiing",title:"Mt Hood Meadows",         location:"Oregon, USA",              lat:45.3311,lon:-121.6648,ap:"PDX",icon:"⛷️",rating:4.90,reviews:2060,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Pacific NW","2,150 Acres"], photo:"https://images.unsplash.com/photo-1635022919957-07142bf735d4?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"alyeska",     category:"skiing",title:"Alyeska Resort",          location:"Alaska, USA",              lat:60.9697,lon:-149.0989,ap:"ANC",icon:"⛷️",rating:4.93,reviews:1320,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Alaska's Largest","Glacier Views"], photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── Japan ───────────────────────────────────────────────────────────────
-  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"hakuba",      category:"skiing",title:"Hakuba Valley",           location:"Nagano, Japan",            lat:36.6989,lon:137.8632,ap:"NRT",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0e1e40,#1a4088,#3a7ad2)",accent:"#78b2ec",tags:["10 Resorts","Olympic History"], photo:"https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"furano",      category:"skiing",title:"Furano Ski Resort",       location:"Hokkaido, Japan",          lat:43.3539,lon:142.2824,ap:"CTS",icon:"⛷️",rating:4.90,reviews:1480,gradient:"linear-gradient(160deg,#0d1e40,#1a4090,#3a7ad4)",accent:"#76b0ec",tags:["Dry Powder","Scenic Views"], photo:"https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── South America & Oceania ──────────────────────────────────────────────
-  {id:"corralco",    category:"skiing",title:"Corralco Ski Resort",     location:"Malalcahuello, Chile",     lat:-38.5983,lon:-71.5742,ap:"SCL",icon:"⛷️",rating:4.88,reviews:820, gradient:"linear-gradient(160deg,#0a1e1c,#0f4040,#1a7a60)",accent:"#50b898",tags:["Jun-Oct Season","Southern Andes"], photo:"https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"portillo",    category:"skiing",title:"Portillo",                location:"Andes, Chile",             lat:-32.8356,lon:-70.1286,ap:"SCL",icon:"⛷️",rating:4.93,reviews:1420,gradient:"linear-gradient(160deg,#0a1e1e,#0f3e3c,#1a7060)",accent:"#4cb898",tags:["High Altitude","Classic Resort"], photo:"https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"perisher",    category:"skiing",title:"Perisher Ski Resort",     location:"New South Wales, Australia",lat:-36.4009,lon:148.3753,ap:"CBR",icon:"⛷️",rating:4.87,reviews:2840,gradient:"linear-gradient(160deg,#0a1e20,#0f4042,#1a7268)",accent:"#50b6a0",tags:["Largest Oz Resort","Winter Escape"], photo:"https://images.unsplash.com/photo-1631779202803-42c151ef761a?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"treblecone",  category:"skiing",title:"Treble Cone",             location:"Wanaka, New Zealand",      lat:-44.6372,lon:169.0584,ap:"ZQN",icon:"⛷️",rating:4.91,reviews:1240,gradient:"linear-gradient(160deg,#0c1e30,#1a4272,#3076ba)",accent:"#6aaade",tags:["Lake Wanaka Views","Expert Runs"], photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── Europe — France ─────────────────────────────────────────────────────
-  {id:"valthorens",  category:"skiing",title:"Val Thorens",             location:"Les 3 Vallées, France",    lat:45.2978,lon:6.5824,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3680,gradient:"linear-gradient(160deg,#0a1230,#1a2870,#2840c0)",accent:"#6c88e4",tags:["Highest Resort EU","600km Pistes"], photo:"https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"alpehuez",    category:"skiing",title:"Alpe d'Huez",            location:"French Alps, France",      lat:45.0897,lon:6.0690,ap:"GNB",icon:"⛷️",rating:4.91,reviews:2480,gradient:"linear-gradient(160deg,#0d1432,#1e2e72,#3048c0)",accent:"#6c88e2",tags:["Sun Bowl","21 Pistes"], photo:"https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"avoriaz",     category:"skiing",title:"Avoriaz",                 location:"Portes du Soleil, France", lat:46.1917,lon:6.7795,ap:"GVA",icon:"⛷️",rating:4.90,reviews:2160,gradient:"linear-gradient(160deg,#0c1432,#1e2c70,#2e46be)",accent:"#6a86e0",tags:["Car-Free Village","Linked to Morzine"], photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── Europe — Switzerland ─────────────────────────────────────────────────
-  {id:"zermatt",     category:"skiing",title:"Zermatt",                 location:"Valais, Switzerland",      lat:46.0207,lon:7.7491,ap:"GVA",icon:"⛷️",rating:4.98,reviews:4280,gradient:"linear-gradient(160deg,#0c1830,#1a3870,#2e60b8)",accent:"#70a8dc",tags:["Matterhorn Views","Year-Round"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"verbier",     category:"skiing",title:"Verbier",                 location:"4 Vallées, Switzerland",   lat:46.0964,lon:7.2283,ap:"GVA",icon:"⛷️",rating:4.95,reviews:3040,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62ba)",accent:"#72a8dc",tags:["Freeride Mecca","Expert Terrain"], photo:"https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"saasfee",     category:"skiing",title:"Saas-Fee",                location:"Valais, Switzerland",      lat:46.1085,lon:7.9287,ap:"GVA",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0c1830,#1a3870,#2c60b6)",accent:"#70a6da",tags:["Glacier Skiing","Car-Free Village"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"laax",        category:"skiing",title:"Laax",                    location:"Graubünden, Switzerland",  lat:46.8174,lon:9.2548,ap:"ZRH",icon:"⛷️",rating:4.90,reviews:1960,gradient:"linear-gradient(160deg,#0e1a32,#1a3c74,#3064b8)",accent:"#72a8da",tags:["Freestyle Hub","Big Air"], photo:"https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"engelberg",   category:"skiing",title:"Engelberg",               location:"Obwalden, Switzerland",    lat:46.8215,lon:8.4084,ap:"ZRH",icon:"⛷️",rating:4.91,reviews:2180,gradient:"linear-gradient(160deg,#0c1a32,#1a3a72,#2e62b8)",accent:"#70a6d8",tags:["Titlis Glacier","Easy Access"], photo:"https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── Europe — Austria ─────────────────────────────────────────────────────
-  {id:"stanton",     category:"skiing",title:"St. Anton am Arlberg",   location:"Ski Arlberg, Austria",     lat:47.1294,lon:10.2685,ap:"INN",icon:"⛷️",rating:4.95,reviews:3680,gradient:"linear-gradient(160deg,#0e1632,#1e3272,#2e5cb4)",accent:"#6ea0d4",tags:["Legendary Slopes","Après Capital"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"soelden",     category:"skiing",title:"Sölden",                  location:"Ötztal, Austria",          lat:46.9783,lon:10.9386,ap:"INN",icon:"⛷️",rating:4.92,reviews:2640,gradient:"linear-gradient(160deg,#0e1830,#1e3472,#2e5eb4)",accent:"#6ea0d4",tags:["007 Elements","Ötzi Glacier"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"lech",        category:"skiing",title:"Lech-Zürs",               location:"Ski Arlberg, Austria",     lat:47.2086,lon:10.1415,ap:"INN",icon:"⛷️",rating:4.95,reviews:2880,gradient:"linear-gradient(160deg,#0e1632,#1e3272,#2c5cb4)",accent:"#6ea0d4",tags:["Royal Retreat","Off-Piste Paradise"], photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop", skiPass:"independent"},
-  // ─── Europe — Italy ───────────────────────────────────────────────────────
-  {id:"valgardena",  category:"skiing",title:"Val Gardena",             location:"Dolomites, Italy",         lat:46.5569,lon:11.7758,ap:"INN",icon:"⛷️",rating:4.93,reviews:2840,gradient:"linear-gradient(160deg,#101830,#203870,#3462b0)",accent:"#6ea0d2",tags:["Sella Ronda","UNESCO Dolomites"], photo:"https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"cortina",     category:"skiing",title:"Cortina d'Ampezzo",       location:"Dolomites, Italy",         lat:46.5362,lon:12.1360,ap:"VCE",icon:"⛷️",rating:4.94,reviews:2560,gradient:"linear-gradient(160deg,#111830,#213870,#3462b0)",accent:"#6e9ed2",tags:["2026 Olympics Host","Pink Mountain"], photo:"https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent"},
-
-  // ════════════════════ SURFING — WORLD TOP SPOTS ════════════════════
-
-  // ─── Hawaii ───────────────────────────────────────────────────────
-  {id:"banzai_pipeline", category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"], photo:"https://images.unsplash.com/photo-1509233725247-49e657c25740?w=800&h=600&fit=crop"},
-  {id:"jaws",        category:"surfing",title:"Pe'ahi (Jaws)",            location:"Maui, Hawaii",             lat:20.9320,lon:-156.2520,ap:"OGG",icon:"🌊",rating:4.97,reviews:3240,gradient:"linear-gradient(160deg,#001a40,#003580,#0055cc)",accent:"#2288ff",tags:["Big Wave Capital","60ft+ Faces"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop"},
-  {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"], photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop"},
-  {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"], photo:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800&h=600&fit=crop"},
-
-  // ─── California ───────────────────────────────────────────────────
-  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"], photo:"https://images.unsplash.com/photo-1588976071688-c2520b7b51f9?w=800&h=600&fit=crop"},
-  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"], photo:"https://images.unsplash.com/photo-1477204505220-510cd0d57764?w=800&h=600&fit=crop"},
-  {id:"blacks",      category:"surfing",title:"Black's Beach",           location:"San Diego, California",    lat:32.8828,lon:-117.2524,ap:"SAN",icon:"🏄",rating:4.88,reviews:3220,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Powerful Beach Break","La Jolla Gem"], photo:"https://images.unsplash.com/photo-1502680390548-bdbac40e2a78?w=800&h=600&fit=crop"},
-  {id:"rincon_ca",   category:"surfing",title:"Rincon Point",            location:"Santa Barbara, California", lat:34.3726,lon:-119.4745,ap:"LAX",icon:"🏄",rating:4.92,reviews:3640,gradient:"linear-gradient(160deg,#003355,#005580,#007ab3)",accent:"#3399cc",tags:["Queen of the Coast","Long Point Break"], photo:"https://images.unsplash.com/photo-1455729552457-5c322d6024db?w=800&h=600&fit=crop"},
-
-  // ─── East Coast USA ───────────────────────────────────────────────
-  {id:"montauk",     category:"surfing",title:"Montauk",                  location:"New York",                 lat:41.0340,lon:-71.9570,ap:"JFK",icon:"🏄",rating:4.75,reviews:1840,gradient:"linear-gradient(160deg,#002244,#004488,#1166bb)",accent:"#3388cc",tags:["East Coast Classic","Hurricane Swells"], photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
-  {id:"cape_hatteras",category:"surfing",title:"Cape Hatteras",          location:"North Carolina",           lat:35.2332,lon:-75.5280,ap:"ORF",icon:"🏄",rating:4.82,reviews:2100,gradient:"linear-gradient(160deg,#002040,#004080,#1160a0)",accent:"#2288bb",tags:["Graveyard of the Atlantic","Swell Magnet"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
-
-  // ─── Mexico ───────────────────────────────────────────────────────
-  {id:"puerto_escondido",category:"surfing",title:"Puerto Escondido",   location:"Oaxaca, Mexico",           lat:15.8700,lon:-97.0553,ap:"OAX",icon:"🌊",rating:4.96,reviews:4880,gradient:"linear-gradient(160deg,#003355,#005588,#006fcc)",accent:"#1188ee",tags:["Mexican Pipeline","Heaviest Shore Break"], photo:"https://images.unsplash.com/photo-1605009296117-557ee05cb8cc?w=800&h=600&fit=crop"},
-  {id:"sayulita",    category:"surfing",title:"Sayulita",                location:"Nayarit, Mexico",          lat:20.8700,lon:-105.4400,ap:"PVR",icon:"🏄",rating:4.85,reviews:3280,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#22aacc",tags:["Beginner Friendly","Pueblo Mágico"], photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop"},
-
-  // ─── Central America ──────────────────────────────────────────────
-  {id:"pavones",     category:"surfing",title:"Pavones",                  location:"Costa Rica",               lat:8.3900,lon:-83.1700,ap:"SJO",icon:"🏄",rating:4.88,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#22aacc",tags:["2nd Longest Left","Jungle Setting"], photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop"},
-  {id:"witch_rock",  category:"surfing",title:"Witch's Rock",             location:"Guanacaste, Costa Rica",   lat:10.7800,lon:-85.8700,ap:"LIR",icon:"🏄",rating:4.86,reviews:1740,gradient:"linear-gradient(160deg,#002840,#004870,#0068a0)",accent:"#2288bb",tags:["Boat-Access Only","Volcanic Rock Break"], photo:"https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop"},
-  {id:"punta_roca",  category:"surfing",title:"Punta Roca",               location:"El Salvador",              lat:13.4900,lon:-89.2000,ap:"SAL",icon:"🏄",rating:4.89,reviews:2100,gradient:"linear-gradient(160deg,#002244,#004488,#0055aa)",accent:"#1177cc",tags:["Central American Jewel","Long Right Point"], photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"},
-
-  // ─── Caribbean ────────────────────────────────────────────────────
-  {id:"rincon_pr",   category:"surfing",title:"Rincón",                   location:"Puerto Rico",              lat:18.3400,lon:-67.2500,ap:"SJU",icon:"🏄",rating:4.87,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Caribbean Surf Capital","Sunny Year-Round"], photo:"https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800&h=600&fit=crop"},
-  {id:"bathsheba",   category:"surfing",title:"Bathsheba",                location:"Barbados",                 lat:13.1900,lon:-59.5300,ap:"BGI",icon:"🌊",rating:4.86,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004480,#0066aa)",accent:"linear-gradient(#1188cc,#00aadd)",tags:["Soup Bowl Left","Atlantic Power"], photo:"https://images.unsplash.com/photo-1544551763-77932c184deb?w=800&h=600&fit=crop"},
-
-  // ─── South America ────────────────────────────────────────────────
-  {id:"chicama",     category:"surfing",title:"Chicama",                  location:"La Libertad, Peru",        lat:-7.8400,lon:-79.4500,ap:"LIM",icon:"🏄",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#003355,#005588,#0066aa)",accent:"#1188cc",tags:["World's Longest Left","2.4km Ride"], photo:"https://images.unsplash.com/photo-1497890312100-1e4488c9e5e5?w=800&h=600&fit=crop"},
-  {id:"punta_hermosa",category:"surfing",title:"Punta Hermosa",          location:"Lima, Peru",               lat:-12.3300,lon:-76.8200,ap:"LIM",icon:"🏄",rating:4.85,reviews:2440,gradient:"linear-gradient(160deg,#002244,#003f7f,#0060b3)",accent:"#1188cc",tags:["Peru Pro Stop","Consistent Beach Break"], photo:"https://images.unsplash.com/photo-1531722569936-825d3dd91b15?w=800&h=600&fit=crop"},
-  {id:"punta_lobos", category:"surfing",title:"Punta de Lobos",          location:"Pichilemu, Chile",         lat:-34.4400,lon:-72.0800,ap:"SCL",icon:"🌊",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#002040,#003878,#0050a8)",accent:"#0f7bcc",tags:["South American Big Wave","ISA World Site"], photo:"https://images.unsplash.com/photo-1496737018672-b1a6be2e949c?w=800&h=600&fit=crop"},
-  {id:"florianopolis",category:"surfing",title:"Florianópolis",          location:"Santa Catarina, Brazil",   lat:-27.5954,lon:-48.5480,ap:"FLN",icon:"🏄",rating:4.84,reviews:3120,gradient:"linear-gradient(160deg,#003355,#00507f,#0070b3)",accent:"#1199dd",tags:["Magic Island","Brazil's Surf City"], photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
-  {id:"noronha_surf",category:"surfing",title:"Fernando de Noronha",     location:"Pernambuco, Brazil",       lat:-3.8542,lon:-32.4250,ap:"REC",icon:"🏄",rating:4.96,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005577,#00789f)",accent:"#0099cc",tags:["UNESCO World Heritage","Crystal Waters"], photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"},
-
-  // ─── Europe — France ──────────────────────────────────────────────
-  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"], photo:"https://images.unsplash.com/photo-1699883815067-e48996c32217?w=800&h=600&fit=crop"},
-
-  // ─── Europe — Spain ───────────────────────────────────────────────
-  {id:"mundaka",     category:"surfing",title:"Mundaka",                  location:"Basque Country, Spain",   lat:43.4100,lon:-2.7000,ap:"BIO",icon:"🌊",rating:4.95,reviews:3840,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#0077cc",tags:["Best Left in Europe","River Mouth Barrel"], photo:"https://images.unsplash.com/photo-1654311670729-9426fc4a2a2f?w=800&h=600&fit=crop"},
-
-  // ─── Europe — Portugal ────────────────────────────────────────────
-  {id:"supertubos",  category:"surfing",title:"Supertubos",               location:"Peniche, Portugal",        lat:39.3600,lon:-9.3700,ap:"LIS",icon:"🌊",rating:4.94,reviews:4100,gradient:"linear-gradient(160deg,#002244,#004480,#0066bb)",accent:"#1188ee",tags:["Portuguese Pipeline","WSL Stop"], photo:"https://images.unsplash.com/photo-1525266558638-6da3a79fbfc3?w=800&h=600&fit=crop"},
-  {id:"ericeira",    category:"surfing",title:"Ericeira",                 location:"Lisbon Coast, Portugal",   lat:38.9600,lon:-9.4200,ap:"LIS",icon:"🏄",rating:4.91,reviews:3600,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["World Surf Reserve","Village Vibes"], photo:"https://images.unsplash.com/photo-1528644355366-0c6a7b2bdf5d?w=800&h=600&fit=crop"},
-  {id:"nazare",      category:"surfing",title:"Nazaré",                   location:"Silver Coast, Portugal",   lat:39.6000,lon:-9.0700,ap:"LIS",icon:"🌊",rating:4.98,reviews:4800,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["World Record Waves","100ft Monsters"], photo:"https://images.unsplash.com/photo-1708356943415-6296d6c25d28?w=800&h=600&fit=crop"},
-
-  // ─── Europe — UK / Ireland ────────────────────────────────────────
-  {id:"newquay",     category:"surfing",title:"Newquay",                  location:"Cornwall, England",        lat:50.3700,lon:-5.1000,ap:"NQY",icon:"🏄",rating:4.78,reviews:3200,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["UK Surf Capital","Fistral Beach"], photo:"https://images.unsplash.com/photo-1507680225127-6450260913c0?w=800&h=600&fit=crop"},
-  {id:"thurso_east", category:"surfing",title:"Thurso East",              location:"Caithness, Scotland",      lat:58.5900,lon:-3.5200,ap:"INV",icon:"🌊",rating:4.89,reviews:1640,gradient:"linear-gradient(160deg,#002040,#003878,#0050a0)",accent:"#0f7bcc",tags:["Scotland's Best Right","Arctic Swells"], photo:"https://images.unsplash.com/photo-1527769929977-c341ee9f2e66?w=800&h=600&fit=crop"},
-  {id:"lahinch",     category:"surfing",title:"Lahinch",                  location:"County Clare, Ireland",    lat:52.9300,lon:-9.3400,ap:"SNN",icon:"🏄",rating:4.82,reviews:1820,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["Irish Surf Town","Cliffs of Moher Backdrop"], photo:"https://images.unsplash.com/photo-1508437981923-e88ea3be23de?w=800&h=600&fit=crop"},
-
-  // ─── Europe — Canary Islands ──────────────────────────────────────
-  {id:"la_santa",    category:"surfing",title:"La Santa",                 location:"Lanzarote, Canary Islands",lat:29.0600,lon:-13.6600,ap:"ACE",icon:"🌊",rating:4.90,reviews:2760,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Year-Round Swell","Lava Rock Reef"], photo:"https://images.unsplash.com/photo-1486890598084-3673ba1a7fc4?w=800&h=600&fit=crop"},
-  {id:"fuerteventura_surf",category:"surfing",title:"Fuerteventura",     location:"Canary Islands, Spain",    lat:28.3587,lon:-14.0537,ap:"FUE",icon:"🏄",rating:4.88,reviews:3100,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Windsurf & Surf Mecca","Consistent Atlantic"], photo:"https://images.unsplash.com/photo-1461696114087-397271a7aedc?w=800&h=600&fit=crop"},
-
-  // ─── Africa — Morocco ─────────────────────────────────────────────
-  {id:"anchor_point",category:"surfing",title:"Anchor Point",            location:"Agadir, Morocco",          lat:30.5300,lon:-9.7700,ap:"AGA",icon:"🌊",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Morocco's Best Right","Desert Point Break"], photo:"https://images.unsplash.com/photo-1517699418036-fb2fcd498b89?w=800&h=600&fit=crop"},
-  {id:"taghazout",   category:"surfing",title:"Taghazout",               location:"Agadir, Morocco",          lat:30.5600,lon:-9.7100,ap:"AGA",icon:"🏄",rating:4.88,reviews:4200,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#2299cc",tags:["Surf Village","Hash Point & Killers"], photo:"https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?w=800&h=600&fit=crop"},
-
-  // ─── Africa — South Africa ────────────────────────────────────────
-  {id:"jeffreys_bay",category:"surfing",title:"Jeffreys Bay",            location:"Eastern Cape, South Africa",lat:-34.0500,lon:24.9200,ap:"PLZ",icon:"🌊",rating:4.97,reviews:4640,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["J-Bay","WSL Championship Stop"], photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop"},
-  {id:"cape_town_surf",category:"surfing",title:"Cape Town",             location:"Western Cape, South Africa",lat:-33.8900,lon:18.4200,ap:"CPT",icon:"🏄",rating:4.86,reviews:2880,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Table Mountain Backdrop","Cold Water Barrels"], photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop"},
-
-  // ─── Bali / Indonesia ─────────────────────────────────────────────
-  {id:"uluwatu",     category:"surfing",title:"Uluwatu",                  location:"Bali, Indonesia",          lat:-8.8291,lon:115.0850,ap:"DPS",icon:"🌊",rating:4.96,reviews:6800,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1188ee",tags:["Cliff Temple","WSL Events"], photo:"https://images.unsplash.com/photo-1585823096440-9fdb837d48ba?w=800&h=600&fit=crop"},
-  {id:"padang_padang",category:"surfing",title:"Padang Padang",          location:"Bali, Indonesia",          lat:-8.8105,lon:115.0938,ap:"DPS",icon:"🌊",rating:4.93,reviews:4320,gradient:"linear-gradient(160deg,#001f40,#003880,#0055bb)",accent:"#2288ff",tags:["Eat Pray Love Beach","Barreling Left"], photo:"https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&h=600&fit=crop"},
-  {id:"keramas",     category:"surfing",title:"Keramas",                  location:"Bali, Indonesia",          lat:-8.5764,lon:115.3190,ap:"DPS",icon:"🏄",rating:4.85,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Night Surfing","OC Pro Contest"], photo:"https://images.unsplash.com/photo-1537519646099-5e064512a1fd?w=800&h=600&fit=crop"},
-  {id:"mentawais",   category:"surfing",title:"Mentawai Islands",        location:"West Sumatra, Indonesia",  lat:-2.3500,lon:99.8500,ap:"PDG",icon:"🌊",rating:4.98,reviews:3200,gradient:"linear-gradient(160deg,#001a40,#003080,#0050cc)",accent:"#2277ff",tags:["Perfect Waves","HT's & Lance's Right"], photo:"https://images.unsplash.com/photo-1654137065487-cce388f2c58f?w=800&h=600&fit=crop"},
-
-  // ─── Philippines ──────────────────────────────────────────────────
-  {id:"cloud9",      category:"surfing",title:"Cloud 9",                  location:"Siargao, Philippines",     lat:9.8600,lon:126.0600,ap:"CEB",icon:"🌊",rating:4.95,reviews:3640,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Asia's Best Wave","Hollow Reef Right"], photo:"https://images.unsplash.com/photo-1520443240718-fce5930fbb38?w=800&h=600&fit=crop"},
-
-  // ─── Fiji ─────────────────────────────────────────────────────────
-  {id:"cloudbreak",  category:"surfing",title:"Cloudbreak",              location:"Tavarua, Fiji",            lat:-17.7748,lon:177.2362,ap:"NAN",icon:"🌊",rating:4.97,reviews:2980,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["South Pacific Power","Boat-Access Only"], photo:"https://images.unsplash.com/photo-1580402403932-f828854cb123?w=800&h=600&fit=crop"},
-  {id:"restaurants_fiji",category:"surfing",title:"Restaurants",        location:"Tavarua, Fiji",            lat:-17.7800,lon:177.2400,ap:"NAN",icon:"🏄",rating:4.89,reviews:1840,gradient:"linear-gradient(160deg,#003355,#005588,#007fbb)",accent:"#33aadd",tags:["Tavarua Left","Super Consistent"], photo:"https://images.unsplash.com/photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop"},
-
-  // ─── Tahiti ───────────────────────────────────────────────────────
-  {id:"teahupoo",    category:"surfing",title:"Teahupo'o",               location:"Tahiti, French Polynesia", lat:-17.8672,lon:-149.2594,ap:"PPT",icon:"🌊",rating:4.99,reviews:3840,gradient:"linear-gradient(160deg,#001530,#003070,#0050bb)",accent:"#1166ee",tags:["Scariest Wave on Earth","2024 Olympics"], photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop"},
-
-  // ─── Maldives ─────────────────────────────────────────────────────
-  {id:"pasta_point", category:"surfing",title:"Pasta Point",             location:"Maldives",                 lat:4.7500,lon:72.9700,ap:"MLE",icon:"🏄",rating:4.94,reviews:2120,gradient:"linear-gradient(160deg,#003344,#005577,#007fa0)",accent:"#00bbdd",tags:["Indian Ocean Luxury","Resort Access"], photo:"https://images.unsplash.com/photo-1543039625-14cbd3802e7d?w=800&h=600&fit=crop"},
-  {id:"jailbreaks",  category:"surfing",title:"Jailbreaks",              location:"South Malé Atoll, Maldives",lat:3.5000,lon:73.0000,ap:"MLE",icon:"🌊",rating:4.88,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004488,#006faa)",accent:"#1199cc",tags:["Dhow Boat Sessions","Crystal Water"], photo:"https://images.unsplash.com/photo-1545251142-f32339076e6d?w=800&h=600&fit=crop"},
-
-  // ─── Australia ────────────────────────────────────────────────────
-  {id:"snapper_rocks",category:"surfing",title:"Snapper Rocks",         location:"Gold Coast, Queensland",   lat:-28.1640,lon:153.5546,ap:"OOL",icon:"🌊",rating:4.94,reviews:5400,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Superbank","WSL Opener"], photo:"https://images.unsplash.com/photo-1583105103934-32c7a64ba012?w=800&h=600&fit=crop"},
-  {id:"bells_beach",  category:"surfing",title:"Bells Beach",           location:"Torquay, Victoria",        lat:-38.3700,lon:144.2800,ap:"MEL",icon:"🌊",rating:4.91,reviews:3680,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Rip Curl Pro","Australia's Most Famous"], photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop"},
-  {id:"margaret_river_surf",category:"surfing",title:"Margaret River",  location:"Western Australia",        lat:-34.0500,lon:115.0900,ap:"PER",icon:"🌊",rating:4.89,reviews:2840,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Wine & Waves","Championship Reef"], photo:"https://images.unsplash.com/photo-1581059089599-0b7e13b9d952?w=800&h=600&fit=crop"},
-  {id:"the_pass",    category:"surfing",title:"The Pass",               location:"Byron Bay, NSW",           lat:-28.6500,lon:153.5800,ap:"OOL",icon:"🏄",rating:4.87,reviews:4100,gradient:"linear-gradient(160deg,#003355,#005580,#007faa)",accent:"#2299cc",tags:["Byron Bay Icon","Long Mellow Rights"], photo:"https://images.unsplash.com/photo-1484804959655-1074f38e5394?w=800&h=600&fit=crop"},
-
-  // ─── New Zealand ──────────────────────────────────────────────────
-  {id:"raglan",      category:"surfing",title:"Raglan",                  location:"Waikato, New Zealand",     lat:-37.8000,lon:174.8700,ap:"AKL",icon:"🌊",rating:4.88,reviews:2420,gradient:"linear-gradient(160deg,#002244,#004488,#0066bb)",accent:"#1188dd",tags:["Southern Hemisphere Left","Endless Rides"], photo:"https://images.unsplash.com/photo-1461730278450-19cc1863601c?w=800&h=600&fit=crop"},
-
-  // ─── Japan ────────────────────────────────────────────────────────
-  {id:"chiba_surf",  category:"surfing",title:"Chiba Coast",             location:"Chiba Prefecture, Japan",  lat:35.3200,lon:140.3800,ap:"NRT",icon:"🏄",rating:4.78,reviews:2100,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#0099bb",tags:["Tokyo's Backyard","Beach Break Frenzy"], photo:"https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=800&h=600&fit=crop"},
-
-  // ═══════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════
-  // ─── BEACH & TAN (TOP BEACHES WORLDWIDE) ────────────────────────
-  // ═══════════════════════════════════════════════════════════════════
-
-  // ── Caribbean ─────────────────────────────────────────────────────
-  {id:"beach_gcm",      category:"tanning",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
-  {id:"beach_grace",    category:"tanning",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
-  {id:"beach_shoal",    category:"tanning",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
-  {id:"beach_eagle",    category:"tanning",title:"Eagle Beach",            location:"Aruba",                         lat:12.5600,lon:-70.0850,ap:"AUA",icon:"🏖️",rating:4.95,reviews:13400,gradient:"linear-gradient(160deg,#003355,#00558a,#0088bb)",accent:"#22aadd",tags:["Iconic Divi Tree","Year-Round Sun"], photo:"https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"},
-  {id:"beach_magens",   category:"tanning",title:"Magens Bay",             location:"St. Thomas, USVI",              lat:18.3700,lon:-64.9330,ap:"STT",icon:"🏖️",rating:4.93,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Protected Horseshoe","Palm-Lined Shore"], photo:"https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"},
-  {id:"beach_stlucia",  category:"tanning",title:"Anse Chastanet",         location:"St. Lucia",                     lat:13.8630,lon:-61.0750,ap:"UVF",icon:"🏖️",rating:4.96,reviews:6200,gradient:"linear-gradient(160deg,#001a22,#003844,#006677)",accent:"#00aabb",tags:["Piton Views","Volcano Backdrop"], photo:"https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"},
-  {id:"beach_barbados", category:"tanning",title:"Bottom Bay",             location:"Barbados",                      lat:13.0700,lon:-59.4450,ap:"BGI",icon:"🏖️",rating:4.94,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099aa)",accent:"#00ccdd",tags:["Atlantic Wonder","Coral Cliffs"], photo:"https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"},
-  {id:"beach_orient",   category:"tanning",title:"Orient Bay",             location:"Saint-Martin, French Antilles",  lat:18.1000,lon:-63.0300,ap:"SXM",icon:"🏖️",rating:4.91,reviews:8600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",accent:"#33aadd",tags:["St-Barths Vibes","Water Sports Hub"], photo:"https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"},
-  {id:"beach_tobago",   category:"tanning",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
-  {id:"beach_negril",   category:"tanning",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"},
-  {id:"beach_holbox",   category:"tanning",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
-  {id:"beach_tulum",    category:"tanning",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
-  {id:"beach_cozumel",  category:"tanning",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"},
-  {id:"beach_rivmaya",  category:"tanning",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
-
-  // ── Mexico Pacific ─────────────────────────────────────────────────
-  {id:"beach_sayulita",category:"tanning",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Surf Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
-  {id:"beach_loscabos",category:"tanning",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
-
-  // ── Central / South America ───────────────────────────────────────
-  {id:"beach_manuelant",category:"tanning",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"},
-  {id:"beach_bocas",    category:"tanning",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"},
-  {id:"beach_noronha",  category:"tanning",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
-  {id:"beach_floripa",  category:"tanning",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Surf + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
-
-  // ── USA ───────────────────────────────────────────────────────────
-  {id:"beach_ob",       category:"tanning",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
-  {id:"beach_siestakey",category:"tanning",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
-  {id:"beach_clearwater",category:"tanning",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
-  {id:"beach_keywest",  category:"tanning",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
-  {id:"beach_destin",   category:"tanning",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
-  {id:"beach_myrtle",   category:"tanning",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"},
-  {id:"beach_miami",    category:"tanning",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"},
-
-  // ── Hawaii ─────────────────────────────────────────────────────────
-  {id:"beach_lanikai",  category:"tanning",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"},
-  {id:"beach_hapuna",   category:"tanning",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"},
-  {id:"beach_kapalua",  category:"tanning",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
-
-  // ── Europe / Mediterranean ─────────────────────────────────────────
-  {id:"beach_positano", category:"tanning",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"},
-  {id:"beach_sardinia", category:"tanning",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"},
-  {id:"beach_algarve",  category:"tanning",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"},
-  {id:"beach_santorini",category:"tanning",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"},
-  {id:"beach_mykonos",  category:"tanning",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
-  {id:"beach_zakynthos",category:"tanning",title:"Navagio Shipwreck Beach", location:"Zakynthos, Greece",            lat:37.8590,lon:20.6240,ap:"ZTH",icon:"🏖️",rating:4.97,reviews:16800,gradient:"linear-gradient(160deg,#001433,#003377,#005ac0)",accent:"#3377ee",tags:["Most Photographed Beach","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop"},
-  {id:"beach_hvar",     category:"tanning",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"},
-  {id:"beach_dubrovnik",category:"tanning",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
-  {id:"beach_milos",    category:"tanning",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"},
-  {id:"beach_ibiza",    category:"tanning",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
-  {id:"beach_formentera",category:"tanning",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
-  {id:"beach_menorca",  category:"tanning",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"},
-  {id:"beach_cotedazur",category:"tanning",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
-
-  // ── Africa / Indian Ocean ──────────────────────────────────────────
-  {id:"beach_diani",    category:"tanning",title:"Diani Beach",            location:"Mombasa, Kenya",                lat:-4.2720,lon:39.5930,ap:"MBA",icon:"🏖️",rating:4.93,reviews:8800,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22cc88",tags:["White Coral Sand","Colobus Monkeys"], photo:"https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"},
-  {id:"beach_zanzibar", category:"tanning",title:"Nungwi Beach",           location:"Zanzibar, Tanzania",            lat:-5.7215,lon:39.2978,ap:"ZNZ",icon:"🏖️",rating:4.95,reviews:12400,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Spice Island","Dhow Sunset Cruises"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
-  {id:"beach_seychelles",category:"tanning",title:"Anse Source d'Argent",  location:"La Digue, Seychelles",          lat:-4.3636,lon:55.8381,ap:"SEZ",icon:"🏖️",rating:4.99,reviews:10200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccdd",tags:["Most Photographed Beach","Granite Boulders"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
-  {id:"beach_praslin",  category:"tanning",title:"Anse Lazio",             location:"Praslin, Seychelles",           lat:-4.2836,lon:55.7133,ap:"PRI",icon:"🏖️",rating:4.98,reviews:8600,gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",accent:"#22bbee",tags:["Verdure d'Eau Clear","World Top10"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
-  {id:"beach_mauritius",category:"tanning",title:"Belle Mare Plage",       location:"Mauritius",                     lat:-20.2700,lon:57.7700,ap:"MRU",icon:"🏖️",rating:4.95,reviews:11200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Turquoise Lagoon","Indian Ocean Luxury"], photo:"https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"},
-
-  // ── Southeast Asia ─────────────────────────────────────────────────
-  {id:"beach_railay",   category:"tanning",title:"Railay Beach",           location:"Krabi, Thailand",               lat:8.0107,lon:98.8382,ap:"KBV",icon:"🏖️",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Limestone Cliffs","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
-  {id:"beach_kohsamui", category:"tanning",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
-  {id:"beach_phiphi",   category:"tanning",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
-  {id:"beach_elnido",   category:"tanning",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
-  {id:"beach_boracay",  category:"tanning",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
-  {id:"beach_nusapenida",category:"tanning",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
-  {id:"beach_gilit",    category:"tanning",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
-  {id:"beach_aitutaki", category:"tanning",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
-
-  // ── Australia / Pacific ────────────────────────────────────────────
-  {id:"beach_whitehaven",category:"tanning",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
-  {id:"beach_cable",    category:"tanning",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"},
-  {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
-
-  // ── Hiking ─────────────────────────────────────────────────────────
-  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"], photo:"https://images.unsplash.com/photo-1598859409659-b88fc15bbc2f?w=800&h=600&fit=crop"},
-  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"], photo:"https://images.unsplash.com/photo-1520816761512-09d14f676877?w=800&h=600&fit=crop"},
-  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"], photo:"https://images.unsplash.com/photo-1598647578562-535093a700af?w=800&h=600&fit=crop"},
-  {id:"gr20",         category:"hiking",title:"GR20 Corsica",location:"Corsica, France",lat:42.1750,lon:9.0833,ap:"AJA",icon:"🥾",rating:4.94,reviews:4200,gradient:"linear-gradient(160deg,#2a1a2a,#5a3a5a,#8a6a8a)",accent:"#aa8aaa",tags:["Europe's Toughest","16 Stages"], photo:"https://images.unsplash.com/photo-1482961667792-d164d3e7ab3d?w=800&h=600&fit=crop"},
-  {id:"appalachian",  category:"hiking",title:"Appalachian Trail (Smokies)",location:"North Carolina, USA",lat:35.5634,lon:-83.4984,ap:"TYS",icon:"🥾",rating:4.93,reviews:15200,gradient:"linear-gradient(160deg,#1a2a1a,#3a5a3a,#6a8a6a)",accent:"#8aaa8a",tags:["Thru-Hike Section","Great Smoky Mtns"], photo:"https://images.unsplash.com/photo-1551176808-bb328dac763a?w=800&h=600&fit=crop"},
-  {id:"annapurna",    category:"hiking",title:"Annapurna Circuit",location:"Gandaki, Nepal",lat:28.5960,lon:83.8200,ap:"PKR",icon:"🥾",rating:4.97,reviews:6800,gradient:"linear-gradient(160deg,#0a1a3a,#1a4a7a,#3a8aba)",accent:"#5aaada",tags:["Thorong La Pass","Tea Houses"], photo:"https://images.unsplash.com/photo-1528846328457-87c98b48ef37?w=800&h=600&fit=crop"},
-  {id:"milford_track",category:"hiking",title:"Milford Track",location:"Fiordland, New Zealand",lat:-44.8937,lon:167.9188,ap:"ZQN",icon:"🥾",rating:4.96,reviews:5400,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#3a8a6a)",accent:"#5aaa8a",tags:["Finest Walk","Sutherland Falls"], photo:"https://images.unsplash.com/photo-1496975351654-5236530c59c5?w=800&h=600&fit=crop"},
-  {id:"camino",       category:"hiking",title:"Camino de Santiago",location:"Galicia, Spain",lat:42.8782,lon:-8.5448,ap:"SCQ",icon:"🥾",rating:4.95,reviews:18600,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["French Way","800km Pilgrimage"], photo:"https://images.unsplash.com/photo-1543076659-9380cdf10613?w=800&h=600&fit=crop"},
-  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"], photo:"https://images.unsplash.com/photo-1522774607452-dac2ecc66330?w=800&h=600&fit=crop"},
-  {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:45.9700,lon:7.3100,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
-  {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"], photo:"https://images.unsplash.com/photo-1534853878021-7fb609562749?w=800&h=600&fit=crop"},
-  {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"], photo:"https://images.unsplash.com/photo-1621286675775-7f9dc67237b0?w=800&h=600&fit=crop"},
-
-  // ─── DIVING expansion ──────────────────────────────────────────────────────
-  {id:"rajaampat",    category:"diving",title:"Raja Ampat",             location:"West Papua, Indonesia",     lat:-0.2348,lon:130.5167,ap:"DPS",icon:"🤿",rating:4.98,reviews:1420,gradient:"linear-gradient(160deg,#001a3a,#003878,#0070c0)",accent:"#4da6ff",tags:["Manta Rays","1500+ Fish Species","Pristine Coral","Liveaboard","Remote"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
-  {id:"sipadan",      category:"diving",title:"Sipadan Island",         location:"Sabah, Malaysia",           lat:4.1150,lon:118.6289,ap:"DPS",icon:"🤿",rating:4.96,reviews:980,gradient:"linear-gradient(160deg,#001a30,#003060,#005cb0)",accent:"#4da0f0",tags:["Barracuda Tornado","Sea Turtles","Wall Diving","Permit Required","Bucket List"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
-  {id:"dahab",        category:"diving",title:"Blue Hole, Dahab",       location:"Sinai Peninsula, Egypt",    lat:28.5710,lon:34.5195,ap:"AMM",icon:"🤿",rating:4.94,reviews:1850,gradient:"linear-gradient(160deg,#001030,#002868,#0050b8)",accent:"#4090e0",tags:["Blue Hole","Freediving Mecca","Budget Friendly","Desert Vibes","Shore Diving"], photo:"https://images.unsplash.com/photo-1544551763-77932f2f4648?w=800&h=600&fit=crop"},
-  {id:"cozumel_dive", category:"diving",title:"Cozumel Reefs",          location:"Quintana Roo, Mexico",      lat:20.4318,lon:-86.9203,ap:"CZM",icon:"🤿",rating:4.92,reviews:2200,gradient:"linear-gradient(160deg,#001828,#003060,#005098)",accent:"#3888d0",tags:["Drift Diving","Visibility 40m","Palancar Reef","Warm Water","Easy Access"], photo:"https://images.unsplash.com/photo-1559291001-693fb9166cba?w=800&h=600&fit=crop"},
-
-  // ─── CLIMBING expansion ────────────────────────────────────────────────────
-  {id:"railay_climb", category:"climbing",title:"Railay Beach",          location:"Krabi, Thailand",           lat:8.0117,lon:98.8386,ap:"KBV",icon:"🧗",rating:4.95,reviews:1680,gradient:"linear-gradient(160deg,#3a1a00,#7a4000,#c87020)",accent:"#f0a050",tags:["Limestone Karst","Deep Water Solo","Beach Crag","All Levels","Tropical"], photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"},
-  {id:"kalymnos",     category:"climbing",title:"Kalymnos Island",       location:"Dodecanese, Greece",        lat:36.9513,lon:26.9847,ap:"JMK",icon:"🧗",rating:4.96,reviews:1340,gradient:"linear-gradient(160deg,#2a1400,#6a3800,#b06820)",accent:"#e09848",tags:["Sport Climbing","Tufa Paradise","3500+ Routes","Mediterranean","Autumn Season"], photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop"},
-  {id:"elchorten",    category:"climbing",title:"El Chalten",            location:"Patagonia, Argentina",      lat:-49.3314,lon:-72.8861,ap:"PUQ",icon:"🧗",rating:4.97,reviews:920,gradient:"linear-gradient(160deg,#2a1000,#6a3000,#a86020)",accent:"#d88840",tags:["Fitz Roy","Alpine Granite","Patagonia Wind","Advanced","Trekking Capital"], photo:"https://images.unsplash.com/photo-1578508461229-31f73a90d69e?w=800&h=600&fit=crop"},
-
-  // ─── KITE expansion ────────────────────────────────────────────────────────
-  {id:"cabarete",     category:"kite",title:"Cabarete",                  location:"Puerto Plata, Dominican Republic",lat:19.7582,lon:-70.4101,ap:"SJU",icon:"🪁",rating:4.93,reviews:1540,gradient:"linear-gradient(160deg,#1a0028,#4c0068,#9830d0)",accent:"#c080e8",tags:["Kite Beach","Thermal Winds","All Levels","Caribbean Vibes","Year-Round"], photo:"https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop"},
-  {id:"dakhla",       category:"kite",title:"Dakhla Lagoon",             location:"Western Sahara, Morocco",   lat:23.7175,lon:-15.9369,ap:"AGA",icon:"🪁",rating:4.95,reviews:760,gradient:"linear-gradient(160deg,#1a0030,#500070,#a038d8)",accent:"#c888f0",tags:["Flat Water Lagoon","300+ Wind Days","Desert Backdrop","Progression","Remote"], photo:"https://images.unsplash.com/photo-1621288546818-f1dd7e07f8e0?w=800&h=600&fit=crop"},
-  {id:"muine",        category:"kite",title:"Mui Ne",                    location:"Binh Thuan, Vietnam",       lat:10.9333,lon:108.2833,ap:"HKT",icon:"🪁",rating:4.90,reviews:1120,gradient:"linear-gradient(160deg,#1a0028,#480060,#9030c8)",accent:"#b870e0",tags:["Budget Kite Mecca","Nov-Apr Season","Sand Dunes","Warm Water","Schools"], photo:"https://images.unsplash.com/photo-1621013735268-44d32b48ffbc?w=800&h=600&fit=crop"},
-];
-
+// ─── venues with real coordinates (loaded async from venues.json) ─────────────
+let VENUES = []; // populated by fetchVenues() on app load
 const US_AIRPORTS = [
   { code:"JFK", label:"New York",      flag:"🗽" },
   { code:"LAX", label:"Los Angeles",   flag:"🎬" },
@@ -1895,34 +1519,41 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" role="button" tabIndex={0}
+      onClick={() => onOpen && onOpen(listing)}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen && onOpen(listing); } }}
+      aria-label={`View ${listing.title} — ${listing.conditionLabel}, flights from $${listing.flight.price}`}
+      style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy"
+          <img src={listing.photo} alt={`${listing.title} - ${listing.location}`} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
-          <div className="card-img" style={{
+          <div className="card-img" aria-hidden="true" style={{
             position:"absolute", inset:0, background:listing.gradient,
             display:"flex", alignItems:"center", justifyContent:"center",
           }}>
             <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
           </div>
         )}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
+        <div aria-hidden="true" style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
         {/* Heart + Share */}
         <div style={{ position:"absolute", top:8, right:8, display:"flex", gap:4 }}>
-          <button className="heart pressable" onClick={e => { e.stopPropagation(); shareVenue(listing, () => { setShareCopied(true); setTimeout(() => setShareCopied(false), 1800); }); }} style={{
+          <button className="heart pressable" aria-label={shareCopied ? "Link copied" : `Share ${listing.title}`}
+            onClick={e => { e.stopPropagation(); shareVenue(listing, () => { setShareCopied(true); setTimeout(() => setShareCopied(false), 1800); }); }} style={{
             background: shareCopied ? "rgba(34,197,94,0.85)" : "rgba(0,0,0,0.35)", border:"none", borderRadius:"50%", fontSize:13,
-            width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
             color:"white", fontWeight:700, fontFamily:F,
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
-          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+          <button className="heart" aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
+            aria-pressed={saved}
+            onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
             background:"none", border:"none", fontSize:20,
-            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+            width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center",
             filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
           }}>
             {saved ? "❤️" : "🤍"}
@@ -2017,22 +1648,28 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" role="button" tabIndex={0}
+      onClick={() => onOpen && onOpen(listing)}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen && onOpen(listing); } }}
+      aria-label={`View ${listing.title} — ${listing.conditionLabel}, flights from $${listing.flight.price}`}
+      style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy"
+          <img src={listing.photo} alt={`${listing.title} - ${listing.location}`} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
-          <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
+          <span aria-hidden="true" style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
-          position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
-          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+        <div aria-hidden="true" style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
+        <button className="heart" aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
+          aria-pressed={saved}
+          onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+          position:"absolute", top:0, right:0, background:"none", border:"none", fontSize:18,
+          width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
         <div style={{
           position:"absolute", top:10, left:10,
@@ -2086,27 +1723,33 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" role="button" tabIndex={0}
+      onClick={() => onOpen && onOpen(listing)}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen && onOpen(listing); } }}
+      aria-label={`View ${listing.title} — ${listing.conditionLabel}`}
+      style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         {listing.photo ? (
-          <img src={listing.photo} alt={listing.title} loading="lazy"
+          <img src={listing.photo} alt={`${listing.title} - ${listing.location}`} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
-          <div style={{
+          <div aria-hidden="true" style={{
             position:"absolute", inset:0, background:listing.gradient,
             display:"flex", alignItems:"center", justifyContent:"center",
           }}>
             <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
           </div>
         )}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
+        <div aria-hidden="true" style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:2, right:2,
+        <button className="heart" aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
+          aria-pressed={saved}
+          onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+          position:"absolute", top:0, right:0,
           background:"none", border:"none", fontSize:15,
-          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+          width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center",
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
@@ -2536,7 +2179,10 @@ function SearchBar({ search, onOpen }) {
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
-    <div onClick={onOpen} className="pressable" style={{
+    <div role="button" tabIndex={0} onClick={onOpen}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+      aria-label={`Search: ${topLine}, ${actLabel}${whenLabel}. Open search filters.`}
+      className="pressable" style={{
       display:"flex", alignItems:"center",
       background:"#fff", borderRadius:40,
       boxShadow:"0 3px 22px rgba(0,0,0,0.11)", border:"1.5px solid #ebebeb",
@@ -3081,14 +2727,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
               </div>
             </div>
-            <div style={{
+            <div role="list" aria-label="Best right now" style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
             }}>
               {bestRightNow.slice(1).map(l => {
                 const v = getGoVerdict(l.conditionScore);
                 return (
-                  <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
+                  <div key={l.id} role="listitem" className="card"
+                    tabIndex={0}
+                    onClick={() => onOpenDetail(l)}
+                    onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenDetail(l); } }}
+                    aria-label={`${l.title} — ${l.conditionLabel}, flights from $${l.flight.price}`}
                     style={{
                       minWidth:170, maxWidth:170, scrollSnapAlign:"start",
                       background:"#fff", borderRadius:14, overflow:"hidden",
@@ -3096,12 +2746,13 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
                     <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
-                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
-                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
+                      {l.photo && <img src={l.photo} alt={`${l.title} - ${l.location}`} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      <div aria-hidden="true" style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
-                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                        position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:14,
-                        width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+                      <button className="heart" aria-label={wishlists.includes(l.id) ? `Remove ${l.title} from saved` : `Save ${l.title}`} aria-pressed={wishlists.includes(l.id)}
+                        onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                        position:"absolute", top:0, right:0, background:"none", border:"none", fontSize:14,
+                        width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center",
                         filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
                       }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
                     </div>
@@ -5002,22 +4653,55 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     }
   };
 
+  // ─── Escape key to close ────────────────────────────────────────────────────
+  useEffect(() => {
+    const onKeyDown = (e) => { if (e.key === "Escape") triggerClose(); };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [triggerClose]);
+
+  // ─── Focus trap ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    const focusable = 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => Array.from(sheet.querySelectorAll(focusable)).filter(el => !el.disabled);
+    const onKeyDown = (e) => {
+      if (e.key !== "Tab") return;
+      const els = getFocusable();
+      if (!els.length) return;
+      const first = els[0], last = els[els.length - 1];
+      if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+      else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+    };
+    sheet.addEventListener("keydown", onKeyDown);
+    // Move focus into sheet on open
+    const firstFocusable = getFocusable()[0];
+    if (firstFocusable) firstFocusable.focus();
+    return () => sheet.removeEventListener("keydown", onKeyDown);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Swipe-down-to-dismiss ──────────────────────────────────────────────────
   const sheetRef = useRef(null);
   const scrollRef = useRef(null);
-  const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
+  const dragRef  = useRef({ startY:0, currentY:0, dragging:false, lastY:0, lastTime:0 });
   const onTouchStart = useCallback((e) => {
     const el = scrollRef.current;
     if (!el || el.scrollTop > 5) return; // only swipe when at top
-    dragRef.current = { startY: e.touches[0].clientY, currentY: e.touches[0].clientY, dragging:true };
+    const now = Date.now();
+    dragRef.current = { startY: e.touches[0].clientY, currentY: e.touches[0].clientY, dragging:true, lastY: e.touches[0].clientY, lastTime: now };
   }, []);
   const onTouchMove = useCallback((e) => {
     const d = dragRef.current;
     if (!d.dragging) return;
+    d.lastY = d.currentY;
+    d.lastTime = Date.now();
     d.currentY = e.touches[0].clientY;
     const dy = d.currentY - d.startY;
     if (dy > 0 && sheetRef.current) {
-      sheetRef.current.style.transform = `translateX(-50%) translateY(${dy}px)`;
+      // Apply resistance above 120px (harder to pull further)
+      const resistance = dy > 120 ? 120 + (dy - 120) * 0.4 : dy;
+      sheetRef.current.style.transform = `translateX(-50%) translateY(${resistance}px)`;
       sheetRef.current.style.transition = "none";
     }
   }, []);
@@ -5026,7 +4710,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     if (!d.dragging) return;
     d.dragging = false;
     const dy = d.currentY - d.startY;
-    if (dy > 120) {
+    // Calculate velocity (px/ms) for flick detection
+    const dt = Date.now() - d.lastTime;
+    const velocity = dt > 0 ? (d.currentY - d.lastY) / dt : 0;
+    const shouldDismiss = dy > 120 || (dy > 40 && velocity > 0.5);
+    if (shouldDismiss) {
       if (sheetRef.current) {
         sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
         sheetRef.current.style.transition = "transform 0.25s cubic-bezier(0.4,0,1,1)";
@@ -5102,8 +4790,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   return (
     <>
-      <div className={"backdrop" + (closing ? " backdrop-exit" : "")} onClick={triggerClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300 }} />
-      <div ref={sheetRef} className={"sheet" + (closing ? " sheet-exit" : "")} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
+      <div className={"backdrop" + (closing ? " backdrop-exit" : "")} onClick={triggerClose} aria-hidden="true" style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300 }} />
+      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={listing.title}
+        className={"sheet" + (closing ? " sheet-exit" : "")} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
         zIndex:301, maxHeight:"94vh", overflow:"hidden",
@@ -5113,24 +4802,24 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         {/* Hero — full bleed */}
         <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
           {listing.photo ? (
-            <img src={listing.photo} alt={listing.title} loading="lazy"
+            <img src={listing.photo} alt={`${listing.title} - ${listing.location}`} loading="lazy"
               onLoad={e => { e.target.style.opacity = 1; }}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
           ) : (
-            <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <div aria-hidden="true" style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
               <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
             </div>
           )}
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 50%)" }} />
+          <div aria-hidden="true" style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 50%)" }} />
           {/* Drag handle overlaid on hero */}
-          <div style={{ position:"absolute", top:10, left:0, right:0, display:"flex", justifyContent:"center", cursor:"grab" }}>
+          <div aria-hidden="true" style={{ position:"absolute", top:10, left:0, right:0, display:"flex", justifyContent:"center", cursor:"grab" }}>
             <div style={{ width:36, height:4, borderRadius:2, background:"rgba(255,255,255,0.45)" }} />
           </div>
           <div style={{ position:"absolute", top:24, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
-            <button onClick={triggerClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+            <button onClick={triggerClose} aria-label="Close" style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:44, height:44, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             <div style={{ display:"flex", gap:7 }}>
-              <button onClick={() => setShowSharePanel(v => !v)} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
-              <button onClick={() => onToggle(listing.id)} className="pressable" style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
+              <button onClick={() => setShowSharePanel(v => !v)} className="pressable" aria-label="Share and invite" aria-pressed={showSharePanel} style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
+              <button onClick={() => onToggle(listing.id)} className="pressable" aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`} aria-pressed={saved} style={{ background: saved ? "#0284c7" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>{saved ? "❤️ Saved" : "🤍 Save"}</button>
             </div>
           </div>
           <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
@@ -6079,33 +5768,36 @@ function BottomNav({ active, setActive, alertCount }) {
     { id:"profile",   label:"Profile",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
   return (
-    <div style={{
+    <nav role="navigation" aria-label="Main navigation" style={{
       display:"flex", justifyContent:"space-around",
       padding:"6px 0 20px", background:"#fff",
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
-          background:"none", border:"none",
-          display:"flex", flexDirection:"column", alignItems:"center", gap:2,
-          color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
-          padding:"8px 0",
-        }}>
+        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn"
+          aria-label={t.id === "alerts" && alertCount > 0 ? `${t.label} (${alertCount} active)` : t.label}
+          aria-current={active === t.id ? "page" : undefined}
+          style={{
+            background:"none", border:"none",
+            display:"flex", flexDirection:"column", alignItems:"center", gap:2,
+            color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
+            padding:"8px 16px", minWidth:44,
+          }}>
           {t.id === "alerts" && alertCount > 0 && (
-            <div style={{
+            <div aria-hidden="true" style={{
               position:"absolute", top:0, right:2,
               width:8, height:8, background:"#0284c7", borderRadius:"50%",
               border:"1.5px solid white",
             }} />
           )}
-          <span style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>{t.icon}</span>
-          <span style={{ fontSize:10, fontWeight:600, fontFamily:F }}>{t.label}</span>
+          <span aria-hidden="true" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>{t.icon}</span>
+          <span aria-hidden="true" style={{ fontSize:10, fontWeight:600, fontFamily:F }}>{t.label}</span>
           {active === t.id && (
-            <div style={{ width:4, height:4, background:"#0284c7", borderRadius:"50%", marginTop:0 }} />
+            <div aria-hidden="true" style={{ width:4, height:4, background:"#0284c7", borderRadius:"50%", marginTop:0 }} />
           )}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }
 
@@ -6152,6 +5844,8 @@ function App() {
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
+  const [venuesReady,  setVenuesReady]  = useState(false);
+
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
@@ -6161,6 +5855,14 @@ function App() {
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
+
+  // Load venues from venues.json on first render (code-split: keeps initial parse fast)
+  useEffect(() => {
+    fetch('./venues.json')
+      .then(r => r.json())
+      .then(data => { VENUES = data; setVenuesReady(true); })
+      .catch(() => setVenuesReady(true)); // fail gracefully — VENUES stays empty
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-show onboarding for first-time visitors (slight delay so Explore tab renders first)
   useEffect(() => {
@@ -6228,10 +5930,11 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!venuesReady) return; // wait for venues.json to load before fetching weather
     fetchAllWeather(false);
     const interval = setInterval(() => fetchAllWeather(true), 10 * 60 * 1000); // refresh every 10 min
     return () => clearInterval(interval);
-  }, [fetchAllWeather]);
+  }, [fetchAllWeather, venuesReady]);
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
@@ -6362,6 +6065,7 @@ function App() {
       width:"100%", minHeight:"100vh", background:"#f5f5f5",
       display:"flex", justifyContent:"center", fontFamily:F,
     }}>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <div style={{
         width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
         display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
@@ -6374,9 +6078,9 @@ function App() {
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                   peakly
                 </span>
-                <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
+                <button onClick={() => setShowVibeSearch(true)} className="pressable" aria-label="Open vibe search — describe your ideal trip" style={{
                   background:"linear-gradient(135deg,#1a1a2e,#302b63)", border:"none",
-                  borderRadius:20, padding:"6px 12px", cursor:"pointer",
+                  borderRadius:20, padding:"8px 14px", cursor:"pointer", minHeight:44,
                   display:"flex", alignItems:"center", gap:5,
                 }}>
                   <span style={{ fontSize:12 }}>✨</span>
@@ -6395,7 +6099,7 @@ function App() {
         )}
 
         {/* Tab content */}
-        <div key={activeTab} className="tab-fade" style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+        <main id="main-content" key={activeTab} className="tab-fade" style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
           {activeTab === "explore" && (
             <ExploreTab
               listings={listings} loading={loading}
@@ -6427,7 +6131,7 @@ function App() {
               onToggle={toggleWishlist}
             />
           )}
-        </div>
+        </main>
 
         {showSearch && (
           <SearchSheet
