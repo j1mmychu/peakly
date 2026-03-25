@@ -1,24 +1,22 @@
-# PEAKLY DAILY BRIEFING -- 2026-03-25
+# PEAKLY DAILY BRIEFING — 2026-03-24
 
 ## STATUS: YELLOW
 
-Three P0 blockers from last briefing are resolved (HTTPS proxy, $79/yr pricing, cache buster). But the 280-venue expansion introduced severe data quality problems -- 252 surf venues sharing 3 stock photos -- that now block the Reddit launch it was supposed to support.
+The app is in the best shape it has ever been (192 venues, 100% unique photos, HTTPS proxy live, PWA deployed, Plausible wired, SEO at 91%). But the VenueDetailSheet -- the only surface where revenue happens -- has been flagged P1 for 4 consecutive cycles and remains untouched. And the founder just discovered the site was down before any agent did, because none of them can actually load the page.
 
 ---
 
 ## SHIPPED TODAY:
 
-- **HTTPS proxy live** -- peakly-api.duckdns.org via Caddy + Let's Encrypt. Real flight prices loading in production. Mixed content blocking eliminated. This was the #1 credibility killer and it's fixed.
-- **280 new surf venues** -- 333 total surf spots with breakType field (beach, point, reef). 472 venues total.
-- **Deep scoring overhaul** -- all 12 sport algorithms rewritten with expanded weather + marine API data. This is Peakly's moat.
-- **PWA manifest + service worker** -- installable to home screen on iOS and Android.
-- **JSON-LD structured data** added to index.html.
-- **Set Alert button** live in VenueDetailSheet (2 taps to trigger alert).
-- **5 Plausible custom events** confirmed wired and firing.
-- **GA4 added then correctly reverted** -- Plausible is the sole analytics platform. No cookie banner needed.
-- **$79/yr pricing confirmed correct.** Zero instances of $9/mo.
-- **Cache buster current** at v=20260325b.
-- **SEO score: 91% (up from 81%).** QA: 9/11 pass. UX: 9.4/10. Revenue RPM: $12.18.
+- Trimmed from 472 to 192 venues with 100% unique Unsplash photos (correct call -- quality over count)
+- HTTPS proxy live via Caddy + Let's Encrypt on peakly-api.duckdns.org -- P0 mixed content resolved, real flight prices in production
+- PWA manifest + service worker -- home screen installable on iOS and Android
+- JSON-LD structured data -- SEO from 81% to 91%
+- All 5 Plausible custom events wired and confirmed
+- $79/yr Peakly Pro pricing fix confirmed
+- Set Alert button added to VenueDetailSheet
+- .gitignore added
+- Cache buster bumped
 
 ---
 
@@ -26,71 +24,93 @@ Three P0 blockers from last briefing are resolved (HTTPS proxy, $79/yr pricing, 
 
 | Decision | Source |
 |----------|--------|
-| Venue expansion FROZEN at 472. No more until detail sheet converts. | PM |
-| GA4 CUT -- Plausible sufficient | PM |
-| Offline/service worker CUT -- incompatible with live-data product | PM |
-| Dark mode CUT -- no demand signal | PM |
-| Trips + Wishlists tabs DEFERRED to 1K users | PM |
-| Reddit launch gated on: photo audit + detail sheet polish + Sentry DSN | PM |
-| 280-venue expansion CONTESTED -- right data, wrong timing | PM |
+| VenueDetailSheet photo hero + sticky CTA gates Reddit launch | PM v11 |
+| 192 venues frozen -- no expansion until post-launch | PM v11 |
+| Score validation thumbs up/down ships with detail sheet | PM v11 |
+| Trips + Wishlists tabs DEFERRED to 1K users | PM v11 |
+| Dark mode CUT, offline support CUT | PM v11 |
+| Reddit hook shifts from venue count to problem statement | Growth v12 |
 
 ---
 
 ## BLOCKED:
 
-| What | Unblocked By | Specific Action |
-|------|-------------|-----------------|
-| 252 surf venues have duplicate photos | Content/data agent assigns unique Unsplash URLs | Multi-hour task. Must complete before Reddit post. |
-| 66 airport codes missing from AP_CONTINENT | Dev work | Paste-ready list exists in data enrichment report. 189 venues (40%) have broken continent mapping. |
-| REI affiliate tags (21 links earning $0) | LLC approval OR Avantlink signup (no LLC needed per Revenue agent) | Jack: sign up at avantlink.com. 30 min. |
-| Backcountry + GetYourGuide affiliate links | LLC approval | External -- no action available |
-| Peakly Pro Stripe integration | LLC approval | External -- no action available |
-| Production crash visibility | Jack signs up at sentry.io | 5 min, paste DSN into app.jsx line 6 |
+| Blocked Item | What Unblocks It |
+|-------------|-----------------|
+| REI (22 links), Backcountry (2), GetYourGuide (1) -- all earning $0 | LLC approval (external, no action available). REI via Avantlink does NOT require LLC -- Jack action. |
+| Peakly Pro subscriptions | LLC approval + Stripe setup |
+| VenueDetailSheet redesign (photo hero, sticky CTA, score breakdown) | Dev time: 4-6 hours. Flagged P1 for 4 consecutive reports. Nobody is doing this work. |
+| Reddit launch | VenueDetailSheet + Reddit account karma verification |
 
 ---
 
 ## TOP 3 PRIORITIES THIS WEEK:
 
-1. **Fix photo duplication on 252 surf venues** -- Reddit surfers will scroll cards and see the same image 150 times. This single issue will undermine the "333 surf spots" marketing hook that the Growth agent built the entire post title around. Must be done before Reddit launch. Nothing else matters until this is fixed.
+1. **Ship VenueDetailSheet redesign (photo hero + sticky CTA + score breakdown)** -- This is the only surface that converts browsing into revenue. Booking.com and Travelpayouts earn $0 from a detail sheet users scroll past. Every agent has flagged this. It gates the Reddit launch. Nothing else matters until it ships.
 
-2. **Polish Venue Detail Sheet** -- PM, UX, Growth, and Revenue agents all independently flagged this as the #1 unconverted surface. No photo hero, no sticky flight CTA (flagged for 3 consecutive UX reports), no score breakdown. Every card tap lands here. This is where Booking.com clicks and Travelpayouts revenue live. 4-6 hours dev work.
+2. **Sentry DSN + REI Avantlink signup** -- 5 minutes at sentry.io gives crash visibility before any public traffic. 30 minutes at avantlink.com activates REI affiliate revenue (no LLC required). Combined: 35 minutes of Jack's time, unblocked today.
 
-3. **Reddit launch** -- post is drafted, copy-paste ready, all technical blockers cleared. Best window: Tuesday/Wednesday 7-9am Pacific. But do NOT post until photos are fixed and detail sheet has at minimum a sticky flight CTA.
+3. **Open-Meteo weather cache (localStorage, 30-min TTL)** -- At ~30 concurrent users the 10K/day free API tier exhausts in under an hour. Failure is completely silent: all scores drop to 0, hero shows garbage, users assume the app is dead. Must ship before Reddit post. 2 hours of dev work.
 
 ---
 
 ## RISKS:
 
-1. **Photo duplication will tank the Reddit launch.** 152 venues share a single Unsplash image. This was created by the 280-venue expansion that PM explicitly recommended against. An r/surfing commenter saying "why do all spots have the same picture?" kills the thread. This risk is new since last briefing and is the most urgent issue across the entire project.
+1. **No runtime verification exists anywhere in the pipeline.** The site was down and nobody knew. None of the 12 agents can render the page. They do static code analysis only. If Babel transpilation fails, if a CDN goes down, if a syntax error manifests at runtime -- zero agents detect it. This is not a one-time gap. It will happen again on every deploy until a real uptime check exists.
 
-2. **Pipeline venue has a double-comma syntax bug (line 300)** that Babel tolerates today but could white-screen the entire app on a CDN upgrade. Pipeline is the flagship venue you'll deep-link in Reddit comments. One-character fix. QA flagged it. Still not fixed.
+2. **VenueDetailSheet has been P1 for 4 consecutive report cycles with zero progress.** This is the primary revenue surface and the Reddit launch gate. PM, UX, Growth, and Revenue agents all independently identified it as the #1 priority. If it does not ship this week, the Reddit window (pre-Easter, late-season ski/surf interest) closes.
 
-3. **Open-Meteo rate limit at ~30 concurrent users.** 342 API calls per user = free tier exhausted after 29 full loads. If Reddit drives 50+ simultaneous visitors, all scores drop to 0, hero card shows garbage, no error banner, no fallback UI. **Persisted from last briefing with no action taken.**
+3. **Open-Meteo rate limit will silently kill the app under any traffic spike.** No error banner, no fallback UI, no alert. Persisted from last briefing with no action taken.
 
 ---
 
 ## YOUR TO-DO LIST:
 
-1. **Sign up for Sentry free tier and paste DSN into app.jsx line 6.** 5 minutes. You are launching to the public with zero crash visibility on a 6,354-line single-file app with a scoring overhaul just shipped. Do this today.
+1. **Open https://j1mmychu.github.io/peakly/ on your phone right now.** Confirm it loads, venue cards show photos, tapping a surf venue shows real weather data and a flight price (not "est."). If it is broken, everything else stops. Do this before reading any further.
 
-2. **Sign up for REI affiliate via Avantlink.com.** 30 minutes. Revenue agent confirmed this does NOT require LLC. 21 gear links across 8 categories currently earning $0. Estimated +$5.78 RPM.
+2. **Set up a free uptime monitor.** UptimeRobot.com (free tier, 5-min checks) or Freshping. Point it at the live URL. Set it to text your phone on failure. 5 minutes. This is how you prevent "how did no one know the site was down?" from ever happening again.
 
-3. **Verify your Reddit account** has 50+ karma and 30+ days age on r/surfing. If not, spend 1-2 weeks commenting genuinely first. This is the #1 launch failure mode and only you can check it.
+3. **Sign up at sentry.io** (free tier, 5 min). Paste the DSN into app.jsx line 6. Gives crash visibility before any public traffic.
 
-4. **Open the live site on your phone** and confirm: real flight prices appear (not "est."), venue detail sheet loads with weather data, surf venue photos look good. 2 minutes.
+4. **Sign up at avantlink.com for REI affiliate** (30 min, no LLC required). 22 REI links across 8 categories currently earning $0. Estimated +$6 RPM.
 
-5. **Post to Reddit** when photo duplication is resolved. Copy-paste ready draft in Growth and Community reports. Best window: Tuesday or Wednesday, 7-9am Pacific.
+5. **Verify your Reddit account** has 50+ karma and 30+ days activity on r/surfing. If not, start warming it up now. This is the #1 Reddit launch failure mode and only you can check it.
 
 ---
 
 ## ONE THING NOBODY IS SAYING THAT NEEDS TO BE SAID:
 
-The 280-venue expansion went against the PM's explicit recommendation ("Geographic expansion before nailing UX for existing 182 venues is wrong order") and introduced three new problems: 252 venues with duplicate photos, 66 broken airport continent mappings, and a dataset so surf-heavy (71% of all venues) that 7 of 11 category pills feel abandoned. The expansion made the venue count impressive for the Reddit post title but created a quality problem that now blocks the very launch it was supposed to support.
+**You have 12 AI agents producing 12 polished reports, and not one of them can tell you whether the site is up.**
 
-The deeper pattern across all 11 reports: four agents (PM, UX, Growth, Revenue) independently identified the Venue Detail Sheet as the single highest-priority item for 3 consecutive reporting cycles. It has not been touched. Meanwhile, the team shipped JSON-LD schemas, WCAG contrast fixes, structured data, PWA manifests, 280 new venues, and 12 scoring algorithms. All good work. None of it matters if the user who taps one card sees a detail sheet with no photo, no sticky book button, and no score breakdown, then bounces.
+Every agent reads app.jsx, counts lines, checks syntax, audits links, writes paste-ready fixes, models revenue, drafts Reddit posts. None of them loads a browser. None of them fetches the live URL. None of them can distinguish between "the code looks correct" and "the site works." You discovered downtime yourself and asked "how did no one know?" The answer is architectural: static analysis is not monitoring.
 
-The question you should be asking: why has the one surface where revenue happens been deprioritized for 3 cycles in a row while everything around it gets polished?
+The fix is two layers:
+
+**Layer 1 (5 min, do today):** UptimeRobot free tier. Pings `https://j1mmychu.github.io/peakly/` every 5 minutes. Texts you when it returns non-200. Would have caught the outage within 5 minutes instead of however long it took.
+
+**Layer 2 (30 min, do this week):** A nightly headless browser check -- 20 lines of Playwright that loads the page, waits for React to mount, asserts venue cards rendered, and fails loudly if they don't. This catches the Babel transpilation failure mode that no amount of static code review will ever detect.
+
+Until these exist, every agent report carries an invisible asterisk: *"assuming the site actually loads."* That assumption has already been wrong at least once.
+
+The deeper pattern: 4 agents have independently flagged the VenueDetailSheet as the #1 priority for 4 consecutive cycles. It has not been touched. Meanwhile, the team shipped JSON-LD schemas, scoring overhauls, PWA manifests, 280 venues (then reverted), structured data, and 11 reports analyzing the work. All useful. None of it matters if the primary conversion surface stays broken -- or if the site itself is down and nobody notices.
 
 ---
 
-*Generated 2026-03-25 by Chief of Staff agent. Sources: all 11 agent reports + git log (15 commits reviewed).*
+### Cross-Report Summary
+
+| Area | Key Number | Trend |
+|------|-----------|-------|
+| Venues | 192 (100% unique photos) | Stable (frozen) |
+| Revenue RPM (live) | $12.06/1K MAU | Down $0.12 (lost 1 Amazon link) |
+| RPM post-LLC | ~$33.23/1K MAU (+176%) | Blocked by LLC |
+| SEO score | 91% | Up from 81% |
+| QA | 9/11 pass | Sentry DSN + sitemap still failing |
+| UX score | 9.4/10 | 10 WCAG contrast failures unfixed for 4 reports |
+| Data completeness | 5.2% (tags are 2/venue, need 5+) | Unchanged |
+| Retention risk | YELLOW (5.5/10) | Down 0.5 from venue trim |
+| Reddit readiness | GO (pending detail sheet + account check) | Unchanged |
+| 90-day user projection | 4,500-8,000 | Down from 6,000-10,000 |
+
+---
+
+*Generated 2026-03-24 by Chief of Staff agent. Sources: all 11 agent reports + git log (15 commits reviewed).*
