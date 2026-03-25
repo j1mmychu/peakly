@@ -1594,9 +1594,13 @@ const TP_MARKER = "YOUR_TP_MARKER";
 function buildFlightUrl(from, to, opts) {
   const whenId = opts?.whenId || "anytime";
   const startDate = opts?.startDate;
+  const endDate = opts?.endDate;
   const dep = startDate || getFlightDate(whenId);
   const depFmt = dep.replace(/-/g, "").slice(2); // YYMMDD for Aviasales
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depFmt}${to}1`;
+  // Return date: use endDate if provided, else default 7 days after departure
+  const ret = endDate || (() => { const d = new Date(dep); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
+  const retFmt = ret.replace(/-/g, "").slice(2);
+  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depFmt}${to}${retFmt}1`;
   if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
@@ -1896,18 +1900,18 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
-      <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
-        {listing.photo ? (
+      <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16, background:listing.gradient }}>
+        <div className="card-img" style={{
+          position:"absolute", inset:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
+        </div>
+        {listing.photo && (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.style.display = "none"; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
-        ) : (
-          <div className="card-img" style={{
-            position:"absolute", inset:0, background:listing.gradient,
-            display:"flex", alignItems:"center", justifyContent:"center",
-          }}>
-            <span style={{ fontSize:72, opacity:0.22, filter:"blur(1px)" }}>{listing.icon}</span>
-          </div>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
@@ -1996,7 +2000,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
             <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, {startDate: listing.bestWindow?.date})} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
@@ -2022,12 +2026,12 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
-        {listing.photo ? (
+        <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
+        {listing.photo && (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.style.display = "none"; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
-        ) : (
-          <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
         <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
@@ -2067,7 +2071,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
             <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
             <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> from {listing.flight.from}</span>
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, {startDate: listing.bestWindow?.date})} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
@@ -2087,18 +2091,18 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
-      <div style={{ position:"relative", height:128, overflow:"hidden" }}>
-        {listing.photo ? (
+      <div style={{ position:"relative", height:128, overflow:"hidden", background:listing.gradient }}>
+        <div style={{
+          position:"absolute", inset:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
+        </div>
+        {listing.photo && (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.style.display = "none"; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
-        ) : (
-          <div style={{
-            position:"absolute", inset:0, background:listing.gradient,
-            display:"flex", alignItems:"center", justifyContent:"center",
-          }}>
-            <span style={{ fontSize:38, opacity:0.22 }}>{listing.icon}</span>
-          </div>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
@@ -2995,9 +2999,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               {/* Hero photo */}
               {hero.photo && (
                 <div style={{ position:"relative", height:140, overflow:"hidden" }}>
-                  <img src={hero.photo} alt={hero.title} loading="lazy" style={{
-                    width:"100%", height:"100%", objectFit:"cover", display:"block",
-                  }} />
+                  <img src={hero.photo} alt={hero.title} loading="lazy"
+                    onError={e => { e.target.parentNode.style.display = "none"; }}
+                    style={{
+                      width:"100%", height:"100%", objectFit:"cover", display:"block",
+                    }} />
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
                   <div style={{ position:"absolute", bottom:8, left:12 }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
@@ -5053,7 +5059,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const packing    = PACKING[listing.category]      || PACKING.surfing;
   const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
   const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap, {
-    startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
+    startDate: filters?.startDate || listing.bestWindow?.date, endDate: filters?.endDate, whenId: search?.when,
   });
 
   // Similar venues: same category, excluding current, sorted by score
@@ -5111,15 +5117,15 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
       }}>
         <div ref={scrollRef} style={{ flex:1, overflowY:"auto" }}>
         {/* Hero — full bleed */}
-        <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
-          {listing.photo ? (
+        <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0", background:listing.gradient }}>
+          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
+          </div>
+          {listing.photo && (
             <img src={listing.photo} alt={listing.title} loading="lazy"
               onLoad={e => { e.target.style.opacity = 1; }}
+              onError={e => { e.target.style.display = "none"; }}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
-          ) : (
-            <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
-            </div>
           )}
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 50%)" }} />
           {/* Drag handle overlaid on hero */}
@@ -5245,10 +5251,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
-                      {sv.photo ? (
-                        <img src={sv.photo} alt={sv.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-                      ) : (
-                        <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                      <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                      {sv.photo && (
+                        <img src={sv.photo} alt={sv.title} loading="lazy"
+                          onError={e => { e.target.style.display = "none"; }}
+                          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                       )}
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
                         <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
@@ -5463,7 +5470,14 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · ${listing.flight.price}</span>
             </div>
           </a>
-          <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
+          <a href={(() => {
+               const ci = filters?.startDate || listing.bestWindow?.date;
+               const co = filters?.endDate || (ci ? (() => { const d = new Date(ci); d.setDate(d.getDate() + 7); return d.toISOString().slice(0,10); })() : "");
+               let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`;
+               if (ci) url += `&checkin=${ci}`;
+               if (co) url += `&checkout=${co}`;
+               return url;
+             })()}
              target="_blank" rel="noopener noreferrer"
              onClick={() => logEvent('hotel_click', {venue: listing.title})}
              style={{ flex:1, textDecoration:"none" }}>
@@ -5983,7 +5997,9 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                 height: 130, background: venue.gradient || "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
                 display: "flex", alignItems: "flex-end", padding: 14, position: "relative", overflow: "hidden",
               }}>
-                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy"
+                  onError={e => { e.target.style.display = "none"; }}
+                  style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                 <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)" }} />
                 <div style={{
                   position: "absolute", top: 10, right: 10,
@@ -6312,7 +6328,9 @@ function App() {
       const d = new Date(); d.setDate(d.getDate() + i);
       dayNames.push(d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}));
     }
-    const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore };
+    const bestDateObj = new Date(); bestDateObj.setDate(bestDateObj.getDate() + bestDay);
+    const bestDateStr = bestDateObj.toISOString().slice(0, 10);
+    const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore, date: bestDateStr };
 
     return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow };
   });
