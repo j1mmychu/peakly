@@ -44,7 +44,7 @@ peakly/
 ### Infrastructure
 
 - **Frontend:** GitHub Pages (static, push to `main` to deploy)
-- **Flight proxy:** Node.js on DigitalOcean VPS (104.131.82.242:3001), Ubuntu 24, 1GB RAM
+- **Flight proxy:** Node.js on DigitalOcean VPS (198.199.80.21:3001), Ubuntu 24, 1GB RAM
 - **VPS runs HTTP** — HTTPS not yet configured. Mixed content blocks flight prices in browsers.
 - **SSH-only git push** from Mac (`git@github.com:j1mmychu/peakly.git`)
 
@@ -88,7 +88,7 @@ The single file is organized in this order:
 |-----|----------|------|---------|
 | Open-Meteo Weather | `api.open-meteo.com/v1/forecast` | None (free) | 7-day weather forecasts |
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None (free) | Wave height, swell data |
-| Travelpayouts (via proxy) | `104.131.82.242:3001/api/flights` | Server-side token | Flight pricing |
+| Travelpayouts (via proxy) | `198.199.80.21:3001/api/flights` | Server-side token | Flight pricing |
 | Google Flights | Deep links only | N/A | Flight search URLs |
 
 **Important:** The Travelpayouts API token is kept server-side on a VPS proxy — never expose it in client code.
