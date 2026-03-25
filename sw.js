@@ -1,10 +1,9 @@
 // Peakly Service Worker — lightweight cache-first for static assets
-const CACHE_NAME = "peakly-v20260325b";
+const CACHE_NAME = "peakly-v1";
 const PRECACHE = [
   "/peakly/",
   "/peakly/index.html",
-  "/peakly/manifest.json"
-  // app.jsx excluded — cache-busted via ?v= query param in index.html
+  "/peakly/app.jsx"
 ];
 
 self.addEventListener("install", (e) => {
