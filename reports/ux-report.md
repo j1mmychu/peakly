@@ -1,63 +1,119 @@
-# Peakly UX Audit -- Report: 2026-03-24 (v11)
+# Peakly UX Audit -- Report: 2026-03-24 (v9)
 
-## UX Score: 9.4/10
+## Design Score: 9.2/10
 
-The VPS proxy is fixed (HTTPS via Caddy), PWA manifest is added, and GA4 has been removed. All 5 Plausible custom events remain wired and firing. The Set Alert button is live in VenueDetailSheet (line 5118). BottomNav touch targets pass 44px minimum (line 5975: `padding:"8px 0"`).
-
-The remaining 0.6 points break down as: (a) 10 WCAG AA contrast failures persist -- none were fixed since v10; (b) ListingCard "Book" button still does not fire a Plausible Flight Search event (line 2092); (c) 9 surviving `fontSize:9` instances, 4 on non-space-constrained surfaces; (d) "+ More" button still gates 8 categories behind a tap (line 2982); (e) flight CTA in VenueDetailSheet still scrolls out of view -- no sticky bottom bar.
-
-No regressions from the VPS proxy fix, PWA manifest addition, or GA4 removal. Score holds at 9.4.
+The v8 fixes are holding. The pill count conditional (hide < 3 venues) is confirmed shipped. The "rt" label was added to the carousel price. The fontSize:10 floor is applied on CompactCard and hero stat labels. Remaining 0.8 points are split between: (a) 11 surviving fontSize:9 instances, half on decision-critical surfaces; (b) missing Plausible custom event wiring despite the Plausible script being loaded; (c) a "windows available" label that was marked for rename to "spots" in CLAUDE.md decisions but never shipped; and (d) no alert creation path from VenueDetailSheet -- the `onAlert` prop is wired but never called inside the sheet.
 
 ---
 
 ## 1. CORE FLOW AUDIT -- Tap Count
 
 ### Flow A: Fresh visit to first venue with conditions + flight price visible
-1. App loads -> Explore tab default. Hero card visible with condition score + flight price. **0 taps.**
+1. App loads -> Explore tab is default. Hero card visible immediately with condition score + flight price. **0 taps to see data.**
 2. Tap hero card -> VenueDetailSheet opens with full conditions + flight price + 7-day forecast. **1 tap.**
 3. Tap "Book on Google Flights" -> external link. **2 taps to bookable flight.**
 
-**Verdict: 2 taps. Beats Airbnb's 3-tap benchmark.** No regression.
+**Verdict: 2 taps. Beats Airbnb's 3-tap benchmark.** The hero card is doing its job.
 
 ### Flow B: Set an alert for a specific venue
-1. Tap any card to open VenueDetailSheet. **1 tap.**
-2. Scroll to "Alert me when conditions peak" button (line 5118). Tap it. **2 taps.**
-3. Sheet closes, switches to Alerts tab. **2 taps to trigger alert flow.**
+1. Open venue (1 tap on any card).
+2. VenueDetailSheet opens. There is no "Set Alert" button inside VenueDetailSheet. The `onAlert` prop exists but is never called by any UI element in the sheet.
+3. User must close the sheet, tap "Alerts" in BottomNav (2 taps), tap "Create Alert" (3 taps), pick a sport (4 taps), pick conditions (5 taps), optionally find the specific venue in the locations list (6 taps), confirm (7 taps).
 
-**Verdict: 2 taps. No regression.** Still not pre-filling the alert with venue sport/location -- flagged for future improvement.
+**Verdict: 7 taps. Should be 3.** The VenueDetailSheet should have a "Set Alert" button that pre-fills the alert with the venue's sport and location. The `onAlert` callback is already wired from App -> VenueDetailSheet. Zero plumbing needed -- only a UI trigger inside the sheet.
 
 ### Flow C: Share a venue with a friend
 1. Open venue (1 tap).
-2. Tap "Share & Invite" button in VenueDetailSheet hero (2 taps) -- line 5053.
-3. Tap "Copy link" or "Copy card" (3 taps) -- line 5073.
+2. Tap "Share & Invite" button in VenueDetailSheet hero (2 taps).
+3. Tap "Copy link" or "Copy card" (3 taps).
+4. Paste into messaging app (platform action).
 
-**Verdict: 3 taps. No regression.**
+**Verdict: 3 taps. Acceptable.** The share panel is well-designed with two copy options and a preview card.
 
 ---
 
 ## 2. PLAUSIBLE EVENT WIRING
 
-All 5 events confirmed wired. GA4 gtag.js has been removed (per recent changes). Plausible is the sole analytics platform.
+Plausible script is loaded in index.html (line 27: `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>`). Zero custom events are wired. The `plausible()` function is available globally once the script loads but is never called anywhere in app.jsx.
 
-| Event | Status | Line | Implementation |
-|-------|--------|------|----------------|
-| Tab Switch | CONFIRMED | 6345 | `window.plausible && window.plausible('Tab Switch', {props: {tab}})` in BottomNav setActive wrapper |
-| Venue Click | CONFIRMED | 6194 | `window.plausible && window.plausible('Venue Click', {props: {venue: listing.title, category: listing.category}})` in openDetail callback |
-| Flight Search (detail) | CONFIRMED | 5109 | Fires on "Book on Google Flights" CTA click in VenueDetailSheet |
-| Wishlist Add | CONFIRMED | 6186 | Fires only on add (not remove), sends venue title |
-| Onboarding Complete | CONFIRMED | 4614 | Fires with airport prop on complete |
+Here are the 5 custom events with exact code and trigger points:
 
-### Missing: Flight Search on ListingCard "Book" button (REPEAT -- 3rd consecutive report)
+### Event 1: Tab Switch
+**Trigger point:** BottomNav button click (line 5234)
 
-**FILE:** app.jsx
-**LINE:** 2092
-**ISSUE:** The ListingCard "Book" button fires `haptic("heavy")` but does NOT fire a Plausible Flight Search event. This is a second entry point for flight clicks that goes completely untracked.
-**FIX:**
 ```jsx
-// LINE 2092 -- replace:
-onClick={e => { e.stopPropagation(); haptic("heavy"); }}
-// with:
-onClick={e => { e.stopPropagation(); haptic("heavy"); window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }}
+// FILE: app.jsx
+// LINE: 5234 -- inside BottomNav, replace the onClick handler
+<button key={t.id} onClick={() => {
+  setActive(t.id);
+  if (window.plausible) window.plausible('Tab Switch', { props: { tab: t.id } });
+}} className="tab-btn" style={{
+```
+
+### Event 2: Venue Click
+**Trigger point:** openDetail callback in App (line 5448)
+
+```jsx
+// FILE: app.jsx
+// LINE: 5448 -- replace the openDetail callback
+const openDetail = useCallback(listing => {
+  setDetailVenue(listing);
+  if (window.plausible) window.plausible('Venue Click', { props: { venue: listing.id, category: listing.category, score: listing.conditionScore } });
+}, []);
+```
+
+### Event 3: Flight Search
+**Trigger point:** "Book on Google Flights" CTA in VenueDetailSheet (line 4394)
+
+```jsx
+// FILE: app.jsx
+// LINE: 4394 -- add onClick to the <a> tag
+<a href={flightUrl} target="_blank" rel="noopener noreferrer" onClick={() => {
+  if (window.plausible) window.plausible('Flight Search', { props: { venue: listing.id, price: listing.flight.price, from: listing.flight.from, to: listing.ap } });
+}} style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+```
+
+Also wire the ListingCard "Book" button (line 1388-1389):
+
+```jsx
+// FILE: app.jsx
+// LINE: 1389 -- update the onClick
+onClick={e => {
+  e.stopPropagation();
+  haptic("heavy");
+  if (window.plausible) window.plausible('Flight Search', { props: { venue: listing.id, price: listing.flight.price, from: listing.flight.from, to: listing.ap } });
+}}
+```
+
+### Event 4: Wishlist Add
+**Trigger point:** toggleWishlist callback in App (line 5444)
+
+```jsx
+// FILE: app.jsx
+// LINE: 5444 -- replace the toggleWishlist callback
+const toggleWishlist = useCallback(id => {
+  setWishlists(p => {
+    const removing = p.includes(id);
+    if (!removing && window.plausible) {
+      const venue = VENUES.find(v => v.id === id);
+      window.plausible('Wishlist Add', { props: { venue: id, category: venue?.category || 'unknown' } });
+    }
+    return removing ? p.filter(x => x !== id) : [...p, id];
+  });
+}, [setWishlists]);
+```
+
+### Event 5: Onboarding Complete
+**Trigger point:** OnboardingSheet `complete` function (line 3909)
+
+```jsx
+// FILE: app.jsx
+// LINE: 3909 -- update the complete function
+const complete = () => {
+  setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
+  if (window.plausible) window.plausible('Onboarding Complete', { props: { airport: airport, sports: sports.join(','), hasSports: sports.length > 0 } });
+  onClose();
+};
 ```
 
 ---
@@ -65,217 +121,225 @@ onClick={e => { e.stopPropagation(); haptic("heavy"); window.plausible && window
 ## 3. VISUAL QUALITY AUDIT
 
 ### Touch targets
-BottomNav padding confirmed at line 5975: `padding:"8px 0"`. With 20px icon + 10px label + 16px padding = ~46px. Passes 44px minimum. No regressions.
+All interactive elements meet the 44x44px minimum in practice (36x36 heart buttons with surrounding padding bring effective targets above 44). The search bar has 13px vertical padding on a tall element -- well above minimum. Category pills have 7px vertical padding with 12px font, giving ~38px height -- technically below 44px but acceptable for horizontal scroll elements following Apple HIG exceptions for toolbars.
+
+One violation: the BottomNav tab buttons have `padding:"4px 0"` with a 20px icon and 10px label. Total height is roughly 38px. This is the primary navigation and should be 48px minimum.
+
+**FILE:** app.jsx
+**LINE:** 5238
+**ISSUE:** BottomNav buttons are ~38px tall, below 44px minimum for primary navigation.
+**FIX:**
+```jsx
+// Change padding:"4px 0" to padding:"8px 0"
+padding:"8px 0",
+```
 
 ### Type hierarchy
-No regressions. Hero (20px title), VenueDetailSheet (20px title, 22px score), grid header (18px section) all maintain clear hierarchy.
+Clear on all major screens. Hero card (20px title, 16px score, 12px location) creates proper hierarchy. VenueDetailSheet has strong hierarchy (20px title, 22px score, 13px body). The grid header (18px section name, 13px subtitle) works.
 
-### Color contrast -- WCAG AA failures
+One issue: "All experiences" header at line 2486 uses 18px, same weight as "Best Right Now" at line 2438. These are different hierarchy levels (section vs. grid) but read as equals.
 
-**None of the 10 failures from v10 have been fixed.** Full inventory:
+### Color contrast WCAG AA failures
 
-| # | Element | Line | Foreground | Background | Ratio | Required | Status |
-|---|---------|------|-----------|------------|-------|----------|--------|
-| 1 | Estimated prices banner text | 3130 | #f59e0b | #fef3c7 | 2.84:1 | 4.5:1 | FAILING (3 reports) |
-| 2 | Search filter slider "$100" | 2462 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (3 reports) |
-| 3 | Search filter slider "Any" | 2463 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (3 reports) |
-| 4 | Rating review count (ListingCard) | 2063 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (3 reports) |
-| 5 | Carousel "rt" label | 3175 | #888 | #fff | 3.54:1 | 4.5:1 | FAILING |
-| 6 | Affiliate disclaimer text | 5204 | #999 | #f7f7f7 | 2.58:1 | 4.5:1 | FAILING (3 reports) |
-| 7 | GetYourGuide text | 5228 | #999 | #fff | 2.85:1 | 4.5:1 | FAILING (3 reports) |
-| 8 | Forecast date labels (non-active) | 5134 | #aaa | #f7f7f7 | 2.06:1 | 4.5:1 | FAILING |
-| 9 | Forecast low temp | 5138 | #bbb | #f7f7f7 | 1.64:1 | 4.5:1 | FAILING (3 reports) |
-| 10 | Similar venue location | 5177 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (3 reports) |
+| Element | Line | Foreground | Background | Ratio | Min Required | Fix |
+|---------|------|-----------|------------|-------|-------------|-----|
+| Carousel "rt" label | 2472 | #aaa on white | #fff | 2.32:1 | 4.5:1 (text < 18px) | Change to #888 |
+| Estimated prices banner text | 2427 | #f59e0b on #fef3c7 | -- | 2.84:1 | 4.5:1 | Change to #b45309 |
+| "Affiliate links" text | 4479 | #bbb on white | #fff | 1.85:1 | 4.5:1 | Change to #888 |
+| "via GetYourGuide" text | 4503 | #bbb on white | #fff | 1.85:1 | 4.5:1 | Change to #888 |
+| Similar venue score badge text | 4447 | #fff on varies | depends on score | OK for >=85 | -- | Fine for colored bg |
+| SearchBar subtitle | 1937 | #999 on #fff | #fff | 2.85:1 | 4.5:1 | Change to #717171 |
 
-### fontSize:9 audit
-
-9 instances remain at fontSize:9. No change from v10.
-
-| Line | Element | Decision-critical? | Recommendation |
-|------|---------|-------------------|----------------|
-| 2462 | Slider label "$100" | No | Raise to 10, fix color |
-| 2463 | Slider label "Any" | No | Raise to 10, fix color |
-| 3130 | Estimated prices banner | Yes (data trust) | Raise to 10, fix color |
-| 3175 | Carousel "rt" label | No | Leave (space-constrained) |
-| 5134 | Forecast date label | Yes (navigation) | Leave (space-constrained at 62px card) |
-| 5136 | Forecast wave height | Yes (surf decision) | Leave (space-constrained) |
-| 5139 | Forecast precipitation | No | Leave (space-constrained) |
-| 5204 | Affiliate disclaimer | No | Raise to 10, fix color |
-| 5228 | GetYourGuide text | No | Raise to 10, fix color |
-
-4 can be raised with zero layout risk. 5 are in the 62px forecast cards where space is genuinely constrained.
+### Spacing consistency
+Card border-radius inconsistency: CompactCard uses 12, ListingCard uses 20, FeaturedCard uses 20, carousel cards use 14, hero card uses 16, saved venue cards use 12, similar venue cards use 14. Five different radii across card components. Should converge to two: 12px for compact/inline, 16px for full-size.
 
 ---
 
 ## 4. AIRBNB COMPARISON
 
-### Category discovery (UNSHIPPED -- 3rd consecutive report)
-**What Airbnb does:** All categories visible via horizontal scroll. Fade gradient on right edge signals more content.
-**What Peakly does:** Shows 4 default pills (All, Skiing, Surfing, Beach & Tan) + a "+ More" button (lines 2956-2986).
-**Gap:** Categories like Hiking, Climbing, Diving, Kitesurfing, Paragliding, Snowboarding, Kayaking, MTB are hidden behind a tap. A user who downloaded Peakly for diving will not see their category without tapping "+ More".
+### Explore screen
+**What Airbnb does:** Horizontally scrollable category bar with no expand button -- all categories visible via scroll. A subtle right-edge fade gradient signals scrollability.
+**What Peakly does:** Shows 4 default pills + a "+ More" button that reveals the rest.
+**Gap:** The "+ More" button requires a deliberate tap, hiding new categories. A scroll-fade approach surfaces all pills with zero interaction.
 
-### Sticky flight CTA (UNSHIPPED -- 3rd consecutive report)
-**What Airbnb does:** "Reserve" CTA pinned to bottom of listing detail. Never scrolls out of view.
-**What Peakly does:** "Book on Google Flights" CTA is inline at line 5109. Scrolls away when user reads forecast, gear, experiences.
-**Gap:** When a user scrolls to the bottom half of VenueDetailSheet (forecast, tips, gear, experiences), the flight CTA is invisible. This directly reduces flight click-through rate -- the single most important revenue action.
+**FILE:** app.jsx
+**LINE:** 2260
+**ISSUE:** Category pill bar uses a "+ More" expand button instead of continuous horizontal scroll.
+**FIX:** Remove the `defaultCatIds` filter and `showAllCats` toggle. Show all CATEGORIES in the scrollable row. Add a gradient fade on the right edge via CSS:
 
-### BottomNav: 3 tabs vs 5 built
-**What Airbnb does:** 5 bottom tabs (Explore, Wishlists, Trips, Inbox, Profile). Every major feature has a dedicated tab.
-**What Peakly does:** 3 tabs (Explore, Alerts, Profile). Wishlists and Trips are fully built but hidden. The Guides tab was added and then apparently removed.
-**Gap:** Users cannot discover Wishlists or Trips unless they stumble into them. Two fully built features are invisible. CLAUDE.md flags this: "ACTION NEEDED: Trips and Wishlists tabs exist in the code but are not wired into BottomNav. Expose them."
+```jsx
+// Replace lines 2253-2255 with:
+const visibleCats = CATEGORIES;
+
+// Add a wrapper div around the pill scroll container (line 2260) with a pseudo-element gradient:
+// In the CSS injection block (line 71), add:
+// .pill-scroll { position: relative; }
+// .pill-scroll::after { content:''; position:absolute; right:0; top:0; bottom:0; width:40px; background:linear-gradient(to right,transparent,#fff); pointer-events:none; z-index:1; }
+```
+
+### Venue detail sheet
+**What Airbnb does:** Prominent "Reserve" CTA pinned to the bottom of the listing detail. Date picker inline. Share and save icons in the header, not behind a panel.
+**What Peakly does:** "Book on Google Flights" CTA is inline, scrolls with content. No pinned bottom CTA.
+**Gap:** When a user scrolls down to forecast, tips, or gear, the flight CTA disappears. It should be pinned.
+
+**FILE:** app.jsx
+**LINE:** ~4394
+**ISSUE:** Flight booking CTA scrolls out of view in VenueDetailSheet.
+**FIX:** Move the CTA to a fixed-position bar at the bottom of the sheet. This is a larger refactor -- flag for next sprint. The current inline position works but is suboptimal for conversion.
+
+### Card design
+**What Airbnb does:** Clean photo, title, location, price per night, rating. No badges overlaying the photo except a "Guest favorite" subtle overlay.
+**What Peakly does:** GoVerdictBadge + flight price pill overlay on photo. Condition label overlay at bottom of photo. More cluttered but justified by the conditions-first value prop.
+**Gap:** Acceptable divergence. Peakly's overlay density is justified because conditions are the primary value. No fix needed.
 
 ---
 
 ## 5. ALL CODE FIXES
 
-### Fix 1: Estimated prices banner contrast (REPEAT x3 -- never shipped)
+### Fix 1: Add "Set Alert" button to VenueDetailSheet
 **FILE:** app.jsx
-**LINE:** 3130
-**ISSUE:** `#f59e0b` text on `#fef3c7` background fails WCAG AA at 2.84:1 (needs 4.5:1). This is a data-trust surface.
+**LINE:** 4400 (after the Book on Google Flights CTA)
+**ISSUE:** The `onAlert` prop is wired but never triggered. Users must navigate to Alerts tab manually (7 taps vs 3).
 **FIX:**
 ```jsx
-<span style={{ fontSize:10, color:"#92400e", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices — live API offline</span>
+{/* Add after the Book on Google Flights CTA, before the 7-day forecast */}
+<button onClick={() => onAlert(listing)} className="pressable" style={{
+  background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+  padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+  gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+</button>
 ```
-Changed to `#92400e` (amber-800) giving 7.25:1 contrast on `#fef3c7`. Bumped fontSize to 10.
 
-### Fix 2: ListingCard "Book" button missing Plausible event (REPEAT x3)
+### Fix 2: Rename "windows available" to "spots"
 **FILE:** app.jsx
-**LINE:** 2092
-**ISSUE:** Flight clicks from ListingCard go untracked. Only VenueDetailSheet fires the event.
+**LINE:** 2489
+**ISSUE:** CLAUDE.md decision from 2026-03-23 says rename "windows available" to "spots". Never shipped.
 **FIX:**
 ```jsx
-onClick={e => { e.stopPropagation(); haptic("heavy"); window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }}
+// Change:
+{loading ? "Fetching live conditions..." : `${gridListings.length} windows available`}
+// To:
+{loading ? "Fetching live conditions..." : `${gridListings.length} spots`}
 ```
 
-### Fix 3: Slider labels contrast + fontSize
+### Fix 3: Estimated prices banner contrast failure
 **FILE:** app.jsx
-**LINES:** 2462-2463
-**ISSUE:** `#bbb` on white at fontSize:9 -- both contrast (1.85:1) and size fail.
+**LINE:** 2427
+**ISSUE:** #f59e0b text on #fef3c7 background fails WCAG AA at 2.84:1 (needs 4.5:1).
 **FIX:**
 ```jsx
-<span style={{ fontSize:10, color:"#888", fontFamily:F }}>$100</span>
-<span style={{ fontSize:10, color:"#888", fontFamily:F }}>Any</span>
+// Change color:"#f59e0b" to color:"#b45309"
+<span style={{ fontSize:9, color:"#b45309", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices -- live API offline</span>
 ```
 
-### Fix 4: Rating review count contrast
+### Fix 4: Carousel "rt" label contrast
 **FILE:** app.jsx
-**LINE:** 2063
-**ISSUE:** `#aaa` on white fails WCAG AA at 2.32:1. Review counts are social proof.
+**LINE:** 2472
+**ISSUE:** #aaa on white fails WCAG AA at 2.32:1.
 **FIX:**
 ```jsx
-<span style={{ fontSize:10, color:"#717171", fontFamily:F }}>({listing.reviews})</span>
+// Change color:"#aaa" to color:"#888"
+<span style={{ fontSize:9, color:"#888", fontFamily:F, marginLeft:2 }}>rt</span>
 ```
 
-### Fix 5: Affiliate disclaimer contrast + fontSize
+### Fix 5: Affiliate disclaimer contrast
 **FILE:** app.jsx
-**LINES:** 5204, 5228
-**ISSUE:** `#999` on `#f7f7f7` gives 2.58:1. On white it's 2.85:1. Both fail.
+**LINES:** 4479, 4503
+**ISSUE:** #bbb on white fails WCAG AA at 1.85:1. Even for fine print, this is unreadable.
 **FIX:**
 ```jsx
-// Line 5204
-<span style={{ fontSize:10, color:"#717171", fontFamily:F }}>Affiliate links · no extra cost</span>
+// Line 4479 -- change color:"#bbb" to color:"#999"
+<span style={{ fontSize:9, color:"#999", fontFamily:F }}>Affiliate links - no extra cost</span>
 
-// Line 5228
-<span style={{ fontSize:10, color:"#717171", fontFamily:F }}>via GetYourGuide</span>
+// Line 4503 -- change color:"#bbb" to color:"#999"
+<span style={{ fontSize:9, color:"#999", fontFamily:F }}>via GetYourGuide</span>
 ```
 
-### Fix 6: Forecast low temp label contrast
+### Fix 6: SearchBar subtitle contrast
 **FILE:** app.jsx
-**LINE:** 5138
-**ISSUE:** `#bbb` on `#f7f7f7` at fontSize:10 fails WCAG AA at 1.64:1.
+**LINE:** 1937
+**ISSUE:** #999 on white fails WCAG AA for small text (2.85:1 vs 4.5:1 required).
 **FIX:**
 ```jsx
-<div style={{ fontSize:10, color:"#888", fontFamily:F }}>{Math.round(f.lo)}°</div>
+// Change color:"#999" to color:"#717171"
+<div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
 ```
 
-### Fix 7: Similar venue location text contrast
+### Fix 7: BottomNav touch target height
 **FILE:** app.jsx
-**LINE:** 5177
-**ISSUE:** `#aaa` on white fails WCAG AA at 2.32:1.
+**LINE:** 5238
+**ISSUE:** Primary nav buttons are ~38px tall, below 44px minimum.
 **FIX:**
 ```jsx
-<div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>📍 {sv.location}</div>
+// Change padding:"4px 0" to padding:"8px 0"
+padding:"8px 0",
 ```
 
-### Fix 8: Carousel "rt" label contrast
+### Fix 8: Similar venue score badge fontSize:9
 **FILE:** app.jsx
-**LINE:** 3175
-**ISSUE:** `#888` on white gives 3.54:1 -- still fails AA (needs 4.5:1).
+**LINE:** 4447
+**ISSUE:** Score text inside badge at fontSize:9 -- below 10px floor established in v7.
 **FIX:**
 ```jsx
-<span style={{ fontSize:9, color:"#717171", fontFamily:F, marginLeft:2 }}>rt</span>
+// Change fontSize:9 to fontSize:10
+<span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
 ```
 
-### Fix 9: Forecast date label contrast (non-active days)
+### Fix 9: Forecast date labels and wave height fontSize:9
 **FILE:** app.jsx
-**LINE:** 5134
-**ISSUE:** `#aaa` on `#f7f7f7` gives 2.06:1. Users need to read dates to select forecast days.
-**FIX:**
-```jsx
-<div style={{ fontSize:9, fontWeight:700, color: i===0?"#0284c7":"#717171", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{fmtDate(f.date, i)}</div>
-```
+**LINES:** 4409, 4411, 4414
+**ISSUE:** Forecast card labels at fontSize:9. The date label ("Today", "Tmrw") is the primary identifier and should not be smaller than the temperature below it.
+**FIX:** These are defensible in the 62px-wide forecast card where horizontal space is genuinely constrained. Leave at fontSize:9. Flagging for awareness only -- no change needed.
 
-### Fix 10: Show all category pills (remove "+ More" gate)
+### Fix 10: Wire all 5 Plausible custom events
 **FILE:** app.jsx
-**LINES:** 2956-2986
-**ISSUE:** 8+ categories hidden behind "+ More" button. Users for non-default sports don't see their category on first load.
-**FIX:**
-```jsx
-// Replace lines 2956-2958:
-// OLD:
-// const defaultCatIds = ["all", "skiing", "surfing", "tanning"];
-// const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
-// NEW:
-const visibleCats = CATEGORIES;
-
-// Delete lines 2982-2986 (the "+ More" button):
-// OLD:
-// {!showAllCats && (
-//   <button onClick={() => setShowAllCats(true)} ...>+ More</button>
-// )}
-
-// Optional: remove dead state on line 2903:
-// const [showAllCats, setShowAllCats] = useState(false);
-```
+**LINES:** 5234, 5448, 4394, 1389, 5444, 3909
+**ISSUE:** Plausible script loaded but zero custom events fire. No data on user behavior.
+**FIX:** See Section 2 above for exact code for all 5 events.
 
 ---
 
-## 6. Fixes Verified Since v10
+## Fixes Verified from v8
 
 | Fix | Status | Details |
 |-----|--------|---------|
-| VPS proxy HTTPS | CONFIRMED | peakly-api.duckdns.org via Caddy + Let's Encrypt |
-| PWA manifest added | CONFIRMED | manifest.json + sw.js + apple-mobile-web-app meta |
-| GA4 removed | CONFIRMED | No gtag.js references found in codebase |
-| 5 Plausible events wired | CONFIRMED | Lines 6345, 6194, 5109, 6186, 4614 |
-| Set Alert button in VenueDetailSheet | CONFIRMED | Line 5118 |
-| BottomNav touch targets | CONFIRMED | Line 5975: `padding:"8px 0"` |
-| Estimated prices banner contrast | NOT SHIPPED (3 reports) | Line 3130: still `#f59e0b` on `#fef3c7` |
-| ListingCard Flight Search event | NOT SHIPPED (3 reports) | Line 2092: still no plausible call |
-| Category pills "+ More" removal | NOT SHIPPED (3 reports) | Line 2982: still gated |
-| Sticky flight CTA | NOT SHIPPED (3 reports) | Line 5109: still inline, scrolls away |
+| Pill count hidden when < 3 venues | CONFIRMED | Line 2272: conditional `listings.filter(l => l.category === c.id).length >= 3` present |
+| Carousel "rt" label added | CONFIRMED | Line 2472: `<span style={{ fontSize:9, color:"#aaa"... }}>rt</span>` present |
+| CompactCard fontSize:10 floor | CONFIRMED | Lines 1512, 1525, 1530, 1540, 1544 all at fontSize:10 |
+| Hero stat labels at fontSize:10, color:#666 | CONFIRMED | Lines 2389, 2394 both at fontSize:10, color:"#666" |
+| Hero est. label at fontSize:10, color:#888 | CONFIRMED | Line 2397 at fontSize:10, color:"#888" |
+| Carousel score at fontSize:10, color:#666 | CONFIRMED | Line 2473 at fontSize:10, color:"#666" |
+| FeaturedCard LIVE badge | CONFIRMED | Line 1434 at fontSize:10 |
+| Saved venue heart 28x28 touch target | CONFIRMED | Lines 2327-2330 present with width:28, height:28 |
+
+No regressions detected on any prior fix.
 
 ---
 
 ## Inspiration
 
-**Ship the contrast fixes in one batch.** Ten WCAG AA failures is a lot for an app targeting 100K users. It takes about 10 minutes to update 10 color values. Each one is a single-line change. None carry layout risk. Accessible apps rank better in app stores, convert better with older users (who spend more on adventure travel), and avoid potential legal issues under ADA/EAA. This is not a design opinion -- it is measurable, standards-based, and overdue.
+**Steal from Airbnb's sticky bottom bar pattern.** When a user scrolls deep into VenueDetailSheet (past the forecast, past the tips, into gear and experiences), the "Book on Google Flights" CTA has scrolled off-screen. Airbnb never lets the Reserve button disappear -- it pins to the bottom with a clean white bar, price summary, and CTA. The implementation: a `position:sticky` div at the bottom of the sheet's scroll container with `bottom:0`, `background:#fff`, `borderTop:1px solid #f0f0f0`, `padding:12px 16px`, containing the price and Book CTA. Alternatively, use `position:fixed` relative to the sheet. This directly increases flight click-through rate by keeping the CTA visible during the longest part of the user session: reading the detail sheet.
 
 ---
 
 ## THE ONE THING
 
-The single highest-impact UX change this week is **adding the Plausible Flight Search event to the ListingCard "Book" button** because flight clicks are Peakly's primary revenue action (Travelpayouts affiliate), the ListingCard Book button is the most prominent flight CTA in the app (visible on every card in the grid without opening a detail sheet), and without tracking this click you are flying blind on your most important conversion metric. Every other flight-related decision -- pricing display, CTA color, button copy, card layout -- depends on knowing how many users tap this button vs the detail sheet CTA. You cannot optimize what you cannot measure. Here is the complete code:
+The single highest-impact UX change this week is **adding a "Set Alert" button to VenueDetailSheet** because the alert-from-venue flow currently takes 7 taps instead of 3, the `onAlert` prop is already fully wired, and alerts are the core retention mechanic -- the thing that brings users back. A user who opens Pipeline, sees great conditions but can't travel this week, and sets an alert in 1 tap will return. A user who has to navigate away to the Alerts tab, re-find their sport, and re-find the location will not. Here is the complete code:
 
 ```jsx
-// FILE: app.jsx
-// LINE: 2092
+{/* FILE: app.jsx -- Insert at line 4401, after the closing </a> of the Google Flights CTA */}
 
-// REPLACE:
-onClick={e => { e.stopPropagation(); haptic("heavy"); }}
-
-// WITH:
-onClick={e => { e.stopPropagation(); haptic("heavy"); window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }}
+<button onClick={() => onAlert(listing)} className="pressable" style={{
+  background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+  padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+  gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+</button>
 ```
 
-One line. Zero risk. Immediately starts collecting data on your highest-value user action. Ship it.
+This is 1 element, 0 new state, 0 new props. The callback already exists and already closes the sheet and switches to the Alerts tab. Ship it.

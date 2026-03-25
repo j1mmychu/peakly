@@ -1,96 +1,81 @@
-# PEAKLY DAILY BRIEFING -- 2026-03-25
+# PEAKLY DAILY BRIEFING — 2026-03-25
 
 ## STATUS: YELLOW
 
-Three P0 blockers from last briefing are resolved (HTTPS proxy, $79/yr pricing, cache buster). But the 280-venue expansion introduced severe data quality problems -- 252 surf venues sharing 3 stock photos -- that now block the Reddit launch it was supposed to support.
+Two fixes shipped today ($9/mo pricing + cache buster), but the flight proxy remains down for 3+ days and zero user-facing features have shipped since the UX 9.5 polish. Reddit launch is ready but every day without it is wasted distribution.
 
 ---
 
-## SHIPPED TODAY:
+## SHIPPED TODAY
 
-- **HTTPS proxy live** -- peakly-api.duckdns.org via Caddy + Let's Encrypt. Real flight prices loading in production. Mixed content blocking eliminated. This was the #1 credibility killer and it's fixed.
-- **280 new surf venues** -- 333 total surf spots with breakType field (beach, point, reef). 472 venues total.
-- **Deep scoring overhaul** -- all 12 sport algorithms rewritten with expanded weather + marine API data. This is Peakly's moat.
-- **PWA manifest + service worker** -- installable to home screen on iOS and Android.
-- **JSON-LD structured data** added to index.html.
-- **Set Alert button** live in VenueDetailSheet (2 taps to trigger alert).
-- **5 Plausible custom events** confirmed wired and firing.
-- **GA4 added then correctly reverted** -- Plausible is the sole analytics platform. No cookie banner needed.
-- **$79/yr pricing confirmed correct.** Zero instances of $9/mo.
-- **Cache buster current** at v=20260325b.
-- **SEO score: 91% (up from 81%).** QA: 9/11 pass. UX: 9.4/10. Revenue RPM: $12.18.
+- **$9/mo -> $79/yr pricing fix** (PM agent, P1) -- prevents price anchoring damage before any real user sees it
+- **Cache buster updated to v=20260325a** -- users now get fresh code
+- **DevOps report v8** -- confirmed proxy is alive but rejecting requests (two bugs: HTTP-only + host restriction)
 
 ---
 
-## DECISIONS MADE:
+## DECISIONS MADE
 
 | Decision | Source |
 |----------|--------|
-| Venue expansion FROZEN at 472. No more until detail sheet converts. | PM |
-| GA4 CUT -- Plausible sufficient | PM |
-| Offline/service worker CUT -- incompatible with live-data product | PM |
-| Dark mode CUT -- no demand signal | PM |
-| Trips + Wishlists tabs DEFERRED to 1K users | PM |
-| Reddit launch gated on: photo audit + detail sheet polish + Sentry DSN | PM |
-| 280-venue expansion CONTESTED -- right data, wrong timing | PM |
+| GA4 CUT -- Plausible is sufficient, no second analytics tool | PM v8 |
+| Offline/service worker CUT -- incompatible with live-data product | PM v8 |
+| Dark mode CUT -- no signal it moves the needle | PM v8 |
+| Trips + Wishlists tabs DEFERRED to 1K users -- 3-tab nav stays | PM v8 |
+| Launch Reddit despite proxy down -- conditions are the hook, not flights | Growth v9 |
 
 ---
 
-## BLOCKED:
+## BLOCKED
 
 | What | Unblocked By | Specific Action |
 |------|-------------|-----------------|
-| 252 surf venues have duplicate photos | Content/data agent assigns unique Unsplash URLs | Multi-hour task. Must complete before Reddit post. |
-| 66 airport codes missing from AP_CONTINENT | Dev work | Paste-ready list exists in data enrichment report. 189 venues (40%) have broken continent mapping. |
-| REI affiliate tags (21 links earning $0) | LLC approval OR Avantlink signup (no LLC needed per Revenue agent) | Jack: sign up at avantlink.com. 30 min. |
-| Backcountry + GetYourGuide affiliate links | LLC approval | External -- no action available |
-| Peakly Pro Stripe integration | LLC approval | External -- no action available |
-| Production crash visibility | Jack signs up at sentry.io | 5 min, paste DSN into app.jsx line 6 |
+| Real flight prices for all users | Jack SSHs into VPS | `pm2 restart all` on 104.131.82.242, then set up HTTPS (Cloudflare tunnel, 10 min) |
+| REI affiliate links (18 links earning $0) | LLC approval | External -- no action available |
+| Backcountry, GetYourGuide affiliate links | LLC approval | External -- no action available |
+| Peakly Pro subscription revenue | LLC + Stripe setup | External -- no action available |
+| Production error visibility | Jack signs up at sentry.io | 5 min, paste DSN into line 6 of app.jsx |
 
 ---
 
-## TOP 3 PRIORITIES THIS WEEK:
+## TOP 3 PRIORITIES THIS WEEK
 
-1. **Fix photo duplication on 252 surf venues** -- Reddit surfers will scroll cards and see the same image 150 times. This single issue will undermine the "333 surf spots" marketing hook that the Growth agent built the entire post title around. Must be done before Reddit launch. Nothing else matters until this is fixed.
+1. **Post to r/surfing** -- Every day without distribution is a day the 11-agent infrastructure generates reports nobody reads. The post is written, analytics are live, the app renders. Ship it.
 
-2. **Polish Venue Detail Sheet** -- PM, UX, Growth, and Revenue agents all independently flagged this as the #1 unconverted surface. No photo hero, no sticky flight CTA (flagged for 3 consecutive UX reports), no score breakdown. Every card tap lands here. This is where Booking.com clicks and Travelpayouts revenue live. 4-6 hours dev work.
+2. **Fix VPS proxy (SSH + HTTPS)** -- The flight proxy has been down 3+ days. Mixed content blocks real prices even when the Node process is running. Two bugs: (a) `pm2 restart all` to fix ECONNREFUSED, (b) Cloudflare tunnel for HTTPS. This is 30-45 minutes of Jack's time and it unlocks the "cheap flights" half of the value proposition for every user who comes from Reddit.
 
-3. **Reddit launch** -- post is drafted, copy-paste ready, all technical blockers cleared. Best window: Tuesday/Wednesday 7-9am Pacific. But do NOT post until photos are fixed and detail sheet has at minimum a sticky flight CTA.
-
----
-
-## RISKS:
-
-1. **Photo duplication will tank the Reddit launch.** 152 venues share a single Unsplash image. This was created by the 280-venue expansion that PM explicitly recommended against. An r/surfing commenter saying "why do all spots have the same picture?" kills the thread. This risk is new since last briefing and is the most urgent issue across the entire project.
-
-2. **Pipeline venue has a double-comma syntax bug (line 300)** that Babel tolerates today but could white-screen the entire app on a CDN upgrade. Pipeline is the flagship venue you'll deep-link in Reddit comments. One-character fix. QA flagged it. Still not fixed.
-
-3. **Open-Meteo rate limit at ~30 concurrent users.** 342 API calls per user = free tier exhausted after 29 full loads. If Reddit drives 50+ simultaneous visitors, all scores drop to 0, hero card shows garbage, no error banner, no fallback UI. **Persisted from last briefing with no action taken.**
+3. **Venue Detail Sheet polish (Phase 2.3)** -- This is the conversion surface. When a Reddit surfer taps a venue card, the detail sheet must sell the trip. Needed: sticky flight CTA at bottom, "Set Alert" button (code is written, 0 new state/props), score breakdown on badge tap. UX agent has all the code ready.
 
 ---
 
-## YOUR TO-DO LIST:
+## RISKS
 
-1. **Sign up for Sentry free tier and paste DSN into app.jsx line 6.** 5 minutes. You are launching to the public with zero crash visibility on a 6,354-line single-file app with a scoring overhaul just shipped. Do this today.
+1. **Flight proxy down for 3+ days with no action taken.** This was flagged in 3 consecutive reports. The proxy Node process is alive but misconfigured (host restriction + no HTTPS). Every user sees "est." prices. If the Reddit post goes live and a commenter asks "are these prices real?" -- they're not. Be ready with a transparent answer and fix it within 48 hours of posting.
 
-2. **Sign up for REI affiliate via Avantlink.com.** 30 minutes. Revenue agent confirmed this does NOT require LLC. 21 gear links across 8 categories currently earning $0. Estimated +$5.78 RPM.
+2. **Open-Meteo rate limit will silently kill the app during a Reddit traffic spike.** 342 API calls per user load = free tier exhausted after 29 concurrent users. No error banner, no fallback UI -- scores just drop to 0. A localStorage weather cache with 30-min TTL extends this to ~10K MAU. Build this before any post that could go viral.
 
-3. **Verify your Reddit account** has 50+ karma and 30+ days age on r/surfing. If not, spend 1-2 weeks commenting genuinely first. This is the #1 launch failure mode and only you can check it.
-
-4. **Open the live site on your phone** and confirm: real flight prices appear (not "est."), venue detail sheet loads with weather data, surf venue photos look good. 2 minutes.
-
-5. **Post to Reddit** when photo duplication is resolved. Copy-paste ready draft in Growth and Community reports. Best window: Tuesday or Wednesday, 7-9am Pacific.
+3. **7 stub categories (1 venue each) are a credibility trap.** A Reddit surfer who taps "Diving" sees exactly 1 result. Data Enrichment agent has 10 paste-ready venues for diving, climbing, and kite. Adding them takes the total from 182 to 192 and makes those categories look intentional rather than abandoned.
 
 ---
 
-## ONE THING NOBODY IS SAYING THAT NEEDS TO BE SAID:
+## YOUR TO-DO LIST
 
-The 280-venue expansion went against the PM's explicit recommendation ("Geographic expansion before nailing UX for existing 182 venues is wrong order") and introduced three new problems: 252 venues with duplicate photos, 66 broken airport continent mappings, and a dataset so surf-heavy (71% of all venues) that 7 of 11 category pills feel abandoned. The expansion made the venue count impressive for the Reddit post title but created a quality problem that now blocks the very launch it was supposed to support.
+1. **Post the r/surfing draft** -- Community agent wrote the complete post and 4-hour engagement playbook. Tuesday or Wednesday, 7-9am Pacific. Verify your Reddit account has 50+ karma on r/surfing first.
 
-The deeper pattern across all 11 reports: four agents (PM, UX, Growth, Revenue) independently identified the Venue Detail Sheet as the single highest-priority item for 3 consecutive reporting cycles. It has not been touched. Meanwhile, the team shipped JSON-LD schemas, WCAG contrast fixes, structured data, PWA manifests, 280 new venues, and 12 scoring algorithms. All good work. None of it matters if the user who taps one card sees a detail sheet with no photo, no sticky book button, and no score breakdown, then bounces.
+2. **SSH into 104.131.82.242 and run `pm2 restart all`** -- fixes ECONNREFUSED. Then set up Cloudflare tunnel for HTTPS (DevOps agent wrote the exact commands). Total: 30-45 min. This is the single highest-impact technical task.
 
-The question you should be asking: why has the one surface where revenue happens been deprioritized for 3 cycles in a row while everything around it gets polished?
+3. **Sign up at sentry.io, paste DSN into app.jsx line 6** -- 5 minutes. Gives crash visibility before Reddit traffic arrives.
+
+4. **Sign up for REI affiliate via Avantlink** -- 30 min, does NOT require LLC. 18 gear links currently earn $0. Estimated +$4.95 RPM.
+
+5. **Verify the live app loads on your phone** -- open https://j1mmychu.github.io/peakly/ on mobile before posting to Reddit. If it errors, the launch is a no-go.
 
 ---
 
-*Generated 2026-03-25 by Chief of Staff agent. Sources: all 11 agent reports + git log (15 commits reviewed).*
+## ONE THING NOBODY IS SAYING THAT NEEDS TO BE SAID
+
+Eleven agents are now producing senior-level reports, but the ratio of reports-to-shipped-code has inverted. The last 2 days produced 24 agent reports and 2 code changes (a pricing label fix and a cache buster bump). The agent infrastructure is built -- it works. But the reports are piling up with paste-ready code that nobody is executing: 5 Plausible events (UX + SEO agents, both wrote the exact same code), 10 new venues (Data Enrichment), hiking gear items (Revenue), JSON-LD structured data (SEO), a "Set Alert" button (UX, zero new state required), and 6 WCAG contrast fixes. That is roughly 90 minutes of copy-paste work that would move QA from 8/11 to 10/11, SEO from 81% to 94%, add a retention mechanic, and start generating real product analytics. The bottleneck is not analysis. The bottleneck is someone sitting down and applying the diffs. Either Jack does a 90-minute code session, or the next Claude Code run should be given a concrete list of paste-ready changes and told to execute them -- not analyze them again.
+
+---
+
+*Generated 2026-03-25 by Chief of Staff agent. Sources: all 11 agent reports + git log.*
