@@ -1,6 +1,6 @@
-# PM Report: 2026-03-25 (v13)
+# PM Report — 2026-03-25 (v12, supersedes v13 draft)
 
-**Status: YELLOW — Technically stable. Conversion surface still broken. Reddit launch still blocked.**
+**Status: RED — Execution failure on #1 priority. Infrastructure solid. VenueDetailSheet still not built. Reddit launch blocked.**
 
 ---
 
@@ -142,3 +142,55 @@ We are about to drive Reddit traffic to an unvalidated algorithm. If it's wrong 
 *Report written: 2026-03-25*
 *Next report: 2026-03-26*
 *Author: PM Agent v13*
+
+---
+
+# PM Report Addendum — 2026-03-25
+
+## Overnight Activity Review
+
+**Commits since v11 PM report:**
+
+| Commit | What | Right call? |
+|--------|------|-------------|
+| Daily DevOps report + P0 fixes | HTTPS proxy URL corrected (was still HTTP after multiple "resolved" claims), Plausible actually added to index.html (was missing despite being marked done), .gitignore added, cache-buster bumped | **YES — critical fixes. All were claims without corresponding code.** |
+| All 11 agent reports v12, Chief of Staff v12 | Report generation | **Useful context, zero execution on #1 priority** |
+| Update roadmap (Jack, 2 commits) | CLAUDE.md alignment | **YES — owner clarity is valuable** |
+| All 11 agent reports v13, Chief of Staff v13 (RED) | Report generation | **Chief of Staff correctly escalating. Still zero VenueDetailSheet code.** |
+
+**The real finding from overnight:** The DevOps commit proved that "HTTPS proxy: RESOLVED" in v10 and v11 reports was false. The proxy URL was still HTTP in the code. This means prior PM reports were tracking resolved status based on agent claims, not code verification. Going forward, RESOLVED status requires a commit SHA, not a report statement.
+
+---
+
+## Additional Decisions (Addendum)
+
+**Decision: SHIP Aviasales flight link switch.** The 2026-03-26 review date was set 2 days ago. Revenue report has a detailed analysis. Every flight click earns $0 on Google Flights. Travelpayouts deep links with `marker=peakly` earn commission. Not blocked by LLC. Estimated +$2-4 RPM. Decision: **SHIP this sprint, same as VenueDetailSheet.**
+
+**Decision: SHIP Amazon links to 5 zero-Amazon categories.** Skiing, climbing, kayak, MTB, hiking all have zero Amazon links. 10 items, 30 min dev work, +$1.20 RPM. No blockers. Revenue report has the paste-ready items. **SHIP.**
+
+**Decision: SHIP LAS/PHX/MSP/DTW to AIRPORTS array.** BASE_PRICES already has them (completed backlog item). The AIRPORTS array is missing them. 30-minute finish. **SHIP.**
+
+**Decision: Process change.** Agent reports flag items but don't dispatch build work. VenueDetailSheet has been in every report since v7 with no commit. The fix is not another flag — it's a Claude Code task dispatched explicitly to build it. This report constitutes that dispatch.
+
+---
+
+## One Product Risk Nobody Is Talking About
+
+**The overnight DevOps commit revealed that "RESOLVED" status in PM reports is not trustworthy.** The HTTPS proxy was marked RESOLVED in v10 and v11 — both PM reports, both Chief of Staff briefings. The actual code still had `http://104.131.82.242:3001` until the DevOps agent verified it yesterday. The same risk applies to any item currently marked RESOLVED. Before Reddit launch, do a ground-truth audit of every RESOLVED item: read the code, verify the behavior, get a commit SHA. Do not rely on agent self-reports.
+
+---
+
+## Complete Priority Order (No Ambiguity)
+
+1. **VenueDetailSheet photo hero + sticky CTA + score breakdown + thumbs** — SHIP. Nothing before this.
+2. **Open-Meteo weather cache** (localStorage, 30-min TTL) — SHIP. Prerequisite for Reddit.
+3. **Aviasales/Travelpayouts flight link switch** — SHIP. Decision made today.
+4. **Amazon links to 5 zero-Amazon categories** — SHIP. 30 min, no blockers.
+5. **LAS/PHX/MSP/DTW to AIRPORTS array** — SHIP. 30 min, backlog item.
+6. **ListingCard "Book" button Plausible event** — SHIP. One line, 4 cycles deferred.
+7. **Sentry DSN** — Jack, 5 min. Do before Reddit.
+8. **Reddit r/surfing launch** — Execute after items 1-7 are confirmed in code.
+9. **Expose Wishlists tab** — 48 hrs after Reddit launch.
+10. **Everything else** — Post-launch.
+
+*Updated: 2026-03-25*
