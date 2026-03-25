@@ -1,9 +1,11 @@
-// Peakly Service Worker — lightweight cache-first for static assets
-const CACHE_NAME = "peakly-v1";
+// Peakly Service Worker — stale-while-revalidate + offline fallback
+const CACHE_NAME = "peakly-v2";
+const OFFLINE_URL = "/peakly/offline.html";
 const PRECACHE = [
   "/peakly/",
   "/peakly/index.html",
-  "/peakly/app.jsx"
+  "/peakly/app.jsx",
+  OFFLINE_URL,
 ];
 
 self.addEventListener("install", (e) => {
@@ -24,16 +26,28 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Network-first for API calls and CDN scripts
-  if (url.hostname !== location.hostname || e.request.method !== "GET") return;
-  // Stale-while-revalidate for app assets
+  // Pass through: non-GET, cross-origin API/CDN calls
+  if (e.request.method !== "GET") return;
+  if (url.hostname !== location.hostname) return;
+
+  // Navigation requests (HTML pages): network-first, offline fallback
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request).catch(() =>
+        caches.match(OFFLINE_URL)
+      )
+    );
+    return;
+  }
+
+  // App assets: stale-while-revalidate, offline fallback
   e.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(e.request).then((cached) => {
         const fetched = fetch(e.request).then((response) => {
           if (response.ok) cache.put(e.request, response.clone());
           return response;
-        }).catch(() => cached);
+        }).catch(() => cached || caches.match(OFFLINE_URL));
         return cached || fetched;
       })
     )

@@ -1803,6 +1803,21 @@ function ScoreDot({ score }) {
   );
 }
 
+// ─── PWA install prompt ────────────────────────────────────────────────────────
+window._pwaInstallPrompt = null;
+(() => {
+  try {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      window._pwaInstallPrompt = e;
+      window.dispatchEvent(new Event("pwa-installable"));
+    });
+    window.addEventListener("appinstalled", () => {
+      window._pwaInstallPrompt = null;
+    });
+  } catch(_) {}
+})();
+
 // ─── skeleton loader ──────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
@@ -4902,6 +4917,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const [shareVenueCopied, setShareVenueCopied] = useState(false);
   const [scoreVotes, setScoreVotes] = useLocalStorage("peakly_score_votes", {});
   const [closing, setClosing] = useState(false);
+  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
   const saved = wishlists.includes(listing.id);
 
   const triggerClose = useCallback(() => {
@@ -5105,6 +5121,69 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>Was ${listing.flight.normal} · {listing.flight.pct}% off</div>
             </div>
           </div>
+
+          {/* Why this score? — collapsible breakdown */}
+          {rawWx?.daily && (() => {
+            const di = 0;
+            const d = rawWx.daily;
+            const md = rawMar?.daily;
+            const factors = [];
+            const snow    = d.snowfall_sum?.[di]         ?? 0;
+            const depth   = d.snow_depth_max?.[di]       ?? 0;
+            const tempMax = d.temperature_2m_max?.[di]   ?? 65;
+            const wind    = d.wind_speed_10m_max?.[di]   ?? 10;
+            const gusts   = d.wind_gusts_10m_max?.[di]  ?? wind * 1.4;
+            const uv      = d.uv_index_max?.[di]         ?? 5;
+            const precip  = d.precipitation_sum?.[di]    ?? 0;
+            const swellH  = md?.swell_wave_height_max?.[di] ?? md?.wave_height_max?.[di] ?? 0;
+            const swellPer = md?.swell_wave_period_max?.[di] ?? 10;
+            let windowDays = 1;
+            for (let i = 1; i < (d.precipitation_sum?.length ?? 0); i++) {
+              if ((d.precipitation_sum[i] ?? 99) < 3 && (d.wind_speed_10m_max[i] ?? 99) < 25) windowDays++;
+              else break;
+            }
+            if (listing.category === "skiing") {
+              const sIn = Math.round(snow * 0.394);
+              const dIn = Math.round(depth * 39.4);
+              if (snow > 0) factors.push({ icon:"❄️", text:`${sIn}" fresh snow` });
+              factors.push({ icon:"⛰️", text:`${dIn}" base depth` });
+              factors.push({ icon:"🌡️", text:`${Math.round(tempMax)}°F high` });
+              factors.push({ icon:"💨", text:`${Math.round(wind)} mph wind${gusts > 40 ? ` · ${Math.round(gusts)} mph gusts` : ""}` });
+            } else if (listing.category === "surfing") {
+              const fFt = Math.round(swellH * 3.28 * 1.5);
+              factors.push({ icon:"🌊", text:`${fFt}–${fFt + 2}ft face height` });
+              factors.push({ icon:"⏱️", text:`${Math.round(swellPer)}s swell period` });
+              factors.push({ icon:"💨", text:`${Math.round(wind)} mph wind${wind < 8 ? " (glassy)" : wind > 20 ? " (blown out)" : ""}` });
+            } else if (["tanning","beach"].includes(listing.category)) {
+              factors.push({ icon:"☀️", text:`UV index ${Math.round(uv)}` });
+              factors.push({ icon:"🌡️", text:`${Math.round(tempMax)}°F high` });
+              factors.push({ icon:"💨", text:`${Math.round(wind)} mph winds` });
+            } else {
+              factors.push({ icon:"🌡️", text:`${Math.round(tempMax)}°F high` });
+              if (precip > 0) factors.push({ icon:"🌧️", text:`${Math.round(precip)}mm precip` });
+              factors.push({ icon:"💨", text:`${Math.round(wind)} mph winds` });
+            }
+            factors.push({ icon:"📅", text:`${windowDays}-day good window from today` });
+            if (listing.flight.pct > 0) factors.push({ icon:"✈️", text:`${listing.flight.pct}% below average route price` });
+            return (
+              <div style={{ marginBottom:14, borderTop:"1px solid #f0f0f0", paddingTop:12 }}>
+                <button onClick={() => setShowScoreBreakdown(v => !v)} style={{ width:"100%", background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, fontFamily:F }}>
+                  <span style={{ fontSize:12, fontWeight:800, color:"#444" }}>Why this score?</span>
+                  <span style={{ fontSize:11, color:"#0284c7", fontWeight:700 }}>{showScoreBreakdown ? "Hide ▲" : "Show ▼"}</span>
+                </button>
+                {showScoreBreakdown && (
+                  <div className="bounce-in" style={{ marginTop:10, background:"#f7f7f7", borderRadius:12, padding:"10px 12px", display:"flex", flexDirection:"column", gap:8 }}>
+                    {factors.map((f, i) => (
+                      <div key={i} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <span style={{ fontSize:15, flexShrink:0, lineHeight:1 }}>{f.icon}</span>
+                        <span style={{ fontSize:12, color:"#444", fontFamily:F, lineHeight:1.4 }}>{f.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Set Alert CTA */}
           <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
@@ -6017,6 +6096,29 @@ function BottomNav({ active, setActive, alertCount }) {
   );
 }
 
+// ─── tab error boundary ───────────────────────────────────────────────────────
+// Lightweight per-tab boundary so a crash in one tab doesn't kill the whole app
+class TabErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error, info) {
+    if (window.__peaklyReport) window.__peaklyReport(error, { type: "tab_crash", tab: this.props.tab, component: info.componentStack?.split("\n")[1]?.trim() });
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", padding:32, textAlign:"center", fontFamily:F }}>
+          <div style={{ fontSize:36, marginBottom:12 }}>⚠️</div>
+          <div style={{ fontSize:16, fontWeight:800, color:"#222", marginBottom:8, fontFamily:F }}>Something went wrong</div>
+          <div style={{ fontSize:13, color:"#888", marginBottom:20, maxWidth:260, fontFamily:F, lineHeight:1.5 }}>This section hit an error. Your saved data is safe.</div>
+          <button onClick={() => this.setState({ hasError:false })} style={{ background:"#0284c7", color:"white", border:"none", borderRadius:12, padding:"12px 28px", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer" }}>Try again</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ─── error boundary ──────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
@@ -6069,6 +6171,8 @@ function App() {
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
+  const [installable,       setInstallable]       = useState(!!window._pwaInstallPrompt);
+  const [installDismissed,  setInstallDismissed]  = useLocalStorage("peakly_install_dismissed", false);
 
   // Auto-show onboarding for first-time visitors (slight delay so Explore tab renders first)
   useEffect(() => {
@@ -6092,6 +6196,25 @@ function App() {
       () => {} // silent fail — user denied or unavailable
     );
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for PWA install availability (fired after beforeinstallprompt)
+  useEffect(() => {
+    const handle = () => setInstallable(true);
+    window.addEventListener("pwa-installable", handle);
+    return () => window.removeEventListener("pwa-installable", handle);
+  }, []);
+
+  const triggerInstall = async () => {
+    const prompt = window._pwaInstallPrompt;
+    if (!prompt) return;
+    try {
+      prompt.prompt();
+      const result = await prompt.userChoice;
+      window._pwaInstallPrompt = null;
+      setInstallable(false);
+      if (result.outcome === "accepted") setInstallDismissed(true);
+    } catch(_) {}
+  };
 
   // Init search with user's saved home airport (reads localStorage directly before profile state is set)
   const [search, setSearch] = useState(() => ({
@@ -6302,35 +6425,41 @@ function App() {
         {/* Tab content */}
         <div key={activeTab} className="tab-fade" style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
           {activeTab === "explore" && (
-            <ExploreTab
-              listings={listings} loading={loading}
-              wishlists={wishlists} onToggle={toggleWishlist}
-              onViewAlerts={() => setActiveTab("alerts")}
-              activeCat={activeCat} setActiveCat={setActiveCat}
-              filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
-              onOpenDetail={openDetail}
-              namedLists={namedLists} setNamedLists={setNamedLists}
-              wxLastUpdated={wxLastUpdated} profile={profile}
-            />
+            <TabErrorBoundary tab="explore">
+              <ExploreTab
+                listings={listings} loading={loading}
+                wishlists={wishlists} onToggle={toggleWishlist}
+                onViewAlerts={() => setActiveTab("alerts")}
+                activeCat={activeCat} setActiveCat={setActiveCat}
+                filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
+                onOpenDetail={openDetail}
+                namedLists={namedLists} setNamedLists={setNamedLists}
+                wxLastUpdated={wxLastUpdated} profile={profile}
+              />
+            </TabErrorBoundary>
           )}
           {activeTab === "alerts" && (
-            <AlertsTab
-              listings={listings} userAlerts={userAlerts}
-              setUserAlerts={setUserAlerts} profile={profile}
-              onShowOnboarding={() => setShowOnboarding(true)}
-            />
+            <TabErrorBoundary tab="alerts">
+              <AlertsTab
+                listings={listings} userAlerts={userAlerts}
+                setUserAlerts={setUserAlerts} profile={profile}
+                onShowOnboarding={() => setShowOnboarding(true)}
+              />
+            </TabErrorBoundary>
           )}
           {activeTab === "profile" && (
-            <ProfileTab
-              profile={profile} setProfile={setProfile}
-              filters={filters} setFilters={setFilters}
-              wishlists={wishlists}
-              onShowOnboarding={() => setShowOnboarding(true)}
-              savedTrips={savedTrips} setSavedTrips={setSavedTrips}
-              listings={listings} onOpenDetail={openDetail}
-              namedLists={namedLists} setNamedLists={setNamedLists}
-              onToggle={toggleWishlist}
-            />
+            <TabErrorBoundary tab="profile">
+              <ProfileTab
+                profile={profile} setProfile={setProfile}
+                filters={filters} setFilters={setFilters}
+                wishlists={wishlists}
+                onShowOnboarding={() => setShowOnboarding(true)}
+                savedTrips={savedTrips} setSavedTrips={setSavedTrips}
+                listings={listings} onOpenDetail={openDetail}
+                namedLists={namedLists} setNamedLists={setNamedLists}
+                onToggle={toggleWishlist}
+              />
+            </TabErrorBoundary>
           )}
         </div>
 
@@ -6370,24 +6499,41 @@ function App() {
         )}
 
         {detailVenue && (
-          <VenueDetailSheet
-            listing={detailVenue}
-            rawWx={wxData[detailVenue.id]}
-            rawMar={marData[detailVenue.id]}
-            wishlists={wishlists}
-            onToggle={toggleWishlist}
-            onClose={() => setDetailVenue(null)}
-            namedLists={namedLists}
-            setNamedLists={setNamedLists}
-            listings={listings}
-            onOpenDetail={openDetail}
-            filters={filters}
-            search={search}
-            onAlert={(venue) => {
-              setDetailVenue(null);
-              setActiveTab("alerts");
-            }}
-          />
+          <TabErrorBoundary tab="venue-detail">
+            <VenueDetailSheet
+              listing={detailVenue}
+              rawWx={wxData[detailVenue.id]}
+              rawMar={marData[detailVenue.id]}
+              wishlists={wishlists}
+              onToggle={toggleWishlist}
+              onClose={() => setDetailVenue(null)}
+              namedLists={namedLists}
+              setNamedLists={setNamedLists}
+              listings={listings}
+              onOpenDetail={openDetail}
+              filters={filters}
+              search={search}
+              onAlert={(venue) => {
+                setDetailVenue(null);
+                setActiveTab("alerts");
+              }}
+            />
+          </TabErrorBoundary>
+        )}
+
+        {/* PWA install banner */}
+        {installable && !installDismissed && (
+          <div className="bounce-in" style={{ position:"absolute", bottom:70, left:8, right:8, zIndex:200 }}>
+            <div style={{ background:"linear-gradient(135deg,#1a1a2e,#0284c7)", borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:10, boxShadow:"0 4px 20px rgba(2,132,199,0.35)" }}>
+              <div style={{ fontSize:24, flexShrink:0 }}>📲</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:800, color:"white", fontFamily:F }}>Add Peakly to Home Screen</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", fontFamily:F }}>Full app experience, offline-ready</div>
+              </div>
+              <button onClick={triggerInstall} className="pressable" style={{ background:"white", border:"none", borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:800, color:"#0284c7", fontFamily:F, cursor:"pointer", flexShrink:0 }}>Install</button>
+              <button onClick={() => setInstallDismissed(true)} style={{ background:"rgba(255,255,255,0.15)", border:"none", borderRadius:"50%", width:26, height:26, color:"white", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, flexShrink:0 }}>✕</button>
+            </div>
+          </div>
         )}
 
         <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} />

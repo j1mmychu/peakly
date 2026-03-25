@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Peakly — You're Offline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      font-family: -apple-system, "Plus Jakarta Sans", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 24px;
+      padding: 48px 32px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0284c7;
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
+    }
+    /* Mountain + wave SVG illustration */
+    .illustration {
+      margin: 0 auto 28px;
+      width: 120px;
+      height: 80px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    p {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .btn {
+      display: inline-block;
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 32px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+    .btn:active { opacity: 0.85; transform: scale(0.97); }
+    .tip {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">peakly</div>
+
+    <!-- Mountain + wave SVG -->
+    <svg class="illustration" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Mountains -->
+      <polygon points="10,70 40,20 70,70" fill="#1d4ed8" opacity="0.6"/>
+      <polygon points="35,70 60,30 85,70" fill="#2563eb" opacity="0.8"/>
+      <polygon points="65,70 90,35 115,70" fill="#3b82f6" opacity="0.7"/>
+      <!-- Snow caps -->
+      <polygon points="40,20 34,36 46,36" fill="white" opacity="0.85"/>
+      <polygon points="60,30 55,42 65,42" fill="white" opacity="0.85"/>
+      <!-- Wave -->
+      <path d="M0 74 Q15 66 30 74 Q45 82 60 74 Q75 66 90 74 Q105 82 120 74" stroke="#38bdf8" stroke-width="2.5" fill="none" opacity="0.8"/>
+      <path d="M0 78 Q15 70 30 78 Q45 86 60 78 Q75 70 90 78 Q105 86 120 78" stroke="#0ea5e9" stroke-width="2" fill="none" opacity="0.5"/>
+    </svg>
+
+    <h1>You're offline right now</h1>
+    <p>Check back when you have a connection — live conditions and flight prices need the internet to update.</p>
+    <button class="btn" onclick="location.reload()">Try Again</button>
+    <div class="tip">Tip: add Peakly to your home screen for a faster experience when you reconnect.</div>
+  </div>
+</body>
+</html>
