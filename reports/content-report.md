@@ -1,104 +1,205 @@
-# Content & Data Report: 2026-03-23 (v5)
-
-**Author:** Content & Data Lead
-
----
-
-## Data Health Score: 6.5 / 10
-
-Photo coverage and BASE_PRICES gaps remain the two largest issues. Category balance is heavily skewed toward the big three (skiing, surfing, tanning) while 7 categories have only 1 venue each. The duplicate Pipeline venue is still present.
+# Peakly — Content & Data Quality Report
+**Date:** 2026-03-24 (v6 — merged)
+**Auditor:** Content & Data Agent (Senior)
+**File audited:** app.jsx (5,446 lines)
 
 ---
 
-## Photo Coverage
+## Data Health Score: 61/100
 
-| Metric | Count |
-|--------|-------|
-| Total venues | 171 |
-| Venues with photo URLs | 98 |
-| Venues WITHOUT photo URLs | 73 |
-| **Photo coverage** | **57.3%** |
-
-### Breakdown of missing photos
-- **Surfing:** 32 venues missing photos (out of 53 total surfing venues)
-- **Tanning:** 41 venues missing photos (out of 60 total tanning venues)
-- All skiing (50), hiking (12), diving (1), climbing (1), kite (1), kayak (1), mtb (1), fishing (1), paraglide (1) venues have photos
-
-The original 10 "hero" venues plus the first batch of skiing/surfing/tanning expansions have photos. The later expansion waves (v3/v4 surfing additions, most tanning beach expansions) shipped without photos.
+**Breakdown:**
+- Category coverage: 35/50 — 7 of 12 categories are single-venue stubs
+- Data completeness: 18/20 — all 182 venues have coords, airports, tags
+- Gear item coverage: 4/10 — hiking missing gear items, local tips, and packing list
+- Photo coverage: 6/10 — 73 of 182 venues (40%) missing photos, concentrated in tanning/surfing
+- Seasonal data: 0/10 — no `seasonalOpen` or best-month field in venue schema
 
 ---
 
-## Total Venues by Category
+## 1. Category Breakdown
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Tanning | 60 | OK |
-| Surfing | 53 | OK |
-| Skiing | 50 | OK |
-| Hiking | 12 | OK |
-| Diving | 1 | CRITICAL — needs 4+ more |
-| Climbing | 1 | CRITICAL — needs 4+ more |
-| Kite | 1 | CRITICAL — needs 4+ more |
-| Kayak | 1 | CRITICAL — needs 4+ more |
-| Fishing | 1 | CRITICAL — needs 4+ more |
-| MTB | 1 | CRITICAL — needs 4+ more |
-| Paraglide | 1 | CRITICAL — needs 4+ more |
+| Category | Venues | With Photo | In Main UI | Status |
+|----------|--------|-----------|-----------|--------|
+| Tanning / Beach | 60 | 20 (33%) | YES | Oversaturated — 33% of all venues; 40 photos missing |
+| Surfing | 53 | 20 (37%) | YES | Healthy count; 33 photos missing |
+| Skiing | 50 | 50 (100%) | YES | Healthy — fully photographed |
+| Hiking | 12 | 12 (100%) | YES | Minimum viable; needs gear data |
+| Diving | 1 | 1 (100%) | YES | **STUB — critical, visible in UI** |
+| Climbing | 1 | 1 (100%) | YES | **STUB — critical, visible in UI** |
+| Kite | 1 | 1 (100%) | hidden | Stub |
+| Kayak | 1 | 1 (100%) | hidden | Stub |
+| MTB | 1 | 1 (100%) | hidden | Stub |
+| Fishing | 1 | 1 (100%) | hidden | Stub |
+| Paraglide | 1 | 1 (100%) | hidden | Stub |
 
-**7 categories have fewer than 5 venues.** These categories show up in the UI but feel empty. Either expand them to 5+ venues or consider hiding them until content is ready.
+**Critical finding:** Diving and Climbing are exposed in the main CATEGORIES array (visible as filter pills) but each has only 1 venue. A user tapping "Diving" or "Climbing" sees exactly 1 result — immediately broken UX. Must fix before growth push.
 
 ---
 
-## Remaining Issues
+## 2. Data Integrity Issues
 
-### 1. Duplicate Pipeline venue (HIGH)
-- `id:"pipeline"` (line ~218) — "Pipeline, North Shore", Oahu, Hawaii
-- `id:"banzai_pipeline"` (line ~356) — "Banzai Pipeline", Oahu, Hawaii
-- Same wave, same airport (HNL), same photo URL, near-identical coordinates (21.6645 vs 21.6622)
-- **Action:** Remove `pipeline` (the original hero entry) and keep `banzai_pipeline` which has richer data (6,420 reviews vs 1,203)
+### Duplicate Photo URL (confirmed)
+- `appalachian` and `camino` both use:
+  `https://images.unsplash.com/photo-1551176808-bb328dac763a?w=800&h=600&fit=crop`
+- **Fix:** Update camino to: `https://images.unsplash.com/photo-1583224994559-bc37e47e8dba?w=800&h=600&fit=crop`
 
-### 2. Missing BASE_PRICES entries (HIGH)
-- **58 venue airports** have no entry in the `BASE_PRICES` object
-- These venues fall back to the hardcoded $800 default, which produces inaccurate pricing for Caribbean ($300-500 range), domestic US ($150-400), and premium long-haul destinations ($1,500-2,200)
-- Notable missing: CUN, HKT, DPS (already has entry), KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, SRQ, TPA, VPS
-- **Action:** Add BASE_PRICES for at least the 20 highest-traffic missing airports
+### Duplicate Venue (carried forward, still unresolved)
+- `id:"pipeline"` (~line 218) and `id:"banzai_pipeline"` (~line 356) — same wave, same airport HNL, near-identical coordinates.
+- **Fix:** Remove `id:"pipeline"`, keep `banzai_pipeline` (6,420 reviews vs 1,203). This is a 1-line delete.
 
-### 3. Photo coverage gap (MEDIUM)
-- 73 venues (42.7%) have no photo URL
+### Airport Code Spot-Check — No New Issues
+- All verified airports match claimed locations in random sample of 15 venues.
+- `laugavegur` uses `KEF` — correct, though Highlands require a bus transfer post-landing. Acceptable.
+- `overland` uses `LST` (Launceston) — correct gateway for Cradle Mountain.
+
+### AFFILIATE_ID Placeholders — RESOLVED
+- Previous reports flagged `AFFILIATE_ID` placeholder on ~line 3786. **Confirmed 0 occurrences remain.** Resolved.
+
+### No duplicate IDs. All 182 venues pass integrity check.
+
+---
+
+## 3. Open Data Gaps — Priority Order
+
+### 1. Photo coverage — surfing and tanning (HIGH)
+- 33 surfing venues and 40 tanning venues have no photo
 - Cards render with gradient-only backgrounds — functional but visually weaker
-- **Action:** Add Unsplash photo URLs for all 73 missing venues. Surfing (32 missing) and tanning/beach (41 missing) are priorities
+- All photos should use Unsplash format: `https://images.unsplash.com/photo-{ID}?w=800&h=600&fit=crop`
+- **Action:** Add photos for all 73 missing venues. Tanning first (40 missing), then surfing (33 missing).
+
+### 2. BASE_PRICES coverage (HIGH)
+- ~55 venue airports missing from BASE_PRICES; these fall back to $800 default
+- Critical missing airports: CUN, HKT, CZM, KEF, IBZ, MBJ, SXM, STT, AUA, UVF, SEZ, ZNZ, MRU, JRO, MBA, DBV, NCE, JTR, JMK, SPU, ZTH, FAO, KOA, EYW, TPA, SRQ, MYR, VPS, TAB, GCM, PLS
+- **Action:** Add BASE_PRICES for the top 30 missing airports in next sprint.
+
+### 3. Hiking has zero gear data (HIGH)
+- See Section 4 below — paste-ready fix provided.
 
 ### 4. Thin categories (MEDIUM)
-- 7 categories with only 1 venue each appear in category pills but lead to single-result pages
-- **Action:** Either add 4+ venues per thin category or gate them behind a "Coming Soon" label
+- 7 categories with 1 venue each appear in category pills but produce dead-end single-result pages
+- **Recommended:** Gate thin categories behind "Coming Soon" label or hide from pill row until 5+ venues exist.
 
-### 5. Affiliate placeholder (LOW)
-- Line ~3786: `AFFILIATE_ID` placeholders still present for REI and Backcountry links
-- **Action:** Replace with real affiliate IDs once partnership is live
-
-### 6. Sentry DSN still empty (LOW)
-- Line 6: `SENTRY_DSN = ""` — error monitoring is not connected
-- **Action:** Sign up for Sentry, add DSN
+### 5. Sentry DSN empty (LOW)
+- Line 6: `const SENTRY_DSN = "";` — production errors are invisible
+- **Action:** Sign up for Sentry free tier, add DSN.
 
 ---
 
-## Seasonal Picks — Late March 2026
+## 4. Gear Items Gaps — Paste-Ready Code Fixes
 
-Top 5 destinations with best conditions for the last week of March:
+### Confirmed Missing: `hiking`
+Hiking has 12 venues, appears in main UI, but has **zero entries** in `GEAR_ITEMS`, `LOCAL_TIPS`, and `PACKING`. Hiking users see no affiliate gear, no local tips, and no packing list. Highest-priority data gap in the entire codebase right now.
+
+**Add to `GEAR_ITEMS` (after the `paraglide` block, before closing `};` on line 4057):**
+
+```javascript
+  hiking:   [
+    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Hiking Shoes",  store:"REI",    price:"$175",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+4+gtx" },
+    { emoji:"🎒", name:"Osprey Atmos AG 65 Backpack",          store:"REI",    price:"$340",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+ag+65" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 Satellite GPS",  store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini+2" },
+    { emoji:"🩹", name:"Adventure Medical Kits Ultralight .5", store:"Amazon", price:"$35",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=adventure+medical+kits+ultralight" },
+  ],
+```
+
+**Add to `LOCAL_TIPS` (after the `paraglide` line, before closing `};` on line 3978):**
+
+```javascript
+  hiking:   ["🌅 Start at dawn — trailheads fill by 9am and many trails have daily entry caps","💧 Drink 500ml before you leave camp — thirst lags 30 min behind dehydration","🥾 Break in boots on 3+ day hikes before a multi-day — blisters end trips early","🌦️ Weather changes fast above treeline — carry a rain shell even on blue-sky mornings"],
+```
+
+**Add to `PACKING` (after the `paraglide` line, before closing `};` on line 3992):**
+
+```javascript
+  hiking:   ["🥾 Trail shoes or boots (broken in)","🎒 Backpack (capacity matched to trip days)","💧 Water filter (Sawyer Squeeze or equivalent)","🗺️ GPS device + paper topo backup","🩹 Blister kit + first aid","🧥 Rain shell + insulating mid-layer","🔦 Headlamp + spare batteries"],
+```
+
+---
+
+## 5. Seasonal Relevance — March 24, 2026
+
+### Top 5 Destinations In Season Right Now
 
 | # | Venue | Category | Why Now |
 |---|-------|----------|---------|
-| 1 | **Niseko, Japan** | Skiing | Late-season powder — March delivers 40-60cm fresh snow weeks. Spring temps, shorter lift lines. Season closes mid-April. |
-| 2 | **Pipeline / North Shore** | Surfing | North Shore winter swell season wraps in late March. Last chance for overhead+ waves before summer flat spell. Water temp ~25C. |
-| 3 | **Bora Bora** | Tanning | Shoulder season — fewer tourists than Feb peak, still 30C+ air, UV 10-11, calm lagoon. Rates drop before April rainy uptick. |
-| 4 | **Taghazout, Morocco** | Surfing | March is prime season — consistent NW Atlantic swells, offshore winds, 18C water. Uncrowded compared to European summer. |
-| 5 | **Whistler Blackcomb** | Skiing | Spring skiing at its best — long sunny days, soft snow, corn runs. Full snowpack (10m+ base typical). Après patios open. |
+| 1 | **Whistler Blackcomb** | Skiing | Peak spring skiing — long sunny days, 400cm+ base, corn snow afternoons. Season runs to mid-April. |
+| 2 | **Taghazout, Morocco** | Surfing | Prime season: consistent NW Atlantic groundswells, offshore winds, 18°C water. Hash Point and Anchor Point firing. |
+| 3 | **Nusa Dua, Bali** | Tanning | Dry season beginning. UV 11-12, 30-32°C, low humidity. Shoulder crowds before Easter peak. |
+| 4 | **Niseko, Japan** | Skiing | Final powder weeks — late March can still deliver heavy snowfall. Season closes early April. Last call. |
+| 5 | **Arugam Bay, Sri Lanka** | Surfing | April swell season ramps up. Late March sees first consistent swells of the year. Air 33°C. |
+
+### Out of Season — Deprioritize in Scoring
+- **Southern Hemisphere Ski** (Bariloche, Portillo, NZ) — 4 months until open.
+- **Laugavegur (Iceland)** — trail officially closed under snow until late June. Scoring system uses Reykjavik weather proxy (mild in March) and will score this incorrectly. Users booking now arrive to a closed trail.
+- **Torres del Paine** — end of Patagonian summer, weather deteriorating.
+
+### PM Action Required
+`laugavegur` scores based on weather data, not trail access calendars. Without a `closedMonths` or `peakMonths` field per venue, it will appear bookable when it is physically inaccessible. Schema addition recommended before launch.
 
 ---
 
-## Decision Made
+## 6. Five New Venue Objects — Copy-Paste Ready
 
-**Priority for next sprint (v6):**
-1. Remove the duplicate `pipeline` venue — keep `banzai_pipeline` only. This is a 1-line fix.
-2. Add Unsplash photo URLs for the 32 missing surfing venues and 41 missing tanning venues (73 total). This is the single biggest visual quality improvement available.
-3. Add BASE_PRICES for the top 20 missing airports (CUN, HKT, KEF, IBZ, MBJ, SXM, PLS, DBV, FAO, NCE, KOA, EYW, MYR, TPA, SRQ, VPS, STT, AUA, NAP, JMK) to fix flight price estimates.
-4. Defer thin category expansion (diving, climbing, kite, etc.) to v7 — these need venue research, scoring logic validation, and photos all at once.
+Targeting the 5 stub categories. Priority: Diving and Climbing first (visible in main UI), then hidden categories.
+
+```javascript
+  // ─── Diving (1 → 2) ──────────────────────────────────────────────────────────
+  {
+    id:"dahab",        category:"diving",
+    title:"Dahab Blue Hole",           location:"Sinai Peninsula, Egypt",
+    lat:28.5705, lon:34.5418, ap:"SSH",
+    icon:"🤿", rating:4.94, reviews:3200,
+    gradient:"linear-gradient(160deg,#001a2a,#003a6a,#0070c0)",
+    accent:"#40a0e0", tags:["Blue Hole 100m","World-Class Visibility"],
+    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+  },
+  // ─── Climbing (1 → 2) ────────────────────────────────────────────────────────
+  {
+    id:"kalymnos",     category:"climbing",
+    title:"Kalymnos Sport Climbing",   location:"Dodecanese, Greece",
+    lat:36.9447, lon:26.9840, ap:"KGS",
+    icon:"🧗", rating:4.96, reviews:1840,
+    gradient:"linear-gradient(160deg,#3a1a00,#7a4010,#c0800a)",
+    accent:"#e8a832", tags:["500+ Routes","Limestone Tufa"],
+    photo:"https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=800&h=600&fit=crop",
+  },
+  // ─── Paraglide (1 → 2) ───────────────────────────────────────────────────────
+  {
+    id:"oludeniz",     category:"paraglide",
+    title:"Oludeniz — Babadag Launch", location:"Fethiye, Turkey",
+    lat:36.5500, lon:29.1167, ap:"DLM",
+    icon:"🪂", rating:4.95, reviews:2640,
+    gradient:"linear-gradient(160deg,#001a30,#003a70,#1060c0)",
+    accent:"#5090e0", tags:["1,969m Launch","Blue Lagoon Views"],
+    photo:"https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=800&h=600&fit=crop",
+  },
+  // ─── MTB (1 → 2) ─────────────────────────────────────────────────────────────
+  {
+    id:"finale_ligure",category:"mtb",
+    title:"Finale Ligure Bike Park",   location:"Liguria, Italy",
+    lat:44.1697, lon:8.3434, ap:"GOA",
+    icon:"🚵", rating:4.93, reviews:1560,
+    gradient:"linear-gradient(160deg,#2a0a00,#6a2a10,#b06030)",
+    accent:"#e08040", tags:["Enduro Capital","Sea & Limestone"],
+    photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop",
+  },
+  // ─── Kite (1 → 2) ────────────────────────────────────────────────────────────
+  {
+    id:"dakhla",       category:"kite",
+    title:"Dakhla Lagoon",             location:"Western Sahara, Morocco",
+    lat:23.7139, lon:-15.9349, ap:"VIL",
+    icon:"🪁", rating:4.97, reviews:980,
+    gradient:"linear-gradient(160deg,#1a0a30,#4a2a80,#8050d0)",
+    accent:"#c080f0", tags:["Flat Water Lagoon","300 Wind Days/yr"],
+    photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop",
+  },
+```
+
+---
+
+## 7. One Observation the PM Should Know
+
+**The Diving and Climbing tabs are broken from a user perspective, and this will be the first thing any reviewer, journalist, or potential investor sees if they tap those filters.** Both categories are fully visible in the Explore pills. A user who taps "Diving" gets 1 result and will assume the app is broken or abandoned. Before the Reddit/TikTok launch push, these two categories need at minimum 5 venues each — or they must be removed from the CATEGORIES array. Adding 4 more diving venues (Cozumel, Komodo, Maldives, Red Sea Ras Mohammed) and 4 more climbing venues (Kalymnos above + Red Rock Canyon, Fontainebleau, Smith Rock Oregon) would take one focused session and would make both tabs feel real. This is higher-leverage than adding the 51st tanning beach.
+
+---
+
+*Report generated by content-data agent. Next run: 2026-03-25.*
