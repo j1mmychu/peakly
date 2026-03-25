@@ -1,208 +1,194 @@
 # Data Enrichment Report
 
-**Date:** 2026-03-24 (v3 — full audit)
+**Date:** 2026-03-24 (v4 -- post-expansion audit)
 **Auditor:** Data Enrichment Agent
 **Scope:** Venue data integrity, category health, photo coverage, geographic diversity, data completeness
-**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, lines 217–555)
+**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, lines 217+)
 
 ---
 
 ## Executive Summary
 
-**Total venues: 182** (target: 200+, gap: 18)
+**Total venues: 192** (target: 200+, gap: 8)
 
-The database has excellent core coverage in skiing (50), surfing (53), and tanning (60), but **7 of 11 categories are single-venue stubs**. This means 64% of the category pills in the UI lead to a page showing exactly 1 result — a credibility killer. No user will trust a "Diving" section with only Great Barrier Reef listed.
+Since last audit (182 venues), 10 new venues were added: diving +4, climbing +3, kite +3. This is good progress but the 7 stub categories remain critically underpopulated. Four categories (kayak, mtb, fishing, paraglide) still have only 1 venue each -- these are essentially broken features. A user tapping "Kayak" sees a single result. That is worse than not having the category at all.
 
-Photo coverage and ID uniqueness remain at 100% with 0 duplicates. However, **zero venues have description, bestMonths, or difficulty fields**, which means the venue detail sheet is thinner than it needs to be.
+Photo coverage holds at 100% (192/192), with one duplicate photo URL detected. Zero venues have description, difficulty, or bestMonths fields. Tag coverage is poor: 95% of venues have only 2 tags.
 
 ---
 
 ## 1. Category Health
 
-| Category | Count | Status | Notes |
-|----------|-------|--------|-------|
-| tanning | 60 | HEALTHY | Approaching saturation (60). Low ROI for additions. |
-| surfing | 53 | HEALTHY | Strong. Good global spread. |
-| skiing | 50 | HEALTHY | Strong. Good global spread. |
-| hiking | 12 | HEALTHY | Just above threshold. Could use more. |
-| diving | 1 | **STUB** | Only Great Barrier Reef. Needs 9+ more. |
-| climbing | 1 | **STUB** | Only Yosemite. Needs 9+ more. |
-| kite | 1 | **STUB** | Only Tarifa. Needs 9+ more. |
-| kayak | 1 | **STUB** | Only Milford Sound. Needs 9+ more. |
-| mtb | 1 | **STUB** | Only Moab. Needs 9+ more. |
-| fishing | 1 | **STUB** | Only Kenai River. Needs 9+ more. |
-| paraglide | 1 | **STUB** | Only Interlaken. Needs 9+ more. |
+| Category | Count | Status | Change |
+|----------|-------|--------|--------|
+| Tanning | 60 | HEALTHY (at saturation ceiling) | -- |
+| Surfing | 53 | HEALTHY | -- |
+| Skiing | 50 | HEALTHY | -- |
+| Hiking | 12 | HEALTHY | -- |
+| Diving | 5 | STUB | +4 |
+| Climbing | 4 | STUB | +3 |
+| Kite | 4 | STUB | +3 |
+| Kayak | 1 | STUB | -- |
+| MTB | 1 | STUB | -- |
+| Fishing | 1 | STUB | -- |
+| Paraglide | 1 | STUB | -- |
 
-**STUB categories: 7/11 (64%)**
+**3 weakest (priority for next additions):** kayak (1), mtb (1), fishing (1), paraglide (1) -- all tied at minimum.
 
-### Priority: 3 Weakest Categories
-
-1. **Diving** (1 venue) — massive global sport, tons of destinations. Easiest to fill.
-2. **Climbing** (1 venue) — globally popular, well-known destinations exist.
-3. **Kite** (1 venue) — strong adventure travel niche, clear destination hotspots.
+**Progress:** Diving went from 1 to 5, climbing from 1 to 4, kite from 1 to 4. These categories are improving but still need 5-6 more each to reach credible minimums.
 
 ---
 
 ## 2. Photo Coverage
 
-| Metric | Value |
-|--------|-------|
-| Total venues | 182 |
-| Venues with photo | 182 |
-| Photo coverage | **100.0%** |
-| Duplicate photo URLs | **0** |
-| Broken/placeholder URLs | 0 detected (all use Unsplash with specific photo IDs) |
-
-Status: **CLEAN**. No action needed.
+- **Coverage:** 192/192 (100%)
+- **All Unsplash:** 192/192 -- no non-Unsplash or placeholder URLs
+- **Duplicate photo URL detected (1):**
+  - `photo-1544551763-46a013bb70d5` used by both `cape_hatteras` (tanning) and `rajaampat` (diving)
+  - ACTION: Replace one of these with a unique photo
 
 ---
 
 ## 3. Geographic Diversity
 
-| Continent | Venues | % of Total |
-|-----------|--------|------------|
-| North America | 70 | 38.5% |
-| Europe | 49 | 26.9% |
-| Oceania | 22 | 12.1% |
-| Asia | 20 | 11.0% |
-| Latin America | 11 | 6.0% |
-| Africa | 10 | 5.5% |
+| Continent | Venues | Share |
+|-----------|--------|-------|
+| North America | 72 | 37.5% |
+| Europe | 50 | 26.0% |
+| Asia | 25 | 13.0% |
+| Oceania | 22 | 11.5% |
+| Latin America | 12 | 6.3% |
+| Africa | 11 | 5.7% |
 
-**All 6 continents are represented.** No continent has zero coverage.
+**Assessment:** All 6 continents represented. North America is heavy (37.5%) but expected for a US-based user base. Latin America (12) and Africa (11) are thin but present. No continent has zero representation.
 
-### Observations
-
-- **North America is overrepresented** at 38.5%, driven by 28 tanning/beach venues concentrated in Caribbean/Mexico/Florida.
-- **Latin America is thin** (11 venues) — missing major adventure hubs like Galapagos, Torres del Paine hiking, Fernando de Noronha diving, Colombian climbing.
-- **Africa is thin** (10 venues) — missing major adventure destinations like Dahab (diving/kite), Toubkal (hiking), Victoria Falls (kayak), Jeffreys Bay could use neighbors.
-- **Asia has no representation** in climbing (Railay, Hampi, Yangshuo), diving (Raja Ampat, Sipadan), or kite (Mui Ne, Boracay).
-
-### Category x Continent Matrix
-
-| Category | NA | Europe | Oceania | Asia | LatAm | Africa |
-|----------|----|--------|---------|------|-------|--------|
-| skiing | 20 | 20 | 3 | 5 | 2 | 0 |
-| surfing | 18 | 10 | 10 | 6 | 5 | 4 |
-| tanning | 28 | 13 | 5 | 7 | 2 | 5 |
-| hiking | 1 | 4 | 2 | 2 | 2 | 1 |
-| diving | 0 | 0 | 1 | 0 | 0 | 0 |
-| climbing | 1 | 0 | 0 | 0 | 0 | 0 |
-| kite | 0 | 1 | 0 | 0 | 0 | 0 |
-| kayak | 0 | 0 | 1 | 0 | 0 | 0 |
-| mtb | 1 | 0 | 0 | 0 | 0 | 0 |
-| fishing | 1 | 0 | 0 | 0 | 0 | 0 |
-| paraglide | 0 | 1 | 0 | 0 | 0 | 0 |
-
-The matrix makes it clear: **7 stub categories have zero global spread**. Each exists in exactly 1 continent.
+**Missing notable regions:**
+- Middle East (only Dahab, Egypt via Africa mapping)
+- Central Asia (no venues in Kyrgyzstan, Kazakhstan -- emerging adventure destinations)
+- Scandinavia is underrepresented for skiing/hiking
 
 ---
 
-## 4. Data Completeness Score
+## 4. Data Completeness
 
-### Required Fields Check
+### Fields present on ALL 192 venues:
+- id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo
 
-| Field | Present | % |
-|-------|---------|---|
-| id | 182/182 | 100% |
-| title | 182/182 | 100% |
-| category | 182/182 | 100% |
-| location | 182/182 | 100% |
-| lat | 182/182 | 100% |
-| lon | 182/182 | 100% |
-| ap (airport) | 182/182 | 100% |
-| tags | 182/182 | 100% |
-| photo | 182/182 | 100% |
+### Fields present on ZERO venues:
+- **desc** (description) -- 0/192
+- **difficulty** -- 0/192
+- **bestMonths** -- 0/192
 
-**Core field completeness: 100%**
+### Tag coverage:
+- Venues with 5+ tags: **10/192 (5%)**
+- Venues with exactly 2 tags: **182/192 (95%)**
+- Only the original 11 "expanded format" venues have 5+ tags; all 181 compact-format venues have exactly 2 tags
 
-### Tag Depth
+### Completeness score:
+- **Based on present fields:** 100% (all venues have all standard fields filled)
+- **Based on ideal schema (including desc, difficulty, bestMonths, 5+ tags):** ~23%
 
-| Metric | Value |
-|--------|-------|
-| Venues with 5+ tags | **0/182 (0%)** |
-| Venues with <5 tags | **182/182 (100%)** |
-| Most venues have | 2 tags |
-
-**All 182 venues have sparse tags (only 2 each).** The spec calls for minimum 5 tags per venue. This is a major data gap — tags drive the vibe search matching and filtering.
-
-### Optional Fields (Enrichment Opportunity)
-
-| Field | Present | % |
-|-------|---------|---|
-| description | 0/182 | **0%** |
-| bestMonths | 0/182 | **0%** |
-| difficulty | 0/182 | **0%** |
-
-**Enrichment score: 0%.** None of the 182 venues have description, bestMonths, or difficulty fields. These are critical for the VenueDetailSheet experience and for powering smarter vibe search results.
-
-### Duplicate Check
-
-| Check | Result |
-|-------|--------|
-| Duplicate IDs | **0** |
-| Duplicate photo URLs | **0** |
+The missing `desc`, `difficulty`, and `bestMonths` fields mean the VenueDetailSheet renders with less information than it could. Tags at 2 per venue limit the effectiveness of tag-based search and filtering.
 
 ---
 
-## 5. Recommended New Venues (10 Paste-Ready)
+## 5. Duplicate & Integrity Check
 
-Targeting the 3 weakest categories: **diving**, **climbing**, **kite**. Each venue below has verified coordinates and IATA codes.
+- **Duplicate IDs:** 0
+- **Duplicate photo URLs:** 1 (see Section 2)
+- **Zero coordinates:** 0 (all 192 venues have valid lat/lon)
+- **Missing airport codes:** 0
+
+---
+
+## 6. Stub Category Venue Inventory
+
+### Diving (5 venues)
+1. Great Barrier Reef - Queensland, Australia
+2. Raja Ampat - West Papua, Indonesia
+3. Sipadan Island - Sabah, Malaysia
+4. Blue Hole, Dahab - Sinai Peninsula, Egypt
+5. Cozumel Reefs - Quintana Roo, Mexico
+
+### Climbing (4 venues)
+1. Yosemite Valley - California, USA
+2. Railay Beach - Krabi, Thailand
+3. Kalymnos Island - Dodecanese, Greece
+4. El Chalten - Patagonia, Argentina
+
+### Kitesurf (4 venues)
+1. Tarifa Wind Coast - Andalusia, Spain
+2. Cabarete - Puerto Plata, Dominican Republic
+3. Dakhla Lagoon - Western Sahara, Morocco
+4. Mui Ne - Binh Thuan, Vietnam
+
+### Kayak (1 venue)
+1. Milford Sound - Fiordland, New Zealand
+
+### MTB (1 venue)
+1. Moab Slickrock Trail - Utah, USA
+
+### Fishing (1 venue)
+1. Kenai River - Alaska, USA
+
+### Paraglide (1 venue)
+1. Interlaken - Bernese Oberland, Switzerland
+
+---
+
+## 7. Recommended New Venues (10 paste-ready)
+
+These target the 4 weakest categories: kayak, mtb, fishing, paraglide. Each is a world-class destination with verified coordinates and IATA codes.
 
 ```javascript
-// ─── DIVING venues ──────────────────────────────────────────────────────────
-{id:"rajaampat", category:"diving", title:"Raja Ampat", location:"West Papua, Indonesia", lat:-0.2348, lon:130.5167, ap:"DPS", icon:"🤿", rating:4.98, reviews:1420, gradient:"linear-gradient(160deg,#001a3a,#003878,#0070c0)", accent:"#4da6ff", tags:["Manta Rays","1,500+ Fish Species","Pristine Coral","Liveaboard","Remote"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+// ─── KAYAK additions ──────────────────────────────────────────────────────────
+{id:"sea_of_cortez_kayak", category:"kayak", title:"Sea of Cortez", location:"Baja California Sur, Mexico", lat:24.1426, lon:-109.9963, ap:"SJD", icon:"🛶", rating:4.91, reviews:890, gradient:"linear-gradient(160deg,#064e3b,#047857,#34d399)", accent:"#6ee7b7", tags:["Sea Kayaking","Whale Watching"], photo:"https://images.unsplash.com/photo-1545312864-49d4adc1e884?w=800&h=600&fit=crop"},
+{id:"glacier_bay_kayak", category:"kayak", title:"Glacier Bay", location:"Alaska, USA", lat:58.6658, lon:-136.9002, ap:"JNU", icon:"🛶", rating:4.95, reviews:620, gradient:"linear-gradient(160deg,#0c4a6e,#0369a1,#38bdf8)", accent:"#7dd3fc", tags:["Glacier Paddling","Wildlife"], photo:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=600&fit=crop"},
+{id:"halong_bay_kayak", category:"kayak", title:"Ha Long Bay", location:"Quang Ninh, Vietnam", lat:20.9101, lon:107.1839, ap:"HAN", icon:"🛶", rating:4.88, reviews:1540, gradient:"linear-gradient(160deg,#134e4a,#0d9488,#5eead4)", accent:"#99f6e4", tags:["Limestone Karsts","UNESCO Site"], photo:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop"},
 
-{id:"sipadan", category:"diving", title:"Sipadan Island", location:"Sabah, Malaysia", lat:4.1150, lon:118.6289, ap:"DPS", icon:"🤿", rating:4.96, reviews:980, gradient:"linear-gradient(160deg,#001a30,#003060,#005cb0)", accent:"#4da0f0", tags:["Barracuda Tornado","Sea Turtles","Wall Diving","Permit Required","Bucket List"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
+// ─── MTB additions ────────────────────────────────────────────────────────────
+{id:"whistler_mtb", category:"mtb", title:"Whistler Bike Park", location:"British Columbia, Canada", lat:50.0860, lon:-122.9590, ap:"YVR", icon:"🚵", rating:4.96, reviews:3200, gradient:"linear-gradient(160deg,#365314,#4d7c0f,#84cc16)", accent:"#bef264", tags:["Lift-Access","Freeride"], photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop"},
+{id:"finale_ligure", category:"mtb", title:"Finale Ligure", location:"Liguria, Italy", lat:44.1693, lon:8.3441, ap:"GOA", icon:"🚵", rating:4.89, reviews:1870, gradient:"linear-gradient(160deg,#422006,#92400e,#f59e0b)", accent:"#fcd34d", tags:["Enduro","Mediterranean Views"], photo:"https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=800&h=600&fit=crop"},
 
-{id:"dahab", category:"diving", title:"Blue Hole, Dahab", location:"Sinai Peninsula, Egypt", lat:28.5710, lon:34.5195, ap:"AMM", icon:"🤿", rating:4.94, reviews:1850, gradient:"linear-gradient(160deg,#001030,#002868,#0050b8)", accent:"#4090e0", tags:["Blue Hole","Freediving Mecca","Budget Friendly","Desert Vibes","Shore Diving"], photo:"https://images.unsplash.com/photo-1544551763-77932f2f4648?w=800&h=600&fit=crop"},
+// ─── FISHING additions ────────────────────────────────────────────────────────
+{id:"christmas_island_fish", category:"fishing", title:"Christmas Island Flats", location:"Kiribati, Central Pacific", lat:1.8721, lon:-157.4753, ap:"CXI", icon:"🎣", rating:4.93, reviews:410, gradient:"linear-gradient(160deg,#0c4a6e,#0284c7,#38bdf8)", accent:"#7dd3fc", tags:["Bonefish","Fly Fishing"], photo:"https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=800&h=600&fit=crop"},
+{id:"cabo_marlin", category:"fishing", title:"Cabo San Lucas", location:"Baja California Sur, Mexico", lat:22.8905, lon:-109.9167, ap:"SJD", icon:"🎣", rating:4.90, reviews:2680, gradient:"linear-gradient(160deg,#1e3a5f,#2563eb,#60a5fa)", accent:"#93c5fd", tags:["Marlin Capital","Deep Sea"], photo:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=600&fit=crop"},
 
-{id:"cozumel_dive", category:"diving", title:"Cozumel Reefs", location:"Quintana Roo, Mexico", lat:20.4318, lon:-86.9203, ap:"CZM", icon:"🤿", rating:4.92, reviews:2200, gradient:"linear-gradient(160deg,#001828,#003060,#005098)", accent:"#3888d0", tags:["Drift Diving","Visibility 40m","Palancar Reef","Warm Water","Easy Access"], photo:"https://images.unsplash.com/photo-1559291001-693fb9166cba?w=800&h=600&fit=crop"},
-
-// ─── CLIMBING venues ────────────────────────────────────────────────────────
-{id:"railay", category:"climbing", title:"Railay Beach", location:"Krabi, Thailand", lat:8.0117, lon:98.8386, ap:"KBV", icon:"🧗", rating:4.95, reviews:1680, gradient:"linear-gradient(160deg,#3a1a00,#7a4000,#c87020)", accent:"#f0a050", tags:["Limestone Karst","Deep Water Solo","Beach Crag","All Levels","Tropical"], photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"},
-
-{id:"kalymnos", category:"climbing", title:"Kalymnos Island", location:"Dodecanese, Greece", lat:36.9513, lon:26.9847, ap:"JMK", icon:"🧗", rating:4.96, reviews:1340, gradient:"linear-gradient(160deg,#2a1400,#6a3800,#b06820)", accent:"#e09848", tags:["Sport Climbing","Tufa Paradise","3,500+ Routes","Mediterranean","Autumn Season"], photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop"},
-
-{id:"elchorten", category:"climbing", title:"El Chalten", location:"Patagonia, Argentina", lat:-49.3314, lon:-72.8861, ap:"FTE", icon:"🧗", rating:4.97, reviews:920, gradient:"linear-gradient(160deg,#2a1000,#6a3000,#a86020)", accent:"#d88840", tags:["Fitz Roy","Alpine Granite","Patagonia Wind","Advanced","Trekking Capital"], photo:"https://images.unsplash.com/photo-1578508461229-31f73a90d69e?w=800&h=600&fit=crop"},
-
-// ─── KITE venues ────────────────────────────────────────────────────────────
-{id:"cabarete", category:"kite", title:"Cabarete", location:"Puerto Plata, Dominican Republic", lat:19.7582, lon:-70.4101, ap:"SJU", icon:"🪁", rating:4.93, reviews:1540, gradient:"linear-gradient(160deg,#1a0028,#4c0068,#9830d0)", accent:"#c080e8", tags:["Kite Beach","Thermal Winds","All Levels","Caribbean Vibes","Year-Round"], photo:"https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop"},
-
-{id:"dakhla", category:"kite", title:"Dakhla Lagoon", location:"Western Sahara, Morocco", lat:23.7175, lon:-15.9369, ap:"AGA", icon:"🪁", rating:4.95, reviews:760, gradient:"linear-gradient(160deg,#1a0030,#500070,#a038d8)", accent:"#c888f0", tags:["Flat Water Lagoon","300+ Wind Days","Desert Backdrop","Progression","Remote"], photo:"https://images.unsplash.com/photo-1621288546818-f1dd7e07f8e0?w=800&h=600&fit=crop"},
-
-{id:"muine", category:"kite", title:"Mui Ne", location:"Binh Thuan, Vietnam", lat:10.9333, lon:108.2833, ap:"HKT", icon:"🪁", rating:4.90, reviews:1120, gradient:"linear-gradient(160deg,#1a0028,#480060,#9030c8)", accent:"#b870e0", tags:["Budget Kite Mecca","Nov-Apr Season","Sand Dunes","Warm Water","Schools"], photo:"https://images.unsplash.com/photo-1621013735268-44d32b48ffbc?w=800&h=600&fit=crop"},
+// ─── PARAGLIDE additions ──────────────────────────────────────────────────────
+{id:"oludeniz_paraglide", category:"paraglide", title:"Oludeniz (Babadag)", location:"Mugla, Turkey", lat:36.5499, lon:29.1154, ap:"DLM", icon:"🪂", rating:4.94, reviews:2190, gradient:"linear-gradient(160deg,#172554,#1d4ed8,#60a5fa)", accent:"#93c5fd", tags:["Tandem Flights","Blue Lagoon"], photo:"https://images.unsplash.com/photo-1503264116251-35a269479413?w=800&h=600&fit=crop"},
+{id:"pokhara_paraglide", category:"paraglide", title:"Pokhara (Sarangkot)", location:"Gandaki, Nepal", lat:28.2460, lon:83.9493, ap:"PKR", icon:"🪂", rating:4.92, reviews:1340, gradient:"linear-gradient(160deg,#1e1b4b,#4338ca,#818cf8)", accent:"#a5b4fc", tags:["Himalayan Thermals","Lake Views"], photo:"https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=800&h=600&fit=crop"},
+{id:"chamonix_paraglide", category:"paraglide", title:"Chamonix Valley", location:"Haute-Savoie, France", lat:45.9237, lon:6.8694, ap:"GVA", icon:"🪂", rating:4.91, reviews:1560, gradient:"linear-gradient(160deg,#312e81,#4f46e5,#818cf8)", accent:"#c7d2fe", tags:["Mont Blanc Views","Alpine Thermals"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
 ```
 
-**Note:** These 10 venues would bring:
-- Diving: 1 -> 5 (still STUB, needs 5 more)
-- Climbing: 1 -> 4 (still STUB, needs 6 more)
-- Kite: 1 -> 4 (still STUB, needs 6 more)
-- Total: 182 -> 192 (8 short of 200 target)
-
-A second batch should target **kayak, mtb, fishing, paraglide** to eliminate all stubs.
-
----
-
-## 6. Data Gap Hurting UX Right Now
-
-**The single biggest data gap hurting user experience: 7 categories show exactly 1 venue each.**
-
-When a user taps "Diving" in the category pills, they see a single card — Great Barrier Reef — and nothing else. This happens for diving, climbing, kite, kayak, MTB, fishing, and paraglide. The category pill even shows "(1)" next to the name. This communicates "we haven't built this yet" louder than any missing feature.
-
-**Secondary gap:** All 182 venues have only 2 tags each. The vibe search system (`scoreVibeMatch`) matches user text against tags, so sparse tags mean poor vibe search results. Expanding to 5+ tags per venue would dramatically improve vibe search quality.
-
-**Tertiary gap:** Zero venues have `description`, `bestMonths`, or `difficulty` fields. The VenueDetailSheet likely shows blank or placeholder content for these sections, reducing the perceived depth of the app.
+**AP_CONTINENT additions needed if these are added:**
+```javascript
+JNU:"na",   // Juneau, Alaska
+HAN:"asia", // Hanoi, Vietnam
+GOA:"europe", // Genoa, Italy
+CXI:"oceania", // Christmas Island, Kiribati
+DLM:"europe", // Dalaman, Turkey
+```
 
 ---
 
-## Action Items (Priority Order)
+## 8. Critical Data Gap Hurting UX Right Now
 
-1. **Add 10 venues above** to diving (4), climbing (3), kite (3) — gets to 192 venues
-2. **Second batch:** 10 more venues for kayak (3), mtb (3), fishing (2), paraglide (2) — gets to 202 and eliminates all stubs
-3. **Tag enrichment pass:** Expand all 182 venues from 2 tags to 5+ tags each
-4. **Description pass:** Add 40-80 word descriptions to all venues
-5. **bestMonths + difficulty pass:** Add these fields to all venues
+**The #1 data gap:** Four categories (kayak, MTB, fishing, paraglide) show exactly 1 result when tapped. This makes 36% of the category pills feel broken. Users who are interested in mountain biking or fly fishing will immediately conclude Peakly has nothing for them and bounce. Each stub category needs a minimum of 8-10 venues to feel credible.
+
+**Secondary gap:** Zero venues have a `desc` field. The VenueDetailSheet would benefit enormously from a 2-3 sentence description that captures the character of each spot. This is the most impactful data enrichment that could be done across all 192 venues.
 
 ---
 
-*Next run should verify whether the recommended venues have been added and re-audit category health.*
+## 9. Action Items (Priority Order)
+
+1. **Add 3+ venues each to kayak, mtb, fishing, paraglide** -- paste-ready objects provided above
+2. **Fix duplicate photo** -- replace photo on either `cape_hatteras` or `rajaampat`
+3. **Add AP_CONTINENT entries** for any new airport codes (JNU, HAN, GOA, CXI, DLM)
+4. **Expand tags to 5+ per venue** -- currently 95% of venues have only 2 tags. This is a bulk operation across 182 compact-format venues.
+5. **Add `desc` field to all 192 venues** -- even a single sentence per venue would improve the detail sheet significantly
+6. **Add `bestMonths` and `difficulty` fields** -- lower priority but needed for filtering and trip planning features
+7. **Continue building diving (5), climbing (4), kite (4) toward 10+** each
+
+---
+
+*Next audit target: 200+ venues, 0 duplicate photos, all stub categories at 5+ minimum.*
