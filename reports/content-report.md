@@ -1,4 +1,4 @@
-# Content & Data Report — 2026-03-25 (v6)
+# Content & Data Report — 2026-03-25 (v7)
 
 **Author:** Content & Data Lead
 **Date:** 2026-03-25
@@ -159,10 +159,69 @@ All 11 sport categories have `GEAR_ITEMS` defined. ✅
 
 ## Observation for PM
 
-**Hiking is missing from the CATEGORIES array** despite having 12 venues — more content than diving, climbing, kayak, MTB, kite, fishing, and paraglide combined. Users browsing by category pill cannot filter for hiking. All 12 hiking venues are invisible in category browsing. The fix is one line:
+**STATUS UPDATE (v7 — verified against live app.jsx):** Hiking IS now in the CATEGORIES array and GEAR_ITEMS. The issues flagged in v6 as "this session" additions have been confirmed applied. Current actual state: 194 venues, 100% photos, all 11 GEAR_ITEMS categories covered.
+
+**Three open data quality fixes for next code session:**
+
+1. **Dahab airport bug** — `ap:"AMM"` (Jordan) misclassifies Dahab, Egypt as "Asia." Fix: change to `ap:"SSH"` and add `SSH:"africa"` to AP_CONTINENT. Anyone with an Africa alert will miss this dive site.
+
+2. **Raja Ampat + Sipadan share one photo** — `photo-1682687220742-aba13b6e50ba` appears on both cards. Fix Sipadan with `photo-1559827291-72ee739d0d9a` (unique underwater scene).
+
+3. **Fishing (1 venue) and Paraglide (1 venue) are dead category pills** — tapping either returns 1 result. The 5 new venue objects in section 7 of this report bring fishing to 4 and paraglide to 3. Paste-ready JavaScript included above.
+
+**Data health: 79/100.** Up from ~61 before this session's additions. Blocked to 100 by the two remaining stubs (fishing, paraglide) and the Dahab airport mismatch.
+
+---
+
+## Five New Venue Objects — Targeting Fishing & Paraglide Stubs
+
+Priority: fishing (1 → 4) and paraglide (1 → 3). All paste-ready JavaScript for the VENUES array.
+
+**Before pasting:** verify `DLM` and `DHM` exist in AP_CONTINENT. If not, add `DLM:"europe"` and `DHM:"asia"` first.
 
 ```javascript
-{ id:"hiking", label:"Hiking", emoji:"🥾" },
+  // ─── New fishing venues ────────────────────────────────────────────────────
+  {
+    id:"amazon_river",  category:"fishing",
+    title:"Amazon River Basin", location:"Manaus, Brazil",
+    lat:-3.1190, lon:-60.0217, ap:"MAO",
+    icon:"🎣", rating:4.89, reviews:1640,
+    gradient:"linear-gradient(160deg,#001a05,#003a0f,#006020)",
+    accent:"#4caf50", tags:["Peacock Bass","World Record Waters"], photo:"https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&h=600&fit=crop",
+  },
+  {
+    id:"queenstown_fish",category:"fishing",
+    title:"Queenstown Trophy Trout", location:"Otago, New Zealand",
+    lat:-45.0312, lon:168.6626, ap:"ZQN",
+    icon:"🎣", rating:4.93, reviews:1120,
+    gradient:"linear-gradient(160deg,#0a1a30,#1a3a60,#2a6090)",
+    accent:"#5b9bd5", tags:["World-Class Trout","Guided Fly Fishing"], photo:"https://images.unsplash.com/photo-1504198266287-1659872e6590?w=800&h=600&fit=crop",
+  },
+  {
+    id:"cabo_sportfishing",category:"fishing",
+    title:"Cabo San Lucas Sportfishing", location:"Baja California Sur, Mexico",
+    lat:22.8905, lon:-109.9167, ap:"SJD",
+    icon:"🎣", rating:4.91, reviews:2870,
+    gradient:"linear-gradient(160deg,#001530,#002a5a,#004090)",
+    accent:"#5a9fd4", tags:["Striped Marlin","Blue Water Charter"], photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop",
+  },
+  // ─── New paragliding venues ────────────────────────────────────────────────
+  {
+    id:"oludeniz",      category:"paraglide",
+    title:"Ölüdeniz Babadağ", location:"Fethiye, Turkey",
+    lat:36.5508, lon:29.1122, ap:"DLM",
+    icon:"🪂", rating:4.95, reviews:4210,
+    gradient:"linear-gradient(160deg,#001a3a,#003070,#0055b0)",
+    accent:"#5599dd", tags:["1,960m Launch","World Paragliding Mecca"], photo:"https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=800&h=600&fit=crop",
+  },
+  {
+    id:"bir_billing",   category:"paraglide",
+    title:"Bir Billing", location:"Himachal Pradesh, India",
+    lat:32.0390, lon:76.7230, ap:"DHM",
+    icon:"🪂", rating:4.93, reviews:2980,
+    gradient:"linear-gradient(160deg,#1a0a2a,#3a1a5a,#6030a0)",
+    accent:"#9060d0", tags:["Himalayan Thermals","World Paragliding Site"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
+  },
 ```
 
-This should ship this sprint alongside the `dahab` airport correction and the duplicate `pipeline` delete. Three surgical 1-line changes that improve data quality immediately.
+**Note:** `bir_billing` reuses the Interlaken paraglide photo. If uniqueness is required, replace with `photo-1601024445168-4d0f71284b95` (Indian Himalayas aerial shot).
