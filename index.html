@@ -24,7 +24,39 @@
   <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
 
   <!-- Analytics -->
-  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>
+  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://j1mmychu.github.io/peakly/#website",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "name": "Peakly",
+        "description": "Find surf, ski and adventure spots when conditions and cheap flights align."
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://j1mmychu.github.io/peakly/#app",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": "Real-time condition scoring, Flight price tracking, 180+ adventure venues, Vibe-based search, Trip planning, Condition alerts"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://j1mmychu.github.io/peakly/#org",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/"
+      }
+    ]
+  }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
@@ -43,7 +75,14 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <h1 style="font-family:system-ui;text-align:center;padding:40px 20px;color:#222;font-size:24px;">
+      Peakly — Surf, Ski &amp; Adventure Spots with Live Conditions &amp; Cheap Flights
+    </h1>
+    <p style="text-align:center;color:#717171;font-size:14px;max-width:400px;margin:0 auto;">
+      Discover 170+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
+    </p>
+  </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
   <script type="text/babel" src="./app.jsx?v=20260325a" data-presets="react"></script>

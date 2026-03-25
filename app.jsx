@@ -552,6 +552,22 @@ const VENUES = [
   {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:45.9700,lon:7.3100,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
   {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"], photo:"https://images.unsplash.com/photo-1534853878021-7fb609562749?w=800&h=600&fit=crop"},
   {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"], photo:"https://images.unsplash.com/photo-1621286675775-7f9dc67237b0?w=800&h=600&fit=crop"},
+
+  // ─── DIVING expansion ──────────────────────────────────────────────────────
+  {id:"rajaampat",    category:"diving",title:"Raja Ampat",             location:"West Papua, Indonesia",     lat:-0.2348,lon:130.5167,ap:"DPS",icon:"🤿",rating:4.98,reviews:1420,gradient:"linear-gradient(160deg,#001a3a,#003878,#0070c0)",accent:"#4da6ff",tags:["Manta Rays","1500+ Fish Species","Pristine Coral","Liveaboard","Remote"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+  {id:"sipadan",      category:"diving",title:"Sipadan Island",         location:"Sabah, Malaysia",           lat:4.1150,lon:118.6289,ap:"DPS",icon:"🤿",rating:4.96,reviews:980,gradient:"linear-gradient(160deg,#001a30,#003060,#005cb0)",accent:"#4da0f0",tags:["Barracuda Tornado","Sea Turtles","Wall Diving","Permit Required","Bucket List"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
+  {id:"dahab",        category:"diving",title:"Blue Hole, Dahab",       location:"Sinai Peninsula, Egypt",    lat:28.5710,lon:34.5195,ap:"AMM",icon:"🤿",rating:4.94,reviews:1850,gradient:"linear-gradient(160deg,#001030,#002868,#0050b8)",accent:"#4090e0",tags:["Blue Hole","Freediving Mecca","Budget Friendly","Desert Vibes","Shore Diving"], photo:"https://images.unsplash.com/photo-1544551763-77932f2f4648?w=800&h=600&fit=crop"},
+  {id:"cozumel_dive", category:"diving",title:"Cozumel Reefs",          location:"Quintana Roo, Mexico",      lat:20.4318,lon:-86.9203,ap:"CZM",icon:"🤿",rating:4.92,reviews:2200,gradient:"linear-gradient(160deg,#001828,#003060,#005098)",accent:"#3888d0",tags:["Drift Diving","Visibility 40m","Palancar Reef","Warm Water","Easy Access"], photo:"https://images.unsplash.com/photo-1559291001-693fb9166cba?w=800&h=600&fit=crop"},
+
+  // ─── CLIMBING expansion ────────────────────────────────────────────────────
+  {id:"railay_climb", category:"climbing",title:"Railay Beach",          location:"Krabi, Thailand",           lat:8.0117,lon:98.8386,ap:"KBV",icon:"🧗",rating:4.95,reviews:1680,gradient:"linear-gradient(160deg,#3a1a00,#7a4000,#c87020)",accent:"#f0a050",tags:["Limestone Karst","Deep Water Solo","Beach Crag","All Levels","Tropical"], photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"},
+  {id:"kalymnos",     category:"climbing",title:"Kalymnos Island",       location:"Dodecanese, Greece",        lat:36.9513,lon:26.9847,ap:"JMK",icon:"🧗",rating:4.96,reviews:1340,gradient:"linear-gradient(160deg,#2a1400,#6a3800,#b06820)",accent:"#e09848",tags:["Sport Climbing","Tufa Paradise","3500+ Routes","Mediterranean","Autumn Season"], photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop"},
+  {id:"elchorten",    category:"climbing",title:"El Chalten",            location:"Patagonia, Argentina",      lat:-49.3314,lon:-72.8861,ap:"PUQ",icon:"🧗",rating:4.97,reviews:920,gradient:"linear-gradient(160deg,#2a1000,#6a3000,#a86020)",accent:"#d88840",tags:["Fitz Roy","Alpine Granite","Patagonia Wind","Advanced","Trekking Capital"], photo:"https://images.unsplash.com/photo-1578508461229-31f73a90d69e?w=800&h=600&fit=crop"},
+
+  // ─── KITE expansion ────────────────────────────────────────────────────────
+  {id:"cabarete",     category:"kite",title:"Cabarete",                  location:"Puerto Plata, Dominican Republic",lat:19.7582,lon:-70.4101,ap:"SJU",icon:"🪁",rating:4.93,reviews:1540,gradient:"linear-gradient(160deg,#1a0028,#4c0068,#9830d0)",accent:"#c080e8",tags:["Kite Beach","Thermal Winds","All Levels","Caribbean Vibes","Year-Round"], photo:"https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop"},
+  {id:"dakhla",       category:"kite",title:"Dakhla Lagoon",             location:"Western Sahara, Morocco",   lat:23.7175,lon:-15.9369,ap:"AGA",icon:"🪁",rating:4.95,reviews:760,gradient:"linear-gradient(160deg,#1a0030,#500070,#a038d8)",accent:"#c888f0",tags:["Flat Water Lagoon","300+ Wind Days","Desert Backdrop","Progression","Remote"], photo:"https://images.unsplash.com/photo-1621288546818-f1dd7e07f8e0?w=800&h=600&fit=crop"},
+  {id:"muine",        category:"kite",title:"Mui Ne",                    location:"Binh Thuan, Vietnam",       lat:10.9333,lon:108.2833,ap:"HKT",icon:"🪁",rating:4.90,reviews:1120,gradient:"linear-gradient(160deg,#1a0028,#480060,#9030c8)",accent:"#b870e0",tags:["Budget Kite Mecca","Nov-Apr Season","Sand Dunes","Warm Water","Schools"], photo:"https://images.unsplash.com/photo-1621013735268-44d32b48ffbc?w=800&h=600&fit=crop"},
 ];
 
 const US_AIRPORTS = [
@@ -1178,10 +1194,12 @@ function getFlightDate(whenId = "anytime") {
   }
 }
 // Build a Google Flights deep-link URL with pre-filled origin, destination, and dates
-function buildFlightUrl(from, to, whenId = "anytime") {
-  const dep = getFlightDate(whenId);
-  const retD = new Date(dep); retD.setDate(retD.getDate() + 7);
-  const ret = retD.toISOString().slice(0, 10);
+function buildFlightUrl(from, to, opts) {
+  const whenId = opts?.whenId || "anytime";
+  const startDate = opts?.startDate;
+  const endDate = opts?.endDate;
+  const dep = startDate || getFlightDate(whenId);
+  const ret = endDate || (() => { const d = new Date(dep); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
   return `https://www.google.com/flights?hl=en#flt=${from}.${to}.${dep}*${to}.${from}.${ret};c:USD;e:1;sd:1;t:f`;
 }
 
@@ -1934,7 +1952,7 @@ function SearchBar({ search, onOpen }) {
         <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
           {topLine}
         </div>
-        <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:2 }}>
+        <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
           {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
         </div>
       </div>
@@ -2469,7 +2487,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
-                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#aaa", fontFamily:F, marginLeft:2 }}>rt</span>
+                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#888", fontFamily:F, marginLeft:2 }}>rt</span>
                         <span style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
@@ -2486,7 +2504,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             {isAll ? "All experiences" : catLabel}
           </div>
           <div style={{ fontSize:13, color:"#717171", marginTop:2, fontFamily:F }}>
-            {loading ? "Fetching live conditions…" : `${gridListings.length} windows available`}
+            {loading ? "Fetching live conditions…" : `${gridListings.length} spots`}
           </div>
         </div>
 
@@ -3908,6 +3926,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
 
   const complete = () => {
     setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
+    window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
     onClose();
   };
 
@@ -4164,6 +4183,12 @@ const GEAR_ITEMS = {
     { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=bonine+motion+sickness" },
     { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
+  hiking:   [
+    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$165",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+4+gtx" },
+    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$90",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trail+trekking+poles" },
+    { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon", price:"$42",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",   price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+  ],
 };
 
 // ─── guided experiences per category ──────────────────────────────────────────
@@ -4222,7 +4247,7 @@ const EXPERIENCES = {
 };
 
 // ─── venue detail sheet ────────────────────────────────────────────────────────
-function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail }) {
+function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
   const [showListPicker, setShowListPicker] = useState(false);
   const [newListName,    setNewListName]    = useState("");
   const [showSharePanel, setShowSharePanel] = useState(false);
@@ -4273,7 +4298,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   const packing    = PACKING[listing.category]      || PACKING.surfing;
   const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
-  const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap);
+  const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap, {
+    startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
+  });
 
   // Similar venues: same category, excluding current, sorted by score
   const similarVenues = listings
@@ -4391,13 +4418,23 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
 
           {/* Book flight CTA */}
-          <a href={flightUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+          <a href={flightUrl} target="_blank" rel="noopener noreferrer" onClick={() => { window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }} style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:"0 4px 18px rgba(14,165,233,0.38)" }}>
               <span style={{ fontSize:20 }}>✈️</span>
               <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Book on Google Flights · ${listing.flight.price}</span>
               <span style={{ fontSize:13, color:"rgba(255,255,255,0.6)" }}>↗</span>
             </div>
           </a>
+
+          {/* Set Alert CTA */}
+          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
+            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+          </button>
 
           {/* 7-day forecast */}
           {forecast.length > 0 && (
@@ -4444,7 +4481,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                         <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       )}
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
-                        <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
+                        <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
                       </div>
                     </div>
                     <div style={{ padding:"7px 9px 9px" }}>
@@ -4476,7 +4513,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
-                <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>Affiliate links · no extra cost</span>
+                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>Affiliate links · no extra cost</span>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                 {GEAR_ITEMS[listing.category].map((item, i) => (
@@ -4500,11 +4537,16 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🎟️ Book an experience</div>
-                <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>via GetYourGuide</span>
+                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>via GetYourGuide</span>
               </div>
               <div style={{ display:"flex", gap:9, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {EXPERIENCES[listing.category].map((exp, i) => {
-                  const expUrl = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
+                  const expUrl = (() => {
+                    let u = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
+                    if (filters?.startDate) u += `&date_from=${filters.startDate}`;
+                    if (filters?.endDate) u += `&date_to=${filters.endDate}`;
+                    return u;
+                  })();
                   return (
                     <a key={i} href={expUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
                       <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
@@ -4527,7 +4569,14 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           )}
 
           {/* 🏨 Stay nearby — Booking.com affiliate */}
-          <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+          <a href={(() => {
+            let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`;
+            const ci = filters?.startDate;
+            const co = filters?.endDate || (ci ? (() => { const d = new Date(ci); d.setDate(d.getDate() + 7); return d.toISOString().slice(0,10); })() : "");
+            if (ci) url += `&checkin=${ci}`;
+            if (co) url += `&checkout=${co}`;
+            return url;
+          })()} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#003580,#0057b8)", borderRadius:14, padding:"13px 15px", display:"flex", alignItems:"center", gap:12, boxShadow:"0 4px 14px rgba(0,53,128,0.28)" }}>
               <span style={{ fontSize:26 }}>🏨</span>
               <div style={{ flex:1 }}>
@@ -5235,7 +5284,7 @@ function BottomNav({ active, setActive, alertCount }) {
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
-          padding:"4px 0",
+          padding:"8px 0",
         }}>
           {t.id === "alerts" && alertCount > 0 && (
             <div style={{
@@ -5442,10 +5491,20 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    setWishlists(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+    setWishlists(p => {
+      const isAdding = !p.includes(id);
+      if (isAdding) {
+        const venue = VENUES.find(v => v.id === id);
+        window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+      }
+      return p.includes(id) ? p.filter(x => x !== id) : [...p, id];
+    });
   }, [setWishlists]);
 
-  const openDetail = useCallback(listing => setDetailVenue(listing), []);
+  const openDetail = useCallback(listing => {
+    setDetailVenue(listing);
+    window.plausible && window.plausible('Venue Click', {props: {venue: listing.title, category: listing.category}});
+  }, []);
 
   // Handle URL hash venue links (e.g. #venue-whistler)
   useEffect(() => {
@@ -5586,6 +5645,8 @@ function App() {
             setNamedLists={setNamedLists}
             listings={listings}
             onOpenDetail={openDetail}
+            filters={filters}
+            search={search}
             onAlert={(venue) => {
               setDetailVenue(null);
               setActiveTab("alerts");
@@ -5593,7 +5654,7 @@ function App() {
           />
         )}
 
-        <BottomNav active={activeTab} setActive={setActiveTab} alertCount={firingCount} />
+        <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} />
       </div>
     </div>
   );
