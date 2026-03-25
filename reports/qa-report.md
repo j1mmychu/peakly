@@ -1,128 +1,108 @@
-# QA Report: 2026-03-24 (v2)
+# QA Report — Peakly
 
-**Agent:** QA Agent (Claude Opus 4.6)
-**Date:** 2026-03-24
-**Scope:** New categories (kite, kayak, mtb, fishing, paraglide), Plausible analytics, SEO files, general app.jsx integrity
-**File under test:** `app.jsx` (5,631 lines)
-**Deployed URL:** https://j1mmychu.github.io/peakly/
+**Date:** 2026-03-24 (regression check after VPS proxy fix, PWA addition, GA4 removal)
+**File:** app.jsx (6,354 lines) | index.html (119 lines)
+**Baseline:** 5,666 lines / 192 venues (previous run)
+**Current:** 6,354 lines / 472 venues (+688 lines, +280 venues)
 
 ---
 
-## Check Results
+## Overall: 9/11 PASS
 
-### 1. Live Site Load
-**PASS** -- `https://j1mmychu.github.io/peakly/` returns HTTP 200. Site is reachable and serving content.
+| # | Check | Result | Details |
+|---|-------|--------|---------|
+| 1 | CATEGORIES syntax (12 present) | PASS | All 12 categories: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. |
+| 2 | Venue required fields | PASS | All 472 venues have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo. |
+| 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs. |
+| 4 | Duplicate photo URLs | FAIL (P2) | 3 venues share the same photo (see below). Was 2 last run — now 3. |
+| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches + default fallback. |
+| 6 | Affiliate links — Amazon | PASS | 21 Amazon links, all with `tag=peakly-20`. No placeholder IDs. |
+| 7 | Affiliate links — Booking.com | PASS | 1 Booking.com link with `aid=2311236`. Correctly formatted. |
+| 8 | Affiliate links — SafetyWing | PASS | 1 SafetyWing link with `referenceID=peakly`. Correctly formatted. |
+| 9 | SEO files | PASS | robots.txt, sitemap.xml, canonical tag, title tag, JSON-LD all present and correct. |
+| 10 | Plausible analytics | PASS | `script.hash.js` loading correctly from plausible.io. |
+| 11 | Sentry DSN | FAIL (P2) | `SENTRY_DSN = ""` on line 6. Still empty. |
 
-### 2. CATEGORIES Array (app.jsx lines 141-154)
-**PASS** -- 12 entries confirmed:
+---
 
-| # | id | label |
-|---|-----|-------|
-| 1 | all | All |
-| 2 | skiing | Skiing |
-| 3 | surfing | Surfing |
-| 4 | hiking | Hiking |
-| 5 | diving | Diving |
-| 6 | climbing | Climbing |
-| 7 | tanning | Beach & Tan |
-| 8 | kite | Kitesurf |
-| 9 | kayak | Kayak |
-| 10 | mtb | MTB |
-| 11 | fishing | Fishing |
-| 12 | paraglide | Paraglide |
+## Cache-Buster Status
 
-All entries have id, label, and emoji fields. No syntax issues.
+**Current value:** `?v=20260325b` (index.html, line 95)
+**Status: Current.** Dated 2026-03-25 with "b" suffix indicating second deploy. No fix needed.
 
-### 3. New Category Venues
-**PASS** -- At least 1 venue per new category:
+---
 
-| Category | Venue | Photo | Fields Complete |
-|----------|-------|-------|-----------------|
-| kite | Tarifa Wind Coast | Yes | Yes |
-| kayak | Milford Sound | Yes | Yes |
-| mtb | Moab Slickrock Trail | Yes | Yes |
-| fishing | Kenai River | Yes | Yes |
-| paraglide | Interlaken | Yes | Yes |
+## Sentry Status
 
-All have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo.
+**Status:** Empty DSN on line 6 of app.jsx. Error monitoring infrastructure exists but is not connected.
 
-### 4. Scoring Logic for New Categories
-**PASS** -- `scoreVenue` contains `case` branches for all 5 new categories:
-- `case "kite"` (line 948)
-- `case "kayak"` (line 960)
-- `case "mtb"` (line 974)
-- `case "fishing"` (line 985)
-- `case "paraglide"` (line 995)
-
-### 5. Syntax Integrity
-**PASS**
-- No duplicate `photo:` fields on any venue line (0 matches)
-- No missing commas between venue objects (no `}\n{` without comma)
-- 182 venues have photo URLs
-- Total venue count: 182 (177 original categories + 5 new categories)
-
-### 6. index.html -- Plausible Analytics
-**PASS** -- Line 27: `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>`
-- Correctly placed in `<head>` with `defer` attribute.
-
-### 7. index.html -- Title Tag
-**PASS** -- Line 23: `<title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>`
-- Descriptive, keyword-rich.
-
-### 8. index.html -- Canonical URL
-**PASS** -- Line 24: `<link rel="canonical" href="https://j1mmychu.github.io/peakly/" />`
-
-### 9. robots.txt
-**PASS** -- File exists. Contents:
+**Fix (replace line 6 after signing up at sentry.io):**
+```js
+const SENTRY_DSN = "https://<your-key>@o<org-id>.ingest.sentry.io/<project-id>";
 ```
-User-agent: *
-Allow: /
-Sitemap: https://j1mmychu.github.io/peakly/sitemap.xml
-```
-
-### 10. sitemap.xml
-**PASS** -- File exists. Valid XML with root URL, lastmod 2026-03-24, daily changefreq, priority 1.0.
+No other code changes needed — the existing `reportError()` + `fetch()` logic activates automatically. Not blocked by LLC.
 
 ---
 
-## Summary Table
+## Duplicate Photo Details
 
-| Check | Result |
-|-------|--------|
-| Live site loads (HTTP 200) | PASS |
-| CATEGORIES has 12 entries (all + 11 sports) | PASS |
-| New category venues exist with complete fields | PASS |
-| New category scoring logic exists | PASS |
-| No duplicate photo fields | PASS |
-| No missing commas / syntax issues | PASS |
-| Plausible analytics script | PASS |
-| Title tag (SEO) | PASS |
-| Canonical URL | PASS |
-| robots.txt exists and correct | PASS |
-| sitemap.xml exists and valid | PASS |
-
-**Overall: ALL 11 CHECKS PASS**
+**3 venues share the same photo (worsened from 2 last run):**
+- URL: `photo-1544551763-46a013bb70d5` (generic surf shot)
+- Used by:
+  - `cape_hatteras` (surfing, line 445)
+  - `salsa_brava` (surfing, line 540)
+  - `rajaampat` (diving, line 906)
+- Fix: Replace salsa_brava and rajaampat photos with venue-specific images.
 
 ---
 
-## Minor Issues (Non-Blocking)
+## Syntax Concern (NEW — P2)
 
-1. **Thin venue coverage for new categories.** Each of the 5 new categories has only 1 venue. Users filtering by kite/kayak/mtb/fishing/paraglide will see a near-empty list. Recommend adding 5-10 venues per new category.
+**Line 300:** The Pipeline venue object has a trailing comma on line 299 (`photo:"...",`) followed by `, breakType:"reef"}` on line 300. This creates a `, ,` pattern (consecutive commas) in an object literal. Babel Standalone tolerates this today, but strict parsers would reject it. A Babel CDN upgrade could cause a white-screen crash on the app's flagship surfing venue.
 
-2. **CLAUDE.md docs drift.** The constants section still says "~170+ venues" and does not list the 5 new categories. Should be updated to reflect 182 venues and 12 category entries (all + 11 sports).
-
-3. **Plausible data-domain.** Set to `j1mmychu.github.io` -- must be updated when migrating to `peakly.app`.
-
-4. **Cache-busting param stale.** `app.jsx?v=20260323b` in index.html has not been bumped since last deploy. Should increment on each code push.
-
-5. **Mixed content (known).** `FLIGHT_PROXY` uses HTTP. Flight prices fall back to estimates. Documented in CLAUDE.md; not a new issue.
+**Fix:** Remove the trailing comma on line 299 OR the leading comma on line 300.
 
 ---
 
-## Recommended Fixes
+## Venue Distribution by Category
 
-| Priority | Fix |
-|----------|-----|
-| Medium | Add 5-10 venues per new category (kite, kayak, mtb, fishing, paraglide) |
-| Low | Update CLAUDE.md constants section for 182 venues and new categories |
-| Low | Bump cache-bust param `?v=20260324` in index.html on next deploy |
+| Category | Count | Change vs Last Run | Status |
+|----------|-------|-------------------|--------|
+| surfing | 333 | +280 | Massive expansion |
+| tanning | 60 | -- | Healthy |
+| skiing | 50 | -- | Healthy |
+| hiking | 12 | -- | Healthy |
+| diving | 5 | -- | Adequate |
+| climbing | 4 | -- | Thin |
+| kite | 4 | -- | Thin |
+| paraglide | 1 | -- | Thin |
+| mtb | 1 | -- | Thin |
+| kayak | 1 | -- | Thin |
+| fishing | 1 | -- | Thin |
+
+**Note:** Surfing now dominates at 333/472 (71%). 5 categories still have only 1 venue each.
+
+---
+
+## Regression Check — Recent Changes
+
+| Change | Status | Detail |
+|--------|--------|--------|
+| VPS proxy fix (HTTPS) | PASS | `FLIGHT_PROXY = "https://peakly-api.duckdns.org"` on line 1624. No more mixed content. Previous critical finding (HTTP proxy blocked by browsers) is **RESOLVED**. |
+| PWA manifest + SW | PASS | `manifest.json` present. `sw.js` present. `<link rel="manifest">` in index.html. Service worker registration script in index.html. Apple meta tags present. |
+| GA4 placeholder removed | PASS (intentional) | No gtag.js in index.html. CLAUDE.md still references GA4 as "added" — documentation is stale but removal is intentional. |
+| Plausible analytics | PASS | Still loading `script.hash.js`. Unaffected by GA4 removal. |
+| All affiliate links | PASS | All 23 affiliate links intact with real IDs. |
+| scoreVenue function | PASS | All 11 scoring branches intact and unchanged. |
+
+### Regressions vs Last Run: NONE
+
+Previous critical finding (HTTP flight proxy causing mixed content block) is now **FIXED** — proxy uses HTTPS via Caddy + Let's Encrypt.
+
+Previous duplicate photo issue **WORSENED** from 2 to 3 venues sharing the same URL.
+
+---
+
+## One Thing That Would Break Everything If Not Caught
+
+**Line 300 double-comma syntax in the Pipeline venue object.** Pipeline is Peakly's flagship surfing venue. The `, ,` pattern in its object literal is non-standard. If unpkg upgrades Babel Standalone to a stricter version, this single comma could cause a parse failure that white-screens the entire app for every user. It's a one-character fix that eliminates a catastrophic risk vector. Fix it before the next deploy.

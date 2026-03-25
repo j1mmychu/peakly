@@ -23,8 +23,47 @@
   <title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>
   <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
 
-  <!-- Analytics -->
-  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>
+  <!-- Analytics: Plausible -->
+  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://j1mmychu.github.io/peakly/#website",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "name": "Peakly",
+        "description": "Find surf, ski and adventure spots when conditions and cheap flights align."
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://j1mmychu.github.io/peakly/#app",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": "Real-time condition scoring, Flight price tracking, 180+ adventure venues, Vibe-based search, Trip planning, Condition alerts"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://j1mmychu.github.io/peakly/#org",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/"
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Peakly" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%230284c7'/><text x='90' y='134' font-size='112' font-family='system-ui' font-weight='700' fill='white' text-anchor='middle'>P</text></svg>" />
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
@@ -43,10 +82,24 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <h1 style="font-family:system-ui;text-align:center;padding:40px 20px;color:#222;font-size:24px;">
+      Peakly — Surf, Ski &amp; Adventure Spots with Live Conditions &amp; Cheap Flights
+    </h1>
+    <p style="text-align:center;color:#717171;font-size:14px;max-width:400px;margin:0 auto;">
+      Discover 170+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
+    </p>
+  </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260325a" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260325b" data-presets="react"></script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(function() {});
+    }
+  </script>
 
   <!-- Babel parse error fallback -->
   <script>

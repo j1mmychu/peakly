@@ -211,6 +211,73 @@ const AP_CONTINENT = {
   CPT:"africa", PLZ:"africa", AGA:"africa", WDH:"africa",
   JRO:"africa", MBA:"africa", ZNZ:"africa", SEZ:"africa",
   PRI:"africa", MRU:"africa",
+
+  "ABJ":"africa",
+  "ACC":"africa",
+  "ACV":"north_america",
+  "AGD":"oceania",
+  "APW":"oceania",
+  "AQT":"south_america",
+  "BFS":"europe",
+  "BHD":"europe",
+  "BKK":"asia",
+  "BRI":"europe",
+  "BTJ":"asia",
+  "BUR":"north_america",
+  "CMB":"asia",
+  "COK":"asia",
+  "CRK":"asia",
+  "DIL":"asia",
+  "DSS":"africa",
+  "DUB":"europe",
+  "DUR":"africa",
+  "EUG":"north_america",
+  "EXT":"europe",
+  "FOR":"south_america",
+  "FSZ":"asia",
+  "GIG":"south_america",
+  "GIS":"oceania",
+  "GTW":"europe",
+  "HBA":"oceania",
+  "ILH":"south_america",
+  "KHH":"asia",
+  "KMI":"asia",
+  "LBJ":"asia",
+  "LGW":"europe",
+  "LPA":"europe",
+  "MAO":"south_america",
+  "MCT":"asia",
+  "MDN":"asia",
+  "MEC":"south_america",
+  "MFR":"north_america",
+  "MGA":"north_america",
+  "MQT":"africa",
+  "NAT":"south_america",
+  "NHA":"asia",
+  "OAK":"north_america",
+  "PDX":"north_america",
+  "PEK":"asia",
+  "RCN":"asia",
+  "RUN":"africa",
+  "SBA":"north_america",
+  "SBY":"asia",
+  "SJC":"north_america",
+  "SNA":"north_america",
+  "SPC":"europe",
+  "SSC":"north_america",
+  "SUB":"asia",
+  "SUM":"asia",
+  "TFS":"europe",
+  "TKG":"asia",
+  "TLV":"asia",
+  "TNR":"africa",
+  "TPE":"asia",
+  "TPP":"south_america",
+  "TRU":"south_america",
+  "UIO":"south_america",
+  "VCT":"asia",
+  "VDE":"europe",
+  "VLI":"oceania",
 };
 
 // ─── venues with real coordinates ────────────────────────────────────────────
@@ -303,12 +370,6 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a1a3a,#3a3a8e,#6868d4)",
     accent:"#b39ddb", tags:["Tandem OK","Alps Views"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
   },
-  // ─── stub category expansions ──────────────────────────────────────────────
-  {id:"raja_ampat",   category:"diving",  title:"Raja Ampat",              location:"West Papua, Indonesia",   lat:-0.5833,lon:130.9833,ap:"DPS",icon:"🤿",rating:4.98,reviews:2840,gradient:"linear-gradient(160deg,#001428,#002d5a,#005599)",accent:"#29b6f6",tags:["World's Best Diving","6,000 Species"], photo:"https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&h=600&fit=crop"},
-  {id:"kalymnos",     category:"climbing",title:"Kalymnos",                location:"Dodecanese, Greece",      lat:36.9500,lon:26.9833,ap:"ATH",icon:"🧗",rating:4.95,reviews:3210,gradient:"linear-gradient(160deg,#2a1a00,#7a4a10,#c07020)",accent:"#ffa726",tags:["Sport Climbing Mecca","Limestone Overhangs"], photo:"https://images.unsplash.com/photo-1564769625673-bd94db2c3e89?w=800&h=600&fit=crop"},
-  {id:"finale_ligure",category:"mtb",    title:"Finale Ligure Bike Park",  location:"Liguria, Italy",          lat:44.1700,lon:8.3400,ap:"MXP",icon:"🚵",rating:4.94,reviews:4180,gradient:"linear-gradient(160deg,#1a0a00,#5a2a00,#9a5000)",accent:"#ff7043",tags:["Enduro Capital","Sea-View Singletrack"], photo:"https://images.unsplash.com/photo-1544191696-102dbfc1aba7?w=800&h=600&fit=crop"},
-  {id:"abel_tasman",  category:"kayak",  title:"Abel Tasman National Park",location:"Nelson, New Zealand",     lat:-40.8500,lon:172.9667,ap:"AKL",icon:"🛶",rating:4.94,reviews:4120,gradient:"linear-gradient(160deg,#001a10,#004a30,#007a60)",accent:"#4db6ac",tags:["Golden Beaches","3-Day Paddle Circuit"], photo:"https://images.unsplash.com/photo-1469796466635-455ede028aca?w=800&h=600&fit=crop"},
-  {id:"cabarete",     category:"kite",   title:"Cabarete",                 location:"Puerto Plata, Dom. Rep.", lat:19.7430,lon:-70.4077,ap:"POP",icon:"🪁",rating:4.89,reviews:1870,gradient:"linear-gradient(160deg,#1a0040,#4400aa,#7722dd)",accent:"#ce93d8",tags:["Caribbean Kite Capital","20-30 Knot Trades"], photo:"https://images.unsplash.com/photo-1531722487855-44fe04b1b23f?w=800&h=600&fit=crop"},
   // ─── North America ski resorts ─────────────────────────────────────────────
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1610865383566-6469eedeb76f?w=800&h=600&fit=crop"},
@@ -558,47 +619,22 @@ const VENUES = [
   {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:45.9700,lon:7.3100,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
   {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"], photo:"https://images.unsplash.com/photo-1534853878021-7fb609562749?w=800&h=600&fit=crop"},
   {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"], photo:"https://images.unsplash.com/photo-1621286675775-7f9dc67237b0?w=800&h=600&fit=crop"},
-  // ─── stub category expansion ──────────────────────────────────────────────────
-  {
-    id:"tulamben",    category:"diving",
-    title:"Tulamben Liberty Wreck", location:"Bali, Indonesia",
-    lat:-8.2954, lon:115.6163, ap:"DPS",
-    icon:"🐠", rating:4.96, reviews:2140,
-    gradient:"linear-gradient(160deg,#001428,#003a7a,#0066cc)",
-    accent:"#4db6ff", tags:["WWII Wreck","Easy Shore Dive"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-  },
-  {
-    id:"railay_climb", category:"climbing",
-    title:"Railay Beach Limestone", location:"Krabi, Thailand",
-    lat:8.0095, lon:98.8355, ap:"KBV",
-    icon:"🧗", rating:4.94, reviews:1820,
-    gradient:"linear-gradient(160deg,#1a2a00,#4a6a10,#8aaa30)",
-    accent:"#b5cc5a", tags:["Deep Water Solo","Beginner Friendly"], photo:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
-  },
-  {
-    id:"napali_kayak", category:"kayak",
-    title:"Na Pali Coast Sea Kayak", location:"Kauai, Hawaii, USA",
-    lat:22.2065, lon:-159.5965, ap:"LIH",
-    icon:"🛶", rating:4.97, reviews:1340,
-    gradient:"linear-gradient(160deg,#001a10,#005a3a,#00aa70)",
-    accent:"#40c08a", tags:["Sea Caves","Challenging Swells"], photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop",
-  },
-  {
-    id:"whistler_mtb", category:"mtb",
-    title:"Whistler Mountain Bike Park", location:"British Columbia, Canada",
-    lat:50.0878, lon:-122.9454, ap:"YVR",
-    icon:"🚵", rating:4.96, reviews:3120,
-    gradient:"linear-gradient(160deg,#2a1000,#7a3010,#c06020)",
-    accent:"#e09050", tags:["A-Line","Pro Level Available"], photo:"https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=800&h=600&fit=crop",
-  },
-  {
-    id:"chamonix_para", category:"paraglide",
-    title:"Chamonix Valley Paragliding", location:"Haute-Savoie, France",
-    lat:45.9350, lon:6.8700, ap:"GVA",
-    icon:"🪂", rating:4.96, reviews:2240,
-    gradient:"linear-gradient(160deg,#1a0a3a,#4a2a8a,#8a60d0)",
-    accent:"#b080f0", tags:["Mont Blanc Views","Tandem Available"], photo:"https://images.unsplash.com/photo-1528078585219-7fef4218f81b?w=800&h=600&fit=crop",
-  },
+
+  // ─── DIVING expansion ──────────────────────────────────────────────────────
+  {id:"rajaampat",    category:"diving",title:"Raja Ampat",             location:"West Papua, Indonesia",     lat:-0.2348,lon:130.5167,ap:"DPS",icon:"🤿",rating:4.98,reviews:1420,gradient:"linear-gradient(160deg,#001a3a,#003878,#0070c0)",accent:"#4da6ff",tags:["Manta Rays","1500+ Fish Species","Pristine Coral","Liveaboard","Remote"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
+  {id:"sipadan",      category:"diving",title:"Sipadan Island",         location:"Sabah, Malaysia",           lat:4.1150,lon:118.6289,ap:"DPS",icon:"🤿",rating:4.96,reviews:980,gradient:"linear-gradient(160deg,#001a30,#003060,#005cb0)",accent:"#4da0f0",tags:["Barracuda Tornado","Sea Turtles","Wall Diving","Permit Required","Bucket List"], photo:"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop"},
+  {id:"dahab",        category:"diving",title:"Blue Hole, Dahab",       location:"Sinai Peninsula, Egypt",    lat:28.5710,lon:34.5195,ap:"AMM",icon:"🤿",rating:4.94,reviews:1850,gradient:"linear-gradient(160deg,#001030,#002868,#0050b8)",accent:"#4090e0",tags:["Blue Hole","Freediving Mecca","Budget Friendly","Desert Vibes","Shore Diving"], photo:"https://images.unsplash.com/photo-1544551763-77932f2f4648?w=800&h=600&fit=crop"},
+  {id:"cozumel_dive", category:"diving",title:"Cozumel Reefs",          location:"Quintana Roo, Mexico",      lat:20.4318,lon:-86.9203,ap:"CZM",icon:"🤿",rating:4.92,reviews:2200,gradient:"linear-gradient(160deg,#001828,#003060,#005098)",accent:"#3888d0",tags:["Drift Diving","Visibility 40m","Palancar Reef","Warm Water","Easy Access"], photo:"https://images.unsplash.com/photo-1559291001-693fb9166cba?w=800&h=600&fit=crop"},
+
+  // ─── CLIMBING expansion ────────────────────────────────────────────────────
+  {id:"railay_climb", category:"climbing",title:"Railay Beach",          location:"Krabi, Thailand",           lat:8.0117,lon:98.8386,ap:"KBV",icon:"🧗",rating:4.95,reviews:1680,gradient:"linear-gradient(160deg,#3a1a00,#7a4000,#c87020)",accent:"#f0a050",tags:["Limestone Karst","Deep Water Solo","Beach Crag","All Levels","Tropical"], photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"},
+  {id:"kalymnos",     category:"climbing",title:"Kalymnos Island",       location:"Dodecanese, Greece",        lat:36.9513,lon:26.9847,ap:"JMK",icon:"🧗",rating:4.96,reviews:1340,gradient:"linear-gradient(160deg,#2a1400,#6a3800,#b06820)",accent:"#e09848",tags:["Sport Climbing","Tufa Paradise","3500+ Routes","Mediterranean","Autumn Season"], photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop"},
+  {id:"elchorten",    category:"climbing",title:"El Chalten",            location:"Patagonia, Argentina",      lat:-49.3314,lon:-72.8861,ap:"PUQ",icon:"🧗",rating:4.97,reviews:920,gradient:"linear-gradient(160deg,#2a1000,#6a3000,#a86020)",accent:"#d88840",tags:["Fitz Roy","Alpine Granite","Patagonia Wind","Advanced","Trekking Capital"], photo:"https://images.unsplash.com/photo-1578508461229-31f73a90d69e?w=800&h=600&fit=crop"},
+
+  // ─── KITE expansion ────────────────────────────────────────────────────────
+  {id:"cabarete",     category:"kite",title:"Cabarete",                  location:"Puerto Plata, Dominican Republic",lat:19.7582,lon:-70.4101,ap:"SJU",icon:"🪁",rating:4.93,reviews:1540,gradient:"linear-gradient(160deg,#1a0028,#4c0068,#9830d0)",accent:"#c080e8",tags:["Kite Beach","Thermal Winds","All Levels","Caribbean Vibes","Year-Round"], photo:"https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop"},
+  {id:"dakhla",       category:"kite",title:"Dakhla Lagoon",             location:"Western Sahara, Morocco",   lat:23.7175,lon:-15.9369,ap:"AGA",icon:"🪁",rating:4.95,reviews:760,gradient:"linear-gradient(160deg,#1a0030,#500070,#a038d8)",accent:"#c888f0",tags:["Flat Water Lagoon","300+ Wind Days","Desert Backdrop","Progression","Remote"], photo:"https://images.unsplash.com/photo-1621288546818-f1dd7e07f8e0?w=800&h=600&fit=crop"},
+  {id:"muine",        category:"kite",title:"Mui Ne",                    location:"Binh Thuan, Vietnam",       lat:10.9333,lon:108.2833,ap:"HKT",icon:"🪁",rating:4.90,reviews:1120,gradient:"linear-gradient(160deg,#1a0028,#480060,#9030c8)",accent:"#b870e0",tags:["Budget Kite Mecca","Nov-Apr Season","Sand Dunes","Warm Water","Schools"], photo:"https://images.unsplash.com/photo-1621013735268-44d32b48ffbc?w=800&h=600&fit=crop"},
 ];
 
 const US_AIRPORTS = [
@@ -854,7 +890,9 @@ async function fetchWeather(lat, lon) {
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
-    `snow_depth_max,wind_speed_10m_max,uv_index_max,weather_code` +
+    `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,` +
+    `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,` +
+    `rain_sum,showers_sum` +
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) throw new Error("weather fetch failed");
@@ -864,7 +902,10 @@ async function fetchWeather(lat, lon) {
 async function fetchMarine(lat, lon) {
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=wave_height_max,wave_period_max&forecast_days=7&timezone=auto`;
+    `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
+    `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
+    `wind_wave_height_max,wind_wave_period_max` +
+    `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
   return r.json();
@@ -875,200 +916,422 @@ async function fetchMarine(lat, lon) {
 function scoreVenue(venue, wx, marine, dayIndex) {
   if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data" };
   const di = dayIndex || 0;
+  const d = wx.daily;
+  const md = marine?.daily;
 
-  const d       = wx.daily;
-  const tempMax = d.temperature_2m_max[di]  ?? d.temperature_2m_max[0] ?? 65;
-  const precip  = d.precipitation_sum[di]   ?? d.precipitation_sum[0] ?? 0;
-  const snow    = d.snowfall_sum?.[di]       ?? d.snowfall_sum?.[0] ?? 0;   // cm
-  const depth   = d.snow_depth_max?.[di]    ?? d.snow_depth_max?.[0] ?? 0;   // meters
-  const wind    = d.wind_speed_10m_max[di]  ?? d.wind_speed_10m_max[0] ?? 10;  // mph
-  const uv      = d.uv_index_max?.[di]      ?? d.uv_index_max?.[0] ?? 5;
-  const wCode   = d.weather_code?.[di]      ?? d.weather_code?.[0] ?? 0;
-  const waveH   = marine?.daily?.wave_height_max?.[di]  ?? marine?.daily?.wave_height_max?.[0] ?? 0;  // meters
-  const wavePer = marine?.daily?.wave_period_max?.[di]  ?? marine?.daily?.wave_period_max?.[0] ?? 10; // seconds
+  // ─── Extract all available weather data ───
+  const tempMax   = d.temperature_2m_max?.[di]  ?? d.temperature_2m_max?.[0] ?? 65;
+  const tempMin   = d.temperature_2m_min?.[di]  ?? d.temperature_2m_min?.[0] ?? 45;
+  const precip    = d.precipitation_sum?.[di]    ?? d.precipitation_sum?.[0] ?? 0;
+  const rain      = d.rain_sum?.[di]             ?? d.rain_sum?.[0] ?? precip;
+  const snow      = d.snowfall_sum?.[di]         ?? d.snowfall_sum?.[0] ?? 0;
+  const depth     = d.snow_depth_max?.[di]       ?? d.snow_depth_max?.[0] ?? 0;
+  const wind      = d.wind_speed_10m_max?.[di]   ?? d.wind_speed_10m_max?.[0] ?? 10;
+  const gusts     = d.wind_gusts_10m_max?.[di]   ?? d.wind_gusts_10m_max?.[0] ?? wind * 1.4;
+  const windDir   = d.wind_direction_10m_dominant?.[di] ?? d.wind_direction_10m_dominant?.[0] ?? 0;
+  const uv        = d.uv_index_max?.[di]         ?? d.uv_index_max?.[0] ?? 5;
+  const wCode     = d.weather_code?.[di]         ?? d.weather_code?.[0] ?? 0;
+  const precipPct = d.precipitation_probability_max?.[di] ?? d.precipitation_probability_max?.[0] ?? 50;
+  const sunHrs    = (d.sunshine_duration?.[di]   ?? d.sunshine_duration?.[0] ?? 28800) / 3600; // seconds → hours
 
-  // consecutive clear days ahead from the selected day
+  // ─── Marine data (richer) ───
+  const waveH     = md?.wave_height_max?.[di]               ?? md?.wave_height_max?.[0] ?? 0;
+  const wavePer   = md?.wave_period_max?.[di]               ?? md?.wave_period_max?.[0] ?? 10;
+  const waveDir   = md?.wave_direction_dominant?.[di]        ?? md?.wave_direction_dominant?.[0] ?? 0;
+  const swellH    = md?.swell_wave_height_max?.[di]          ?? md?.swell_wave_height_max?.[0] ?? waveH;
+  const swellPer  = md?.swell_wave_period_max?.[di]          ?? md?.swell_wave_period_max?.[0] ?? wavePer;
+  const swellDir  = md?.swell_wave_direction_dominant?.[di]  ?? md?.swell_wave_direction_dominant?.[0] ?? waveDir;
+  const windWaveH = md?.wind_wave_height_max?.[di]           ?? md?.wind_wave_height_max?.[0] ?? 0;
+
+  // ─── Derived metrics ───
+  const tempSpread = tempMax - tempMin;
+  const gustFactor = gusts / Math.max(wind, 1);  // >1.6 = gusty/turbulent
+  const swellRatio = swellH / Math.max(waveH, 0.1); // >0.7 = clean groundswell dominant
+
+  // Consecutive good-weather days from selected day
   let bestDays = 1;
   for (let i = di + 1; i < (d.precipitation_sum?.length ?? 0); i++) {
     if ((d.precipitation_sum[i] ?? 99) < 3 && (d.wind_speed_10m_max[i] ?? 99) < 25) bestDays++;
     else break;
   }
 
+  // Trend: is tomorrow better or worse? (for "building" / "fading" labels)
+  const tmrwPrecip = d.precipitation_sum?.[di+1] ?? precip;
+  const tmrwWind   = d.wind_speed_10m_max?.[di+1] ?? wind;
+  const tmrwWaveH  = md?.wave_height_max?.[di+1] ?? waveH;
+
   let score = 50, label = "", period = "";
 
   switch (venue.category) {
 
     case "skiing": {
-      const sIn  = Math.round(snow * 0.394);   // cm → inches fresh
-      const dIn  = Math.round(depth * 39.4);   // m  → inches base
-      const baseDepthCm = depth * 100;
-      // Score from fresh snow
-      if      (snow > 30) score = 97;
-      else if (snow > 20) score = 93 + (snow - 20) * 0.15;
-      else if (snow > 10) score = 87 + (snow - 10) * 0.6;
-      else if (snow > 5)  score = 80 + (snow - 5) * 1.4;
-      else if (snow > 0)  score = 72 + snow * 1.6;
+      const sIn = Math.round(snow * 0.394);       // cm → inches fresh
+      const dIn = Math.round(depth * 39.4);        // m → inches base
+      const baseCm = depth * 100;
+
+      // Fresh snow is king — weighted by amount and snow quality
+      if (snow > 30)      score = 96 + Math.min(3, (snow - 30) * 0.1);
+      else if (snow > 20) score = 91 + (snow - 20) * 0.5;
+      else if (snow > 10) score = 84 + (snow - 10) * 0.7;
+      else if (snow > 5)  score = 76 + (snow - 5) * 1.6;
+      else if (snow > 0)  score = 68 + snow * 1.6;
       else {
-        // No fresh snow — base-dependent
-        if      (baseDepthCm > 200) score = 74;
-        else if (baseDepthCm > 150) score = 69;
-        else if (baseDepthCm > 100) score = 62;
-        else if (baseDepthCm > 50)  score = 53;
-        else                        score = 36;
+        // No fresh snow: score depends on base depth + grooming potential
+        if      (baseCm > 200) score = 72;
+        else if (baseCm > 150) score = 66;
+        else if (baseCm > 100) score = 58;
+        else if (baseCm > 50)  score = 48;
+        else                   score = 30;
       }
-      // Modifiers
-      if (tempMax < 30 && snow > 5) score += 3;  // cold = dry powder
-      if (tempMax > 36) score -= 18;              // spring slush
-      if (wind > 45)    score -= 12;              // lift-closing winds
-      else if (wind > 30) score -= 5;
-      label  = snow > 0 ? `❄️ ${sIn}" fresh · ${dIn}" base` : `🏔️ ${dIn}" base · ${tempMax}°F`;
-      period = snow > 20 ? "🔥 Powder day — go now"
-             : snow > 10 ? "Fresh snow overnight"
-             : snow > 0  ? "New snow on trail"
-             : baseDepthCm > 150 ? "Groomed packed powder"
-             : "Limited coverage";
+
+      // Temperature quality: cold = powder preservation, warm = slush
+      if (tempMax < 28 && snow > 5) score += 4;        // cold dry powder
+      else if (tempMax < 32 && snow > 0) score += 2;   // decent preservation
+      if (tempMax > 38 && tempMax <= 45) score -= 8;    // heavy wet snow / slush
+      if (tempMax > 45) score -= 16;                    // rain-on-snow, terrible
+      if (tempMin > 32 && snow === 0) score -= 6;       // no freeze overnight = icy
+
+      // Wind: gusts matter more than sustained for lift ops
+      if (gusts > 55) score -= 18;           // lifts closed
+      else if (gusts > 40) score -= 10;      // upper lifts closed, ridge holds
+      else if (wind > 30) score -= 5;        // windy but skiable
+      if (gustFactor > 1.8) score -= 3;      // erratic gusts = worse than steady
+
+      // Visibility / weather code penalties
+      if (wCode >= 65) score -= 6;           // heavy snow/rain (low vis)
+      else if (wCode >= 45) score -= 3;      // fog
+
+      // Precipitation probability for planning confidence
+      if (precipPct > 80 && snow < 5) score -= 4;  // high chance of rain, not snow
+
+      label = snow > 0
+        ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F`
+        : `${dIn}" base · ${tempMax}°F${gusts > 40 ? " · High wind" : ""}`;
+      period = snow > 25 ? "Powder day — go now"
+             : snow > 12 ? "Fresh overnight — first tracks"
+             : snow > 5  ? "New snow on groomed"
+             : snow > 0  ? "Dusting — mostly groomed"
+             : baseCm > 150 ? `Packed powder${tempMin < 28 ? " · firm AM" : ""}`
+             : baseCm > 50  ? "Thin cover · stick to groomers"
+             : "Limited terrain open";
       break;
     }
 
     case "surfing": {
-      const fFt  = Math.round(waveH * 3.28 * 1.5); // face height in feet
+      const fFt = Math.round(swellH * 3.28 * 1.5);  // swell face height estimate
       const glassy = wind < 8;
-      const blown  = wind > 22;
-      // Base score from wave height + period quality
-      if      (waveH > 3   && wavePer > 14) score = 93 + Math.min(6, (wavePer - 14) * 0.5 + (waveH - 3) * 0.4);
-      else if (waveH > 2   && wavePer > 12) score = 85 + (wavePer - 12) * 0.8 + (waveH - 2) * 2;
-      else if (waveH > 1.5 && wavePer > 10) score = 76 + waveH * 3;
-      else if (waveH > 1)                   score = 65 + waveH * 6;
-      else if (waveH > 0.5)                 score = 50 + waveH * 14;
-      else                                   score = 30;
-      // Wind modifier
-      if (glassy) score += 4;
-      else if (blown) score -= 14;
-      if (waveH > 6) score -= 8; // storm surf danger
-      const windLabel = glassy ? " · Glassy" : blown ? " · Choppy" : "";
-      label  = waveH > 0.5 ? `🌊 ${fFt}ft faces · ${wavePer.toFixed(0)}s${windLabel}` : `🌊 Small surf · building`;
-      period = waveH > 3   ? `🔥 Firing — peak ${Math.min(bestDays, 3)}d`
-             : waveH > 1.5 ? `Good swell · ${Math.min(bestDays, 3)}d window`
-             : waveH > 0.5 ? "Fun conditions"
-             : "Swell building";
+      const light  = wind < 12;
+      const blown  = wind > 20;
+
+      // Groundswell quality: long period + swell-dominant = clean, powerful waves
+      const groundswellQuality = swellPer > 14 ? 1.15
+                                : swellPer > 12 ? 1.08
+                                : swellPer > 10 ? 1.0
+                                : swellPer > 8  ? 0.9
+                                : 0.75;
+
+      // Base from swell height (using swell, not total wave, for accuracy)
+      if      (swellH > 3.5) score = 88;
+      else if (swellH > 2.5) score = 80;
+      else if (swellH > 1.8) score = 72;
+      else if (swellH > 1.2) score = 63;
+      else if (swellH > 0.7) score = 50;
+      else                    score = 30;
+
+      // Period quality multiplier (long period = more power per foot)
+      score = score * groundswellQuality;
+
+      // Wind chop penalty: high wind waves relative to swell = messy
+      if (windWaveH > swellH * 0.6) score -= 8;       // wind swell dominant = messy
+      else if (windWaveH > swellH * 0.3) score -= 3;
+
+      // Surface conditions from wind
+      if (glassy) score += 6;                    // glass-off = dream
+      else if (light) score += 2;                // light texture, rideable
+      else if (blown) score -= 12;               // blown out
+      if (gusts > 30 && !glassy) score -= 4;     // gusty onshore = choppy
+
+      // Overhead+ danger for average surfers (>2.5m swell)
+      if (swellH > 4) score -= 5;               // expert only
+      if (swellH > 6) score -= 10;              // XXL / tow-in territory
+
+      // Rain doesn't ruin surf but low vis + runoff = dirty water
+      if (rain > 15) score -= 4;
+
+      const windLabel = glassy ? "Glassy" : light ? "Light offshore" : blown ? "Choppy onshore" : `${wind.toFixed(0)}mph`;
+      const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
+      label = swellH > 0.7
+        ? `${fFt}ft ${perLabel} · ${windLabel}`
+        : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
+      period = swellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : swellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
+             : swellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
+             : (tmrwWaveH > 0.7 ? "Swell incoming" : "Flat — check back");
       break;
     }
 
     case "tanning": {
       const sunny = wCode < 2;
       const clear = wCode < 3;
-      if      (sunny && uv >= 10 && tempMax >= 85) score = 94 + Math.min(5, uv - 10);
-      else if (clear && uv >= 8  && tempMax >= 80) score = 87 + Math.min(6, uv - 8);
-      else if (clear && uv >= 6  && tempMax >= 75) score = 76 + (uv - 6) * 1.5;
-      else if (uv >= 4           && tempMax >= 68) score = 62 + uv * 1.2;
-      else                                          score = 40;
-      if (precip > 5)  score -= 20;
-      if (tempMax > 100) score -= 5; // extreme heat penalty
-      label  = sunny ? `☀️ UV ${uv} · ${tempMax}°F · Perfect`
-             : clear ? `🌤️ UV ${uv} · ${tempMax}°F`
-             : `⛅ Partly cloudy · UV ${uv}`;
-      period = sunny && bestDays > 1 ? `${Math.min(bestDays, 7)}-day clear window`
-             : clear ? "Clear day ahead"
-             : "Clear stretches";
+      const partCloud = wCode < 4;
+
+      // Sunshine hours are the real indicator (not just weather code)
+      const sunPct = sunHrs / 14;  // fraction of max daylight
+      const comfortTemp = tempMax >= 75 && tempMax <= 95;
+      const hotButOk = tempMax > 95 && tempMax <= 105;
+
+      // Core: UV + sunshine hours + temperature comfort
+      if (sunny && sunHrs > 10 && uv >= 8 && comfortTemp) {
+        score = 92 + Math.min(7, (uv - 8) + (sunHrs - 10));
+      } else if (clear && sunHrs > 8 && uv >= 6 && (comfortTemp || hotButOk)) {
+        score = 82 + Math.min(8, (uv - 6) * 1.2 + sunPct * 3);
+      } else if (partCloud && uv >= 5 && tempMax >= 70) {
+        score = 68 + uv * 1.5 + sunPct * 5;
+      } else if (uv >= 3 && tempMax >= 65) {
+        score = 55 + uv * 2;
+      } else {
+        score = 35;
+      }
+
+      // Wind chill on the beach
+      if (wind > 20) score -= 8;       // too windy for comfort
+      else if (wind > 15) score -= 4;
+      if (gusts > 25) score -= 3;      // sand-blasting
+
+      // Rain kills beach days
+      if (precipPct > 70) score -= 12;
+      else if (precipPct > 50) score -= 6;
+      if (precip > 5) score -= 15;
+
+      // Extreme heat
+      if (tempMax > 105) score -= 10;
+      else if (tempMax > 100) score -= 4;
+
+      const sunLabel = sunHrs > 10 ? "Full sun" : sunHrs > 7 ? "Mostly sunny" : sunHrs > 4 ? "Partly cloudy" : "Overcast";
+      label = `UV ${uv} · ${tempMax}°F · ${sunLabel}`;
+      period = sunny && bestDays > 2 ? `${Math.min(bestDays, 7)}-day clear stretch`
+             : sunny ? "Clear today"
+             : precipPct < 30 ? "Mostly dry"
+             : "Scattered clouds";
       break;
     }
 
     case "diving": {
-      const calm = waveH < 0.6;
-      score = calm && precip < 3 && tempMax > 74 ? 90 + Math.min(8, (0.6 - waveH) * 20)
-            : calm && precip < 3 ? 78
-            : calm               ? 68
-            : 48;
-      const vis = calm ? "30m+" : waveH < 1 ? "15m" : "5m";
-      label  = `🤿 Visibility ${vis} · ${calm ? "Calm" : "Choppy"} seas`;
-      period = calm && bestDays > 2 ? "Best conditions this week" : "Good visibility today";
+      const calm = waveH < 0.5;
+      const moderate = waveH < 1.0;
+      const warm = tempMax > 75;
+      // Vis estimate from wave action + precip (runoff = murky)
+      const visEst = calm && rain < 2 ? 30 : calm ? 20 : moderate && rain < 5 ? 12 : 5;
+
+      score = calm && rain < 2 && warm ? 92 + Math.min(6, (0.5 - waveH) * 20)
+            : calm && rain < 5 ? 80 + (warm ? 4 : 0)
+            : moderate && rain < 5 ? 68 + (warm ? 3 : 0)
+            : moderate ? 55
+            : 38;
+
+      if (wind > 20) score -= 6;       // surface chop, hard entry/exit
+      if (gusts > 30) score -= 4;
+      if (precipPct > 70) score -= 5;  // probable rain = runoff
+      if (bestDays > 2) score += 3;    // multi-day calm = settled vis
+
+      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"} · ${tempMax}°F`;
+      period = calm && bestDays > 2 ? `${bestDays}-day dive window`
+             : calm ? "Good today — conditions shifting"
+             : "Wait for calmer seas";
       break;
     }
 
     case "climbing": {
-      const dry = precip < 1;
-      score = dry && tempMax > 45 && tempMax < 86 && wind < 15 ? 84 + Math.min(12, bestDays * 2)
-            : dry && tempMax > 45                              ? 72
-            : !dry                                             ? 38
-            : 60;
-      label  = dry ? `☀️ Dry rock · ${tempMax}°F · ${wind.toFixed(0)}mph` : `🌧️ Wet rock · not ideal`;
-      period = dry && bestDays > 2 ? `${bestDays}-day dry window` : dry ? "Dry today" : "Wait for dry conditions";
+      const dry = precip < 1 && precipPct < 30;
+      const dryish = precip < 3;
+      const goodTemp = tempMax > 45 && tempMax < 88;
+      const friction = tempMax < 75;  // cooler = better grip
+
+      score = dry && goodTemp && wind < 12 ? 86 + Math.min(10, bestDays * 2.5)
+            : dry && goodTemp && wind < 20 ? 78 + bestDays
+            : dryish && goodTemp ? 66
+            : dryish ? 55
+            : 32;
+
+      if (friction && dry) score += 3;        // optimal friction temps
+      if (gusts > 25) score -= 6;             // dangerous at height
+      else if (gustFactor > 1.7) score -= 3;  // unpredictable gusts
+      if (precipPct > 60) score -= 8;         // don't start a multi-pitch
+      if (tempMax > 95) score -= 6;           // heat exhaustion risk
+
+      const windNote = gusts > 25 ? " · Gusty" : wind > 15 ? " · Breezy" : "";
+      label = dry ? `Dry rock · ${tempMax}°F${windNote}` : `Wet rock — ${precipPct}% rain chance`;
+      period = dry && bestDays > 3 ? `${bestDays}-day dry window`
+             : dry && bestDays > 1 ? "Dry through tomorrow"
+             : dry ? "Dry today only"
+             : `Drying out — ${tmrwPrecip < 1 ? "better tomorrow" : "wait"}`;
       break;
     }
 
     case "kite": {
-      const inRange = wind >= 18 && wind <= 35;
-      score = wind >= 22 && wind <= 30 ? 93 + Math.min(6, 5 - Math.abs(wind - 26))
-            : inRange                  ? 78 + (wind - 18)
-            : wind >= 12               ? 60
-            : 32;
-      const wStr = wind < 15 ? "Too light" : wind > 35 ? "Storm-force" : `${wind.toFixed(0)}kts`;
-      label  = `💨 ${wStr} · ${tempMax}°F`;
-      period = inRange ? `Prime window: ${Math.min(bestDays, 3)}d` : wind < 18 ? "Light period" : "Experts only";
+      const sweet = wind >= 20 && wind <= 30;  // ideal kite range
+      const rideable = wind >= 15 && wind <= 38;
+      const gusty = gustFactor > 1.6;
+
+      score = sweet && !gusty ? 92 + Math.min(6, (5 - Math.abs(wind - 25)))
+            : sweet ? 84
+            : rideable && wind >= 18 ? 75 + (wind - 18) * 0.8
+            : rideable ? 62
+            : wind > 38 ? 28
+            : wind >= 10 ? 45
+            : 25;
+
+      if (gusty) score -= 6;               // lulls + gusts = dangerous
+      if (rain > 5) score -= 4;            // vis + comfort
+      if (waveH > 1.5 && sweet) score += 3; // waves for jumping!
+      if (waveH > 3) score -= 4;           // too rough for most
+
+      const wLabel = wind < 12 ? "Too light" : wind > 38 ? "Storm" : `${wind.toFixed(0)}mph${gusty ? " gusty" : " steady"}`;
+      label = `${wLabel} · ${tempMax}°F${waveH > 1 ? " · " + Math.round(waveH * 3.28) + "ft chop" : ""}`;
+      period = sweet ? `Prime ${Math.min(bestDays, 3)}d window`
+             : rideable ? "Rideable — session it"
+             : wind < 15 ? (tmrwWind > 18 ? "Building — tomorrow looks better" : "Light winds")
+             : "Too strong — wait";
       break;
     }
 
     case "kayak": {
-      const calm2 = waveH < 0.8;
-      const lightW = wind < 15;
-      // Milford Sound: post-rain waterfalls = great
-      if (venue.id === "milford" && precip > 8) { score = 87; label = "🌦️ Post-rain clarity · Waterfalls"; period = "Ideal after recent rain"; break; }
-      score = calm2 && lightW && precip < 5 ? 80 + bestDays * 2
-            : calm2 && lightW               ? 72
-            : calm2                         ? 62
-            : 50;
-      label  = `🛶 ${wind.toFixed(0)}mph wind · ${tempMax}°F`;
-      period = calm2 ? `Ideal ${Math.min(bestDays, 5)} days ahead` : "Calm window opening";
+      const calm = waveH < 0.6;
+      const lightW = wind < 12;
+      // Milford Sound special: post-rain = epic waterfalls
+      if (venue.id === "milford" && precip > 8) { score = 87; label = "Post-rain waterfalls active · Calm"; period = "Ideal after recent rain"; break; }
+
+      score = calm && lightW && precip < 3 ? 82 + Math.min(12, bestDays * 2.5)
+            : calm && lightW ? 74
+            : calm && wind < 18 ? 64
+            : waveH < 1.2 && wind < 15 ? 56
+            : 40;
+
+      if (sunHrs > 8) score += 3;           // scenic + safe
+      if (tempMax < 50) score -= 6;          // cold paddling
+      if (gusts > 20) score -= 5;            // control issues
+      if (precipPct > 60) score -= 4;
+
+      label = `${wind.toFixed(0)}mph · ${calm ? "Flat water" : "Light chop"} · ${tempMax}°F`;
+      period = calm && bestDays > 2 ? `${Math.min(bestDays, 5)} calm days`
+             : calm ? "Calm today"
+             : "Calmer conditions coming";
       break;
     }
 
     case "mtb": {
-      const dry2 = precip < 2;
-      score = dry2 && tempMax > 50 && tempMax < 92 && wind < 20 ? 85 + Math.min(11, bestDays)
-            : dry2 && tempMax > 50 ? 74
-            : !dry2                ? 46
-            : 60;
-      label  = dry2 ? `☀️ Dry trail · ${tempMax}°F` : `🌧️ Wet trail · wait 24h`;
-      period = dry2 && bestDays > 3 ? `${bestDays} ideal riding days` : dry2 ? "Good today" : "Trails drying out";
+      const dry = precip < 1 && rain < 1;
+      const dryish = precip < 3;
+      const goodTemp = tempMax > 50 && tempMax < 92;
+      // Yesterday's rain matters — wet trails erode. Check previous day if available.
+      const prevRain = d.precipitation_sum?.[Math.max(0, di-1)] ?? 0;
+      const trailsDry = dry && prevRain < 3;
+
+      score = trailsDry && goodTemp && wind < 18 ? 86 + Math.min(10, bestDays * 1.5)
+            : dry && goodTemp ? 78
+            : dryish && goodTemp ? 65
+            : dryish ? 52
+            : 38;
+
+      if (tempMax > 95) score -= 6;          // heat risk
+      if (gusts > 25) score -= 3;            // tree fall risk
+      if (prevRain > 10) score -= 8;         // muddy no matter what
+      if (sunHrs > 8 && dry) score += 2;     // packed dry trail
+
+      const trailStatus = trailsDry ? "Dry packed" : dry ? "Mostly dry" : dryish ? "Damp" : "Muddy";
+      label = `${trailStatus} · ${tempMax}°F · ${wind.toFixed(0)}mph`;
+      period = trailsDry && bestDays > 2 ? `${bestDays} hero days`
+             : dry ? "Good today"
+             : `Drying out${tmrwPrecip < 1 ? " — rideable tomorrow" : ""}`;
       break;
     }
 
     case "fishing": {
-      const calmF = wind < 15 && precip < 5;
+      const calm = wind < 15 && waveH < 1;
+      const lightW = wind < 12;
       const mo = new Date().getMonth() + 1;
       const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
-      score = peak && calmF ? 96 : peak ? 87 : calmF ? 72 + bestDays : 58;
-      label  = peak ? `🎣 King Salmon run · Peak` : `🎣 ${tempMax}°F · ${calmF ? "Calm" : "Choppy"}`;
-      period = peak ? "Run peaks this week" : calmF ? `${Math.min(bestDays, 5)} good days` : "Calmer days ahead";
+      // Barometric pressure drops = fish feed more (rain approaching = good)
+      const feedWindow = precipPct > 40 && precipPct < 75 && precip < 5;
+
+      score = peak && calm ? 96
+            : peak ? 85
+            : calm && feedWindow ? 80 + bestDays
+            : calm ? 72 + bestDays
+            : lightW ? 62
+            : 48;
+
+      if (gusts > 25) score -= 6;
+      if (rain > 10) score -= 8;             // washout
+      if (tempMax < 35) score -= 4;          // ice/danger
+      if (sunHrs < 3 && !feedWindow) score -= 3;
+
+      const biteLabel = feedWindow ? "Active bite" : calm ? "Good conditions" : "Choppy";
+      label = peak ? `King Salmon run · ${biteLabel}` : `${tempMax}°F · ${biteLabel} · ${wind.toFixed(0)}mph`;
+      period = peak ? "Peak run this week"
+             : feedWindow ? `Front moving in — fish feeding${bestDays > 1 ? " · " + bestDays + "d" : ""}`
+             : calm ? `${Math.min(bestDays, 5)} fishable days`
+             : "Wait for calmer water";
       break;
     }
 
     case "paraglide": {
-      const thermalW = wind >= 8 && wind <= 20;
+      const thermalWind = wind >= 6 && wind <= 18;
       const clearSky = wCode < 3;
-      score = thermalW && clearSky && tempMax > 65 ? 90 + Math.min(8, bestDays)
-            : thermalW && clearSky                 ? 80
-            : thermalW                             ? 68
-            : wind > 25 ? 32 : 55;
-      label  = thermalW && clearSky ? `🪂 Thermals ideal · ${tempMax}°F` : `⛅ ${wind.toFixed(0)}mph · ${tempMax}°F`;
-      period = thermalW && clearSky && bestDays > 1 ? `High pressure · ${Math.min(bestDays, 5)} days` : "Good thermals today";
+      const strongThermals = sunHrs > 8 && tempMax > 70 && clearSky;
+      const gustSafe = gustFactor < 1.5;
+
+      score = thermalWind && strongThermals && gustSafe ? 92 + Math.min(6, bestDays)
+            : thermalWind && clearSky && gustSafe ? 82 + (sunHrs > 6 ? 4 : 0)
+            : thermalWind && gustSafe ? 70
+            : thermalWind ? 58                    // gusty thermals = sketchy
+            : wind > 22 ? 28                      // grounded
+            : 45;
+
+      if (gusts > 25) score -= 12;            // dangerous
+      else if (gustFactor > 1.7) score -= 6;  // unpredictable
+      if (precipPct > 50) score -= 8;         // no launch in rain
+      if (tempSpread > 25) score += 3;        // big spread = strong thermals
+
+      const thermalLabel = strongThermals ? "Strong thermals" : clearSky ? "Moderate thermals" : "Weak lift";
+      label = `${thermalLabel} · ${wind.toFixed(0)}mph${gustSafe ? " steady" : " gusty"} · ${tempMax}°F`;
+      period = strongThermals && bestDays > 1 ? `High pressure · ${Math.min(bestDays, 5)}d`
+             : clearSky ? "Good window today"
+             : "Marginal — check winds at launch";
       break;
     }
 
     case "hiking": {
-      const dry3 = precip < 3;
-      const idealTemp = tempMax > 45 && tempMax < 88;
-      score = dry3 && idealTemp && wind < 18 ? 85 + Math.min(12, bestDays * 2)
-            : dry3 && idealTemp               ? 76
-            : dry3                            ? 62
-            : 42;
-      label  = dry3 ? `🥾 Clear trail · ${tempMax}°F · ${wind.toFixed(0)}mph` : `🌧️ Wet · wait for clear`;
-      period = dry3 && bestDays > 2 ? `${bestDays}-day hiking window` : dry3 ? "Good today" : "Rain expected";
+      const dry = precip < 2 && precipPct < 40;
+      const dryish = precip < 5;
+      const idealTemp = tempMax > 45 && tempMax < 85;
+      const hotHike = tempMax >= 85 && tempMax < 100;
+
+      score = dry && idealTemp && wind < 15 ? 86 + Math.min(10, bestDays * 2)
+            : dry && idealTemp ? 78
+            : dry && hotHike ? 70             // hot but doable (early start)
+            : dryish && idealTemp ? 65
+            : dryish ? 52
+            : 35;
+
+      if (sunHrs > 8 && idealTemp) score += 3;  // scenic day
+      if (tempMax > 100) score -= 10;            // heat danger
+      if (gusts > 30) score -= 6;                // exposed ridge danger
+      else if (wind > 20) score -= 3;
+      if (precipPct > 70) score -= 8;            // lightning risk
+      if (uv > 10) score -= 2;                   // sun exposure risk at altitude
+
+      const trailNote = wind > 20 ? " · Windy ridges" : uv > 9 ? " · High UV" : "";
+      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${trailNote}` : `${precipPct}% rain · ${tempMax}°F`;
+      period = dry && bestDays > 3 ? `${bestDays}-day hiking window`
+             : dry && bestDays > 1 ? "Clear through tomorrow"
+             : dry ? "Good today — rain coming"
+             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : " in ${bestDays}d"}`;
       break;
     }
 
     default:
-      score = 70; label = `🌤️ ${tempMax}°F`; period = "Conditions good";
+      score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
   return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
@@ -1076,7 +1339,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
 // API token lives server-side on the VPS — never exposed in client code
-const FLIGHT_PROXY = "http://104.131.82.242:3001";
+const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
 let _flightApiStatus = "unknown"; // "live", "down", "unknown"
 function getFlightApiStatus() { return _flightApiStatus; }
 
@@ -1225,10 +1488,12 @@ function getFlightDate(whenId = "anytime") {
   }
 }
 // Build a Google Flights deep-link URL with pre-filled origin, destination, and dates
-function buildFlightUrl(from, to, whenId = "anytime") {
-  const dep = getFlightDate(whenId);
-  const retD = new Date(dep); retD.setDate(retD.getDate() + 7);
-  const ret = retD.toISOString().slice(0, 10);
+function buildFlightUrl(from, to, opts) {
+  const whenId = opts?.whenId || "anytime";
+  const startDate = opts?.startDate;
+  const endDate = opts?.endDate;
+  const dep = startDate || getFlightDate(whenId);
+  const ret = endDate || (() => { const d = new Date(dep); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
   return `https://www.google.com/flights?hl=en#flt=${from}.${to}.${dep}*${to}.${from}.${ret};c:USD;e:1;sd:1;t:f`;
 }
 
@@ -1261,6 +1526,112 @@ const AIRPORT_CITY = {
   OKC:"Oklahoma City",MEM:"Memphis",SDF:"Louisville",PBI:"West Palm Beach",
   BOI:"Boise",GEG:"Spokane",BHM:"Birmingham",RIC:"Richmond",PDX:"Portland",
   YYZ:"Toronto",YUL:"Montreal",YEG:"Edmonton",YOW:"Ottawa",
+
+  ABJ:"Abidjan",
+  ACC:"Accra",
+  ACE:"Lanzarote",
+  ACV:"Arcata",
+  AGA:"Agadir",
+  AGD:"Anglia",
+  AKL:"Auckland",
+  APW:"Apia",
+  AQT:"Quito",
+  BFS:"Belfast",
+  BGI:"Bridgetown",
+  BHD:"Belfast",
+  BIO:"Bilbao",
+  BIQ:"Biarritz",
+  BKK:"Bangkok",
+  BOC:"Bocas del Toro",
+  BOD:"Bordeaux",
+  BRI:"Bari",
+  BTJ:"Banda Aceh",
+  CEB:"Cebu",
+  CMB:"Colombo",
+  COK:"Kochi",
+  CPT:"Cape Town",
+  CRK:"Clark",
+  CWL:"Cardiff",
+  DIL:"Dili",
+  DPS:"Denpasar",
+  DSS:"Dakar",
+  DUB:"Dublin",
+  DUR:"Durban",
+  EUG:"Eugene",
+  EXT:"Exeter",
+  FAO:"Faro",
+  FLN:"Florianópolis",
+  FOR:"Fortaleza",
+  FSZ:"Shizuoka",
+  FUE:"Fuerteventura",
+  GIG:"Rio de Janeiro",
+  GIS:"Gisborne",
+  GTW:"London Gatwick",
+  HBA:"Hobart",
+  ILH:"Ilhéus",
+  INV:"Inverness",
+  KEF:"Reykjavik",
+  KHH:"Kaohsiung",
+  KMI:"Miyazaki",
+  LBJ:"Labuan Bajo",
+  LGW:"London Gatwick",
+  LIH:"Lihue",
+  LIM:"Lima",
+  LIR:"Liberia",
+  LIS:"Lisbon",
+  LOP:"Lombok",
+  LPA:"Las Palmas",
+  MAN:"Manchester",
+  MAO:"Manaus",
+  MCT:"Muscat",
+  MDN:"Medan",
+  MEC:"Manta",
+  MEL:"Melbourne",
+  MFR:"Medford",
+  MGA:"Managua",
+  MLE:"Malé",
+  MQT:"Mossel Bay",
+  MRU:"Mauritius",
+  NAN:"Nadi",
+  NAT:"Natal",
+  NHA:"Nha Trang",
+  NQY:"Newquay",
+  NRT:"Tokyo Narita",
+  OAX:"Oaxaca",
+  OOL:"Gold Coast",
+  ORF:"Norfolk",
+  PDG:"Padang",
+  PEK:"Beijing",
+  PER:"Perth",
+  PLZ:"Port Elizabeth",
+  PPT:"Papeete",
+  PVR:"Puerto Vallarta",
+  RCN:"Rincón",
+  REC:"Recife",
+  RUN:"Réunion",
+  SAL:"San Salvador",
+  SBA:"Santa Barbara",
+  SBY:"Surabaya",
+  SCL:"Santiago",
+  SJO:"San José",
+  SJU:"San Juan",
+  SNA:"Santa Ana",
+  SNN:"Shannon",
+  SPC:"La Palma",
+  SSC:"Sumter",
+  SUB:"Surabaya",
+  SUM:"Palembang",
+  TFS:"Tenerife",
+  TKG:"Bandar Lampung",
+  TLV:"Tel Aviv",
+  TNR:"Antananarivo",
+  TPE:"Taipei",
+  TPP:"Tarapoto",
+  TRU:"Trujillo",
+  UIO:"Quito",
+  VCT:"Victoria",
+  VDE:"Valverde",
+  VLI:"Port Vila",
 };
 
 // ─── localStorage hook ────────────────────────────────────────────────────────
@@ -1410,7 +1781,10 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>({listing.reviews})</span>
           </div>
         </div>
-        <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>{listing.location}</div>
+        <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>
+          {listing.location}
+          {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
+        </div>
         <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
         {listing.bestWindow && (
           <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
@@ -1571,7 +1945,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ color:"#717171", fontSize:10, fontFamily:F, marginTop:1,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-          {shortLoc}
+          {shortLoc}{listing.breakType && <span style={{ marginLeft:4, fontSize:8, fontWeight:700, color:"#0284c7" }}>{listing.breakType}</span>}
         </div>
         {listing.bestWindow && (
           <div style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -1981,7 +2355,7 @@ function SearchBar({ search, onOpen }) {
         <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
           {topLine}
         </div>
-        <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:2 }}>
+        <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
           {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
         </div>
       </div>
@@ -2516,7 +2890,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
-                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#aaa", fontFamily:F, marginLeft:2 }}>rt</span>
+                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#888", fontFamily:F, marginLeft:2 }}>rt</span>
                         <span style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
@@ -2533,7 +2907,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             {isAll ? "All experiences" : catLabel}
           </div>
           <div style={{ fontSize:13, color:"#717171", marginTop:2, fontFamily:F }}>
-            {loading ? "Fetching live conditions…" : `${gridListings.length} windows available`}
+            {loading ? "Fetching live conditions…" : `${gridListings.length} spots`}
           </div>
         </div>
 
@@ -3955,6 +4329,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
 
   const complete = () => {
     setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
+    window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
     onClose();
   };
 
@@ -4212,10 +4587,10 @@ const GEAR_ITEMS = {
     { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
   hiking:   [
-    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",            store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
-    { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",           store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
-    { emoji:"🧥", name:"Arc'teryx Beta AR Rain Jacket",          store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=arcteryx+beta+ar+rain+jacket" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS Communicator", store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
+    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
+    { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",     store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
   ],
 };
 
@@ -4275,7 +4650,7 @@ const EXPERIENCES = {
 };
 
 // ─── venue detail sheet ────────────────────────────────────────────────────────
-function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail }) {
+function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
   const [showListPicker, setShowListPicker] = useState(false);
   const [newListName,    setNewListName]    = useState("");
   const [showSharePanel, setShowSharePanel] = useState(false);
@@ -4326,7 +4701,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   const packing    = PACKING[listing.category]      || PACKING.surfing;
   const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
-  const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap);
+  const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap, {
+    startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
+  });
 
   // Similar venues: same category, excluding current, sorted by score
   const similarVenues = listings
@@ -4397,7 +4774,10 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
           <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
             <div style={{ fontSize:20, fontWeight:900, color:"white", fontFamily:F, lineHeight:1.15 }}>{listing.title}</div>
-            <div style={{ fontSize:13, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:3 }}>📍 {listing.location}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,0.65)", fontFamily:F, marginTop:3 }}>
+              📍 {listing.location}
+              {listing.breakType && <span style={{ marginLeft:8, fontSize:10, fontWeight:700, color:"#7dd3fc", background:"rgba(255,255,255,0.15)", borderRadius:4, padding:"2px 6px", textTransform:"capitalize" }}>{listing.breakType} break</span>}
+            </div>
           </div>
         </div>
 
@@ -4444,13 +4824,23 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
 
           {/* Book flight CTA */}
-          <a href={flightUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+          <a href={flightUrl} target="_blank" rel="noopener noreferrer" onClick={() => { window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }} style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:"0 4px 18px rgba(14,165,233,0.38)" }}>
               <span style={{ fontSize:20 }}>✈️</span>
               <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Book on Google Flights · ${listing.flight.price}</span>
               <span style={{ fontSize:13, color:"rgba(255,255,255,0.6)" }}>↗</span>
             </div>
           </a>
+
+          {/* Set Alert CTA */}
+          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
+            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+          </button>
 
           {/* 7-day forecast */}
           {forecast.length > 0 && (
@@ -4497,7 +4887,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                         <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       )}
                       <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
-                        <span style={{ fontSize:9, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
+                        <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
                       </div>
                     </div>
                     <div style={{ padding:"7px 9px 9px" }}>
@@ -4529,7 +4919,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
-                <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>Affiliate links · no extra cost</span>
+                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>Affiliate links · no extra cost</span>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                 {GEAR_ITEMS[listing.category].map((item, i) => (
@@ -4553,11 +4943,16 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🎟️ Book an experience</div>
-                <span style={{ fontSize:9, color:"#bbb", fontFamily:F }}>via GetYourGuide</span>
+                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>via GetYourGuide</span>
               </div>
               <div style={{ display:"flex", gap:9, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
                 {EXPERIENCES[listing.category].map((exp, i) => {
-                  const expUrl = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
+                  const expUrl = (() => {
+                    let u = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
+                    if (filters?.startDate) u += `&date_from=${filters.startDate}`;
+                    if (filters?.endDate) u += `&date_to=${filters.endDate}`;
+                    return u;
+                  })();
                   return (
                     <a key={i} href={expUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
                       <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
@@ -4580,7 +4975,14 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           )}
 
           {/* 🏨 Stay nearby — Booking.com affiliate */}
-          <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+          <a href={(() => {
+            let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`;
+            const ci = filters?.startDate;
+            const co = filters?.endDate || (ci ? (() => { const d = new Date(ci); d.setDate(d.getDate() + 7); return d.toISOString().slice(0,10); })() : "");
+            if (ci) url += `&checkin=${ci}`;
+            if (co) url += `&checkout=${co}`;
+            return url;
+          })()} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#003580,#0057b8)", borderRadius:14, padding:"13px 15px", display:"flex", alignItems:"center", gap:12, boxShadow:"0 4px 14px rgba(0,53,128,0.28)" }}>
               <span style={{ fontSize:26 }}>🏨</span>
               <div style={{ flex:1 }}>
@@ -5288,7 +5690,7 @@ function BottomNav({ active, setActive, alertCount }) {
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
-          padding:"4px 0",
+          padding:"8px 0",
         }}>
           {t.id === "alerts" && alertCount > 0 && (
             <div style={{
@@ -5495,10 +5897,20 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    setWishlists(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+    setWishlists(p => {
+      const isAdding = !p.includes(id);
+      if (isAdding) {
+        const venue = VENUES.find(v => v.id === id);
+        window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+      }
+      return p.includes(id) ? p.filter(x => x !== id) : [...p, id];
+    });
   }, [setWishlists]);
 
-  const openDetail = useCallback(listing => setDetailVenue(listing), []);
+  const openDetail = useCallback(listing => {
+    setDetailVenue(listing);
+    window.plausible && window.plausible('Venue Click', {props: {venue: listing.title, category: listing.category}});
+  }, []);
 
   // Handle URL hash venue links (e.g. #venue-whistler)
   useEffect(() => {
@@ -5639,6 +6051,8 @@ function App() {
             setNamedLists={setNamedLists}
             listings={listings}
             onOpenDetail={openDetail}
+            filters={filters}
+            search={search}
             onAlert={(venue) => {
               setDetailVenue(null);
               setActiveTab("alerts");
@@ -5646,7 +6060,7 @@ function App() {
           />
         )}
 
-        <BottomNav active={activeTab} setActive={setActiveTab} alertCount={firingCount} />
+        <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} />
       </div>
     </div>
   );
