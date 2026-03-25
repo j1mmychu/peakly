@@ -558,6 +558,47 @@ const VENUES = [
   {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:45.9700,lon:7.3100,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
   {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"], photo:"https://images.unsplash.com/photo-1534853878021-7fb609562749?w=800&h=600&fit=crop"},
   {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"], photo:"https://images.unsplash.com/photo-1621286675775-7f9dc67237b0?w=800&h=600&fit=crop"},
+  // ─── stub category expansion ──────────────────────────────────────────────────
+  {
+    id:"tulamben",    category:"diving",
+    title:"Tulamben Liberty Wreck", location:"Bali, Indonesia",
+    lat:-8.2954, lon:115.6163, ap:"DPS",
+    icon:"🐠", rating:4.96, reviews:2140,
+    gradient:"linear-gradient(160deg,#001428,#003a7a,#0066cc)",
+    accent:"#4db6ff", tags:["WWII Wreck","Easy Shore Dive"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+  },
+  {
+    id:"railay_climb", category:"climbing",
+    title:"Railay Beach Limestone", location:"Krabi, Thailand",
+    lat:8.0095, lon:98.8355, ap:"KBV",
+    icon:"🧗", rating:4.94, reviews:1820,
+    gradient:"linear-gradient(160deg,#1a2a00,#4a6a10,#8aaa30)",
+    accent:"#b5cc5a", tags:["Deep Water Solo","Beginner Friendly"], photo:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
+  },
+  {
+    id:"napali_kayak", category:"kayak",
+    title:"Na Pali Coast Sea Kayak", location:"Kauai, Hawaii, USA",
+    lat:22.2065, lon:-159.5965, ap:"LIH",
+    icon:"🛶", rating:4.97, reviews:1340,
+    gradient:"linear-gradient(160deg,#001a10,#005a3a,#00aa70)",
+    accent:"#40c08a", tags:["Sea Caves","Challenging Swells"], photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop",
+  },
+  {
+    id:"whistler_mtb", category:"mtb",
+    title:"Whistler Mountain Bike Park", location:"British Columbia, Canada",
+    lat:50.0878, lon:-122.9454, ap:"YVR",
+    icon:"🚵", rating:4.96, reviews:3120,
+    gradient:"linear-gradient(160deg,#2a1000,#7a3010,#c06020)",
+    accent:"#e09050", tags:["A-Line","Pro Level Available"], photo:"https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=800&h=600&fit=crop",
+  },
+  {
+    id:"chamonix_para", category:"paraglide",
+    title:"Chamonix Valley Paragliding", location:"Haute-Savoie, France",
+    lat:45.9350, lon:6.8700, ap:"GVA",
+    icon:"🪂", rating:4.96, reviews:2240,
+    gradient:"linear-gradient(160deg,#1a0a3a,#4a2a8a,#8a60d0)",
+    accent:"#b080f0", tags:["Mont Blanc Views","Tandem Available"], photo:"https://images.unsplash.com/photo-1528078585219-7fef4218f81b?w=800&h=600&fit=crop",
+  },
 ];
 
 const US_AIRPORTS = [
@@ -4173,8 +4214,8 @@ const GEAR_ITEMS = {
   hiking:   [
     { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",            store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
     { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",           store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
+    { emoji:"🧥", name:"Arc'teryx Beta AR Rain Jacket",          store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=arcteryx+beta+ar+rain+jacket" },
     { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS Communicator", store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
-    { emoji:"🥢", name:"Black Diamond Trail Cork Trekking Poles", store:"REI",    price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
   ],
 };
 
