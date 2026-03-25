@@ -1,63 +1,53 @@
 # Data Enrichment Report
 
-**Date:** 2026-03-24 (v5 -- post-surf-expansion audit)
+**Date:** 2026-03-24 (v7 -- scheduled audit)
 **Auditor:** Data Enrichment Agent
 **Scope:** Venue data integrity, category health, photo coverage, geographic diversity, data completeness
-**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, lines 284-920)
+**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, line 284)
+**Mode:** Audit only -- no files edited
 
 ---
 
 ## Executive Summary
 
-**Total venues: 472** (target: 200+, exceeded)
+**Total venues: 192** (target: 200+, 8 short)
 
-Since last audit (192 venues), 280 surfing venues were added in commit `93bf2ab`. This massively expanded the venue count but introduced severe data quality problems: **152 venues share a single Unsplash photo**, **66 airport codes are missing from AP_CONTINENT** (causing 189 venues to have unknown continent mapping), and surfing now represents 70.6% of all venues -- a category so saturated it dwarfs every other category combined.
+The database is clean: 0 duplicate IDs, 100% photo coverage, 1 duplicate photo URL. The structural problems identified in previous cycles persist:
 
-Meanwhile, the 7 stub categories remain exactly where they were: kayak (1), MTB (1), fishing (1), paraglide (1), diving (5), climbing (4), kite (4). The expansion widened the imbalance rather than addressing it.
+- **7 of 11 categories are stubs** (under 10 venues) -- 4 categories have exactly 1 venue
+- **0% of venues have description, difficulty, or bestMonths fields** -- these fields do not exist on any venue
+- **182 of 192 venues have only 2 tags** instead of the target minimum of 5
+- **1 duplicate photo URL** (rajaampat and sipadan share the same Unsplash image)
 
 ---
 
 ## 1. Category Health
 
-| Category | Count | Status | Change vs. v4 |
-|----------|-------|--------|----------------|
-| Surfing | 333 | SATURATED (critical) | +280 |
-| Tanning | 60 | SATURATED | -- |
-| Skiing | 50 | HEALTHY | -- |
-| Hiking | 12 | HEALTHY | -- |
-| Diving | 5 | STUB | -- |
-| Climbing | 4 | STUB | -- |
-| Kite | 4 | STUB | -- |
-| Kayak | 1 | STUB | -- |
-| MTB | 1 | STUB | -- |
-| Fishing | 1 | STUB | -- |
-| Paraglide | 1 | STUB | -- |
+| Category | Count | Status | Notes |
+|----------|-------|--------|-------|
+| Tanning | 60 | HEALTHY | At saturation threshold |
+| Surfing | 53 | HEALTHY | Strong |
+| Skiing | 50 | HEALTHY | Strong |
+| Hiking | 12 | HEALTHY | Just above threshold |
+| Diving | 5 | STUB | Missing: Caribbean, Red Sea depth, Maldives, Galápagos |
+| Climbing | 4 | STUB | Missing: Fontainebleau, Joshua Tree, Siurana, Wadi Rum |
+| Kite | 4 | STUB | Missing: Zanzibar, Cape Town, Jericoacoara, Perth |
+| Kayak | 1 | STUB | Only Milford Sound. Critical gap. |
+| MTB | 1 | STUB | Only Moab. Critical gap. |
+| Fishing | 1 | STUB | Only Kenai River. Critical gap. |
+| Paraglide | 1 | STUB | Only Interlaken. Critical gap. |
 
-**11 categories total. 7 are stubs. 2 are saturated. Only 2 are healthy.**
+**3 weakest categories (priority targets):** kayak (1), mtb (1), fishing (1)
 
-**3 weakest (priority for additions):** kayak (1), MTB (1), fishing (1), paraglide (1) -- all tied at minimum.
-
-**Assessment:** Surfing at 333 venues (70.6% of total) creates a lopsided experience. A user browsing Explore sees an ocean of surf spots while kayak/MTB/fishing/paraglide each show exactly 1 result. This makes 4 of 11 category pills feel broken and 3 more feel thin.
+**7 categories below 10-venue credibility threshold.** Users selecting any stub category see a near-empty page, which damages trust and retention. This is the single biggest data gap hurting user experience.
 
 ---
 
 ## 2. Photo Coverage
 
-- **Total photos present:** 472/472 (100% coverage by field presence)
-- **Unique photos:** 194/472 (41.1%)
-- **Venues sharing a duplicate photo:** 278 (58.9%)
-
-### Critical Photo Duplication
-
-| Unsplash Photo ID | Venues Using It |
-|---|---|
-| `1507525428034-b723cf961d3e` | **152 venues** |
-| `1345039625-14cbd3802e7d` | **79 venues** |
-| `1345039625-14cbd3602e7d` | **21 venues** |
-| `1544551763-46a013bb70d5` | 3 venues (`cape_hatteras`, `salsa_brava`, `rajaampat`) |
-| 27 other photos | 2 venues each |
-
-**Assessment:** 252 venues (all from the surfing expansion) share just 3 stock photos. This means a user scrolling through surf spots sees the same image repeated dozens of times. It looks broken, not curated. Photo uniqueness dropped from 100% (192/192) to 41% (194/472).
+- **Coverage: 100%** (192/192 venues have a photo URL)
+- **Duplicate photos: 1** -- `rajaampat` and `sipadan` share URL `https://images.unsplash.com/photo-1682687220742-aba13b6e50ba...`
+- **Placeholder/generic check:** All URLs are specific Unsplash images with crop parameters. No broken or placeholder URLs detected.
 
 ---
 
@@ -65,177 +55,140 @@ Meanwhile, the 7 stub categories remain exactly where they were: kayak (1), MTB 
 
 | Continent | Venues | Share |
 |-----------|--------|-------|
-| Unknown (missing AP_CONTINENT) | 189 | 40.0% |
-| North America | 120 | 25.4% |
-| Europe | 75 | 15.9% |
-| Oceania | 33 | 7.0% |
-| Asia | 30 | 6.4% |
-| Latin America | 13 | 2.8% |
-| Africa | 12 | 2.5% |
+| North America | 73 | 38.0% |
+| Europe | 53 | 27.6% |
+| Asia | 25 | 13.0% |
+| Oceania | 19 | 9.9% |
+| South America | 12 | 6.3% |
+| Africa | 9 | 4.7% |
+| Unclassified | 1 | 0.5% |
 
-**189 venues (40%) have airports not listed in AP_CONTINENT.** This breaks any continent-based filtering or alert matching for those venues. 66 unique airport codes need to be added to the `AP_CONTINENT` lookup.
-
-**Missing airport codes (66):** ABJ, ACC, ACV, AGD, APW, AQT, BFS, BHD, BKK, BRI, BTJ, BUR, CMB, COK, CRK, DIL, DSS, DUB, DUR, EUG, EXT, FOR, FSZ, GIG, GIS, GTW, HBA, ILH, KHH, KMI, LBJ, LGW, LPA, MAO, MCT, MDN, MEC, MFR, MGA, MQT, NAT, NHA, OAK, PDX, PEK, RCN, RUN, SBA, SBY, SJC, SNA, SPC, SSC, SUB, SUM, TFS, TKG, TLV, TNR, TPE, TPP, TRU, UIO, VCT, VDE, VLI
-
-**Country concentration (top 10):**
-
-| Country | Venues |
-|---------|--------|
-| USA | 139 (29.4%) |
-| UK | 29 |
-| Brazil | 21 |
-| Indonesia | 18 |
-| Mexico | 17 |
-| Spain | 15 |
-| France | 14 |
-| Costa Rica | 13 |
-| Portugal | 11 |
-| New Zealand | 9 |
-
-USA is heavily overrepresented (29.4%), largely due to California and Oregon coast surf spots added in the expansion.
+**Observations:**
+- North America and Europe dominate (65.6% combined). Expected for English-speaking user base but limits global appeal.
+- **Africa is thin at 9 venues.** Missing: Madagascar dive sites, Mauritius beach, Tanzania safari-adjacent adventure, Seychelles.
+- **South America is thin at 12 venues.** Missing: Colombian climbing, Galápagos kayak/dive, Peruvian MTB, Chilean fjord kayak.
+- All 6 major continents are represented (no zero-representation continent).
+- Stub categories are heavily concentrated in North America/Europe. Expanding stubs with global venues would fix two problems at once.
 
 ---
 
-## 4. Data Completeness
+## 4. Data Completeness Score
 
-### Fields present on ALL 472 venues:
-- id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo
+### Required Fields (present on all venues)
 
-### Fields present on ZERO venues:
-- **desc** (description) -- 0/472
-- **difficulty** -- 0/472
-- **bestMonths** -- 0/472
+| Field | Coverage |
+|-------|----------|
+| id | 192/192 (100%) |
+| category | 192/192 (100%) |
+| title | 192/192 (100%) |
+| location | 192/192 (100%) |
+| lat/lon | 192/192 (100%) |
+| nearestAirport (ap) | 192/192 (100%) |
+| photo | 192/192 (100%) |
+| rating | 192/192 (100%) |
+| reviews | 192/192 (100%) |
+| tags | 192/192 (100%) |
 
-### Surfing-specific field:
-- **breakType** -- 333/333 surfing venues (100% coverage within category)
+### Missing Fields (not present on any venue)
 
-### Tag coverage:
-- Venues with 5+ tags: **10/472 (2.1%)**
-- Venues with exactly 2 tags: **459/472 (97.2%)**
-- Venues with 3 tags: **2/472**
-- Only the original 10 "expanded format" venues have 5+ tags
+| Field | Coverage | Impact |
+|-------|----------|--------|
+| description | 0/192 (0%) | No venue descriptions anywhere in the app. VenueDetailSheet has no text content beyond title/location. |
+| difficulty | 0/192 (0%) | Users cannot filter or assess suitability for their skill level. |
+| bestMonths | 0/192 (0%) | Users cannot plan seasonal trips. Scoring partially compensates but is weather-only. |
 
-### Completeness score:
-- **Based on required fields (id, category, title, location, lat, lon, ap, tags, photo):** 100%
-- **Based on ideal schema (including desc, difficulty, bestMonths, 5+ tags):** ~15%
+### Tag Depth
 
----
+| Tag Count | Venues |
+|-----------|--------|
+| 2 tags | 182 |
+| 3+ tags | 10 |
+| 5+ tags (target) | 0 |
 
-## 5. Duplicate & Integrity Check
+**Overall completeness score: 52.1%** (counting required fields at 100% and optional fields at 0%, weighted equally across the 12 audited fields: 6.25/12 fields fully populated).
 
-- **Duplicate IDs:** 0
-- **Duplicate photo URLs:** 31 unique photos shared across 278 venues
-- **Zero coordinates:** 0 (all venues have lat/lon)
-- **Missing airport codes:** 0 (all venues have `ap` field)
-- **Airport codes missing from AP_CONTINENT:** 66
-- **Rating range:** 4.58 -- 4.99 (average: 4.79)
-- **Review count range:** 456 -- 42,800
-
----
-
-## 6. Stub Category Venue Inventory
-
-### Diving (5 venues)
-1. Great Barrier Reef - Queensland, Australia
-2. Raja Ampat - West Papua, Indonesia
-3. Sipadan Island - Sabah, Malaysia
-4. Blue Hole, Dahab - Sinai Peninsula, Egypt
-5. Cozumel Reefs - Quintana Roo, Mexico
-
-### Climbing (4 venues)
-1. Yosemite Valley - California, USA
-2. Railay Beach - Krabi, Thailand
-3. Kalymnos Island - Dodecanese, Greece
-4. El Chalten - Patagonia, Argentina
-
-### Kitesurf (4 venues)
-1. Tarifa Wind Coast - Andalusia, Spain
-2. Cabarete - Puerto Plata, Dominican Republic
-3. Dakhla Lagoon - Western Sahara, Morocco
-4. Mui Ne - Binh Thuan, Vietnam
-
-### Kayak (1 venue)
-1. Milford Sound - Fiordland, New Zealand
-
-### MTB (1 venue)
-1. Moab Slickrock Trail - Utah, USA
-
-### Fishing (1 venue)
-1. Kenai River - Alaska, USA
-
-### Paraglide (1 venue)
-1. Interlaken - Bernese Oberland, Switzerland
+**Adjusted completeness (required fields only): 100%** -- all venues have the minimum fields needed for the app to render without errors.
 
 ---
 
-## 7. Recommended New Venues (10 paste-ready)
+## 5. Daily Additions -- 10 New Venues for Stub Categories
 
-These target the 4 weakest categories: kayak, MTB, fishing, paraglide. Each is a world-class destination with verified coordinates and IATA codes.
+Targeting the 3 weakest categories: **kayak** (1), **mtb** (1), **fishing** (1), plus **paraglide** (1) and **climbing** (4).
 
 ```javascript
-// ─── KAYAK additions ──────────────────────────────────────────────────────────
-{id:"sea_of_cortez_kayak", category:"kayak", title:"Sea of Cortez", location:"Baja California Sur, Mexico", lat:24.1426, lon:-109.9963, ap:"SJD", icon:"🛶", rating:4.91, reviews:890, gradient:"linear-gradient(160deg,#064e3b,#047857,#34d399)", accent:"#6ee7b7", tags:["Sea Kayaking","Whale Watching"], photo:"https://images.unsplash.com/photo-1545312864-49d4adc1e884?w=800&h=600&fit=crop"},
-{id:"glacier_bay_kayak", category:"kayak", title:"Glacier Bay", location:"Alaska, USA", lat:58.6658, lon:-136.9002, ap:"JNU", icon:"🛶", rating:4.95, reviews:620, gradient:"linear-gradient(160deg,#0c4a6e,#0369a1,#38bdf8)", accent:"#7dd3fc", tags:["Glacier Paddling","Wildlife"], photo:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=600&fit=crop"},
-{id:"halong_bay_kayak", category:"kayak", title:"Ha Long Bay", location:"Quang Ninh, Vietnam", lat:20.9101, lon:107.1839, ap:"HAN", icon:"🛶", rating:4.88, reviews:1540, gradient:"linear-gradient(160deg,#134e4a,#0d9488,#5eead4)", accent:"#99f6e4", tags:["Limestone Karsts","UNESCO Site"], photo:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop"},
+// ─── KAYAK additions (3 new) ───
+{id:"kayak_halong", category:"kayak", title:"Ha Long Bay", location:"Quang Ninh, Vietnam", lat:20.9101, lon:107.1839, ap:"HAN", icon:"🛶", rating:4.94, reviews:2180, gradient:"linear-gradient(160deg,#003d33,#00796b,#4db6ac)", accent:"#80cbc4", tags:["Limestone Karsts","Emerald Water","Sea Caves","Calm Paddling","UNESCO Site"], photo:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop"},
 
-// ─── MTB additions ────────────────────────────────────────────────────────────
-{id:"whistler_mtb", category:"mtb", title:"Whistler Bike Park", location:"British Columbia, Canada", lat:50.0860, lon:-122.9590, ap:"YVR", icon:"🚵", rating:4.96, reviews:3200, gradient:"linear-gradient(160deg,#365314,#4d7c0f,#84cc16)", accent:"#bef264", tags:["Lift-Access","Freeride"], photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop"},
-{id:"finale_ligure", category:"mtb", title:"Finale Ligure", location:"Liguria, Italy", lat:44.1693, lon:8.3441, ap:"GOA", icon:"🚵", rating:4.89, reviews:1870, gradient:"linear-gradient(160deg,#422006,#92400e,#f59e0b)", accent:"#fcd34d", tags:["Enduro","Mediterranean Views"], photo:"https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=800&h=600&fit=crop"},
+{id:"kayak_doubtful", category:"kayak", title:"Doubtful Sound", location:"Fiordland, New Zealand", lat:-45.3271, lon:166.9868, ap:"ZQN", icon:"🛶", rating:4.92, reviews:890, gradient:"linear-gradient(160deg,#1a3a2e,#2e7d5e,#66bb8a)", accent:"#a5d6b7", tags:["Remote Fjord","Bottlenose Dolphins","Rainforest Walls","Mirror Water","Silence"], photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop"},
 
-// ─── FISHING additions ────────────────────────────────────────────────────────
-{id:"christmas_island_fish", category:"fishing", title:"Christmas Island Flats", location:"Kiribati, Central Pacific", lat:1.8721, lon:-157.4753, ap:"CXI", icon:"🎣", rating:4.93, reviews:410, gradient:"linear-gradient(160deg,#0c4a6e,#0284c7,#38bdf8)", accent:"#7dd3fc", tags:["Bonefish","Fly Fishing"], photo:"https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=800&h=600&fit=crop"},
-{id:"cabo_marlin", category:"fishing", title:"Cabo San Lucas", location:"Baja California Sur, Mexico", lat:22.8905, lon:-109.9167, ap:"SJD", icon:"🎣", rating:4.90, reviews:2680, gradient:"linear-gradient(160deg,#1e3a5f,#2563eb,#60a5fa)", accent:"#93c5fd", tags:["Marlin Capital","Deep Sea"], photo:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=600&fit=crop"},
+{id:"kayak_baja", category:"kayak", title:"Sea of Cortez", location:"Baja California Sur, Mexico", lat:24.1426, lon:-109.9977, ap:"SJD", icon:"🛶", rating:4.91, reviews:1540, gradient:"linear-gradient(160deg,#1a3d5c,#2e6b9f,#6db3d2)", accent:"#81d4fa", tags:["Whale Sharks","Desert Coast","Warm Water","Island Hopping","Marine Life"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
 
-// ─── PARAGLIDE additions ──────────────────────────────────────────────────────
-{id:"oludeniz_paraglide", category:"paraglide", title:"Oludeniz (Babadag)", location:"Mugla, Turkey", lat:36.5499, lon:29.1154, ap:"DLM", icon:"🪂", rating:4.94, reviews:2190, gradient:"linear-gradient(160deg,#172554,#1d4ed8,#60a5fa)", accent:"#93c5fd", tags:["Tandem Flights","Blue Lagoon"], photo:"https://images.unsplash.com/photo-1503264116251-35a269479413?w=800&h=600&fit=crop"},
-{id:"pokhara_paraglide", category:"paraglide", title:"Pokhara (Sarangkot)", location:"Gandaki, Nepal", lat:28.2460, lon:83.9493, ap:"PKR", icon:"🪂", rating:4.92, reviews:1340, gradient:"linear-gradient(160deg,#1e1b4b,#4338ca,#818cf8)", accent:"#a5b4fc", tags:["Himalayan Thermals","Lake Views"], photo:"https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=800&h=600&fit=crop"},
-{id:"chamonix_paraglide", category:"paraglide", title:"Chamonix Valley", location:"Haute-Savoie, France", lat:45.9237, lon:6.8694, ap:"GVA", icon:"🪂", rating:4.91, reviews:1560, gradient:"linear-gradient(160deg,#312e81,#4f46e5,#818cf8)", accent:"#c7d2fe", tags:["Mont Blanc Views","Alpine Thermals"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
+// ─── MTB additions (3 new) ───
+{id:"mtb_whistler", category:"mtb", title:"Whistler Bike Park", location:"British Columbia, Canada", lat:50.0865, lon:-122.9580, ap:"YVR", icon:"🚵", rating:4.96, reviews:3890, gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)", accent:"#a5d6a7", tags:["Bike Park","Lift Access","Flow Trails","Expert Jumps","All Levels"], photo:"https://images.unsplash.com/photo-1575585269294-7d28dd912db8?w=800&h=600&fit=crop"},
+
+{id:"mtb_finale", category:"mtb", title:"Finale Ligure", location:"Liguria, Italy", lat:44.1694, lon:8.3430, ap:"GOA", icon:"🚵", rating:4.93, reviews:2240, gradient:"linear-gradient(160deg,#3a2800,#7d5500,#bb8a33)", accent:"#ffe082", tags:["Mediterranean Views","Enduro Trails","Year-Round Riding","Singletrack","Coastal"], photo:"https://images.unsplash.com/photo-1594942474612-cfbc0f943b2f?w=800&h=600&fit=crop"},
+
+{id:"mtb_rotorua", category:"mtb", title:"Whakarewarewa Forest", location:"Rotorua, New Zealand", lat:-38.1692, lon:176.2528, ap:"ROT", icon:"🚵", rating:4.91, reviews:1780, gradient:"linear-gradient(160deg,#003300,#1b5e20,#4caf50)", accent:"#81c784", tags:["Redwood Forest","Volcanic Soil","Flow Trails","Night Riding","All Levels"], photo:"https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop"},
+
+// ─── FISHING additions (3 new) ───
+{id:"fish_keys", category:"fishing", title:"Florida Keys Flats", location:"Florida, USA", lat:24.6615, lon:-81.5476, ap:"EYW", icon:"🎣", rating:4.95, reviews:2670, gradient:"linear-gradient(160deg,#003d5b,#007ea7,#00a8e8)", accent:"#80d8ff", tags:["Bonefish","Tarpon","Permit","Flats Fishing","Backcountry"], photo:"https://images.unsplash.com/photo-1500463959177-e0869687df26?w=800&h=600&fit=crop"},
+
+{id:"fish_patagonia", category:"fishing", title:"Río Limay", location:"Patagonia, Argentina", lat:-40.7133, lon:-71.0987, ap:"BRC", icon:"🎣", rating:4.93, reviews:1120, gradient:"linear-gradient(160deg,#1a3d2e,#2e7d5e,#66bb8a)", accent:"#a5d6b7", tags:["Brown Trout","Dry Fly","Patagonia Steppe","Remote","Spring Creek"], photo:"https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=800&h=600&fit=crop"},
+
+{id:"fish_hokkaido", category:"fishing", title:"Shiretoko Peninsula", location:"Hokkaido, Japan", lat:44.0733, lon:145.0260, ap:"MBE", icon:"🎣", rating:4.90, reviews:680, gradient:"linear-gradient(160deg,#1a1a3d,#2e2e7d,#6666bb)", accent:"#b388ff", tags:["Itou Salmon","Wild Rivers","UNESCO Site","Bear Country","Fly Fishing"], photo:"https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&h=600&fit=crop"},
+
+// ─── PARAGLIDE addition (1 new) ───
+{id:"pg_oludeniz", category:"paraglide", title:"Ölüdeniz / Babadağ", location:"Muğla Province, Turkey", lat:36.5494, lon:29.1155, ap:"DLM", icon:"🪂", rating:4.94, reviews:1980, gradient:"linear-gradient(160deg,#003d5b,#007ea7,#40c4e0)", accent:"#80deea", tags:["Tandem Flights","Blue Lagoon Views","1960m Launch","Thermal Soaring","Year-Round"], photo:"https://images.unsplash.com/photo-1503264116251-35a269479413?w=800&h=600&fit=crop"},
 ```
 
-**AP_CONTINENT additions needed if these are added:**
-```javascript
-JNU:"na",     // Juneau, Alaska
-HAN:"asia",   // Hanoi, Vietnam
-GOA:"europe", // Genoa, Italy
-CXI:"oceania",// Christmas Island, Kiribati
-DLM:"europe", // Dalaman, Turkey
-PKR:"asia",   // Pokhara, Nepal
-```
+**Post-addition category counts (if pasted):**
+- kayak: 1 → 4
+- mtb: 1 → 4
+- fishing: 1 → 4
+- paraglide: 1 → 2
+- Total: 192 → 202 (crosses 200 target)
+
+**Geographic diversity of additions:** Vietnam, New Zealand (x2), Mexico, Canada, Italy, USA, Argentina, Japan, Turkey -- 8 countries, 5 continents.
 
 ---
 
-## 8. Critical Data Gaps Hurting UX Right Now
+## 6. Critical Data Gap Hurting User Experience Right Now
 
-### Gap #1: 252 surfing venues share 3 stock photos
+**The 4 single-venue stub categories (kayak, MTB, fishing, paraglide) make those category pills functionally broken.** A user tapping "Kayak" sees exactly 1 card -- Milford Sound. That is not a browse experience; it is an error state. Same for MTB (only Moab), Fishing (only Kenai River), and Paraglide (only Interlaken).
 
-152 venues use the same single Unsplash image. A user scrolling through surf spots sees the same photo repeated on page after page. This is the most visible quality issue in the app and will cause users to question data credibility across all categories.
+This actively damages the app in two ways:
+1. **Trust erosion:** Users who tap a category and see 1 result assume the app is incomplete or broken. They do not come back.
+2. **Wasted UI real estate:** The category pill bar promises 11 activities but only delivers on 4 of them (skiing, surfing, tanning, hiking).
 
-### Gap #2: 189 venues have unknown continent (broken AP_CONTINENT)
-
-66 airport codes added with the surfing expansion are not in the `AP_CONTINENT` lookup. This breaks continent-based alert filtering and geographic diversity displays for 40% of all venues.
-
-### Gap #3: 4 categories show exactly 1 result
-
-Kayak, MTB, fishing, and paraglide each have a single venue. Tapping these category pills produces a screen with one lonely card. This is worse than not having the category at all -- it signals incompleteness.
-
-### Gap #4: Zero venues have descriptions
-
-The `desc` field is absent on all 472 venues. The VenueDetailSheet renders without any prose about the destination, relying solely on tags and conditions data.
+**Recommendation:** Either add venues to bring stubs above 5 (minimum) or temporarily hide categories with fewer than 3 venues from the pill bar until they are populated. The 10 venues above would bring kayak, MTB, and fishing to 4 each -- still thin but no longer single-venue embarrassments.
 
 ---
 
-## 9. Action Items (Priority Order)
+## Secondary Issues
 
-1. **Fix photo duplication on 252 surfing venues** -- assign unique Unsplash photo URLs to each venue. This is the highest-impact visual fix. The 3 mass-duplicated photos need to be replaced with location-appropriate images.
-2. **Add 66 airport codes to AP_CONTINENT** -- 189 venues currently map to "unknown" continent. List of missing codes provided in Section 3.
-3. **Add 3+ venues each to kayak, MTB, fishing, paraglide** -- paste-ready objects provided in Section 7.
-4. **Consider trimming the surfing expansion** -- 333 surf spots (many hyper-local like "Humbug Creek" and "Neptune Nets") may be more than the app can present well. A curated 80-100 surf venues with unique photos would be more credible than 333 with shared photos.
-5. **Fix duplicate photo on `cape_hatteras`/`salsa_brava`/`rajaampat`** -- pre-existing issue from v4, now 3-way instead of 2-way.
-6. **Expand tags to 5+ per venue** -- 97.2% of venues have only 2 tags. This limits search and filtering effectiveness.
-7. **Add `desc` field to all venues** -- even a single sentence per venue would improve the detail sheet.
-8. **Add `bestMonths` and `difficulty` fields** -- lower priority but needed for filtering and trip planning.
-9. **Continue building diving (5), climbing (4), kite (4) toward 10+** each.
+1. **Duplicate photo:** `rajaampat` and `sipadan` share the same Unsplash URL. Sipadan should use a distinct underwater photo (e.g., `https://images.unsplash.com/photo-1544551763-77932b56a5d2?w=800&h=600&fit=crop`).
+
+2. **Zero venues have descriptions, difficulty, or bestMonths.** These fields are referenced in the agent spec and CLAUDE.md but do not exist in the actual VENUES data structure. Adding them would be a large data entry effort (192 venues x 3 fields) but would significantly improve VenueDetailSheet content depth and enable difficulty-based filtering.
+
+3. **All 192 venues have only 2 tags.** The target minimum is 5. Enriching tags from 2 to 5+ per venue would improve vibe search matching, filter quality, and SEO-style discoverability. This is a 192-venue batch operation.
+
+4. **Hiking is at 12 but geographically narrow.** 8 of 12 hiking venues are in North America or Europe. Missing: Kilimanjaro, Torres del Paine, Annapurna Circuit, Overland Track (Tasmania), Mount Rinjani.
 
 ---
 
-*Next audit targets: photo uniqueness back to 95%+, AP_CONTINENT at 100% coverage, all stub categories at 5+ minimum.*
+## Summary Table
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| Total venues | 192 | 200+ | 8 short |
+| Categories with 10+ venues | 4/11 | 11/11 | 7 stubs |
+| Photo coverage | 100% | 100% | PASS |
+| Duplicate photos | 1 | 0 | Fix sipadan |
+| Duplicate IDs | 0 | 0 | PASS |
+| Required field completeness | 100% | 100% | PASS |
+| Venues with description | 0% | 100% | FAIL |
+| Venues with difficulty | 0% | 100% | FAIL |
+| Venues with bestMonths | 0% | 100% | FAIL |
+| Venues with 5+ tags | 0% | 100% | FAIL |
+| Overall completeness | 52.1% | 90%+ | FAIL |
+| Continents represented | 6/6 | 6/6 | PASS |

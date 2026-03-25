@@ -1,9 +1,9 @@
 # QA Report — Peakly
 
-**Date:** 2026-03-24 (regression check after VPS proxy fix, PWA addition, GA4 removal)
-**File:** app.jsx (6,354 lines) | index.html (119 lines)
-**Baseline:** 5,666 lines / 192 venues (previous run)
-**Current:** 6,354 lines / 472 venues (+688 lines, +280 venues)
+**Date:** 2026-03-24
+**File:** app.jsx (6,072 lines) | index.html (119 lines)
+**Baseline:** 5,631 lines (original) / 6,072 lines (previous run)
+**Current:** 6,072 lines / 192 venues across 11 sport categories
 
 ---
 
@@ -11,98 +11,108 @@
 
 | # | Check | Result | Details |
 |---|-------|--------|---------|
-| 1 | CATEGORIES syntax (12 present) | PASS | All 12 categories: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. |
-| 2 | Venue required fields | PASS | All 472 venues have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo. |
+| 1 | CATEGORIES syntax (12 present) | PASS | All 12: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. |
+| 2 | Venue required fields | PASS | All 192 venues have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo. `description`, `difficulty`, `bestMonths` not in schema — not referenced in code, no runtime impact. |
 | 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs. |
-| 4 | Duplicate photo URLs | FAIL (P2) | 3 venues share the same photo (see below). Was 2 last run — now 3. |
-| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches + default fallback. |
-| 6 | Affiliate links — Amazon | PASS | 21 Amazon links, all with `tag=peakly-20`. No placeholder IDs. |
+| 4 | Duplicate photo URLs | FAIL (P3) | 1 duplicate: `photo-1682687220742-aba13b6e50ba` shared by `rajaampat` and `sipadan` (both diving). |
+| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches (lines 965-1331) plus default fallback. |
+| 6 | Affiliate links — Amazon | PASS | 20 Amazon links, all with `tag=peakly-20`. No placeholder IDs. |
 | 7 | Affiliate links — Booking.com | PASS | 1 Booking.com link with `aid=2311236`. Correctly formatted. |
 | 8 | Affiliate links — SafetyWing | PASS | 1 SafetyWing link with `referenceID=peakly`. Correctly formatted. |
-| 9 | SEO files | PASS | robots.txt, sitemap.xml, canonical tag, title tag, JSON-LD all present and correct. |
-| 10 | Plausible analytics | PASS | `script.hash.js` loading correctly from plausible.io. |
-| 11 | Sentry DSN | FAIL (P2) | `SENTRY_DSN = ""` on line 6. Still empty. |
+| 9 | SEO files | FAIL (P2) | robots.txt correct. sitemap.xml present but only root URL — no category pages. Canonical tag and title tag correct. JSON-LD structured data present. |
+| 10 | Plausible analytics | PASS | `script.hash.js` loading correctly on line 27 of index.html. |
+| 11 | Sentry DSN | FAIL (P2) | `SENTRY_DSN = ""` on line 6 of app.jsx. Still empty. |
 
 ---
 
 ## Cache-Buster Status
 
-**Current value:** `?v=20260325b` (index.html, line 95)
-**Status: Current.** Dated 2026-03-25 with "b" suffix indicating second deploy. No fix needed.
+**Current value:** `?v=20260325c` (index.html, line 95)
+**Status: STALE (P2).** Value was set 2026-03-25 but any subsequent deploys would not force cache refresh.
+
+**Fix (one line, index.html line 95):**
+```html
+<script type="text/babel" src="./app.jsx?v=20260324a" data-presets="react"></script>
+```
+Bump on every deploy.
 
 ---
 
 ## Sentry Status
 
-**Status:** Empty DSN on line 6 of app.jsx. Error monitoring infrastructure exists but is not connected.
+**Status:** Empty DSN on line 6 of app.jsx. Error monitoring logs to localStorage only. No remote reporting.
 
 **Fix (replace line 6 after signing up at sentry.io):**
 ```js
 const SENTRY_DSN = "https://<your-key>@o<org-id>.ingest.sentry.io/<project-id>";
 ```
-No other code changes needed — the existing `reportError()` + `fetch()` logic activates automatically. Not blocked by LLC.
+No other code changes needed — existing `reportError()` + `fetch()` activates automatically. Not blocked by LLC. Jack action, 5 minutes.
 
 ---
 
 ## Duplicate Photo Details
 
-**3 venues share the same photo (worsened from 2 last run):**
-- URL: `photo-1544551763-46a013bb70d5` (generic surf shot)
-- Used by:
-  - `cape_hatteras` (surfing, line 445)
-  - `salsa_brava` (surfing, line 540)
-  - `rajaampat` (diving, line 906)
-- Fix: Replace salsa_brava and rajaampat photos with venue-specific images.
+**1 duplicate:**
+- URL: `photo-1682687220742-aba13b6e50ba`
+- Used by: `rajaampat` (diving) and `sipadan` (diving)
+- Fix: Replace sipadan's photo with a unique Unsplash dive image.
 
 ---
 
-## Syntax Concern (NEW — P2)
+## Affiliate Link Summary
 
-**Line 300:** The Pipeline venue object has a trailing comma on line 299 (`photo:"...",`) followed by `, breakType:"reef"}` on line 300. This creates a `, ,` pattern (consecutive commas) in an object literal. Babel Standalone tolerates this today, but strict parsers would reject it. A Babel CDN upgrade could cause a white-screen crash on the app's flagship surfing venue.
-
-**Fix:** Remove the trailing comma on line 299 OR the leading comma on line 300.
+| Type | Count | Earning? |
+|------|-------|----------|
+| Amazon (`tag=peakly-20`) | 20 | Yes |
+| Booking.com (`aid=2311236`) | 1 | Yes |
+| SafetyWing (`referenceID=peakly`) | 1 | Yes |
+| REI/Backcountry (no affiliate tag) | 24 | No ($0) |
+| Placeholder IDs found | 0 | N/A |
 
 ---
 
 ## Venue Distribution by Category
 
-| Category | Count | Change vs Last Run | Status |
-|----------|-------|-------------------|--------|
-| surfing | 333 | +280 | Massive expansion |
-| tanning | 60 | -- | Healthy |
-| skiing | 50 | -- | Healthy |
-| hiking | 12 | -- | Healthy |
-| diving | 5 | -- | Adequate |
-| climbing | 4 | -- | Thin |
-| kite | 4 | -- | Thin |
-| paraglide | 1 | -- | Thin |
-| mtb | 1 | -- | Thin |
-| kayak | 1 | -- | Thin |
-| fishing | 1 | -- | Thin |
+| Category | Count | Status |
+|----------|-------|--------|
+| tanning | 60 | Healthy |
+| surfing | 53 | Healthy |
+| skiing | 50 | Healthy |
+| hiking | 12 | OK |
+| diving | 5 | Adequate |
+| kite | 4 | Thin |
+| climbing | 4 | Thin |
+| paraglide | 1 | Single venue |
+| mtb | 1 | Single venue |
+| kayak | 1 | Single venue |
+| fishing | 1 | Single venue |
 
-**Note:** Surfing now dominates at 333/472 (71%). 5 categories still have only 1 venue each.
+4 categories have only 1 venue each — these feel empty to users. Non-blocking for launch but worth expanding post-launch.
 
 ---
 
-## Regression Check — Recent Changes
+## Regression Check
 
-| Change | Status | Detail |
-|--------|--------|--------|
-| VPS proxy fix (HTTPS) | PASS | `FLIGHT_PROXY = "https://peakly-api.duckdns.org"` on line 1624. No more mixed content. Previous critical finding (HTTP proxy blocked by browsers) is **RESOLVED**. |
-| PWA manifest + SW | PASS | `manifest.json` present. `sw.js` present. `<link rel="manifest">` in index.html. Service worker registration script in index.html. Apple meta tags present. |
-| GA4 placeholder removed | PASS (intentional) | No gtag.js in index.html. CLAUDE.md still references GA4 as "added" — documentation is stale but removal is intentional. |
-| Plausible analytics | PASS | Still loading `script.hash.js`. Unaffected by GA4 removal. |
-| All affiliate links | PASS | All 23 affiliate links intact with real IDs. |
-| scoreVenue function | PASS | All 11 scoring branches intact and unchanged. |
+| Check | Previous Run | This Run | Delta |
+|-------|-------------|----------|-------|
+| Categories | PASS (12) | PASS (12) | -- |
+| Venue fields | PASS | PASS | -- |
+| Duplicate IDs | PASS (0) | PASS (0) | -- |
+| Duplicate photos | FAIL (1) | FAIL (1) | No change |
+| scoreVenue | PASS (11) | PASS (11) | -- |
+| Amazon affiliates | PASS (20) | PASS (20) | -- |
+| Booking.com | PASS (1) | PASS (1) | -- |
+| SafetyWing | PASS (1) | PASS (1) | -- |
+| SEO files | FAIL | FAIL | Sitemap still thin |
+| Plausible | PASS | PASS | -- |
+| Sentry | FAIL | FAIL | Still empty |
 
-### Regressions vs Last Run: NONE
+**Regressions vs last run: NONE**
 
-Previous critical finding (HTTP flight proxy causing mixed content block) is now **FIXED** — proxy uses HTTPS via Caddy + Let's Encrypt.
-
-Previous duplicate photo issue **WORSENED** from 2 to 3 venues sharing the same URL.
+No previously passing check has regressed. The 1 duplicate photo and thin sitemap were already flagged.
 
 ---
 
 ## One Thing That Would Break Everything If Not Caught
 
-**Line 300 double-comma syntax in the Pipeline venue object.** Pipeline is Peakly's flagship surfing venue. The `, ,` pattern in its object literal is non-standard. If unpkg upgrades Babel Standalone to a stricter version, this single comma could cause a parse failure that white-screens the entire app for every user. It's a one-character fix that eliminates a catastrophic risk vector. Fix it before the next deploy.
+**The stale cache buster combined with the service worker is the highest-risk item.** The previous SW outage (documented in CLAUDE.md) proved that a stale cache can serve a broken version indefinitely with no user recourse. If a syntax error is introduced in app.jsx and deployed without bumping `?v=`, the SW and browser cache will serve the broken version to all returning users. Bump `v=` on every single deploy — this is the one discipline that prevents catastrophic user-facing outages.
