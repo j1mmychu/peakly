@@ -1621,7 +1621,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
 // API token lives server-side on the VPS — never exposed in client code
-const FLIGHT_PROXY = "http://198.199.80.21:3001";
+const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
 let _flightApiStatus = "unknown"; // "live", "down", "unknown"
 function getFlightApiStatus() { return _flightApiStatus; }
 
