@@ -1,8 +1,8 @@
-# Community Agent Report: 2026-03-24 (v5)
+# Community Agent Report: 2026-03-24 (v6)
 
 **Date:** 2026-03-24
 **Agent:** Community
-**Status:** Reddit launch GO -- all previous blockers cleared. Ship it.
+**Status:** Reddit launch GO. All blockers cleared. 192 venues with unique photos. HTTPS proxy live. PWA live.
 
 ---
 
@@ -12,25 +12,26 @@
 
 | Requirement | Status | Notes |
 |-------------|--------|-------|
-| Account karma + age sufficient | UNKNOWN -- VERIFY BEFORE POSTING | The posting account must have 50+ karma and be 30+ days old on r/surfing. If using a fresh account, warm it up with 5-10 genuine comments over 2 weeks first. This is the only remaining unknown. |
-| Post follows r/surfing rules | LIKELY PASS | r/surfing allows tool sharing if the poster is an active community member and the post provides genuine value. Draft leads with the MSW pain point and invites feedback. |
-| Landing page fast + mobile | PASS | Site loads at j1mmychu.github.io/peakly. PWA added. 170+ venues with photos, clean card UI. **Still verify on a real phone before posting -- Babel transpilation must succeed.** |
-| Clear CTA on landing | PASS | Hero card shows "Your Best Window Right Now" with View Details CTA. Category pills visible. Surfing venues surface immediately. No login, no paywall. Value visible within 3 seconds. |
-| Analytics to measure | PASS | GA4 gtag.js added to index.html. Plausible also present. Jack needs to replace G-XXXXXXXXXX with a real GA4 Measurement ID from analytics.google.com for GA4 to fire. Plausible should be working now. |
-| Flight prices working | PASS | VPS proxy FIXED. HTTPS via Caddy + Let's Encrypt on peakly-api.duckdns.org. Real flight prices now loading -- no more "est." labels. This was the biggest credibility blocker and it is resolved. |
-| PWA installable | PASS | manifest.json + sw.js + apple-mobile-web-app meta tags all added. Users can "Add to Home Screen" on both iOS and Android. |
+| Account karma + age sufficient | UNKNOWN -- VERIFY BEFORE POSTING | Posting account must have 50+ karma and 30+ days old on r/surfing. If using a fresh account, warm it up with 5-10 genuine comments over 2 weeks first. This is the only remaining unknown. |
+| Post follows r/surfing rules | LIKELY PASS | r/surfing allows tool sharing if the poster is an active community member and the post provides genuine value. Draft leads with the MSW pain point and invites feedback. Self-promo must not be the primary framing. |
+| Landing page fast + mobile | PASS | Site loads at j1mmychu.github.io/peakly. PWA live. 192 venues with unique Unsplash photos across 11 categories. Clean card UI. Verify on a real phone before posting -- Babel transpilation must succeed. |
+| Clear CTA on landing | PASS | Hero card shows "Your Best Window Right Now" with View Details CTA. Category pills visible with venue counts. Surfing venues (53 spots) surface immediately. No login, no paywall. Value visible within 3 seconds. |
+| Analytics to measure | PASS | GA4 gtag.js added. Plausible present. Jack needs to replace G-XXXXXXXXXX with a real GA4 Measurement ID for GA4 to fire. Plausible should be working now. |
+| Flight prices working | PASS | HTTPS proxy live via Caddy + Let's Encrypt on peakly-api.duckdns.org. Real flight prices loading. No more "est." labels. |
+| PWA installable | PASS | manifest.json + sw.js + apple-mobile-web-app meta tags all added. Users can "Add to Home Screen" on iOS and Android. |
+| Venue coverage | PASS | 192 venues total: 53 surfing, 50 skiing, 60 tanning/beach, 12 hiking, 5 diving, 4 kite, 4 climbing, plus paraglide/MTB/kayak/fishing. All with unique photos. |
 
 ### Risk Assessment
 
-Previous blockers are cleared. Remaining risks are low:
+All previous blockers are cleared. Remaining risks are low:
 
-1. **Reddit account readiness (UNKNOWN).** This is the only item Jack must verify before posting. If the account has <50 karma or <30 days age on r/surfing, the post will be silently auto-filtered. No other risk matters more.
+1. **Reddit account readiness (UNKNOWN).** The only item Jack must verify before posting. If the account has <50 karma or <30 days age on r/surfing, the post will be silently auto-filtered. No other risk matters more.
 
-2. **GA4 Measurement ID placeholder.** GA4 tag exists but uses G-XXXXXXXXXX. If Jack hasn't created the GA4 property yet, only Plausible will track traffic. Not launch-blocking, but means partial analytics.
+2. **GA4 Measurement ID placeholder.** GA4 tag exists but uses G-XXXXXXXXXX. If Jack hasn't created the GA4 property yet, only Plausible will track traffic. Not launch-blocking but means partial analytics.
 
 3. **Open-Meteo rate limits under traffic.** If the Reddit post drives 100+ concurrent visitors, Open-Meteo's free tier may throttle requests. Weather/marine data would fail silently. Low probability for a first Reddit post.
 
-**Bottom line: the app is in the best state it has ever been for a public launch. Real flight prices, photos on all venues, PWA support, analytics in place. Post it.**
+**Bottom line: the app is in the best state it has ever been. 192 venues with photos, real flight prices, PWA support, analytics in place. Post it.**
 
 ---
 
@@ -48,7 +49,7 @@ For daily local forecasts, Windy and Windguru are solid. But for a different pro
 out *when and where* to book a surf trip -- nothing combined conditions with travel costs.
 
 So I built a free web app that pulls real-time wave data (height, swell period, wind, water temp)
-for 170+ surf spots worldwide and scores each one with a live condition rating. Right now you
+for 50+ surf spots worldwide and scores each one with a live condition rating. Right now you
 can check spots like Pipeline, Mentawai Islands, Puerto Escondido, Hossegor, and Uluwatu --
 each one gets a score based on what's actually happening today, plus a 7-day forecast showing
 the best window to go.
@@ -57,10 +58,10 @@ It also pulls real flight prices from your home airport, so you can see when con
 cheap flights line up at the same time.
 
 What it does:
-- Live condition scoring for 170+ surf spots (uses Open-Meteo marine data)
+- Live condition scoring for 50+ surf spots (uses Open-Meteo marine data)
 - 7-day forecast with "best window" indicator -- shows which day this week has the best setup
 - Real flight prices from your home airport
-- Filter by surf, ski, beach, kite, and more
+- Filter by surf, ski, beach, kite, and more (190+ spots total across all sports)
 - No login, no paywall, works on any phone browser
 - Add it to your home screen like an app (PWA)
 
@@ -71,25 +72,25 @@ What it does NOT do:
 Would love honest feedback from people who actually surf:
 - Does the condition scoring feel right when you check a spot you know well?
 - What spots should I add?
-- Would alerts be useful -- like "Pipeline is firing and flights from LAX are under $300"?
+- Would alerts be useful -- like "Pipeline is firing and flights from LAX are under $400"?
 
 https://j1mmychu.github.io/peakly/
 
 Built this for myself but figured others might get use out of it. Still early -- lots to improve.
 ```
 
-### Changes from v4 draft:
-- **"Estimated flight prices" changed to "real flight prices"** -- the VPS proxy is fixed, so this is now true. Major credibility upgrade.
-- **Added PWA mention** -- "Add it to your home screen like an app" is a concrete value-add that differentiates from bookmarking a website.
-- **Kept the rest identical** -- the structure, tone, and framing all tested well in v4. No reason to change what works.
+### Changes from v5 draft:
+- **Surf spot count updated to "50+"** instead of "170+" -- the 192 total includes all sports. Saying "50+ surf spots" is accurate and credible for the r/surfing audience. Total venue count (190+) mentioned once for context.
+- **Flight example changed from "$300" to "$400"** for Pipeline (HNL) -- more realistic for mainland-to-Honolulu pricing based on actual BASE_PRICES data (LAX-HNL is ~$380).
+- **Post structure and tone unchanged** -- the framing tested well in previous versions.
 
 ### Posting timing:
 Tuesday or Wednesday, 7-9am Pacific. r/surfing activity peaks when West Coast surfers check conditions before dawn patrol. Early-week posts get more engagement than weekends.
 
-**Next best windows: 2026-03-25 (Wednesday) or 2026-03-31 (Tuesday).**
+**Next best windows: 2026-03-25 (Wednesday) or 2026-03-31 (Tuesday), 7-9am Pacific.**
 
 ### If image post is allowed:
-Attach a screenshot of a surf venue card showing a "Firing" or "Epic" badge with the 7-day forecast visible. Pipeline or Uluwatu with a real condition score is more compelling than a homepage screenshot.
+Attach a screenshot of a surf venue card showing a "Firing" or "Epic" badge with the 7-day forecast visible. Pipeline or Uluwatu with a real condition score is more compelling than a homepage screenshot. Show the flight price in the screenshot -- that's the differentiator.
 
 ---
 
@@ -98,7 +99,7 @@ Attach a screenshot of a surf venue card showing a "Firing" or "Epic" badge with
 ### Response Templates by Comment Type
 
 **Skeptic: "Just another app / this already exists"**
-> Fair question. The difference is that tools like Surfline and Windguru are great for daily local checks -- this is specifically for the "I have a week off, where should I fly?" problem. It cross-references live conditions across 170 spots with real flight prices so you can find when things align. If you know a tool that already does this, genuinely tell me -- I looked and couldn't find one.
+> Fair question. The difference is that tools like Surfline and Windguru are great for daily local checks -- this is specifically for the "I have a week off, where should I fly?" problem. It cross-references live conditions across 50+ surf spots with real flight prices so you can find when things align. If you know a tool that already does this, genuinely tell me -- I looked and couldn't find one.
 
 **Enthusiast: "This is awesome / bookmarked"**
 > Appreciate it. If you check a spot you know well, I'd love to hear if the condition score feels accurate. That's the part I'm most unsure about -- the scoring algorithm weights swell period, wave height, wind, and water temp differently by spot type. Real surfer feedback is worth more than any amount of testing I can do alone.
@@ -107,7 +108,7 @@ Attach a screenshot of a surf venue card showing a "Firing" or "Epic" badge with
 > Great call. [Spot name] is on the list -- I'll bump it up. If you have the rough location or nearest airport code that helps me add it faster. [For feature requests:] That's on the roadmap -- right now I'm focused on getting the condition scoring dialed in, but [feature] is exactly the direction this is heading.
 
 **"Are the flight prices real?"**
-> Yeah, they pull from a live flight data feed via Travelpayouts. They're real prices for the routes shown. The condition scores are also real-time, pulled from Open-Meteo marine data. The whole point is to show you when conditions and prices align.
+> Yeah, they pull from a live flight data feed via Travelpayouts. They're real prices for the routes shown. The condition scores are also real-time, pulled from Open-Meteo marine data. The whole point is to show you when conditions and prices align -- not estimates.
 
 **"Missing my local break"**
 > Drop the name and I'll add it. If you know the nearest airport code that helps. I'm building out the spot database based on exactly this kind of feedback.
@@ -144,12 +145,12 @@ Strong product-market fit signal. Expand aggressively:
 |------|--------|-----------|
 | Week 1, Day 2-3 | Post comment on Jamboards "best forecast" thread | Jamboards forum |
 | Week 1, Day 3 | Submit Peakly to AlternativeTo.net as Surfline alternative | AlternativeTo |
-| Week 2 | Post to r/skiing -- "spring skiing: where's still getting snow?" angle | r/skiing (964K members) |
+| Week 2 | Post to r/skiing -- "spring skiing: where's still getting snow?" angle (50 ski venues ready) | r/skiing (964K members) |
 | Week 2 | Post to r/snowboarding -- same angle, snowboard-specific tone | r/snowboarding (516K members) |
-| Week 3 | Post data follow-up on r/surfing: "I tracked conditions at 50 spots for a week -- here's what I found" | r/surfing |
+| Week 3 | Post data follow-up on r/surfing: "I tracked conditions at 50 surf spots for a week -- here's what I found" | r/surfing |
 | Week 3 | Post to r/solotravel -- "adventure trip planner" frame | r/solotravel (2.8M members) |
 | Week 4 | Post to r/digitalnomad -- "plan around conditions, not just cost" | r/digitalnomad (2.3M members) |
-| Week 4 | Post to r/kiteboarding -- niche but high-intent | r/kiteboarding (31K members) |
+| Week 4 | Post to r/kiteboarding -- niche but high-intent (4 kite venues) | r/kiteboarding (31K members) |
 
 **Critical:** Build venue deep links (hash routing) before the second Reddit wave. Every post after r/surfing should link to a specific venue, not the homepage.
 
@@ -172,7 +173,7 @@ Diagnose before trying again.
 |----------------|-----------|-----|
 | Post removed by mods | Check if post appears in /new | Message mods politely. Ask what rule was violated. Reframe. |
 | Bad timing | Posted on a weekend or during a swell event | Repost Tuesday/Wednesday morning Pacific time |
-| Wrong frame | "I built this" posts are saturated | Switch to pure data post: "Best surf conditions this week across 170 spots" with Peakly link in comments only |
+| Wrong frame | "I built this" posts are saturated | Switch to pure data post: "Best surf conditions this week across 50 spots" with Peakly link in comments only |
 | App didn't load for users | Analytics show 0 pageviews despite upvotes | Fix rendering issue first. Relaunch only after confirmed working on mobile. |
 | Account filtered by automod | Low karma or new account | Spend 2 weeks contributing genuinely to r/surfing. Then try again. |
 
@@ -189,7 +190,7 @@ Diagnose before trying again.
 **Exact comment:**
 ```
 Late to this thread, but for a slightly different angle on the problem -- I've been working on
-a free web app for planning surf trips (not daily checks). It scores conditions at 170+ spots
+a free web app for planning surf trips (not daily checks). It scores conditions at 50+ surf spots
 worldwide using Open-Meteo marine data and cross-references with real flight prices from your
 home airport. Won't replace Windy for the morning check, but for "where should I fly next
 week?" it's been really useful for me.
@@ -205,7 +206,7 @@ who know specific breaks well.
 **What:** Submit Peakly as a free, web-based alternative to Surfline on AlternativeTo.net
 **Why:** People searching "Surfline alternatives" land here. Passive, long-tail discovery. Zero ongoing effort after submission. Surfline currently has only 5 listed alternatives -- low competition for visibility.
 **When:** Same week as Reddit launch.
-**Action:** Submit with tags: Free, Web-Based, Surf Forecast, Trip Planning, Multi-Sport. Description: free (no paywall), no login required, 170+ spots, conditions + real flight prices combined, works on any phone browser, installable as PWA.
+**Action:** Submit with tags: Free, Web-Based, Surf Forecast, Trip Planning, Multi-Sport. Description: free (no paywall), no login required, 190+ spots across 11 sports, conditions + real flight prices combined, works on any phone browser, installable as PWA.
 
 ### Channel 3: Facebook Groups -- Surf Travel Communities
 
@@ -219,7 +220,7 @@ who know specific breaks well.
 
 **Draft Facebook post:**
 ```
-Built a free tool for planning surf trips -- it scores live conditions at 170+ spots worldwide
+Built a free tool for planning surf trips -- it scores live conditions at 50+ surf spots worldwide
 and shows real flight prices from your airport. No app download, no login, works on your phone.
 
 Check if your favorite break is firing right now: https://j1mmychu.github.io/peakly/
@@ -227,7 +228,7 @@ Check if your favorite break is firing right now: https://j1mmychu.github.io/pea
 Looking for feedback from actual surfers -- does the scoring feel right?
 ```
 
-Attach a screenshot of a venue card showing a surf spot with a "Firing" or "Epic" badge.
+Attach a screenshot of a venue card showing a surf spot with a "Firing" or "Epic" badge and a visible flight price.
 
 ---
 
@@ -236,10 +237,10 @@ Attach a screenshot of a venue card showing a surf spot with a "Firing" or "Epic
 These must all be true before the Reddit post goes live:
 
 1. **Verify the app renders on mobile.** Open https://j1mmychu.github.io/peakly/ on a phone. If blank screen or error -- DO NOT post.
-2. **Verify flight prices are loading (not "est.").** Open any venue detail and confirm a real dollar amount appears for flights. The proxy fix is deployed but confirm it works from a real browser.
-3. **Verify the posting Reddit account.** Must have 50+ karma and 30+ days of age. Must have some recent activity on r/surfing.
+2. **Verify flight prices are loading (not "est.").** Open any venue detail and confirm a real dollar amount appears for flights. The HTTPS proxy is deployed but confirm it works from a real browser.
+3. **Verify the posting Reddit account.** Must have 50+ karma and 30+ days of age. Must have some recent activity on r/surfing (comments, not just posts).
 4. **Confirm GA4 Measurement ID is set** (replace G-XXXXXXXXXX in index.html). If not done, Plausible alone will track traffic -- acceptable but not ideal.
-5. **Prepare the screenshot.** Open Pipeline or Uluwatu on the app. Take a mobile screenshot showing the venue card with condition score badge and 7-day forecast.
+5. **Prepare the screenshot.** Open Pipeline or Uluwatu on the app. Take a mobile screenshot showing the venue card with condition score badge and 7-day forecast. Include the flight price in the frame.
 6. **Bookmark the engagement playbook above.** First 30 minutes of replies determine whether the post lives or dies.
 
 ---
@@ -252,18 +253,18 @@ These must all be true before the Reddit post goes live:
 
 ---
 
-## What Changed Since v4
+## What Changed Since v5
 
-| Item | v4 Status | v5 Status |
+| Item | v5 Status | v6 Status |
 |------|-----------|-----------|
-| Flight prices | FAIL (CORS + mixed content, all "est." labels) | PASS (VPS proxy fixed, HTTPS via Caddy, real prices loading) |
-| Analytics | FAIL (absent from index.html and app.jsx) | PASS (GA4 gtag.js added, Plausible present, GA4 needs Measurement ID) |
-| PWA | Not mentioned | PASS (manifest.json + sw.js + apple-mobile-web-app meta) |
-| HTTPS on VPS | Broken | PASS (Caddy + Let's Encrypt on peakly-api.duckdns.org) |
-| Overall launch readiness | GO with known risks | GO -- all technical blockers cleared |
+| Venue count | 170+ | 192 venues across 11 categories, all with unique Unsplash photos |
+| Surf spots | "170+" (inaccurate -- included all sports) | 53 surf spots (accurate count used in post copy) |
+| Post copy accuracy | Said "170+ surf spots" | Fixed to "50+ surf spots" with "190+ spots total" for context |
+| Flight price example | "under $300" for Pipeline/LAX | "under $400" -- more realistic per BASE_PRICES (LAX-HNL ~$380) |
+| All blockers | Cleared | Still cleared. HTTPS proxy live. PWA live. |
 
 **The app is launch-ready. The only remaining gate is confirming the Reddit account has sufficient karma and activity.**
 
 ---
 
-*Report generated 2026-03-24 (v5). Next report: post-launch day, after Reddit metrics are available.*
+*Report generated 2026-03-24 (v6). Next report: post-launch day, after Reddit metrics are available.*
