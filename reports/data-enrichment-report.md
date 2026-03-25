@@ -1,51 +1,63 @@
 # Data Enrichment Report
 
-**Date:** 2026-03-24 (v4 -- post-expansion audit)
+**Date:** 2026-03-24 (v5 -- post-surf-expansion audit)
 **Auditor:** Data Enrichment Agent
 **Scope:** Venue data integrity, category health, photo coverage, geographic diversity, data completeness
-**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, lines 217+)
+**File:** `/Users/haydenb/peakly/app.jsx` (VENUES array, lines 284-920)
 
 ---
 
 ## Executive Summary
 
-**Total venues: 192** (target: 200+, gap: 8)
+**Total venues: 472** (target: 200+, exceeded)
 
-Since last audit (182 venues), 10 new venues were added: diving +4, climbing +3, kite +3. This is good progress but the 7 stub categories remain critically underpopulated. Four categories (kayak, mtb, fishing, paraglide) still have only 1 venue each -- these are essentially broken features. A user tapping "Kayak" sees a single result. That is worse than not having the category at all.
+Since last audit (192 venues), 280 surfing venues were added in commit `93bf2ab`. This massively expanded the venue count but introduced severe data quality problems: **152 venues share a single Unsplash photo**, **66 airport codes are missing from AP_CONTINENT** (causing 189 venues to have unknown continent mapping), and surfing now represents 70.6% of all venues -- a category so saturated it dwarfs every other category combined.
 
-Photo coverage holds at 100% (192/192), with one duplicate photo URL detected. Zero venues have description, difficulty, or bestMonths fields. Tag coverage is poor: 95% of venues have only 2 tags.
+Meanwhile, the 7 stub categories remain exactly where they were: kayak (1), MTB (1), fishing (1), paraglide (1), diving (5), climbing (4), kite (4). The expansion widened the imbalance rather than addressing it.
 
 ---
 
 ## 1. Category Health
 
-| Category | Count | Status | Change |
-|----------|-------|--------|--------|
-| Tanning | 60 | HEALTHY (at saturation ceiling) | -- |
-| Surfing | 53 | HEALTHY | -- |
+| Category | Count | Status | Change vs. v4 |
+|----------|-------|--------|----------------|
+| Surfing | 333 | SATURATED (critical) | +280 |
+| Tanning | 60 | SATURATED | -- |
 | Skiing | 50 | HEALTHY | -- |
 | Hiking | 12 | HEALTHY | -- |
-| Diving | 5 | STUB | +4 |
-| Climbing | 4 | STUB | +3 |
-| Kite | 4 | STUB | +3 |
+| Diving | 5 | STUB | -- |
+| Climbing | 4 | STUB | -- |
+| Kite | 4 | STUB | -- |
 | Kayak | 1 | STUB | -- |
 | MTB | 1 | STUB | -- |
 | Fishing | 1 | STUB | -- |
 | Paraglide | 1 | STUB | -- |
 
-**3 weakest (priority for next additions):** kayak (1), mtb (1), fishing (1), paraglide (1) -- all tied at minimum.
+**11 categories total. 7 are stubs. 2 are saturated. Only 2 are healthy.**
 
-**Progress:** Diving went from 1 to 5, climbing from 1 to 4, kite from 1 to 4. These categories are improving but still need 5-6 more each to reach credible minimums.
+**3 weakest (priority for additions):** kayak (1), MTB (1), fishing (1), paraglide (1) -- all tied at minimum.
+
+**Assessment:** Surfing at 333 venues (70.6% of total) creates a lopsided experience. A user browsing Explore sees an ocean of surf spots while kayak/MTB/fishing/paraglide each show exactly 1 result. This makes 4 of 11 category pills feel broken and 3 more feel thin.
 
 ---
 
 ## 2. Photo Coverage
 
-- **Coverage:** 192/192 (100%)
-- **All Unsplash:** 192/192 -- no non-Unsplash or placeholder URLs
-- **Duplicate photo URL detected (1):**
-  - `photo-1544551763-46a013bb70d5` used by both `cape_hatteras` (tanning) and `rajaampat` (diving)
-  - ACTION: Replace one of these with a unique photo
+- **Total photos present:** 472/472 (100% coverage by field presence)
+- **Unique photos:** 194/472 (41.1%)
+- **Venues sharing a duplicate photo:** 278 (58.9%)
+
+### Critical Photo Duplication
+
+| Unsplash Photo ID | Venues Using It |
+|---|---|
+| `1507525428034-b723cf961d3e` | **152 venues** |
+| `1345039625-14cbd3802e7d` | **79 venues** |
+| `1345039625-14cbd3602e7d` | **21 venues** |
+| `1544551763-46a013bb70d5` | 3 venues (`cape_hatteras`, `salsa_brava`, `rajaampat`) |
+| 27 other photos | 2 venues each |
+
+**Assessment:** 252 venues (all from the surfing expansion) share just 3 stock photos. This means a user scrolling through surf spots sees the same image repeated dozens of times. It looks broken, not curated. Photo uniqueness dropped from 100% (192/192) to 41% (194/472).
 
 ---
 
@@ -53,51 +65,71 @@ Photo coverage holds at 100% (192/192), with one duplicate photo URL detected. Z
 
 | Continent | Venues | Share |
 |-----------|--------|-------|
-| North America | 72 | 37.5% |
-| Europe | 50 | 26.0% |
-| Asia | 25 | 13.0% |
-| Oceania | 22 | 11.5% |
-| Latin America | 12 | 6.3% |
-| Africa | 11 | 5.7% |
+| Unknown (missing AP_CONTINENT) | 189 | 40.0% |
+| North America | 120 | 25.4% |
+| Europe | 75 | 15.9% |
+| Oceania | 33 | 7.0% |
+| Asia | 30 | 6.4% |
+| Latin America | 13 | 2.8% |
+| Africa | 12 | 2.5% |
 
-**Assessment:** All 6 continents represented. North America is heavy (37.5%) but expected for a US-based user base. Latin America (12) and Africa (11) are thin but present. No continent has zero representation.
+**189 venues (40%) have airports not listed in AP_CONTINENT.** This breaks any continent-based filtering or alert matching for those venues. 66 unique airport codes need to be added to the `AP_CONTINENT` lookup.
 
-**Missing notable regions:**
-- Middle East (only Dahab, Egypt via Africa mapping)
-- Central Asia (no venues in Kyrgyzstan, Kazakhstan -- emerging adventure destinations)
-- Scandinavia is underrepresented for skiing/hiking
+**Missing airport codes (66):** ABJ, ACC, ACV, AGD, APW, AQT, BFS, BHD, BKK, BRI, BTJ, BUR, CMB, COK, CRK, DIL, DSS, DUB, DUR, EUG, EXT, FOR, FSZ, GIG, GIS, GTW, HBA, ILH, KHH, KMI, LBJ, LGW, LPA, MAO, MCT, MDN, MEC, MFR, MGA, MQT, NAT, NHA, OAK, PDX, PEK, RCN, RUN, SBA, SBY, SJC, SNA, SPC, SSC, SUB, SUM, TFS, TKG, TLV, TNR, TPE, TPP, TRU, UIO, VCT, VDE, VLI
+
+**Country concentration (top 10):**
+
+| Country | Venues |
+|---------|--------|
+| USA | 139 (29.4%) |
+| UK | 29 |
+| Brazil | 21 |
+| Indonesia | 18 |
+| Mexico | 17 |
+| Spain | 15 |
+| France | 14 |
+| Costa Rica | 13 |
+| Portugal | 11 |
+| New Zealand | 9 |
+
+USA is heavily overrepresented (29.4%), largely due to California and Oregon coast surf spots added in the expansion.
 
 ---
 
 ## 4. Data Completeness
 
-### Fields present on ALL 192 venues:
+### Fields present on ALL 472 venues:
 - id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo
 
 ### Fields present on ZERO venues:
-- **desc** (description) -- 0/192
-- **difficulty** -- 0/192
-- **bestMonths** -- 0/192
+- **desc** (description) -- 0/472
+- **difficulty** -- 0/472
+- **bestMonths** -- 0/472
+
+### Surfing-specific field:
+- **breakType** -- 333/333 surfing venues (100% coverage within category)
 
 ### Tag coverage:
-- Venues with 5+ tags: **10/192 (5%)**
-- Venues with exactly 2 tags: **182/192 (95%)**
-- Only the original 11 "expanded format" venues have 5+ tags; all 181 compact-format venues have exactly 2 tags
+- Venues with 5+ tags: **10/472 (2.1%)**
+- Venues with exactly 2 tags: **459/472 (97.2%)**
+- Venues with 3 tags: **2/472**
+- Only the original 10 "expanded format" venues have 5+ tags
 
 ### Completeness score:
-- **Based on present fields:** 100% (all venues have all standard fields filled)
-- **Based on ideal schema (including desc, difficulty, bestMonths, 5+ tags):** ~23%
-
-The missing `desc`, `difficulty`, and `bestMonths` fields mean the VenueDetailSheet renders with less information than it could. Tags at 2 per venue limit the effectiveness of tag-based search and filtering.
+- **Based on required fields (id, category, title, location, lat, lon, ap, tags, photo):** 100%
+- **Based on ideal schema (including desc, difficulty, bestMonths, 5+ tags):** ~15%
 
 ---
 
 ## 5. Duplicate & Integrity Check
 
 - **Duplicate IDs:** 0
-- **Duplicate photo URLs:** 1 (see Section 2)
-- **Zero coordinates:** 0 (all 192 venues have valid lat/lon)
-- **Missing airport codes:** 0
+- **Duplicate photo URLs:** 31 unique photos shared across 278 venues
+- **Zero coordinates:** 0 (all venues have lat/lon)
+- **Missing airport codes:** 0 (all venues have `ap` field)
+- **Airport codes missing from AP_CONTINENT:** 66
+- **Rating range:** 4.58 -- 4.99 (average: 4.79)
+- **Review count range:** 456 -- 42,800
 
 ---
 
@@ -138,7 +170,7 @@ The missing `desc`, `difficulty`, and `bestMonths` fields mean the VenueDetailSh
 
 ## 7. Recommended New Venues (10 paste-ready)
 
-These target the 4 weakest categories: kayak, mtb, fishing, paraglide. Each is a world-class destination with verified coordinates and IATA codes.
+These target the 4 weakest categories: kayak, MTB, fishing, paraglide. Each is a world-class destination with verified coordinates and IATA codes.
 
 ```javascript
 // ─── KAYAK additions ──────────────────────────────────────────────────────────
@@ -162,33 +194,48 @@ These target the 4 weakest categories: kayak, mtb, fishing, paraglide. Each is a
 
 **AP_CONTINENT additions needed if these are added:**
 ```javascript
-JNU:"na",   // Juneau, Alaska
-HAN:"asia", // Hanoi, Vietnam
+JNU:"na",     // Juneau, Alaska
+HAN:"asia",   // Hanoi, Vietnam
 GOA:"europe", // Genoa, Italy
-CXI:"oceania", // Christmas Island, Kiribati
+CXI:"oceania",// Christmas Island, Kiribati
 DLM:"europe", // Dalaman, Turkey
+PKR:"asia",   // Pokhara, Nepal
 ```
 
 ---
 
-## 8. Critical Data Gap Hurting UX Right Now
+## 8. Critical Data Gaps Hurting UX Right Now
 
-**The #1 data gap:** Four categories (kayak, MTB, fishing, paraglide) show exactly 1 result when tapped. This makes 36% of the category pills feel broken. Users who are interested in mountain biking or fly fishing will immediately conclude Peakly has nothing for them and bounce. Each stub category needs a minimum of 8-10 venues to feel credible.
+### Gap #1: 252 surfing venues share 3 stock photos
 
-**Secondary gap:** Zero venues have a `desc` field. The VenueDetailSheet would benefit enormously from a 2-3 sentence description that captures the character of each spot. This is the most impactful data enrichment that could be done across all 192 venues.
+152 venues use the same single Unsplash image. A user scrolling through surf spots sees the same photo repeated on page after page. This is the most visible quality issue in the app and will cause users to question data credibility across all categories.
+
+### Gap #2: 189 venues have unknown continent (broken AP_CONTINENT)
+
+66 airport codes added with the surfing expansion are not in the `AP_CONTINENT` lookup. This breaks continent-based alert filtering and geographic diversity displays for 40% of all venues.
+
+### Gap #3: 4 categories show exactly 1 result
+
+Kayak, MTB, fishing, and paraglide each have a single venue. Tapping these category pills produces a screen with one lonely card. This is worse than not having the category at all -- it signals incompleteness.
+
+### Gap #4: Zero venues have descriptions
+
+The `desc` field is absent on all 472 venues. The VenueDetailSheet renders without any prose about the destination, relying solely on tags and conditions data.
 
 ---
 
 ## 9. Action Items (Priority Order)
 
-1. **Add 3+ venues each to kayak, mtb, fishing, paraglide** -- paste-ready objects provided above
-2. **Fix duplicate photo** -- replace photo on either `cape_hatteras` or `rajaampat`
-3. **Add AP_CONTINENT entries** for any new airport codes (JNU, HAN, GOA, CXI, DLM)
-4. **Expand tags to 5+ per venue** -- currently 95% of venues have only 2 tags. This is a bulk operation across 182 compact-format venues.
-5. **Add `desc` field to all 192 venues** -- even a single sentence per venue would improve the detail sheet significantly
-6. **Add `bestMonths` and `difficulty` fields** -- lower priority but needed for filtering and trip planning features
-7. **Continue building diving (5), climbing (4), kite (4) toward 10+** each
+1. **Fix photo duplication on 252 surfing venues** -- assign unique Unsplash photo URLs to each venue. This is the highest-impact visual fix. The 3 mass-duplicated photos need to be replaced with location-appropriate images.
+2. **Add 66 airport codes to AP_CONTINENT** -- 189 venues currently map to "unknown" continent. List of missing codes provided in Section 3.
+3. **Add 3+ venues each to kayak, MTB, fishing, paraglide** -- paste-ready objects provided in Section 7.
+4. **Consider trimming the surfing expansion** -- 333 surf spots (many hyper-local like "Humbug Creek" and "Neptune Nets") may be more than the app can present well. A curated 80-100 surf venues with unique photos would be more credible than 333 with shared photos.
+5. **Fix duplicate photo on `cape_hatteras`/`salsa_brava`/`rajaampat`** -- pre-existing issue from v4, now 3-way instead of 2-way.
+6. **Expand tags to 5+ per venue** -- 97.2% of venues have only 2 tags. This limits search and filtering effectiveness.
+7. **Add `desc` field to all venues** -- even a single sentence per venue would improve the detail sheet.
+8. **Add `bestMonths` and `difficulty` fields** -- lower priority but needed for filtering and trip planning.
+9. **Continue building diving (5), climbing (4), kite (4) toward 10+** each.
 
 ---
 
-*Next audit target: 200+ venues, 0 duplicate photos, all stub categories at 5+ minimum.*
+*Next audit targets: photo uniqueness back to 95%+, AP_CONTINENT at 100% coverage, all stub categories at 5+ minimum.*
