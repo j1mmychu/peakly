@@ -1,109 +1,345 @@
-# Peakly UX Audit — Report: 2026-03-24 (v8)
+# Peakly UX Audit -- Report: 2026-03-24 (v9)
 
 ## Design Score: 9.2/10
 
-All three v7 issues are shipped and verified. The saved venues heart button now has a proper touch target, CompactCard text respects a 10px floor, and the hero stat labels pass WCAG contrast. Five new category pills (Kitesurf, Kayak, MTB, Fishing, Paraglide) are live with correct scoring functions and venue data. The pill bar's progressive disclosure ("+ More" button) keeps the default view clean while surfacing all 12 categories on demand. The remaining 0.3 points to reach 9.5 are about consistency sweep and information density — eliminating the last fontSize:9 holdouts and giving the new categories room to breathe with more than one venue each.
+The v8 fixes are holding. The pill count conditional (hide < 3 venues) is confirmed shipped. The "rt" label was added to the carousel price. The fontSize:10 floor is applied on CompactCard and hero stat labels. Remaining 0.8 points are split between: (a) 11 surviving fontSize:9 instances, half on decision-critical surfaces; (b) missing Plausible custom event wiring despite the Plausible script being loaded; (c) a "windows available" label that was marked for rename to "spots" in CLAUDE.md decisions but never shipped; and (d) no alert creation path from VenueDetailSheet -- the `onAlert` prop is wired but never called inside the sheet.
 
 ---
 
-## Fixes Verified
+## 1. CORE FLOW AUDIT -- Tap Count
 
-| Fix | Location | Status | Details |
-|-----|----------|--------|---------|
-| Saved venues heart 28x28 touch target | Line 2357-2359 | CONFIRMED | `width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"`, fontSize:12, position absolute top:2 right:2 |
-| CompactCard condition label floor | Line 1508 | CONFIRMED | fontSize:10 (was 9) |
-| CompactCard peak window floor | Line 1526 | CONFIRMED | fontSize:10 (was 8) |
-| CompactCard LIVE badge floor | Line 1536 | CONFIRMED | fontSize:10 (was 8) |
-| Hero stat "Conditions" label contrast | Line 2415 | CONFIRMED | fontSize:10, color:"#666" (was fontSize:9, color:"#888") |
-| Hero stat "Flights from" label contrast | Line 2420 | CONFIRMED | fontSize:10, color:"#666" (was fontSize:9, color:"#888") |
-| New category: Kitesurf | Lines 148-149, 255-261, 948-958 | CONFIRMED | Pill, venue (Tarifa), and scoreVenue case all present |
-| New category: Kayak | Lines 149, 271-277, 960-972 | CONFIRMED | Pill, venue (Milford Sound), and scoreVenue case with rain bonus |
-| New category: MTB | Lines 150, 279-285, 974-983 | CONFIRMED | Pill, venue (Moab Slickrock), and scoreVenue case present |
-| New category: Fishing | Lines 151, 287-293, 985-993 | CONFIRMED | Pill, venue (Kenai River), and scoreVenue case with salmon run seasonality |
-| New category: Paraglide | Lines 152, 295-301, 995-1005 | CONFIRMED | Pill, venue (Interlaken), and scoreVenue case with thermal logic |
-| Pill bar progressive disclosure | Lines 2279-2309 | CONFIRMED | Default shows All/Skiing/Surfing/Beach, "+ More" expands to all 12. Clean pattern. |
+### Flow A: Fresh visit to first venue with conditions + flight price visible
+1. App loads -> Explore tab is default. Hero card visible immediately with condition score + flight price. **0 taps to see data.**
+2. Tap hero card -> VenueDetailSheet opens with full conditions + flight price + 7-day forecast. **1 tap.**
+3. Tap "Book on Google Flights" -> external link. **2 taps to bookable flight.**
 
-All 12 items verified. No regressions on earlier fixes (GoVerdictBadge border, Best Right Now neutral border, 3-tab BottomNav, photo rendering, card radii, heart targets on ListingCard/FeaturedCard/CompactCard/Best Right Now carousel).
+**Verdict: 2 taps. Beats Airbnb's 3-tap benchmark.** The hero card is doing its job.
 
----
+### Flow B: Set an alert for a specific venue
+1. Open venue (1 tap on any card).
+2. VenueDetailSheet opens. There is no "Set Alert" button inside VenueDetailSheet. The `onAlert` prop exists but is never called by any UI element in the sheet.
+3. User must close the sheet, tap "Alerts" in BottomNav (2 taps), tap "Create Alert" (3 taps), pick a sport (4 taps), pick conditions (5 taps), optionally find the specific venue in the locations list (6 taps), confirm (7 taps).
 
-## Top 3 NEW Issues
+**Verdict: 7 taps. Should be 3.** The VenueDetailSheet should have a "Set Alert" button that pre-fills the alert with the venue's sport and location. The `onAlert` callback is already wired from App -> VenueDetailSheet. Zero plumbing needed -- only a UI trigger inside the sheet.
 
-### 1. fontSize:9 holdouts create an inconsistent legibility floor across the app (13 instances remaining)
+### Flow C: Share a venue with a friend
+1. Open venue (1 tap).
+2. Tap "Share & Invite" button in VenueDetailSheet hero (2 taps).
+3. Tap "Copy link" or "Copy card" (3 taps).
+4. Paste into messaging app (platform action).
 
-The v7 CompactCard fix established 10px as the minimum readable text size. But 13 other instances of fontSize:9 remain scattered across the app, creating an inconsistent floor. The worst offenders carry meaningful information users need to parse:
-
-| Element | Line | Current | Problem |
-|---------|------|---------|---------|
-| CompactCard "est." price label | 1540 | fontSize:9, color:"#aaa" | Price credibility signal rendered illegibly; also fails WCAG at 2.32:1 contrast on white |
-| FeaturedCard LIVE badge | 1430 | fontSize:9 | Inconsistent with CompactCard LIVE badge (now 10px) |
-| Hero "est." label | 2423 | fontSize:9, color:"#aaa" | Same contrast failure as CompactCard "est." — on the hero card, no less |
-| Best Right Now carousel score | 2499 | fontSize:9, color:"#717171" | The score/100 is the card's only data density element and it is the smallest text on it |
-| Pill count badges | 2299 | fontSize:9, opacity:0.7 | Category counts appear as noise rather than useful data |
-| Saved venues card price | 2360 | fontSize:9, color:"#717171" | Price — the #1 decision-making data point — rendered at minimum legibility |
-
-The remaining 7 instances (date picker labels, forecast mini-text, affiliate disclaimers, experience badge durations) are in secondary contexts where fontSize:9 is defensible. But the 6 listed above are on primary surfaces where users make decisions.
-
-**Suggested fix:** Sweep all 6 primary-surface instances to fontSize:10. For the two "est." labels (lines 1540 and 2423), also change color from #aaa to #888 to reach WCAG AA. For the pill count badge (line 2299), change fontSize:9 to fontSize:10 and opacity:0.7 to opacity:0.8. Six lines, one principle: no decision-critical text below 10px.
-
-**Severity:** Medium — individually small, collectively they undermine the polish established by v7 fixes. A user who notices the improved CompactCard text will also notice that the "est." label next to the price is still squinting-small.
+**Verdict: 3 taps. Acceptable.** The share panel is well-designed with two copy options and a preview card.
 
 ---
 
-### 2. New category pills show "1" count each — the pill bar reads as empty shelves (Line 2298-2301)
+## 2. PLAUSIBLE EVENT WIRING
 
-When a user taps "+ More" and sees Kitesurf (1), Kayak (1), MTB (1), Fishing (1), Paraglide (1), the immediate reaction is: "This app doesn't actually have content for these sports." One venue per category makes the feature feel aspirational rather than useful. The count badge — which exists to signal abundance — is doing the opposite. It is broadcasting scarcity.
+Plausible script is loaded in index.html (line 27: `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>`). Zero custom events are wired. The `plausible()` function is available globally once the script loads but is never called anywhere in app.jsx.
 
-This is a content problem, not a code problem. But there is a design mitigation.
+Here are the 5 custom events with exact code and trigger points:
 
-**Suggested fix (design-side):** Hide the count badge when a category has fewer than 3 venues. Change line 2298-2301: wrap the count `<span>` in a conditional that only renders when `listings.filter(l => l.category === c.id).length >= 3`. This removes the "1" badges from new categories without affecting established ones (Skiing shows 15+, Surfing 20+, etc.). The pills still work — tapping them still filters — they just don't advertise their thinness.
+### Event 1: Tab Switch
+**Trigger point:** BottomNav button click (line 5234)
 
-Longer term, each new category needs 5-8 venues minimum to feel real. Kitesurf: Cabarete (DOM), Dakhla (Morocco), Cape Town (ZA), Boracay (PHL). Kayak: Ha Long Bay (VN), Glacier Bay (AK), Dubrovnik (HR). MTB: Whistler (BC), Rotorua (NZ), Finale Ligure (IT). Fishing: Cabo San Lucas, Islamorada (FL), Queenstown (NZ). Paraglide: Oludeniz (TR), Pokhara (NPL), Chamonix (FR).
+```jsx
+// FILE: app.jsx
+// LINE: 5234 -- inside BottomNav, replace the onClick handler
+<button key={t.id} onClick={() => {
+  setActive(t.id);
+  if (window.plausible) window.plausible('Tab Switch', { props: { tab: t.id } });
+}} className="tab-btn" style={{
+```
 
-**Severity:** Medium-High — new categories are a major feature addition. If they look barren on first impression, users will mentally classify them as "not ready" and never revisit. First impressions are irreversible.
+### Event 2: Venue Click
+**Trigger point:** openDetail callback in App (line 5448)
+
+```jsx
+// FILE: app.jsx
+// LINE: 5448 -- replace the openDetail callback
+const openDetail = useCallback(listing => {
+  setDetailVenue(listing);
+  if (window.plausible) window.plausible('Venue Click', { props: { venue: listing.id, category: listing.category, score: listing.conditionScore } });
+}, []);
+```
+
+### Event 3: Flight Search
+**Trigger point:** "Book on Google Flights" CTA in VenueDetailSheet (line 4394)
+
+```jsx
+// FILE: app.jsx
+// LINE: 4394 -- add onClick to the <a> tag
+<a href={flightUrl} target="_blank" rel="noopener noreferrer" onClick={() => {
+  if (window.plausible) window.plausible('Flight Search', { props: { venue: listing.id, price: listing.flight.price, from: listing.flight.from, to: listing.ap } });
+}} style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
+```
+
+Also wire the ListingCard "Book" button (line 1388-1389):
+
+```jsx
+// FILE: app.jsx
+// LINE: 1389 -- update the onClick
+onClick={e => {
+  e.stopPropagation();
+  haptic("heavy");
+  if (window.plausible) window.plausible('Flight Search', { props: { venue: listing.id, price: listing.flight.price, from: listing.flight.from, to: listing.ap } });
+}}
+```
+
+### Event 4: Wishlist Add
+**Trigger point:** toggleWishlist callback in App (line 5444)
+
+```jsx
+// FILE: app.jsx
+// LINE: 5444 -- replace the toggleWishlist callback
+const toggleWishlist = useCallback(id => {
+  setWishlists(p => {
+    const removing = p.includes(id);
+    if (!removing && window.plausible) {
+      const venue = VENUES.find(v => v.id === id);
+      window.plausible('Wishlist Add', { props: { venue: id, category: venue?.category || 'unknown' } });
+    }
+    return removing ? p.filter(x => x !== id) : [...p, id];
+  });
+}, [setWishlists]);
+```
+
+### Event 5: Onboarding Complete
+**Trigger point:** OnboardingSheet `complete` function (line 3909)
+
+```jsx
+// FILE: app.jsx
+// LINE: 3909 -- update the complete function
+const complete = () => {
+  setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
+  if (window.plausible) window.plausible('Onboarding Complete', { props: { airport: airport, sports: sports.join(','), hasSports: sports.length > 0 } });
+  onClose();
+};
+```
 
 ---
 
-### 3. Best Right Now carousel cards lack a price label context clue — "$312" without "from" or "flights" (Line 2498)
+## 3. VISUAL QUALITY AUDIT
 
-The Best Right Now carousel cards (170px wide, line 2477-2502) show a bold `$312` and a faint `78/100` on the bottom row. There is no label indicating what the dollar figure represents. On ListingCard there is "from JFK" next to the price. On FeaturedCard there is a "Book" CTA that contextualizes the price. On the hero card, there is a "Flights from New York" header above the number.
+### Touch targets
+All interactive elements meet the 44x44px minimum in practice (36x36 heart buttons with surrounding padding bring effective targets above 44). The search bar has 13px vertical padding on a tall element -- well above minimum. Category pills have 7px vertical padding with 12px font, giving ~38px height -- technically below 44px but acceptable for horizontal scroll elements following Apple HIG exceptions for toolbars.
 
-But on the carousel card, the price floats unlabeled. A user scanning quickly could read it as a hotel price, a package price, or a daily rate. The ambiguity is small but it erodes the "everything is a flight deal" mental model that makes Peakly click.
+One violation: the BottomNav tab buttons have `padding:"4px 0"` with a 20px icon and 10px label. Total height is roughly 38px. This is the primary navigation and should be 48px minimum.
 
-**Suggested fix:** Add a subtle "flights" or "rt" (round-trip) label after the price. On line 2498, change:
+**FILE:** app.jsx
+**LINE:** 5238
+**ISSUE:** BottomNav buttons are ~38px tall, below 44px minimum for primary navigation.
+**FIX:**
+```jsx
+// Change padding:"4px 0" to padding:"8px 0"
+padding:"8px 0",
+```
 
-`<span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>`
+### Type hierarchy
+Clear on all major screens. Hero card (20px title, 16px score, 12px location) creates proper hierarchy. VenueDetailSheet has strong hierarchy (20px title, 22px score, 13px body). The grid header (18px section name, 13px subtitle) works.
 
-to include a trailing label:
+One issue: "All experiences" header at line 2486 uses 18px, same weight as "Best Right Now" at line 2438. These are different hierarchy levels (section vs. grid) but read as equals.
 
-`<span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#aaa", fontFamily:F, marginLeft:2 }}>rt</span>`
+### Color contrast WCAG AA failures
 
-At 170px card width, "rt" (two characters) fits easily. It costs 14px of horizontal space and buys complete clarity. Alternatively, use the flight emoji: `✈️` at fontSize:9 as a prefix to the price instead of text.
+| Element | Line | Foreground | Background | Ratio | Min Required | Fix |
+|---------|------|-----------|------------|-------|-------------|-----|
+| Carousel "rt" label | 2472 | #aaa on white | #fff | 2.32:1 | 4.5:1 (text < 18px) | Change to #888 |
+| Estimated prices banner text | 2427 | #f59e0b on #fef3c7 | -- | 2.84:1 | 4.5:1 | Change to #b45309 |
+| "Affiliate links" text | 4479 | #bbb on white | #fff | 1.85:1 | 4.5:1 | Change to #888 |
+| "via GetYourGuide" text | 4503 | #bbb on white | #fff | 1.85:1 | 4.5:1 | Change to #888 |
+| Similar venue score badge text | 4447 | #fff on varies | depends on score | OK for >=85 | -- | Fine for colored bg |
+| SearchBar subtitle | 1937 | #999 on #fff | #fff | 2.85:1 | 4.5:1 | Change to #717171 |
 
-Also on line 2499: the score `{l.conditionScore}/100` at fontSize:9 would benefit from the same floor treatment as issue #1 (bump to 10, color to #666).
-
-**Severity:** Medium — only affects the secondary carousel (the hero card above handles this correctly). But the carousel is the primary discovery surface for venues #2-5, so price clarity there matters.
+### Spacing consistency
+Card border-radius inconsistency: CompactCard uses 12, ListingCard uses 20, FeaturedCard uses 20, carousel cards use 14, hero card uses 16, saved venue cards use 12, similar venue cards use 14. Five different radii across card components. Should converge to two: 12px for compact/inline, 16px for full-size.
 
 ---
 
-## Suggested Code Fixes (descriptions only, no code changes made)
+## 4. AIRBNB COMPARISON
 
-1. **fontSize:9 sweep (6 primary instances):** Bump to fontSize:10 on lines 1430, 1540, 2299, 2360, 2423, 2499. Change color from #aaa to #888 on lines 1540 and 2423. Change opacity from 0.7 to 0.8 on line 2299. Eight property changes total.
+### Explore screen
+**What Airbnb does:** Horizontally scrollable category bar with no expand button -- all categories visible via scroll. A subtle right-edge fade gradient signals scrollability.
+**What Peakly does:** Shows 4 default pills + a "+ More" button that reveals the rest.
+**Gap:** The "+ More" button requires a deliberate tap, hiding new categories. A scroll-fade approach surfaces all pills with zero interaction.
 
-2. **Hide pill count when < 3 venues:** On lines 2298-2301, wrap the count span in `{listings.filter(l => l.category === c.id).length >= 3 && (...)}` so new single-venue categories don't advertise scarcity. One conditional addition.
+**FILE:** app.jsx
+**LINE:** 2260
+**ISSUE:** Category pill bar uses a "+ More" expand button instead of continuous horizontal scroll.
+**FIX:** Remove the `defaultCatIds` filter and `showAllCats` toggle. Show all CATEGORIES in the scrollable row. Add a gradient fade on the right edge via CSS:
 
-3. **Carousel price context:** On line 2498, append a `<span>` with "rt" (fontSize:9, color:"#aaa", marginLeft:2) after the price. One element addition.
+```jsx
+// Replace lines 2253-2255 with:
+const visibleCats = CATEGORIES;
 
-Total lines to touch: ~10. No structural changes. No new components. All changes are CSS-in-JS property tweaks and one conditional wrapper.
+// Add a wrapper div around the pill scroll container (line 2260) with a pseudo-element gradient:
+// In the CSS injection block (line 71), add:
+// .pill-scroll { position: relative; }
+// .pill-scroll::after { content:''; position:absolute; right:0; top:0; bottom:0; width:40px; background:linear-gradient(to right,transparent,#fff); pointer-events:none; z-index:1; }
+```
+
+### Venue detail sheet
+**What Airbnb does:** Prominent "Reserve" CTA pinned to the bottom of the listing detail. Date picker inline. Share and save icons in the header, not behind a panel.
+**What Peakly does:** "Book on Google Flights" CTA is inline, scrolls with content. No pinned bottom CTA.
+**Gap:** When a user scrolls down to forecast, tips, or gear, the flight CTA disappears. It should be pinned.
+
+**FILE:** app.jsx
+**LINE:** ~4394
+**ISSUE:** Flight booking CTA scrolls out of view in VenueDetailSheet.
+**FIX:** Move the CTA to a fixed-position bar at the bottom of the sheet. This is a larger refactor -- flag for next sprint. The current inline position works but is suboptimal for conversion.
+
+### Card design
+**What Airbnb does:** Clean photo, title, location, price per night, rating. No badges overlaying the photo except a "Guest favorite" subtle overlay.
+**What Peakly does:** GoVerdictBadge + flight price pill overlay on photo. Condition label overlay at bottom of photo. More cluttered but justified by the conditions-first value prop.
+**Gap:** Acceptable divergence. Peakly's overlay density is justified because conditions are the primary value. No fix needed.
+
+---
+
+## 5. ALL CODE FIXES
+
+### Fix 1: Add "Set Alert" button to VenueDetailSheet
+**FILE:** app.jsx
+**LINE:** 4400 (after the Book on Google Flights CTA)
+**ISSUE:** The `onAlert` prop is wired but never triggered. Users must navigate to Alerts tab manually (7 taps vs 3).
+**FIX:**
+```jsx
+{/* Add after the Book on Google Flights CTA, before the 7-day forecast */}
+<button onClick={() => onAlert(listing)} className="pressable" style={{
+  background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+  padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+  gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+</button>
+```
+
+### Fix 2: Rename "windows available" to "spots"
+**FILE:** app.jsx
+**LINE:** 2489
+**ISSUE:** CLAUDE.md decision from 2026-03-23 says rename "windows available" to "spots". Never shipped.
+**FIX:**
+```jsx
+// Change:
+{loading ? "Fetching live conditions..." : `${gridListings.length} windows available`}
+// To:
+{loading ? "Fetching live conditions..." : `${gridListings.length} spots`}
+```
+
+### Fix 3: Estimated prices banner contrast failure
+**FILE:** app.jsx
+**LINE:** 2427
+**ISSUE:** #f59e0b text on #fef3c7 background fails WCAG AA at 2.84:1 (needs 4.5:1).
+**FIX:**
+```jsx
+// Change color:"#f59e0b" to color:"#b45309"
+<span style={{ fontSize:9, color:"#b45309", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices -- live API offline</span>
+```
+
+### Fix 4: Carousel "rt" label contrast
+**FILE:** app.jsx
+**LINE:** 2472
+**ISSUE:** #aaa on white fails WCAG AA at 2.32:1.
+**FIX:**
+```jsx
+// Change color:"#aaa" to color:"#888"
+<span style={{ fontSize:9, color:"#888", fontFamily:F, marginLeft:2 }}>rt</span>
+```
+
+### Fix 5: Affiliate disclaimer contrast
+**FILE:** app.jsx
+**LINES:** 4479, 4503
+**ISSUE:** #bbb on white fails WCAG AA at 1.85:1. Even for fine print, this is unreadable.
+**FIX:**
+```jsx
+// Line 4479 -- change color:"#bbb" to color:"#999"
+<span style={{ fontSize:9, color:"#999", fontFamily:F }}>Affiliate links - no extra cost</span>
+
+// Line 4503 -- change color:"#bbb" to color:"#999"
+<span style={{ fontSize:9, color:"#999", fontFamily:F }}>via GetYourGuide</span>
+```
+
+### Fix 6: SearchBar subtitle contrast
+**FILE:** app.jsx
+**LINE:** 1937
+**ISSUE:** #999 on white fails WCAG AA for small text (2.85:1 vs 4.5:1 required).
+**FIX:**
+```jsx
+// Change color:"#999" to color:"#717171"
+<div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
+```
+
+### Fix 7: BottomNav touch target height
+**FILE:** app.jsx
+**LINE:** 5238
+**ISSUE:** Primary nav buttons are ~38px tall, below 44px minimum.
+**FIX:**
+```jsx
+// Change padding:"4px 0" to padding:"8px 0"
+padding:"8px 0",
+```
+
+### Fix 8: Similar venue score badge fontSize:9
+**FILE:** app.jsx
+**LINE:** 4447
+**ISSUE:** Score text inside badge at fontSize:9 -- below 10px floor established in v7.
+**FIX:**
+```jsx
+// Change fontSize:9 to fontSize:10
+<span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
+```
+
+### Fix 9: Forecast date labels and wave height fontSize:9
+**FILE:** app.jsx
+**LINES:** 4409, 4411, 4414
+**ISSUE:** Forecast card labels at fontSize:9. The date label ("Today", "Tmrw") is the primary identifier and should not be smaller than the temperature below it.
+**FIX:** These are defensible in the 62px-wide forecast card where horizontal space is genuinely constrained. Leave at fontSize:9. Flagging for awareness only -- no change needed.
+
+### Fix 10: Wire all 5 Plausible custom events
+**FILE:** app.jsx
+**LINES:** 5234, 5448, 4394, 1389, 5444, 3909
+**ISSUE:** Plausible script loaded but zero custom events fire. No data on user behavior.
+**FIX:** See Section 2 above for exact code for all 5 events.
+
+---
+
+## Fixes Verified from v8
+
+| Fix | Status | Details |
+|-----|--------|---------|
+| Pill count hidden when < 3 venues | CONFIRMED | Line 2272: conditional `listings.filter(l => l.category === c.id).length >= 3` present |
+| Carousel "rt" label added | CONFIRMED | Line 2472: `<span style={{ fontSize:9, color:"#aaa"... }}>rt</span>` present |
+| CompactCard fontSize:10 floor | CONFIRMED | Lines 1512, 1525, 1530, 1540, 1544 all at fontSize:10 |
+| Hero stat labels at fontSize:10, color:#666 | CONFIRMED | Lines 2389, 2394 both at fontSize:10, color:"#666" |
+| Hero est. label at fontSize:10, color:#888 | CONFIRMED | Line 2397 at fontSize:10, color:"#888" |
+| Carousel score at fontSize:10, color:#666 | CONFIRMED | Line 2473 at fontSize:10, color:"#666" |
+| FeaturedCard LIVE badge | CONFIRMED | Line 1434 at fontSize:10 |
+| Saved venue heart 28x28 touch target | CONFIRMED | Lines 2327-2330 present with width:28, height:28 |
+
+No regressions detected on any prior fix.
 
 ---
 
 ## Inspiration
 
-**Steal from Airbnb's category bar scroll behavior.** Airbnb faces the exact same 12+ category problem. Their solution: the pill bar is always horizontally scrollable with a subtle fade-out gradient on the right edge, signaling "there's more." No "+ More" button needed. The gradient (a 40px linear-gradient from white to transparent overlaid on the scroll container's right edge) is a zero-interaction affordance — users instinctively swipe. Peakly's "+ More" button works, but it requires a deliberate tap to discover new categories. A scroll-fade hybrid would make all 12 pills discoverable without hiding any behind a button. The implementation is ~8 lines: a pseudo-element or an absolutely-positioned gradient div on the right side of the pill scroll container. This also future-proofs for when the venue count grows and categories multiply.
+**Steal from Airbnb's sticky bottom bar pattern.** When a user scrolls deep into VenueDetailSheet (past the forecast, past the tips, into gear and experiences), the "Book on Google Flights" CTA has scrolled off-screen. Airbnb never lets the Reserve button disappear -- it pins to the bottom with a clean white bar, price summary, and CTA. The implementation: a `position:sticky` div at the bottom of the sheet's scroll container with `bottom:0`, `background:#fff`, `borderTop:1px solid #f0f0f0`, `padding:12px 16px`, containing the price and Book CTA. Alternatively, use `position:fixed` relative to the sheet. This directly increases flight click-through rate by keeping the CTA visible during the longest part of the user session: reading the detail sheet.
 
 ---
 
-## Decision Made
+## THE ONE THING
 
-**Ship issue #1 (fontSize:9 sweep) and issue #3 (carousel price label) as one commit: "Establish 10px floor app-wide, add price context to carousel cards."** These are pure property changes — zero risk, immediate polish. Issue #2 (hide pill counts < 3) ships alongside or immediately after, but is lower priority because the "+ More" gate already reduces exposure to the thin categories. After these land, the app is at 9.3-9.4 and the path to 9.5 shifts to content (more venues per new category) and interaction refinement (scroll-fade pill bar, scroll position memory). The bones are right. Now it is about filling the shelves.
+The single highest-impact UX change this week is **adding a "Set Alert" button to VenueDetailSheet** because the alert-from-venue flow currently takes 7 taps instead of 3, the `onAlert` prop is already fully wired, and alerts are the core retention mechanic -- the thing that brings users back. A user who opens Pipeline, sees great conditions but can't travel this week, and sets an alert in 1 tap will return. A user who has to navigate away to the Alerts tab, re-find their sport, and re-find the location will not. Here is the complete code:
+
+```jsx
+{/* FILE: app.jsx -- Insert at line 4401, after the closing </a> of the Google Flights CTA */}
+
+<button onClick={() => onAlert(listing)} className="pressable" style={{
+  background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+  padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+  gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+</button>
+```
+
+This is 1 element, 0 new state, 0 new props. The callback already exists and already closes the sheet and switches to the Alerts tab. Ship it.
