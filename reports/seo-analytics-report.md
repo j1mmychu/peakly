@@ -1,7 +1,7 @@
 # SEO & Analytics Report -- Peakly
 
 **Date:** 2026-03-24
-**SEO Score:** 91% (up from 81%)
+**SEO Score:** 91% (up from 81% last cycle, up from 62% baseline)
 
 ---
 
@@ -24,7 +24,7 @@
 | 13 | lang attribute | PASS | `<html lang="en">` |
 | 14 | Favicon | PASS | SVG data URI |
 | 15 | Preconnect hints | FAIL | No preconnect/dns-prefetch tags in head |
-| 16 | Font loading | FAIL | Google Fonts loaded via CSS @import inside JS (line 72 of app.jsx), not via link tag |
+| 16 | Font loading | FAIL | Google Fonts loaded via CSS @import inside JS, not via link tag |
 
 **Remaining gaps (9% deduction):**
 - No `<link rel="preconnect">` hints for unpkg, Google Fonts, or API domains
@@ -75,7 +75,7 @@ Replace the existing JSON-LD block in `<head>` with this expanded version:
       "applicationCategory": "TravelApplication",
       "operatingSystem": "Web",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "featureList": "Real-time condition scoring, Flight price tracking, 181 adventure venues, Vibe-based search, Trip planning, Condition alerts",
+      "featureList": "Real-time condition scoring, Flight price tracking, 192 adventure venues, Vibe-based search, Trip planning, Condition alerts",
       "screenshot": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center"
     },
     {
@@ -95,7 +95,10 @@ Replace the existing JSON-LD block in `<head>` with this expanded version:
         { "@type": "ListItem", "position": 3, "name": "Beach & Tanning", "url": "https://j1mmychu.github.io/peakly/#tanning" },
         { "@type": "ListItem", "position": 4, "name": "Snowboarding", "url": "https://j1mmychu.github.io/peakly/#snowboarding" },
         { "@type": "ListItem", "position": 5, "name": "Hiking & Trekking", "url": "https://j1mmychu.github.io/peakly/#hiking" },
-        { "@type": "ListItem", "position": 6, "name": "Diving", "url": "https://j1mmychu.github.io/peakly/#diving" }
+        { "@type": "ListItem", "position": 6, "name": "Diving", "url": "https://j1mmychu.github.io/peakly/#diving" },
+        { "@type": "ListItem", "position": 7, "name": "Climbing", "url": "https://j1mmychu.github.io/peakly/#climbing" },
+        { "@type": "ListItem", "position": 8, "name": "Kayaking", "url": "https://j1mmychu.github.io/peakly/#kayaking" },
+        { "@type": "ListItem", "position": 9, "name": "Mountain Biking", "url": "https://j1mmychu.github.io/peakly/#mtb" }
       ]
     }
   ]
@@ -103,7 +106,7 @@ Replace the existing JSON-LD block in `<head>` with this expanded version:
 </script>
 ```
 
-Individual TouristAttraction schemas for 181 venues are not practical in the HTML head. The real path is static landing pages per category (see Section 6) or a prerendering service (prerender.io, Cloudflare Workers) in Phase 2.
+Individual TouristAttraction schemas for ~192 venues are not practical in the HTML head. The real path is static landing pages per category (see Section 6) or a prerendering service in Phase 2.
 
 ---
 
@@ -120,7 +123,24 @@ Confirmed in index.html lines 86-91:
 </p>
 ```
 
-Sits inside `#root`, visible to crawlers before React hydrates and replaces. Keywords are strong. One minor fix: update "170+" to "180+" to match the actual 181 venue count, and update the OG description similarly.
+Sits inside `#root`, visible to crawlers before React hydrates and replaces. Keywords are strong. Minor fix needed: update "170+" to "190+" to match the actual ~192 venue count.
+
+### Recommended expanded fallback (improves crawlability):
+
+```html
+<div id="root">
+  <h1 style="font-family:system-ui;text-align:center;padding:40px 20px;color:#222;font-size:24px;">
+    Peakly -- Surf, Ski & Adventure Spots with Live Conditions & Cheap Flights
+  </h1>
+  <p style="text-align:center;color:#717171;font-size:14px;max-width:480px;margin:0 auto;padding:0 20px;line-height:1.6;">
+    Discover 190+ adventure destinations worldwide. Real-time weather scoring tells you when
+    conditions are perfect for surfing, skiing, hiking, diving, and more. Compare cheap flights
+    from your home airport and find your best travel window this season. Know when to go.
+  </p>
+</div>
+```
+
+This gives Google ~50 words of keyword-rich content to index, improving long-tail query coverage.
 
 ---
 
@@ -178,10 +198,9 @@ These keywords sit at the intersection of conditions + flights -- Peakly's uniqu
 | "ski trip cheap flights" | 1,600 | Low | Core feature |
 | "best conditions [sport] this week" | 800 | Very Low | Real-time scoring is literally this |
 | "surf and ski trip planner" | 200 | None | Nobody does multi-sport trip planning |
-| "kitesurfing conditions [destination]" | 900 | Low | Category supported in venue data |
 | "best beach weather this week" | 1,400 | Low | Tanning/beach category scoring |
 
-**Biggest single opportunity:** The "when to go" keyword cluster (3,600/mo). No dominant authority owns it. Peakly's tagline "Know when to go" is a perfect match. A landing page targeting "best time to surf Bali" or "best time to ski Whistler" could rank in Google within weeks given zero competition from the conditions+flights angle.
+**Biggest single opportunity:** The "when to go" keyword cluster (3,600/mo). No dominant authority owns it. Peakly's tagline "Know when to go" is a perfect match. A landing page targeting "best time to surf Bali" or "best time to ski Whistler" could rank within weeks given zero competition from the conditions+flights angle.
 
 ---
 
@@ -201,14 +220,14 @@ These keywords sit at the intersection of conditions + flights -- Peakly's uniqu
 2. React 18 UMD loads from unpkg (~130KB gzipped)
 3. ReactDOM loads from unpkg (~130KB gzipped)
 4. Babel Standalone loads from unpkg (~780KB gzipped) -- **this is the bottleneck**
-5. app.jsx loads (~200KB raw, 6,072 lines)
+5. app.jsx loads (~200KB raw)
 6. Babel transpiles app.jsx in the browser (500-1500ms depending on device)
 7. CSS @import fires for Google Fonts (only starts AFTER Babel finishes transpiling)
 8. React renders the app
 
 **Total blocking chain:** ~1.6MB of JavaScript + font download before first meaningful paint.
 
-**Critical finding:** Google Fonts is loaded via `@import` on line 72 of app.jsx, inside CSS that Babel injects. This means the font download cannot even START until after all CDN JS loads, Babel transpiles, and React begins rendering. On mobile, this can add 1-2s to LCP.
+**Critical finding:** Google Fonts is loaded via `@import` inside app.jsx CSS. This means the font download cannot even START until after all CDN JS loads, Babel transpiles, and React begins rendering. On mobile, this can add 1-2s to LCP.
 
 ### Fixes (Priority Order)
 
@@ -228,37 +247,30 @@ Add to index.html `<head>`, before any script tags:
 
 **Fix 2 -- Move Google Fonts to link tag (10 min, ~200-500ms improvement)**
 
-The font is currently loaded via `@import` on line 72 of app.jsx:
-```
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
-```
-
-Moving this to a `<link>` in index.html starts the download in parallel with Babel instead of after:
+The font is currently loaded via `@import` inside app.jsx CSS injection. Moving it to a `<link>` in index.html starts the download in parallel with Babel instead of after:
 
 ```html
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" /></noscript>
 ```
 
-Then remove the `@import` line from app.jsx line 72.
+Then remove the `@import` line from app.jsx.
 
-**Fix 3 -- Loading skeleton (15 min, perceived performance improvement)**
+**Fix 3 -- Pre-transpile JSX (1 hour, ~1.5-2s LCP improvement, HIGHEST IMPACT)**
 
-Expand the static content inside `#root` to include skeleton shapes resembling the category pills and venue cards. This doesn't change actual LCP but dramatically improves perceived speed -- users see a layout forming immediately instead of a blank page with a heading.
+Run Babel CLI offline to produce a pre-compiled `app.js`:
 
-**Fix 4 -- Pre-transpile JSX (1 hour, ~1.5-2s LCP improvement, HIGHEST IMPACT)**
+```bash
+npx @babel/cli@7.24 --presets @babel/preset-react app.jsx -o app.js
+```
 
-Run Babel CLI offline to produce a pre-compiled `app.js`. This eliminates:
-- The 780KB Babel Standalone download entirely
-- The 500-1500ms in-browser transpilation step
-
-This is the single largest performance win available. It requires adding a minimal build step (`npx babel app.jsx -o app.js`), which conflicts with the current "no build step" architecture. **Recommended for Phase 2 at >5K users** -- the LCP improvement could be 1.5-2 seconds, which directly impacts Core Web Vitals ranking signal.
+This eliminates the 780KB Babel Standalone download and the 500-1500ms in-browser transpilation. Requires adding a minimal build step -- conflicts with the current "no build step" architecture. **Recommended for Phase 2 at >5K users** when Core Web Vitals become a ranking factor for this site's traffic level.
 
 ---
 
 ## 6. Highest-Impact SEO Change for Reddit-Driven Organic Growth
 
-**Create 5 static landing pages targeting subreddit-specific search queries.**
+**Create 3-5 static landing pages targeting subreddit-specific search queries.**
 
 Reddit threads rank exceptionally well in Google. When Peakly launches on r/surfing, r/skiing, r/solotravel, users will search "peakly surf app" or "surf conditions flight tracker." Currently Google has only 1 URL to index (the SPA root) with limited crawlable content.
 
@@ -269,8 +281,6 @@ Reddit threads rank exceptionally well in Google. When Peakly launches on r/surf
 | `/surfing.html` | Best Surf Spots with Live Conditions & Cheap Flights | "best time to surf [x]", "surf trip planner" |
 | `/skiing.html` | Best Ski Resorts with Live Snow Conditions & Flight Deals | "ski trip cheap flights", "best ski conditions this week" |
 | `/beach.html` | Best Beach Destinations with Perfect Weather & Cheap Flights | "best beach weather this week", "adventure travel deals" |
-| `/about.html` | About Peakly -- Know When to Go | "peakly app", "surf ski conditions app" |
-| `/pro.html` | Peakly Pro -- Extended Forecasts & Strike Missions | "peakly pro", "adventure forecast app" |
 
 Each page would include:
 - Unique title tag and meta description targeting sport-specific queries
@@ -280,7 +290,7 @@ Each page would include:
 - CTA button linking to the main app (`/peakly/`)
 - Listed in sitemap.xml
 
-**Estimated impact:** 6x more indexed URLs, 2-4x more organic search impressions within 30 days of the Reddit launch campaign.
+**Estimated impact:** 4x more indexed URLs, 2-3x more organic search impressions within 30 days of the Reddit launch campaign.
 
 ---
 
@@ -288,17 +298,17 @@ Each page would include:
 
 | Item | Value |
 |------|-------|
-| Venue count in VENUES array | 181 |
-| app.jsx line count | 6,072 |
+| Venue count per CLAUDE.md | ~192 |
 | Plausible script variant | script.hash.js (correct for SPA) |
 | Plausible data-domain | j1mmychu.github.io |
-| Custom events wired | 5 of 5 confirmed |
+| Custom events wired | 5 of 5 confirmed in app.jsx |
 | JSON-LD entities | 3 (WebSite, WebApplication, Organization) |
 | Static h1 present | Yes, inside #root |
 | robots.txt | Present, allows all, references sitemap |
 | sitemap.xml | Present, 1 URL |
 | Google Fonts loading method | CSS @import inside app.jsx (not optimal) |
 | Preconnect hints | None present |
+| index.html line count | 119 lines |
 
 ---
 
@@ -309,13 +319,12 @@ Each page would include:
 | 1 | Add preconnect/dns-prefetch hints to index.html head | 5 min | Medium -- ~200ms LCP improvement |
 | 2 | Move Google Fonts from @import in app.jsx to link tag in index.html | 10 min | Medium -- ~200-500ms LCP improvement |
 | 3 | Enhance JSON-LD with SearchAction + ItemList (paste-ready above) | 10 min | Medium -- richer search result appearance |
-| 4 | Update static h1 from "170+" to "180+" venues | 2 min | Low -- accuracy |
-| 5 | Add loading skeleton to #root | 15 min | Medium -- perceived performance |
-| 6 | Add `plausible('Share')` event on share button | 5 min | Low -- virality tracking |
-| 7 | Create 5 static landing pages for SEO | 2-3 hours | HIGH -- 6x indexed URLs |
-| 8 | Add landing pages to sitemap.xml | 5 min | Dependent on #7 |
-| 9 | Create branded OG image (replace generic Unsplash) | 30 min | Medium -- social CTR |
-| 10 | Pre-transpile JSX to eliminate Babel runtime | 1 hour | HIGH -- 1.5-2s LCP (Phase 2) |
+| 4 | Update static h1 fallback: "170+" to "190+", expand description text | 5 min | Low-Medium -- better crawlability |
+| 5 | Add `plausible('Share')` event on share button | 5 min | Low -- virality tracking |
+| 6 | Create 3 static landing pages for SEO (surfing, skiing, beach) | 2-3 hours | HIGH -- 4x indexed URLs |
+| 7 | Add landing pages to sitemap.xml | 5 min | Dependent on #6 |
+| 8 | Create branded OG image (replace generic Unsplash) | 30 min | Medium -- social CTR |
+| 9 | Pre-transpile JSX to eliminate Babel runtime | 1 hour | HIGH -- 1.5-2s LCP (Phase 2) |
 
 ---
 
@@ -326,4 +335,4 @@ Each page would include:
 | 2026-03-22 | 62% | Baseline -- missing title, canonical, robots.txt, sitemap, analytics, structured data, h1 |
 | 2026-03-23 | 81% | Added title, canonical, robots.txt, sitemap, Plausible, OG tags |
 | 2026-03-24 | 91% | JSON-LD added, static h1 added, script.hash.js deployed, all 5 custom events wired, PWA manifest live |
-| Target | 95%+ | Needs: preconnect hints, font loading fix, enhanced JSON-LD, landing pages, branded OG image |
+| Target | 95%+ | Needs: preconnect hints, font loading fix, enhanced JSON-LD, expanded fallback text, branded OG image |

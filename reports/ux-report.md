@@ -1,10 +1,10 @@
-# Peakly UX Audit -- Report: 2026-03-24 (v12)
+# Peakly UX Audit -- Report: 2026-03-24 (v13)
 
 ## UX Score: 9.4/10
 
-Venue count trimmed from ~235 to 192 with unique photos assigned. Distribution: 60 Beach & Tan, 53 Surfing, 50 Skiing, 12 Hiking, 5 Diving, 4 Climbing, 4 Kitesurf, plus 1 each for Kayak, MTB, Fishing, Paraglide. Total in VENUES array: 192 (verified via grep count: 181 explicit `{id:` entries plus 11 entries on continuation lines -- actual rendered count matches). All 5 Plausible events remain wired and firing. BottomNav still has 3 tabs (Explore, Alerts, Profile). No regressions from the venue trim.
+No code changes since v12. All issues from the previous report persist. 192 venues across 12 categories (60 Beach & Tan, 53 Surfing, 50 Skiing, 12 Hiking, 5 Diving, 4 Climbing, 4 Kitesurf, 1 each for Kayak, MTB, Fishing, Paraglide). BottomNav remains 3 tabs (Explore, Alerts, Profile). All 5 Plausible events confirmed wired and firing. File is 6,072 lines.
 
-The remaining 0.6 points break down as: (a) 10 WCAG AA contrast failures persist -- none fixed since v10; (b) ListingCard "Book" button still does not fire a Plausible Flight Search event (line 1810); (c) 9 surviving `fontSize:9` instances, 4 on non-space-constrained surfaces; (d) "+ More" button still gates 8 categories behind a tap (line 2700); (e) flight CTA in VenueDetailSheet still scrolls out of view -- no sticky bottom bar.
+The remaining 0.6 points break down as: (a) 11 WCAG AA contrast failures persist -- none fixed since v10; (b) ListingCard "Book" button still does not fire a Plausible Flight Search event (line 1810); (c) 10 surviving `fontSize:9` instances, 4 on non-space-constrained surfaces; (d) "+ More" button still gates 8 categories behind a tap (line 2700); (e) flight CTA in VenueDetailSheet still scrolls out of view -- no sticky bottom bar.
 
 ---
 
@@ -45,7 +45,7 @@ All 5 events confirmed wired. Plausible is the sole analytics platform.
 | Wishlist Add | CONFIRMED | 5904 | Fires only on add (not remove), sends venue title |
 | Onboarding Complete | CONFIRMED | 4332 | Fires with airport prop on complete |
 
-### Missing: Flight Search on ListingCard "Book" button (REPEAT -- 4th consecutive report)
+### Missing: Flight Search on ListingCard "Book" button (REPEAT -- 5th consecutive report)
 
 **FILE:** app.jsx
 **LINE:** 1810
@@ -70,24 +70,25 @@ No regressions. Hero (20px title), VenueDetailSheet (20px title, 22px score), gr
 
 ### Color contrast -- WCAG AA failures
 
-**None of the 10 failures from v10 have been fixed.** This is now the 4th consecutive report flagging these. Full inventory:
+**None of the 11 failures have been fixed.** This is now the 5th consecutive report flagging the original 10. Full inventory:
 
 | # | Element | Line | Foreground | Background | Ratio | Required | Status |
 |---|---------|------|-----------|------------|-------|----------|--------|
-| 1 | Estimated prices banner text | 2848 | #f59e0b | #fef3c7 | 2.84:1 | 4.5:1 | FAILING (4 reports) |
-| 2 | Search filter slider "$100" | 2180 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (4 reports) |
-| 3 | Search filter slider "Any" | 2181 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (4 reports) |
-| 4 | Rating review count (ListingCard) | 1781 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (4 reports) |
+| 1 | Estimated prices banner text | 2848 | #f59e0b | #fef3c7 | 2.84:1 | 4.5:1 | FAILING (5 reports) |
+| 2 | Search filter slider "$100" | 2180 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (5 reports) |
+| 3 | Search filter slider "Any" | 2181 | #bbb | #fff | 1.85:1 | 4.5:1 | FAILING (5 reports) |
+| 4 | Rating review count (ListingCard) | 1781 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (5 reports) |
 | 5 | Carousel "rt" label | 2893 | #888 | #fff | 3.54:1 | 4.5:1 | FAILING |
-| 6 | Affiliate disclaimer text | 4922 | #999 | #f7f7f7 | 2.58:1 | 4.5:1 | FAILING (4 reports) |
-| 7 | GetYourGuide text | 4946 | #999 | #fff | 2.85:1 | 4.5:1 | FAILING (4 reports) |
+| 6 | Affiliate disclaimer text | 4922 | #999 | #f7f7f7 | 2.58:1 | 4.5:1 | FAILING (5 reports) |
+| 7 | GetYourGuide text | 4946 | #999 | #fff | 2.85:1 | 4.5:1 | FAILING (5 reports) |
 | 8 | Forecast date labels (non-active) | 4852 | #aaa | #f7f7f7 | 2.06:1 | 4.5:1 | FAILING |
-| 9 | Forecast low temp | 4856 | #bbb | #f7f7f7 | 1.64:1 | 4.5:1 | FAILING (4 reports) |
-| 10 | Similar venue location | 4895 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (4 reports) |
+| 9 | Forecast low temp | 4856 | #bbb | #f7f7f7 | 1.64:1 | 4.5:1 | FAILING (5 reports) |
+| 10 | Similar venue location | 4895 | #aaa | #fff | 2.32:1 | 4.5:1 | FAILING (5 reports) |
+| 11 | "Updated" timestamp | 2850 | #bbb | #f5f5f5 | ~1.6:1 | 4.5:1 | FAILING (2 reports) |
 
 ### fontSize:9 audit
 
-9 instances remain at fontSize:9. No change from v11.
+10 instances remain at fontSize:9. One new instance found at line 4962 (experience duration badge). No other changes from v12.
 
 | Line | Element | Decision-critical? | Recommendation |
 |------|---------|-------------------|----------------|
@@ -100,19 +101,20 @@ No regressions. Hero (20px title), VenueDetailSheet (20px title, 22px score), gr
 | 4857 | Forecast precipitation | No | Leave (space-constrained) |
 | 4922 | Affiliate disclaimer | No | Raise to 10, fix color |
 | 4946 | GetYourGuide text | No | Raise to 10, fix color |
+| 4962 | Experience duration badge | No | Leave (overlay badge, white on dark bg, legible) |
 
-4 can be raised with zero layout risk. 5 are in the 62px forecast cards where space is genuinely constrained.
+4 can be raised with zero layout risk. 6 are in space-constrained contexts or overlays where the current size is acceptable.
 
 ---
 
 ## 4. AIRBNB COMPARISON
 
-### Category discovery (UNSHIPPED -- 4th consecutive report)
+### Category discovery (UNSHIPPED -- 5th consecutive report)
 **What Airbnb does:** All categories visible via horizontal scroll. Fade gradient on right edge signals more content.
 **What Peakly does:** Shows 4 default pills (All, Skiing, Surfing, Beach & Tan) + a "+ More" button (lines 2674-2704).
 **Gap:** 8 categories hidden behind a tap. Users who downloaded Peakly for Diving (5 venues), Climbing (4), Kitesurf (4), or Hiking (12) will not see their sport without tapping "+ More". The pill bar already scrolls horizontally -- there is no layout reason to hide them.
 
-### Sticky flight CTA (UNSHIPPED -- 4th consecutive report)
+### Sticky flight CTA (UNSHIPPED -- 5th consecutive report)
 **What Airbnb does:** "Reserve" CTA pinned to bottom of listing detail. Never scrolls out of view.
 **What Peakly does:** "Book on Google Flights" CTA is inline at line 4827. Scrolls away when user reads forecast, gear, experiences.
 **Gap:** When a user scrolls to the bottom half of VenueDetailSheet (forecast, tips, gear, experiences), the flight CTA is invisible. This directly reduces flight click-through rate -- the single most important revenue action.
@@ -120,18 +122,18 @@ No regressions. Hero (20px title), VenueDetailSheet (20px title, 22px score), gr
 ### BottomNav: 3 tabs vs 5 built
 **What Airbnb does:** 5 bottom tabs (Explore, Wishlists, Trips, Inbox, Profile). Every major feature has a dedicated tab.
 **What Peakly does:** 3 tabs (Explore, Alerts, Profile). Wishlists and Trips are fully built but hidden (line 5677: tabs array only contains explore, alerts, profile).
-**Gap:** Users cannot discover Wishlists or Trips unless they stumble into them. Two fully built features are invisible. CLAUDE.md flags this: "ACTION NEEDED: Trips and Wishlists tabs exist in the code but are not wired into BottomNav. Expose them."
+**Gap:** Users cannot discover Wishlists or Trips unless they stumble into them. Two fully built features are invisible. Note: CLAUDE.md states "Keep 3-tab bottom nav" as a design decision -- Trips + Wishlists deferred to 1K users. This is intentional, not a bug.
 
-### Venue distribution imbalance (NEW)
+### Venue distribution imbalance (2nd report)
 **What Airbnb does:** Each category has substantial depth. You don't open "Camping" and find 1 listing.
-**What Peakly does:** 5 categories have 4 or fewer venues (Kitesurf: 4, Climbing: 4, Kayak: 1, MTB: 1, Fishing: 1, Paraglide: 1). These feel like abandoned sections.
-**Gap:** A user filtering to Paraglide or Fishing sees exactly 1 result. This damages trust in Peakly as a serious platform. Either add more venues to these categories (minimum 5-8 each) or hide categories with fewer than 3 venues from the pill bar until they have enough content. Showing an empty-looking category is worse than not showing it.
+**What Peakly does:** 4 categories have exactly 1 venue (Kayak, MTB, Fishing, Paraglide). These feel like abandoned sections.
+**Gap:** A user filtering to Paraglide or Fishing sees exactly 1 result. This damages trust. Either add more venues (minimum 5-8 each) or hide categories with fewer than 3 venues from the pill bar until they have enough content. Showing an empty-looking category is worse than not showing it.
 
 ---
 
 ## 5. ALL CODE FIXES
 
-### Fix 1: Estimated prices banner contrast (REPEAT x4 -- never shipped)
+### Fix 1: Estimated prices banner contrast (REPEAT x5 -- never shipped)
 **FILE:** app.jsx
 **LINE:** 2848
 **ISSUE:** `#f59e0b` text on `#fef3c7` background fails WCAG AA at 2.84:1 (needs 4.5:1). This is a data-trust surface.
@@ -141,7 +143,7 @@ No regressions. Hero (20px title), VenueDetailSheet (20px title, 22px score), gr
 ```
 Changed to `#92400e` (amber-800) giving 7.25:1 contrast on `#fef3c7`. Bumped fontSize to 10.
 
-### Fix 2: ListingCard "Book" button missing Plausible event (REPEAT x4)
+### Fix 2: ListingCard "Book" button missing Plausible event (REPEAT x5)
 **FILE:** app.jsx
 **LINE:** 1810
 **ISSUE:** Flight clicks from ListingCard go untracked. Only VenueDetailSheet fires the event.
@@ -218,7 +220,16 @@ onClick={e => { e.stopPropagation(); haptic("heavy"); window.plausible && window
 <div style={{ fontSize:9, fontWeight:700, color: i===0?"#0284c7":"#717171", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{fmtDate(f.date, i)}</div>
 ```
 
-### Fix 10: Show all category pills (remove "+ More" gate)
+### Fix 10: "Updated" timestamp contrast
+**FILE:** app.jsx
+**LINE:** 2850
+**ISSUE:** `#bbb` on `#f5f5f5` gives approximately 1.6:1 contrast ratio. Nearly invisible on some screens.
+**FIX:**
+```jsx
+<span style={{ fontSize:10, color:"#888", fontFamily:F }}>Updated {timeAgo}</span>
+```
+
+### Fix 11: Show all category pills (remove "+ More" gate)
 **FILE:** app.jsx
 **LINES:** 2674-2704
 **ISSUE:** 8+ categories hidden behind "+ More" button. Users for non-default sports don't see their category on first load.
@@ -243,7 +254,7 @@ const visibleCats = CATEGORIES;
 
 ---
 
-## 6. Fixes Verified Since v11
+## 6. Fixes Verified Since v12
 
 | Fix | Status | Details |
 |-----|--------|---------|
@@ -253,28 +264,17 @@ const visibleCats = CATEGORIES;
 | Set Alert button in VenueDetailSheet | CONFIRMED | Line 4836 |
 | BottomNav touch targets | CONFIRMED | Line 5693: `padding:"8px 0"` |
 | Venue trim to 192 with unique photos | CONFIRMED | All venues have `photo:` field with Unsplash URLs |
-| Estimated prices banner contrast | NOT SHIPPED (4 reports) | Line 2848: still `#f59e0b` on `#fef3c7` |
-| ListingCard Flight Search event | NOT SHIPPED (4 reports) | Line 1810: still no plausible call |
-| Category pills "+ More" removal | NOT SHIPPED (4 reports) | Line 2700: still gated |
-| Sticky flight CTA | NOT SHIPPED (4 reports) | Line 4827: still inline, scrolls away |
+| Estimated prices banner contrast | NOT SHIPPED (5 reports) | Line 2848: still `#f59e0b` on `#fef3c7` |
+| ListingCard Flight Search event | NOT SHIPPED (5 reports) | Line 1810: still no plausible call |
+| Category pills "+ More" removal | NOT SHIPPED (5 reports) | Line 2700: still gated |
+| Sticky flight CTA | NOT SHIPPED (5 reports) | Line 4827: still inline, scrolls away |
+| WCAG contrast fixes (11 items) | NOT SHIPPED | Zero contrast fixes applied across 5 report cycles |
 
 ---
 
-## New Observation: "Updated" Timestamp Color
+## Escalation Notice
 
-**FILE:** app.jsx
-**LINE:** 2850
-**ISSUE:** `#bbb` on `#f5f5f5` background gives approximately 1.6:1 contrast ratio. While this is a low-priority metadata field, it still fails WCAG AA and is nearly invisible on some screens.
-**FIX:**
-```jsx
-<span style={{ fontSize:10, color:"#888", fontFamily:F }}>Updated {timeAgo}</span>
-```
-
----
-
-## Inspiration
-
-These 10 contrast fixes have been flagged for 4 consecutive reports. Each is a single color value change. None carry layout risk. None require design review. Total implementation time: under 10 minutes. Ship them in one batch -- they are the lowest-effort, highest-certainty improvements available. An app targeting 100K users cannot ship with text that fails basic readability standards.
+11 contrast failures, 1 missing analytics event, and 1 category discoverability fix have now been flagged for **5 consecutive audit cycles** with zero action. These are all single-line color value changes. Combined implementation time: under 15 minutes. None carry layout risk. None require design review. If these are intentionally deprioritized, this report will stop flagging them. Otherwise, they should be batched and shipped in one commit.
 
 ---
 
