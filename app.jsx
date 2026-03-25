@@ -1406,36 +1406,72 @@ const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
 let _flightApiStatus = "unknown"; // "live", "down", "unknown"
 function getFlightApiStatus() { return _flightApiStatus; }
 
+// Semaphore: max 3 concurrent flight API requests
+const _flightSem = { count: 0, max: 3, queue: [] };
+function _flightAcquire() {
+  return new Promise(resolve => {
+    if (_flightSem.count < _flightSem.max) { _flightSem.count++; resolve(); }
+    else { _flightSem.queue.push(resolve); }
+  });
+}
+function _flightRelease() {
+  if (_flightSem.queue.length > 0) { _flightSem.queue.shift()(); }
+  else { _flightSem.count = Math.max(0, _flightSem.count - 1); }
+}
+
 // Returns price number or null — caller falls back to BASE_PRICES estimate
+// Includes retry with exponential backoff (up to 2 retries)
 async function fetchTravelpayoutsPrice(origin, destination) {
+  await _flightAcquire();
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout (was 3s, too aggressive)
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
 
-    const url = `${FLIGHT_PROXY}/api/flights`
-      + `?origin=${encodeURIComponent(origin)}`
-      + `&destination=${encodeURIComponent(destination)}`;
+        const url = `${FLIGHT_PROXY}/api/flights`
+          + `?origin=${encodeURIComponent(origin)}`
+          + `&destination=${encodeURIComponent(destination)}`;
 
-    const r = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!r.ok) { _flightApiStatus = "down"; return null; }
-    const json = await r.json();
-    if (!json.success) { _flightApiStatus = "down"; return null; }
+        const r = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
 
-    _flightApiStatus = "live";
-    const destData = json.data?.[destination];
-    if (!destData) return null;
+        if (r.status === 429 || r.status >= 500) {
+          // Rate limited or server error — back off and retry
+          if (attempt < 2) {
+            await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
+            continue;
+          }
+          _flightApiStatus = "down"; return null;
+        }
+        if (!r.ok) { _flightApiStatus = "down"; return null; }
 
-    const prices = Object.values(destData)
-      .map(d => d.price)
-      .filter(p => typeof p === "number" && p > 0);
+        const json = await r.json();
+        if (!json.success) { _flightApiStatus = "down"; return null; }
 
-    if (prices.length === 0) return null;
-    return Math.round(Math.min(...prices));
-  } catch (err) {
-    _flightApiStatus = "down";
-    console.warn("[Peakly] Flight API error:", err.name, err.message);
-    return null; // Falls back to BASE_PRICES estimate in getFlightDeal
+        _flightApiStatus = "live";
+        const destData = json.data?.[destination];
+        if (!destData) return null;
+
+        const prices = Object.values(destData)
+          .map(d => d.price)
+          .filter(p => typeof p === "number" && p > 0);
+
+        if (prices.length === 0) return null;
+        return Math.round(Math.min(...prices));
+      } catch (err) {
+        if (attempt < 2 && err.name !== "AbortError") {
+          await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
+          continue;
+        }
+        _flightApiStatus = "down";
+        console.warn("[Peakly] Flight API error:", err.name, err.message);
+        return null;
+      }
+    }
+    return null;
+  } finally {
+    _flightRelease();
   }
 }
 const BASE_PRICES = {
@@ -1565,6 +1601,23 @@ function buildFlightUrl(from, to, opts) {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
   return aviasalesSearch;
+}
+
+// ─── Share venue ──────────────────────────────────────────────────────────────
+// Uses Web Share API if available, falls back to clipboard copy
+function shareVenue(listing, onCopied) {
+  const url = `https://j1mmychu.github.io/peakly/#venue-${listing.id}`;
+  const text = `Check out ${listing.title} on Peakly — conditions are ${listing.conditionLabel}! ${listing.conditionScore}/100`;
+  logEvent('share_click', { venue: listing.title, score: listing.conditionScore });
+  if (navigator.share) {
+    navigator.share({ title: listing.title, text, url }).catch(() => {});
+  } else {
+    try {
+      navigator.clipboard?.writeText(`${text}\n${url}`)
+        .then(() => onCopied && onCopied())
+        .catch(() => onCopied && onCopied());
+    } catch { onCopied && onCopied(); }
+  }
 }
 
 // ─── Travelpayouts real pricing (LIVE) ────────────────────────────────────────
@@ -1758,6 +1811,26 @@ function useLocalStorage(key, initial) {
   return [val, save];
 }
 
+// ─── Analytics helper ─────────────────────────────────────────────────────────
+// Calls Plausible if loaded; always appends to localStorage event log (max 200)
+function logEvent(name, props) {
+  try {
+    if (window.plausible) window.plausible(name, props ? { props } : undefined);
+    const log = (() => { try { return JSON.parse(localStorage.getItem("peakly_events") || "[]"); } catch { return []; } })();
+    log.push({ event: name, props: props || {}, ts: Date.now() });
+    if (log.length > 200) log.splice(0, log.length - 200);
+    try { localStorage.setItem("peakly_events", JSON.stringify(log)); } catch {}
+  } catch {}
+}
+
+// Install PWA prompt listener
+(function() {
+  try {
+    window.addEventListener("beforeinstallprompt", () => { logEvent("install_pwa"); });
+    window.addEventListener("appinstalled", () => { logEvent("install_pwa", { result: "installed" }); });
+  } catch {}
+})();
+
 // ─── go/no-go verdict ────────────────────────────────────────────────────────
 function getGoVerdict(score) {
   if (score >= 80) return { label:"GO", color:"#22c55e", bg:"#dcfce7" };
@@ -1820,6 +1893,7 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
@@ -1837,15 +1911,23 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
-        {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-          position:"absolute", top:8, right:8,
-          background:"none", border:"none", fontSize:20,
-          width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
-          filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
-        }}>
-          {saved ? "❤️" : "🤍"}
-        </button>
+        {/* Heart + Share */}
+        <div style={{ position:"absolute", top:8, right:8, display:"flex", gap:4 }}>
+          <button className="heart pressable" onClick={e => { e.stopPropagation(); shareVenue(listing, () => { setShareCopied(true); setTimeout(() => setShareCopied(false), 1800); }); }} style={{
+            background: shareCopied ? "rgba(34,197,94,0.85)" : "rgba(0,0,0,0.35)", border:"none", borderRadius:"50%", fontSize:13,
+            width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+            color:"white", fontWeight:700, fontFamily:F,
+          }}>
+            {shareCopied ? "✓" : "↑"}
+          </button>
+          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+            background:"none", border:"none", fontSize:20,
+            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+            filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
+          }}>
+            {saved ? "❤️" : "🤍"}
+          </button>
+        </div>
 
         {/* Go/No-Go verdict + flight deal */}
         <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
@@ -4997,11 +5079,19 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     setNewListName(""); setShowListPicker(false);
   };
   const copyShareLink = (textOverride) => {
-    const text = textOverride || `Check out ${listing.title} on Peakly!\nConditions: ${listing.conditionScore} · Flight from $${listing.flight.price}\n\nFind your next adventure at j1mmychu.github.io/peakly`;
+    const url = `https://j1mmychu.github.io/peakly/#venue-${listing.id}`;
+    const text = textOverride || `Check out ${listing.title} on Peakly — conditions are ${listing.conditionLabel}! ${listing.conditionScore}/100\n${url}`;
+    logEvent('share_click', { venue: listing.title, score: listing.conditionScore });
     const finish = () => { setShareVenueCopied(true); setTimeout(() => setShareVenueCopied(false), 2200); };
+    // Use Web Share API if available (shows native share sheet on mobile)
+    if (!textOverride && navigator.share) {
+      navigator.share({ title: listing.title, text: `Check out ${listing.title} on Peakly — conditions are ${listing.conditionLabel}! ${listing.conditionScore}/100`, url }).catch(() => {});
+      finish();
+      return;
+    }
     try {
       navigator.clipboard?.writeText(text).then(finish).catch(finish);
-    } catch (_) { finish(); } // always show feedback even if clipboard blocked in iframe
+    } catch (_) { finish(); }
   };
   const fmtDate = (dateStr, i) => {
     if (i === 0) return "Today";
@@ -5363,7 +5453,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           flexShrink:0,
         }}>
           <a href={flightUrl} target="_blank" rel="noopener noreferrer"
-             onClick={() => { window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }}
+             onClick={() => { logEvent('flight_click', {venue: listing.title, origin: listing.flight.from}); }}
              style={{ flex:2, textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"#222", borderRadius:14, padding:"15px 0",
@@ -5374,7 +5464,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </a>
           <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
-             target="_blank" rel="noopener noreferrer" style={{ flex:1, textDecoration:"none" }}>
+             target="_blank" rel="noopener noreferrer"
+             onClick={() => logEvent('hotel_click', {venue: listing.title})}
+             style={{ flex:1, textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"#f0f0f0", borderRadius:14, padding:"15px 0",
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
@@ -6155,11 +6247,12 @@ function App() {
       });
       const uniqueAirports = Object.keys(apToVenues);
 
-      // 2. Fetch prices only for unique airports, batched in groups of 5
+      // 2. Fetch prices only for unique airports, batched in groups of 3
+      // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
       const apPrices = {}; // airport code → cheapest price
       const origin = profile.homeAirport || "JFK";
-      for (let i = 0; i < uniqueAirports.length; i += 5) {
-        const batch = uniqueAirports.slice(i, i + 5);
+      for (let i = 0; i < uniqueAirports.length; i += 3) {
+        const batch = uniqueAirports.slice(i, i + 3);
         const results = await Promise.allSettled(
           batch.map(async ap => {
             const price = await fetchTravelpayoutsPrice(origin, ap);
@@ -6172,7 +6265,7 @@ function App() {
             apPrices[r.value.ap] = r.value.price;
           }
         });
-        if (i + 5 < uniqueAirports.length) await new Promise(r => setTimeout(r, 300));
+        if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
       }
 
       // 3. Map airport prices back to venue IDs
@@ -6239,10 +6332,12 @@ function App() {
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
-    window.plausible && window.plausible('Venue Click', {props: {venue: listing.title, category: listing.category}});
+    // Update URL hash for deep linking / sharing
+    try { history.replaceState(null, "", `${window.location.pathname}${window.location.search}#venue-${listing.id}`); } catch {}
+    logEvent('venue_open', { venue: listing.title, category: listing.category });
   }, []);
 
-  // Handle URL hash venue links (e.g. #venue-whistler)
+  // Handle URL hash venue deep links (e.g. #venue-whistler-blackcomb)
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash;
@@ -6252,7 +6347,7 @@ function App() {
         if (found) {
           const enriched = listings.find(l => l.id === id) || found;
           setDetailVenue(enriched);
-          window.location.hash = "";
+          // Keep hash in URL — openDetail / onClose manage it
         }
       }
     };
@@ -6376,7 +6471,7 @@ function App() {
             rawMar={marData[detailVenue.id]}
             wishlists={wishlists}
             onToggle={toggleWishlist}
-            onClose={() => setDetailVenue(null)}
+            onClose={() => { setDetailVenue(null); try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {} }}
             namedLists={namedLists}
             setNamedLists={setNamedLists}
             listings={listings}
@@ -6385,6 +6480,7 @@ function App() {
             search={search}
             onAlert={(venue) => {
               setDetailVenue(null);
+              try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {}
               setActiveTab("alerts");
             }}
           />
