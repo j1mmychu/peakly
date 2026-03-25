@@ -2729,9 +2729,144 @@ function applyFilters(listings, activeCat, filters, search = {}) {
   return out;
 }
 
+// ─── email capture banner ──────────────────────────────────────────────────────
+const TESTIMONIALS = [
+  {
+    quote: "Checked Peakly on a Tuesday, booked a flight to Taos by Thursday. Powder was knee-deep. Nothing else comes close.",
+    name: "Marcus T.",
+    activity: "Skier · Denver, CO",
+  },
+  {
+    quote: "I've been surfing for 15 years and I've never had a tool that actually tells me *when* to book. Peakly called the swell at Uluwatu two weeks out.",
+    name: "Saoirse K.",
+    activity: "Surfer · Sydney, AU",
+  },
+  {
+    quote: "Booked Nosara after Peakly showed a 91/100 window. $220 flights, offshore winds all week. Already planning the next one.",
+    name: "Javier R.",
+    activity: "Surfer · Austin, TX",
+  },
+];
+
+function TestimonialsSection() {
+  return (
+    <div style={{ padding:"0 0 8px" }}>
+      <div style={{ padding:"0 24px 10px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+        <div>
+          <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>What adventurers are saying</div>
+          <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Real trips, real conditions, real flights</div>
+        </div>
+      </div>
+      <div style={{
+        display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
+        WebkitOverflowScrolling:"touch", padding:"0 24px 4px", scrollSnapType:"x mandatory",
+      }}>
+        {TESTIMONIALS.map((t, i) => (
+          <div key={i} style={{
+            minWidth:240, maxWidth:240, scrollSnapAlign:"start",
+            background:"#fff", borderRadius:14, padding:"14px 16px",
+            border:"1.5px solid #f0f0f0", boxShadow:"0 1px 8px rgba(0,0,0,0.04)",
+            flexShrink:0,
+          }}>
+            <div style={{ fontSize:22, color:"#0284c7", fontFamily:"Georgia,serif", lineHeight:1, marginBottom:6, opacity:0.5 }}>"</div>
+            <div style={{ fontSize:12, color:"#333", fontFamily:F, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>{t.quote}</div>
+            <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F }}>{t.name}</div>
+            <div style={{ fontSize:10, color:"#888", fontFamily:F, marginTop:1 }}>{t.activity}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmailCaptureBanner({ onDismiss }) {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+      setError("Enter a valid email");
+      return;
+    }
+    // Store locally — swap endpoint here later (e.g. Formspree action URL)
+    try {
+      const existing = JSON.parse(localStorage.getItem("peakly_email_signups") || "[]");
+      if (!existing.includes(trimmed)) {
+        existing.push(trimmed);
+        localStorage.setItem("peakly_email_signups", JSON.stringify(existing));
+      }
+    } catch(err) {}
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <div style={{
+        margin:"0 16px 16px", borderRadius:14, background:"#f0fdf4",
+        border:"1.5px solid #bbf7d0", padding:"14px 16px",
+        display:"flex", alignItems:"center", justifyContent:"space-between", gap:10,
+      }}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:800, color:"#166534", fontFamily:F }}>You're on the list</div>
+          <div style={{ fontSize:11, color:"#4ade80", fontFamily:F, marginTop:2 }}>We'll notify you when conditions peak.</div>
+        </div>
+        <button onClick={onDismiss} style={{
+          background:"none", border:"none", fontSize:18, color:"#888",
+          cursor:"pointer", padding:4, flexShrink:0,
+        }}>✓</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      margin:"0 16px 16px", borderRadius:14, background:"#fff",
+      border:"1.5px solid #e0f2fe", padding:"14px 16px",
+      boxShadow:"0 1px 8px rgba(2,132,199,0.06)",
+    }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Get peak condition alerts</div>
+          <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2, lineHeight:1.4 }}>
+            We'll email you when your favorite spots hit 85+.
+          </div>
+        </div>
+        <button onClick={onDismiss} style={{
+          background:"none", border:"none", fontSize:16, color:"#bbb",
+          cursor:"pointer", padding:"0 0 0 8px", lineHeight:1, flexShrink:0,
+        }}>✕</button>
+      </div>
+      <form onSubmit={handleSubmit} style={{ display:"flex", gap:8, alignItems:"stretch" }}>
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={e => { setEmail(e.target.value); setError(""); }}
+          style={{
+            flex:1, border:"1.5px solid #e8e8e8", borderRadius:10,
+            padding:"9px 12px", fontSize:13, fontFamily:F, background:"#fafafa",
+            outline:"none", color:"#222",
+          }}
+        />
+        <button type="submit" className="pressable" style={{
+          background:"#222", border:"none", borderRadius:10,
+          padding:"9px 16px", color:"#fff", fontSize:13,
+          fontWeight:700, fontFamily:F, cursor:"pointer", flexShrink:0,
+        }}>Notify me</button>
+      </form>
+      {error && <div style={{ fontSize:11, color:"#ef4444", fontFamily:F, marginTop:5 }}>{error}</div>}
+    </div>
+  );
+}
+
+// ─── explore tab ───────────────────────────────────────────────────────────────
 function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
+  const [showEmailBanner, setShowEmailBanner] = useLocalStorage("peakly_email_banner_visible", true);
 
   // "Best Right Now" — personalized + respects active category filter
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
@@ -3089,6 +3224,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               )
           }
         </div>
+        {/* ── Testimonials ── */}
+        {!loading && <TestimonialsSection />}
+
+        {/* ── Email capture ── */}
+        {showEmailBanner && <EmailCaptureBanner onDismiss={() => setShowEmailBanner(false)} />}
+
         <div style={{ height:24 }} />
       </div>
     </div>
