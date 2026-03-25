@@ -1,16 +1,26 @@
-# PEAKLY DAILY BRIEFING — 2026-03-25
+# PEAKLY DAILY BRIEFING — 2026-03-24
 
 ## STATUS: YELLOW
 
-Two fixes shipped today ($9/mo pricing + cache buster), but the flight proxy remains down for 3+ days and zero user-facing features have shipped since the UX 9.5 polish. Reddit launch is ready but every day without it is wasted distribution.
+Significant code shipped (10 new venues, Plausible events, JSON-LD, Set Alert button, hiking gear, deep links, WCAG fixes, $79/yr pricing fix), but the flight proxy is still broken for every production user and the Reddit post has not gone out yet. The team is shipping well; distribution is the bottleneck.
 
 ---
 
 ## SHIPPED TODAY
 
-- **$9/mo -> $79/yr pricing fix** (PM agent, P1) -- prevents price anchoring damage before any real user sees it
-- **Cache buster updated to v=20260325a** -- users now get fresh code
-- **DevOps report v8** -- confirmed proxy is alive but rejecting requests (two bugs: HTTP-only + host restriction)
+- 10 new venues (diving +4, climbing +3, kite +3) -- 192 total, 100% photo coverage
+- 5 Plausible custom events wired and firing (Tab Switch, Venue Click, Flight Search, Wishlist Add, Onboarding Complete)
+- Plausible upgraded to `script.hash.js` for SPA hash tracking
+- JSON-LD structured data live (WebSite + WebApplication + Organization)
+- Static h1 fallback in index.html for crawlers
+- "Set Alert" button in VenueDetailSheet -- 2 taps instead of 7
+- Venue deep links shipped (`#venue-{id}` hash routing) -- every venue is now shareable
+- Hiking GEAR_ITEMS added (4 items, 1 Amazon link earning immediately)
+- $9/mo pricing bug fixed to $79/yr
+- Cache buster updated to v=20260325a
+- WCAG contrast improvements on SearchBar subtitle, carousel labels, affiliate text
+- BottomNav touch targets fixed to 46px (passes 44px minimum)
+- SEO score: 81% -> 92%. QA: 10/11 pass. Design score: 9.4/10.
 
 ---
 
@@ -18,11 +28,12 @@ Two fixes shipped today ($9/mo pricing + cache buster), but the flight proxy rem
 
 | Decision | Source |
 |----------|--------|
-| GA4 CUT -- Plausible is sufficient, no second analytics tool | PM v8 |
-| Offline/service worker CUT -- incompatible with live-data product | PM v8 |
-| Dark mode CUT -- no signal it moves the needle | PM v8 |
-| Trips + Wishlists tabs DEFERRED to 1K users -- 3-tab nav stays | PM v8 |
-| Launch Reddit despite proxy down -- conditions are the hook, not flights | Growth v9 |
+| GA4 CUT -- Plausible is sufficient | PM |
+| Offline/service worker CUT -- incompatible with live-data product | PM |
+| Dark mode CUT -- no demand signal | PM |
+| Trips + Wishlists tabs DEFERRED to 1K users -- 3-tab nav stays | PM |
+| Reddit launch greenlit, gated on photo coverage (done) + detail sheet polish (not done) | PM |
+| Launch Reddit despite proxy down -- conditions are the hook, not flights | Growth |
 
 ---
 
@@ -30,52 +41,52 @@ Two fixes shipped today ($9/mo pricing + cache buster), but the flight proxy rem
 
 | What | Unblocked By | Specific Action |
 |------|-------------|-----------------|
-| Real flight prices for all users | Jack SSHs into VPS | `pm2 restart all` on 104.131.82.242, then set up HTTPS (Cloudflare tunnel, 10 min) |
-| REI affiliate links (18 links earning $0) | LLC approval | External -- no action available |
-| Backcountry, GetYourGuide affiliate links | LLC approval | External -- no action available |
-| Peakly Pro subscription revenue | LLC + Stripe setup | External -- no action available |
-| Production error visibility | Jack signs up at sentry.io | 5 min, paste DSN into line 6 of app.jsx |
+| Real flight prices for all users | Jack SSHs into VPS | `pm2 restart all` on 104.131.82.242, then Cloudflare Tunnel for HTTPS + add `j1mmychu.github.io` to CORS allowed origins |
+| REI affiliate tags (21 links earning $0) | LLC approval | External -- no action available |
+| Backcountry + GetYourGuide affiliate links | LLC approval | External -- no action available |
+| Peakly Pro subscription wiring (Stripe) | LLC approval | External -- no action available |
+| Production crash visibility | Jack signs up at sentry.io | 5 min, paste DSN into app.jsx line 6 |
 
 ---
 
 ## TOP 3 PRIORITIES THIS WEEK
 
-1. **Post to r/surfing** -- Every day without distribution is a day the 11-agent infrastructure generates reports nobody reads. The post is written, analytics are live, the app renders. Ship it.
+1. **Post to r/surfing** -- The post is written, deep links are live, analytics are wired, 192 venues with 100% photo coverage. Every day without distribution is wasted compound growth. The only pre-flight check: verify the Reddit account has 50+ karma on r/surfing. Post Tuesday or Wednesday, 7-9am Pacific.
 
-2. **Fix VPS proxy (SSH + HTTPS)** -- The flight proxy has been down 3+ days. Mixed content blocks real prices even when the Node process is running. Two bugs: (a) `pm2 restart all` to fix ECONNREFUSED, (b) Cloudflare tunnel for HTTPS. This is 30-45 minutes of Jack's time and it unlocks the "cheap flights" half of the value proposition for every user who comes from Reddit.
+2. **Fix VPS flight proxy (HTTPS + CORS)** -- Two independent bugs: (a) HTTP-only causes mixed content blocking in every browser, (b) CORS rejects `j1mmychu.github.io`. Until both are fixed, every user sees estimated prices and Travelpayouts earns $0. This is 30-60 minutes of VPS work. DevOps agent wrote the exact commands.
 
-3. **Venue Detail Sheet polish (Phase 2.3)** -- This is the conversion surface. When a Reddit surfer taps a venue card, the detail sheet must sell the trip. Needed: sticky flight CTA at bottom, "Set Alert" button (code is written, 0 new state/props), score breakdown on badge tap. UX agent has all the code ready.
+3. **Venue Detail Sheet polish** -- This is the conversion surface. PM flagged it as #2 priority. Needed: full-width photo hero, sticky "Book Flights" CTA (flagged by UX for 2 consecutive reports), condition score breakdown on badge tap, similar venues row. This is where Booking.com and flight clicks happen.
 
 ---
 
 ## RISKS
 
-1. **Flight proxy down for 3+ days with no action taken.** This was flagged in 3 consecutive reports. The proxy Node process is alive but misconfigured (host restriction + no HTTPS). Every user sees "est." prices. If the Reddit post goes live and a commenter asks "are these prices real?" -- they're not. Be ready with a transparent answer and fix it within 48 hours of posting.
+1. **SurfTrips.ai is building in Peakly's space.** 500+ surf breaks with real-time flights and accommodations. If they add live wave scoring, they become a serious surf-vertical threat. KAYAK also launched AI Mode for vibe-based travel discovery at 50M+ user scale. The Window Score (Phase 2) is now a competitive necessity. This risk is new this cycle and has not been acted on.
 
-2. **Open-Meteo rate limit will silently kill the app during a Reddit traffic spike.** 342 API calls per user load = free tier exhausted after 29 concurrent users. No error banner, no fallback UI -- scores just drop to 0. A localStorage weather cache with 30-min TTL extends this to ~10K MAU. Build this before any post that could go viral.
+2. **Open-Meteo rate limit will silently kill the app under viral traffic.** 342 API calls per user load = free tier exhausted after 29 concurrent users. Failure is invisible -- scores drop to 0, hero card shows garbage, no error banner. A localStorage weather cache with 30-min TTL must ship before Reddit. Nobody has started this work.
 
-3. **7 stub categories (1 venue each) are a credibility trap.** A Reddit surfer who taps "Diving" sees exactly 1 result. Data Enrichment agent has 10 paste-ready venues for diving, climbing, and kite. Adding them takes the total from 182 to 192 and makes those categories look intentional rather than abandoned.
+3. **4 category pills (kayak, MTB, fishing, paraglide) each show 1 venue.** A Reddit user who taps any of these sees a single dead-end result. Data Enrichment agent has 10 paste-ready venue objects for these exact categories. Either add them or hide the pills before launch.
 
 ---
 
 ## YOUR TO-DO LIST
 
-1. **Post the r/surfing draft** -- Community agent wrote the complete post and 4-hour engagement playbook. Tuesday or Wednesday, 7-9am Pacific. Verify your Reddit account has 50+ karma on r/surfing first.
+1. **SSH into VPS and fix the flight proxy.** `pm2 restart all` on 104.131.82.242, then set up Cloudflare Tunnel for HTTPS (DevOps report has exact commands), then add `j1mmychu.github.io` to CORS allowed origins. 30-60 min total. This is the single highest-impact task across the entire business right now.
 
-2. **SSH into 104.131.82.242 and run `pm2 restart all`** -- fixes ECONNREFUSED. Then set up Cloudflare tunnel for HTTPS (DevOps agent wrote the exact commands). Total: 30-45 min. This is the single highest-impact technical task.
+2. **Post the r/surfing thread.** Copy-paste-ready post is in Growth and Community reports. Verify your Reddit account has 50+ karma and 30+ days on r/surfing. Best window: Tuesday or Wednesday, 7-9am Pacific.
 
-3. **Sign up at sentry.io, paste DSN into app.jsx line 6** -- 5 minutes. Gives crash visibility before Reddit traffic arrives.
+3. **Sign up for Sentry free tier and paste DSN into app.jsx line 6.** 5 minutes. Without this, if the Reddit post sends 500 surfers and 20% hit a crash, you will not know.
 
-4. **Sign up for REI affiliate via Avantlink** -- 30 min, does NOT require LLC. 18 gear links currently earn $0. Estimated +$4.95 RPM.
+4. **Check LLC application status.** LLC blocks $20.79/1K MAU in additional RPM -- that is $329/month at 5K users sitting on the table. 21 REI links, 2 Backcountry links, 1 GetYourGuide link, and Peakly Pro all wait on this single gate.
 
-5. **Verify the live app loads on your phone** -- open https://j1mmychu.github.io/peakly/ on mobile before posting to Reddit. If it errors, the launch is a no-go.
+5. **Open the live site on your phone before posting to Reddit.** If Babel transpile fails or the screen is blank, the launch is a hard NO-GO.
 
 ---
 
 ## ONE THING NOBODY IS SAYING THAT NEEDS TO BE SAID
 
-Eleven agents are now producing senior-level reports, but the ratio of reports-to-shipped-code has inverted. The last 2 days produced 24 agent reports and 2 code changes (a pricing label fix and a cache buster bump). The agent infrastructure is built -- it works. But the reports are piling up with paste-ready code that nobody is executing: 5 Plausible events (UX + SEO agents, both wrote the exact same code), 10 new venues (Data Enrichment), hiking gear items (Revenue), JSON-LD structured data (SEO), a "Set Alert" button (UX, zero new state required), and 6 WCAG contrast fixes. That is roughly 90 minutes of copy-paste work that would move QA from 8/11 to 10/11, SEO from 81% to 94%, add a retention mechanic, and start generating real product analytics. The bottleneck is not analysis. The bottleneck is someone sitting down and applying the diffs. Either Jack does a 90-minute code session, or the next Claude Code run should be given a concrete list of paste-ready changes and told to execute them -- not analyze them again.
+Every agent is treating the Reddit launch as imminent, but across 11 reports there is a quiet pattern: the team keeps shipping polish and infrastructure (JSON-LD, WCAG contrast fixes, structured data, Plausible events) while the two things that actually determine whether the Reddit post converts -- the flight proxy and the Venue Detail Sheet -- remain untouched for multiple cycles. The proxy has been broken since the beginning. The Detail Sheet's sticky CTA has been flagged as a priority for two consecutive UX reports with no action. The risk is not that the Reddit post fails -- it is that the Reddit post succeeds, sends 500 surfers to a page where every flight price says "est." and the detail sheet lacks a sticky book button, and those 500 surfers leave with a "nice concept, half-baked execution" impression that cannot be undone. The question to ask: should the Reddit post wait 48 more hours while the proxy gets fixed and the Detail Sheet gets a sticky CTA -- or is shipping now with known gaps actually the right call?
 
 ---
 
-*Generated 2026-03-25 by Chief of Staff agent. Sources: all 11 agent reports + git log.*
+*Generated 2026-03-24 by Chief of Staff agent. Sources: all 11 agent reports + git log.*
