@@ -54,7 +54,7 @@ The single file is organized in this order:
 
 1. **Error monitoring & crash detection** (lines 1–66) — Sentry-lite logger, global error/rejection handlers, performance tracking
 2. **CSS injection** (lines 68–136) — animations, tap states, input styles
-3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (~170+ venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
+3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (~192 venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
 4. **Utility functions** (~lines 950–1100) — `useLocalStorage()` hook, `fetchWeather()`, `fetchMarine()`, `fetchTravelpayoutsPrice()`, `scoreVenue()`, `scoreVibeMatch()`, `buildFlightUrl()`
 5. **UI Components** (~lines 1100–4900) — all React components
 6. **App root & ErrorBoundary** (~lines 4900–5413) — root component, ReactDOM render
@@ -180,7 +180,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 6. **Keep the Travelpayouts API token off the client** — always use the VPS proxy.
 7. **Mobile-first design** — all UI should work well on phone screens. Use safe area insets.
 8. **Test in browser** — after changes, verify by opening in a browser. Check console for Babel parse errors.
-9. **Venue data is hardcoded** — the `VENUES` array contains ~170+ entries with coordinates, airport codes, categories, ratings, etc.
+9. **Venue data is hardcoded** — the `VENUES` array contains ~192 entries with coordinates, airport codes, categories, ratings, etc.
 10. **Error boundary exists** — `ErrorBoundary` wraps the app root and provides a fallback UI.
 
 ---
@@ -225,20 +225,27 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Venues trimmed from 333 → 192 with 100% unique Unsplash photos
 - Syntax error fix (double comma at line 300 of app.jsx)
 - Service worker + CDN cache recovery (cache buster bump to v=20260325c)
+- Peakly Pro pricing fixed to $79/yr (was showing $9/mo)
+- Set Alert button added to VenueDetailSheet
 
 ### What's Broken / Missing (Priority Order)
 
-1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. This gates Reddit launch.
+1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. **Gates Reddit launch. Nothing else ships until this is done.** Flagged P1 for 4 consecutive cycles.
 2. **Flight links go to Google Flights (earns $0)** — buildFlightUrl() links to google.com/flights which has no affiliate program. Switch to Aviasales/Travelpayouts deep links to actually earn commission on flight clicks. **REVIEW 2026-03-26.**
-3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, REI), and domain registration (peakly.app).
-4. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
-5. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
-6. **Sentry DSN empty** — Zero production error visibility. Jack: 5 min at sentry.io free tier.
+3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, Backcountry), and domain registration (peakly.app). +$21.17 RPM (+176%) waiting to unlock.
+4. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
+5. **Sentry DSN empty** — Zero production error visibility. Jack: 5 min at sentry.io free tier.
+6. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
 7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
 8. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
-9. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org.
-10. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible live with 5 custom events.
-11. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags.
+9. **No runtime monitoring** — Site went down and zero agents detected it. Need UptimeRobot (5 min) + headless browser test (30 min).
+10. **5 categories have zero Amazon links** — Skiing, climbing, kayak, MTB, hiking gear all REI-only, earning $0. Can add Amazon items now (+$1.50-2.00 RPM).
+11. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org.
+12. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible live with 5 custom events.
+13. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags.
+14. ~~**JSON-LD / SEO**~~ — **DONE** (2026-03-25). Structured data added, SEO at 91%.
+15. ~~**Venue photo duplication**~~ — **DONE** (2026-03-25). Trimmed from 333 → 192 with 100% unique Unsplash photos.
+16. ~~**Syntax error in app.jsx**~~ — **DONE** (2026-03-25). Double comma at line 300 fixed.
 
 ### Decisions Made (2026-03-23 – 2026-03-25)
 
@@ -254,10 +261,16 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **192 venues is enough for launch.** Trimmed from 333. Quality > count. Expansion is post-launch.
 - **Switch flight links from Google Flights → Aviasales/Travelpayouts** (pending review 2026-03-26). Google Flights earns $0. Aviasales deep links with Travelpayouts marker earn commission on actual bookings.
 - **Service worker caching needs care.** SW cached broken index.html and caused extended outage. Future SW updates should bump CACHE_NAME version.
+- **VenueDetailSheet gates Reddit launch** (2026-03-25). Nothing else ships until sticky CTA and photo hero are done. Flagged P1 for 4 consecutive cycles.
+- **Score validation thumbs up/down** (2026-03-25). Add thumbs up/down to score badge in detail sheet, same sprint as redesign. Sends Plausible event with venue + score + category.
+- **Trips + Wishlists DEFERRED** (2026-03-25). Revisit at 1K users. Core flow (Explore → Detail → Book) converts first.
+- **Dark mode CUT** (2026-03-25). No signal this moves retention or acquisition. Not in next 6 months.
+- **Offline support CUT** (2026-03-25). Stale conditions data defeats the entire value prop. Incompatible.
+- **Venue expansion CUT until post-launch** (2026-03-25). 192 quality venues beats 400 mediocre ones.
 
 ### Pre-Launch Checklist (Ordered)
 
-1. [x] Add venue photos (Unsplash URLs) — all 171 venues done
+1. [x] Add venue photos (Unsplash URLs) — all 192 venues done
 2. [x] Update card components to render photos — CompactCard, ListingCard, FeaturedCard, GuidesTab done
 3. [x] Create agent team + scheduled tasks — 7 agents + Chief of Staff briefing running daily
 4. [x] Push .nojekyll file + cache-busting fix — deployed, GitHub Pages working
@@ -272,16 +285,21 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 13. [x] Configure HTTPS on VPS (Caddy + Let's Encrypt on peakly-api.duckdns.org)
 14. [x] JSON-LD structured data + SEO at 91%
 15. [x] Venues trimmed to 192 with 100% unique photos
-16. [ ] **VenueDetailSheet photo hero + sticky CTA** — gates Reddit launch
-17. [ ] **Switch flight links to Aviasales/Travelpayouts** — review 2026-03-26
-18. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL
-19. [ ] Build onboarding flow for new users
-20. [ ] REI Avantlink signup (Jack, 30 min, no LLC needed)
-21. [ ] Sentry DSN setup (Jack, 5 min)
-22. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
-23. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
-24. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
-25. [ ] Reddit + TikTok launch campaign
+16. [x] Syntax error fix (double comma at line 300)
+17. [x] Service worker + CDN cache recovery (cache buster bump to v=20260325c)
+18. [ ] **VenueDetailSheet photo hero + sticky CTA + score breakdown** — **#1 PRIORITY, gates Reddit launch**
+19. [ ] **Score validation thumbs up/down on VenueDetailSheet** — ship same sprint as #18
+20. [ ] **Switch flight links to Aviasales/Travelpayouts** — review 2026-03-26
+21. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL, prerequisite for any growth push
+22. [ ] Sentry DSN setup (Jack, 5 min)
+23. [ ] REI Avantlink signup (Jack, 30 min, no LLC needed)
+24. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
+25. [ ] UptimeRobot + headless browser test — runtime monitoring
+26. [ ] Build onboarding flow for new users
+27. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain (+$21.17 RPM)
+28. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
+29. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
+30. [ ] Reddit + TikTok launch campaign
 
 ### Phase 2 — Expansion (After Launch)
 
@@ -304,14 +322,17 @@ These items cannot proceed until the LLC is approved:
 ### Not Blocked — Can Ship Now
 
 These items can be worked on immediately:
-- VenueDetailSheet photo hero + sticky CTA (dev, 4-6 hrs) — **#1 priority**
-- Switch flight links to Aviasales deep links (dev, 2-3 hrs) — review 2026-03-26
-- Open-Meteo weather cache with localStorage (dev, 2 hrs)
-- Onboarding flow for new users (dev)
-- REI Avantlink signup (Jack, 30 min — no LLC required)
+- **VenueDetailSheet photo hero + sticky CTA + score breakdown** (dev, 4-6 hrs) — **#1 PRIORITY, gates Reddit launch. Nothing else ships until this is done.**
+- **Score validation thumbs up/down** on VenueDetailSheet (dev, 1 hr) — ship same sprint as detail sheet redesign
+- **Switch flight links to Aviasales deep links** (dev, 2-3 hrs) — review 2026-03-26
+- **Open-Meteo weather cache** with localStorage (dev, 2 hrs) — prerequisite for any growth push
 - Sentry DSN setup (Jack, 5 min at sentry.io free tier)
-- Add Amazon links to 5 categories with zero Amazon items (dev, 30 min — +$1.50-2.00 RPM)
-- Score validation thumbs up/down on VenueDetailSheet (dev, 1 hr)
+- REI Avantlink signup (Jack, 30 min — no LLC required)
+- Add Amazon links to 5 zero-Amazon categories: skiing, climbing, kayak, MTB, hiking (dev, 30 min — +$1.50-2.00 RPM)
+- Re-add hiking Amazon link removed in venue trim (dev, 5 min — Osprey Hydraulics Reservoir)
+- UptimeRobot free tier (Jack, 5 min) + headless browser smoke test (dev, 30 min)
+- ListingCard "Book" button Plausible event (dev, one-line fix at ~line 2092)
+- Onboarding flow for new users (dev)
 
 ---
 
@@ -340,17 +361,20 @@ cd ~/peakly && claude "$(cat tasks/agents/product-manager.md)"
 
 ## Revenue Model
 
-| Stream | Status | Est. Revenue per 1K Users/Month |
+| Stream | Status | Est. RPM (per 1K MAU) |
 |--------|--------|-------------------------------|
-| Travelpayouts (flights) | ACTIVE (via proxy) | $15–25 |
-| Booking.com (hotels) | ACTIVE (links exist) | $20–40 |
-| SafetyWing (insurance) | ACTIVE (links exist) | $8–15 |
-| Amazon Associates (gear) | PLACEHOLDER IDs | $10–20 |
-| GetYourGuide (experiences) | PLACEHOLDER IDs | $5–15 |
-| Peakly Pro ($79/year) | UI MOCKUP ONLY | $13/mo at 2% adoption |
+| Amazon Associates (20 links, `peakly-20`) | ACTIVE, EARNING | $4.48 |
+| Booking.com (1 link, `aid=2311236`) | ACTIVE, EARNING | $6.90 |
+| SafetyWing (1 link, `referenceID=peakly`) | ACTIVE, EARNING | $0.54 |
+| Travelpayouts (flights via HTTPS proxy) | ACTIVE, EARNING | $0.14 |
+| REI (22 links, no affiliate tag) | BLOCKED BY LLC | $0.00 (+$6.16 post-LLC) |
+| Backcountry (2 links, no affiliate tag) | BLOCKED BY LLC | $0.00 (+$0.56 post-LLC) |
+| GetYourGuide (1 link, no partner_id) | BLOCKED BY LLC | $0.00 (+$1.28 post-LLC) |
+| Peakly Pro ($79/year) | UI MOCKUP, needs Stripe | $0.00 (+$13.17 post-LLC) |
 
-**Total estimated RPM:** $71–128/month per 1,000 users
-**At 100K users:** $300K–$400K/year
+**Current live RPM:** $12.06/month per 1,000 MAU
+**Post-LLC RPM:** ~$33.23/month per 1,000 MAU (+176%)
+**At 5K MAU (post-Reddit):** $60–166/month depending on LLC status
 
 ---
 
