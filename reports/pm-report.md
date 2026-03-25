@@ -1,126 +1,144 @@
-# PM Report — 2026-03-25 (v11)
+# PM Report: 2026-03-25 (v13)
 
-## Status: YELLOW → improving
-
-192 venues, 100% unique photos, HTTPS proxy live, SEO at 91%, PWA deployed, Plausible fully wired. The overnight trim from 333 → 192 venues was the right call. The app is tighter and more trustworthy. The one thing blocking launch confidence: VenueDetailSheet still has no sticky CTA and no photo hero. Every other agent has now flagged this at least twice. It ships this sprint or nothing else does.
+**Status: YELLOW — Technically stable. Conversion surface still broken. Reddit launch still blocked.**
 
 ---
 
-## Shipped Since Last Report (v10)
+## Overnight Activity Review
 
-| Item | Type | Right call? |
-|------|------|-------------|
-| **Trim to 192 venues with 100% unique photos** — reverted bulk surf expansion | Data quality | **YES.** Previous report flagged photo duplication as a credibility risk. This is the correct resolution. Quality over count. |
-| **Chief of Staff briefing v11 + all 11 agent reports** | Operations | **YES.** Useful context for this session. |
-| **HTTPS proxy (peakly-api.duckdns.org)** | Infrastructure | **YES — P0 resolved.** Real flight prices loading in production. |
-| **PWA manifest + sw.js** | Infrastructure | **YES.** Installability shipped. |
-| **JSON-LD structured data** | SEO | **YES.** SEO now 91% (up from 81%). |
-| **Plausible custom events** (all 5 wired) | Analytics | **YES.** Measurability before launch. |
-| **$79/yr pricing fix** | Bug | **YES — required.** |
-| **Set Alert button in VenueDetailSheet** | UX | **YES.** Alert adoption requires this. |
+### Commits since last report (v5, 2026-03-23)
 
-**What was NOT shipped that should have been:**
-- VenueDetailSheet photo hero + sticky CTA — flagged P1 in v9, v10. Still untouched.
-- ListingCard "Book" button Plausible event — flagged in v9, v10, v11 UX report. 3 consecutive misses.
+Significant sprint across two days. Key commits in rough order:
 
-These are not new items. They are repeat misses. This report escalates both to blocking-launch status.
+| Commit | Verdict | Serves 100K? |
+|--------|---------|-------------|
+| Fix syntax error (double comma, Babel crash) | ✅ Correct. P0 fix. | Yes |
+| Trim 333 → 192 venues with unique photos | ✅ Right call. Quality > count. | Yes |
+| PWA manifest + service worker | ✅ Needed for mobile install. | Yes |
+| Plausible analytics (5 events) | ✅ Was blocking all measurement. | Yes |
+| HTTPS proxy (Caddy + Let's Encrypt) | ✅ Unblocked real flight prices. | Yes |
+| JSON-LD structured data (SEO 91%) | ✅ Long-term SEO compound. | Yes |
+| Alert region + date filters | ⚠️ Moderate value. Alerts tab has zero real users. | Maybe |
+| Date-aware scoring + Best Window on cards | ✅ Core UX — differentiated. | Yes |
+| Profile-based hero personalization | ✅ Makes explore feel custom. | Yes |
+| 22 new domestic US airports | ⚠️ Good, but not the constraint. | Maybe |
+| Swipe-down dismiss on detail sheet | ✅ Expected mobile UX. | Yes |
+| Peakly Pro pricing fixed ($79/yr) | ✅ Credibility fix. Was embarrassing. | Yes |
+| Cache buster bumped | ✅ Ops hygiene. | Yes |
+| **VenueDetailSheet photo hero + sticky CTA** | ❌ **Still not done. 4th consecutive cycle.** | Gates launch |
+
+**Assessment:** Good sprint. Infrastructure is now solid — HTTPS, analytics, PWA, SEO, 192 clean venues. But the #1 priority — the detail sheet — has been flagged P1 for 4 cycles and still ships zero. Everything else built was correct; this one omission is the pattern failure.
 
 ---
 
 ## Bug Triage
 
-| Bug | Severity | Status |
-|-----|----------|--------|
-| **VenueDetailSheet — no photo hero, no sticky CTA, no score breakdown** | **P1** — primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. | UNBLOCKED. Dev work 4–6 hrs. |
-| **Sentry DSN empty** — zero production error visibility | **P1** — 192 venues + scoring overhaul, blind to crashes | Jack: 5 min at sentry.io free tier |
-| **ListingCard "Book" button missing Plausible event** | **P2** — secondary flight click entry point goes untracked | One-line fix, app.jsx line ~2092 |
-| **REI affiliate IDs still placeholder** — 21 live links earn $0 | **P2** — unblocked by Avantlink (no LLC required) | Jack: 30 min, avantlink.com |
-| **Open-Meteo rate limit risk** | **P2** — silently kills scores at ~30 concurrent users | Dev: localStorage weather cache, 2 hrs |
-| **Photo quality** | **RESOLVED** — trimmed to 192, all unique | Done |
-| **HTTPS proxy** | **RESOLVED** | Done |
-| **$79/yr pricing** | **RESOLVED** | Done |
-| **Cache buster** | **RESOLVED** | Done |
+### P0 — Launch Blocker
+- **VenueDetailSheet: no photo hero, no sticky CTA, no score breakdown** — Every tap from Explore lands here. This is the conversion surface. Zero Booking.com or flight affiliate revenue flows until this is fixed. It has been P1 for 4 consecutive cycles. **Nothing else ships until this is done.** Estimated effort: 4–6 hours.
+
+### P1 — Core Flow Broken
+- **Flight links earn $0** — `buildFlightUrl()` still points to `google.com/flights`. Google has no affiliate program. Aviasales/Travelpayouts deep links with our marker tag earn actual commission. Every flight click right now is wasted money. Effort: 2–3 hours.
+- **Sentry DSN empty** — `SENTRY_DSN = ""` line 6 of app.jsx. We are completely blind to production JavaScript errors. One bad push and we won't know for days. Jack: 5 minutes at sentry.io, free tier.
+
+### P2 — Friction
+- **Open-Meteo rate limit risk** — Free tier is 10K/day. ~30 concurrent users exhausts it. No weather cache implemented yet. This blocks any marketing push — if a Reddit post drives 200 users, weather breaks for everyone. Effort: 2 hours.
+- **Score validation** — No thumbs up/down on score badge. We're scoring venues with zero feedback loop. Users can't tell us when the score is wrong.
+
+### P3 — Cosmetic / Accepted Risk
+- **AFFILIATE_ID placeholders** — REI and Backcountry links still use placeholder tags (earn $0). Blocked by LLC — accept this for now.
+- **Service worker stale cache risk** — Previous SW incident caused extended outage. CACHE_NAME version bump discipline is critical on every deploy.
 
 ---
 
 ## Known Blockers
 
-| Blocker | Owner | Urgency |
+| Blocker | Owner | Unblocks |
 |---------|-------|---------|
-| VenueDetailSheet polish | Dev | **THIS SPRINT — gates Reddit launch** |
-| Sentry DSN | Jack | Do today (5 min) |
-| REI affiliate via Avantlink | Jack | This week (30 min, unblocked) |
-| LLC approval | External | No action available |
+| LLC approval | Jack (external) | REI, Backcountry, GetYourGuide affiliates, Stripe, Peakly Pro (+$21.17 RPM) |
+| Sentry DSN | Jack (5 min at sentry.io) | Production error visibility |
+| REI Avantlink signup | Jack (30 min, no LLC needed) | +$6.16 RPM on 22 existing links |
+| VenueDetailSheet redesign | Dev (4–6 hrs) | Reddit launch, Booking.com revenue, affiliate CTR |
 
 ---
 
-## Priority Decisions — Top 3 This Sprint Only
+## Top 3 Priorities This Week
 
-**1. VenueDetailSheet — ship photo hero + sticky CTA** *(Dev, 4–6 hrs)*
+### 1. VenueDetailSheet photo hero + sticky CTA + score breakdown
+Full-width photo hero at top. Sticky "Book Flights" button anchored to bottom. 7-day forecast inline. Score breakdown (what's good, what's borderline). Thumbs up/down on score badge. Similar venues at bottom. This is the entire conversion funnel. Reddit traffic, Booking.com, Travelpayouts — all depend on this one component. **4 cycles of deferral ends now. This ships before anything else.**
 
-This is the only thing that moves revenue. Booking.com and Travelpayouts earn $0 from a detail sheet users scroll past. Required elements: full-width photo header (venue.photo already exists on every entry), sticky bottom bar with "Book Flights →" (Travelpayouts deep link) and "Find Hotels →" (Booking.com dynamic link already built at line 5261), tappable score badge that expands to a 3-line breakdown ("Wave: 8ft ideal. Wind: offshore. Swell: 14s"). Nothing else ships until this is done.
+**Definition of done:** User taps a venue card, sees a hero photo, sees conditions clearly explained, can tap one button to book flights with a Travelpayouts/Aviasales deep link.
 
-**2. Sentry DSN + REI Avantlink signup** *(Jack, 35 min total — unblocked today)*
+### 2. Switch flight links to Aviasales/Travelpayouts deep links
+`buildFlightUrl()` generates URLs to `google.com/flights`. Google earns the click. We earn $0. Aviasales deep links with Travelpayouts marker earn commission on actual bookings. This is a 2–3 hour change that turns every flight click into real revenue. Ship this in the same sprint as the detail sheet.
 
-Both are Jack actions, not dev work. Sentry: sentry.io free tier, 5 min, gives crash visibility before any public launch. REI via Avantlink: avantlink.com, 30 min, no LLC required — 21 live links currently earning $0 flip to ~$4–5/1K RPM uplift. Do these before any Reddit post goes out.
-
-**3. Open-Meteo weather cache** *(Dev, 2 hrs)*
-
-At the traffic spike from a Reddit post landing, ~30 concurrent user loads will exhaust the 10K/day free API tier in under an hour. Silent failure mode: all venue scores drop to 0, hero shows garbage, users assume the app is broken and churn. One localStorage cache keyed by `${lat}_${lon}_${date}` with 30-minute TTL eliminates this risk entirely through ~10K MAU. Prerequisite for any growth push.
+### 3. Open-Meteo weather cache (localStorage, 30-min TTL)
+~30 concurrent users exhaust the free tier. One Reddit post driving 200 visits breaks weather for everyone. Cache the weather response in localStorage keyed by `{lat}_{lon}_{date}` with 30-minute TTL. 2 hours of work. This is the prerequisite for any distribution push.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Verdict | Reason |
+| Feature | Decision | Reason |
 |---------|---------|--------|
-| Expand to 400 ski towns | **CUT** | 192 venues is enough for launch. Expansion before Reddit launch is backwards. |
-| Expose Trips + Wishlists tabs | **DEFER to 1K users** | Core flow (Explore → Detail → Book) converts first. More tabs = more confusion for new users. |
-| Hotel affiliate deep links per venue | **DEFER** | Generic Booking.com dynamic link (already built) is good enough. Per-venue research is post-launch work. |
-| Tide data for surf spots | **DEFER to Phase 3** | Scoring overhaul just shipped. Let it prove itself before stacking more data inputs. |
-| Avalanche risk for ski | **DEFER to Phase 3** | Same rationale. |
-| Fuzzy search / search history | **DEFER** | Detail sheet conversion comes first. Search is a retention feature, not an acquisition feature. |
-| Dark mode | **CUT** | No signal this moves retention or acquisition. Not in next 6 months. |
-| Offline support | **CUT** | Stale conditions data defeats the entire value prop. Incompatible. |
-| Static landing pages for SEO | **DEFER** | SEO at 91% is sufficient for Phase 1. Client-rendered SPA is acceptable pre-100K. |
-| Add 50+ venues (South America, Africa, SE Asia) | **CUT until post-launch** | 192 quality venues beats 400 mediocre ones. Expansion after detail sheet converts. |
+| Dark mode | **CUT** | Zero signal it moves retention or acquisition. Not in next 6 months. |
+| Offline support | **CUT** | Stale conditions data defeats the value prop entirely. Incompatible with the product. |
+| Trips + Wishlists tabs | **DEFER** | Revisit at 1K users. Core Explore → Detail → Book flow converts first. |
+| Venue expansion (400+) | **DEFER** | 192 quality venues > 400 mediocre ones. Post-launch. |
+| Hotel affiliate deep links per venue | **DEFER to detail sheet sprint** | Right idea, wrong timing. Build inside VenueDetailSheet redesign, not standalone. |
+| 50+ new venues (South America, Africa, SE Asia) | **DEFER** | Distraction. Breadth does not convert at this stage. |
+| Fuzzy search / search history | **DEFER** | Doesn't move acquisition or revenue. Post-launch. |
+| Alert system UX improvements | **DEFER** | Alerts tab has zero confirmed users. Don't polish what nobody uses yet. |
+| Add 4 airports (LAS, PHX, MSP, DTW) | **SKIP** | BASE_PRICES already has these per CLAUDE.md. Check before adding. |
+| Trip insurance CTA (World Nomads) | **DEFER** | Not in top 10 revenue drivers. Add after LLC unblocks main affiliates. |
+
+---
+
+## Explicit Product Decisions This Session
+
+1. **SHIP: VenueDetailSheet redesign.** It has been P0 for 4 consecutive cycles. It ships before the next commit on any other feature. Period.
+
+2. **SHIP: Aviasales flight links in same sprint.** `buildFlightUrl()` change is 2–3 hours of surgical code. Every flight click currently earns $0. This is a revenue switch, not a feature.
+
+3. **CUT: Score validation as a standalone task.** Thumbs up/down ships inside VenueDetailSheet redesign, not as a separate item. It has no UX home until the detail sheet is rebuilt. Combining these is correct — do not split.
 
 ---
 
 ## Success Criteria
 
-**90-day target: 5K–8K users.** What separates 8K from 5K:
+### What defines success?
 
-| Lever | 5K scenario | 8K scenario |
-|-------|------------|------------|
-| Reddit launch quality | Text post, modest engagement | Viral screenshot — live condition alert firing, real venue score visible |
-| Detail sheet | Users tap, bounce back (no sticky CTA) | Photo hero + sticky CTA drives Booking.com + flight clicks, screenshot-worthy |
-| Alert adoption | <5% set an alert | Set Alert button + VenueDetailSheet prompt drives 10%+ adoption → daily active users |
-| Score transparency | Users see number, don't trust it | Tappable breakdown builds trust, gets shared |
-| Crash rate | Silent errors drive unexplained churn | Sentry live, P0 crashes caught within hours not Reddit complaints |
+| Metric | Threshold | How We Measure |
+|--------|-----------|-------------|
+| 90-day users | 5K–8K | Plausible unique visitors |
+| D7 retention | >15% | Plausible return visits within 7 days |
+| Affiliate RPM (live now) | >$15/1K MAU | Booking.com + Amazon + Travelpayouts clicks |
+| Flight affiliate CTR | >3% on detail view | Plausible `flight_click` events |
+| Reddit launch | Zero mod removals, 200+ visits per post | Plausible referral source |
 
-**Current trajectory: 5K if we launch today. 8K requires detail sheet + Sentry live first.**
+### Path to 8K, not 5K
 
----
+The delta between 5K and 8K at 90 days is three things:
 
-## One Product Risk Nobody Is Talking About
+1. **VenueDetailSheet converts.** If users tap a venue and bounce — no photo, no clear CTA — Reddit traffic is entirely wasted. A working detail sheet with a sticky Book button is the #1 lever. This alone could double 90-day users.
 
-**The scoring algorithm is now the app's primary trust signal — and it has never been validated by real users.** The deep overhaul shipped 12 rewritten algorithms without any user feedback loop. If a surfer opens Puerto Escondido on a 12-foot day and the app shows "Poor — 34/100," they will close the tab and never return. There is no mechanism to collect user corrections, no way to know if scores feel right, and no A/B test running. The fix is cheap: add a single thumbs up/thumbs down on the score badge in VenueDetailSheet. One tap sends a Plausible event with venue name + score + category. After 200 responses, you'll know if the algorithms need recalibration. Ship this in the same sprint as the detail sheet redesign.
+2. **Per-venue share URLs work.** Every share right now points to the generic homepage. Per-venue deep links let one Reddit comment on r/surfing showing Pipeline conditions drive return traffic from that exact comment for weeks. Without this, social sharing is a dead end.
 
----
-
-## Decisions Made
-
-| Date | Decision |
-|------|----------|
-| 2026-03-25 | **VenueDetailSheet gating Reddit launch** — nothing ships until sticky CTA and photo hero are done. |
-| 2026-03-25 | **192 venues is correct** — freeze expansion. Quality over count. |
-| 2026-03-25 | **Score validation thumbs** — add thumbs up/down to score badge in detail sheet, same sprint. |
-| 2026-03-25 | **Trips + Wishlists DEFERRED** — revisit at 1K users. |
-| 2026-03-25 | **Offline/service worker CUT** — incompatible with live-data use case. |
-| 2026-03-25 | **Dark mode CUT** — no signal. |
-| 2026-03-25 | **Static landing pages DEFERRED** — 91% SEO is sufficient for Phase 1. |
+3. **D7 retention above 15%.** We have no return mechanism — no push notifications, no email digest. The Alerts tab exists but fires nothing real. Weather cache enables a daily condition-checking habit. These compound: a user who checks Peakly 4 days/week becomes an evangelist.
 
 ---
 
+## Product Risk Nobody Is Talking About
+
+**The scoring algorithm has zero feedback signal, and it might be systematically wrong.**
+
+We built a proprietary scoring system that tells users conditions are "Epic" or "Firing." We have never validated these scores against actual user experience. If a surfer taps Pipeline, sees 82/100 ("Firing"), flies there, and finds 2-foot slop — they never open the app again and they tell their friends it's broken. The scoring model makes assumptions (wave height thresholds, wind cutoffs, temperature weightings) that have not been tested against ground truth.
+
+We are about to drive Reddit traffic to an unvalidated algorithm. If it's wrong in a detectable way, the Reddit community will identify it within 24 hours and it will define the brand negatively before we have 100 users.
+
+**Mitigation:** Ship thumbs up/down on VenueDetailSheet score badge as part of the detail sheet sprint. Even 20 early user signals will reveal systematic bias before it becomes a reputation problem. This is not a nice-to-have — it's risk management.
+
+---
+
+*Report written: 2026-03-25*
 *Next report: 2026-03-26*
+*Author: PM Agent v13*
