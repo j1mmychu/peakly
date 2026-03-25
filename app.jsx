@@ -4315,7 +4315,7 @@ const AVATAR_COLORS = [
 ];
 
 function OnboardingSheet({ profile, setProfile, onClose }) {
-  const [step,        setStep]       = useState(1);
+  const [step,        setStep]       = useState(0);
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
@@ -4351,28 +4351,89 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
         </div>
 
-        {/* Progress dots */}
-        <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-          {[1,2].map(i => (
-            <div key={i} style={{
-              width: step === i ? 20 : 6, height:6, borderRadius:3,
-              background: step >= i ? "#0284c7" : "#e8e8e8",
-              transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-            }} />
-          ))}
-        </div>
+        {/* Progress dots — only show on setup steps */}
+        {step > 0 && (
+          <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
+            {[1,2].map(i => (
+              <div key={i} style={{
+                width: step === i ? 20 : 6, height:6, borderRadius:3,
+                background: step >= i ? "#0284c7" : "#e8e8e8",
+                transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+              }} />
+            ))}
+          </div>
+        )}
 
-        {/* ── Step 1: Value prop + Airport ── */}
+        {/* ── Step 0: Welcome ── */}
+        {step === 0 && (
+          <div style={{ padding:"20px 28px 0" }}>
+            {/* Brand mark */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:24 }}>
+              <div style={{
+                width:46, height:46, borderRadius:14,
+                background:"linear-gradient(135deg,#0284c7,#38bdf8)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow:"0 4px 16px rgba(2,132,199,0.35)",
+              }}>
+                <svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
+                </svg>
+              </div>
+              <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
+            </div>
+
+            <div style={{ fontSize:32, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, marginBottom:10 }}>
+              Know when<br/>to go.
+            </div>
+            <div style={{ fontSize:15, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:28 }}>
+              Conditions and cheap flights, aligned. Peakly finds your perfect window across surf, snow, and adventure.
+            </div>
+
+            {/* 3 value props */}
+            {[
+              {
+                bg:"#f0f9ff", color:"#0284c7",
+                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z" fill="currentColor"/></svg>,
+                title:"Live condition scores",
+                desc:"Surf, snow, beach, and more — scored 0–100 in real time so you know exactly when it's firing.",
+              },
+              {
+                bg:"#f0fdf4", color:"#16a34a",
+                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title:"Cheap flights from you",
+                desc:"Real-time prices from your home airport. Book when the conditions and the deal line up.",
+              },
+              {
+                bg:"#fef9ec", color:"#d97706",
+                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title:"Strike alerts for your spots",
+                desc:"Get notified the moment your saved venue peaks — conditions and price, together.",
+              },
+            ].map(({ bg, color, icon, title, desc }) => (
+              <div key={title} style={{ display:"flex", gap:14, marginBottom:18 }}>
+                <div style={{
+                  width:40, height:40, borderRadius:12, background:bg, color,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+                }}>{icon}</div>
+                <div style={{ paddingTop:2 }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, lineHeight:1.45 }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Step 1: Airport ── */}
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.2 }}>
-              Never miss your window
+              Where do you fly from?
             </div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24, lineHeight:1.5 }}>
-              We'll tell you when conditions peak and flights drop — for every adventure on your list.
+              We'll show flight prices from your home airport to every spot.
             </div>
 
-            <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>Where do you fly from? ✈️</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
               {US_AIRPORTS.map(ap => {
                 const sel = airport === ap.code;
@@ -4427,11 +4488,11 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           </div>
         )}
 
-        {/* ── Step 2: Sports (simple toggle, no skill levels) ── */}
+        {/* ── Step 2: Sports ── */}
         {step === 2 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into? 🏄</div>
-            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick activities you want to track</div>
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
               {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
                 const sel = sports.includes(cat.id);
@@ -4456,36 +4517,52 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
         )}
 
         {/* Nav buttons */}
-        <div style={{ padding:"24px 24px 8px", display:"flex", gap:10 }}>
-          {step > 1 && (
+        {step === 0 ? (
+          <div style={{ padding:"28px 24px 8px" }}>
+            <button onClick={() => setStep(1)} className="pressable" style={{
+              width:"100%", background:"#222", border:"none", borderRadius:16, padding:"18px 0",
+              color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
+            }}>
+              Get Started
+            </button>
+            <div style={{ textAlign:"center", paddingTop:10 }}>
+              <button onClick={onClose} style={{ background:"none", border:"none", fontSize:12, color:"#bbb", fontFamily:F, cursor:"pointer" }}>
+                Skip for now
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding:"24px 24px 8px", display:"flex", gap:10 }}>
             <button onClick={() => setStep(s => s-1)} className="pressable" style={{
               flex:"0 0 52px", background:"#f5f5f5", border:"none", borderRadius:16,
               fontSize:20, cursor:"pointer",
             }}>←</button>
-          )}
-          {step < 2 ? (
-            <button onClick={() => setStep(2)} className="pressable" style={{
-              flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
-              color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-            }}>
-              Continue →
+            {step < 2 ? (
+              <button onClick={() => setStep(2)} className="pressable" style={{
+                flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
+                color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
+              }}>
+                Continue →
+              </button>
+            ) : (
+              <button onClick={complete} className="pressable" style={{
+                flex:1, background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none",
+                borderRadius:16, padding:"17px 0", color:"white",
+                fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
+                boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
+              }}>
+                Show me what's firing
+              </button>
+            )}
+          </div>
+        )}
+        {step > 0 && (
+          <div style={{ textAlign:"center", padding:"6px 0 4px" }}>
+            <button onClick={onClose} style={{ background:"none", border:"none", fontSize:12, color:"#bbb", fontFamily:F, cursor:"pointer" }}>
+              Skip for now
             </button>
-          ) : (
-            <button onClick={complete} className="pressable" style={{
-              flex:1, background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none",
-              borderRadius:16, padding:"17px 0", color:"white",
-              fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-              boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
-            }}>
-              Show me what's firing
-            </button>
-          )}
-        </div>
-        <div style={{ textAlign:"center", padding:"6px 0 4px" }}>
-          <button onClick={onClose} style={{ background:"none", border:"none", fontSize:12, color:"#bbb", fontFamily:F, cursor:"pointer" }}>
-            Skip for now
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -5762,6 +5839,14 @@ function App() {
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
+
+  // Auto-show onboarding for first-time visitors (slight delay so Explore tab renders first)
+  useEffect(() => {
+    if (!profile.hasAccount) {
+      const t = setTimeout(() => setShowOnboarding(true), 900);
+      return () => clearTimeout(t);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Init search with user's saved home airport (reads localStorage directly before profile state is set)
   const [search, setSearch] = useState(() => ({
