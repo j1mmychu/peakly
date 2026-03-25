@@ -185,7 +185,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-24)
+## Current State (Updated 2026-03-25)
 
 ### What's Been Shipped
 
@@ -218,29 +218,42 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Flight API error handling improved (5s timeout, status tracking, "Estimated prices" banner)
 - 22 new US domestic airports added (CLT, IND, CVG, TUS, OKC, MEM, SDF, PBI, SYR, PWM, GRR, DSM, ICT, LIT, TUL, BOI, GEG, BHM, RIC, ORF, GSP)
 - AIRPORT_CITY lookup expanded with ~40 new entries
+- HTTPS proxy live (Caddy + Let's Encrypt on peakly-api.duckdns.org) — flight prices load over HTTPS
+- PWA manifest + service worker (manifest.json, sw.js, installable on mobile)
+- Plausible analytics with 5 custom events (flight_click, venue_detail, set_alert, search, share)
+- JSON-LD structured data added to index.html (SEO at 91%)
+- Venues trimmed from 333 → 192 with 100% unique Unsplash photos
+- Syntax error fix (double comma at line 300 of app.jsx)
+- Service worker + CDN cache recovery (cache buster bump to v=20260325c)
 
 ### What's Broken / Missing (Priority Order)
 
-1. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (Amazon Associates, GetYourGuide, REI), and domain registration (peakly.app).
-2. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org. Flight prices now load over HTTPS.
-3. **Placeholder affiliate IDs** — REI, Amazon, GetYourGuide links use "AFFILIATE_ID" placeholder. Blocked by LLC approval.
-4. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible was already added. GA4 gtag.js added — Jack needs to create GA4 property and replace G-XXXXXXXXXX placeholder.
-5. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags added.
-6. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
-7. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
-8. **Trips + Wishlists tabs** — Built but still hidden in BottomNav. Guides tab was added instead. Need to decide: add all 5 tabs or keep it lean.
+1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. This gates Reddit launch.
+2. **Flight links go to Google Flights (earns $0)** — buildFlightUrl() links to google.com/flights which has no affiliate program. Switch to Aviasales/Travelpayouts deep links to actually earn commission on flight clicks. **REVIEW 2026-03-26.**
+3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, REI), and domain registration (peakly.app).
+4. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
+5. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
+6. **Sentry DSN empty** — Zero production error visibility. Jack: 5 min at sentry.io free tier.
+7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
+8. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
+9. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org.
+10. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible live with 5 custom events.
+11. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags.
 
-### Decisions Made (2026-03-23 / 2026-03-24)
+### Decisions Made (2026-03-23 – 2026-03-25)
 
 - **Photos before features.** A polished app with fewer features beats a feature-rich app that looks unfinished.
 - **PWA + SEO first, native apps later.** Validate with 1K web users before investing in React Native.
 - **Peakly Pro pricing: $79/year** (not $9/month). Matches AllTrails Peak, converts better.
 - **CTA buttons use #222 (dark)** not blue. Feels more premium.
 - **Remove emoji from UI chrome.** Emoji in category pills, section headers, and badges look amateur. Clean text + SVG only.
-- **"windows available" to "spots"** — nobody understands "windows."
-- **Jekyll was breaking deploys.** Added .nojekyll to bypass Jekyll on GitHub Pages. All future deploys will serve static files directly.
-- **Critical UX fixes first, expansion later.** Ship swipe gestures, date-aware scoring, airport coverage, alert filters, best window display before expanding to 400 ski towns or Epic/Ikon integration.
-- **Cowork for vision/design/strategy, Claude Code for large codebase overhauls.** Use Cowork scheduled agents for daily monitoring and mobile-friendly check-ins. Use Claude Code for multi-hundred-line refactors.
+- **Jekyll was breaking deploys.** Added .nojekyll to bypass Jekyll on GitHub Pages.
+- **Critical UX fixes first, expansion later.** Detail sheet conversion before venue expansion.
+- **Cowork for vision/design/strategy, Claude Code for large codebase overhauls.**
+- **Keep 3-tab bottom nav** (Explore, Alerts, Profile). Trips + Wishlists deferred to 1K users. Fewer tabs = less confusion for new users.
+- **192 venues is enough for launch.** Trimmed from 333. Quality > count. Expansion is post-launch.
+- **Switch flight links from Google Flights → Aviasales/Travelpayouts** (pending review 2026-03-26). Google Flights earns $0. Aviasales deep links with Travelpayouts marker earn commission on actual bookings.
+- **Service worker caching needs care.** SW cached broken index.html and caused extended outage. Future SW updates should bump CACHE_NAME version.
 
 ### Pre-Launch Checklist (Ordered)
 
@@ -255,13 +268,20 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 9. [x] All domestic US airports added (22 new)
 10. [x] Flight API error handling + status indicator
 11. [x] Add PWA manifest + service worker basics (manifest.json, sw.js, apple-mobile-web-app meta)
-12. [x] Add GA4 analytics (gtag.js added — needs Measurement ID from analytics.google.com)
-13. [ ] Build onboarding flow for new users
-14. [x] Configure HTTPS on VPS (Caddy + Let's Encrypt on peakly-api.duckdns.org)
-15. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
-16. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
-17. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
-18. [ ] Reddit + TikTok launch campaign
+12. [x] Analytics — Plausible live with 5 custom events (GA4 removed, Plausible only)
+13. [x] Configure HTTPS on VPS (Caddy + Let's Encrypt on peakly-api.duckdns.org)
+14. [x] JSON-LD structured data + SEO at 91%
+15. [x] Venues trimmed to 192 with 100% unique photos
+16. [ ] **VenueDetailSheet photo hero + sticky CTA** — gates Reddit launch
+17. [ ] **Switch flight links to Aviasales/Travelpayouts** — review 2026-03-26
+18. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL
+19. [ ] Build onboarding flow for new users
+20. [ ] REI Avantlink signup (Jack, 30 min, no LLC needed)
+21. [ ] Sentry DSN setup (Jack, 5 min)
+22. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain
+23. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
+24. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
+25. [ ] Reddit + TikTok launch campaign
 
 ### Phase 2 — Expansion (After Launch)
 
@@ -276,21 +296,22 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 These items cannot proceed until the LLC is approved:
 - Stripe/Paddle integration for Peakly Pro subscriptions
-- Amazon Associates signup (requires business entity)
-- GetYourGuide affiliate signup
-- REI affiliate signup
+- GetYourGuide affiliate signup (needs partner_id)
+- Backcountry affiliate signup
 - peakly.app domain registration (if doing it under business name)
 - Terms of Service / Privacy Policy (need legal entity)
 
 ### Not Blocked — Can Ship Now
 
 These items can be worked on immediately:
-- PWA manifest + service worker
-- GA4 / Plausible analytics
-- Onboarding flow for new users
-- HTTPS on VPS (Let's Encrypt)
-- UI polish (emoji removal, "spots" label, etc.)
-- Expose Trips + Wishlists tabs
+- VenueDetailSheet photo hero + sticky CTA (dev, 4-6 hrs) — **#1 priority**
+- Switch flight links to Aviasales deep links (dev, 2-3 hrs) — review 2026-03-26
+- Open-Meteo weather cache with localStorage (dev, 2 hrs)
+- Onboarding flow for new users (dev)
+- REI Avantlink signup (Jack, 30 min — no LLC required)
+- Sentry DSN setup (Jack, 5 min at sentry.io free tier)
+- Add Amazon links to 5 categories with zero Amazon items (dev, 30 min — +$1.50-2.00 RPM)
+- Score validation thumbs up/down on VenueDetailSheet (dev, 1 hr)
 
 ---
 
