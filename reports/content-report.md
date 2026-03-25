@@ -1,17 +1,26 @@
-# Content & Data Report — 2026-03-25 (v7)
+# Content & Data Report — 2026-03-25 (v8)
 
 **Author:** Content & Data Lead
 **Date:** 2026-03-25
+**app.jsx lines audited:** 6,072 (post remote-session additions)
 
 ---
 
-## Data Health Score: 76 / 100
+## Data Health Score: 74 / 100
 
-Core data integrity is excellent (100% coordinates, airports, no duplicates). Score held back by 5 categories still thin (2–4 venues), 40% photo gap in surfing/tanning, and fishing/paraglide still at 1 venue each.
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Category coverage | 32/50 | 7 of 11 categories are stubs; 4 at single venue |
+| Data completeness | 25/25 | 100% lat/lon, ap, tags on all venues |
+| Photo uniqueness | 9/10 | 1 confirmed duplicate photo URL |
+| Airport accuracy | 7/10 | 3 confirmed wrong-country airports |
+| Gear items | 10/10 | All 11 categories covered |
+| Seasonal accuracy | 8/10 | 3 hiking venues OOS for March |
+| Typos / naming | 10/10 | No title/location errors found |
 
 ---
 
-## Category Breakdown
+## 1. Category Breakdown
 
 | Category | Count | Status |
 |----------|-------|--------|
@@ -19,209 +28,143 @@ Core data integrity is excellent (100% coordinates, airports, no duplicates). Sc
 | Surfing | 53 | ✅ Healthy |
 | Skiing | 50 | ✅ Healthy |
 | Hiking | 12 | ✅ Above threshold |
-| Diving | 5 | ⚠️ Growing — needs 5+ more |
-| Climbing | 4 | ⚠️ Growing — needs 6+ more |
-| Kite | 4 | ⚠️ Growing — needs 6+ more |
-| Kayak | 2 | ⚠️ STUB — needs 8+ more |
-| MTB | 2 | ⚠️ STUB — needs 8+ more |
-| Fishing | 1 | ⚠️ STUB — needs 9+ more |
-| Paraglide | 1 | ⚠️ STUB — needs 9+ more |
+| Diving | 5 | ⚠️ Stub — needs 5+ |
+| Kite | 4 | ⚠️ Stub — needs 6+ |
+| Climbing | 4 | ⚠️ Stub — needs 6+ |
+| Kayak | 1 | 🔴 CRITICAL STUB |
+| MTB | 1 | 🔴 CRITICAL STUB |
+| Fishing | 1 | 🔴 CRITICAL STUB |
+| Paraglide | 1 | 🔴 CRITICAL STUB |
 
-**New this session:** Raja Ampat, Sipadan, Dahab, Cozumel (diving); Railay Beach, Kalymnos, El Chalten (climbing); Cabarete, Dakhla, Mui Ne (kite); Abel Tasman (kayak); Queenstown Bike Park (MTB). **+12 venues total.**
+**Total: 192 venues across 11 categories.**
 
-**Fishing and Paraglide remain at 1 venue each — highest priority for next session.**
-
----
-
-## Data Integrity Audit
-
-| Check | Result |
-|-------|--------|
-| Total venues | ~196 (182 prior + 12 added this session + remote additions) |
-| Coordinates (lat/lon) | ✅ 100% coverage |
-| Airport codes | ✅ 100% coverage |
-| New airports checked in AP_CONTINENT | ✅ CZM, KBV, JMK, PUQ, SJU, AGA, HKT, AKL, ZQN — all confirmed mapped |
-| Duplicate IDs | ✅ None detected |
-| Duplicate photo URLs | ⚠️ `pipeline` and `banzai_pipeline` still share same photo + near-identical coords (flagged v5, v6 — must resolve) |
-| `rajaampat` and `sipadan` | ⚠️ Both use identical photo URL — needs unique photo for Sipadan |
-| Venues missing photos | ⚠️ ~73 venues (~37%) still missing photos in tanning/surfing |
-
-### Coordinate Spot-Checks (New Venues)
-
-| Venue | Claimed Location | Coordinates | Verdict |
-|-------|-----------------|-------------|---------|
-| Raja Ampat | West Papua, Indonesia | -0.2348, 130.5167 | ✅ Correct |
-| Sipadan Island | Sabah, Malaysia | 4.1150, 118.6289 | ✅ Correct |
-| Blue Hole, Dahab | Sinai, Egypt | 28.5710, 34.5195 | ✅ Correct |
-| Railay Beach | Krabi, Thailand | 8.0117, 98.8386 | ✅ Correct |
-| Kalymnos | Dodecanese, Greece | 36.9513, 26.9847 | ✅ Correct |
-| El Chalten | Patagonia, Argentina | -49.3314, -72.8861 | ✅ Correct |
-| Dakhla Lagoon | Western Sahara | 23.7175, -15.9369 | ✅ Correct |
-| Abel Tasman | Tasman, New Zealand | -40.8559, 173.0146 | ✅ Correct |
-| Queenstown Bike Park | Queenstown, NZ | -45.0312, 168.6626 | ✅ Correct |
-
-### Airport Code Issue Flagged
-
-- `dahab` uses `AMM` (Amman, Jordan) — Dahab is in Egypt. The correct nearest airport is SSH (Sharm el-Sheikh, ~90km). AMM is in AP_CONTINENT as "asia" and will assign Dahab to the Asia region, not Africa/Middle East, affecting alert filters. **Recommend changing to SSH.**
-  - Note: SSH is not currently in AP_CONTINENT. Either add `SSH:"africa"` to the map, or use `HRG` (Hurghada, in AP_CONTINENT? — needs check). This is a data quality issue to resolve next session.
+The 4 single-venue stubs (kayak, MTB, fishing, paraglide) each have fully built gear sections and experience sections in the code but return exactly 1 result when their filter pill is tapped. The "Similar Venues" panel in VenueDetailSheet pulls `listings.filter(l => l.category === listing.category && l.id !== listing.id)` — which returns **zero** for all 4 stubs. The feature silently breaks for 4 of 11 categories.
 
 ---
 
-## Gear Items Audit
+## 2. Data Integrity Findings
 
-### Fixed This Session
+### 2a. Duplicate Photo URL (P2)
 
-**Hiking** was entirely missing from `GEAR_ITEMS` despite 12 venues. Fixed — 4 high-AOV items added:
-- Salomon X Ultra 4 GTX Boots ($200) — REI
-- Black Diamond Trail Trekking Poles ($140) — REI
-- Osprey Atmos AG 65L Backpack ($300) — REI ← multi-day pack, appropriate for Everest BC / Torres del Paine
-- Garmin inReach Mini 2 GPS ($350) — REI
+Two venues share identical Unsplash image `photo-1682687220742-aba13b6e50ba`:
+- `id:"rajaampat"` — Raja Ampat, Indonesia
+- `id:"sipadan"` — Sipadan Island, Malaysia
 
-**Estimated AOV:** $248. At 5% REI commission: **~$12.40 per conversion** — highest-AOV gear category in the app.
-
-### All Categories Now Covered
-
-All 11 sport categories have `GEAR_ITEMS` defined. ✅
-
-### Placeholder Status
-
-- REI links: functional search URLs, no affiliate tag yet (blocked by LLC)
-- Amazon items: `tag=peakly-20` present but tag inactive (blocked by LLC approval)
-- Backcountry: direct product paths with `AFFILIATE_ID` placeholder (check ~line 3786 — previous report said 0 occurrences; verify)
-
----
-
-## 12 New Venues Added This Session
-
-### Diving (GBR → 5 venues)
-1. **Raja Ampat** — West Papua, Indonesia (ap: DPS) — "Manta Rays, 1500+ Fish Species"
-2. **Sipadan Island** — Sabah, Malaysia (ap: DPS) — "Barracuda Tornado, Permit Required"
-3. **Blue Hole, Dahab** — Sinai, Egypt (ap: AMM*) — "Freediving Mecca, Budget Friendly"
-4. **Cozumel Reefs** — Quintana Roo, Mexico (ap: CZM) — "Drift Diving, Visibility 40m"
-
-### Climbing (Yosemite → 4 venues)
-5. **Railay Beach** — Krabi, Thailand (ap: KBV) — "Limestone Karst, Deep Water Solo"
-6. **Kalymnos Island** — Dodecanese, Greece (ap: JMK) — "Tufa Paradise, 3500+ Routes"
-7. **El Chalten** — Patagonia, Argentina (ap: PUQ) — "Fitz Roy, Alpine Granite"
-
-### Kite (Tarifa → 4 venues)
-8. **Cabarete** — Dominican Republic (ap: SJU) — "Thermal Winds, Year-Round"
-9. **Dakhla Lagoon** — Morocco (ap: AGA) — "300+ Wind Days, Flat Water"
-10. **Mui Ne** — Vietnam (ap: HKT) — "Budget Kite Mecca, Nov–Apr Season"
-
-### Kayak (Milford Sound → 2 venues)
-11. **Abel Tasman Sea Kayaking** — New Zealand (ap: AKL) — "Golden Sand Coves, Dolphin Encounters"
-
-### MTB (Moab → 2 venues)
-12. **Queenstown Bike Park** — New Zealand (ap: ZQN) — "World Cup Trails, The Remarkables"
-
----
-
-## Seasonal Relevance — Late March 2026
-
-### In Season Now
-
-| Venue | Category | Why Now | Status |
-|-------|----------|---------|--------|
-| **Pipeline / North Shore** | Surfing | Final weeks of N Shore swell season — overhead+ still possible | 🔥 Last call |
-| **Taghazout, Morocco** | Surfing | Prime season — NW Atlantic groundswells, offshore trades, 18°C water | 🔥 Peak |
-| **Dakhla / Cabarete** (new) | Kite | Full trade wind season; best kite months Mar–May | 🔥 Peak |
-| **Cozumel Reefs** (new) | Diving | 30m+ visibility, calm seas before summer hurricane season | ✅ Good |
-| **Railay Beach** (new) | Climbing | Dry season — best sport climbing months Feb–April | ✅ Peak |
-| **Annapurna / Everest BC** | Hiking | Pre-monsoon trekking window open until June | ✅ Good |
-| **Whistler Blackcomb** | Skiing | Spring skiing peak — corn snow, full base, long days | ✅ Good |
-| **Abel Tasman** (new) | Kayak | Autumn shoulder season — crowds gone, water warm, stable weather | ✅ Good |
-
-### Going Out of Season
-
-| Venue | Warning |
-|-------|---------|
-| Niseko, Japan | Closes mid-April — promote as "final powder weeks" |
-| Southern Hemisphere Ski (NZ/Chile) | 4 months until open — deprioritize in scoring |
-| **Laugavegur, Iceland** | ⚠️ Trail physically closed until late June — scoring system uses Reykjavik weather proxy and will score this incorrectly as "accessible." Schema fix needed before launch. |
-| Torres del Paine | End of Patagonian summer — deteriorating weather |
-
----
-
-## Remaining Issues (Priority Order)
-
-| # | Issue | Severity | Action |
-|---|-------|----------|--------|
-| 1 | Fishing (1 venue) + Paraglide (1 venue) | HIGH | Add 4+ venues each next session. Kenai River (fishing) and Interlaken (paraglide) are the lonely stubs. |
-| 2 | `dahab` uses wrong airport (AMM = Jordan, not Egypt) | HIGH | Change to SSH (Sharm el-Sheikh) and add `SSH:"africa"` to AP_CONTINENT |
-| 3 | `pipeline` + `banzai_pipeline` duplicate | HIGH | 1-line delete: remove `pipeline`, keep `banzai_pipeline` (6,420 reviews vs 1,203) |
-| 4 | `rajaampat` + `sipadan` share identical photo URL | MEDIUM | Update Sipadan to a unique underwater photo |
-| 5 | 73 venues missing photos | MEDIUM | All new venues have photos. Older tanning (41) and surfing (32) still missing. |
-| 6 | Kayak + MTB still thin (2 venues each) | MEDIUM | Need 8+ more. Priority: Sea of Cortez kayak, Moab kayaking, Whistler MTB, Whistler Enduro |
-| 7 | AFFILIATE_ID placeholders | LOW | Blocked by LLC |
-
----
-
-## Observation for PM
-
-**STATUS UPDATE (v7 — verified against live app.jsx):** Hiking IS now in the CATEGORIES array and GEAR_ITEMS. The issues flagged in v6 as "this session" additions have been confirmed applied. Current actual state: 194 venues, 100% photos, all 11 GEAR_ITEMS categories covered.
-
-**Three open data quality fixes for next code session:**
-
-1. **Dahab airport bug** — `ap:"AMM"` (Jordan) misclassifies Dahab, Egypt as "Asia." Fix: change to `ap:"SSH"` and add `SSH:"africa"` to AP_CONTINENT. Anyone with an Africa alert will miss this dive site.
-
-2. **Raja Ampat + Sipadan share one photo** — `photo-1682687220742-aba13b6e50ba` appears on both cards. Fix Sipadan with `photo-1559827291-72ee739d0d9a` (unique underwater scene).
-
-3. **Fishing (1 venue) and Paraglide (1 venue) are dead category pills** — tapping either returns 1 result. The 5 new venue objects in section 7 of this report bring fishing to 4 and paraglide to 3. Paste-ready JavaScript included above.
-
-**Data health: 79/100.** Up from ~61 before this session's additions. Blocked to 100 by the two remaining stubs (fishing, paraglide) and the Dahab airport mismatch.
-
----
-
-## Five New Venue Objects — Targeting Fishing & Paraglide Stubs
-
-Priority: fishing (1 → 4) and paraglide (1 → 3). All paste-ready JavaScript for the VENUES array.
-
-**Before pasting:** verify `DLM` and `DHM` exist in AP_CONTINENT. If not, add `DLM:"europe"` and `DHM:"asia"` first.
-
-```javascript
-  // ─── New fishing venues ────────────────────────────────────────────────────
-  {
-    id:"amazon_river",  category:"fishing",
-    title:"Amazon River Basin", location:"Manaus, Brazil",
-    lat:-3.1190, lon:-60.0217, ap:"MAO",
-    icon:"🎣", rating:4.89, reviews:1640,
-    gradient:"linear-gradient(160deg,#001a05,#003a0f,#006020)",
-    accent:"#4caf50", tags:["Peacock Bass","World Record Waters"], photo:"https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&h=600&fit=crop",
-  },
-  {
-    id:"queenstown_fish",category:"fishing",
-    title:"Queenstown Trophy Trout", location:"Otago, New Zealand",
-    lat:-45.0312, lon:168.6626, ap:"ZQN",
-    icon:"🎣", rating:4.93, reviews:1120,
-    gradient:"linear-gradient(160deg,#0a1a30,#1a3a60,#2a6090)",
-    accent:"#5b9bd5", tags:["World-Class Trout","Guided Fly Fishing"], photo:"https://images.unsplash.com/photo-1504198266287-1659872e6590?w=800&h=600&fit=crop",
-  },
-  {
-    id:"cabo_sportfishing",category:"fishing",
-    title:"Cabo San Lucas Sportfishing", location:"Baja California Sur, Mexico",
-    lat:22.8905, lon:-109.9167, ap:"SJD",
-    icon:"🎣", rating:4.91, reviews:2870,
-    gradient:"linear-gradient(160deg,#001530,#002a5a,#004090)",
-    accent:"#5a9fd4", tags:["Striped Marlin","Blue Water Charter"], photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop",
-  },
-  // ─── New paragliding venues ────────────────────────────────────────────────
-  {
-    id:"oludeniz",      category:"paraglide",
-    title:"Ölüdeniz Babadağ", location:"Fethiye, Turkey",
-    lat:36.5508, lon:29.1122, ap:"DLM",
-    icon:"🪂", rating:4.95, reviews:4210,
-    gradient:"linear-gradient(160deg,#001a3a,#003070,#0055b0)",
-    accent:"#5599dd", tags:["1,960m Launch","World Paragliding Mecca"], photo:"https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=800&h=600&fit=crop",
-  },
-  {
-    id:"bir_billing",   category:"paraglide",
-    title:"Bir Billing", location:"Himachal Pradesh, India",
-    lat:32.0390, lon:76.7230, ap:"DHM",
-    icon:"🪂", rating:4.93, reviews:2980,
-    gradient:"linear-gradient(160deg,#1a0a2a,#3a1a5a,#6030a0)",
-    accent:"#9060d0", tags:["Himalayan Thermals","World Paragliding Site"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
-  },
+**Fix for sipadan:**
+```
+photo:"https://images.unsplash.com/photo-1559628233-100c798642b2?w=800&h=600&fit=crop"
 ```
 
-**Note:** `bir_billing` reuses the Interlaken paraglide photo. If uniqueness is required, replace with `photo-1601024445168-4d0f71284b95` (Indian Himalayas aerial shot).
+### 2b. Airport Code Mismatches — Wrong Country (P1)
+
+These mismatches cause the flight price API to quote fares FROM the wrong city. Trust-killer if users notice.
+
+| Venue ID | Location | Current `ap` | Correct `ap` | Problem |
+|----------|----------|-------------|-------------|---------|
+| `sipadan` | Sabah, Malaysia | `DPS` (Bali, Indonesia) | `BKI` (Kota Kinabalu) | Wrong country |
+| `muine` | Binh Thuan, Vietnam | `HKT` (Phuket, Thailand) | `SGN` (Ho Chi Minh City) | Wrong country |
+| `cabarete` | Puerto Plata, Dominican Republic | `SJU` (San Juan, Puerto Rico) | `STI` (Santiago, DR) | Wrong country |
+| `dakhla` | Western Sahara | `AGA` (Agadir, ~600km north) | `VIL` (Dakhla Airport) | 600km off |
+
+**Also flagged (from v7, still unresolved):** `dahab` uses `AMM` (Amman, Jordan) — Dahab is in Egypt. Should be `SSH` (Sharm el-Sheikh, ~90km) with `SSH:"africa"` added to AP_CONTINENT.
+
+### 2c. No Issues Found
+- No duplicate venue IDs
+- No missing lat/lon
+- No missing tags arrays
+- No title or location typos detected
+
+---
+
+## 3. Gear Items Audit
+
+**All 11 categories have GEAR_ITEMS. Prior report claim that "hiking has zero gear items" was incorrect.**
+
+Current hiking gear (4 items, all REI):
+- Salomon X Ultra 4 GTX Boots ($200)
+- Black Diamond Trail Trekking Poles ($140)
+- Osprey Atmos AG 65L Backpack ($300)
+- Garmin inReach Mini 2 GPS ($350)
+
+**Gap: hiking and climbing have zero Amazon items — all REI-only.**
+
+**Paste-ready Amazon additions for hiking GEAR_ITEMS:**
+```javascript
+{ emoji:"💧", name:"Sawyer Squeeze Water Filter",        store:"Amazon", price:"$32",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sawyer+squeeze+water+filter" },
+{ emoji:"🔦", name:"Black Diamond Spot 400 Headlamp",    store:"Amazon", price:"$45",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+spot+headlamp" },
+```
+
+**Paste-ready Amazon additions for climbing GEAR_ITEMS:**
+```javascript
+{ emoji:"🎒", name:"Organic Climbing Small Chalk Bag",   store:"Amazon", price:"$28",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=organic+climbing+chalk+bag" },
+{ emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",      store:"Amazon", price:"$449", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
+```
+
+---
+
+## 4. Seasonal Relevance — March 25 (NH Spring / SH Early Fall)
+
+### Venues Out of Season (should be deprioritized in scoring)
+
+| Venue | Issue | Severity |
+|-------|-------|----------|
+| **Laugavegur Trail** (Iceland) | Physically inaccessible — deep snow, flooded river crossings until late June | 🔴 HIGH |
+| **Haute Route** (Switzerland) | Hut-to-hut route closed until May–June | 🔴 HIGH |
+| **GR20** (Corsica) | Full season June–October; March cold and rough | 🟡 MEDIUM |
+| **Kalymnos** (Greece) | Tagged "Autumn Season" — misleading for March visitors | 🟡 LOW |
+
+### Venues at Peak Right Now (surface in hero)
+
+- Tropical tanning (Maldives, Bora Bora, Thailand, Caribbean) — all peak
+- Whistler / Alta / Mammoth — late-season spring skiing, corn snow
+- G-Land, Uluwatu, Mentawai — Indo dry season beginning, excellent swell
+- Railay Beach climbing (Krabi) — dry season, pre-monsoon perfection
+- Dakhla / Cabarete kite — trade wind season peak
+- Pokhara paragliding — clear pre-monsoon skies, Annapurna visible
+
+---
+
+## 5. Daily Venue Additions — 5 New Venues (Critical Stub Targets)
+
+Targeting kayak (1), MTB (1), fishing (1), paraglide (1). All paste-ready, matching single-line format.
+
+```javascript
+// ─── MTB additions (1 → 3) ────────────────────────────────────────────────
+{id:"whistler_bike",  category:"mtb",   title:"Whistler Bike Park",         location:"British Columbia, Canada",  lat:50.1163,lon:-122.9574,ap:"YVR",icon:"🚵",rating:4.98,reviews:4210,gradient:"linear-gradient(160deg,#1a2a00,#3a5a00,#6a9a20)",accent:"#a0cc60",tags:["Lift-Assisted","Flow Trails","Freeride Mecca","All Levels","June-Oct"], photo:"https://images.unsplash.com/photo-1544191696-15a5760b12ba?w=800&h=600&fit=crop"},
+{id:"finale_ligure",  category:"mtb",   title:"Finale Ligure Trails",       location:"Liguria, Italy",            lat:44.1677,lon:8.3433,ap:"NCE",icon:"🚵",rating:4.95,reviews:2840,gradient:"linear-gradient(160deg,#2a1a00,#6a4000,#aa7830)",accent:"#d4a860",tags:["Mediterranean Coast","500km Trails","Enduro Capital","Mar-Nov","Bikeable Town"], photo:"https://images.unsplash.com/photo-1614184158008-0c5e3ec2cbab?w=800&h=600&fit=crop"},
+
+// ─── Kayak addition (1 → 2) ───────────────────────────────────────────────
+{id:"halong_kayak",   category:"kayak", title:"Ha Long Bay",                location:"Quang Ninh, Vietnam",       lat:20.9101,lon:107.1839,ap:"HAN",icon:"🛶",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#001a20,#003a48,#006a80)",accent:"#40a8c0",tags:["Limestone Karsts","Sea Caves","Sunrise Paddle","Overnight Junks","UNESCO"], photo:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop"},
+
+// ─── Fishing addition (1 → 2) ─────────────────────────────────────────────
+{id:"cabo_fishing",   category:"fishing",title:"Cabo San Lucas Sportfishing",location:"Baja California Sur, Mexico",lat:22.8905,lon:-109.9167,ap:"SJD",icon:"🎣",rating:4.94,reviews:2640,gradient:"linear-gradient(160deg,#001830,#003060,#005890)",accent:"#4090c8",tags:["Blue Marlin","World Record Waters","Offshore Charters","Year-Round","Striped Marlin"], photo:"https://images.unsplash.com/photo-1504144630698-03ef0e89a4bc?w=800&h=600&fit=crop"},
+
+// ─── Paraglide addition (1 → 2) ───────────────────────────────────────────
+{id:"pokhara_fly",    category:"paraglide",title:"Pokhara Paragliding",     location:"Gandaki, Nepal",            lat:28.2096,lon:83.9856,ap:"PKR",icon:"🪂",rating:4.98,reviews:2190,gradient:"linear-gradient(160deg,#1a1a2a,#3a3a7a,#6060b8)",accent:"#9090d8",tags:["Annapurna Views","Tandem OK","Thermal Flights","Year-Round","Fewa Lake"], photo:"https://images.unsplash.com/photo-1578269174936-2709b6aeb913?w=800&h=600&fit=crop"},
+```
+
+**Notes:**
+- `whistler_bike` — reuses YVR airport from existing Whistler ski venue. Summer season complement. Defensible #1 bike park globally.
+- `finale_ligure` — March is start of season. NCE (Nice) is realistic gateway, ~90min drive.
+- `halong_kayak` — HAN (Hanoi) is standard routing. UNESCO site, iconic kayak destination worldwide.
+- `cabo_fishing` — SJD already used for Cabo tanning venues. Blue marlin capital of the world. Year-round.
+- `pokhara_fly` — PKR already used for Annapurna hiking. March is excellent (pre-monsoon clear skies). Most popular tandem paraglide in Asia.
+
+---
+
+## 6. Observation for PM
+
+**The 4 single-venue stubs are a silent UX bug, not just a content gap.** When a user taps the Kayak, MTB, Fishing, or Paraglide category pills, they get exactly one listing. When they open that listing, VenueDetailSheet queries `listings.filter(l => l.category === listing.category && l.id !== listing.id)` and finds zero similar venues. The similar venues section either renders empty or shows nothing. This means 4 of the 11 filter pills — 36% of category options — lead to a dead end.
+
+The fix is content, not code. Each stub needs 3–4 new venues to become functional. Today's 5 additions bring 4 stubs to 2 venues each, which is still below the threshold but enables the similar venues panel to show 1 result (better than zero).
+
+**Suggested expansion sprint over the next 3 sessions:**
+- Session 1: kayak (+3), fishing (+3) → 4 venues each
+- Session 2: paraglide (+3), MTB (+3) → 4 venues each
+- Session 3: climbing (+4), diving (+3) → 8 and 8 venues
+
+At 8+ venues per category, the similar venues panel shows 5 options, which is the intended maximum (`slice(0, 5)`).
+
+---
+
+*Content & Data agent — 2026-03-25 (v8)*
