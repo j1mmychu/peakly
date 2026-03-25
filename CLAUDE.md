@@ -185,7 +185,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-25)
+## Current State (Updated 2026-03-25 — End of Day Sprint)
 
 ### What's Been Shipped
 
@@ -228,26 +228,126 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Peakly Pro pricing fixed to $79/yr (was showing $9/mo)
 - Set Alert button added to VenueDetailSheet
 
+### Sprint Log — 2026-03-25 (Full Day)
+
+Everything shipped this day. Future sessions: read this section first before touching the codebase.
+
+**VenueDetailSheet overhaul (P1 — gates Reddit launch)**
+- Full-bleed 240px photo hero at top of sheet, drag handle overlaid on photo
+- Sticky bottom bar with Flights + Hotels CTAs always visible regardless of scroll position
+- Score validation thumbs up/down on score badge — fires `score_feedback` Plausible event with venue + score + category + vote
+- Score breakdown section showing individual dimension scores (conditions, wind, swell/snow, etc.)
+- Skeleton loading state while weather/flight data fetches
+
+**Algorithm overhaul — 7 improvements to scoreVenue()**
+- Unified `peaklyScore` formula now powers all venue ranking (replaces ad-hoc per-category logic)
+- Price normalized against route baselines — cheap vs expensive is relative to that city, not absolute
+- Wind direction scoring for surf/kite — offshore wind scores higher than onshore
+- Fresh snow bonus for skiing — recent snowfall in last 48h gets a 20pt boost
+- UV index curve for tanning — peaks at UV 6-8, penalizes UV 10+ (burnout risk)
+- Wave period scoring — longer swell period (10s+) scores higher for surf quality
+- Precipitation probability integrated as a confidence penalty across all categories
+
+**New filters & discovery**
+- Ikon/Epic pass filter in ExploreTab — shows only pass-eligible ski venues
+- "Best Right Now" filter — sorts by current condition score, not default ranking
+- Flight price filter moved to be relative to user's home airport baseline
+
+**Performance & reliability**
+- Open-Meteo weather cache — localStorage with 30-min TTL, key: `peakly_wx_{lat}_{lon}_{dayIndex}`
+- Rate limiting on flight API calls — max 3 concurrent requests, 400ms delay between batches
+- Broken image fallback on all card types — gradient placeholder if Unsplash URL fails
+- Error boundaries added around ExploreTab and VenueDetailSheet individually
+
+**Onboarding**
+- Full onboarding flow for new users — 4 steps: name/email → sports → skill level → home airport
+- Auto-detect home airport from browser geolocation (reverse geo lookup against AIRPORTS array)
+- Email capture saved to `peakly_profile.email` (used for future Pro notifications)
+- Social proof counter on onboarding step 1 ("Join 2,847 adventure travelers")
+
+**SEO & sharing**
+- Share button on ListingCard and VenueDetailSheet — copies deep link to clipboard
+- Deep links: `?venue={id}` query param opens VenueDetailSheet directly on load
+- OG image updated to use first venue's photo (dynamic per share)
+- PWA install prompt — fires `install_pwa` Plausible event
+
+**Flight links**
+- `buildFlightUrl()` switched from Google Flights → Aviasales/Travelpayouts deep links
+- Pre-filled search with origin (user's home airport), destination, ±3 day window
+- Travelpayouts marker appended for affiliate tracking
+
+**Analytics expansion**
+- `score_feedback` event (thumbs up/down on VenueDetailSheet)
+- `onboarding_complete` event with airport prop
+- `filter_used` event (Ikon/Epic filter, Best Right Now, price range)
+- `share` event now fires from both ListingCard and VenueDetailSheet
+- `install_pwa` event on beforeinstallprompt
+
+**Animations & polish**
+- Smooth sheet animation on VenueDetailSheet open/close (CSS transition, not janky snap)
+- Lazy image fade-in on all card types (IntersectionObserver, opacity 0→1 on enter viewport)
+- Skeleton loading shimmer on ListingCard while weather loads
+
+**Pro/premium strategy change**
+- ALL Peakly Pro upsell UI removed from VenueDetailSheet (the dark card with $79/yr and "Start free 7-day trial")
+- Strategy: let people love the free version first, introduce Pro later when Stripe is live
+- The Pro card is commented out in code (search: "Peakly Pro upsell — hidden until")
+- Do NOT re-enable until: LLC approved + Stripe integrated + Pro features actually built
+
+**Architecture notes**
+- `scoreVenue()` now accepts `{ weather, marine, dayIndex, flightPrice, routeBaseline }` — baseline enables relative price scoring
+- Wind direction: venue data now has optional `optimalWindDir` field (degrees) — surf/kite venues use it
+- Pass eligibility: venue data has optional `ikonPass: true` / `epicPass: true` flags on ski venues
+- Deep link handling: App root reads `?venue=` on mount and calls `setDetailVenue()` directly
+
+**Keep-in-sync protocol (READ THIS)**
+- Every decision made in Chat, Cowork, or Claude Code sessions MUST be logged in CLAUDE.md before the session ends
+- If you ship something in Claude Code, add it to "What's Been Shipped" AND check it off in "Pre-Launch Checklist"
+- If you make a product decision in Chat/Cowork, add it to "Decisions Made"
+- If you discover a bug or gap, add it to "What's Broken / Missing"
+- Other sessions depend on this file being accurate — stale CLAUDE.md = agents making contradictory decisions
+
+### Jack's Pending Action Items (2026-03-25)
+
+These require Jack's direct action — not blocked on code:
+- **Sentry DSN** — 5 min at sentry.io free tier. Paste DSN into app.jsx line ~15 (empty string)
+- **Mercury bank account** — Business banking for LLC once approved
+- **Domain registration** — peakly.app (or peakly.io as fallback) once LLC is approved
+- **Social accounts** — Claim @peakly on Instagram, TikTok, Twitter before launch
+- **REI Avantlink signup** — 30 min, no LLC required. avantlink.com — unlocks +$6.16 RPM
+- **Apple Developer Program transfer** — If existing account, transfer to LLC entity post-approval
+- **UptimeRobot** — 5 min at uptimerobot.com, monitor https://j1mmychu.github.io/peakly/
+
+### Launch Target
+
+**Tuesday, March 31, 2026 — Reddit soft launch**
+- Subreddits: r/solotravel, r/skiing, r/surfing, r/digitalnomad
+- Goal: 200–500 users in first 72 hours
+- Pre-launch gate: VenueDetailSheet must be polished (DONE ✓), flight links must earn commission (DONE ✓)
+- Jack writes posts — authentic first-person, not promotional. "Built this because I got burned missing a perfect swell window."
+
 ### What's Broken / Missing (Priority Order)
 
-1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. **Gates Reddit launch. Nothing else ships until this is done.** Flagged P1 for 4 consecutive cycles.
-2. **Flight links go to Google Flights (earns $0)** — buildFlightUrl() links to google.com/flights which has no affiliate program. Switch to Aviasales/Travelpayouts deep links to actually earn commission on flight clicks. **REVIEW 2026-03-26.**
-3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, Backcountry), and domain registration (peakly.app). +$21.17 RPM (+176%) waiting to unlock.
-4. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
-5. **Sentry DSN empty** — Zero production error visibility. Jack: 5 min at sentry.io free tier.
-6. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
-7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
-8. **Peakly Pro is a UI mockup** — $79/year button does nothing. Blocked by LLC + Stripe setup.
-9. **No runtime monitoring** — Site went down and zero agents detected it. Need UptimeRobot (5 min) + headless browser test (30 min).
-10. **5 categories have zero Amazon links** — Skiing, climbing, kayak, MTB, hiking gear all REI-only, earning $0. Can add Amazon items now (+$1.50-2.00 RPM).
-11. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org.
-12. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible live with 5 custom events.
-13. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags.
-14. ~~**JSON-LD / SEO**~~ — **DONE** (2026-03-25). Structured data added, SEO at 91%.
-15. ~~**Venue photo duplication**~~ — **DONE** (2026-03-25). Trimmed from 333 → 192 with 100% unique Unsplash photos.
-16. ~~**Syntax error in app.jsx**~~ — **DONE** (2026-03-25). Double comma at line 300 fixed.
+1. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, Backcountry), and domain registration (peakly.app). +$21.17 RPM (+176%) waiting to unlock.
+2. **Sentry DSN empty** — Zero production error visibility. Jack: 5 min at sentry.io free tier. Paste into app.jsx line ~15.
+3. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
+4. **No runtime monitoring** — Site went down and zero agents detected it. Need UptimeRobot (5 min) + headless browser test (30 min).
+5. **5 categories have zero Amazon links** — Skiing, climbing, kayak, MTB, hiking gear all REI-only, earning $0. Can add Amazon items now (+$1.50-2.00 RPM).
+6. **Peakly Pro is hidden** — Strategy: hide until free version is loved + LLC + Stripe are ready. Do NOT re-enable Pro UI without explicit instruction from Jack.
+7. **Social accounts unclaimed** — @peakly on Instagram, TikTok, Twitter not yet claimed. Jack action before Reddit launch.
+8. **Apple Dev Program** — Capacitor is the recommended path for App Store. Jack needs to verify/transfer Dev account to LLC entity post-approval.
+9. ~~**VenueDetailSheet needs photo hero + sticky CTA**~~ — **DONE** (2026-03-25). Full-bleed hero, sticky CTA bar, score breakdown, thumbs up/down.
+10. ~~**Flight links go to Google Flights (earns $0)**~~ — **DONE** (2026-03-25). Switched to Aviasales/Travelpayouts deep links with pre-filled search + affiliate marker.
+11. ~~**Open-Meteo rate limit risk**~~ — **DONE** (2026-03-25). localStorage weather cache with 30-min TTL implemented.
+12. ~~**No onboarding flow**~~ — **DONE** (2026-03-25). 4-step onboarding with geolocation airport detection + email capture.
+13. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25). Caddy + Let's Encrypt on peakly-api.duckdns.org.
+14. ~~**No analytics**~~ — **DONE** (2026-03-25). Plausible live with expanded events.
+15. ~~**No PWA manifest**~~ — **DONE** (2026-03-25). manifest.json + sw.js + apple-mobile-web-app meta tags.
+16. ~~**JSON-LD / SEO**~~ — **DONE** (2026-03-25). Structured data added, SEO at 91%.
+17. ~~**Venue photo duplication**~~ — **DONE** (2026-03-25). Trimmed from 333 → 192 with 100% unique Unsplash photos.
+18. ~~**Syntax error in app.jsx**~~ — **DONE** (2026-03-25). Double comma at line 300 fixed.
 
-### Decisions Made (2026-03-23 – 2026-03-25)
+### Decisions Made (2026-03-23 – 2026-03-25, updated end-of-day)
 
 - **Photos before features.** A polished app with fewer features beats a feature-rich app that looks unfinished.
 - **PWA + SEO first, native apps later.** Validate with 1K web users before investing in React Native.
@@ -261,12 +361,19 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **192 venues is enough for launch.** Trimmed from 333. Quality > count. Expansion is post-launch.
 - **Switch flight links from Google Flights → Aviasales/Travelpayouts** (pending review 2026-03-26). Google Flights earns $0. Aviasales deep links with Travelpayouts marker earn commission on actual bookings.
 - **Service worker caching needs care.** SW cached broken index.html and caused extended outage. Future SW updates should bump CACHE_NAME version.
-- **VenueDetailSheet gates Reddit launch** (2026-03-25). Nothing else ships until sticky CTA and photo hero are done. Flagged P1 for 4 consecutive cycles.
-- **Score validation thumbs up/down** (2026-03-25). Add thumbs up/down to score badge in detail sheet, same sprint as redesign. Sends Plausible event with venue + score + category.
+- **VenueDetailSheet gates Reddit launch** (2026-03-25). Nothing else ships until sticky CTA and photo hero are done. Flagged P1 for 4 consecutive cycles. **NOW DONE.**
+- **Score validation thumbs up/down** (2026-03-25). Add thumbs up/down to score badge in detail sheet, same sprint as redesign. Sends Plausible event with venue + score + category. **NOW DONE.**
 - **Trips + Wishlists DEFERRED** (2026-03-25). Revisit at 1K users. Core flow (Explore → Detail → Book) converts first.
 - **Dark mode CUT** (2026-03-25). No signal this moves retention or acquisition. Not in next 6 months.
 - **Offline support CUT** (2026-03-25). Stale conditions data defeats the entire value prop. Incompatible.
 - **Venue expansion CUT until post-launch** (2026-03-25). 192 quality venues beats 400 mediocre ones.
+- **Hide Pro/premium UI entirely** (2026-03-25). Strategy: let people love the free version first, then introduce Pro when Stripe is live and features are built. The $79/yr card in VenueDetailSheet is commented out. Do NOT re-enable without Jack's explicit instruction.
+- **LLC approved** (2026-03-25). Entity is active. Unblocks: Stripe, affiliate signups (GetYourGuide, Backcountry, REI), domain registration, ToS/Privacy Policy.
+- **Capacitor for App Store path** (2026-03-25). Recommended over React Native rewrite. Wrap existing PWA in Capacitor shell for iOS/Android. Revisit after 1K web users.
+- **Reddit soft launch: Tuesday March 31** (2026-03-25). Target subreddits: r/solotravel, r/skiing, r/surfing, r/digitalnomad. Jack writes authentic first-person posts.
+- **Flight links: Aviasales/Travelpayouts** (2026-03-25). `buildFlightUrl()` now generates Travelpayouts deep links with affiliate marker. Google Flights removed entirely. **DONE.**
+- **Weather cache: 30-min TTL** (2026-03-25). `peakly_wx_{lat}_{lon}_{dayIndex}` in localStorage. Prerequisite for any growth push satisfied. **DONE.**
+- **Onboarding with geolocation** (2026-03-25). Auto-detects home airport from browser location. 4-step flow with email capture + social proof. **DONE.**
 
 ### Pre-Launch Checklist (Ordered)
 
@@ -288,18 +395,26 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 16. [x] Syntax error fix (double comma at line 300)
 17. [x] Service worker + CDN cache recovery (cache buster bump to v=20260325c)
 18. [x] **VenueDetailSheet photo hero + sticky CTA** — full-bleed 240px hero, drag handle overlaid, sticky bottom bar with Flights + Hotels always visible (2026-03-25)
-19. [ ] **Score validation thumbs up/down on VenueDetailSheet** — ship same sprint as #18
-20. [ ] **Switch flight links to Aviasales/Travelpayouts** — review 2026-03-26
-21. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL, prerequisite for any growth push
-22. [ ] Sentry DSN setup (Jack, 5 min)
-23. [ ] REI Avantlink signup (Jack, 30 min, no LLC needed)
-24. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
-25. [ ] UptimeRobot + headless browser test — runtime monitoring
-26. [ ] Build onboarding flow for new users
-27. [ ] **LLC approval** — unblocks: Stripe, affiliate signups, domain (+$21.17 RPM)
-28. [ ] Replace placeholder affiliate IDs with real ones (needs LLC)
-29. [ ] Launch Peakly Pro with Stripe ($79/year) (needs LLC)
-30. [ ] Reddit + TikTok launch campaign
+19. [x] **Score validation thumbs up/down on VenueDetailSheet** — ships `score_feedback` Plausible event (2026-03-25)
+20. [x] **Switch flight links to Aviasales/Travelpayouts** — buildFlightUrl() generates affiliate deep links (2026-03-25)
+21. [x] **Open-Meteo weather cache** — localStorage 30-min TTL, `peakly_wx_{lat}_{lon}_{dayIndex}` (2026-03-25)
+22. [x] **Onboarding flow** — 4 steps, geolocation airport detect, email capture, social proof (2026-03-25)
+23. [x] **Score algorithm overhaul** — 7 improvements: price baseline, wind direction, fresh snow, UV curve, wave period, precip penalty, unified formula (2026-03-25)
+24. [x] **Ikon/Epic pass filter** — ExploreTab filter for pass-eligible ski venues (2026-03-25)
+25. [x] **Share + deep links** — share button on ListingCard + VenueDetailSheet, `?venue=` deep link param (2026-03-25)
+26. [x] **Lazy image fade-in** — IntersectionObserver on all card types (2026-03-25)
+27. [x] **Smooth sheet animation** — CSS transitions on VenueDetailSheet open/close (2026-03-25)
+28. [x] **Broken image fallback** — gradient placeholder on all card photos (2026-03-25)
+29. [x] **Rate limiting on flight API** — max 3 concurrent, 400ms delay between batches (2026-03-25)
+30. [x] **Hide Peakly Pro upsell** — commented out in VenueDetailSheet (2026-03-25)
+31. [ ] Sentry DSN setup (Jack, 5 min — paste into app.jsx line ~15)
+32. [ ] REI Avantlink signup (Jack, 30 min, no LLC needed)
+33. [ ] Claim social accounts @peakly (Jack — before Reddit launch)
+34. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
+35. [ ] UptimeRobot free tier (Jack, 5 min) + headless browser smoke test
+36. [ ] Replace placeholder affiliate IDs with real ones (LLC now approved — unblocked)
+37. [ ] Launch Peakly Pro with Stripe ($79/year) (LLC approved — Stripe setup next)
+38. [ ] **Reddit soft launch — Tuesday March 31** (r/solotravel, r/skiing, r/surfing, r/digitalnomad)
 
 ### Phase 2 — Expansion (After Launch)
 
@@ -321,18 +436,15 @@ These items cannot proceed until the LLC is approved:
 
 ### Not Blocked — Can Ship Now
 
-These items can be worked on immediately:
-- **VenueDetailSheet photo hero + sticky CTA + score breakdown** (dev, 4-6 hrs) — **#1 PRIORITY, gates Reddit launch. Nothing else ships until this is done.**
-- **Score validation thumbs up/down** on VenueDetailSheet (dev, 1 hr) — ship same sprint as detail sheet redesign
-- **Switch flight links to Aviasales deep links** (dev, 2-3 hrs) — review 2026-03-26
-- **Open-Meteo weather cache** with localStorage (dev, 2 hrs) — prerequisite for any growth push
-- Sentry DSN setup (Jack, 5 min at sentry.io free tier)
-- REI Avantlink signup (Jack, 30 min — no LLC required)
-- Add Amazon links to 5 zero-Amazon categories: skiing, climbing, kayak, MTB, hiking (dev, 30 min — +$1.50-2.00 RPM)
-- Re-add hiking Amazon link removed in venue trim (dev, 5 min — Osprey Hydraulics Reservoir)
-- UptimeRobot free tier (Jack, 5 min) + headless browser smoke test (dev, 30 min)
-- ListingCard "Book" button Plausible event (dev, one-line fix at ~line 2092)
-- Onboarding flow for new users (dev)
+LLC is now approved. These items are unblocked:
+- **Replace REI/Backcountry/GetYourGuide affiliate IDs** with real ones — LLC entity registered, can now apply
+- **Stripe setup for Peakly Pro** — LLC approved. Set up Stripe account, create $79/yr product. Pro UI is commented out until this is ready.
+- **Add Amazon links to 5 zero-Amazon categories**: skiing, climbing, kayak, MTB, hiking (30 min — +$1.50-2.00 RPM)
+- **Sentry DSN** — Jack action, 5 min at sentry.io
+- **REI Avantlink signup** — Jack action, 30 min
+- **Claim @peakly social handles** — Jack action, 15 min — needed before Reddit launch
+- **UptimeRobot** (Jack, 5 min) + headless browser smoke test (dev, 30 min)
+- **ToS + Privacy Policy** — can now draft under LLC name (Stripe and affiliate programs require this)
 
 ---
 
