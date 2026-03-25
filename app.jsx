@@ -297,7 +297,7 @@ const VENUES = [
     icon:"🌊", rating:4.99, reviews:1203,
     gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
     accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1474402656496-6641a08dab21?w=800&h=600&fit=crop",
-  , breakType:"reef"},
+    breakType:"reef"},
   {
     id:"borabora",  category:"tanning",
     title:"Bora Bora Lagoon", location:"French Polynesia",
