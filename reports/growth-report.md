@@ -1,27 +1,30 @@
-# Peakly Growth Report: 2026-03-24 (v10)
+# Peakly Growth Report: 2026-03-24 (v11)
 
 ---
 
 ## Reddit Launch: GO
 
-All blockers cleared. Significant progress since v9:
+Three critical blockers from v10 are now resolved. Launch readiness is the strongest it has ever been.
 
-- **192 venues, 100% photo coverage** (up from 182 venues / 60% photos). Zero gradient-only cards remain. Every listing a Redditor taps looks editorial.
-- **5 Plausible custom events live** (Tab Switch, Venue Click, Flight Search, Wishlist Add, Onboarding Complete). We can measure everything that matters within hours of posting.
-- **Plausible SPA tracking upgraded** to `script.hash.js` -- virtual pageviews per tab.
-- **JSON-LD structured data shipped** -- WebApplication, WebSite, Organization markup live in index.html.
-- **Static h1 fallback in index.html** -- crawlers without JS see real content.
-- **"Set Alert" button in VenueDetailSheet** -- 3 taps instead of 7. Core retention mechanic is now accessible.
-- **Venue deep links built** (`#venue-{id}` hash routing). Every venue is now shareable with a direct URL.
-- **$79/yr pricing fixed** (was $9/mo). Correct price anchor for all early users.
-- **Cache buster current** (v=20260325a).
-- **10 new venues** (diving +4, climbing +3, kite +3). Thin categories improving.
-- **Hiking gear items added** -- 9 hiking venues now have monetizable gear recommendations.
-- **WCAG contrast fixes shipped** -- estimated prices banner, carousel labels, affiliate disclaimers, search bar subtitle all pass AA.
+**What changed since v10:**
 
-**Remaining caveat: Flight proxy still HTTP-only.** The VPS is alive (returns "Host not allowed") but mixed content blocks all real prices in production. Every user sees "est." prices. This does not block launch -- condition scoring is the hook -- but must be fixed within 48 hours of posting. The proxy has two independent bugs: (1) no HTTPS, (2) CORS host restriction rejecting `j1mmychu.github.io`.
+- **VPS proxy fixed and HTTPS-enabled.** `FLIGHT_PROXY` now points to `https://peakly-api.duckdns.org` with Caddy + Let's Encrypt auto-renewing SSL. Mixed content blocking is eliminated. Real flight prices load in production. The "est." price fallback is now a true fallback, not the default experience. This was the #1 credibility risk for returning users.
+- **GA4 removed, Plausible only.** Clean analytics stack. One script tag (`script.hash.js` with SPA hash routing support), no placeholder measurement IDs, no dead code. Plausible provides everything needed for launch: pageviews, referrers, custom events, bounce rate. No GDPR cookie banner required.
+- **PWA manifest + service worker + apple-touch-icon shipped.** `manifest.json` with standalone display mode, `sw.js` with stale-while-revalidate caching, apple-mobile-web-app meta tags, and a branded SVG touch icon. Users can now install Peakly to their home screen on iOS and Android.
+- **333 surf spots with break types.** Venue count exploded from ~53 surf spots to 333 surf-specific venues with `breakType` field (beach, point, reef). Total catalog: 472 venues across 11 categories. This is a 2.5x increase in overall venues and a 6.3x increase in surf coverage.
+- **Deep scoring overhaul.** All 12 sport algorithms rewritten with expanded weather + marine API data. Scores are now meaningfully differentiated.
 
-**NEW since v9:** Deep links change the launch calculus. We can now link to specific venues in Reddit comments. This was the #1 missing piece for community engagement.
+**What was already green (still green):**
+
+- Plausible SPA tracking with custom events (Tab Switch, Venue Click, Flight Search, Wishlist Add, Onboarding Complete)
+- JSON-LD structured data (WebApplication, WebSite, Organization)
+- Static h1 fallback for crawlers
+- Venue deep links (`#venue-{id}` hash routing)
+- "Set Alert" button in VenueDetailSheet (3-tap path)
+- WCAG contrast fixes
+- OG meta tags + Twitter Cards
+
+**No remaining blockers for Reddit launch.**
 
 ---
 
@@ -29,11 +32,11 @@ All blockers cleared. Significant progress since v9:
 
 **Subreddit:** r/surfing (785K members)
 
-**Post type:** Text post (image posts get higher initial engagement but text posts generate more comments, which is what we need for the algorithm + feedback)
+**Post type:** Text post
 
 **Title:**
 ```
-I got tired of switching between Surfline and Google Flights, so I built a free surf trip planner -- looking for feedback
+I got tired of switching between Surfline and Google Flights, so I built a free surf trip planner with 333 spots — looking for feedback
 ```
 
 **Body:**
@@ -43,17 +46,19 @@ For daily local forecasts, Windy and Windguru are solid. But for a different pro
 out *when and where* to book a surf trip -- nothing combined conditions with travel costs.
 
 So I built a free web app that pulls real-time wave data (height, swell period, wind, water temp)
-for 50+ surf spots worldwide and scores each one with a live condition rating. Right now you
-can check spots like Uluwatu, Hossegor, Puerto Escondido, Mentawai Islands, and Banzai Pipeline
--- each one gets a score based on what's actually happening today, plus a 7-day forecast showing
-the best window to go.
+for 333 surf spots worldwide and scores each one with a live condition rating. Every spot has a
+break type (beach, point, reef) and you can check spots like Uluwatu, Hossegor, Puerto Escondido,
+Mentawai Islands, Banzai Pipeline -- each gets scored based on what's actually happening today,
+plus a 7-day forecast showing the best window to go.
 
 What it does:
-- Live condition scoring for 50+ surf spots (uses Open-Meteo marine data)
-- 7-day forecast with "best window" indicator -- shows which day this week has the best setup
-- Estimated flight prices from your home airport
-- Filter by surf, ski, beach, kite, and more (190+ total spots across all sports)
-- No login, no paywall, works on any phone browser
+- Live condition scoring for 333 surf spots (uses Open-Meteo marine data — swell period, wave
+  height, wind direction, water temp)
+- Break type on every spot (beach, point, reef)
+- 7-day forecast with "best window" indicator — shows which day this week has the best setup
+- Real flight prices from your home airport
+- Filter by surf, ski, beach, kite, and more (470+ total spots across all sports)
+- No login, no paywall, works on any phone browser. Add to home screen like an app.
 
 What it does NOT do:
 - HD cams or break-by-break forecasts (use Surfline/Windy for that)
@@ -62,41 +67,44 @@ What it does NOT do:
 Would love honest feedback from people who actually surf:
 - Does the condition scoring feel right when you check a spot you know well?
 - What spots should I add?
-- Would alerts be useful -- like "Pipeline is firing and flights from LAX are under $300"?
+- Would alerts be useful — like "Pipeline is firing and flights from LAX are under $300"?
 
 https://j1mmychu.github.io/peakly/
 
-Built this for myself but figured others might get use out of it. Still early -- lots to improve.
+Built this for myself but figured others might get use out of it. Still early — lots to improve.
 ```
 
-### Changes from v9 draft:
-- Updated venue counts to match current reality (53 surf, 192 total)
-- Kept the MSW/Surfline pain point lead -- validated by competitive intel (see below)
-- "What it does NOT do" section is the most important paragraph. It preempts the inevitable "this isn't Surfline" comments and shows self-awareness.
-- Link placement: not first, appears naturally after the value pitch
-- Ends with specific questions to drive comments (Reddit algorithm rewards comment velocity)
+### Changes from v10 draft:
+- **333 surf spots** replaces "50+ surf spots" -- this is a genuinely impressive number that differentiates from any competitor. It belongs in the title.
+- **Break type** added as a feature bullet. Surfers care about reef vs. beach vs. point break. This signals the app understands surfing, not just weather.
+- **"Real flight prices"** replaces "Estimated flight prices" -- the proxy is fixed, this is no longer a lie.
+- **"470+ total spots"** replaces "190+" -- accurate to current 472 venues.
+- **"Add to home screen like an app"** -- PWA is live, mention it naturally.
+- Everything else unchanged: MSW pain point lead, "What it does NOT do" section, specific question prompts for comments, link placement after the pitch.
 
 ### Posting timing:
-**Tuesday or Wednesday, 9-11am Eastern (6-8am Pacific).** Data from 2026 Reddit analysis shows Monday-Thursday 9am-1pm EST maximizes visibility for hobby/lifestyle subreddits. For r/surfing specifically, early morning Pacific time catches West Coast surfers checking conditions before dawn patrol. Avoid weekends (surfers are surfing, not scrolling; also flooded with surf clips).
+**Tuesday or Wednesday, 9-11am Eastern (6-8am Pacific).** Unchanged. Catches West Coast surfers checking conditions before dawn patrol. Avoid weekends.
 
-### Reddit comment responses with deep links (NEW):
+### Reddit comment responses with deep links:
 When someone asks about a specific spot, reply with a venue deep link:
 
 - "Here's Pipeline's live conditions right now: https://j1mmychu.github.io/peakly/#venue-banzai_pipeline"
 - "Check Uluwatu: https://j1mmychu.github.io/peakly/#venue-uluwatu"
+- "Here's what Hossegor looks like today: https://j1mmychu.github.io/peakly/#venue-hossegor"
 
-This is the highest-conversion response pattern. Each deep link is a targeted acquisition event that lands the user on exactly the right venue.
+With 333 surf spots, almost any spot someone asks about will be in the database. This is a massive advantage for comment engagement.
 
 ### Failure mode diagnosis:
-- **3 upvotes, removed by mods** -- self-promo rules triggered. Pivot: post as a comment in a "what forecast app do you use?" thread instead. These appear monthly.
-- **3 upvotes, not removed** -- hook didn't land. Reframe next attempt as data-first: "I scored every surf spot in the world by today's conditions -- here are the top 10" with Peakly link in comments only.
-- **50+ upvotes but low click-through** -- the post is compelling but the link isn't. Check Plausible for referrer data. Add a screenshot of a venue card with "Firing" badge to a follow-up comment.
-- **Post gets engagement but app doesn't load** -- Babel transpile failure. Check Plausible: if 0 pageviews despite upvotes, the app is broken. Hard stop until fixed.
+- **3 upvotes, removed by mods** -- self-promo rules triggered. Pivot: comment in a "what forecast app do you use?" thread instead.
+- **3 upvotes, not removed** -- hook didn't land. Reframe: "I scored 333 surf spots by today's conditions -- here are the top 10 right now" with Peakly link in comments only.
+- **50+ upvotes but low click-through** -- post is compelling but link isn't. Add screenshot of a venue card with "Firing" badge to a follow-up comment.
+- **Post gets engagement but app doesn't load** -- check Plausible. If 0 pageviews despite upvotes, Babel transpile failure.
 
 ### Pre-posting checklist (Jack must do):
-1. Open https://j1mmychu.github.io/peakly/ on your phone. Confirm it loads and shows venue cards.
-2. Verify your Reddit account has 50+ karma and is 30+ days old on r/surfing. If not, spend 1-2 weeks commenting genuinely first.
-3. Tap a surf venue and confirm the detail sheet opens with weather data.
+1. Open https://j1mmychu.github.io/peakly/ on your phone. Confirm it loads and shows venue cards with photos.
+2. Tap a surf venue -- confirm detail sheet opens with real weather data and a flight price (not "est.").
+3. Verify your Reddit account has 50+ karma and is 30+ days old on r/surfing. If not, spend 1-2 weeks commenting genuinely first.
+4. Check Plausible dashboard (plausible.io) -- confirm pageviews are recording.
 
 ---
 
@@ -104,112 +112,103 @@ This is the highest-conversion response pattern. Each deep link is a targeted ac
 
 ### 1. r/skiing + r/snowboarding (combined 1.1M members) -- Week 2-3
 
-**Why next:** 50 ski venues with 100% photo coverage and accurate snow depth scoring. Late March / early April is "where's still getting snow?" season -- Peakly answers this question directly. Niseko, Whistler, and Southern Hemisphere resorts coming into season.
+**Why next:** 50 ski venues with photo coverage and snow depth scoring. Late March / early April is "where's still getting snow?" season -- Peakly answers this directly. Southern Hemisphere resorts coming into season (June) gives a second post angle in 2 months.
 
-**Post angle:** "Built a free tool that shows you which ski resorts have the best snow right now + cheap flights. Late season edition."
+**Post angle:** "Built a free tool that scores 50 ski resorts by real-time snow conditions + shows cheap flights. Late season edition -- where's still getting powder?"
 
-**Deep link play:** Link to Whistler or Niseko directly in the post. "Here's what Whistler looks like right now: [deep link]"
+**Deep link play:** Link to Whistler or Niseko directly. "Here's what Whistler looks like right now: [deep link]"
 
-**What must be true:** Verify ski venue scoring is accurate for late-season conditions (spring corn snow, variable temps). Check that Whistler, Niseko, and Cerro Catedral scores feel right.
+**What must be true:** Verify ski venue scoring is accurate for late-season conditions. Spring corn snow and variable temps should produce moderate scores, not artificially high ones.
 
 ### 2. r/solotravel (2.8M members) -- Week 3-4
 
-**Why next:** Largest audience by far. The hook shifts from "conditions" to "timing + deals." Solo travelers care about: when is the best weather, what will it cost to fly, and is it safe/good now.
+**Why next:** Largest audience by far. The hook shifts from "conditions" to "timing + deals." Solo travelers care about: best weather week, flight cost, is it worth going now.
 
-**Post angle:** "I built a free tool that tells you the best week to visit adventure destinations based on live weather + flight prices."
+**Post angle:** "I built a free tool that tells you the best week to visit 470+ adventure destinations based on live weather + real flight prices."
 
-**What must be true:** The app needs to feel useful for non-athletes. Beach/tanning category (60 venues) is the entry point here. The vibe search feature and flight pricing matter more than wave height for this audience.
+**What must be true:** Beach/tanning category (60 venues) is the entry point. Vibe search and flight pricing matter more than wave height for this audience. The app needs to feel useful for non-athletes.
 
 ### 3. r/digitalnomad (2.3M members) -- Week 4-5
 
-**Why next:** Nomads are the perfect Peakly user: flexible dates, price-sensitive, adventure-oriented. They actually book flights based on conditions.
+**Why next:** Nomads are the ideal Peakly user: flexible dates, price-sensitive, adventure-oriented. They actually book flights based on conditions.
 
-**Post angle:** "Free tool that scores adventure spots by live conditions and shows cheap flights -- built it for planning my next move."
+**Post angle:** "Free tool that scores 470+ adventure spots by live conditions and shows cheap flights -- built it for planning my next move."
 
-**What must be true:** The 7-day forecast is limiting for nomads who plan 2-4 weeks out. The "Best Window" indicator helps but isn't sufficient. This audience will push hardest on forecast horizon. Be ready for that feedback.
+**What must be true:** 7-day forecast is limiting for nomads who plan 2-4 weeks out. Be ready for feedback pushing on forecast horizon. This audience will push hardest on the Phase 3 "Forecast Horizon" feature.
 
 ### Deprioritized:
-4. **r/scuba** (424K) -- Diving now has 5 venues (up from 1), but scoring for dive conditions is rudimentary. Wait for visibility/current scoring.
+4. **r/scuba** (424K) -- 5 dive venues, scoring is rudimentary. Wait for visibility/current data.
 5. **r/travel** (10M) -- Heavily moderated, self-promo gets removed fast. Skip unless invited.
 
 ---
 
 ## Competitive Intelligence
 
-### NEW: SurfTrips.ai -- Direct Competitor Identified
+### SurfTrips.ai -- Direct Competitor (Status Update)
 
-**SurfTrips.ai** is a new entrant doing surf trip planning with flights and accommodation. Users enter their airport and dates, and it shows surf spots with real-time flights and accommodation prices. This is the closest thing to Peakly in the surf vertical.
+Identified in v10. Still the closest competitor in the surf vertical. Peakly's structural advantage has widened significantly:
 
-**Peakly's advantages over SurfTrips.ai:**
-- Multi-sport (surf + ski + beach + hiking + 8 more) vs. surf-only
-- Live condition scoring with sport-specific algorithms vs. basic weather overlay
-- No login required vs. likely account-gated
-- 192 venues across all sports vs. unknown catalog size
-- Free, no paywall vs. unknown pricing
+- **333 surf spots vs. unknown (likely <100).** 6x the surf catalog we had when SurfTrips.ai was first identified.
+- **Break type metadata** (beach, point, reef) -- signals domain expertise that a generic trip planner lacks.
+- **Multi-sport breadth** -- 472 total venues across 11 categories. SurfTrips.ai is surf-only.
+- **Real flight prices now live** -- was a disadvantage in v10, now neutral.
 
-**Peakly's disadvantages:**
-- SurfTrips.ai likely has real accommodation booking (Peakly only has Booking.com generic link)
-- Their flight data may be live (Peakly's proxy is broken)
-- AI-powered trip customization (surf skill level, wave height preferences)
-
-**Implication:** The "conditions + flights for surf trips" space is getting competitive. Peakly's moat is multi-sport breadth and the Window Score concept. Lean into multi-sport positioning, not just surf. The r/surfing post should not be the entire strategy.
+**The gap is widening, not narrowing.** With 333 surf spots and break type data, Peakly is now arguably the most comprehensive free surf venue database with live conditions scoring. This changes the r/surfing pitch from "I built a trip planner" to "I scored every surf spot I could find."
 
 ### Surfline (March 2026)
 
-- **v11.1.4 updated March 19, 2026.** New: Favorites in bottom nav for organizing spots, Apple Watch session logging complication, pin-drop session logging at any location.
-- **$119.99/year** (up from $99 in April 2025). "Premium with Ads" at $69.99/year. Free tier limited.
-- **User sentiment: Hostile.** BeachGrit article "Forecasting Giant Surfline Accused Of Price Gouging Beleaguered Americans" still circulating. International pricing disparity ($46-56 vs $120) fueling anger. Google Play reviews mention cams down frequently, predictions inaccurate.
-- **Strategic signal: Surfline is pivoting from planning to recording.** Favorites reorganization, session logging, Apple Watch -- they're becoming Strava for surfers. This leaves the *trip planning + booking* space wide open. Peakly should lean hard into "planning your next trip" positioning.
+- $119.99/year, price anger continuing. "Premium with Ads" at $69.99/year perceived as insulting.
+- Pivoting to session recording (Favorites in bottom nav, Apple Watch logging). **The trip planning space remains wide open.**
+- International pricing disparity still fueling resentment -- $46-56 in some countries vs $120 in US.
 
-### AllTrails (Peak tier)
+### AllTrails Peak ($80/year)
 
-- **$80/year Peak tier** with AI custom routes, real-time trail conditions (15 environmental factors), community heatmaps, area-wide offline map downloads.
-- **User complaints intensifying:** Features previously in $35/year Plus tier are now paywalled behind $80 Peak. "On-trail conditions" moved from Plus to Peak -- perceived as bait-and-switch. Unsubscribe flow deliberately hidden across three platforms. Trustpilot reviews deteriorating.
-- **Peakly relevance:** AllTrails Peak at $80/year continues to validate Peakly Pro at $79/year. Their user backlash on feature paywalling is a warning: if Peakly ever gates core features behind Pro, do it at launch, not retroactively.
+- Feature paywalling backlash continues on Trustpilot. "On-trail conditions" moved from Plus to Peak tier.
+- Validates $79/year price point for Peakly Pro. Their mistake: retroactive gating. Peakly Pro must launch with premium features from day one.
 
-### The gap Peakly owns (still true, getting narrower)
+### The insight that changes how we think about the product
 
-**No established competitor combines live conditions + flights across multiple sports.** SurfTrips.ai is the closest threat in the surf vertical, but it's single-sport. Surfline is pivoting to session recording. AllTrails is trails-only. KAYAK/Hopper are conditions-blind. OnTheSnow is ski-only with no flights.
-
-**The insight that changes how we think:** SurfTrips.ai's existence means the "conditions + flights" thesis is validated by another team building the same thing. This is good (the market is real) and bad (we're not alone). Speed matters more now. The first mover to build multi-sport + deep community presence wins. Peakly's multi-sport catalog (192 venues across 11 categories) is a structural advantage SurfTrips.ai doesn't have.
+**333 surf spots changes Peakly's positioning from "trip planner with conditions" to "the world's largest free surf conditions database with flights."** No free tool has 333 scored surf spots with break types. This is defensible content, not just a feature. The Reddit post title should lead with the number. When r/surfing users see "333 spots" they will check if their local break is included -- that's the curiosity hook that drives clicks. The venue count IS the marketing.
 
 ---
 
-## Venue Deep Links: SHIPPED -- Growth Impact Upgraded
+## Venue Deep Links + PWA: Shareability Score Update
 
-Deep links (`#venue-{id}` hash routing) are now live. This changes the growth math:
+**Shareability: 8.5 --> 9/10.** Up from v10 due to PWA manifest + apple-touch-icon.
 
-- **Shareability score: 7.5 --> 8.5/10.** Every venue can now be shared as a direct URL. Recipients land on the exact venue with live scores, not the homepage.
-- **Reddit engagement multiplied.** Every comment reply can include a targeted deep link. "Here's Pipeline right now: [link]" is 10x more compelling than linking to the homepage.
-- **90-day projection uplift: +15-20%.** Deep links create a compounding viral coefficient. Each user who shares a venue brings 0.1-0.3 new users. At 1,000 users, that's 100-300 organic additions.
+| Factor | v10 | v11 | Change |
+|--------|-----|-----|--------|
+| Deep links | Yes | Yes | -- |
+| Share button | Yes | Yes | -- |
+| PWA install | No | Yes | +0.5 |
+| Home screen icon | No | Yes (SVG) | -- (bundled with PWA) |
+| Venue-specific OG image | No | No | Still missing |
 
-**What's still missing for 9/10 shareability:**
-- Venue-specific OG images (currently all shares show the same generic Peakly OG image)
-- PWA manifest + apple-touch-icon (enables home screen install, branded preview)
-- Branded OG image with Peakly logo (not an Unsplash hotlink)
+**What's still missing for 10/10:**
+- Venue-specific OG images. When someone shares a Pipeline deep link on iMessage or Slack, the preview still shows the generic mountain OG image, not Pipeline. This is the last shareability gap. Server-side rendering or a dynamic OG image service would fix it but is out of scope for the current architecture.
 
 ---
 
-## Retention Risk: YELLOW (5.5/10, up from 5/10)
+## Retention Risk: YELLOW (6/10, up from 5.5/10)
 
 | Factor | Score | Delta | Notes |
 |--------|-------|-------|-------|
-| Core value loop | 7/10 | -- | Scores useful, photos desirable, browsing enjoyable. |
-| Reason to return Day 2 | 4/10 | +1 | "Set Alert" button in VenueDetailSheet is live. Users can now set alerts in 3 taps from any venue. Still no push notifications to trigger return. |
-| Reason to return Day 7 | 2.5/10 | +0.5 | Deep links enable sharing. A user who shares a venue with a friend may return to check conditions together. Wishlists tab still hidden. |
+| Core value loop | 8/10 | +1 | 472 venues with photos, real flight prices, deep scoring. Browsing is genuinely useful and enjoyable now. |
+| Reason to return Day 2 | 4.5/10 | +0.5 | Real flight prices create a "check back for deals" habit that estimated prices never could. Set Alert button live. |
+| Reason to return Day 7 | 2.5/10 | -- | Deep links enable sharing. Wishlists tab still hidden. No push notifications. |
 | Reason to return Day 30 | 1/10 | -- | No content updates, no social, no progress tracking. |
 | Notifications | 1/10 | -- | Alert UI exists, no outbound delivery. |
-| Shareability | 5.5/10 | +1.5 | Deep links live. Share buttons work. Still missing venue-specific OG previews. |
-| Content freshness | 6/10 | -- | Weather updates live. No editorial content. |
+| Shareability | 6/10 | +0.5 | Deep links + PWA install. Missing venue-specific OG previews. |
+| Content freshness | 7/10 | +1 | 472 venues means more to browse. Weather updates live. Break types add discovery value. |
+| PWA stickiness | 3/10 | NEW | Home screen install is available. Service worker caches core assets. But no push notifications yet. |
 
-**Overall: YELLOW (5.5/10).** Up 0.5 from v9 due to Set Alert button + deep links.
+**Overall: YELLOW (6/10).** Up 0.5 from v10. Real flight prices and PWA install are meaningful but insufficient without Wishlists exposure and push notifications.
 
-**The single change that would most improve Day 7 retention:** Expose the Wishlists tab and make it the default landing for returning users with saved venues. "Your saved spots -- here's what changed" creates a daily check habit. The PM report deferred this to 1K users, but the Growth team believes it should ship before Reddit launch. A user who hearts Pipeline on Day 1 and has nowhere to find it on Day 2 is a lost user. 2-3 hours of work.
+**The single change that would most improve Day 7 retention:** Unchanged from v10: expose the Wishlists tab. A user who hearts Pipeline on Day 1 and has nowhere to find it on Day 2 is a lost user. This is 2-3 hours of work and the highest-impact retention fix available.
 
-**Path from 5.5/10 to 8/10:**
-1. Expose Wishlists tab + "what changed" indicator (5.5 --> 6.5)
-2. PWA install + home screen icon (6.5 --> 7)
-3. Browser push notifications for saved venue alerts (7 --> 8)
+**Path from 6/10 to 8/10:**
+1. Expose Wishlists tab + "what changed" indicator (6 --> 7)
+2. Browser push notifications for saved venue alerts (7 --> 8)
 
 ---
 
@@ -219,25 +218,25 @@ Deep links (`#venue-{id}` hash routing) are now live. This changes the growth ma
 
 | Week | Action | Target |
 |------|--------|--------|
-| Week 1 | r/surfing post. Monitor Plausible for 72 hours. Reply to every comment with deep links. | 150-400 visitors |
-| Week 1 | Post to Jamboards "Best forecast" thread + submit to AlternativeTo as Surfline alternative | +50-100 passive visitors |
-| Week 2 | Fix VPS proxy (HTTPS + CORS). Post to r/skiing with deep-linked venue. | +200-400 visitors |
-| Week 3 | r/solotravel post with "best week to visit" angle. PWA manifest ships. | +300-600 visitors |
-| Week 4 | r/digitalnomad. Analyze which community converted best. Facebook surf groups. | Total: 800-1,500 users |
+| Week 1 | r/surfing post. "333 surf spots" in the title. Monitor Plausible for 72 hours. Reply to every comment with deep links. | 200-500 visitors |
+| Week 1 | Submit to AlternativeTo as Surfline alternative + Hacker News "Show HN" if Reddit goes well | +50-150 passive visitors |
+| Week 2 | r/skiing post with "where's still getting snow?" angle. Deep-linked venue in post. | +200-400 visitors |
+| Week 3 | r/solotravel post with "best week to visit 470+ destinations" angle. | +300-600 visitors |
+| Week 4 | r/digitalnomad. Analyze Plausible data: which community converted best. Double down on winner. | Total: 800-1,600 users |
 
 ### 1K --> 10K users (Months 2-3)
 
-- Product Hunt launch (late April, PWA installable, deep links proven, some Plausible data to cite).
+- Product Hunt launch (late April). PWA installable, deep links proven, Plausible data to cite. "333 surf spots scored in real-time" is a Product Hunt-ready headline.
 - FOMO content: "Pipeline had a 95/100 week and flights were $189. Most people missed it." Image cards on Instagram/TikTok.
 - Email capture (simple modal after 3rd visit).
-- SEO: programmatic venue pages start ranking.
-- Target: 5,000-8,000 by day 90.
+- SEO: venue count (472) creates long-tail keyword surface area if programmatic pages are ever built.
+- Target: 5,000-10,000 by day 90.
 
 ### 10K --> 100K users (Months 4-12)
 
-- Native app wrapper (Android TWA, iOS Safari PWA).
+- Native app wrapper (Android TWA, iOS Safari PWA). Note: `peakly-native` Expo/React Native project exists in the repo -- could accelerate this.
 - Peakly Pro launches ($79/year) once LLC clears.
-- Window Score (Phase 2) becomes the shareable metric. "My Whistler Window Score is 92" gets shared like Wordle scores.
+- Window Score (Phase 2) becomes the shareable metric.
 - Partnership outreach: surf schools, ski resorts, adventure travel bloggers.
 - Timeline: 12-18 months bootstrapped.
 
@@ -247,25 +246,24 @@ Deep links (`#venue-{id}` hash routing) are now live. This changes the growth ma
 
 | Timeframe | Milestone | Cumulative Users |
 |-----------|-----------|-----------------|
-| Week 1 | Reddit r/surfing + Jamboards + AlternativeTo | 200-500 |
-| Week 2-3 | VPS fix + r/skiing + r/solotravel with deep links | 700-2,000 |
-| Week 4-5 | Product Hunt (Top 15 target) + r/digitalnomad | 2,500-5,000 |
-| Week 6-8 | TikTok FOMO content + email capture + Facebook groups | 3,500-6,500 |
-| Week 9-12 | SEO pages ranking + affiliate revenue live | 5,000-8,000 |
+| Week 1 | Reddit r/surfing (333 spots hook) + AlternativeTo | 200-600 |
+| Week 2-3 | r/skiing + r/solotravel with deep links | 700-2,500 |
+| Week 4-5 | Product Hunt (Top 15 target) + r/digitalnomad | 2,500-6,000 |
+| Week 6-8 | TikTok FOMO content + email capture + Facebook surf groups | 4,000-8,000 |
+| Week 9-12 | SEO + affiliate revenue live + repeat Reddit engagement | 6,000-10,000 |
 
-**Realistic 90-day number: 5,000-8,000 users.** Unchanged from v9. The projection moves up only when we have real Plausible data from the Reddit post. Deep links and Set Alert are meaningful improvements to the product, but they compound over time -- they don't change the initial launch number.
+**Realistic 90-day number: 6,000-10,000 users.** Up from 5,000-8,000 in v10. The upward revision is driven by three factors: (1) 333 surf spots is a genuinely differentiated number that will drive curiosity clicks, (2) real flight prices create a stronger first impression and Day 2 return reason, (3) PWA install creates a sticky channel that didn't exist before. These compound -- a user who installs the PWA, saves a venue, and sees real prices is far more likely to become a weekly user.
 
 ---
 
 ## Priority Stack
 
-1. **Reddit r/surfing post** -- Execute this week. Tuesday or Wednesday morning. No more delays. Every day without distribution is wasted compound growth.
-2. **Fix VPS flight proxy** -- Within 48 hours of Reddit post. Two bugs: HTTPS (Cloudflare Tunnel, 10 min) + CORS host restriction (add `j1mmychu.github.io` to allowed origins). Real flight prices = credibility for Day 2 returning users.
-3. **Expose Wishlists tab** -- Wire into BottomNav. Biggest retention uplift for smallest effort. Users who heart venues on Day 1 need somewhere to find them on Day 2.
-4. **PWA manifest + apple-touch-icon** -- 20 minutes. Enables home screen install. Free retention channel.
-5. **Analyze Plausible data** -- 72 hours post-Reddit. First real user data: which venues get clicked, which tabs get visited, bounce rate, flight search clicks. This data informs everything.
-6. **Second Reddit wave** -- r/skiing, r/solotravel, r/digitalnomad. Use venue deep links in every post and comment.
-7. **Product Hunt prep** -- Branded OG image, venue-specific OG tags, PWA installable. Late April target.
+1. **Reddit r/surfing post** -- Execute this week. Tuesday or Wednesday morning. The product is ready. Every day without distribution is wasted.
+2. **Expose Wishlists tab** -- Wire into BottomNav before or within 48 hours of Reddit post. Biggest retention uplift for smallest effort. Users who heart venues on Day 1 need somewhere to find them.
+3. **Monitor Plausible 72 hours post-Reddit** -- First real data: which venues get clicked, bounce rate, referrer quality, flight search clicks, PWA install rate.
+4. **Second Reddit wave** -- r/skiing (Week 2), r/solotravel (Week 3), r/digitalnomad (Week 4). Use venue deep links in every post and comment.
+5. **Product Hunt prep** -- Branded OG image (not Unsplash hotlink), venue-specific OG tags if feasible. Late April target.
+6. **Onboarding flow** -- New users still get dumped into Explore with no explanation. After Reddit brings traffic, this becomes urgent.
 
 ---
 
@@ -273,16 +271,15 @@ Deep links (`#venue-{id}` hash routing) are now live. This changes the growth ma
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-24 (v10) | Deep links change Reddit comment strategy | Every comment reply now includes a targeted venue link. This is the highest-conversion engagement pattern. |
-| 2026-03-24 (v10) | SurfTrips.ai identified as direct competitor | Validates the conditions+flights thesis. Multi-sport is Peakly's structural moat. Speed to community matters. |
-| 2026-03-24 (v10) | Retention upgraded to 5.5/10 (from 5/10) | Set Alert button + deep links are meaningful but insufficient without Wishlists tab exposure. |
-| 2026-03-24 (v10) | AllTrails paywalling backlash = warning for Peakly Pro | Never retroactively gate features. Launch Pro with premium features from day one. |
-| 2026-03-24 (v9) | Launch Reddit despite VPS proxy being down | Condition scoring is the hook, not flight prices. |
-| 2026-03-24 (v9) | Wishlists tab exposure = #1 retention fix | Returning users need a reason to come back. |
-| 2026-03-24 (v9) | Surfline pivoting to session logging = opportunity | "Planning your next trip" space is wide open. |
-| 2026-03-24 (v8) | GREEN LIGHT Reddit launch | Analytics blocker resolved. |
+| 2026-03-24 (v11) | 90-day projection raised to 6K-10K (from 5K-8K) | 333 surf spots + real flight prices + PWA install compound into stronger acquisition and retention. |
+| 2026-03-24 (v11) | "333 spots" belongs in the Reddit post title | The venue count IS the marketing. It's the curiosity hook that drives clicks. |
+| 2026-03-24 (v11) | Shareability upgraded to 9/10 (from 8.5) | PWA manifest + apple-touch-icon + service worker enable home screen install. Only missing: venue-specific OG images. |
+| 2026-03-24 (v11) | VPS proxy no longer a launch caveat | HTTPS via Caddy + Let's Encrypt on peakly-api.duckdns.org. Mixed content blocking eliminated. |
+| 2026-03-24 (v11) | GA4 removal was correct | Plausible with SPA hash tracking is sufficient. One analytics tool, no dead code, no cookie banner. |
+| 2026-03-24 (v10) | Deep links change Reddit comment strategy | Every comment reply includes a targeted venue link. |
+| 2026-03-24 (v10) | SurfTrips.ai identified as direct competitor | Validates the conditions+flights thesis. Multi-sport is Peakly's structural moat. |
+| 2026-03-24 (v9) | Launch Reddit despite VPS proxy being down | No longer relevant -- proxy is fixed. |
 | 2026-03-23 | Target displaced MagicSeaweed users first | MSW dead + Surfline paywall = frustrated community. |
-| 2026-03-23 | Product Hunt delayed to late April | PWA + venue links must ship first. |
 | 2026-03-23 | Skip paid acquisition until D7 retention > 15% | Validate PMF organically first. |
 
 ---

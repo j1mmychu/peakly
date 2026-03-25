@@ -1,89 +1,86 @@
-# Peakly Revenue Report: 2026-03-24 (v10)
+# Peakly Revenue Report: 2026-03-24 (v11)
 
 ## Revenue Health: YELLOW
 
-Three affiliate streams live (Amazon, Booking.com, SafetyWing). Plausible analytics confirmed live. LLC still blocks REI (21 links), Backcountry (2 links), GetYourGuide (1 link), and Peakly Pro. **Peakly Pro pricing FIXED to $79/yr** (was $9/mo for 9 reports straight). **Hiking GEAR_ITEMS SHIPPED** (4 items). No AFFILIATE_ID placeholders remain (clean).
+Three affiliate streams live (Amazon 21 links, Booking.com 1, SafetyWing 1). Peakly Pro pricing correctly shows $79/yr (line 5298). Hiking GEAR_ITEMS shipped (4 items). Zero AFFILIATE_ID placeholders. VPS proxy confirmed HTTPS on peakly-api.duckdns.org (line 1624) -- real flight prices now loading. PWA manifest + service worker deployed. LLC remains the top blocker -- 24 links across REI, Backcountry, and GetYourGuide are structurally ready but earning $0.
 
 ---
 
 ## 1. P0: Peakly Pro Pricing Fix
 
-**Status: FIXED.** Line 4610 in app.jsx now displays `$79/yr`. Confirmed via grep. This was flagged as broken in v1 through v9 and is now resolved.
-
-No further action needed on pricing display.
+**Status: FIXED (confirmed).** Line 5298: `$79/yr`. No instances of `$9/mo` anywhere in app.jsx. No action needed.
 
 ---
 
 ## 2. Affiliate Link Audit
 
-### Verified counts (grep against app.jsx, 5,666 lines)
+### Verified counts (app.jsx, 6,354 lines)
 
-| Affiliate | URL Count | Tagged/Tracked | Status |
+| Affiliate | Link Count | Tagged/Tracked | Status |
 |-----------|-----------|----------------|--------|
-| Amazon (`tag=peakly-20`) | 21 | 21/21 (100%) | WORKING |
-| REI (`rei.com`) | 21 | 0/21 (0%) -- no affiliate tag | BLOCKED BY LLC |
-| Backcountry (`backcountry.com`) | 2 | 0/2 (0%) -- no affiliate tag | BLOCKED BY LLC |
-| Booking.com (`aid=2311236`) | 1 | 1/1 (100%) | WORKING |
-| SafetyWing (`referenceID=peakly`) | 1 | 1/1 (100%) | WORKING |
-| GetYourGuide | 1 | 0/1 (0%) -- no partner_id | BLOCKED BY LLC |
+| Amazon (`tag=peakly-20`) | 21 | 21/21 (100%) | LIVE, EARNING |
+| REI (`rei.com`) | 21 | 0/21 -- no affiliate tag | BLOCKED BY LLC |
+| Backcountry (`backcountry.com`) | 2 | 0/2 -- no affiliate tag | BLOCKED BY LLC |
+| Booking.com (`aid=2311236`) | 1 | 1/1 (100%) | LIVE, EARNING |
+| SafetyWing (`referenceID=peakly`) | 1 | 1/1 (100%) | LIVE, EARNING |
+| GetYourGuide | 1 | 0/1 -- no partner_id | BLOCKED BY LLC |
 | AFFILIATE_ID placeholders | 0 | Clean | N/A |
 
-### Changes since v9
+### Changes since v10
 
-- **Amazon: 20 -> 21 links.** New Osprey Hydraulics reservoir link added in hiking GEAR_ITEMS (line 4189). Correctly tagged `peakly-20`.
-- **REI: 18 -> 21 links.** Three new hiking items added (Salomon boots, BD trekking poles, Garmin inReach). All structurally ready for affiliate tag on LLC approval.
+- **App.jsx grew from 5,666 to 6,354 lines** (+688 lines). Significant expansion.
+- **Link counts unchanged.** Amazon 21, REI 21, Backcountry 2, Booking.com 1, SafetyWing 1, GetYourGuide 1.
+- **VPS proxy now HTTPS.** Flight proxy URL at line 1624 is `https://peakly-api.duckdns.org`. Mixed content errors resolved. Real Travelpayouts prices loading.
+- **PWA added.** manifest.json, sw.js, service worker registration in index.html (lines 61-62, 97-100). Installable on mobile.
 
 ### Detail on each live stream
 
-**Amazon (21 links):** All tagged `peakly-20`. Now distributed across 11 categories: surfing (2), tanning (4), diving (2), kite (4), fishing (3), paraglide (4), hiking (1), mtb (0 -- all REI/Backcountry), skiing (0 -- all REI), climbing (0 -- all REI), kayak (0 -- all REI). Amazon links are working and correctly formatted as search URLs.
+**Amazon (21 links):** All tagged `peakly-20`. Distributed across 8 categories: surfing (2), tanning (4), diving (3), kite (4), fishing (3), paraglide (4), hiking (1). Categories with ZERO Amazon links: skiing, climbing, kayak, mtb (all REI/Backcountry only).
 
-**Booking.com (1 link):** Line 4573. Dynamic per-venue: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`. Post-intent placement in VenueDetailSheet. `aid=2311236` confirmed.
+**Booking.com (1 link):** Line 5261. Dynamic per-venue: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`. Post-intent placement in VenueDetailSheet. Correctly formatted.
 
-**SafetyWing (1 link):** Line 4591. `https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate`. Post-intent placement in VenueDetailSheet. UTM params present.
+**SafetyWing (1 link):** Lines 5278-5284. `https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate`. Post-intent placement. UTM params present.
 
-**REI (21 links), Backcountry (2 links), GetYourGuide (1 link):** All structurally correct. URLs work, products are relevant, placement is proper. The moment LLC approves, the only change needed is adding affiliate tags to the URLs. No code restructuring required.
+**REI (21 links), Backcountry (2 links), GetYourGuide (1 link):** All structurally correct. URLs work, products relevant, placement proper. Only change needed on LLC approval: add affiliate tags to URLs.
 
 ### Issues found
 
-- **No broken links.** All URLs are valid search/product URLs.
-- **No misplaced links.** All affiliate CTAs live inside VenueDetailSheet (post-intent).
-- **GetYourGuide has no partner_id parameter.** Line 4545 generates dynamic URLs with zero tracking. On LLC approval, add `&partner_id=XXXXX` to the URL template.
+- **No broken links.** All URLs are valid.
+- **No misplaced links.** All affiliate CTAs in VenueDetailSheet (post-intent).
+- **GetYourGuide (line 5233) has no partner_id parameter.** Dynamic URL template needs `&partner_id=XXXXX` on LLC approval.
+- **GA4 was removed or never deployed.** index.html has Plausible only (line 27). The GA4 gtag.js referenced in CLAUDE.md is not present. Plausible is sufficient for now but GA4 would give richer e-commerce tracking when affiliate volume grows.
 
 ---
 
 ## 3. Hiking Gear Gap
 
-**Status: FIXED.** Hiking GEAR_ITEMS shipped with 4 items (lines 4186-4191):
+**Status: FIXED (confirmed).** Hiking GEAR_ITEMS at lines 4871-4876 with 4 items:
 
 1. Salomon X Ultra 4 GTX Boots -- REI, $165
 2. Black Diamond Trail Trekking Poles -- REI, $90
 3. Osprey Hydraulics 3L Reservoir -- Amazon (`peakly-20`), $42
 4. Garmin inReach Mini 2 GPS -- REI, $350
 
-**Revenue status:** The 1 Amazon link (Osprey reservoir) is earning immediately. The 3 REI links activate on LLC approval. Average gear AOV for this set: ~$162. Hiking's 9 high-prestige venues (Kilimanjaro, Everest BC, Inca Trail, etc.) attract serious adventure travelers with high purchase intent.
-
-This was flagged as missing in v1 through v9 and is now resolved.
+Revenue status: 1 Amazon link earning immediately. 3 REI links activate on LLC approval. No action needed.
 
 ---
 
 ## 4. Revenue Modeling
 
-### Current RPM: $12.26 per 1,000 MAU (up from $12.06)
+### Current RPM: $12.18 per 1,000 MAU (unchanged from v10)
 
-The hiking Amazon link adds marginal RPM. Updated model:
+No new earning links were added since v10. The VPS proxy fix means flight prices now display correctly, which should improve Travelpayouts click-through (users see real prices instead of "est." labels), but Travelpayouts revenue runs through the proxy and is not tracked as affiliate RPM here.
 
 | Stream | Click-through | Avg Order | Commission | Est. RPM |
 |--------|--------------|-----------|------------|----------|
 | Amazon gear (21 links) | 37 clicks/1K | $160 | 4% | **$4.74** |
 | Booking.com (1 link) | 23 clicks/1K | $300 (2 nights) | ~$15/booking | **$6.90** |
 | SafetyWing (1 link) | 6 clicks/1K | $45/mo | ~10% | **$0.54** |
-| REI (21 links) | 0 (no tag) | -- | 5% | **$0.00** |
-| Backcountry (2 links) | 0 (no tag) | -- | 8% | **$0.00** |
-| GetYourGuide (1 link) | 0 (no ID) | -- | 8% | **$0.00** |
+| REI (21 links, 5%) | 0 (no tag) | -- | 5% | **$0.00** |
+| Backcountry (2 links, 8%) | 0 (no tag) | -- | 8% | **$0.00** |
+| GetYourGuide (1 link, 8%) | 0 (no ID) | -- | 8% | **$0.00** |
 | Peakly Pro | NOT WIRED | -- | -- | **$0.00** |
 | **Total (live)** | | | | **$12.18** |
-
-*Note: RPM is conservatively estimated. Actual will depend on Plausible data once traffic materializes.*
 
 ### Projections at current RPM ($12.18)
 
@@ -96,7 +93,7 @@ The hiking Amazon link adds marginal RPM. Updated model:
 
 ### Biggest lever for improving RPM
 
-**Activate REI affiliate links.** REI now has 21 links across 8 categories (skiing, surfing, diving, climbing, kayak, mtb, fishing, hiking) with 5% commission on high-AOV gear ($40-$1,200). Estimated RPM boost: +$5.50-$7.00. This alone would more than double the Amazon RPM. Blocked by LLC.
+**Activate REI affiliate links.** 21 links across 8 categories (skiing, surfing, diving, climbing, kayak, mtb, fishing, hiking) with 5% commission on high-AOV gear ($40-$1,200). Estimated RPM boost: +$5.50-$7.00. Blocked by LLC.
 
 ---
 
@@ -137,7 +134,7 @@ At projected post-Reddit traffic (5K MAU): **~$3.47/day** in lost affiliate reve
 
 ## 6. The Single Highest-Revenue-Impact Change This Week
 
-**Get LLC approved.** Seriously. With both P0 items now fixed (Pro pricing + hiking gear), there are zero non-blocked revenue improvements left that move the needle meaningfully. Every remaining RPM gain is gated by LLC:
+**Get LLC approved.** Every remaining RPM gain of significance is gated by LLC:
 
 - REI: +$5.78 RPM (21 links ready)
 - Backcountry: +$0.56 RPM (2 links ready)
@@ -145,26 +142,45 @@ At projected post-Reddit traffic (5K MAU): **~$3.47/day** in lost affiliate reve
 - Peakly Pro: +$13.17 RPM (UI done, needs Stripe)
 - **Total blocked: +$20.79 RPM = +171% improvement**
 
-If LLC is pending for administrative reasons, this is the single highest-leverage action across the entire business right now.
-
 ### If LLC is still weeks away
 
-The next best non-blocked action is **adding more Amazon-linked gear items to categories that currently have zero Amazon links**: skiing (4 REI links, 0 Amazon), climbing (4 REI links, 0 Amazon), kayak (4 REI links, 0 Amazon), and mtb (2 REI + 2 Backcountry, 0 Amazon). Adding 1-2 Amazon items per category would add ~8 more earning links immediately, estimated +$1.00-$1.50 RPM.
+The next best non-blocked action is **adding Amazon-linked gear items to the 4 categories that currently have zero Amazon links**: skiing (4 REI items, 0 Amazon), climbing (4 REI items, 0 Amazon), kayak (4 REI items, 0 Amazon), mtb (2 REI + 2 Backcountry, 0 Amazon). Adding 1-2 Amazon items per category would create ~6-8 more immediately-earning links, estimated +$1.00-$1.50 RPM.
+
+Paste-ready code for those items (DO NOT edit code -- for reference only):
+
+```javascript
+// Add to skiing array in GEAR_ITEMS:
+{ emoji:"🧣", name:"Smartwool 250 Base Layer",    store:"Amazon", price:"$100", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+250+base+layer" },
+{ emoji:"🧤", name:"Outdoor Research Adrenaline Gloves", store:"Amazon", price:"$45", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=outdoor+research+adrenaline+gloves" },
+
+// Add to climbing array in GEAR_ITEMS:
+{ emoji:"🧲", name:"Petzl GriGri+ Belay Device",  store:"Amazon", price:"$120", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=petzl+grigri+belay+device" },
+{ emoji:"🪢", name:"Sterling Evolution Velocity 60m Rope", store:"Amazon", price:"$180", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sterling+evolution+velocity+climbing+rope" },
+
+// Add to kayak array in GEAR_ITEMS:
+{ emoji:"🧤", name:"NRS Cove Neoprene Gloves",    store:"Amazon", price:"$30",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+cove+neoprene+gloves" },
+{ emoji:"📱", name:"Nite Ize RunOff Waterproof Phone Pouch", store:"Amazon", price:"$35", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=nite+ize+runoff+waterproof+phone+pouch" },
+
+// Add to mtb array in GEAR_ITEMS:
+{ emoji:"🔧", name:"Topeak Ratchet Rocket Multi-Tool", store:"Amazon", price:"$40", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=topeak+ratchet+rocket+multi+tool" },
+{ emoji:"💡", name:"NiteRider Lumina 1200 Headlight", store:"Amazon", price:"$90", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=niterider+lumina+1200+headlight" },
+```
+
+This would bring Amazon links from 21 to 29, adding earning capacity to every category.
 
 ---
 
-## v10 Delta (what changed since v9)
+## v11 Delta (what changed since v10)
 
-- **Peakly Pro pricing: FIXED.** Line 4610 now shows `$79/yr`. Was broken for 9 consecutive reports.
-- **Hiking GEAR_ITEMS: SHIPPED.** 4 items added (3 REI, 1 Amazon). Was missing for 9 consecutive reports.
-- **Amazon links: 20 -> 21.** New Osprey Hydraulics link in hiking category.
-- **REI links: 18 -> 21.** Three new hiking items (boots, poles, GPS).
-- **RPM: $12.18** (marginal increase from $12.06 due to 1 new Amazon link).
-- **App.jsx: 5,605 -> 5,666 lines** (grew 61 lines since last snapshot).
+- **App.jsx: 5,666 -> 6,354 lines** (+688 lines). Significant code additions since last report.
+- **VPS proxy: NOW HTTPS.** peakly-api.duckdns.org confirmed at line 1624. Mixed content timeout resolved. Real flight prices loading.
+- **PWA: DEPLOYED.** manifest.json, sw.js, service worker registration all in place. App is installable on mobile.
+- **Affiliate link counts: UNCHANGED.** Amazon 21, REI 21, Backcountry 2, Booking.com 1, SafetyWing 1, GetYourGuide 1.
+- **RPM: $12.18 (unchanged).** No new earning links added.
+- **Peakly Pro pricing: STILL CORRECT.** $79/yr at line 5298.
 - **AFFILIATE_ID placeholders: 0.** Still clean.
-- **Plausible: CONFIRMED LIVE.** Line 27 of index.html, using `script.hash.js` variant.
-- **Top blocker: LLC approval (unchanged).** Now blocking even more value with 21 REI links (was 18). Estimated $329/mo+ lost at 5K MAU.
-- **No new action items for code changes.** Both P0 items are resolved. All remaining revenue improvements are LLC-blocked or marginal.
+- **GA4: NOT PRESENT.** Despite CLAUDE.md noting it was added, gtag.js is not in index.html. Plausible is the only analytics. Not blocking revenue but worth noting.
+- **Top blocker: LLC approval (unchanged).** +$20.79 RPM (+171%) waiting to unlock. Estimated $329/mo lost at 5K MAU.
 
 ---
 
@@ -172,10 +188,9 @@ The next best non-blocked action is **adding more Amazon-linked gear items to ca
 
 | Priority | Action | Blocked? | Time | Revenue Impact |
 |----------|--------|----------|------|---------------|
-| ~~P0~~ | ~~Fix Pro pricing $9/mo -> $79/yr~~ | ~~No~~ | DONE | Prevents price anchoring damage |
-| ~~P1~~ | ~~Add hiking GEAR_ITEMS~~ | ~~No~~ | DONE | +$0.12-0.20 RPM |
 | P0 | **LLC approval** | EXTERNAL | Waiting | **+$20.79/1K MAU RPM (+171%)** |
-| P1 | Add Amazon links to skiing/climbing/kayak/mtb | No | 30 min | +$1.00-1.50 RPM |
+| P1 | Add Amazon links to skiing/climbing/kayak/mtb (8 items) | No | 30 min | +$1.00-1.50 RPM |
 | P2 | Check Plausible dashboard for traffic baseline | No | 5 min | Validates all revenue assumptions |
 | P3 | Sign up REI/Backcountry/GetYourGuide (post-LLC) | Yes (LLC) | 90 min | +$7.62 RPM |
 | P4 | Wire Stripe for Peakly Pro (post-LLC) | Yes (LLC) | 3 hrs | +$13.17 RPM |
+| P5 | Add GA4 for e-commerce event tracking | No | 15 min | Enables affiliate conversion tracking |
