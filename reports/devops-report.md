@@ -1,6 +1,6 @@
 # Peakly DevOps Report — 2026-03-25
 
-**Status: YELLOW** — No secrets exposed, site loads, but the flight proxy is HTTP-only (active mixed-content failure in every browser), analytics are completely absent, and the cache buster is stale. Nothing catastrophic, but two issues are actively blocking revenue and measurement.
+**Status: RED** — Flight proxy HTTP-only is killing all live pricing for every user. No .gitignore on a public repo is a ticking secret-leak bomb. Analytics are absent. Cache buster is stale. Three of these are under 10 minutes to fix and haven't been done yet.
 
 ---
 
@@ -61,7 +61,18 @@ nginx -t && systemctl reload nginx
 certbot --nginx -d proxy.peakly.app
 ```
 
-**Fix option B — Cloudflare Tunnel (zero DNS propagation wait, ~10 min):**
+**Fix option B — Cloudflare Quick Tunnel (no domain, no login, ~5 min):**
+
+```bash
+# On VPS — no Cloudflare account or domain needed:
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cf.deb
+dpkg -i cf.deb
+cloudflared tunnel --url http://localhost:3001
+# Prints a free HTTPS URL like: https://xxxx-xxxx.trycloudflare.com
+# Use that URL in app.jsx line 1000 immediately
+```
+
+**Fix option C — Cloudflare Named Tunnel (requires domain, persistent URL, ~20 min):**
 
 ```bash
 curl -L --output cloudflared.deb \
@@ -84,6 +95,17 @@ const FLIGHT_PROXY = "https://proxy.peakly.app";
 ```
 
 **Also fix the Node.js proxy CORS config** — add `j1mmychu.github.io` to the allowed origins list. The "Host not allowed" response is a second independent bug killing the proxy even when called from HTTP.
+
+**VPS IP discrepancy — verify before applying any fix:**
+
+CLAUDE.md says the VPS is at `198.199.80.21:3001`. app.jsx line 1000 says `104.131.82.242:3001`. These are two different IP addresses. One is wrong or the VPS was migrated and only CLAUDE.md was updated in the orphaned commit branch. Check both before touching anything:
+
+```bash
+curl -s --max-time 3 http://104.131.82.242:3001/health || echo "104 is dead"
+curl -s --max-time 3 http://198.199.80.21:3001/health   || echo "198 is dead"
+```
+
+Update CLAUDE.md to match whichever responds.
 
 ---
 
@@ -248,8 +270,9 @@ Infrastructure is not the cost concern. The cost concern is **Unsplash at scale*
 | **P1** | Zero analytics — cannot measure users, clicks, or conversions | 10 min |
 | **P1** | No PWA manifest — cannot install to home screen | 20 min |
 | **P1** | Unpinned `react@18` CDN tag — silent breaking change risk | 2 min |
-| **P1** | No .gitignore — risk of accidental secret commit | 2 min |
+| **P0** | No .gitignore — public repo, one `git add .` leaks any future secret | 2 min |
 | **P2** | Sentry DSN empty — no production error visibility | 5 min after signup |
 | **P2** | Cache buster `v=20260323b` is 2 days stale | 1 min |
 | **P2** | Open-Meteo rate limit risk at ~30 concurrent users | 2 hours (localStorage weather cache) |
 | **P2** | REI affiliate links earn $0 — no tracking IDs | 30 min (blocked by LLC) |
+| **P1** | VPS IP discrepancy: CLAUDE.md says 198.199.80.21, code says 104.131.82.242 | 5 min to verify |

@@ -370,6 +370,12 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a1a3a,#3a3a8e,#6868d4)",
     accent:"#b39ddb", tags:["Tandem OK","Alps Views"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
   },
+  // ─── stub category expansions ──────────────────────────────────────────────
+  {id:"raja_ampat",   category:"diving",  title:"Raja Ampat",              location:"West Papua, Indonesia",   lat:-0.5833,lon:130.9833,ap:"DPS",icon:"🤿",rating:4.98,reviews:2840,gradient:"linear-gradient(160deg,#001428,#002d5a,#005599)",accent:"#29b6f6",tags:["World's Best Diving","6,000 Species"], photo:"https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&h=600&fit=crop"},
+  {id:"kalymnos",     category:"climbing",title:"Kalymnos",                location:"Dodecanese, Greece",      lat:36.9500,lon:26.9833,ap:"ATH",icon:"🧗",rating:4.95,reviews:3210,gradient:"linear-gradient(160deg,#2a1a00,#7a4a10,#c07020)",accent:"#ffa726",tags:["Sport Climbing Mecca","Limestone Overhangs"], photo:"https://images.unsplash.com/photo-1564769625673-bd94db2c3e89?w=800&h=600&fit=crop"},
+  {id:"finale_ligure",category:"mtb",    title:"Finale Ligure Bike Park",  location:"Liguria, Italy",          lat:44.1700,lon:8.3400,ap:"MXP",icon:"🚵",rating:4.94,reviews:4180,gradient:"linear-gradient(160deg,#1a0a00,#5a2a00,#9a5000)",accent:"#ff7043",tags:["Enduro Capital","Sea-View Singletrack"], photo:"https://images.unsplash.com/photo-1544191696-102dbfc1aba7?w=800&h=600&fit=crop"},
+  {id:"abel_tasman",  category:"kayak",  title:"Abel Tasman National Park",location:"Nelson, New Zealand",     lat:-40.8500,lon:172.9667,ap:"AKL",icon:"🛶",rating:4.94,reviews:4120,gradient:"linear-gradient(160deg,#001a10,#004a30,#007a60)",accent:"#4db6ac",tags:["Golden Beaches","3-Day Paddle Circuit"], photo:"https://images.unsplash.com/photo-1469796466635-455ede028aca?w=800&h=600&fit=crop"},
+  {id:"cabarete",     category:"kite",   title:"Cabarete",                 location:"Puerto Plata, Dom. Rep.", lat:19.7430,lon:-70.4077,ap:"POP",icon:"🪁",rating:4.89,reviews:1870,gradient:"linear-gradient(160deg,#1a0040,#4400aa,#7722dd)",accent:"#ce93d8",tags:["Caribbean Kite Capital","20-30 Knot Trades"], photo:"https://images.unsplash.com/photo-1531722487855-44fe04b1b23f?w=800&h=600&fit=crop"},
   // ─── North America ski resorts ─────────────────────────────────────────────
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?w=800&h=600&fit=crop"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1610865383566-6469eedeb76f?w=800&h=600&fit=crop"},
@@ -4869,10 +4875,10 @@ const GEAR_ITEMS = {
     { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
   hiking:   [
-    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$165",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+4+gtx" },
-    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$90",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trail+trekking+poles" },
-    { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon", price:"$42",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",   price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
+    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
+    { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",     store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
   ],
 };
 
