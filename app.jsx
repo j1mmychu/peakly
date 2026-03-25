@@ -5415,7 +5415,9 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
 
     // Mock trip generation
     const sportVenues = listings.filter(l => l.category === sport);
-    const bestVenue = sportVenues.reduce((a, b) => (b.conditionScore || 0) - (a.conditionScore || 0))[0] || sportVenues[0];
+    const bestVenue = sportVenues.length > 0
+      ? [...sportVenues].sort((a, b) => (b.conditionScore || 0) - (a.conditionScore || 0))[0]
+      : null;
 
     if (!bestVenue) {
       setGenerating(false);
@@ -6200,7 +6202,7 @@ function App() {
       ? {
           price:  realPrice,
           normal: estimate.normal,
-          pct:    Math.max(0, Math.round((1 - realPrice / estimate.normal) * 100)),
+          pct:    Math.max(0, Math.round((1 - realPrice / (estimate.normal || 800)) * 100)),
           from:   profile.homeAirport || "JFK",
           live:   true,
         }
