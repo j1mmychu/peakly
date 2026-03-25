@@ -2737,7 +2737,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
   const bestStrict = [...bestPool]
-    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+    .filter(l => l.conditionScore >= 80 && l.flight.price < 800)
     .sort((a, b) => {
       const aBoost = userSports.includes(a.category) ? 15 : 0;
       const bBoost = userSports.includes(b.category) ? 15 : 0;
@@ -2746,13 +2746,16 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return bVal - aVal;
     })
     .slice(0, 5);
+  // Fallback: GO-only (>= 80) sorted by score — never show MAYBE or WAIT here
   const bestRightNow = bestStrict.length > 0
     ? bestStrict
-    : [...bestPool].sort((a, b) => {
-        const aBoost = userSports.includes(a.category) ? 15 : 0;
-        const bBoost = userSports.includes(b.category) ? 15 : 0;
-        return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-      }).slice(0, 5);
+    : [...bestPool]
+        .filter(l => l.conditionScore >= 80)
+        .sort((a, b) => {
+          const aBoost = userSports.includes(a.category) ? 15 : 0;
+          const bBoost = userSports.includes(b.category) ? 15 : 0;
+          return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
+        }).slice(0, 5);
 
   // Both "All" and sport tabs: always show top 5 picks.
   const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
@@ -2996,7 +2999,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
                   Best Right Now
                 </div>
-                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>GO conditions + flights aligning in the next 24 hours</div>
               </div>
             </div>
             <div style={{
