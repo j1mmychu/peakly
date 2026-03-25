@@ -1546,14 +1546,21 @@ function getFlightDate(whenId = "anytime") {
     default:          return fmt(add(14)); // "anytime" → default 2 weeks
   }
 }
-// Build a Google Flights deep-link URL with pre-filled origin, destination, and dates
+// Travelpayouts affiliate marker — replace with your marker from tp.media dashboard
+const TP_MARKER = "YOUR_TP_MARKER";
+
+// Build an Aviasales/Travelpayouts deep-link URL with pre-filled origin, destination, and dates
+// Earns commission on flight bookings via Travelpayouts (Google Flights earns $0)
 function buildFlightUrl(from, to, opts) {
   const whenId = opts?.whenId || "anytime";
   const startDate = opts?.startDate;
-  const endDate = opts?.endDate;
   const dep = startDate || getFlightDate(whenId);
-  const ret = endDate || (() => { const d = new Date(dep); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
-  return `https://www.google.com/flights?hl=en#flt=${from}.${to}.${dep}*${to}.${from}.${ret};c:USD;e:1;sd:1;t:f`;
+  const depFmt = dep.replace(/-/g, "").slice(2); // YYMMDD for Aviasales
+  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depFmt}${to}1`;
+  if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
+    return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
+  }
+  return aviasalesSearch;
 }
 
 // ─── Travelpayouts real pricing (LIVE) ────────────────────────────────────────
@@ -4620,6 +4627,8 @@ const GEAR_ITEMS = {
     { emoji:"🥽", name:"Ski Goggles",                   store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+goggles" },
     { emoji:"🧥", name:"Ski Jacket",                    store:"REI",         price:"$299+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+jacket" },
     { emoji:"🧤", name:"Ski Gloves",                    store:"REI",         price:"$49+",   commission:"5%",  url:"https://www.rei.com/search?q=ski+gloves" },
+    { emoji:"🔥", name:"HeatMax Hand Warmers 40-Pack",  store:"Amazon",      price:"$18",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
+    { emoji:"🧦", name:"Darn Tough Ski Socks",          store:"Amazon",      price:"$26",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
   ],
   surfing:  [
     { emoji:"🏄", name:"Surfboard",                     store:"REI",         price:"$349+",  commission:"5%",  url:"https://www.rei.com/search?q=surfboard" },
@@ -4644,18 +4653,24 @@ const GEAR_ITEMS = {
     { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/search?q=la+sportiva+tarantulace" },
     { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+half+dome+helmet" },
     { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+loose+chalk" },
+    { emoji:"🎒", name:"Black Diamond Chalk Bag",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+chalk+bag" },
+    { emoji:"🩹", name:"Mueller Athletic Climbing Tape", store:"Amazon",      price:"$12",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=athletic+climbing+finger+tape" },
   ],
   kayak:    [
     { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/search?q=nrs+chinook+pfd" },
     { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/search?q=ortlieb+dry+bag" },
     { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/search?q=kokatat+meridian+dry+suit" },
     { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+    { emoji:"🏊", name:"NRS HydroSkin 0.5 Water Shoes",  store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+hydroskin+water+shoes" },
+    { emoji:"📦", name:"Sea to Summit Ultra-Sil Dry Sack",store:"Amazon",     price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=sea+to+summit+ultra+sil+dry+sack" },
   ],
   mtb:      [
     { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-designs-a3-mips-helmet" },
     { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/search?q=fox+ranger+gel+gloves" },
     { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-racing-launch-pro-d3or-knee-guard" },
     { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/search?q=camelbak+mule+hydration" },
+    { emoji:"🔧", name:"Topeak Hexus X Multi-Tool",      store:"Amazon",      price:"$20",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=topeak+hexus+multi+tool+bike" },
+    { emoji:"🩹", name:"Park Tool Tire Boot Repair Kit", store:"Amazon",      price:"$14",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=park+tool+tire+boot+repair+kit" },
   ],
   kite:     [
     { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Amazon",      price:"$1,299",commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cabrinha+moto+kite" },
@@ -4680,6 +4695,8 @@ const GEAR_ITEMS = {
     { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
     { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",     store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
     { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+    { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon",  price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
+    { emoji:"🔦", name:"Black Diamond Spot 400 Headlamp",  store:"Amazon",  price:"$36",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+spot+400+headlamp" },
   ],
 };
 
