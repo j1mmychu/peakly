@@ -71,7 +71,7 @@ const { useState, useEffect, useRef, useCallback } = React;
   s.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { background: #f5f5f5; }
+    body { background: var(--pk-bg, #f5f5f5); }
     ::-webkit-scrollbar { display: none; }
     button, a, [role=button] { touch-action: manipulation; }
     /* ── tap states (mobile-first) ── */
@@ -139,11 +139,76 @@ const { useState, useEffect, useRef, useCallback } = React;
     input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    /* ── card hover (desktop) ── */
+    @media (hover: hover) {
+      .card:hover { transform: scale(1.02) !important; box-shadow: 0 8px 28px rgba(0,0,0,0.13) !important; }
+      .card:hover .card-img { transform: scale(1.06); }
+    }
+    /* ── heart pop ── */
+    @keyframes heartPop { 0%{transform:scale(1)} 35%{transform:scale(1.55)} 65%{transform:scale(0.88)} 100%{transform:scale(1)} }
+    .heart-pop { animation: heartPop 0.38s cubic-bezier(0.34,1.56,0.64,1) !important; }
+    /* ── score count-up ── */
+    @keyframes countUp { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+    .count-up { animation: countUp 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+    /* ── forecast score bar grow ── */
+    @keyframes barGrow { from{transform:scaleX(0);opacity:0} to{transform:scaleX(1);opacity:1} }
+    .bar-grow { animation: barGrow 0.5s cubic-bezier(0.34,1.56,0.64,1) both; transform-origin: left; }
+    /* ── pull-to-refresh spinner ── */
+    @keyframes ptrSpin { to{transform:rotate(360deg)} }
+    .ptr-spin { animation: ptrSpin 0.7s linear infinite; display:inline-block; }
+    .ptr-indicator { transition: height 0.15s ease, opacity 0.15s ease; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    /* ── dark mode CSS variables ── */
+    :root {
+      --pk-bg:#f5f5f5; --pk-surface:#fff; --pk-surface2:#f7f7f7; --pk-surface3:#f0f0f0;
+      --pk-text:#222; --pk-text2:#717171; --pk-text3:#aaa; --pk-border:#e8e8e8;
+      --pk-nav-bg:#fff; --pk-nav-border:rgba(0,0,0,0.06);
+    }
+    [data-theme=dark] {
+      --pk-bg:#0f0f0f; --pk-surface:#1c1c1e; --pk-surface2:#2c2c2e; --pk-surface3:#3a3a3c;
+      --pk-text:#f2f2f7; --pk-text2:#aeaeb2; --pk-text3:#636366; --pk-border:#38383a;
+      --pk-nav-bg:#1c1c1e; --pk-nav-border:rgba(255,255,255,0.08);
+    }
+    [data-theme=dark] .shimmer { background: linear-gradient(90deg,#2c2c2e 25%,#3a3a3c 50%,#2c2c2e 75%); background-size:200% 100%; }
   `;
   document.head.appendChild(s);
 })();
 
 const F = "'Plus Jakarta Sans', sans-serif";
+
+// ─── dark mode context & helpers ──────────────────────────────────────────────
+const DarkContext = React.createContext({ dark: false, toggleDark: () => {} });
+const useDark = () => React.useContext(DarkContext).dark;
+const useToggleDark = () => React.useContext(DarkContext).toggleDark;
+const makeC = (dark) => ({
+  bg:      dark ? '#0f0f0f' : '#f5f5f5',
+  surface: dark ? '#1c1c1e' : '#fff',
+  surface2:dark ? '#2c2c2e' : '#f7f7f7',
+  surface3:dark ? '#3a3a3c' : '#f0f0f0',
+  text:    dark ? '#f2f2f7' : '#222',
+  text2:   dark ? '#aeaeb2' : '#717171',
+  text3:   dark ? '#636366' : '#aaa',
+  border:  dark ? '#38383a' : '#e8e8e8',
+});
+
+// ─── count-up hook ────────────────────────────────────────────────────────────
+function useCountUp(target, duration) {
+  duration = duration || 700;
+  const [val, setVal] = React.useState(0);
+  const rafRef = React.useRef(null);
+  React.useEffect(() => {
+    setVal(0);
+    const start = performance.now();
+    const animate = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(target * eased));
+      if (p < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+  return val;
+}
 
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -1892,10 +1957,13 @@ function SkeletonCard() {
 
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
+  const dark = useDark();
+  const C = makeC(dark);
   const saved = wishlists.includes(listing.id);
   const [shareCopied, setShareCopied] = React.useState(false);
+  const [heartAnim, setHeartAnim] = React.useState(false);
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:C.surface, boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
@@ -1920,7 +1988,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
-          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+          <button className={"heart" + (heartAnim ? " heart-pop" : "")} onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); setHeartAnim(true); setTimeout(() => setHeartAnim(false), 400); }} style={{
             background:"none", border:"none", fontSize:20,
             width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
             filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
@@ -1962,20 +2030,20 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
       {/* Body */}
       <div style={{ padding:"12px 14px 8px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
+          <div style={{ fontWeight:700, fontSize:14, color:C.text, fontFamily:F, lineHeight:1.3 }}>
             {listing.title}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0, marginLeft:8 }}>
             <span style={{ fontSize:12 }}>⭐</span>
-            <span style={{ fontSize:12, fontWeight:600, color:"#222", fontFamily:F }}>{listing.rating}</span>
-            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>({listing.reviews})</span>
+            <span style={{ fontSize:12, fontWeight:600, color:C.text, fontFamily:F }}>{listing.rating}</span>
+            <span style={{ fontSize:10, color:C.text3, fontFamily:F }}>({listing.reviews})</span>
           </div>
         </div>
-        <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>
+        <div style={{ color:C.text2, fontSize:13, marginTop:2, fontFamily:F }}>
           {listing.location}
           {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
         </div>
-        <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
+        <div style={{ color:C.text2, fontSize:13, fontFamily:F }}>{listing.period}</div>
         {listing.bestWindow && (
           <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
             <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px" }}>
@@ -1986,15 +2054,15 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
           {listing.tags.map(t => (
             <span key={t} style={{
-              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:20,
-              padding:"3px 8px", fontSize:11, color:"#444", fontWeight:600, fontFamily:F,
+              background:C.surface2, border:`1px solid ${C.border}`, borderRadius:20,
+              padding:"3px 8px", fontSize:11, color:C.text2, fontWeight:600, fontFamily:F,
             }}>{t}</span>
           ))}
         </div>
         <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
-            <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+            <span style={{ fontSize:14, fontWeight:800, color:C.text, fontFamily:F }}>${listing.flight.price}</span>
+            <span style={{ fontSize:12, color:C.text3, textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); }}
@@ -2015,9 +2083,12 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
 function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
+  const dark = useDark();
+  const C = makeC(dark);
   const saved = wishlists.includes(listing.id);
+  const [heartAnim, setHeartAnim] = React.useState(false);
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:C.surface, boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{
         height:180, background:listing.gradient, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
@@ -2030,7 +2101,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className={"heart" + (heartAnim ? " heart-pop" : "")} onClick={e => { e.stopPropagation(); onToggle(listing.id); setHeartAnim(true); setTimeout(() => setHeartAnim(false), 400); }} style={{
           position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
@@ -2082,11 +2153,14 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
 
 // ─── compact card (3-column grid) ────────────────────────────────────────────
 function CompactCard({ listing, wishlists, onToggle, onOpen }) {
+  const dark = useDark();
+  const C = makeC(dark);
   const saved = wishlists.includes(listing.id);
+  const [heartAnim, setHeartAnim] = React.useState(false);
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
   return (
-    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
+    <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:12, overflow:"hidden", background:C.surface, boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
@@ -2103,7 +2177,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+        <button className={"heart" + (heartAnim ? " heart-pop" : "")} onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); setHeartAnim(true); setTimeout(() => setHeartAnim(false), 400); }} style={{
           position:"absolute", top:2, right:2,
           background:"none", border:"none", fontSize:15,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
@@ -2129,11 +2203,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
       {/* Body */}
       <div style={{ padding:"7px 6px 7px" }}>
-        <div style={{ fontWeight:700, fontSize:11, color:"#222", fontFamily:F, lineHeight:1.25,
+        <div style={{ fontWeight:700, fontSize:11, color:C.text, fontFamily:F, lineHeight:1.25,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {shortTitle}
         </div>
-        <div style={{ color:"#717171", fontSize:10, fontFamily:F, marginTop:1,
+        <div style={{ color:C.text2, fontSize:10, fontFamily:F, marginTop:1,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {shortLoc}{listing.breakType && <span style={{ marginLeft:4, fontSize:8, fontWeight:700, color:"#0284c7" }}>{listing.breakType}</span>}
         </div>
@@ -2143,7 +2217,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           </div>
         )}
         <div style={{ marginTop:5, display:"flex", alignItems:"center", gap:3 }}>
-          <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
+          <span style={{ fontSize:12, fontWeight:800, color:C.text, fontFamily:F }}>
             ${listing.flight.price}
           </span>
           {listing.flight.live ? (
@@ -3729,6 +3803,8 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
 function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
+  const darkMode = useDark();
+  const toggleDark = useToggleDark();
   const [airportQuery,      setAirportQuery]      = useState("");
   const [airportFocused,    setAirportFocused]    = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -4222,6 +4298,29 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               Paste it anywhere to invite a friend!
             </div>
           )}
+        </div>
+
+        {/* ── Dark Mode ── */}
+        <div style={{ background:"#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Dark Mode</div>
+            <div style={{ fontSize:11, color:"#aaa", fontFamily:F, marginTop:2 }}>
+              {darkMode ? "On — easier on the eyes" : "Off — follows system preference"}
+            </div>
+          </div>
+          <button onClick={toggleDark} style={{
+            width:48, height:28, borderRadius:14, border:"none", cursor:"pointer",
+            background: darkMode ? "#0284c7" : "#e2e2e2",
+            position:"relative", transition:"background 0.22s",
+            flexShrink:0,
+          }}>
+            <div style={{
+              width:22, height:22, borderRadius:"50%", background:"white",
+              position:"absolute", top:3, left: darkMode ? 23 : 3,
+              transition:"left 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.22)",
+            }} />
+          </button>
         </div>
 
         {/* ── About ── */}
@@ -5037,8 +5136,15 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
       sheetRef.current.style.transition = "transform 0.38s cubic-bezier(0.34,1.56,0.64,1)";
     }
   }, [onClose]);
+  const displayScore = useCountUp(listing.conditionScore);
+
   const d  = rawWx?.daily;
   const md = rawMar?.daily;
+
+  // Per-day condition scores for the forecast strip
+  const dayScores = d ? Array.from({ length: Math.min((d.time || []).length, 7) }, (_, i) =>
+    scoreVenue(listing, rawWx, rawMar, i).score
+  ) : [];
 
   const forecast = d ? (d.time || []).slice(0, 7).map((date, i) => ({
     date,
@@ -5105,7 +5211,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
       <div className={"backdrop" + (closing ? " backdrop-exit" : "")} onClick={triggerClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300 }} />
       <div ref={sheetRef} className={"sheet" + (closing ? " sheet-exit" : "")} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
-        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
+        width:"min(430px,100vw)", background:"var(--pk-surface)", borderRadius:"28px 28px 0 0",
         zIndex:301, maxHeight:"94vh", overflow:"hidden",
         display:"flex", flexDirection:"column",
       }}>
@@ -5176,7 +5282,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Conditions now</div>
               <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
                 <div>
-                  <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}</div>
+                  <div className="count-up" style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{displayScore}</div>
                   <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.conditionLabel}</div>
                 </div>
                 <div style={{ display:"flex", gap:4, marginBottom:2 }}>
@@ -5211,16 +5317,32 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>7-Day Forecast</div>
               <div style={{ display:"flex", gap:6, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-                {forecast.map((f, i) => (
-                  <div key={i} style={{ flexShrink:0, background:"#f7f7f7", borderRadius:12, padding:"9px 8px", minWidth:62, textAlign:"center", border: i===0 ? "2px solid #0284c7" : "2px solid transparent" }}>
-                    <div style={{ fontSize:9, fontWeight:700, color: i===0?"#0284c7":"#aaa", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{fmtDate(f.date, i)}</div>
-                    <div style={{ fontSize:21 }}>{wxEmoji(f.code)}</div>
-                    {f.wave != null && <div style={{ fontSize:9, color:"#0ea5e9", fontWeight:700, fontFamily:F, marginTop:1 }}>{(f.wave*3.28).toFixed(1)}ft</div>}
-                    <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, marginTop:3 }}>{Math.round(f.hi)}°</div>
-                    <div style={{ fontSize:10, color:"#bbb", fontFamily:F }}>{Math.round(f.lo)}°</div>
-                    {f.precip > 1 && <div style={{ fontSize:9, color:"#3b82f6", fontWeight:600, fontFamily:F, marginTop:1 }}>💧{Math.round(f.precip)}"</div>}
-                  </div>
-                ))}
+                {forecast.map((f, i) => {
+                  const ds = dayScores[i];
+                  const scoreColor = ds >= 85 ? "#22c55e" : ds >= 70 ? "#f59e0b" : ds >= 50 ? "#f97316" : "#ef4444";
+                  const bestDay = dayScores.length > 0 && ds === Math.max(...dayScores);
+                  return (
+                    <div key={i} style={{ flexShrink:0, background:"#f7f7f7", borderRadius:12, padding:"9px 8px", minWidth:62, textAlign:"center", border: bestDay ? `2px solid ${scoreColor}` : i===0 ? "2px solid #0284c7" : "2px solid transparent" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color: bestDay ? scoreColor : i===0?"#0284c7":"#aaa", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{bestDay && i > 0 ? "BEST" : fmtDate(f.date, i)}</div>
+                      <div style={{ fontSize:21 }}>{wxEmoji(f.code)}</div>
+                      {f.wave != null && <div style={{ fontSize:9, color:"#0ea5e9", fontWeight:700, fontFamily:F, marginTop:1 }}>{(f.wave*3.28).toFixed(1)}ft</div>}
+                      <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, marginTop:3 }}>{Math.round(f.hi)}°</div>
+                      <div style={{ fontSize:10, color:"#bbb", fontFamily:F }}>{Math.round(f.lo)}°</div>
+                      {f.precip > 1 && <div style={{ fontSize:9, color:"#3b82f6", fontWeight:600, fontFamily:F, marginTop:1 }}>💧{Math.round(f.precip)}"</div>}
+                      {ds !== undefined && (
+                        <div style={{ marginTop:5, overflow:"hidden", borderRadius:2, background:"#e8e8e8", height:3 }}>
+                          <div className="bar-grow" style={{
+                            height:3, borderRadius:2, background:scoreColor,
+                            width:`${ds}%`, animationDelay:`${i * 60}ms`,
+                          }} />
+                        </div>
+                      )}
+                      {ds !== undefined && (
+                        <div style={{ fontSize:8, fontWeight:800, color:scoreColor, fontFamily:F, marginTop:2 }}>{ds}</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -6073,6 +6195,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 
 // ─── bottom nav ───────────────────────────────────────────────────────────────
 function BottomNav({ active, setActive, alertCount }) {
+  const dark = useDark();
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
     { id:"alerts",    label:"Alerts",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
@@ -6081,14 +6204,14 @@ function BottomNav({ active, setActive, alertCount }) {
   return (
     <div style={{
       display:"flex", justifyContent:"space-around",
-      padding:"6px 0 20px", background:"#fff",
-      borderTop:"1px solid #e8e8e8", flexShrink:0,
+      padding:"6px 0 20px", background:"var(--pk-nav-bg)",
+      borderTop:"1px solid var(--pk-nav-border)", flexShrink:0,
     }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
-          color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
+          color: active === t.id ? "#0284c7" : dark ? "#636366" : "#b0b0b0", position:"relative",
           padding:"8px 0",
         }}>
           {t.id === "alerts" && alertCount > 0 && (
@@ -6151,6 +6274,37 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
+
+  // ── Dark mode ──
+  const [darkMode, setDarkMode] = useLocalStorage("peakly_darkMode",
+    typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches
+  );
+  useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+  }, [darkMode]);
+  const toggleDark = useCallback(() => setDarkMode(d => !d), [setDarkMode]);
+
+  // ── Pull-to-refresh ──
+  const [ptrPull, setPtrPull] = useState(0);
+  const [ptrLoading, setPtrLoading] = useState(false);
+  const ptrStartY = useRef(null);
+  const onPtrTouchStart = useCallback((e) => {
+    if (activeTab !== "explore") return;
+    ptrStartY.current = e.touches[0].clientY;
+  }, [activeTab]);
+  const onPtrTouchMove = useCallback((e) => {
+    if (ptrStartY.current === null) return;
+    const dy = e.touches[0].clientY - ptrStartY.current;
+    if (dy > 0) setPtrPull(Math.min(dy, 72));
+  }, []);
+  const onPtrTouchEnd = useCallback(() => {
+    if (ptrPull >= 60 && !ptrLoading) {
+      setPtrLoading(true);
+      haptic && haptic("medium");
+    }
+    setPtrPull(0);
+    ptrStartY.current = null;
+  }, [ptrPull, ptrLoading]);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
@@ -6232,6 +6386,12 @@ function App() {
     const interval = setInterval(() => fetchAllWeather(true), 10 * 60 * 1000); // refresh every 10 min
     return () => clearInterval(interval);
   }, [fetchAllWeather]);
+
+  // Pull-to-refresh trigger
+  useEffect(() => {
+    if (!ptrLoading) return;
+    fetchAllWeather(true).then(() => setPtrLoading(false));
+  }, [ptrLoading, fetchAllWeather]);
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
@@ -6358,18 +6518,35 @@ function App() {
   }, []);
 
   return (
+    <DarkContext.Provider value={{ dark: darkMode, toggleDark }}>
     <div style={{
-      width:"100%", minHeight:"100vh", background:"#f5f5f5",
+      width:"100%", minHeight:"100vh", background:"var(--pk-bg)",
       display:"flex", justifyContent:"center", fontFamily:F,
     }}>
-      <div style={{
-        width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
-        display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
-      }}>
+      <div
+        onTouchStart={onPtrTouchStart}
+        onTouchMove={onPtrTouchMove}
+        onTouchEnd={onPtrTouchEnd}
+        style={{
+          width:430, height:"100vh", maxHeight:"100vh", background:"var(--pk-surface)",
+          display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
+        }}>
+        {/* Pull-to-refresh indicator */}
+        <div className="ptr-indicator" style={{
+          height: ptrPull > 8 ? Math.min(ptrPull * 0.55, 40) : ptrLoading ? 40 : 0,
+          opacity: ptrPull > 8 || ptrLoading ? 1 : 0,
+          background:"var(--pk-surface)", zIndex:10,
+        }}>
+          <span className={ptrLoading ? "ptr-spin" : ""} style={{
+            fontSize:16, opacity: ptrLoading ? 1 : Math.min(ptrPull / 60, 1),
+            display:"inline-block",
+            transform: ptrLoading ? undefined : `rotate(${ptrPull * 3}deg)`,
+          }}>↻</span>
+        </div>
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 14px", background:"var(--pk-surface)", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                   peakly
@@ -6386,7 +6563,7 @@ function App() {
               <SearchBar search={search} onOpen={() => setShowSearch(true)} />
             </div>
           ) : (
-            <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 16px", background:"var(--pk-surface)", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
               <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
@@ -6489,6 +6666,7 @@ function App() {
         <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} />
       </div>
     </div>
+    </DarkContext.Provider>
   );
 }
 
