@@ -977,7 +977,7 @@ async function fetchMarine(lat, lon) {
 // ─── condition scoring ────────────────────────────────────────────────────────
 // dayIndex: 0=today (default), 1=tomorrow, etc. Supports date-aware scoring.
 function scoreVenue(venue, wx, marine, dayIndex) {
-  if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data" };
+  if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data", bestDays:1, confidencePct:95 };
   const di = dayIndex || 0;
   const d = wx.daily;
   const md = marine?.daily;
@@ -1047,11 +1047,9 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         else                   score = 30;
       }
 
-      // Temperature quality: cold = powder preservation, warm = slush
-      if (tempMax < 28 && snow > 5) score += 4;        // cold dry powder
-      else if (tempMax < 32 && snow > 0) score += 2;   // decent preservation
-      if (tempMax > 38 && tempMax <= 45) score -= 8;    // heavy wet snow / slush
-      if (tempMax > 45) score -= 16;                    // rain-on-snow, terrible
+      // Temperature quality multiplier: cold = powder preservation, warm = slush
+      const tempQuality = tempMax < 28 ? 1.10 : tempMax < 32 ? 1.03 : tempMax < 38 ? 0.95 : tempMax < 45 ? 0.80 : 0.60;
+      if (snow > 0) score = score * tempQuality;
       if (tempMin > 32 && snow === 0) score -= 6;       // no freeze overnight = icy
 
       // Wind: gusts matter more than sustained for lift ops
@@ -1120,6 +1118,14 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
       // Rain doesn't ruin surf but low vis + runoff = dirty water
       if (rain > 15) score -= 4;
+
+      // Wind direction bonus: offshore = grooms faces, onshore = chop
+      const sfSurf = SWELL_FACING[venue.id];
+      if (sfSurf != null) {
+        const windRelSurf = Math.abs(((windDir - (sfSurf + 180)) + 540) % 360 - 180);
+        const windBonus = windRelSurf < 30 ? 8 : windRelSurf < 60 ? 4 : windRelSurf < 120 ? -3 : -10;
+        score += windBonus;
+      }
 
       const windLabel = glassy ? "Glassy" : light ? "Light offshore" : blown ? "Choppy onshore" : `${wind.toFixed(0)}mph`;
       const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
@@ -1248,6 +1254,14 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (rain > 5) score -= 4;            // vis + comfort
       if (waveH > 1.5 && sweet) score += 3; // waves for jumping!
       if (waveH > 3) score -= 4;           // too rough for most
+
+      // Wind direction bonus: cross-shore preferred, onshore workable, offshore too light
+      const sfKite = SWELL_FACING[venue.id];
+      if (sfKite != null) {
+        const windRelKite = Math.abs(((windDir - (sfKite + 180)) + 540) % 360 - 180);
+        const kiteWindBonus = windRelKite < 30 ? 8 : windRelKite < 60 ? 4 : windRelKite < 120 ? -3 : -10;
+        score += kiteWindBonus;
+      }
 
       const wLabel = wind < 12 ? "Too light" : wind > 38 ? "Storm" : `${wind.toFixed(0)}mph${gusty ? " gusty" : " steady"}`;
       label = `${wLabel} · ${tempMax}°F${waveH > 1 ? " · " + Math.round(waveH * 3.28) + "ft chop" : ""}`;
@@ -1397,7 +1411,8 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
-  return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
+  const confidencePct = di === 0 ? 95 : di <= 2 ? 88 : di <= 4 ? 72 : di <= 6 ? 58 : 40;
+  return { score: Math.round(Math.min(100, Math.max(20, score))), label, period, bestDays, confidencePct };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
@@ -1579,6 +1594,45 @@ function getFlightDeal(ap, homeAirport = "JFK") {
   const price = Math.max(49, Math.round(base * (1 - pct / 100) / 5) * 5);
   return { price, normal: base, pct, from: homeAirport, isEstimate: true };
 }
+
+// ─── Swell-facing directions for surf/kite venues ────────────────────────────
+// Degrees the beach/break faces (direction swell arrives from).
+// Offshore wind = swellFacing + 180°. Used for wind direction scoring.
+const SWELL_FACING = {
+  // Hawaii
+  pipeline:350, banzai_pipeline:350, jaws:350, honolua_bay:320, hanalei:0,
+  // California / Pacific USA
+  trestles:220, mavericks:315, blacks:250, rincon_ca:170, montauk:180,
+  cape_hatteras:120,
+  // Mexico / Central America
+  puerto_escondido:240, sayulita:270, pavones:290, witch_rock:270,
+  punta_roca:190,
+  // Caribbean
+  rincon_pr:350, bathsheba:90,
+  // South America
+  chicama:310, punta_hermosa:270, punta_lobos:220, florianopolis:90,
+  noronha_surf:20,
+  // Europe (Atlantic)
+  hossegor:270, mundaka:290, supertubos:270, ericeira:300, nazare:270,
+  newquay:330, thurso_east:30, lahinch:270, la_santa:340,
+  fuerteventura_surf:270,
+  // Morocco
+  anchor_point:290, taghazout:320,
+  // Africa
+  jeffreys_bay:165, cape_town_surf:180,
+  // Bali / Indonesia
+  uluwatu:220, padang_padang:210, keramas:130, mentawais:270,
+  // Pacific Islands
+  cloud9:50, cloudbreak:240, restaurants_fiji:330, teahupoo:330,
+  pasta_point:270, jailbreaks:270,
+  // Australia / NZ
+  snapper_rocks:90, bells_beach:160, margaret_river_surf:270,
+  the_pass:120, raglan:300,
+  // Asia
+  chiba_surf:90, muine:290,
+  // Kite venues
+  tarifa:100, cabarete:0, dakhla:270,
+};
 
 // ─── Geolocation: nearest airport detection ──────────────────────────────────
 const AIRPORT_COORDS = {
@@ -2568,7 +2622,7 @@ function scoreVibeMatch(listings, text) {
   const AMER_APS    = new Set(["SEA","PDX","SFO","LAX","DEN","YVR","YWG","BZE","SJO"]);
 
   const scored = listings.map(l => {
-    let s = l.conditionScore * 0.22; // base: live conditions anchor
+    let s = l.peaklyScore * 0.22; // base: peaklyScore anchor (unified metric)
 
     // ── category match (strongest signal) ──────────────────────────────────
     if (f.ski   && l.category === "skiing")  s += 44;
@@ -2653,9 +2707,9 @@ function scoreVibeMatch(listings, text) {
     : "adventure and discovery";
 
   const conditionNote = top
-    ? top.conditionScore >= 82
+    ? top.peaklyScore >= 82
       ? "conditions are firing right now"
-      : top.conditionScore >= 68
+      : top.peaklyScore >= 68
         ? "solid conditions and good timing"
         : "good flight deals available"
     : "";
@@ -2719,13 +2773,9 @@ function applyFilters(listings, activeCat, filters, search = {}) {
       return !dep || dep <= end;
     });
   }
-  if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
-  if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price   - b.flight.price);
-  if (filters.sort === "value") out = [...out].sort((a,b) => {
-    const valA = a.conditionScore / (a.flight.price || 1);
-    const valB = b.conditionScore / (b.flight.price || 1);
-    return valB - valA;
-  });
+  if (filters.sort === "score") out = [...out].sort((a,b) => b.peaklyScore - a.peaklyScore);
+  if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price - b.flight.price);
+  if (filters.sort === "value") out = [...out].sort((a,b) => b.peaklyScore - a.peaklyScore);
   return out;
 }
 
@@ -2733,31 +2783,24 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
 
-  // "Best Right Now" — personalized + respects active category filter
-  const userSports = profile?.sports?.length > 0 ? profile.sports : [];
+  // "Best Right Now" — peaklyScore-ranked, dynamic price cap (75th percentile)
+  const allPrices = listings.map(l => l.flight.price).sort((a, b) => a - b);
+  const p75idx = Math.floor(allPrices.length * 0.75);
+  const priceCapP75 = allPrices[p75idx] ?? 800;
+
   const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
   const bestStrict = [...bestPool]
-    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
-    .sort((a, b) => {
-      const aBoost = userSports.includes(a.category) ? 15 : 0;
-      const bBoost = userSports.includes(b.category) ? 15 : 0;
-      const aVal = (a.conditionScore + aBoost) - Math.round(a.flight.price / 20);
-      const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
-      return bVal - aVal;
-    })
+    .filter(l => l.peaklyScore >= 60 && l.flight.price <= priceCapP75)
+    .sort((a, b) => b.peaklyScore - a.peaklyScore)
     .slice(0, 5);
   const bestRightNow = bestStrict.length > 0
     ? bestStrict
-    : [...bestPool].sort((a, b) => {
-        const aBoost = userSports.includes(a.category) ? 15 : 0;
-        const bBoost = userSports.includes(b.category) ? 15 : 0;
-        return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-      }).slice(0, 5);
+    : [...bestPool].sort((a, b) => b.peaklyScore - a.peaklyScore).slice(0, 5);
 
   // Both "All" and sport tabs: always show top 5 picks.
-  const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
+  const allTopPicks = [...listings].sort((a, b) => b.peaklyScore - a.peaklyScore).slice(0, 5);
   const sportTopPicks = activeCat !== "all"
-    ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
+    ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.peaklyScore - a.peaklyScore).slice(0, 5)
     : [];
   const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
 
@@ -4977,7 +5020,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   // Similar venues: same category, excluding current, sorted by score
   const similarVenues = listings
     ? [...listings.filter(l => l.category === listing.category && l.id !== listing.id)]
-        .sort((a, b) => b.conditionScore - a.conditionScore)
+        .sort((a, b) => b.peaklyScore - a.peaklyScore)
         .slice(0, 5)
     : [];
 
@@ -5088,6 +5131,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <div>
                   <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}</div>
                   <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.conditionLabel}</div>
+                  {listing.period && <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.period}{listing.confidencePct != null ? ` — ${listing.confidencePct}% confidence` : ""}</div>}
                 </div>
                 <div style={{ display:"flex", gap:4, marginBottom:2 }}>
                   <button onClick={() => handleScoreVote("up")} className="pressable" style={{ background: currentVote==="up" ? "#dcfce7" : "#fff", border: currentVote==="up" ? "1.5px solid #22c55e" : "1.5px solid #e8e8e8", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 }}>
@@ -5415,7 +5459,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
 
     // Mock trip generation
     const sportVenues = listings.filter(l => l.category === sport);
-    const bestVenue = sportVenues.reduce((a, b) => (b.conditionScore || 0) - (a.conditionScore || 0))[0] || sportVenues[0];
+    const bestVenue = sportVenues.reduce((a, b) => (b.peaklyScore || 0) - (a.peaklyScore || 0))[0] || sportVenues[0];
 
     if (!bestVenue) {
       setGenerating(false);
@@ -6192,8 +6236,9 @@ function App() {
   const scoreDayIndex = filters.startDate ? Math.max(0, Math.min(6, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000))) : 0;
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
+  const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const listings = VENUES.map(v => {
-    const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
+    const { score, label, period, bestDays, confidencePct } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
     const estimate   = getFlightDeal(v.ap, profile.homeAirport);
     const realPrice  = duffelPrices[v.id];
     const flight     = realPrice != null
@@ -6221,10 +6266,19 @@ function App() {
     }
     const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore };
 
-    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow };
+    // ─── peaklyScore: unified ranking metric ───────────────────────────────
+    const expectedPrice = BASE_PRICES[v.ap]?.[profile.homeAirport] ?? BASE_PRICES[profile.homeAirport]?.[v.ap] ?? 500;
+    const priceRatio    = Math.min(flight.price / Math.max(expectedPrice, 1), 2.5);
+    const valuePremium  = Math.max(-20, Math.min(20, (1 - priceRatio) * 25));
+    const urgencyMult   = bestDays <= 2 ? 1.12 : bestDays <= 4 ? 1.05 : bestDays <= 7 ? 1.0 : 0.93;
+    const sportBoost    = userSports.includes(v.category) ? 15 : 0;
+    const rawScore      = (score * urgencyMult) + valuePremium + sportBoost;
+    const peaklyScore   = Math.max(0, Math.min(100, Math.round(rawScore)));
+
+    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow, peaklyScore, bestDays, confidencePct };
   });
 
-  const firingCount = listings.filter(l => l.conditionScore >= 90).length;
+  const firingCount = listings.filter(l => l.peaklyScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
     setWishlists(p => {
