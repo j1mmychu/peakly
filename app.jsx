@@ -4558,7 +4558,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", fontFamily:F, marginTop:2 }}>Unlock the full experience</div>
               </div>
               <div style={{ background:"#0284c7", borderRadius:10, padding:"4px 11px", flexShrink:0 }}>
-                <span style={{ fontSize:11, fontWeight:900, color:"white", fontFamily:F }}>$9/mo</span>
+                <span style={{ fontSize:11, fontWeight:900, color:"white", fontFamily:F }}>$79/yr</span>
               </div>
             </div>
             {[
