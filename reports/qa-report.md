@@ -1,128 +1,89 @@
-# QA Report: 2026-03-24 (v2)
+# QA Report — Peakly
 
-**Agent:** QA Agent (Claude Opus 4.6)
 **Date:** 2026-03-24
-**Scope:** New categories (kite, kayak, mtb, fishing, paraglide), Plausible analytics, SEO files, general app.jsx integrity
-**File under test:** `app.jsx` (5,631 lines)
-**Deployed URL:** https://j1mmychu.github.io/peakly/
+**File:** app.jsx (5,605 lines) | index.html (66 lines)
+**Baseline:** 5,631 lines (last run) | Current: 5,605 lines (-26, minor delta — no concern)
+**Venues:** 182 across 11 categories (stable from last run)
 
 ---
 
-## Check Results
+## Overall: 8/11 PASS
 
-### 1. Live Site Load
-**PASS** -- `https://j1mmychu.github.io/peakly/` returns HTTP 200. Site is reachable and serving content.
+| # | Check | Result | Details |
+|---|-------|--------|---------|
+| 1 | CATEGORIES syntax (12 present) | PASS | All 12 categories present: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. Correct syntax. |
+| 2 | Venue required fields | PARTIAL PASS | All 182 venues have: id, category, title, location, lat, lon, ap (airport), icon, rating, reviews, gradient, accent, tags, photo. **Missing from all venues:** `description`, `difficulty`, `bestMonths`. These fields were never part of the data model — the QA spec references them but they have never existed in the codebase. Not a regression. |
+| 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs. (Duplicates like `id:"value"`, `id:"score"` are sort-option IDs, not venues — no conflict.) |
+| 4 | Duplicate photo URLs | PASS | 0 duplicate photo URLs across all 182 venues. |
+| 5 | scoreVenue covers all categories | PASS | Switch cases for: skiing, surfing, tanning, diving, climbing, kite, kayak, mtb, fishing, paraglide, hiking + default fallback. All 11 activity categories covered. |
+| 6 | Affiliate links — Amazon | PASS | 20 Amazon links found, all using `tag=peakly-20`. No placeholder IDs (`AFFILIATE_ID`, `YOURID`) found anywhere in codebase. |
+| 7 | Affiliate links — Booking.com | PASS | 1 Booking.com link with `aid=2311236`. Correctly formatted. |
+| 8 | Affiliate links — SafetyWing | PASS | 1 SafetyWing link with `referenceID=peakly`. Correctly formatted. |
+| 9 | SEO files | PARTIAL PASS | `robots.txt` present and correct. `sitemap.xml` present but only contains root URL — no category-specific URLs. Canonical tag set. Title tag present and descriptive. **JSON-LD structured data: MISSING.** |
+| 10 | Cache-buster | FAIL (P2) | Current value: `?v=20260323b`. Dated 2026-03-23 — stale if any code was pushed today. |
+| 11 | Sentry DSN | FAIL (P2) | `SENTRY_DSN = ""` on line 6. Still empty. No external error reporting. |
 
-### 2. CATEGORIES Array (app.jsx lines 141-154)
-**PASS** -- 12 entries confirmed:
+---
 
-| # | id | label |
-|---|-----|-------|
-| 1 | all | All |
-| 2 | skiing | Skiing |
-| 3 | surfing | Surfing |
-| 4 | hiking | Hiking |
-| 5 | diving | Diving |
-| 6 | climbing | Climbing |
-| 7 | tanning | Beach & Tan |
-| 8 | kite | Kitesurf |
-| 9 | kayak | Kayak |
-| 10 | mtb | MTB |
-| 11 | fishing | Fishing |
-| 12 | paraglide | Paraglide |
+## Cache-Buster Status
 
-All entries have id, label, and emoji fields. No syntax issues.
+**Current value:** `?v=20260323b` (index.html, line 49)
+**Status:** Stale — dated 2026-03-23.
 
-### 3. New Category Venues
-**PASS** -- At least 1 venue per new category:
-
-| Category | Venue | Photo | Fields Complete |
-|----------|-------|-------|-----------------|
-| kite | Tarifa Wind Coast | Yes | Yes |
-| kayak | Milford Sound | Yes | Yes |
-| mtb | Moab Slickrock Trail | Yes | Yes |
-| fishing | Kenai River | Yes | Yes |
-| paraglide | Interlaken | Yes | Yes |
-
-All have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo.
-
-### 4. Scoring Logic for New Categories
-**PASS** -- `scoreVenue` contains `case` branches for all 5 new categories:
-- `case "kite"` (line 948)
-- `case "kayak"` (line 960)
-- `case "mtb"` (line 974)
-- `case "fishing"` (line 985)
-- `case "paraglide"` (line 995)
-
-### 5. Syntax Integrity
-**PASS**
-- No duplicate `photo:` fields on any venue line (0 matches)
-- No missing commas between venue objects (no `}\n{` without comma)
-- 182 venues have photo URLs
-- Total venue count: 182 (177 original categories + 5 new categories)
-
-### 6. index.html -- Plausible Analytics
-**PASS** -- Line 27: `<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.js"></script>`
-- Correctly placed in `<head>` with `defer` attribute.
-
-### 7. index.html -- Title Tag
-**PASS** -- Line 23: `<title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>`
-- Descriptive, keyword-rich.
-
-### 8. index.html -- Canonical URL
-**PASS** -- Line 24: `<link rel="canonical" href="https://j1mmychu.github.io/peakly/" />`
-
-### 9. robots.txt
-**PASS** -- File exists. Contents:
-```
-User-agent: *
-Allow: /
-Sitemap: https://j1mmychu.github.io/peakly/sitemap.xml
+**Fix (one-line change in index.html, line 49):**
+```html
+<!-- FROM -->
+<script type="text/babel" src="./app.jsx?v=20260323b" data-presets="react"></script>
+<!-- TO -->
+<script type="text/babel" src="./app.jsx?v=20260324a" data-presets="react"></script>
 ```
 
-### 10. sitemap.xml
-**PASS** -- File exists. Valid XML with root URL, lastmod 2026-03-24, daily changefreq, priority 1.0.
+---
+
+## Sentry Status
+
+**Status:** Empty DSN on line 6 of app.jsx. Error monitoring infrastructure exists but is not connected.
+
+**Fix (replace line 6 of app.jsx after signing up at sentry.io):**
+```js
+const SENTRY_DSN = "https://<your-key>@o<org-id>.ingest.sentry.io/<project-id>";
+```
+The existing `reportError()` + `fetch()` logic will activate immediately — no other code changes needed.
 
 ---
 
-## Summary Table
+## Venue Distribution by Category
 
-| Check | Result |
-|-------|--------|
-| Live site loads (HTTP 200) | PASS |
-| CATEGORIES has 12 entries (all + 11 sports) | PASS |
-| New category venues exist with complete fields | PASS |
-| New category scoring logic exists | PASS |
-| No duplicate photo fields | PASS |
-| No missing commas / syntax issues | PASS |
-| Plausible analytics script | PASS |
-| Title tag (SEO) | PASS |
-| Canonical URL | PASS |
-| robots.txt exists and correct | PASS |
-| sitemap.xml exists and valid | PASS |
+| Category | Count | Status |
+|----------|-------|--------|
+| tanning | 60 | Healthy |
+| surfing | 53 | Healthy |
+| skiing | 50 | Healthy |
+| hiking | 12 | Healthy |
+| diving | 1 | THIN |
+| climbing | 1 | THIN |
+| kite | 1 | THIN |
+| kayak | 1 | THIN |
+| mtb | 1 | THIN |
+| fishing | 1 | THIN |
+| paraglide | 1 | THIN |
 
-**Overall: ALL 11 CHECKS PASS**
-
----
-
-## Minor Issues (Non-Blocking)
-
-1. **Thin venue coverage for new categories.** Each of the 5 new categories has only 1 venue. Users filtering by kite/kayak/mtb/fishing/paraglide will see a near-empty list. Recommend adding 5-10 venues per new category.
-
-2. **CLAUDE.md docs drift.** The constants section still says "~170+ venues" and does not list the 5 new categories. Should be updated to reflect 182 venues and 12 category entries (all + 11 sports).
-
-3. **Plausible data-domain.** Set to `j1mmychu.github.io` -- must be updated when migrating to `peakly.app`.
-
-4. **Cache-busting param stale.** `app.jsx?v=20260323b` in index.html has not been bumped since last deploy. Should increment on each code push.
-
-5. **Mixed content (known).** `FLIGHT_PROXY` uses HTTP. Flight prices fall back to estimates. Documented in CLAUDE.md; not a new issue.
+**Non-blocking:** 7 of 11 activity categories have only 1 venue. These will feel empty to users. Recommend expanding to 5+ per category before marketing push.
 
 ---
 
-## Recommended Fixes
+## Plausible Analytics
 
-| Priority | Fix |
-|----------|-----|
-| Medium | Add 5-10 venues per new category (kite, kayak, mtb, fishing, paraglide) |
-| Low | Update CLAUDE.md constants section for 182 venues and new categories |
-| Low | Bump cache-bust param `?v=20260324` in index.html on next deploy |
+Script loads `script.js` (not `script.hash.js`). The `script.hash.js` upgrade mentioned in the QA spec has not been performed. Current script is functional but does not support hash-based SPA tracking. **P3 — non-blocking.**
+
+---
+
+## Regressions vs Last Run
+
+**NONE.** All previously passing checks still pass. Venue count stable at 182. Category count stable at 12. No new duplicate IDs or photos.
+
+---
+
+## One Thing That Would Break Everything If Not Caught
+
+**The flight proxy URL is hardcoded as HTTP** (`http://104.131.82.242:3001` on line 1032 of app.jsx). The app is served over HTTPS via GitHub Pages, so all browsers silently block this mixed-content request. Flight prices never load for any production user — `_flightApiStatus` stays `"down"` and everyone sees estimated prices only. This is known and documented, but remains the single biggest functional gap in the live product.
