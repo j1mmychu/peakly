@@ -23,8 +23,8 @@
   <title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>
   <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
 
-  <!-- Analytics: Plausible (privacy-first, no cookie banner needed) -->
-  <script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
+  <!-- Analytics -->
+  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -58,19 +58,12 @@
   }
   </script>
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="./manifest.json" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Peakly" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%230284c7'/><text x='90' y='134' font-size='112' font-family='system-ui' font-weight='700' fill='white' text-anchor='middle'>P</text></svg>" />
-
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
 
   <!-- React 18 + ReactDOM (UMD, no build step needed) -->
-  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
   <!-- Babel standalone — transforms JSX in the browser -->
   <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
@@ -92,14 +85,7 @@
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260325b" data-presets="react"></script>
-
-  <!-- Service Worker registration -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(function() {});
-    }
-  </script>
+  <script type="text/babel" src="./app.jsx?v=20260325a" data-presets="react"></script>
 
   <!-- Babel parse error fallback -->
   <script>
