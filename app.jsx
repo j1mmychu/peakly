@@ -4659,9 +4659,10 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   // ─── Swipe-down-to-dismiss ──────────────────────────────────────────────────
   const sheetRef = useRef(null);
+  const scrollRef = useRef(null);
   const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
   const onTouchStart = useCallback((e) => {
-    const el = sheetRef.current;
+    const el = scrollRef.current;
     if (!el || el.scrollTop > 5) return; // only swipe when at top
     dragRef.current = { startY: e.touches[0].clientY, currentY: e.touches[0].clientY, dragging:true };
   }, []);
@@ -4747,14 +4748,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
       <div ref={sheetRef} className="sheet" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
-        zIndex:301, maxHeight:"94vh", overflowY:"auto",
-        paddingBottom:"max(env(safe-area-inset-bottom,0px),24px)",
+        zIndex:301, maxHeight:"94vh", overflow:"hidden",
+        display:"flex", flexDirection:"column",
       }}>
-        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0", cursor:"grab" }}>
-          <div style={{ width:36, height:4, borderRadius:2, background:"#ddd" }} />
-        </div>
-        {/* Hero */}
-        <div style={{ position:"relative", height:190, margin:"12px 16px 0", borderRadius:20, overflow:"hidden" }}>
+        <div ref={scrollRef} style={{ flex:1, overflowY:"auto" }}>
+        {/* Hero — full bleed */}
+        <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
           {listing.photo ? (
             <img src={listing.photo} alt={listing.title} loading="lazy" style={{
               position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover",
@@ -4764,8 +4763,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <span style={{ fontSize:88, opacity:0.22, filter:"blur(2px)" }}>{listing.icon}</span>
             </div>
           )}
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 55%)" }} />
-          <div style={{ position:"absolute", top:12, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
+          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 50%)" }} />
+          {/* Drag handle overlaid on hero */}
+          <div style={{ position:"absolute", top:10, left:0, right:0, display:"flex", justifyContent:"center", cursor:"grab" }}>
+            <div style={{ width:36, height:4, borderRadius:2, background:"rgba(255,255,255,0.45)" }} />
+          </div>
+          <div style={{ position:"absolute", top:24, left:12, right:12, display:"flex", justifyContent:"space-between" }}>
             <button onClick={onClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:34, height:34, fontSize:16, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             <div style={{ display:"flex", gap:7 }}>
               <button onClick={() => setShowSharePanel(v => !v)} className="pressable" style={{ background: showSharePanel ? "#22c55e" : "rgba(0,0,0,0.45)", border:"none", borderRadius:20, padding:"6px 13px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer" }}>📤 Share & Invite</button>
@@ -4808,7 +4811,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           </div>
         )}
 
-        <div style={{ padding:"16px 16px 0" }}>
+        <div style={{ padding:"16px 16px 24px" }}>
           {/* Score + flight */}
           <div style={{ display:"flex", gap:10, marginBottom:14 }}>
             <div style={{ flex:1, background: listing.conditionScore >= 85 ? "#f0f9ff" : listing.conditionScore >= 70 ? "#fff7ed" : "#f7f7f7", borderRadius:14, padding:"12px 14px" }}>
@@ -4822,15 +4825,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>Was ${listing.flight.normal} · {listing.flight.pct}% off</div>
             </div>
           </div>
-
-          {/* Book flight CTA */}
-          <a href={flightUrl} target="_blank" rel="noopener noreferrer" onClick={() => { window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }} style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
-            <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:"0 4px 18px rgba(14,165,233,0.38)" }}>
-              <span style={{ fontSize:20 }}>✈️</span>
-              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Book on Google Flights · ${listing.flight.price}</span>
-              <span style={{ fontSize:13, color:"rgba(255,255,255,0.6)" }}>↗</span>
-            </div>
-          </a>
 
           {/* Set Alert CTA */}
           <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
@@ -5076,6 +5070,39 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             )}
           </div>
+        </div>
+        </div>{/* end scrollRef */}
+        {/* ─── Sticky CTA bar ─────────────────────────────────────── */}
+        <div style={{
+          padding:"12px 16px",
+          paddingBottom:"max(env(safe-area-inset-bottom,0px),16px)",
+          background:"#fff",
+          borderTop:"1.5px solid #f0f0f0",
+          display:"flex",
+          gap:10,
+          flexShrink:0,
+        }}>
+          <a href={flightUrl} target="_blank" rel="noopener noreferrer"
+             onClick={() => { window.plausible && window.plausible('Flight Search', {props: {venue: listing.title, origin: listing.flight.from}}); }}
+             style={{ flex:2, textDecoration:"none" }}>
+            <div className="pressable" style={{
+              background:"#222", borderRadius:14, padding:"15px 0",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            }}>
+              <span style={{ fontSize:16 }}>✈️</span>
+              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · ${listing.flight.price}</span>
+            </div>
+          </a>
+          <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
+             target="_blank" rel="noopener noreferrer" style={{ flex:1, textDecoration:"none" }}>
+            <div className="pressable" style={{
+              background:"#f0f0f0", borderRadius:14, padding:"15px 0",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            }}>
+              <span style={{ fontSize:16 }}>🏨</span>
+              <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>Hotels</span>
+            </div>
+          </a>
         </div>
       </div>
     </>
