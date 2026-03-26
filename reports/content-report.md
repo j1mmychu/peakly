@@ -49,6 +49,12 @@ Both are diving venues in SE Asia. Fix: replace sipadan's photo with a unique ID
 ### Duplicate Amazon Affiliate URL (1 confirmed)
 `https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen` appears in both the `surfing` and `tanning` gear arrays. Fix: differentiate the tanning entry (see Section 4).
 
+### 🚨 Wrong Airport Code — Dahab, Egypt
+- **Venue:** `id:"dahab"` — Blue Hole, Sinai Peninsula, Egypt
+- **Current:** `ap:"AMM"` (Amman, Jordan — **wrong country, wrong continent**)
+- **Fix:** Change to `ap:"SSH"` (Sharm el-Sheikh, Egypt — 90km from Dahab)
+- Flight price lookups for Dahab are currently fetching fares to Jordan, not Egypt. Actively misleading users.
+
 ### No Other Issues Found
 - All 192 venues have: lat, lon, ap, photo, tags ✓
 - All 127 unique airport codes mapped in AP_CONTINENT ✓
