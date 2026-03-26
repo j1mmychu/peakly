@@ -363,7 +363,21 @@ After approval, append affiliate params to each REI URL per Avantlink's format.
 
 **Estimated fix time: 2 minutes.**
 
-### P2.4 — Plausible Domain (Future Risk)
+### P2.4 — Sentry Loader Script Missing from index.html
+
+CLAUDE.md explicitly states: "Sentry live (2026-03-25). Loader Script in index.html, Sentry.init() in app.jsx." Neither is true. `grep "sentry" index.html` returns nothing. The Sentry Loader Script is completely absent. The in-app Sentry-lite reporter (lines 1–66 in app.jsx) exists and is correct, but will only work once the DSN is filled in (see P2.1). Do not add the Loader Script until the DSN is ready — both must happen together.
+
+### P2.5 — CLAUDE.md / Master Branch Divergence (65 Orphaned Commits)
+
+65 commits exist in an orphaned branch (`75a3a60`) that never merged to master. CLAUDE.md reflects those commits' claimed state ("Sentry live", "2,226 venues", "weather cache shipped") but master code has none of them. Every agent run makes decisions based on false premises.
+
+```bash
+git log --oneline 75a3a60 ^master | head -30
+```
+
+Jack decision needed: merge the orphaned branch or abandon it. Until resolved, treat CLAUDE.md "Completed" items as unverified — always grep the code before marking anything done.
+
+### P2.6 — Plausible Domain (Future Risk)
 
 `index.html` line 27: `data-domain="j1mmychu.github.io"` — will stop recording when peakly.app goes live post-LLC unless updated.
 
@@ -415,5 +429,6 @@ Open-Meteo free tier covers ~1K MAU with weather cache in place. At 10K MAU, mov
 | P2 | Jack | Add Sentry DSN at sentry.io (free tier) | 5 min | ⏳ PENDING |
 | P2 | Jack | REI Avantlink signup (no LLC needed) | 30 min | ⏳ PENDING |
 | P2 | Dev | Pin React/ReactDOM to 18.3.1 | 2 min | ⏳ PENDING |
+| P2 | Jack | Audit 65 orphaned commits (`75a3a60` ^master), decide merge/abandon | 1 hr | ⏳ PENDING |
 | Future | Jack | Update Plausible domain to peakly.app when live | 30 sec | BLOCKED (LLC) |
 | Future | Dev | VPS Node.js flight price LRU cache | 20 min | ⏳ PENDING |
