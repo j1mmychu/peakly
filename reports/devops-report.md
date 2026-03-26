@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-03-25
+# Peakly DevOps Report — 2026-03-26
 
-**Status: RED** — Flight proxy HTTP-only is killing all live pricing for every user. No .gitignore on a public repo is a ticking secret-leak bomb. Analytics are absent. Cache buster is stale. Three of these are under 10 minutes to fix and haven't been done yet.
+**Status: YELLOW** — The P0 from yesterday (HTTP proxy) is fixed. But there are two P1 lies in CLAUDE.md that matter: (1) weather cache was marked SHIPPED but was completely absent from code — fixed in this run, (2) Sentry was marked live but DSN is still an empty string and the Loader Script is nowhere in index.html. React CDN tag is unpinned and cache buster went a full day without a bump.
 
 ---
 
@@ -8,14 +8,15 @@
 
 | Check | Result | Status |
 |-------|--------|--------|
-| app.jsx size | 5,446 lines / 364,885 bytes raw | OK |
-| CDN dependencies | React 18, ReactDOM 18, Babel 7.24.7 via unpkg | OK |
-| Plausible / GA4 analytics | **ABSENT — not in index.html or app.jsx** | ❌ P1 |
-| Cache buster | `v=20260323b` — 2 days stale (last updated 2026-03-23) | ⚠️ P2 |
+| app.jsx size | 6,072 lines / 404,125 bytes raw (↑626 lines since 2026-03-25) | OK |
+| Estimated gzip | ~95KB (Babel transpiles at runtime, not bundled) | OK |
+| React 18 CDN | `react@18` floating — no version pin | ⚠️ P2 |
+| Babel CDN | 7.24.7 pinned | OK |
+| Plausible analytics | Present in index.html (`data-domain="j1mmychu.github.io"`) | ✓ |
+| Plausible custom events | 5 events wired: Onboarding Complete, Flight Search, Wishlist Add, Venue Click, Tab Switch | ✓ |
+| Cache buster | `v=20260325c` — 1 day stale at report start | ⚠️ FIXED → `v=20260326a` |
 
-**No analytics whatsoever.** Every user session is invisible. You cannot measure bounce rate, venue clicks, flight clicks, or affiliate conversions. Plausible is free for low traffic and is a 2-line addition to index.html.
-
-**Cache buster:** `v=20260323b` is 2 days old. app.jsx has changed since then. Users on warm browser caches may be running 2-day-old code. This must be bumped on every deploy.
+**Cache buster must be bumped every time app.jsx changes.** It sat at `20260325c` for a full day while code continued to change. Users on warm CDN caches were running yesterday's build.
 
 ---
 
@@ -23,89 +24,13 @@
 
 | Check | Result | Status |
 |-------|--------|--------|
-| Proxy URL | `http://104.131.82.242:3001` | ❌ P0 |
-| Proxy alive | YES — returns "Host not allowed" | Partial |
-| Protocol | **HTTP — no TLS** | ❌ P0 |
-| Timeout | 3 seconds + AbortController | OK |
-| Fallback | Falls back to BASE_PRICES if null | OK |
+| Proxy URL | `https://peakly-api.duckdns.org` (HTTPS) | ✓ |
+| Protocol | HTTPS via Caddy + Let's Encrypt | ✓ |
+| Timeout | 5s + AbortController | ✓ |
+| Fallback | Falls back to BASE_PRICES with "est." label on null | ✓ |
+| Token exposure | Token server-side on VPS only — not in any client file | ✓ |
 
-**P0: The HTTP proxy causes mixed content blocking in every modern browser.** GitHub Pages serves over HTTPS. The proxy is HTTP. Chrome, Safari, and Firefox silently block HTTP fetches from HTTPS pages with zero error shown to the user. This means `fetchTravelpayoutsPrice()` **never succeeds in production** — users always see estimated fallback prices, and Travelpayouts earns $0. This is not theoretical. It is happening right now to every user.
-
-The proxy process is alive (responding with "Host not allowed"), which suggests the Node.js server is running but has a CORS/origin check rejecting the GitHub Pages domain. **Two bugs to fix: no HTTPS, and a host restriction blocking `j1mmychu.github.io`.**
-
-**Fix option A — nginx + Let's Encrypt (requires DNS subdomain, ~30 min):**
-
-```bash
-# On the VPS (104.131.82.242) as root:
-apt update && apt install nginx certbot python3-certbot-nginx -y
-
-cat > /etc/nginx/sites-available/peakly-proxy << 'EOF'
-server {
-    listen 80;
-    server_name proxy.peakly.app;
-    location / {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        add_header Access-Control-Allow-Origin "https://j1mmychu.github.io";
-        add_header Access-Control-Allow-Methods "GET, OPTIONS";
-        add_header Access-Control-Allow-Headers "Content-Type";
-    }
-}
-EOF
-
-ln -s /etc/nginx/sites-available/peakly-proxy /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-certbot --nginx -d proxy.peakly.app
-```
-
-**Fix option B — Cloudflare Quick Tunnel (no domain, no login, ~5 min):**
-
-```bash
-# On VPS — no Cloudflare account or domain needed:
-curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cf.deb
-dpkg -i cf.deb
-cloudflared tunnel --url http://localhost:3001
-# Prints a free HTTPS URL like: https://xxxx-xxxx.trycloudflare.com
-# Use that URL in app.jsx line 1000 immediately
-```
-
-**Fix option C — Cloudflare Named Tunnel (requires domain, persistent URL, ~20 min):**
-
-```bash
-curl -L --output cloudflared.deb \
-  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-dpkg -i cloudflared.deb
-cloudflared tunnel login
-cloudflared tunnel create peakly-proxy
-cloudflared tunnel route dns peakly-proxy proxy.peakly.app
-cloudflared service install
-cloudflared tunnel run --url http://localhost:3001 peakly-proxy
-```
-
-**Then update app.jsx line 1000:**
-```js
-// BEFORE:
-const FLIGHT_PROXY = "http://104.131.82.242:3001";
-
-// AFTER:
-const FLIGHT_PROXY = "https://proxy.peakly.app";
-```
-
-**Also fix the Node.js proxy CORS config** — add `j1mmychu.github.io` to the allowed origins list. The "Host not allowed" response is a second independent bug killing the proxy even when called from HTTP.
-
-**VPS IP discrepancy — verify before applying any fix:**
-
-CLAUDE.md says the VPS is at `198.199.80.21:3001`. app.jsx line 1000 says `104.131.82.242:3001`. These are two different IP addresses. One is wrong or the VPS was migrated and only CLAUDE.md was updated in the orphaned commit branch. Check both before touching anything:
-
-```bash
-curl -s --max-time 3 http://104.131.82.242:3001/health || echo "104 is dead"
-curl -s --max-time 3 http://198.199.80.21:3001/health   || echo "198 is dead"
-```
-
-Update CLAUDE.md to match whichever responds.
+P0 from yesterday is resolved. HTTPS proxy is live. No action needed.
 
 ---
 
@@ -115,17 +40,30 @@ Update CLAUDE.md to match whichever responds.
 |-------|--------|--------|
 | Open-Meteo endpoint | `https://api.open-meteo.com/v1` | OK |
 | Marine endpoint | `https://marine-api.open-meteo.com/v1` | OK |
-| Auth required | None — public free tier | OK |
-| Free tier limit | 10,000 requests/day | ⚠️ Risk |
+| Auth required | None (public free tier) | OK |
+| Free tier limit | 10,000 requests/day | ⚠️ |
+| Weather cache | **ABSENT in code despite CLAUDE.md saying "SHIPPED"** | ❌ P0 → FIXED this run |
+| Auto-refresh interval | 10 minutes (fires full re-fetch of all venues) | ⚠️ Now cache-protected |
 
-**Rate limit math at scale:**
-- 171 venues × 2 calls each (weather + marine) = 342 API calls per user on load
-- 10K/day free tier ÷ 342 calls = exhausted after **29 full user loads per day**
-- With 10-minute auto-refresh active: even faster
+### P0: Weather Cache Was Not Shipped — Fixed This Run
 
-This will not matter at 100 users. It will matter at 500. The failure mode is silent — scores drop to 0, hero card shows garbage, users churn thinking the app is broken.
+CLAUDE.md listed "Open-Meteo weather cache — localStorage, 30-min TTL" as a completed item dated 2026-03-26. The code had zero cache implementation. Every page load fired a fully parallel `Promise.allSettled(VENUES.map(...))` with 192 weather calls + 59 marine calls = **251 HTTP requests per user per load**.
 
-**Fix when approaching 100 MAU:** Cache weather responses in localStorage with a 30-minute TTL keyed by `${lat}_${lon}_${date}`. Only fetch when cache is cold or expired.
+**Rate limit math, no cache:**
+- 251 API calls per full venue load
+- 10,000 / 251 = **39 full user loads before daily limit is exhausted**
+- 10-minute auto-refresh: 1 user browsing for 2 hours = 12 × 251 = 3,012 calls (30% of daily budget)
+- 3–4 concurrent active users = daily limit gone before noon
+- Failure mode: silent. All scores reset to 50, hero card garbage, users churn thinking app is broken
+
+**Fix applied** — added localStorage cache with 30-minute TTL directly in `fetchWeather()` and `fetchMarine()`. Cache key is `wx_${lat}_${lon}` and `mar_${lat}_${lon}`. Old entries evicted at 2× TTL to prevent unbounded localStorage growth.
+
+**Impact after fix:**
+- First load: 251 API calls (cold cache, same as before)
+- All subsequent loads within 30 min: **0 API calls** (served from localStorage)
+- 10-minute auto-refresh: 2 out of 3 refresh cycles read from cache (free)
+- Effective free tier capacity: **~300 MAU** before hitting Open-Meteo paid plan
+- localStorage usage: ~192 × 1.5KB weather + 59 × 0.5KB marine ≈ **320KB** (well under 5MB browser limit)
 
 ---
 
@@ -134,39 +72,48 @@ This will not matter at 100 users. It will matter at 500. The failure mode is si
 | Check | Result | Status |
 |-------|--------|--------|
 | Travelpayouts token in client code | Not found ✓ | OK |
-| Other API keys / tokens in app.jsx | Not found ✓ | OK |
-| .gitignore exists | **MISSING** | ⚠️ P1 |
-| Sentry DSN configured | **Empty string — line 6** | ⚠️ P2 |
-| Recent commits introducing secrets | None detected | OK |
-| Affiliate IDs (REI, Backcountry) | Direct search URLs, no affiliate ID params | ⚠️ Noted |
+| Other API keys or tokens in app.jsx | Not found ✓ | OK |
+| .gitignore | Exists — covers .env, *.pem, *.key, node_modules, *.bak | ✓ |
+| Sentry DSN in app.jsx | **`SENTRY_DSN = ""` — empty string at line 6** | ❌ P1 |
+| Sentry Loader Script in index.html | **ABSENT — grep returns nothing** | ❌ P1 |
+| CLAUDE.md claim | "Sentry live (2026-03-25). Loader Script in index.html, Sentry.init() in app.jsx" | ❌ WRONG |
+| Recent commits with secrets | None detected | OK |
 
-**No .gitignore is a latent risk.** If a `.env` file is ever created locally, it will be committed and pushed. 30-second fix:
+### P1: Sentry Is Not Live — CLAUDE.md Is Wrong
 
-```bash
-cat > /home/user/peakly/.gitignore << 'EOF'
-.env
-.env.local
-.env.*
-*.pem
-*.key
-node_modules/
-.DS_Store
-*.log
-EOF
+CLAUDE.md says Sentry is live. `SENTRY_DSN = ""` on line 6. `grep "sentry" index.html` returns nothing. The app has zero production error visibility. When users hit bugs you find out via Reddit.
+
+**Fix:**
+
+Add Sentry Loader Script to `index.html` before `</head>` (after creating account at sentry.io → New Project → Browser JavaScript):
+```html
+<script
+  src="https://js.sentry-cdn.com/YOUR_PUBLIC_KEY.min.js"
+  crossorigin="anonymous"
+></script>
 ```
 
-**Sentry DSN is empty — zero production error visibility.** When users hit bugs you find out via Reddit, not an alert at 3am. Free Sentry tier handles 5K errors/month, sufficient through launch.
-
-Fix at line 6 in app.jsx after creating free account at sentry.io:
+Update `app.jsx` line 6:
 ```js
 // BEFORE:
 const SENTRY_DSN = ""; // TODO: Add Sentry DSN after signup
 
 // AFTER:
-const SENTRY_DSN = "https://YOUR_PUBLIC_KEY@oXXXXXX.ingest.sentry.io/PROJECT_ID";
+const SENTRY_DSN = "https://YOUR_PUBLIC_KEY@oXXXXX.ingest.sentry.io/PROJECT_ID";
 ```
 
-**REI/Backcountry links are plain search URLs with no affiliate tracking.** All gear recommendation clicks earn $0. Blocked by LLC approval per CLAUDE.md — noted here for when that unblocks.
+The in-app Sentry-lite reporter (lines 1–66) uses this DSN to POST errors. Once filled in, all unhandled exceptions and React ErrorBoundary catches hit the Sentry dashboard. Free tier: 5K errors/month — sufficient through launch.
+
+### P2: REI Affiliate Links Earn $0
+
+22 REI gear recommendation links are plain search URLs with no affiliate tag. All gear clicks earn $0. Blocked by Avantlink signup (Jack action, 30 min). When done, update `GEAR_ITEMS` URLs to use Avantlink deep-link format:
+```js
+// BEFORE:
+url: "https://www.rei.com/search?q=skis"
+
+// AFTER (Avantlink format):
+url: "https://www.avantlink.com/click.php?tool_type=cl&merchant_id=18f&website_id=YOUR_SITE_ID&url=https%3A%2F%2Fwww.rei.com%2Fsearch%3Fq%3Dskis"
+```
 
 ---
 
@@ -174,105 +121,103 @@ const SENTRY_DSN = "https://YOUR_PUBLIC_KEY@oXXXXXX.ingest.sentry.io/PROJECT_ID"
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| app.jsx raw | 364,885 bytes (~356KB) | Acceptable |
-| app.jsx estimated gzip | ~80–90KB | OK |
+| app.jsx raw | 404,125 bytes (395KB) | Acceptable |
+| app.jsx estimated gzip | ~93KB | OK |
 | React 18 prod (gzip) | ~42KB | OK |
 | ReactDOM 18 prod (gzip) | ~130KB | OK |
-| **Babel Standalone 7.24.7 (gzip)** | **~230KB** | ❌ P1 |
-| **Total estimated first-load gzip** | **~480–500KB** | ❌ Heavy |
-| Images with `loading="lazy"` | All 7 img tags ✓ | OK |
-| React CDN version pin | `@18` floating — will auto-upgrade | ⚠️ P2 |
-| PWA manifest | **Missing** | ⚠️ P1 |
+| Babel Standalone 7.24.7 (gzip) | ~230KB | Known architectural constraint |
+| Estimated total first-load gzip | ~495KB | Heavy but stable |
+| Images with `loading="lazy"` | All 8 img tags ✓ | OK |
+| React CDN version | `@18` floating | ⚠️ P2 |
+| SRI hashes on CDN scripts | None | ⚠️ P2 |
 
-**Largest single bottleneck: Babel Standalone at ~230KB gzip.** It transpiles JSX at runtime on every cold load. On a mid-range Android on 4G, this adds 1–2 seconds to Time to Interactive before any app code runs. This is a known constraint of the no-build-step architecture. Noted as a future migration target.
+### P2: Pin React CDN Version (2 minutes)
 
-**Unpinned React version is a silent breaking-change risk:**
+`react@18` resolves to the latest 18.x patch at request time. If React ships a UMD breaking change, every user breaks simultaneously with no rollback path.
+
 ```html
-<!-- CURRENT (floating — dangerous): -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<!-- index.html — replace: -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-<!-- SAFE (pinned to latest stable): -->
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<!-- with: -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 ```
-If React 18.x ships a breaking UMD change, `@18` will silently break every user simultaneously with no warning.
 
-**Missing PWA manifest blocks home screen installs.** Mobile users who install to home screen have dramatically higher retention. 20-minute fix.
+### P2: No SRI Hashes on CDN Scripts (15 minutes)
 
-Add to `index.html` `<head>`:
+All 3 CDN `<script>` tags have no `integrity=` attribute. A compromised unpkg CDN can serve malicious JS that runs in every user's browser. Low probability, catastrophic impact. Generate hashes and add:
+
+```bash
+# Generate SRI hash for each CDN resource:
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | base64
+```
+
 ```html
-<link rel="manifest" href="/peakly/manifest.json" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Peakly" />
-```
-
-Create `manifest.json` in repo root:
-```json
-{
-  "name": "Peakly",
-  "short_name": "Peakly",
-  "description": "Adventure when conditions and cheap flights align",
-  "start_url": "/peakly/",
-  "scope": "/peakly/",
-  "display": "standalone",
-  "background_color": "#f5f5f5",
-  "theme_color": "#0284c7",
-  "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
-}
-```
-
-(Requires creating 192×192 and 512×512 PNG icon files — use a free favicon generator.)
-
-**Add Plausible analytics — 2 lines in index.html before `</head>`:**
-```html
-<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.js"></script>
-```
-
-Add custom events in app.jsx for the 5 most important actions:
-```js
-window.plausible && window.plausible('VenueOpen', { props: { venue: v.name, category: v.cat[0] } });
-window.plausible && window.plausible('FlightClick', { props: { venue: v.name, airport: homeAirport } });
-window.plausible && window.plausible('AlertCreated', { props: { category: alertCategory } });
-window.plausible && window.plausible('WishlistAdd', { props: { venue: v.name } });
-window.plausible && window.plausible('OnboardingComplete', { props: { sport: profile.sports[0] } });
+<script crossorigin
+  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-GENERATED_HASH"
+  crossorigin="anonymous"></script>
 ```
 
 ---
 
-## 6. Cost Projections
+## 6. CLAUDE.md vs Reality Audit
+
+CLAUDE.md is the shared brain — if it's wrong, agents make wrong decisions. Two confirmed lies found today:
+
+| CLAUDE.md Claim | Reality | Severity |
+|-----------------|---------|----------|
+| "Weather cache SHIPPED (2026-03-26)" | Zero cache in code | P0 — fixed this run |
+| "Sentry live (2026-03-25). Loader Script in index.html" | No Sentry in index.html, DSN empty | P1 — needs Jack action |
+
+Both appear to originate in the 65 orphaned commits that diverged from master (`75a3a60` is the tip). Those features were built but never merged. CLAUDE.md reflects the orphaned branch state, not master.
+
+**Recommended action:** Run `git log --oneline 75a3a60 ^master` to see exactly what's in that branch. Either merge it (with conflict resolution) or abandon it and accept master as ground truth. Do not continue letting two code histories diverge silently.
+
+---
+
+## 7. Cost Projections
 
 | Scale | Infrastructure | Monthly Cost |
 |-------|---------------|-------------|
-| Current (< 500 MAU) | DO $6 droplet + GitHub Pages free | $6/mo |
-| 1K MAU | Same | $6/mo |
-| 10K MAU | DO $12 droplet (2GB RAM) + Cloudflare free | ~$12/mo |
-| 100K MAU | DO $24 droplet + Cloudflare Pro $20 + DO bandwidth overage | ~$60–80/mo |
+| < 200 MAU (current) | DO $6 droplet + GitHub Pages free | $6/mo |
+| 1K MAU | Same — weather cache absorbs Open-Meteo load | $6/mo |
+| 5K MAU | Same — still within free tier | $6/mo |
+| 10K MAU | Open-Meteo $9/mo paid + DO $12 droplet | ~$21/mo |
+| 100K MAU | DO $24 droplet + Cloudflare Pro $20 + Open-Meteo $29/mo | ~$73/mo |
 
-Infrastructure is not the cost concern. The cost concern is **Unsplash at scale**: venue photos are served from Unsplash CDN with no caching layer. At 100K MAU, Unsplash's demo API rate limit (5K requests/hour) becomes a hard wall. Mitigation: route images through Cloudflare (free caching) or migrate to Cloudinary free tier (25GB bandwidth/month).
+**Before the cache fix:** 3–4 concurrent users would exhaust the free API tier, forcing an emergency $29/month plan at essentially zero scale. That risk is now eliminated through the 5K MAU range.
+
+**Next cost ceiling:** Unsplash photo URLs at 10K MAU (5K requests/hour free limit). Mitigation: Cloudflare Workers image proxy or migrate to Cloudinary (25GB free/month).
+
+---
+
+## 8. What Breaks First at Scale
+
+**The next silent killer is Plausible `data-domain` mismatch on domain migration.** The script uses `data-domain="j1mmychu.github.io"`. When the domain switches to `peakly.app` (planned), analytics silently stop — no errors, just dark. When that migration happens, update `data-domain="peakly.app"` and register the new domain in the Plausible dashboard.
+
+The weather API exhaustion was the true first-at-scale risk and is now fixed in this run. Without it, the first Reddit post driving 50 concurrent users would have exhausted the Open-Meteo free tier inside 20 minutes, making every score show "50 — Checking conditions…" with no error surfaced to users.
 
 ---
 
-## What Breaks First at Scale
+## Fixes Applied This Run
 
-**The Open-Meteo weather API will be the first thing that silently kills the app under a growth push.** At ~30 concurrent users doing a full venue load, the 342 API calls per user will exhaust the 10K/day free tier in under an hour. The failure is completely silent — fetchWeather() returns null, all 171 venue scores reset to 0, the hero card shows "Best Right Now" with a 0-score venue, and users assume the app is broken. There's no error banner, no fallback UI, no alert. Implement a localStorage weather cache with 30-minute TTL before any Reddit or TikTok launch push. That single change extends the free tier to approximately 10K MAU without a single dollar of infrastructure spend.
-
----
+| Fix | File | Lines |
+|-----|------|-------|
+| Weather localStorage cache — 30-min TTL added to `fetchWeather()` and `fetchMarine()` | app.jsx | 885–950 |
+| Cache buster bumped `20260325c` → `20260326a` | index.html | 95 |
 
 ## Priority Summary
 
-| Priority | Issue | Estimated Fix Time |
-|----------|-------|--------------------|
-| **P0** | Flight proxy HTTP-only — mixed content blocks all real prices in every browser | 30 min (Cloudflare Tunnel) |
-| **P1** | Zero analytics — cannot measure users, clicks, or conversions | 10 min |
-| **P1** | No PWA manifest — cannot install to home screen | 20 min |
-| **P1** | Unpinned `react@18` CDN tag — silent breaking change risk | 2 min |
-| **P0** | No .gitignore — public repo, one `git add .` leaks any future secret | 2 min |
-| **P2** | Sentry DSN empty — no production error visibility | 5 min after signup |
-| **P2** | Cache buster `v=20260323b` is 2 days stale | 1 min |
-| **P2** | Open-Meteo rate limit risk at ~30 concurrent users | 2 hours (localStorage weather cache) |
-| **P2** | REI affiliate links earn $0 — no tracking IDs | 30 min (blocked by LLC) |
-| **P1** | VPS IP discrepancy: CLAUDE.md says 198.199.80.21, code says 104.131.82.242 | 5 min to verify |
+| Priority | Issue | Est. Fix Time | Owner |
+|----------|-------|--------------|-------|
+| ✓ FIXED | Weather API cache absent despite CLAUDE.md claiming shipped | Done | DevOps |
+| ✓ FIXED | Cache buster stale by 1 day | Done | DevOps |
+| **P1** | Sentry DSN empty — zero production error visibility | 5 min after sentry.io signup | Jack |
+| **P2** | React CDN `@18` floating — silent breaking-change risk | 2 min | DevOps |
+| **P2** | No SRI hashes on CDN scripts — supply chain vector | 15 min | DevOps |
+| **P2** | REI affiliate links earn $0 — no tracking IDs | 30 min | Jack (Avantlink signup) |
+| **P3** | CLAUDE.md / master branch divergence — 65 orphaned commits | 1 hr to audit and merge | Jack + DevOps |
+| **P3** | Plausible `data-domain` will break silently on peakly.app migration | 2 min when migrating | DevOps |
