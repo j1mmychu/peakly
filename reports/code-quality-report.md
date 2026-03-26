@@ -1,51 +1,51 @@
 ---
-PEAKLY DAILY BRIEFING — 2026-03-25
+PEAKLY DAILY BRIEFING — 2026-03-25 (v2)
 STATUS: YELLOW
 
-A lot shipped. The app is materially better than 48 hours ago. But the 2,226-venue expansion created a new class of problems that the shipped fixes don't fully solve, and your 12 agents are reporting on 5 different versions of reality.
+The two critical scaling blockers from the last briefing are resolved. Smart weather fetch shipped (top 100 on load, lazy on detail). Stable photos shipped (zero deprecated URLs). The app went from "breaks at 4 visitors/day" to "handles 77+ cold loads/day." But the most-clicked button still earns $0, and 176 photos serve 2,226 venues.
 
 SHIPPED TODAY:
-- Weather cache with 30-min TTL (localStorage, keyed by lat/lon) -- the #1 infrastructure ask for 4+ cycles. Done.
-- Batched weather fetching (50/batch, 2s delay) -- prevents API thundering herd on load.
-- All 2,050 unstable source.unsplash.com URLs replaced with stable images.unsplash.com photo IDs -- the deprecated-photo crisis is resolved. 0 unstable remaining.
-- Duplicate photos fixed across all 2,226 venues -- 0% duplication.
-- Sentry error monitoring live at peakly.sentry.io -- production crash visibility exists for the first time.
-- Aviasales/Travelpayouts deep links shipped -- flight clicks now route through affiliate tracking.
-- UptimeRobot monitoring live.
-- Ski pass filter (Ikon/Epic/Independent) shipped.
-- LLC approved -- Stripe, GetYourGuide, Backcountry, custom domain all unblocked.
+- Smart weather fetch: top 100 on load, lazy-fetch on detail open. API calls dropped 95% (2,773 to ~130 per cold load). Free tier now supports ~77 unique visitors/day before needing the 30-min cache to absorb repeats.
+- All 2,050 source.unsplash.com URLs replaced with stable images.unsplash.com photo IDs. Zero deprecated URLs remain. Photo loading is reliable.
+- Sentry error monitoring live with valid DSN (was empty for 3+ cycles).
+- CLAUDE.md venue count reconciled to 2,226 (was saying 192 in 6 places).
+- Cache-buster bumped to v=20260326a.
 
 DECISIONS MADE:
-- PM: Freeze venue count. No expansion before Reddit. Weather cache P2 -> P1, now shipped.
+- PM: Weather cache P2 upgraded to P1, now shipped. GuidesTab cut from sprint (dead code stays).
 - Growth: Reddit launch GO. Target Tuesday March 31 or Wednesday April 1, 7-9am Pacific.
-- Community: Full r/surfing post written, engagement playbook for first 4 hours, 30-day rollout sequence ready.
-- Revenue: $79/yr Peakly Pro confirmed. LLC approval unblocks Stripe wiring.
-- UX: Remove emoji from VenueDetailSheet section headers (15+ instances violate "clean text + SVG only" decision).
+- Community: Full r/surfing post written, 4-hour engagement playbook ready, 30-day multi-subreddit rollout sequence planned.
+- Revenue: $79/yr Peakly Pro pricing confirmed. LLC approved -- Stripe unblocked.
+- UX: Remove emoji from VenueDetailSheet section headers. Not yet executed.
+- Content: Pause new venues. All 11 categories at 200+. Prioritize data quality over quantity.
+- Scale Guardian: Downgraded from RED to YELLOW. localStorage quota risk effectively eliminated by smart fetch.
 
 BLOCKED:
-1. **localStorage will hit 5MB quota before caching all 2,226 venues' weather (~8.7MB needed).** Cache silently fails for venues beyond ~1,200. The `catch {}` at line 2956 swallows the QuotaExceededError. Half the venues will permanently show "Checking conditions..." with no error surfaced to users or Sentry. **Fix: fetch weather only for the active category (~200 venues), not all 2,226. Or switch to IndexedDB.**
-2. **Cold-start API exhaustion is still fatal.** Each new visitor triggers ~2,773 Open-Meteo calls. Free tier is 10K/day. Cache only helps returning users within 30 min. A Reddit post driving 50 new visitors in one hour = 138,000 API calls against a 10,000 limit. All scores go to zero. **Fix: lazy-load weather for filtered category only.**
-3. **REI Avantlink signup -- 22 links earning $0.** No LLC needed. Jack action, 30 min. Flagged 5+ consecutive cycles.
+- **TP_MARKER = "YOUR_TP_MARKER" at line 3666.** Every flight click earns $0. Flagged for 5+ agent cycles. Fix: Jack logs into tp.media, copies marker, replaces one line. 5 minutes. This is the single biggest revenue leak in the product.
+- **176 unique Unsplash photo IDs serve 2,226 venues.** Crop variants make full URLs unique, but users see the same image repeated. Worst offender: one photo appears 203 times. Need ~2,050 additional unique photo IDs. Not a launch blocker but visible within 30 seconds of scrolling.
+- **CLAUDE.md line counts still stale.** Says ~5,413 lines; actual is 8,951. Section ranges (app root at ~4900) are wrong (actual ~8900+). index.html says "170+ venues" and JSON-LD says "180+"; actual is 2,226.
 
 TOP 3 PRIORITIES THIS WEEK:
-1. **Change fetchAllWeather() to only load the active category filter (~200 venues), not all 2,226** -- This is the single change that makes every other shipped fix actually work at scale. The cache fits in localStorage. Cold-start API calls drop from 2,773 to ~250. Babel parse time doesn't change, but weather load time drops from 88 seconds to 8 seconds. Without this, the Reddit launch breaks the app for every user after the first 3-4 visitors.
-2. **Wire Stripe to Peakly Pro or hide the button** -- LLC is approved. The $79/yr button fires `alert("coming soon")`. Redditors will find it and publicly roast a fake paywall. Either ship real payments (Revenue agent has the code diff) or remove the button before posting. This is a brand risk, not a feature priority.
-3. **Post to r/surfing** -- Copy is written. Playbook is ready. Jack needs: (a) 50+ karma + 30-day account age verified, (b) 2-3 genuine comments seeded in r/surfing 48 hours before, (c) app verified working on phone, (d) VenueDetailSheet screenshot prepared.
+1. **Replace TP_MARKER (Jack, 5 min)** — Highest ROI action in the entire project. 6 agents flag it. Zero action taken. If Reddit drives 400 flight clicks at $0 instead of $560-840, that is real money left on the table permanently. Do this before anything else.
+2. **Pagination for Explore tab (Dev, 3-4 hrs)** — 2,226 venues render at once. DOM is enormous. Mobile scroll performance degrades. UX score is 7.2/10 partly because of this. Paginate to 20-50 with infinite scroll or "Load more." This directly improves first impression for Reddit visitors.
+3. **Ship 11 WCAG contrast fixes + ListingCard Plausible event as one commit (Dev, 15 min)** — 6 consecutive reports. Zero fixes. All are single-value color swaps. UX agent has paste-ready code for every one. The ListingCard "Book" button is the other major flight click surface and it is invisible to analytics. One line of code.
 
 RISKS:
-1. **Your agents disagree on what the app contains.** PM says 181 venues / 6,134 lines. Content says 216. UX says 205. Scale Guardian and QA say 2,226 / 8,625 lines. CLAUDE.md says "192" in 6 places and "2,226" in 1 place. The code says 2,226. This means every agent's API call estimates, RPM projections, category gap analysis, and photo audit results are wrong -- they're computing against the wrong baseline. No agent output can be trusted until CLAUDE.md is reconciled to one truth.
-2. **1.2MB JSX parsed by Babel at runtime = 5-12s blank screen on mobile 4G.** At 192 venues / 5K lines, Babel parse was 200-400ms. At 2,226 venues / 8,625 lines / 1.2MB, it dominates LCP. Reddit users on phones will bounce before the splash screen dismisses. The splash screen masks the delay but doesn't fix it.
-3. **11 WCAG contrast failures and ListingCard Plausible event have been flagged for 6 consecutive agent cycles with zero fixes applied.** The UX report has the exact code diffs. They are single-value color swaps. 10 minutes total. Zero layout risk. The system is producing excellent analysis and zero shipped code on these items.
+1. **TP_MARKER placeholder — $0 on every flight click.** 5+ cycles unfixed. If this is still a placeholder when the Reddit post goes live, every flight click from launch earns nothing. The Growth and Community agents both believe flight links are earning commission. They are wrong. The code explicitly checks for the placeholder and falls back to bare Aviasales URLs with no tracking.
+2. **1.3MB app.jsx parsed by Babel Standalone — 6-15s blank screen on mobile 4G.** Splash screen masks it. Core Web Vitals LCP is POOR. Scale Guardian recommends externalizing VENUES to a separate JSON file (2-hour refactor, reduces parse to <1s). Not a launch blocker but Reddit users on phones will test patience.
+3. **Photo repetition undermines quality perception.** 176 base images across 2,226 venues. Crop variants create URL uniqueness but visual sameness. Scrolling any single category shows repeated heroes. This contradicts the "Steve Jobs-level quality" standard and will be noticed by discerning Reddit users.
 
 YOUR TO-DO LIST:
-1. **Sign up for REI Avantlink** -- avantlink.com, 30 min, no LLC needed. Unlocks $6.16 RPM on 22 links currently earning $0. This has been on your list for 5+ cycles.
-2. **Verify TP_MARKER in app.jsx is your real Travelpayouts marker** -- Revenue report flagged `"YOUR_TP_MARKER"` as placeholder. Growth report says "Aviasales links shipped." Both cannot be true. Open app.jsx, search for TP_MARKER. If it still says `"YOUR_TP_MARKER"`, log into tp.media, grab your marker, replace it. 5 minutes. Every flight click earns $0 without it.
-3. **Decide: Stripe or hide Peakly Pro button** -- LLC is approved. Wire Stripe ($79/yr annual) or hide the upsell card before Reddit. Non-functional paywall on launch day is a brand-destroying moment.
-4. **Seed 2-3 genuine comments in r/surfing starting today** -- 48-hour warm-up window before posting. Verify account has 50+ karma and 30+ day age.
-5. **Open the live URL on your phone, tap a venue, confirm: photo loads, condition score shows a number (not "Checking..."), sticky CTA bar visible, flight price is real (not "est.").** This is the exact flow Reddit users will hit.
+1. **Replace TP_MARKER** — tp.media, copy marker, paste at line 3666 of app.jsx. 5 minutes. Oldest open blocker in the project.
+2. **REI Avantlink signup** — avantlink.com, 30 min, no LLC needed. 22 links earning $0, could earn $6.16 RPM. Flagged 5+ cycles.
+3. **Decide: Wire Stripe to Peakly Pro or hide the button** — LLC is approved. Button fires `alert("coming soon")`. Redditors will find it and publicly roast a non-functional paywall. Ship real payments or remove the card before posting.
+4. **Seed 2-3 genuine comments in r/surfing** — 48-hour warm-up before posting. Verify account has 50+ karma and 30+ day age.
+5. **Open peakly on your phone, tap a venue, confirm:** photo loads, score shows a number (not "Checking..."), sticky CTA bar visible, flight price is a real number (not all "est.").
 
 ONE THING NOBODY IS SAYING THAT NEEDS TO BE SAID:
-The 2,226-venue expansion was never a recorded decision. It contradicts the explicit "192 is enough for launch" decision in CLAUDE.md. It was done by an autonomous Claude Code session, merged without review, and then partially patched with batching and caching that don't solve the actual problem at that scale. Now some agents think it's 181 venues and others think it's 2,226. Some think Sentry is still empty and others know it's live. Some think the photos are on a deprecated API and others think they're fixed. The gap between what the team believes is true and what is actually true is the widest it has ever been.
+The agent system has become excellent at identifying problems and structurally incapable of getting them fixed. Six agents have flagged TP_MARKER for 5+ cycles. Six agents have flagged WCAG contrast fixes for 6+ cycles. Every report ends with "Jack action item, 5 minutes" or "Dev, 10 minutes." The items sit. New reports get written. The same items appear again. The system generates 12 beautifully formatted daily reports analyzing the same unfixed problems.
 
-The founder needs to make one decision before any launch: **ship with 2,226 venues or revert to ~200 curated?** At ~200, every system works as designed -- cache fits in localStorage, cold-start costs 250 API calls not 2,773, Babel parses 400KB not 1.2MB, every venue has a curated photo. At 2,226, the weather cache silently breaks at 60% of venues, cold-start exhausts the API in 4 visits, and mobile users stare at a blank screen for 8+ seconds. The answer is probably "200 curated" -- but nobody has forced the decision because nobody agrees on what the number currently is. Reconcile CLAUDE.md. Pick a number. Tell the agents. Then launch.
+This is not an analysis gap. It is an execution gap. The 15-minute contrast fixes and the 5-minute TP_MARKER replacement have been documented, code-diffed, line-numbered, and prioritized across dozens of pages of agent output. The total fix time for both is 20 minutes. They have been open for over a week. Either do them today or explicitly decide they do not matter and stop every agent from flagging them. The worst outcome -- which is the current outcome -- is a system that identifies problems daily, documents them beautifully, and never resolves them.
 ---
+
+*Compiled from 12 agent reports by Chief of Staff. 2026-03-25.*
