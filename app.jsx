@@ -8228,6 +8228,18 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
+  // Dismiss the splash screen after first render
+  useEffect(() => {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    const t1 = setTimeout(() => {
+      splash.classList.add('fade-out');
+      const t2 = setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
+      return () => clearTimeout(t2);
+    }, 350);
+    return () => clearTimeout(t1);
+  }, []);
+
   const [activeTab,    setActiveTab]    = useState("explore");
   const [activeCat,    setActiveCat]    = useState("all");
   const [wxData,       setWxData]       = useState({});
