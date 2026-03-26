@@ -4318,6 +4318,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     when: search.when || "anytime",
     continent: search.continent || "",
     fromAirport: search.fromAirport || "JFK",
+    fromAirport2: search.fromAirport2 || "",
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
     maxPrice: filters?.maxPrice ?? 2000,
@@ -4326,6 +4327,8 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   });
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
+  const [apQuery2, setApQuery2] = useState("");
+  const [apFocus2, setApFocus2] = useState(false);
 
   // Toggle an activity in/out of the multi-select array
   const toggleActivity = (id) => {
@@ -4348,6 +4351,13 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
       ).slice(0, 6)
     : [];
 
+  const apResults2 = apQuery2.length >= 2
+    ? ALL_AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(apQuery2.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery2.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
   const matchCount = (() => {
     let out = local.activities.length > 0
       ? listings.filter(l => local.activities.includes(l.category))
@@ -4365,7 +4375,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   })();
 
   const apply = () => {
-    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, skiPass: local.skiPass };
+    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
     if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
@@ -4399,10 +4409,135 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
+          </div>
+        </div>
+
+        {/* ── Flying from (at top) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Flying from</SectionLabel>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+            {US_AIRPORTS.map(ap => {
+              const sel = local.fromAirport === ap.code || local.fromAirport2 === ap.code;
+              const sel1 = local.fromAirport === ap.code;
+              return (
+                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
+                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                    background: sel1 ? "#222" : "#f5f5f5",
+                    color:      sel1 ? "#fff" : "#555",
+                    border:"none",
+                    fontSize:11, fontWeight:700, fontFamily:F,
+                }}>{ap.code}</button>
+              );
+            })}
+          </div>
+          <div style={{ position:"relative" }}>
+            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search airports…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              style={{
+                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                background:"#fafafa",
+              }}
+            />
+          </div>
+          {apFocus && apResults.length > 0 && (
+            <div className="bounce-in" style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => {
+                  setLocal(l => ({...l, fromAirport: ap.code}));
+                  setApQuery(""); setApFocus(false);
+                }} style={{
+                  width:"100%", padding:"10px 14px",
+                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F,
+                  display:"flex", alignItems:"center", gap:10,
+                }}>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                  </div>
+                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          {local.fromAirport && (
+            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
+              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
+                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
+            </div>
+          )}
+
+          {/* Second airport */}
+          <div style={{ marginTop:12 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:"#bbb", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Or also from</div>
+            <div style={{ position:"relative" }}>
+              <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="text" placeholder="Add second airport…"
+                value={apQuery2}
+                onChange={e => setApQuery2(e.target.value)}
+                onFocus={() => setApFocus2(true)}
+                onBlur={() => setTimeout(() => setApFocus2(false), 180)}
+                style={{
+                  width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                  border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                  background:"#fafafa",
+                }}
+              />
+              {local.fromAirport2 && (
+                <button onMouseDown={() => setLocal(l => ({...l, fromAirport2:""}))} style={{
+                  position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
+                  background:"#ddd", border:"none", width:18, height:18, borderRadius:"50%",
+                  fontSize:11, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                }}>×</button>
+              )}
+            </div>
+            {apFocus2 && apResults2.length > 0 && (
+              <div className="bounce-in" style={{
+                background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+                marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+              }}>
+                {apResults2.map((ap, i) => (
+                  <button key={ap.code} onMouseDown={() => {
+                    setLocal(l => ({...l, fromAirport2: ap.code}));
+                    setApQuery2(""); setApFocus2(false);
+                  }} style={{
+                    width:"100%", padding:"10px 14px",
+                    background: local.fromAirport2 === ap.code ? "#f0f9ff" : "#fff",
+                    border:"none", borderBottom: i < apResults2.length-1 ? "1px solid #f5f5f5" : "none",
+                    textAlign:"left", cursor:"pointer", fontFamily:F,
+                    display:"flex", alignItems:"center", gap:10,
+                  }}>
+                    <div style={{ flex:1 }}>
+                      <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                      <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                    </div>
+                    {local.fromAirport2 === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {local.fromAirport2 && (
+              <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+                <strong style={{ color:"#222" }}>{local.fromAirport2}</strong>
+                {ALL_AIRPORTS.find(a => a.code === local.fromAirport2)?.city &&
+                  <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport2).city}</span>}
+                <span style={{ marginLeft:6, color:"#0284c7", fontWeight:700 }}>· cheapest of both shown</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -4567,71 +4702,6 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               );
             })}
           </div>
-        </div>
-
-        {/* ── Flying from (moved to bottom) ── */}
-        <div style={{ padding:"12px 20px 0" }}>
-          <SectionLabel>Flying from</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
-            {US_AIRPORTS.map(ap => {
-              const sel = local.fromAirport === ap.code;
-              return (
-                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
-                    background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#555",
-                    border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
-                }}>{ap.code}</button>
-              );
-            })}
-          </div>
-          <div style={{ position:"relative" }}>
-            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" placeholder="Search airports…"
-              value={apQuery}
-              onChange={e => setApQuery(e.target.value)}
-              onFocus={() => setApFocus(true)}
-              onBlur={() => setTimeout(() => setApFocus(false), 180)}
-              style={{
-                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
-                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
-                background:"#fafafa",
-              }}
-            />
-          </div>
-          {apFocus && apResults.length > 0 && (
-            <div className="bounce-in" style={{
-              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
-              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
-            }}>
-              {apResults.map((ap, i) => (
-                <button key={ap.code} onMouseDown={() => {
-                  setLocal(l => ({...l, fromAirport: ap.code}));
-                  setApQuery(""); setApFocus(false);
-                }} style={{
-                  width:"100%", padding:"10px 14px",
-                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
-                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
-                  textAlign:"left", cursor:"pointer", fontFamily:F,
-                  display:"flex", alignItems:"center", gap:10,
-                }}>
-                  <div style={{ flex:1 }}>
-                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
-                  </div>
-                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-          {local.fromAirport && (
-            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
-              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
-              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
-                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
-            </div>
-          )}
         </div>
 
         {/* ── Apply ── */}
@@ -5045,10 +5115,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Sort: "All" first, then user's selected sports, then the rest
+  // Sort: "All" first, then user's selected sports IN PICK ORDER, then the rest
   const sortedCats = [
     CATEGORIES.find(c => c.id === "all"),
-    ...CATEGORIES.filter(c => c.id !== "all" && userSports.includes(c.id)),
+    ...userSports.map(id => CATEGORIES.find(c => c.id === id)).filter(Boolean),
     ...CATEGORIES.filter(c => c.id !== "all" && !userSports.includes(c.id)),
   ].filter(Boolean);
   // Collapsed: show "All" + user's sports (up to 3) + fill with defaults if needed
@@ -5059,7 +5129,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
       {/* Category pills — 2 default + "+" */}
-      <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+      <div style={{ display:"flex", gap:6, padding:"8px 14px 8px 14px", paddingRight:24, overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
             onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
@@ -5534,7 +5604,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
 }
 
 // ─── alerts tab ───────────────────────────────────────────────────────────────
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
 
@@ -5835,6 +5905,24 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
           fontFamily:F, cursor:"pointer",
         }}>+ New</button>
       </div>
+
+      {/* Vibe Search */}
+      {onShowVibeSearch && (
+        <div style={{ padding:"0 24px 16px" }}>
+          <button onClick={onShowVibeSearch} className="pressable" style={{
+            width:"100%", background:"linear-gradient(135deg,#1a1a2e,#302b63)",
+            border:"none", borderRadius:16, padding:"16px 20px", cursor:"pointer",
+            display:"flex", alignItems:"center", gap:12, color:"white",
+          }}>
+            <span style={{ fontSize:22 }}>✨</span>
+            <div style={{ flex:1, textAlign:"left" }}>
+              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Vibe Search</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontFamily:F, marginTop:2 }}>AI-powered adventure matching</div>
+            </div>
+            <span style={{ background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em" }}>AI</span>
+          </button>
+        </div>
+      )}
 
       {/* Firing banner */}
       {firing.length > 0 && (
@@ -6833,7 +6921,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
                 </svg>
               </div>
-              <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
+              <span style={{ fontSize:30, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
             </div>
 
             <div style={{ fontSize:32, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, marginBottom:10 }}>
@@ -8399,7 +8487,7 @@ function App() {
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
-    name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
+    name:"", email:"", homeAirport:"JFK", homeAirport2:"", homeAirports:["JFK"], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
@@ -8436,6 +8524,12 @@ function App() {
         const airports = p.homeAirports || [p.homeAirport] || ["JFK"];
         return airports[0] || "JFK";
       } catch { return "JFK"; }
+    })(),
+    fromAirport2: (() => {
+      try {
+        const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
+        return p.homeAirport2 || "";
+      } catch { return ""; }
     })(),
   }));
 
@@ -8519,20 +8613,25 @@ function App() {
 
       // 2. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
+      // If two home airports are set, fetch both and use the cheaper price.
       const apPrices = {}; // airport code → cheapest price
-      const origin = profile.homeAirport || "JFK";
+      const origins = [profile.homeAirport || "JFK"];
+      if (profile.homeAirport2) origins.push(profile.homeAirport2);
       for (let i = 0; i < uniqueAirports.length; i += 3) {
         const batch = uniqueAirports.slice(i, i + 3);
         const results = await Promise.allSettled(
-          batch.map(async ap => {
-            const price = await fetchTravelpayoutsPrice(origin, ap);
-            return { ap, price };
-          })
+          batch.flatMap(ap =>
+            origins.map(async origin => {
+              const price = await fetchTravelpayoutsPrice(origin, ap);
+              return { ap, price };
+            })
+          )
         );
         if (!alive) return;
         results.forEach(r => {
           if (r.status === "fulfilled" && r.value.price !== null) {
-            apPrices[r.value.ap] = r.value.price;
+            const { ap, price } = r.value;
+            if (apPrices[ap] == null || price < apPrices[ap]) apPrices[ap] = price;
           }
         });
         if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
@@ -8549,7 +8648,7 @@ function App() {
       if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
-  }, [loading, profile.homeAirport]);
+  }, [loading, profile.homeAirport, profile.homeAirport2]);
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
   const scoreDayIndex = filters.startDate ? Math.max(0, Math.min(6, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000))) : 0;
@@ -8557,7 +8656,9 @@ function App() {
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
-    const estimate   = getFlightDeal(v.ap, profile.homeAirport);
+    const estimate1  = getFlightDeal(v.ap, profile.homeAirport);
+    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2) : null;
+    const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const realPrice  = duffelPrices[v.id];
     const flight     = realPrice != null
       ? {
@@ -8645,12 +8746,7 @@ function App() {
             <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
-                  <svg width={28} height={23} viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 42 L17 13 L31 42" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" fill="rgba(14,165,233,0.12)"/>
-                    <path d="M20 42 L32 6 L44 42" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
-                    <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="#0284c7"/>
-                  </svg>
-                  <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                  <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                     peakly
                   </span>
                 </div>
@@ -8658,24 +8754,10 @@ function App() {
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
               </div>
-              <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
-                display:"flex", alignItems:"center", gap:5, marginTop:8,
-                background:"#f5f0ff", border:"1.5px solid #ddd6fe",
-                borderRadius:20, padding:"6px 14px", cursor:"pointer",
-                fontSize:12, fontWeight:700, color:"#6d28d9", fontFamily:F,
-              }}>
-                <span style={{ fontSize:13 }}>✨</span>
-                <span>Vibe Search</span>
-              </button>
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <svg width={28} height={23} viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 42 L17 13 L31 42" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" fill="rgba(14,165,233,0.12)"/>
-                <path d="M20 42 L32 6 L44 42" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
-                <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="#0284c7"/>
-              </svg>
-              <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
             </div>
@@ -8702,6 +8784,7 @@ function App() {
               listings={listings} userAlerts={userAlerts}
               setUserAlerts={setUserAlerts} profile={profile}
               onShowOnboarding={() => setShowOnboarding(true)}
+              onShowVibeSearch={() => setShowVibeSearch(true)}
             />
           )}
           {activeTab === "profile" && (
@@ -8728,7 +8811,7 @@ function App() {
               // If exactly one activity selected, switch the tab pill to it; otherwise stay on "all"
               if (s.activities?.length === 1) setActiveCat(s.activities[0]);
               else setActiveCat("all");
-              setProfile(p => ({ ...p, homeAirport: s.fromAirport }));
+              setProfile(p => ({ ...p, homeAirport: s.fromAirport, homeAirport2: s.fromAirport2 || "" }));
             }}
             onClose={() => setShowSearch(false)}
             listings={listings}
