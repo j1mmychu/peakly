@@ -3885,21 +3885,27 @@ const AIRPORT_CITY = {
 };
 
 // ─── activity-specific fallback photos ────────────────────────────────────────
-function getVenuePhoto(category) {
+// Accepts (name, category) — name is unused but reserved for future personalized queries.
+// Uses stable Unsplash photo IDs (never source.unsplash.com which is rate-limited).
+function getVenuePhoto(name, category) {
+  // Support legacy single-arg call: getVenuePhoto(category)
+  const cat = (category || name || "").toLowerCase();
   const photos = {
     skiing: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
     surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
     tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
     diving: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
     climbing: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop",
     kitesurfing: "https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop",
     hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
     kayak: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    kayaking: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
     mtb: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&h=600&fit=crop",
     fishing: "https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
     paragliding: "https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
   };
-  return photos[category] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
+  return photos[cat] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
 }
 
 // ─── localStorage hook ────────────────────────────────────────────────────────
@@ -4009,6 +4015,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div className="card-img" style={{
@@ -4149,6 +4156,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
@@ -4216,6 +4224,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div style={{
@@ -5188,9 +5197,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               {/* Hero photo */}
               {hero.photo && (
                 <div style={{ position:"relative", height:140, overflow:"hidden" }}>
-                  <img src={hero.photo} alt={hero.title} loading="lazy" style={{
-                    width:"100%", height:"100%", objectFit:"cover", display:"block",
-                  }} />
+                  <img src={hero.photo} alt={hero.title} loading="lazy"
+                    onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(hero.title, hero.category); }}
+                    style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
                   <div style={{ position:"absolute", bottom:8, left:12 }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
@@ -5289,7 +5298,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
                     <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
-                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(l.title, l.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                       <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
@@ -7329,6 +7338,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {listing.photo ? (
             <img src={listing.photo} alt={listing.title} loading="lazy"
               onLoad={e => { e.target.style.opacity = 1; }}
+              onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
           ) : (
             <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -7460,7 +7470,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
                       {sv.photo ? (
-                        <img src={sv.photo} alt={sv.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+                        <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                       ) : (
                         <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       )}
@@ -8198,7 +8208,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                 height: 130, background: venue.gradient || "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
                 display: "flex", alignItems: "flex-end", padding: 14, position: "relative", overflow: "hidden",
               }}>
-                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(venue.title, venue.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                 <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)" }} />
                 <div style={{
                   position: "absolute", top: 10, right: 10,
