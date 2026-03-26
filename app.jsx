@@ -100,6 +100,8 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
       cursor: pointer;
     }
     .heart:active { transform: scale(1.35); }
+    .heart-pop { animation: heartPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes heartPop { 0%{transform:scale(1)} 40%{transform:scale(1.55)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
     .pressable {
       transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s;
       cursor: pointer;
@@ -118,6 +120,8 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     .fade-in { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .score-count { animation: scoreCount 0.6s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes scoreCount { from{opacity:0;transform:scale(0.7) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
     .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
@@ -3880,6 +3884,24 @@ const AIRPORT_CITY = {
   VLI:"Port Vila",
 };
 
+// ─── activity-specific fallback photos ────────────────────────────────────────
+function getVenuePhoto(category) {
+  const photos = {
+    skiing: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
+    surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
+    tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    diving: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+    climbing: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop",
+    kitesurfing: "https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop",
+    hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
+    kayak: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    mtb: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&h=600&fit=crop",
+    fishing: "https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
+    paragliding: "https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
+  };
+  return photos[category] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
+}
+
 // ─── localStorage hook ────────────────────────────────────────────────────────
 function useLocalStorage(key, initial) {
   const [val, setVal] = useState(() => {
@@ -3978,6 +4000,7 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const [savedAnim, setSavedAnim] = useState(false);
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
@@ -4006,11 +4029,20 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
-          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-            background:"none", border:"none", fontSize:20,
-            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
-            filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
-          }}>
+          <button
+            className={"heart" + (savedAnim ? " heart-pop" : "")}
+            onClick={e => {
+              e.stopPropagation();
+              onToggle(listing.id);
+              if (!saved) { setSavedAnim(true); setTimeout(() => setSavedAnim(false), 400); }
+              haptic("medium");
+            }}
+            aria-label={saved ? "Remove from saved" : "Save venue"}
+            style={{
+              background:"none", border:"none", fontSize:20,
+              width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+              filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
+            }}>
             {saved ? "❤️" : "🤍"}
           </button>
         </div>
@@ -4028,6 +4060,11 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               ${listing.flight.price}
             </span>
           </div>
+          {listing.conditionScore >= 85 && (
+            <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
+              <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>🔥 TRENDING</span>
+            </div>
+          )}
         </div>
 
         {/* Condition label */}
@@ -4117,7 +4154,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
@@ -4191,7 +4228,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:2, right:2,
           background:"none", border:"none", fontSize:15,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
@@ -4625,7 +4662,7 @@ function SearchBar({ search, onOpen }) {
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
-    <div onClick={onOpen} className="pressable" style={{
+    <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
       display:"flex", alignItems:"center",
       background:"#fff", borderRadius:40,
       boxShadow:"0 3px 22px rgba(0,0,0,0.11)", border:"1.5px solid #ebebeb",
@@ -5017,6 +5054,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
             onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            aria-label={`Filter by ${c.label}`}
+            aria-pressed={activeCat === c.id}
             style={{
               padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
               background: activeCat === c.id ? "#222" : "#f5f5f5",
@@ -5327,6 +5366,15 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 </div>
               )
           }
+        </div>
+        {/* Email capture */}
+        <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
+          <div style={{ fontSize:11, color:"#0369a1", fontFamily:F, marginBottom:10 }}>We'll alert you when your saved spots hit 90+</div>
+          <form onSubmit={e => { e.preventDefault(); const email = e.target.email.value; if (email && email.includes("@")) { window.plausible && window.plausible("email_capture", {props:{source:"explore_banner"}}); e.target.email.value = ""; alert("You're on the list! 🎉"); }}} style={{ display:"flex", gap:8 }}>
+            <input name="email" type="email" placeholder="your@email.com" aria-label="Email address for condition alerts" style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #bae6fd", fontSize:12, fontFamily:F, background:"white", outline:"none", color:"#222" }} />
+            <button type="submit" className="pressable" style={{ padding:"9px 14px", background:"#0284c7", border:"none", borderRadius:10, fontSize:12, fontWeight:800, color:"white", fontFamily:F, cursor:"pointer", whiteSpace:"nowrap" }}>Notify me</button>
+          </form>
         </div>
         <div style={{ height:24 }} />
       </div>
@@ -7535,7 +7583,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </a>
 
-          {/* ⚡ Peakly Pro upsell */}
+          {false && (
           <div style={{ marginBottom:16, background:"linear-gradient(135deg,#0f172a,#1e3a5f)", borderRadius:16, padding:"16px" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
               <div>
@@ -7560,6 +7608,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               Start free 7-day trial
             </button>
           </div>
+          )}
 
           {/* Save to named list */}
           <div style={{ marginBottom:16 }}>
@@ -8251,7 +8300,7 @@ function BottomNav({ active, setActive, alertCount }) {
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
+        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" aria-label={t.label} aria-current={active === t.id ? "page" : undefined} style={{
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
