@@ -3601,8 +3601,8 @@ const TP_MARKER = "YOUR_TP_MARKER";
 
 // Build an Aviasales/Travelpayouts deep-link URL with pre-filled origin, destination, and dates
 // Earns commission on flight bookings via Travelpayouts (Google Flights earns $0)
-// URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}01
-// Example: JFK2503LAX010401 = JFK→LAX, depart Mar 25, return Apr 1, 1 passenger
+// URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
+// Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
 function buildFlightUrl(from, to, opts) {
   if (!from || !to) return "https://www.aviasales.com/";
   const whenId = opts?.whenId || "anytime";
@@ -3615,7 +3615,7 @@ function buildFlightUrl(from, to, opts) {
   })();
   // Aviasales date format is DDMM (4 chars), NOT YYMMDD
   const toDDMM = iso => iso.slice(8, 10) + iso.slice(5, 7);
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${toDDMM(depISO)}${to}${toDDMM(retISO)}01`;
+  const aviasalesSearch = `https://www.aviasales.com/search/${from}${toDDMM(depISO)}${to}${toDDMM(retISO)}1`;
   if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
