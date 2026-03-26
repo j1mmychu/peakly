@@ -886,25 +886,26 @@ const ALL_AIRPORTS = [
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
 
-// ─── weather localStorage cache (30-min TTL) ─────────────────────────────────
-const WX_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-const WX_CACHE_KEY = "peakly_wx_cache";
-function _readWxCache() {
-  try { const r = localStorage.getItem(WX_CACHE_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; }
+// 30-minute localStorage cache — prevents rate-limit exhaustion at scale
+const WX_CACHE_TTL = 30 * 60 * 1000;
+function _wxKey(type, lat, lon) { return `peakly_wx_${type}_${lat.toFixed(2)}_${lon.toFixed(2)}`; }
+function _wxGet(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > WX_CACHE_TTL) { localStorage.removeItem(key); return null; }
+    return data;
+  } catch { return null; }
 }
-function _writeWxCache(next) {
-  try { localStorage.setItem(WX_CACHE_KEY, JSON.stringify(next)); } catch {}
-}
-function _evict(cache) {
-  // Remove entries older than 2× TTL to prevent unbounded growth
-  const cutoff = Date.now() - WX_CACHE_TTL * 2;
-  return Object.fromEntries(Object.entries(cache).filter(([, v]) => v.ts > cutoff));
+function _wxSet(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch {}
 }
 
 async function fetchWeather(lat, lon) {
-  const key = `wx_${lat}_${lon}`;
-  const cache = _readWxCache();
-  if (cache[key] && Date.now() - cache[key].ts < WX_CACHE_TTL) return cache[key].data;
+  const key = _wxKey("w", lat, lon);
+  const cached = _wxGet(key);
+  if (cached) return cached;
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
@@ -915,15 +916,14 @@ async function fetchWeather(lat, lon) {
   const r = await fetch(url);
   if (!r.ok) throw new Error("weather fetch failed");
   const data = await r.json();
-  const next = _evict({ ...cache, [key]: { data, ts: Date.now() } });
-  _writeWxCache(next);
+  _wxSet(key, data);
   return data;
 }
 
 async function fetchMarine(lat, lon) {
-  const key = `mar_${lat}_${lon}`;
-  const cache = _readWxCache();
-  if (cache[key] && Date.now() - cache[key].ts < WX_CACHE_TTL) return cache[key].data;
+  const key = _wxKey("m", lat, lon);
+  const cached = _wxGet(key);
+  if (cached) return cached;
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
@@ -933,8 +933,7 @@ async function fetchMarine(lat, lon) {
   const r = await fetch(url);
   if (!r.ok) return null;
   const data = await r.json();
-  const next = _evict({ ...cache, [key]: { data, ts: Date.now() } });
-  _writeWxCache(next);
+  _wxSet(key, data);
   return data;
 }
 
@@ -4614,10 +4613,10 @@ const GEAR_ITEMS = {
     { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
   hiking:   [
-    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
-    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
-    { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",     store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
+    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$165",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+4+gtx" },
+    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$90",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trail+trekking+poles" },
+    { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon", price:"$42",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
+    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",   price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
   ],
 };
 
