@@ -1,9 +1,19 @@
 const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── error monitoring & crash detection ──────────────────────────────────────
+
+// Initialize Sentry SDK (loaded via script tag in index.html)
+if (typeof Sentry !== "undefined" && Sentry.init) {
+  Sentry.init({
+    dsn: "https://9416b032a46681d74645b056fcb08eb7@o4511108649058304.ingest.us.sentry.io/4511108673765376",
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+  });
+}
+
 (() => {
-  // Sentry-lite: lightweight error reporter (free tier compatible)
-  const SENTRY_DSN = ""; // TODO: Add Sentry DSN after signup
+  // localStorage fallback logger (kept alongside Sentry)
   const errorLog = [];
   const MAX_ERRORS = 50;
 
@@ -22,13 +32,10 @@ const { useState, useEffect, useRef, useCallback } = React;
     // Store locally for debugging
     try { localStorage.setItem("peakly_errors", JSON.stringify(errorLog)); } catch(e) {}
 
-    // Send to Sentry if configured
-    if (SENTRY_DSN) {
-      fetch(SENTRY_DSN, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exception: { values: [{ type: "Error", value: entry.msg, stacktrace: entry.stack }] }, tags: context }),
-      }).catch(() => {});
+    // Send to Sentry
+    if (typeof Sentry !== "undefined" && Sentry.captureException) {
+      const err = (error instanceof Error) ? error : new Error(entry.msg);
+      Sentry.captureException(err, { extra: context });
     }
 
     console.error("[Peakly Error Monitor]", entry.msg, context);
