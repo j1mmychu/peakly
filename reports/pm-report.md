@@ -1,26 +1,24 @@
-# PM Report — 2026-03-26 (v14)
+# PM Report — 2026-03-26 (v13)
 
-## Status: YELLOW — one Jack action blocks all flight revenue
+## Status: YELLOW — one P0 revenue gap, two Jack actions still pending
 
-The app is in the best shape it has ever been. Sentry is live with a real DSN. 2,226 venues with stable photos. Smart weather fetching (top 100 on load, lazy-fetch on detail open) prevents API exhaustion at any scale. Aviasales deep links are coded and correct. The only thing standing between $0 and commission revenue on every flight click is Jack pasting a TP marker. That is a 5-minute action. It has been pending for 4 cycles.
+Weather cache is live (devops agent shipped it). 181 venues in master with no photo duplicates. The two hardest infrastructure items before launch are now resolved (HTTPS proxy, weather cache). What remains is the highest-leverage revenue action (Aviasales flight links) and the two Jack-only items (Sentry DSN, REI Avantlink) that have been pending for 3+ cycles.
 
 ---
 
-## Shipped Since v13
+## Shipped Since v12
 
 | Item | Type | Right call? |
 |------|------|-------------|
-| **Smart weather fetching** — top 100 venues on load, lazy individual fetch on detail open | Infrastructure | **YES.** Surgical fix. 272 API calls → ~100 on load. Scales to 10K+ MAU without hitting Open-Meteo limits. |
-| **2,226 venues with stable photo IDs** — all 2,050 source.unsplash.com URLs replaced | Data quality | **YES.** Zero duplicates. First-impression polish win for Reddit launch. |
-| **Sentry DSN live** — real DSN at line 8 (`9416b032...`) | Monitoring | **YES.** Four cycles of blind production errors are over. Crash visibility active. |
-| **Score validation thumbs** — `peakly_score_votes` localStorage + vote state in VenueDetailSheet | UX | **PARTIAL.** Vote persistence wired at line 7151. UI visibility in detail sheet not browser-confirmed. |
-| **ListingCard "Book" Plausible event** — `book_click` event on `onClick` at line 4086 | Analytics | **YES.** Fixed. Four-cycle miss finally resolved. `{venue, category}` props fire on click. |
-| **Aviasales deep links coded** — `buildFlightUrl()` builds Aviasales/Travelpayouts URLs correctly | Revenue | **YES — code correct.** Blocked only by `TP_MARKER = "YOUR_TP_MARKER"` placeholder. Jack action needed. |
+| **Open-Meteo weather cache (30-min TTL)** — `WX_CACHE_TTL`, localStorage keyed by lat/lon | Infrastructure | **YES.** Devops agent shipped it. Extends free API tier to ~10K MAU. Pre-Reddit prerequisite met. |
+| **SW cache version bump + cache-buster** | Infrastructure | **YES.** Prevents stale code reaching users after deploys. |
+| **Venue count stabilized at 181** — no photo duplication | Data quality | **YES.** The 2,226-venue expansion flagged in v12 did not land in master. We're still at the high-quality trimmed count. |
 
-**Still blocked / unconfirmed:**
-- `TP_MARKER = "YOUR_TP_MARKER"` at line 3666 — every flight click earns $0 until Jack replaces this.
-- REI Avantlink signup — Jack action, 30 min. 22 links earn $0.
-- Score validation thumbs UI — not browser-confirmed. Needs a visual check before Reddit post.
+**Still not shipped:**
+- `buildFlightUrl()` → google.com/flights — earns $0. Review date was 2026-03-26. This is today.
+- Sentry DSN — empty for 4+ cycles. Jack action, 5 min.
+- Score validation thumbs — decided in v11, not yet built.
+- ListingCard "Book" Plausible event — flagged 4 consecutive cycles.
 
 ---
 
@@ -28,9 +26,11 @@ The app is in the best shape it has ever been. Sentry is live with a real DSN. 2
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **TP_MARKER placeholder** — `"YOUR_TP_MARKER"` at line 3666. Code deployed and correct. Every Aviasales click earns $0 until marker is set. | **P0** — Jack: tp.media → Dashboard → Markers → copy string → paste at line 3666 → push. 5 min. | Blocked on Jack. |
-| **Score validation thumbs — UI unconfirmed** | **P1** — `scoreVotes` localStorage wired. UI visibility not confirmed. If hidden, zero scoring feedback before Reddit launch. | Dev: open app, open any venue detail, verify thumbs render. 15 min to confirm or fix. |
-| **REI affiliate links — 22 links earn $0** | **P2** — Avantlink signup unblocked (no LLC needed). ~$4–6 RPM waiting. | Blocked on Jack. |
+| **buildFlightUrl() → google.com/flights** — earns $0 per click | **P0** — every flight click from Reddit launch earns nothing. Travelpayouts/Aviasales deep links earn 1.1–1.6% of ticket value on completed bookings. This is the single highest-ROI unshipped item. Review date was today. | UNBLOCKED. Dev, 2–3 hrs. |
+| **Sentry DSN empty** | **P1** — zero production crash visibility for 4+ report cycles. Silent errors could be driving churn right now and we'd never know. | Jack: sentry.io free tier, 5 min. Not a dev task. |
+| **Score validation thumbs — not built** | **P1** — scoring algorithm has never been validated by real users. No feedback loop before Reddit launch = no way to catch a miscalibrated score. | UNBLOCKED. Dev, 1 hr. |
+| **ListingCard "Book" Plausible event missing** | **P2** — 4 consecutive misses. Blind to 30%+ of flight click volume. 5-line fix. | UNBLOCKED. Dev, 5 min. |
+| **REI affiliate IDs — 22 links earn $0** | **P2** — Avantlink signup is unblocked (no LLC needed). Jack action, 30 min. | Blocked on Jack. |
 
 ---
 
@@ -38,25 +38,27 @@ The app is in the best shape it has ever been. Sentry is live with a real DSN. 2
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| TP_MARKER in app.jsx line 3666 | Jack — tp.media dashboard | **TODAY. Revenue blocked until this is done.** |
+| Aviasales/Travelpayouts flight link switch | Dev | **TODAY — deadline was today.** |
+| Sentry DSN | Jack | Do today. 4 cycles overdue. |
+| Score validation thumbs | Dev | This sprint. |
 | REI Avantlink signup | Jack | This week. 30 min. No LLC needed. |
-| LLC approval | External | Unblocks Stripe, GetYourGuide, Backcountry, peakly.app domain |
+| LLC approval | External | Waiting. |
 
 ---
 
-## Priority Decisions — Top 3 This Sprint
+## Priority Decisions — Top 3 This Sprint Only
 
-**1. SHIP: Jack sets TP_MARKER today** *(Jack, 5 min)*
+**1. SHIP: Switch buildFlightUrl() to Aviasales/Travelpayouts deep links** *(Dev, 2–3 hrs)*
 
-The Aviasales code is deployed and correct. `buildFlightUrl()` at line 3685 checks: if `TP_MARKER !== "YOUR_TP_MARKER"`, it wraps the Aviasales search in a `tp.media/r?marker=` redirect that earns commission. Without the marker, users still reach Aviasales but Peakly earns $0 and gets no attribution data in the Travelpayouts dashboard. Jack: log into tp.media → Dashboard → Markers → copy the marker string → replace `"YOUR_TP_MARKER"` at line 3666 → `push "Set TP_MARKER for Travelpayouts affiliate tracking"`. This is the highest-ROI 5-minute action remaining before launch.
+This is the only remaining high-impact unshipped dev item. Google Flights has no affiliate program. Travelpayouts Aviasales links earn commission on bookings made through them — 1.1–1.6% per ticket, paid monthly. At 100 flight clicks per month after Reddit launch, with a $350 average ticket, that's $385–560/month in potential affiliate revenue vs. $0 today. Implementation: replace the `https://www.google.com/flights` URL in `buildFlightUrl()` at line 1523 with an Aviasales deep link format using the Travelpayouts marker. Jack must set the marker ID (from tp.media dashboard) in the code before any Reddit push — without it, links will go to Aviasales bare with no commission tracking.
 
-**2. VERIFY: Score validation thumbs render in VenueDetailSheet** *(Dev, 15 min)*
+**2. SHIP: Score validation thumbs on VenueDetailSheet** *(Dev, 1 hr)*
 
-`scoreVotes` is wired in localStorage and vote state is in the component at line 7151. What is not confirmed: do the thumbs visually render in the detail sheet? Open the app in a browser, tap any venue, check the detail sheet. If they render, done. If not, this is a silent failure — fix before the Reddit post. A miscalibrated score called out on Reddit without a feedback mechanism = no recovery path.
+Decided in v11, not shipped in v11, not shipped now. This is the only feedback mechanism that tells us if the scoring algorithm works before a Reddit post surfaces it to 500 strangers. If a surfer opens Mavericks on a firing day and sees 34/100, they close the tab. One thumbs-up/thumbs-down on the score badge sends a Plausible `score_feedback` event with `{ venue, score, category, vote }`. Fifty responses tells you if the model is calibrated. This is a crash sensor disguised as a UX feature.
 
-**3. SHIP: Scoring accuracy audit — surfing + kayaking** *(Dev, 2–3 hrs)*
+**3. FIX: ListingCard "Book" button — add Plausible event** *(Dev, 5 min)*
 
-With 2,226 venues, the scoring algorithm is the most visible product surface. Two gaps are highest-risk given Reddit audiences: (1) Surfing ignores wind direction — offshore = good, onshore = bad, current algo doesn't distinguish. (2) Kayaking has no water temperature safety floor — below 15°C is cold shock risk, current algo doesn't cap score. Fix both before the Reddit post.
+Four consecutive misses on a 5-line fix. `window.plausible && window.plausible('FlightClick', { props: { venue: listing.title, airport: listing.ap, source: 'listing_card' } })` on the onClick of the Book anchor at app.jsx line ~1835 and ~1906. Without this, we are blind to a significant portion of flight click volume.
 
 ---
 
@@ -64,16 +66,16 @@ With 2,226 venues, the scoring algorithm is the most visible product surface. Tw
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| Expand venues beyond 2,226 | **CUT** | Data quality > volume. Venue expansion closed until post-launch. |
-| Hotel affiliate deep links per venue | **DEFER** | Generic Booking.com link earns today. Per-venue deep links are a post-1K monetization refinement. |
-| Expose Trips + Wishlists tabs | **DEFER to 1K users** | Core flow (Explore → Detail → Book) converts first. More tabs = more confusion. |
-| Trip insurance CTA (World Nomads) | **DEFER** | SafetyWing CTA exists. One insurance CTA is enough pre-launch. |
-| Add airports LAS/PHX/MSP/DTW | **ALREADY DONE** | BASE_PRICES already has them per CLAUDE.md. Do not re-add. |
-| Fuzzy search / search history | **DEFER** | Retention feature. Ships after 500 users give signal on what they're searching for. |
-| Avalanche risk for ski | **DEFER to Phase 3** | No external API. Post-launch research item. |
-| Tide data for surf | **DEFER to Phase 3** | Current scoring not yet validated. Add data after thumbs give calibration signal. |
+| Expand to 400+ venues | **CUT** | 181 quality venues beats 400 with duplicates. Expansion is post-Reddit. |
+| Hotel affiliate deep links per venue | **DEFER** | Generic Booking.com dynamic link is good enough pre-launch. |
+| Expose Trips + Wishlists tabs | **DEFER to 1K users** | Core flow first. More tabs = more confusion. |
+| Tide data for surf spots | **DEFER to Phase 3** | No user validation on current scoring yet. |
+| Avalanche risk for ski | **DEFER to Phase 3** | Same rationale. |
+| Fuzzy search | **DEFER** | Retention feature. Comes after first 500 users. |
 | Dark mode | **CUT** | No signal it moves any metric. Not in next 6 months. |
-| Offline support | **CUT** | Stale conditions data defeats the core value prop. |
+| Offline support | **CUT** | Stale conditions data defeats the value prop. |
+| Onboarding flow | **DEFER** | Below top 3. Ships after Aviasales and score thumbs. |
+| Add 4 airports (LAS, PHX, MSP, DTW) | **ALREADY DONE** — BASE_PRICES already has them. Do not re-add. |
 
 ---
 
@@ -83,19 +85,19 @@ With 2,226 venues, the scoring algorithm is the most visible product surface. Tw
 
 | Lever | 5K scenario | 8K scenario |
 |-------|------------|------------|
-| TP_MARKER | Still placeholder, $0 revenue, no reinvestment loop | Set before Reddit, commission flowing, attribution data active |
-| Score accuracy | r/surfing calls out wind direction bug, thread turns negative | Surfing + kayaking fixed, scores defensible to knowledgeable users |
-| Score thumbs | Zero feedback, miscalibration uncatchable | 50 votes within 48 hrs of Reddit post, calibration data in hand |
-| Sentry | **DONE** — real DSN live, crash visibility active | **DONE** |
-| Weather scaling | **DONE** — smart fetch, top 100 on load | **DONE** |
+| Flight links | Google Flights, $0 revenue, no loop | Aviasales + marker set, commission on bookings |
+| Weather cache | **DONE** — rate limit risk resolved | **DONE** |
+| Score validation | Algorithm misfires on Reddit, users never return | Thumbs live, miscalibration caught within 48 hrs |
+| Sentry | Crashes go undetected for days | P0 caught same day, hotfix same day |
+| REI affiliate | 22 links earn $0 | Avantlink live, ~$4–5/1K RPM uplift |
 
-**Trajectory: 6K if TP_MARKER set + score thumbs confirmed before Reddit post. 8K if scoring accuracy audit ships and no algorithm callouts land.**
+**Trajectory: 6K users if we launch now with Aviasales links + Sentry. 8K if score thumbs + REI Avantlink also land before the Reddit post.**
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 2,226-venue expansion creates a scoring credibility problem that hasn't been stress-tested.** At 192 curated venues, scores were calibrated against real, well-known spots. At 2,226, hundreds of venues are algorithmically populated with no human review. A Reddit user in r/surfing who opens a venue in their home region and sees a wildly wrong score will post about it. That thread will define Peakly's reputation before it has 100 users. Mitigation: before the Reddit post, spot-check 10–15 venues in r/surfing, r/skiing, and r/kayaking home regions for obvious scoring errors. One afternoon of review prevents a reputation-defining moment.
+**The app has no rate limiting or abuse protection on the Travelpayouts flight proxy.** The VPS proxy at peakly-api.duckdns.org forwards flight pricing requests with the server-side API token. There is no authentication, no per-IP rate limit, and no request budget enforcement. A single malicious actor who discovers the endpoint URL could exhaust the Travelpayouts monthly API quota in minutes, silently breaking flight prices for all real users. This is not a theoretical risk — the endpoint is exposed to anyone who opens DevTools on the site. Mitigation: add a `Referer` header check on the proxy (only accept requests from `j1mmychu.github.io`) and a simple in-memory per-IP rate limiter (10 requests/minute). Both are 20-minute changes on the VPS Node.js server.
 
 ---
 
@@ -103,14 +105,12 @@ With 2,226 venues, the scoring algorithm is the most visible product surface. Tw
 
 | Date | Decision |
 |------|----------|
-| 2026-03-26 | **TP_MARKER → JACK ACTION TODAY.** Code is deployed. Revenue blocked only by missing marker string. |
-| 2026-03-26 | **Scoring accuracy audit — SHIP before Reddit post.** Surfing wind direction + kayaking water temp are highest-risk gaps. |
-| 2026-03-26 | **Score thumbs — confirm render before any Reddit post.** Logic wired; UI visibility unconfirmed. |
-| 2026-03-26 | **Smart weather fetch = DONE.** Top 100 on load + lazy detail fetch solves API scaling to 10K+ MAU. |
-| 2026-03-26 | **Sentry = DONE.** Real DSN at line 8. Production crash visibility active. |
-| 2026-03-26 | **ListingCard Plausible event = DONE.** `book_click` fires at line 4086. |
-| 2026-03-26 | **Venue expansion closed.** 2,226 is the count. No further expansion until post-launch. |
-| 2026-03-25 | **Trips + Wishlists DEFERRED to 1K users.** Core flow first. |
+| 2026-03-26 | **buildFlightUrl() → Aviasales — SHIP TODAY.** Review date is today per CLAUDE.md. Four cycles of Google Flights links earning $0. |
+| 2026-03-26 | **Score validation thumbs — SHIP THIS SPRINT.** Three cycles overdue. Not deferrable. |
+| 2026-03-26 | **ListingCard Plausible event — 5 min fix, no more deferral.** |
+| 2026-03-26 | **Weather cache = DONE.** Devops agent shipped it. Pre-Reddit prerequisite met. |
+| 2026-03-25 | **192 venues frozen.** Still correct at 181 — no expansion before Reddit. |
+| 2026-03-25 | **Trips + Wishlists DEFERRED to 1K users.** |
 | 2026-03-25 | **Dark mode CUT. Offline support CUT.** |
 
 ---
