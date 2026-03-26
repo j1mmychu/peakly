@@ -1,7 +1,263 @@
-# Peakly DevOps Report — 2026-03-26
+# Peakly DevOps Report — 2026-03-26 (v2, morning audit)
 
-**Overall Status: YELLOW → improving**
-No production outages. HTTPS proxy confirmed live. P0 weather cache and SW cache bump shipped this session. One revenue P1 remaining (Google Flights links), one monitoring P2 (Sentry DSN empty).
+**Overall Status: YELLOW**
+Site is live. HTTPS is working. No credentials exposed. But two revenue leaks are active (TP_MARKER + GetYourGuide), and the app will fall off a cliff on Open-Meteo's free tier at ~100 daily active users. No immediate downtime risk, but the weather API ceiling is closer than anyone has calculated.
+
+---
+
+## P0 — Fix Today (Blocks Revenue)
+
+### P0-1: `TP_MARKER = "YOUR_TP_MARKER"` — Every flight click earns $0
+
+**File:** `app.jsx:3666`
+**Impact:** 100% of Aviasales deep-link traffic earns $0 commission. Zero. The proxy is live, HTTPS works, users are clicking — and Travelpayouts sees no marker to attribute to Peakly.
+
+**Current code:**
+```js
+const TP_MARKER = "YOUR_TP_MARKER";
+```
+
+**Fix:**
+1. Log in to tp.media → Partners → Your marker (it looks like a 6–8 digit number, e.g. `597254`)
+2. Replace in `app.jsx:3666`:
+```js
+const TP_MARKER = "597254"; // replace with your actual marker from tp.media
+```
+
+**Time to fix:** 5 minutes. Jack needs to pull the marker from the Travelpayouts dashboard. The code already checks `TP_MARKER !== "YOUR_TP_MARKER"` before using it — one number, one line, revenue starts.
+
+---
+
+## P1 — Fix This Week
+
+### P1-1: Open-Meteo free tier breaks at ~80 DAU
+
+**Free tier limit:** 10,000 API calls/day
+**Calls per page load:** ~100 weather + ~30–50 marine = **~130–150 calls per user per session**
+**The localStorage cache (30-min TTL) only helps repeat sessions within 30 min** — each new user's first load = full 130 calls.
+
+**Break-even math:**
+| DAU | Calls/day | Status |
+|-----|-----------|--------|
+| 50  | ~7,500    | OK (margin only) |
+| 80  | ~12,000   | **OVER free tier** |
+| 500 | ~75,000   | Hard fail |
+| 5K  | ~750,000  | ~$150/month to Open-Meteo |
+
+**Fix — server-side weather cache on the VPS:**
+
+Add a weather proxy endpoint to the VPS. 1 user hits VPS → VPS hits Open-Meteo → caches result → users 2–1000 in the same 30-min window get cache. Effective calls: ~130/30-min regardless of DAU.
+
+On the VPS (`server.js`):
+```js
+const weatherCache = new Map();
+const WEATHER_TTL = 30 * 60 * 1000;
+
+app.get('/api/weather', async (req, res) => {
+  const { lat, lon, type } = req.query;
+  if (!lat || !lon) return res.status(400).json({ error: 'missing lat/lon' });
+
+  const key = `${type || 'wx'}:${parseFloat(lat).toFixed(3)}:${parseFloat(lon).toFixed(3)}`;
+  const cached = weatherCache.get(key);
+  if (cached && Date.now() - cached.ts < WEATHER_TTL) return res.json(cached.data);
+
+  const base = type === 'marine'
+    ? 'https://marine-api.open-meteo.com/v1/marine'
+    : 'https://api.open-meteo.com/v1/forecast';
+
+  const params = type === 'marine'
+    ? `?latitude=${lat}&longitude=${lon}&hourly=wave_height,swell_wave_height,swell_wave_period,wind_wave_height&daily=wave_height_max,swell_wave_height_max&forecast_days=7`
+    : `?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max,snowfall_sum,uv_index_max,snow_depth_mean&forecast_days=7`;
+
+  try {
+    const r = await fetch(`${base}${params}`);
+    const data = await r.json();
+    weatherCache.set(key, { data, ts: Date.now() });
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'upstream failed' });
+  }
+});
+```
+
+Then update `app.jsx:2939`:
+```js
+const METEO  = "https://peakly-api.duckdns.org/api/weather";
+const MARINE = "https://peakly-api.duckdns.org/api/weather";
+```
+
+Update `fetchMarine()` to append `&type=marine` to its API URL.
+
+**Time to fix:** 2–3 hours (VPS deploy + app.jsx update + test).
+
+---
+
+### P1-2: React pinned to `@18`, not `@18.3.1` — floating version risk
+
+**File:** `index.html:80-81`
+```html
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+```
+
+`@18` resolves to the latest `18.x.x` on unpkg. Pin to exact version to prevent silent breakage:
+
+```html
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+```
+
+**Time to fix:** 2 minutes.
+
+---
+
+### P1-3: Babel Standalone in production — 900KB dead weight, ~4s parse penalty on mobile
+
+**CDN:** `unpkg.com/@babel/standalone@7.24.7/babel.min.js` (~1.1MB transfer, ~900KB parsed)
+**Plus:** `app.jsx` is 1.3MB of raw JSX that Babel must compile at runtime before the app renders.
+
+This is the single biggest performance bottleneck. On mid-range Android at 4G, users are waiting ~4–5 seconds for Babel to finish before they see anything interactive. Lighthouse mobile score is almost certainly sub-50.
+
+**Fix (eliminates Babel entirely from production):**
+```bash
+# Run locally once after each edit to app.jsx
+npx @babel/cli@7.24.7 app.jsx --presets @babel/preset-react -o app.compiled.js
+```
+
+Update `index.html`:
+```html
+<!-- Remove: -->
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+<!-- Change script tag from type="text/babel" to: -->
+<script src="./app.compiled.js?v=20260326b"></script>
+```
+
+This requires running the compile command on every edit. Annoying in dev, but eliminates 4s startup penalty. Defer if dev workflow can't absorb the friction — but this must happen before any growth push. **Time to fix:** 30 min to set up; ongoing workflow change.
+
+---
+
+## P2 — Fix This Sprint
+
+### P2-1: GetYourGuide links have no `partner_id` — $0 experience revenue
+
+**File:** `app.jsx:7481`
+The GYG URL builder doesn't include a `partner_id`. All experience clicks earn $0. LLC is approved (2026-03-25), unblocking GYG signup.
+
+After getting `partner_id` from `partners.getyourguide.com`:
+```js
+const GYG_PARTNER_ID = "YOUR_PARTNER_ID"; // add near top of app.jsx with other affiliate constants
+
+// In the URL builder at ~app.jsx:7481:
+let u = exp.url
+  ? `${exp.url}${exp.url.includes('?') ? '&' : '?'}partner_id=${GYG_PARTNER_ID}`
+  : `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}&partner_id=${GYG_PARTNER_ID}`;
+```
+
+**Time to fix:** 30 minutes (Jack signs up, dev adds constant + updates builder).
+
+---
+
+### P2-2: Service worker precaches `app.jsx` without cache-buster — stale code risk
+
+**File:** `sw.js:3`
+```js
+const PRECACHE = ["/peakly/", "/peakly/index.html", "/peakly/app.jsx"];
+```
+
+The SW caches the bare `/peakly/app.jsx` path, bypassing the `?v=...` cache-buster in index.html. PWA-installed users can get stale JS after a push.
+
+**Fix:**
+```js
+// sw.js — remove app.jsx from precache. The stale-while-revalidate handler + cache-buster in index.html covers it.
+const PRECACHE = ["/peakly/", "/peakly/index.html"];
+
+// Also bump CACHE_NAME on every deploy:
+const CACHE_NAME = "peakly-20260326b";
+```
+
+**Time to fix:** 10 minutes.
+
+---
+
+### P2-3: REI affiliate links earn $0 — 22 links, no tracking tag
+
+**File:** `app.jsx:7004–7044`
+22 REI links across skiing, diving, climbing, kayak categories send traffic with no affiliate tag. Avantlink signup takes 30 min, no LLC required. After signup, REI provides the exact URL format via Avantlink dashboard.
+
+**This is Jack's action.** Code change is trivial once the tag is known.
+
+---
+
+### P2-4: Unsplash images have no error fallback
+
+**Count:** 2,226 image references
+**Risk:** Unsplash rate-limits high-traffic referrers without API keys. Above ~5K monthly loads from one referrer, expect 429s. There's no `onError` handler — broken images show browser placeholder.
+
+**Fix (add to all `<img>` venue photo tags):**
+```jsx
+onError={e => { e.target.style.display = 'none'; }}
+```
+
+And apply for a free Unsplash API key at `unsplash.com/developers`. Add `?client_id=YOUR_KEY` to all `photo` URLs — or build a helper:
+```js
+const imgUrl = (url) => url ? `${url}&client_id=YOUR_UNSPLASH_KEY` : null;
+```
+
+**Time to fix:** 30 min (code) + 10 min (Unsplash signup).
+
+---
+
+## Infrastructure Cost Projection
+
+| Scale | GitHub Pages | DigitalOcean VPS | Open-Meteo | Total/month |
+|-------|-------------|-----------------|------------|-------------|
+| Current | $0 | $6 | Free | **$6** |
+| 1K MAU | $0 | $6 | Free (at risk without VPS cache) | **$6–$50** |
+| 10K MAU | $0 | $6 | ~$150/mo (needs VPS cache) | **$6 w/fix** |
+| 100K MAU | $0 | $24 (2GB RAM) | ~$1,500 w/o cache / ~$6 w/ cache | **$30 w/fix** |
+
+VPS weather proxy (P1-1) is the single highest-ROI infrastructure fix available. It keeps costs at $6/month through 100K MAU.
+
+---
+
+## Security Audit Results
+
+| Check | Status | Detail |
+|-------|--------|--------|
+| Travelpayouts token in client | PASS | Server-side only on VPS |
+| Other secrets in app.jsx | PASS | No tokens/keys/passwords in client code |
+| `.gitignore` covers `.env` | PASS | Present, comprehensive |
+| Sentry DSN configured | PASS | Live — `peakly.sentry.io` |
+| Recent commits contain secrets | PASS | Git log clean |
+| Proxy URL uses HTTPS | PASS | `https://peakly-api.duckdns.org` |
+| React version pinned | WARN | `@18` floats — pin to `@18.3.1` |
+| TP_MARKER populated | **FAIL** | `"YOUR_TP_MARKER"` placeholder — $0 flight revenue |
+| GetYourGuide partner_id | **FAIL** | Missing — $0 experience revenue |
+
+---
+
+## What Breaks First at Scale
+
+**Open-Meteo free tier** collapses at 80 DAU. This is the most urgent scaling risk and it costs nothing to fix (the VPS is already running). Without the server-side weather cache, every Reddit launch that sends 200+ people to the app in a day will hit the rate limit mid-traffic, breaking the entire condition-scoring system — which is Peakly's core value prop. The app becomes a list of blank cards with no scores. That's a launch-killing failure mode. Ship the VPS cache (P1-1) before any public announcement.
+
+The VPS itself (1GB RAM) becomes the second failure point at ~50K MAU, but that's a $12/month upgrade when needed. The weather API ceiling is $0 to fix and needs to happen in the next 72 hours.
+
+---
+
+## Action Summary
+
+| # | Owner | Item | Priority | Time |
+|---|-------|------|----------|------|
+| 1 | Jack | Get TP_MARKER from tp.media, update `app.jsx:3666` | P0 | 5 min |
+| 2 | Dev | Pin React to `@18.3.1` in `index.html` | P1 | 2 min |
+| 3 | Dev | Add server-side weather proxy on VPS | P1 | 2–3 hrs |
+| 4 | Dev | Fix SW precache (`app.jsx` removal + CACHE_NAME bump) | P2 | 10 min |
+| 5 | Jack | Sign up for Avantlink (REI) | P2 | 30 min |
+| 6 | Jack | Sign up for GetYourGuide Partners | P2 | 30 min |
+| 6 | Dev | Add GYG partner_id to URL builder after Jack signs up | P2 | 15 min |
+| 7 | Dev | Add `onError` fallback to venue images + Unsplash API key | P2 | 30 min |
+| 8 | Dev | Pre-compile app.jsx to remove Babel from prod | P1 | 30 min (deferred) |
 
 ---
 
