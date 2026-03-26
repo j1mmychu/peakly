@@ -180,7 +180,8 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 6. **Keep the Travelpayouts API token off the client** — always use the VPS proxy.
 7. **Mobile-first design** — all UI should work well on phone screens. Use safe area insets.
 8. **Test in browser** — after changes, verify by opening in a browser. Check console for Babel parse errors.
-9. **Venue data is hardcoded** — the `VENUES` array contains ~192 entries with coordinates, airport codes, categories, ratings, etc.
+9. **Venue data is hardcoded** — the `VENUES` array contains exactly 192 entries with coordinates, airport codes, categories, ratings, etc.
+10a. **NEVER bulk-add venues** — expanding beyond 200 venues has broken the app twice (photo duplication, API rate limit exhaustion). Add venues 5-10 at a time with unique photos only.
 10. **Error boundary exists** — `ErrorBoundary` wraps the app root and provides a fallback UI.
 
 ---
