@@ -8304,15 +8304,20 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
-  // Dismiss the splash screen after first render
+  // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
     if (!splash) return;
+    // Record when the page started loading (approximated by performance.timing or Date.now)
+    const pageStart = window.performance?.timing?.navigationStart || Date.now();
+    const elapsed = Date.now() - pageStart;
+    const MIN_VISIBLE = 1800; // ms
+    const remaining = Math.max(0, MIN_VISIBLE - elapsed);
     const t1 = setTimeout(() => {
       splash.classList.add('fade-out');
       const t2 = setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
       return () => clearTimeout(t2);
-    }, 350);
+    }, remaining);
     return () => clearTimeout(t1);
   }, []);
 
