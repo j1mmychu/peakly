@@ -109,20 +109,17 @@ After approval, append affiliate params to each REI URL per Avantlink's format.
 
 ### P2.4 — Sentry Loader Script Missing from index.html
 
-CLAUDE.md explicitly states: "Sentry live (2026-03-25). Loader Script in index.html, Sentry.init() in app.jsx." Neither is true. `grep "sentry" index.html` returns nothing. The Sentry Loader Script is completely absent. The in-app Sentry-lite reporter (lines 1–66 in app.jsx) exists and is correct, but will only work once the DSN is filled in (see P2.1).
-
-Do not add the Sentry Loader Script until the DSN is ready — both must happen together.
+CLAUDE.md explicitly states: "Sentry live (2026-03-25). Loader Script in index.html, Sentry.init() in app.jsx." Neither is true. `grep "sentry" index.html` returns nothing. The Sentry Loader Script is completely absent. The in-app Sentry-lite reporter (lines 1–66 in app.jsx) exists and is correct, but will only work once the DSN is filled in (see P2.1). Do not add the Loader Script until the DSN is ready — both must happen together.
 
 ### P2.5 — CLAUDE.md / Master Branch Divergence (65 Orphaned Commits)
 
-65 commits exist in an orphaned branch (`75a3a60`) that never merged to master. CLAUDE.md reflects those commits' claimed state ("Sentry live", "2,226 venues", "weather cache shipped", "scoring accuracy SHIPPED") but master code has none of them. This causes every agent run to make decisions based on false premises.
+65 commits exist in an orphaned branch (`75a3a60`) that never merged to master. CLAUDE.md reflects those commits' claimed state ("Sentry live", "2,226 venues", "weather cache shipped") but master code has none of them. Every agent run makes decisions based on false premises.
 
 ```bash
-# See exactly what's in that branch and not in master:
 git log --oneline 75a3a60 ^master | head -30
 ```
 
-Jack decision needed: merge the orphaned branch or abandon it and accept master as ground truth. Until resolved, treat CLAUDE.md "Completed" items as unverified claims — always grep the code before marking anything done.
+Jack decision needed: merge the orphaned branch or abandon it. Until resolved, treat CLAUDE.md "Completed" items as unverified — always grep the code before marking anything done.
 
 ### P2.6 — Plausible Domain (Future Risk)
 
