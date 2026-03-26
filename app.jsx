@@ -4264,7 +4264,8 @@ const WHEN_OPTIONS = [
   { id:"fall",       label:"Fall" },
 ];
 
-function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, setFilters }) {
+function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, setFilters, wishlists, onToggle, onOpenDetail }) {
+  const [searchTab, setSearchTab] = useState("filters"); // "filters" | "vibe"
   const [local, setLocal] = useState({
     activities: search.activities || [],
     destination: search.destination || "",
@@ -8376,15 +8377,34 @@ function App() {
 
   // Fetch weather in batches to avoid API rate limits
   // First batch (50) loads immediately for visible venues, rest load in background
-  const fetchAllWeather = useCallback(async (isRefresh = false) => {
+  // Smart weather fetching: only fetch for top 100 venues on load,
+  // lazy-fetch individual venues when detail sheet opens.
+  // This keeps API calls ~150/load (not 2,800) and fits in localStorage.
+  const wxRef = useRef({});
+  const marRef = useRef({});
+
+  const fetchVenueWeather = useCallback(async (venue) => {
+    if (wxRef.current[venue.id]) return; // already fetched
+    const needsMarine = ["surfing","diving","kayak"].includes(venue.category);
+    const [wxR, marR] = await Promise.allSettled([
+      fetchWeather(venue.lat, venue.lon),
+      needsMarine ? fetchMarine(venue.lat, venue.lon) : Promise.resolve(null),
+    ]);
+    const wxVal = wxR.status === "fulfilled" ? wxR.value : null;
+    const marVal = marR.status === "fulfilled" ? marR.value : null;
+    wxRef.current[venue.id] = wxVal;
+    marRef.current[venue.id] = marVal;
+    setWxData(prev => ({...prev, [venue.id]: wxVal}));
+    setMarData(prev => ({...prev, [venue.id]: marVal}));
+  }, []);
+
+  const fetchInitialWeather = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
+    // Only fetch top 100 venues — covers initial view + "Best Right Now"
+    const initial = VENUES.slice(0, 100);
     const BATCH_SIZE = 50;
-    const batches = [];
-    for (let i = 0; i < VENUES.length; i += BATCH_SIZE) {
-      batches.push(VENUES.slice(i, i + BATCH_SIZE));
-    }
-    const wx = {}, mar = {};
-    const processBatch = async (batch) => {
+    for (let i = 0; i < initial.length; i += BATCH_SIZE) {
+      const batch = initial.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
         batch.map(async v => {
           const needsMarine = ["surfing","diving","kayak"].includes(v.category);
@@ -8392,40 +8412,32 @@ function App() {
             fetchWeather(v.lat, v.lon),
             needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
           ]);
-          return {
-            id:     v.id,
-            wx:     wxR.status  === "fulfilled" ? wxR.value  : null,
-            marine: marR.status === "fulfilled" ? marR.value : null,
-          };
+          return { id: v.id, wx: wxR.status === "fulfilled" ? wxR.value : null, marine: marR.status === "fulfilled" ? marR.value : null };
         })
       );
       results.forEach(r => {
         if (r.status === "fulfilled") {
-          wx[r.value.id]  = r.value.wx;
-          mar[r.value.id] = r.value.marine;
+          wxRef.current[r.value.id] = r.value.wx;
+          marRef.current[r.value.id] = r.value.marine;
         }
       });
-    };
-    // First batch — show results immediately
-    await processBatch(batches[0] || []);
-    setWxData({...wx});
-    setMarData({...mar});
-    setLoading(false);
-    setWxLastUpdated(new Date());
-    // Remaining batches — background with 2s delay between each
-    for (let i = 1; i < batches.length; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      await processBatch(batches[i]);
-      setWxData(prev => ({...prev, ...wx}));
-      setMarData(prev => ({...prev, ...mar}));
+      if (i === 0) {
+        setWxData({...wxRef.current});
+        setMarData({...marRef.current});
+        setLoading(false);
+        setWxLastUpdated(new Date());
+      }
     }
+    setWxData({...wxRef.current});
+    setMarData({...marRef.current});
+    setWxLastUpdated(new Date());
   }, []);
 
   useEffect(() => {
-    fetchAllWeather(false);
-    const interval = setInterval(() => fetchAllWeather(true), 10 * 60 * 1000); // refresh every 10 min
+    fetchInitialWeather(false);
+    const interval = setInterval(() => fetchInitialWeather(true), 10 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [fetchAllWeather]);
+  }, [fetchInitialWeather]);
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
@@ -8526,10 +8538,13 @@ function App() {
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
+    // Lazy-fetch weather for this venue if not already loaded
+    const v = VENUES.find(ven => ven.id === listing.id);
+    if (v) fetchVenueWeather(v);
     // Update URL hash for deep linking / sharing
     try { history.replaceState(null, "", `${window.location.pathname}${window.location.search}#venue-${listing.id}`); } catch {}
     logEvent('venue_open', { venue: listing.title, category: listing.category });
-  }, []);
+  }, [fetchVenueWeather]);
 
   // Handle URL hash venue deep links (e.g. #venue-whistler-blackcomb)
   useEffect(() => {
@@ -8564,20 +8579,14 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F, flexShrink:0 }}>
                   peakly
                 </span>
-                <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
-                  background:"linear-gradient(135deg,#1a1a2e,#302b63)", border:"none",
-                  borderRadius:20, padding:"6px 12px", cursor:"pointer",
-                  display:"flex", alignItems:"center", gap:5,
-                }}>
-                  <span style={{ fontSize:12 }}>✨</span>
-                  <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:F }}>Vibe</span>
-                </button>
+                <div style={{ flex:1 }}>
+                  <SearchBar search={search} onOpen={() => setShowSearch(true)} />
+                </div>
               </div>
-              <SearchBar search={search} onOpen={() => setShowSearch(true)} />
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
@@ -8638,16 +8647,9 @@ function App() {
             }}
             onClose={() => setShowSearch(false)}
             listings={listings}
-          />
-        )}
-
-        {showVibeSearch && (
-          <VibeSearchSheet
-            listings={listings}
             wishlists={wishlists}
             onToggle={toggleWishlist}
-            onOpenDetail={openDetail}
-            onClose={() => setShowVibeSearch(false)}
+            onOpenDetail={(l) => { setShowSearch(false); openDetail(l); }}
           />
         )}
 

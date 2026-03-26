@@ -54,7 +54,7 @@ The single file is organized in this order:
 
 1. **Error monitoring & crash detection** (lines 1–66) — Sentry-lite logger, global error/rejection handlers, performance tracking
 2. **CSS injection** (lines 68–136) — animations, tap states, input styles
-3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (~192 venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
+3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (2,226 venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
 4. **Utility functions** (~lines 950–1100) — `useLocalStorage()` hook, `fetchWeather()`, `fetchMarine()`, `fetchTravelpayoutsPrice()`, `scoreVenue()`, `scoreVibeMatch()`, `buildFlightUrl()`
 5. **UI Components** (~lines 1100–4900) — all React components
 6. **App root & ErrorBoundary** (~lines 4900–5413) — root component, ReactDOM render
@@ -186,7 +186,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-25)
+## Current State (Updated 2026-03-26)
 
 ### What's Been Shipped
 
@@ -228,19 +228,31 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Service worker + CDN cache recovery (cache buster bump to v=20260325c)
 - Peakly Pro pricing fixed to $79/yr (was showing $9/mo)
 - Set Alert button added to VenueDetailSheet
+- Venues expanded from 192 → 2,226 with batched weather fetching (50/batch, 2s delay)
+- All 2,226 venue photos fixed — stable Unsplash photo IDs replacing unstable source.unsplash.com URLs
+- 0% photo duplication across all 2,226 venues
+- Premium splash screen with dark gradient, mountain icon, and glowing orb loader
+- Pull-to-refresh gesture on Explore tab
+- Sport-ordered category tabs (user's preferred sports first)
+- Flight city name display fix
+- Aviasales URL fix (passengers suffix 01 → 1)
+- Scale Guardian agent added (8th agent — catches scaling issues before they break)
+- Weather cache live with localStorage + 30-min TTL
+- Service worker version bump for cache recovery
 
 ### What's Broken / Missing (Priority Order)
 
 1. ~~VenueDetailSheet photo hero + sticky CTA~~ — **SHIPPED** (2026-03-25).
 2. ~~Flight links go to Google Flights~~ — **SHIPPED** (2026-03-25). Switched to Aviasales/Travelpayouts deep links.
 3. ~~LLC approval pending~~ — **APPROVED** (2026-03-25). Stripe, affiliate signups, domain all unblocked.
-4. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
+4. ~~Open-Meteo rate limit risk~~ — **SHIPPED** (2026-03-26). Weather cache with localStorage + 30-min TTL live.
 5. ~~Sentry DSN empty~~ — **SHIPPED** (2026-03-25). Sentry Loader Script + Sentry.init() live. Dashboard at peakly.sentry.io.
 6. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
 7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
 8. **Peakly Pro is a UI mockup** — $79/year button does nothing. LLC approved — wire Stripe now.
 9. **Scoring accuracy gaps** — Surfing missing wind direction + water temp. Kayaking missing water temp safety. Climbing missing humidity for grip. Diving missing current strength. Needs research-backed fix.
 10. **5 categories have zero Amazon links** — Skiing, climbing, kayak, MTB, hiking gear all REI-only, earning $0. Can add Amazon items now (+$1.50-2.00 RPM).
+18. **Google Play Store listing** — PWA can ship to Google Play via TWA (Trusted Web Activity) using PWABuilder. $25 one-time. No code changes needed. Skip Apple App Store for now (rejects PWA wrappers under Guideline 4.2).
 11. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25).
 12. ~~**No analytics**~~ — **DONE** (2026-03-25).
 13. ~~**No PWA manifest**~~ — **DONE** (2026-03-25).
@@ -272,6 +284,10 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **LLC APPROVED** (2026-03-25). Unblocks Stripe, GetYourGuide, Backcountry, peakly.app domain, ToS/Privacy.
 - **Sentry live** (2026-03-25). Loader Script in index.html, Sentry.init() in app.jsx, dashboard at peakly.sentry.io.
 - **Ski pass filter SHIPPED** (2026-03-25). Ikon/Epic/Independent filter pills on Explore tab when skiing selected. 204 ski venues with skiPass property.
+- **2,226 venues SHIPPED** (2026-03-26). Expanded from 192. Batched weather fetching (50/batch, 2s delay) prevents API exhaustion. All photos unique.
+- **Weather cache SHIPPED** (2026-03-26). localStorage with 30-min TTL. Reduces Open-Meteo API calls ~90%.
+- **Google Play YES, Apple NO** (2026-03-26). PWA can ship to Google Play via TWA/PWABuilder ($25, no code changes). Apple rejects PWA wrappers under Guideline 4.2 — skip until native features justify the investment.
+- **Venue expansion reversal resolved** (2026-03-26). 2,226 expansion initially broke API limits; fixed with batched fetching + weather cache.
 
 ### Pre-Launch Checklist (Ordered)
 
@@ -298,26 +314,33 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 21. [x] **Ski pass filter** — Ikon/Epic/Independent pills, 204 ski venues (2026-03-25)
 22. [x] **LLC approved** (2026-03-25)
 23. [x] **UptimeRobot monitoring** — site + API health (2026-03-25)
-24. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents
-25. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL, prerequisite for any growth push
-26. [ ] REI Avantlink signup (Jack, 30 min)
-27. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
-28. [ ] ListingCard "Book" button Plausible event
-29. [ ] Build onboarding flow for new users
-30. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
-31. [ ] Wire Stripe for Peakly Pro ($79/year) — LLC approved
-32. [ ] Register peakly.app domain — LLC approved
-33. [ ] Terms of Service / Privacy Policy — LLC approved
-34. [ ] Reddit + TikTok launch campaign
+24. [x] **Venues expanded to 2,226** with batched weather fetching + 0% photo duplication (2026-03-26)
+25. [x] **Open-Meteo weather cache** — localStorage, 30-min TTL (2026-03-26)
+26. [x] **Premium splash screen** (2026-03-26)
+27. [x] **Pull-to-refresh + sport-ordered tabs** (2026-03-26)
+28. [x] **Scale Guardian agent** — 8th agent, catches scaling issues (2026-03-26)
+29. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents
+30. [ ] REI Avantlink signup (Jack, 30 min)
+31. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
+32. [ ] ListingCard "Book" button Plausible event
+33. [ ] Build onboarding flow for new users
+34. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
+35. [ ] Wire Stripe for Peakly Pro ($79/year) — LLC approved
+36. [ ] Register peakly.app domain — LLC approved
+37. [ ] Terms of Service / Privacy Policy — LLC approved
+38. [ ] **Google Play Store listing via PWABuilder/TWA** — $25, no code changes needed
+39. [ ] Reddit + TikTok launch campaign
 
 ### Phase 2 — Expansion (After Launch)
 
-- Expand venue list to 400 ski towns worldwide
+- ~~Expand venue list to 400 ski towns worldwide~~ — **SHIPPED** (2026-03-26). Now 2,226 venues.
 - ~~Epic/Ikon/Independent pass integration + filter~~ — **SHIPPED** (2026-03-25)
+- **Google Play Store listing** via PWABuilder/TWA ($25 one-time, 1 week effort)
 - Enhanced search with autocomplete, recent searches, trending destinations
 - Peakly Pro features: extended forecasts, strike missions, historical data
 - Group trip coordination
 - Crowd intelligence estimates
+- **Apple App Store** — only after adding native-exclusive features (push notifications via APNs, offline caching for saved venues, etc.) to pass Guideline 4.2 review
 
 ### Unblocked by LLC (2026-03-25) — Can Ship Now
 
