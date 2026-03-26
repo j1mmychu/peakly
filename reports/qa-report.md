@@ -1,70 +1,55 @@
 # QA Report -- Peakly
 
-**Date:** 2026-03-25
-**File:** app.jsx (8,601 lines) | index.html (268 lines)
-**Baseline:** 5,631 lines (original) / 6,072 lines (previous run)
-**Current:** 8,601 lines / 2,226 venues across 11 sport categories
+**Date:** 2026-03-25 (Run 2)
+**File:** app.jsx (8,625 lines) | index.html (247+ lines)
+**Baseline:** 5,631 lines (original) / 8,601 lines (previous run)
+**Current:** 8,625 lines / 2,226 venues across 11 sport categories
 
 ---
 
-## Overall: 8/11 PASS
+## Overall: 9/11 PASS
 
 | # | Check | Result | Details |
 |---|-------|--------|---------|
-| 1 | CATEGORIES syntax (12 present) | PASS | All 12: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. |
-| 2 | Venue required fields | PASS | All 2,226 venues have: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo. |
-| 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs across all 2,226 entries. |
-| 4 | Duplicate photo URLs | FAIL (P1) | 142 photo URLs reused across multiple venues. Worst: single photo used 83 times. Only 308 unique photos for 2,226 venues. |
-| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches plus default fallback. |
+| 1 | CATEGORIES syntax (12 present) | PASS | All 12: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. Correct syntax. |
+| 2 | Venue required fields | PASS | All 2,226 venues have: id, category, title, location, lat, lon, ap, tags, photo. Note: original spec fields (name, nearestAirport, coordinates, description, difficulty, bestMonths) have been replaced/removed. None are referenced in app code -- no runtime impact. |
+| 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs across 2,226 entries. |
+| 4 | Duplicate photo URLs | PASS | **FIXED.** 0 duplicate photo URLs. 2,226 unique photo fields (2,050 source.unsplash + 176 images.unsplash). Previous run had 142 duplicates -- now 0. |
+| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches: skiing, surfing, tanning, diving, climbing, kite, kayak, mtb, fishing, paraglide, hiking. |
 | 6 | Affiliate links -- Amazon | PASS | 30 Amazon links, all with `tag=peakly-20`. No placeholder IDs. |
 | 7 | Affiliate links -- Booking.com | PASS | 2 Booking.com links with `aid=2311236`. Correctly formatted. |
 | 8 | Affiliate links -- SafetyWing | PASS | 1 SafetyWing link with `referenceID=peakly`. Correctly formatted. |
-| 9 | SEO files | PASS | robots.txt correct. sitemap.xml present with root URL. Canonical tag and title tag correct. JSON-LD structured data present. |
-| 10 | Plausible analytics | PASS | `script.hash.js` loading correctly in index.html. |
-| 11 | Sentry DSN | FAIL (P2) | `SENTRY_DSN = ""` on line 6 of app.jsx. Still empty. |
+| 9 | SEO files | FAIL (P2) | robots.txt correct. sitemap.xml present but only contains root URL -- missing category URLs. Canonical tag set. Title tag descriptive. JSON-LD present with WebSite + WebApplication + Organization. |
+| 10 | Plausible analytics | PASS | `script.hash.js` loading with `data-domain="j1mmychu.github.io"`. |
+| 11 | Sentry DSN | PASS | **FIXED.** Sentry Loader Script in index.html + `Sentry.init()` at line 6-8 of app.jsx with valid DSN. Dashboard at peakly.sentry.io. |
 
 ---
 
 ## Cache-Buster Status
 
-**Current value:** `?v=20260325c` (index.html, line 244)
-**Status: STALE (P2).** Value was set 2026-03-25 but any subsequent deploys since then would not force cache refresh.
+**Current value:** `?v=20260325c` (index.html, line 247)
+**Status: STALE (P2).** Two commits have landed since this value was set:
+- `035414f` -- restored 2,226 venues with batched weather fetching
+- `9768998` -- fixed all duplicate photos
 
-**Fix (one line, index.html line 244):**
+Users with cached `v=20260325c` will not see the venue expansion or photo fixes.
+
+**Fix (one line, index.html line 247):**
 ```html
 <script type="text/babel" src="./app.jsx?v=20260325d" data-presets="react"></script>
 ```
-Bump on every deploy.
 
 ---
 
 ## Sentry Status
 
-**Status:** Empty DSN on line 6 of app.jsx. Error monitoring logs to localStorage only. No remote reporting.
+**Status: LIVE (PASS)**
 
-**Fix (replace line 6 after signing up at sentry.io):**
-```js
-const SENTRY_DSN = "https://<your-key>@o<org-id>.ingest.sentry.io/<project-id>";
-```
-No other code changes needed -- existing `reportError()` + `fetch()` activates automatically. Not blocked by LLC. Jack action, 5 minutes.
+- Loader Script: `https://js.sentry-cdn.com/9416b032a46681d74645b056fcb08eb7.min.js` in index.html line 77
+- `Sentry.init()` at app.jsx line 6 with DSN: `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304.ingest.us.sentry.io/4511108673765376`
+- Dashboard: peakly.sentry.io
 
----
-
-## Duplicate Photo Details (REGRESSION)
-
-**Previous run:** 1 duplicate photo URL.
-**This run:** 142 duplicate photo URLs. Only 308 unique photos shared across 2,226 venues.
-
-**Top offenders:**
-| Photo ID | Times Used |
-|----------|-----------|
-| `photo-1544551763-88c0c3a2efc0` | 83 |
-| `photo-1559827291-72ebf78e3545` | 79 |
-| `photo-1560881036-1f10fe2b3f3f` | 65 |
-| `photo-1464822759023-fed0d8ca6c41` | 62 |
-| `photo-1483728642-a170930cf937` | 61 |
-
-This is a direct result of expanding from ~192 venues to 2,226 without sourcing unique photos. Users browsing venues within a category will see the same photos repeatedly.
+No action needed.
 
 ---
 
@@ -75,27 +60,31 @@ This is a direct result of expanding from ~192 venues to 2,226 without sourcing 
 | Amazon (`tag=peakly-20`) | 30 | Yes |
 | Booking.com (`aid=2311236`) | 2 | Yes |
 | SafetyWing (`referenceID=peakly`) | 1 | Yes |
+| REI (no affiliate tag) | 22 | **No -- $0** |
 | Placeholder IDs found | 0 | N/A |
+
+REI links require Avantlink signup (Jack action item). Not a code bug -- blocked on business step.
 
 ---
 
 ## Venue Distribution by Category
 
-| Category | Count | Status |
-|----------|-------|--------|
-| tanning | 205 | Healthy |
-| diving | 205 | Healthy |
-| skiing | 204 | Healthy |
-| climbing | 204 | Healthy |
-| surfing | 203 | Healthy |
-| fishing | 202 | Healthy |
-| paraglide | 201 | Healthy |
-| mtb | 201 | Healthy |
-| kayak | 201 | Healthy |
-| kite | 200 | Healthy |
-| hiking | 200 | Healthy |
+| Category | Count |
+|----------|-------|
+| tanning | 205 |
+| diving | 205 |
+| skiing | 204 |
+| climbing | 204 |
+| surfing | 203 |
+| fishing | 202 |
+| paraglide | 201 |
+| mtb | 201 |
+| kayak | 201 |
+| kite | 200 |
+| hiking | 200 |
+| **Total** | **2,226** |
 
-All categories are well-populated (~200 each). No thin categories. This is a massive improvement from the previous run where 4 categories had only 1 venue.
+All categories well-populated (~200 each). No thin categories. Previous run had 4 categories with only 1 venue each -- fully resolved.
 
 ---
 
@@ -104,28 +93,40 @@ All categories are well-populated (~200 each). No thin categories. This is a mas
 | Check | Previous Run | This Run | Delta |
 |-------|-------------|----------|-------|
 | Categories | PASS (12) | PASS (12) | -- |
-| Venue fields | PASS (192) | PASS (2,226) | +2,034 venues |
+| Venue fields | PASS (2,226) | PASS (2,226) | -- |
 | Duplicate IDs | PASS (0) | PASS (0) | -- |
-| Duplicate photos | FAIL (1) | FAIL (142) | **REGRESSION: +141** |
+| Duplicate photos | **FAIL (142)** | **PASS (0)** | **FIXED** |
 | scoreVenue | PASS (11) | PASS (11) | -- |
-| Amazon affiliates | PASS (20) | PASS (30) | +10 links |
-| Booking.com | PASS (1) | PASS (2) | +1 link |
+| Amazon affiliates | PASS (30) | PASS (30) | -- |
+| Booking.com | PASS (2) | PASS (2) | -- |
 | SafetyWing | PASS (1) | PASS (1) | -- |
-| SEO files | FAIL (thin sitemap) | PASS | Improved |
+| SEO files | PASS | FAIL (sitemap thin) | Downgraded -- sitemap lacks category URLs |
 | Plausible | PASS | PASS | -- |
-| Sentry | FAIL | FAIL | Still empty |
+| Sentry | **FAIL (empty)** | **PASS (live)** | **FIXED** |
 
-**Regressions found: 1**
-- Duplicate photos: 1 --> 142. Venue expansion reused a small photo pool across 2,226 venues.
+**Regressions vs previous run: NONE**
+**Fixes confirmed: 2** (duplicate photos 142 -> 0, Sentry DSN empty -> live)
 
 ---
 
-## CLAUDE.md is Stale
+## Sitemap Gap Detail
 
-CLAUDE.md documents ~192 venues, 5,413 lines. Actual state: 2,226 venues, 8,601 lines. This needs updating to avoid confusion across agent sessions.
+sitemap.xml contains only:
+```xml
+<url><loc>https://j1mmychu.github.io/peakly/</loc></url>
+```
+
+Should include hash-based or query-param category URLs for SEO:
+- `https://j1mmychu.github.io/peakly/?cat=skiing`
+- `https://j1mmychu.github.io/peakly/?cat=surfing`
+- etc.
+
+Low impact for a SPA, but flagged per spec. P2.
 
 ---
 
 ## One Thing That Would Break Everything If Not Caught
 
-**The Open-Meteo API rate limit is now a critical failure point.** With 2,226 venues (up from 192), each page load or category switch that fetches weather data will generate thousands of API calls. The free tier allows 10,000 calls/day. A single user browsing 5 categories could trigger 11,130+ calls, exceeding the daily limit. Without the weather cache (pre-launch checklist item #21 -- localStorage with 30-min TTL), the app will silently break for all users after minimal traffic. This was a nice-to-have at 192 venues; at 2,226 venues it is a launch blocker.
+**Open-Meteo API rate limit is now a critical failure point.** With 2,226 venues and batched weather fetching (50 at a time with 2s delays), each full data load triggers ~45 API calls. The free tier is 10,000 calls/day. At current batch size, approximately **222 unique page loads per day** will exhaust the daily quota. After that, weather scoring fails silently for all users -- the core value prop stops working.
+
+The localStorage weather cache with 30-min TTL (pre-launch checklist item #25) was a nice-to-have at 192 venues. At 2,226 venues, it is a **launch blocker**. Without it, a modest Reddit post driving 300 visitors in a day will break the app for everyone.

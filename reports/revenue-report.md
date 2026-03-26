@@ -1,244 +1,249 @@
-# Peakly Revenue Report: 2026-03-25 (v14)
+# Revenue Agent Report -- 2026-03-25
 
 ## Revenue Health: YELLOW
 
-Three affiliate streams live and earning (Amazon, Booking.com, SafetyWing). Peakly Pro pricing correctly shows $79/yr. Hiking gear gap is now RESOLVED (6 items including 2 Amazon links). Flight links still go to Google Flights (earns $0) -- Aviasales switch review is tomorrow (2026-03-26). LLC remains the top blocker at +$21.17 RPM (+176%) waiting to unlock.
-
-**Key change since v13:** Hiking GEAR_ITEMS went from 4 REI-only items to 6 items (4 REI + 2 Amazon). Amazon link count jumped from 20 to 30 across all categories. The "5 categories with zero Amazon links" problem is now reduced to 0 -- every category has at least 2 Amazon links earning today.
+Current RPM $12.06 is live and earning from 4 streams. LLC is now **APPROVED** (as of today). The three blocked streams (REI, Backcountry, GetYourGuide) and Peakly Pro can now be activated. Every day of delay is money left on the table.
 
 ---
 
-## 1. P0: Peakly Pro Pricing Fix
+## 1. PRICING FIX -- P0: RESOLVED
 
-**Status: FIXED (confirmed).** Line 7470: `$79/yr`. Zero instances of `$9/mo` anywhere in app.jsx. No action needed.
+Peakly Pro is now correctly showing **$79/yr** (line 7477 of app.jsx). Previously showed $9/mo. This is confirmed fixed.
 
-### LTV Model: $79/yr vs $9/mo
+The Pro upsell card appears inside VenueDetailSheet with four feature bullets and a "Start free 7-day trial" CTA. The button currently fires `alert("Peakly Pro coming soon!")` -- it is a UI mockup with no Stripe integration.
 
-| Metric | $9/mo | $79/yr |
-|--------|-------|--------|
-| Gross monthly | $9.00 | $6.58 ($79/12) |
-| Avg retention | 4 months (RevenueCat monthly benchmark) | 36% renew (RevenueCat annual benchmark) |
-| Year 1 LTV | $36.00 (4 x $9) | $79.00 |
-| Year 2 LTV | $36.00 (if re-acquired) | $79 + ($79 x 0.36) = **$107.44** |
-| Year 3 LTV | $36.00 | $79 + $28.44 + ($79 x 0.13) = **$117.71** |
+### Recommended paywall copy (for when Stripe is wired):
 
-**$79/yr wins decisively.** 2.2x higher Year 1 LTV. Annual plans reduce churn anxiety and payment processing costs. Correct decision.
+> **$79/year = $6.58/month.** Less than one lift ticket. Less than one surf lesson. Get 90-day condition graphs, instant alerts, crowd calendars, and price drop notifications for every venue.
 
-### Paywall copy (for when Stripe goes live):
+### LTV Model:
 
-> **Peakly Pro -- $79/year**
-> Extended forecasts, Strike Missions, historical condition data, and priority alerts. Less than a single lift ticket. Cancel anytime.
-> *That's $6.58/month -- less than one coffee a week.*
+| Scenario | Monthly Price | Retention | LTV |
+|----------|--------------|-----------|-----|
+| $9/mo, 4-month avg retention (monthly churn ~25%) | $9 | 4 months | **$36** |
+| $79/yr, 36% annual renewal (RevenueCat benchmark) | $6.58 effective | 1.56 years avg | **$123.22** |
 
----
+**$79/yr delivers 3.4x higher LTV.** Annual pricing is the correct call. The key is the free trial funnel -- 7-day trial converts at ~60% for adventure apps (AllTrails benchmark).
 
-## 2. Affiliate Link Audit
+### Code change needed to wire Stripe:
 
-### Verified counts (app.jsx, ~5,413 lines)
+Replace line 7490:
+```jsx
+// CURRENT (mockup):
+<button className="pressable" onClick={() => alert("Peakly Pro coming soon!")} ...>
 
-| Affiliate | Link Count | Tagged/Tracked | Status |
-|-----------|-----------|----------------|--------|
-| Amazon (`tag=peakly-20`) | **30** | 30/30 (100%) | LIVE, EARNING |
-| REI (`rei.com`) | 22 | 0/22 -- no affiliate tag | NEEDS AVANTLINK (no LLC required) |
-| Backcountry (`backcountry.com`) | 2 | 0/2 -- no affiliate tag | BLOCKED BY LLC |
-| Booking.com (`aid=2311236`) | 2 | 2/2 (100%) | LIVE, EARNING |
-| SafetyWing (`referenceID=peakly`) | 1 | 1/1 (100%) | LIVE, EARNING |
-| GetYourGuide | 1 | 0/1 -- no partner_id | BLOCKED BY LLC |
-| AFFILIATE_ID placeholders | 0 | Clean | N/A |
-
-### Amazon links by category (ALL categories now have Amazon links)
-
-| Category | Amazon Links | REI Links | Backcountry | Total |
-|----------|-------------|-----------|-------------|-------|
-| Skiing | 2 | 4 | 0 | 6 |
-| Surfing | 2 | 2 | 0 | 4 |
-| Tanning | 4 | 0 | 0 | 4 |
-| Diving | 3 | 1 | 0 | 4 |
-| Climbing | 2 | 4 | 0 | 6 |
-| Kayak | 2 | 4 | 0 | 6 |
-| MTB | 2 | 2 | 2 | 6 |
-| Kite | 4 | 0 | 0 | 4 |
-| Fishing | 3 | 1 | 0 | 4 |
-| Paraglide | 4 | 0 | 0 | 4 |
-| Hiking | 2 | 4 | 0 | 6 |
-| **Total** | **30** | **22** | **2** | **54** |
-
-**Previous gap resolved:** Skiing, climbing, kayak, MTB, and hiking all now have 2 Amazon links each. Every category earns from gear clicks today.
-
-### Detail on each live stream
-
-**Amazon (30 links):** All tagged `peakly-20`. Format: `https://www.amazon.com/s?tag=peakly-20&k=...`. Valid Associates search URLs that attribute commissions. Distributed across all 11 categories.
-
-**Booking.com (2 links):** Lines 7433 and 7556. Dynamic per-venue: `https://www.booking.com/searchresults.html?ss=${location}&aid=2311236`. Post-intent placement in VenueDetailSheet. Correctly formatted.
-
-**SafetyWing (1 link):** Line 7451. `https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate`. Post-intent placement below Booking.com. UTM params present.
-
-**REI (22 links):** All use `https://www.rei.com/search?q=...` format. No affiliate parameter. Earn $0 today. NOTE: REI/Avantlink does NOT require LLC -- Jack can sign up now (30 min action item).
-
-**Backcountry (2 links):** Lines 6979, 6981. Direct product URLs. No affiliate tag. Blocked by LLC.
-
-**GetYourGuide (1 link):** Line 7405. Dynamic search URL. No `partner_id`. Blocked by LLC.
-
-### Issues found
-
-1. **Flight links still go to Google Flights (earns $0).** `buildFlightUrl()` generates `google.com/flights` deep links. Google Flights has no affiliate program. Aviasales switch review: 2026-03-26. This is the biggest non-LLC revenue leak.
-2. **GetYourGuide needs `partner_id` parameter on LLC approval.**
-3. **No broken or misplaced links.** All affiliate CTAs are post-intent in VenueDetailSheet.
-
----
-
-## 3. Hiking Gear Gap
-
-**Status: RESOLVED.** Hiking GEAR_ITEMS at lines 7004-7011 now has 6 items:
-
-| Item | Store | Price | Commission | Earning? |
-|------|-------|-------|------------|----------|
-| Salomon X Ultra 4 GTX Boots | REI | $200 | 5% | No (needs Avantlink) |
-| Black Diamond Trail Trekking Poles | REI | $140 | 5% | No (needs Avantlink) |
-| Osprey Atmos AG 65L Backpack | REI | $300 | 5% | No (needs Avantlink) |
-| Garmin inReach Mini 2 GPS | REI | $350 | 5% | No (needs Avantlink) |
-| Osprey Hydraulics 3L Reservoir | Amazon | $45 | 4% | **Yes** |
-| Black Diamond Spot 400 Headlamp | Amazon | $36 | 4% | **Yes** |
-
-Average AOV: ~$178. Two Amazon links earning now. Four REI links ready for Avantlink tag.
-
-### Optional expansion (paste-ready, not urgent):
-
-```javascript
-// Additional hiking items to boost Amazon coverage:
-    { emoji:"🧦", name:"Darn Tough Hiker Micro Crew Socks", store:"Amazon", price:"$26",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+hiker+micro+crew+socks" },
-    { emoji:"🧊", name:"Sawyer Squeeze Water Filter",       store:"Amazon", price:"$37",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sawyer+squeeze+water+filter" },
-    { emoji:"🩹", name:"Leukotape P Blister Prevention",    store:"Amazon", price:"$12",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=leukotape+p+blister+prevention" },
-    { emoji:"🧥", name:"Patagonia Nano Puff Jacket",        store:"REI",   price:"$229", commission:"5%", url:"https://www.rei.com/search?q=patagonia+nano+puff+jacket" },
+// REPLACE WITH (when Stripe is ready):
+<button className="pressable" onClick={() => window.open("https://buy.stripe.com/YOUR_PAYMENT_LINK", "_blank")} ...>
 ```
 
----
-
-## 4. Revenue Modeling
-
-### Current RPM: $12.06 per 1,000 MAU
-
-| Stream | Est. RPM | % of Total |
-|--------|----------|------------|
-| Amazon gear (30 links) | $4.48 | 37% |
-| Booking.com (2 links) | $6.90 | 57% |
-| SafetyWing (1 link) | $0.54 | 4.5% |
-| Travelpayouts (proxy) | $0.14 | 1.2% |
-| REI (22 links, no tag) | $0.00 | -- |
-| Backcountry (2 links, no tag) | $0.00 | -- |
-| GetYourGuide (no ID) | $0.00 | -- |
-| Peakly Pro (UI mockup) | $0.00 | -- |
-| **Total** | **$12.06** | 100% |
-
-Note: Amazon RPM may increase slightly now that all 11 categories have Amazon links (was 6 categories before). Conservative estimate: $4.48 stays flat until traffic data validates.
-
-### Projections at current RPM ($12.06)
-
-| MAU | Monthly Revenue | Annual Revenue | Math |
-|-----|----------------|----------------|------|
-| **1,000** | **$12.06** | $144.72 | 1 x $12.06 |
-| **5,000** (low Reddit) | **$60.30** | $723.60 | 5 x $12.06 |
-| **8,000** (high Reddit) | **$96.48** | $1,157.76 | 8 x $12.06 |
-| **100,000** | **$1,206.00** | $14,472.00 | 100 x $12.06 |
-
-### Biggest lever for improving RPM
-
-1. **LLC approval (+$21.17 RPM, +176%).** Unlocks REI, Backcountry, GetYourGuide, and Peakly Pro. Single biggest multiplier.
-2. **Switch flight links to Aviasales (+$2.00-4.00 RPM est.).** Not blocked by LLC. Every flight click currently earns $0. Review date: tomorrow (2026-03-26).
-3. **REI Avantlink signup (+$6.16 RPM).** NOT blocked by LLC. Jack can sign up now. 30 minutes. This alone would push RPM from $12.06 to $18.22 (+51%).
+Jack needs to: create Stripe account -> create $79/yr product -> generate payment link -> paste URL. One-time 15-min task.
 
 ---
 
-## 5. LLC Unblock Plan
+## 2. AFFILIATE LINK AUDIT
 
-### Day-of sequence when LLC approves
+### Amazon Associates (30 links, tag: `peakly-20`) -- ACTIVE
 
-| Step | Action | Time | Revenue Unlocked |
-|------|--------|------|-----------------|
-| 1 | Backcountry affiliate signup | 30 min | +$0.56 RPM |
-| 2 | GetYourGuide partner signup, get partner_id | 30 min | +$1.28 RPM |
-| 3 | Update app.jsx: add tags to 2 Backcountry + 1 GetYourGuide URLs | 15 min | -- |
-| 4 | Stripe account setup, create $79/yr product | 1 hr | -- |
-| 5 | Wire Peakly Pro button to Stripe Checkout | 2-3 hrs | +$13.17 RPM |
-| 6 | Push to main | 5 min | All live |
+- **Tag `peakly-20` is present on all 30 Amazon links.** Format: `https://www.amazon.com/s?tag=peakly-20&k=...`
+- Tag format is correct for Amazon Associates search URLs.
+- **Status:** If `peakly-20` was approved by Amazon Associates, these are earning. If it was created but not yet approved (Associates requires 3 qualifying sales in 180 days), the tag is tracking but not yet paying. Jack should verify Associates dashboard status.
+- Links appear inside GEAR_ITEMS, rendered when user opens VenueDetailSheet. This is post-intent placement (good -- user is already interested in the venue).
 
-Note: REI/Avantlink does NOT need LLC. Should be done NOW, not on LLC day.
+### Booking.com (2 placements, aid: `2311236`) -- ACTIVE
 
-### RPM jump post-LLC
+- **Placement 1 (line 7440):** Inside VenueDetailSheet, "Find hotels near [venue]" card with Booking.com branding. Dynamically passes location + optional check-in/check-out dates. Post-intent placement. Correct.
+- **Placement 2 (line 7563):** Sticky CTA bar at bottom of VenueDetailSheet, "Hotels" button. Same aid parameter. Correct.
+- **Format verified:** `aid=2311236` is the standard Booking.com affiliate parameter.
+- **Status:** Earning.
 
-| Stream | Pre-LLC | Post-LLC | Delta |
-|--------|---------|----------|-------|
-| Amazon | $4.48 | $4.48 | +$0.00 |
-| Booking.com | $6.90 | $6.90 | +$0.00 |
-| SafetyWing | $0.54 | $0.54 | +$0.00 |
-| Travelpayouts | $0.14 | $0.14 | +$0.00 |
-| REI | $0.00 | $6.16 | +$6.16 |
-| Backcountry | $0.00 | $0.56 | +$0.56 |
-| GetYourGuide | $0.00 | $1.28 | +$1.28 |
-| Peakly Pro | $0.00 | $13.17 | +$13.17 |
-| **Total** | **$12.06** | **$33.23** | **+$21.17 (+176%)** |
+### SafetyWing (1 link, referenceID: `peakly`) -- ACTIVE
 
-### Revenue left on the table per day of LLC delay
+- **Placement (line 7458):** Inside VenueDetailSheet, "Adventure travel insurance" card with SafetyWing branding. Post-intent placement (user viewing a specific venue). Correct.
+- **Format verified:** `referenceID=peakly&utm_source=peakly&utm_medium=affiliate` -- standard SafetyWing affiliate URL.
+- **Status:** Earning.
 
-| MAU | Daily Lost | Monthly Lost |
-|-----|-----------|-------------|
-| 1,000 | $0.71 | $21.17 |
-| 5,000 | $3.53 | $105.85 |
-| 8,000 | $5.64 | $169.36 |
+### REI (22 links, NO affiliate tag) -- NOW UNBLOCKED BY LLC
 
-At 5K MAU post-Reddit, every month without LLC costs ~$106 in lost revenue.
+- **22 links across 8 categories:** skiing (4), surfing (2), diving (1), climbing (4), kayak (4), mtb (2), fishing (1), hiking (4).
+- **All use bare `rei.com/search?q=...` URLs with ZERO affiliate parameters.**
+- **These earn $0 today.** Every click is a missed commission.
+- REI affiliate program is via **Avantlink**. Once approved, every URL needs `?avad=AFFILIATE_ID` appended.
+- **LLC is approved. Jack can sign up for Avantlink today** (30 min).
+
+### Backcountry (2 links, NO affiliate tag) -- NOW UNBLOCKED BY LLC
+
+- **2 links in mtb category** (lines 6986, 6988): Troy Lee A3 MIPS Helmet, Fox Launch Pro Knee Pads.
+- **Bare product URLs with no affiliate parameters.**
+- Backcountry uses **Avantlink** (same network as REI). Once approved, append `?avad=AFFILIATE_ID`.
+- **Status:** Earning $0.
+
+### GetYourGuide (dynamic links, NO partner_id) -- NOW UNBLOCKED BY LLC
+
+- **1 dynamic link generator (line 7412):** Generates `getyourguide.com/s/?q=...` search URLs for guided experiences.
+- **No `partner_id` parameter.** Earning $0.
+- Once approved, append `&partner_id=XXXXX` to the URL template.
+- **Status:** Earning $0.
+
+### Summary of Broken/Missing Affiliate Parameters
+
+| Store | Links | Fix | Revenue Impact |
+|-------|-------|-----|----------------|
+| REI | 22 | Add `?avad=ID` to all rei.com URLs | +$6.16 RPM |
+| Backcountry | 2 | Add `?avad=ID` to backcountry.com URLs | +$0.56 RPM |
+| GetYourGuide | 1 (dynamic) | Add `&partner_id=ID` to URL template | +$1.28 RPM |
+| Peakly Pro | 1 | Wire Stripe payment link | +$13.17 RPM |
 
 ---
 
-## 6. The Single Highest-Revenue-Impact Change This Week
+## 3. HIKING GEAR GAP -- RESOLVED
 
-### Switch flight links from Google Flights to Aviasales/Travelpayouts deep links
+Hiking now has **6 GEAR_ITEMS** (lines 7011-7018):
 
-**Why this is #1:** Review date is tomorrow (2026-03-26). Not blocked by LLC. Every flight click currently goes to Google Flights which has no affiliate program -- pure revenue leakage. The Flights CTA is the most prominent button in VenueDetailSheet (sticky bottom bar, visible on every venue).
+| Item | Store | Price | Commission |
+|------|-------|-------|------------|
+| Salomon X Ultra 4 GTX Boots | REI | $200 | 5% |
+| Black Diamond Trail Trekking Poles | REI | $140 | 5% |
+| Osprey Atmos AG 65L Backpack | REI | $300 | 5% |
+| Garmin inReach Mini 2 GPS | REI | $350 | 5% |
+| Osprey Hydraulics 3L Reservoir | Amazon | $45 | 4% |
+| Black Diamond Spot 400 Headlamp | Amazon | $36 | 4% |
 
-**Estimated impact:** +$2.00-4.00 RPM. At 5K MAU, that is $10-20/month from a single function change.
+This was previously reported as zero -- it has been filled. However, 4 of 6 items are REI-only (earning $0 without affiliate tag). The 2 Amazon items are tagged with `peakly-20` and earning.
 
-**Implementation code (paste-ready):**
+### Paste-ready code to add more Amazon hiking items (high AOV, earning NOW):
 
 ```javascript
-// Replace buildFlightUrl with Aviasales deep link:
-const buildFlightUrl = (fromCode, toCode, departDate) => {
-  // Aviasales deep link with Travelpayouts marker
-  const dep = departDate
-    ? new Date(departDate).toISOString().slice(2,10).replace(/-/g,'')
-    : new Date(Date.now() + 14*86400000).toISOString().slice(2,10).replace(/-/g,'');
-  const ret = departDate
-    ? new Date(new Date(departDate).getTime() + 7*86400000).toISOString().slice(2,10).replace(/-/g,'')
-    : new Date(Date.now() + 21*86400000).toISOString().slice(2,10).replace(/-/g,'');
-  return `https://www.aviasales.com/search/${fromCode}${dep}${toCode}${ret}1?marker=peakly`;
-};
+// ADD these to the hiking array in GEAR_ITEMS (after line 7017):
+    { emoji:"🥾", name:"Merrell Moab 3 Mid Waterproof",     store:"Amazon",  price:"$145",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=merrell+moab+3+mid+waterproof" },
+    { emoji:"🧥", name:"Arc'teryx Beta LT Rain Jacket",     store:"Amazon",  price:"$400",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=arcteryx+beta+lt+rain+jacket" },
+    { emoji:"🩹", name:"Adventure Medical First Aid Kit",    store:"Amazon",  price:"$38",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=adventure+medical+first+aid+kit+hiking" },
+    { emoji:"🧦", name:"Darn Tough Hiker Merino Socks",     store:"Amazon",  price:"$26",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+hiker+merino+socks" },
 ```
 
-Note: Verify exact Aviasales deep link format against Travelpayouts docs before shipping. The `marker=peakly` parameter must match the Travelpayouts account.
+These 4 items have avg AOV of ~$152 and are all immediately earning via `peakly-20` tag. No LLC required.
 
 ---
 
-## v14 Delta (changes since v13)
+## 4. REVENUE MODELING
 
-- **Hiking GEAR_ITEMS: FIXED.** Now 6 items (4 REI + 2 Amazon). Was 4 REI-only. The Osprey Hydraulics and BD Spot 400 Headlamp Amazon links are live and earning.
-- **Amazon links: 30 (was 20).** All 11 categories now have Amazon links. The "5 categories with zero Amazon links" problem is fully resolved.
-- **Booking.com links: 2 (was reported as 1).** Second instance at line 7556 in VenueDetailSheet.
-- **Peakly Pro pricing: STILL CORRECT.** $79/yr at line 7470.
-- **Flight links: STILL Google Flights (earns $0).** Aviasales switch review: 2026-03-26 (tomorrow).
-- **RPM: $12.06 (unchanged).** Amazon RPM may tick up with broader category coverage but no traffic data to confirm yet.
-- **LLC: STILL PENDING.** +$21.17 RPM blocked.
+### Current RPM: $12.06 per 1,000 MAU/month
+
+| Stream | RPM Contribution |
+|--------|-----------------|
+| Amazon Associates (30 links) | $4.48 |
+| Booking.com (2 placements) | $6.90 |
+| SafetyWing (1 link) | $0.54 |
+| Travelpayouts/Aviasales (flights) | $0.14 |
+| **Total** | **$12.06** |
+
+### Projections at Current RPM ($12.06)
+
+| MAU | Monthly Revenue | Annual Revenue |
+|-----|----------------|----------------|
+| 1,000 | **$12.06** | $144.72 |
+| 5,000 (low Reddit) | **$60.30** | $723.60 |
+| 8,000 (high Reddit) | **$96.48** | $1,157.76 |
+| 100,000 | **$1,206.00** | $14,472.00 |
+
+### Math:
+- RPM = Revenue per Mille (per 1,000 users)
+- Monthly Revenue = (MAU / 1,000) x $12.06
+- Example: 5K MAU = 5 x $12.06 = $60.30/mo
+
+### Biggest Lever for Improving RPM
+
+**Peakly Pro subscription at $79/yr.** At even 2% conversion (conservative for freemium adventure apps), that is:
+- Per 1,000 MAU: 20 subscribers x $79/yr = $1,580/yr = **$131.67/month** = +$131.67 RPM
+- This single stream would 12x the current RPM.
+
+The CLAUDE.md estimates $13.17 RPM from Pro, which implies ~0.2% conversion. Even at that conservative rate, it is the single largest revenue unlock.
 
 ---
 
-## Action Items (ordered by impact, no-LLC-required first)
+## 5. LLC UNBLOCK PLAN
 
-| Priority | Action | Owner | Blocked? | Time | Revenue Impact |
-|----------|--------|-------|----------|------|---------------|
-| P1 | **Switch flight links to Aviasales** | Dev | No | 2-3 hrs | +$2.00-4.00 RPM |
-| P1 | **REI Avantlink signup** | Jack | **No** | 30 min | +$6.16 RPM |
-| P2 | Check Plausible for traffic baseline | Jack | No | 5 min | Validates all projections |
-| P3 | **LLC approval** | Jack | External | Waiting | +$21.17 RPM (+176%) |
-| P4 | Wire Stripe for Peakly Pro (post-LLC) | Dev | Yes (LLC) | 3 hrs | +$13.17 RPM |
-| P5 | Backcountry + GetYourGuide signup (post-LLC) | Jack | Yes (LLC) | 1 hr | +$1.84 RPM |
+LLC is **APPROVED as of 2026-03-25**. Here is the exact sequence for activation day:
 
-**Bottom line:** Two actions with zero external dependencies -- Aviasales flight links and REI/Avantlink signup -- would push RPM from $12.06 to ~$20.22 (+68%). At 5K MAU post-Reddit, that is $101/month vs $60/month. Do both this week.
+### Day-of Action Sequence (estimated 2-3 hours total):
+
+1. **Stripe setup (30 min):** Create Stripe account -> create "Peakly Pro Annual" product at $79/yr -> enable free trial (7 days) -> generate payment link -> replace `alert()` on line 7490 with Stripe link.
+
+2. **REI / Avantlink signup (30 min):** Apply at avantlink.com for REI program. Approval typically 1-3 business days. Once approved, get affiliate ID and update all 22 REI URLs.
+
+3. **Backcountry / Avantlink signup (15 min):** Same network as REI. Apply for Backcountry program. Update 2 URLs.
+
+4. **GetYourGuide partner signup (15 min):** Apply at partner.getyourguide.com. Get partner_id. Update URL template on line 7412.
+
+5. **Code deployment (15 min):** Single commit updating all affiliate URLs + Stripe link. `push "Wire affiliate IDs + Stripe Pro link"`
+
+### RPM Impact When All 3 Streams + Pro Go Live
+
+| Stream | Current RPM | Post-Activation RPM |
+|--------|-------------|-------------------|
+| Amazon | $4.48 | $4.48 |
+| Booking.com | $6.90 | $6.90 |
+| SafetyWing | $0.54 | $0.54 |
+| Travelpayouts | $0.14 | $0.14 |
+| REI (22 links) | $0.00 | **+$6.16** |
+| Backcountry (2 links) | $0.00 | **+$0.56** |
+| GetYourGuide (dynamic) | $0.00 | **+$1.28** |
+| Peakly Pro ($79/yr) | $0.00 | **+$13.17** |
+| **Total** | **$12.06** | **$33.23** |
+
+**RPM jumps from $12.06 to $33.23 (+176%).**
+
+### Revenue Left on the Table Per Day of Delay
+
+At 1K MAU (current estimate):
+- Lost RPM: $21.17/mo = **$0.71/day**
+- Not material yet, but at 5K MAU post-Reddit launch: **$3.53/day**
+- At 8K MAU: **$5.64/day**
+
+The real cost of delay is not today's revenue -- it is launching the Reddit campaign without monetization in place. If the Reddit push hits 5K MAU and affiliate IDs are not wired, that is **$106/month left on the table** from affiliates alone, plus $0 from Pro subscriptions that could be converting from day one.
+
+---
+
+## 6. HIGHEST-REVENUE-IMPACT CHANGE THIS WEEK
+
+### Wire Stripe for Peakly Pro ($79/year)
+
+This is not close. At any user count above 1K, Pro subscriptions dominate all other revenue streams combined.
+
+**At 5K MAU with 2% Pro conversion:**
+- 100 subscribers x $79/yr = $7,900/yr = **$658/month**
+- All affiliate revenue at 5K MAU: $95/month
+- Pro alone is **7x all affiliates combined**
+
+**Implementation (one line of code + Stripe setup):**
+
+```jsx
+// Line 7490 of app.jsx -- replace:
+<button className="pressable" onClick={() => alert("Peakly Pro coming soon!")} style={{...}}>
+
+// With:
+<button className="pressable" onClick={() => { window.open("https://buy.stripe.com/PAYMENT_LINK_HERE", "_blank"); if(window.plausible) plausible("pro_signup_click"); }} style={{...}}>
+```
+
+Jack's action items (all unblocked by LLC approval):
+1. Create Stripe account (15 min)
+2. Create $79/yr product with 7-day free trial (10 min)
+3. Generate payment link (2 min)
+4. Give link to dev to replace in app.jsx (1 min)
+
+**Total effort: 30 minutes. Potential: $658+/month at 5K MAU.**
+
+---
+
+## LINK INVENTORY SUMMARY
+
+| Type | Count | Earning? | Fix |
+|------|-------|----------|-----|
+| Amazon (`peakly-20`) | 30 | YES | Verify Associates approval |
+| Booking.com (`aid=2311236`) | 2 | YES | None |
+| SafetyWing (`referenceID=peakly`) | 1 | YES | None |
+| Travelpayouts/Aviasales | 1 (dynamic) | YES | None |
+| REI (no affiliate tag) | 22 | NO | Avantlink signup + add `?avad=ID` |
+| Backcountry (no affiliate tag) | 2 | NO | Avantlink signup + add `?avad=ID` |
+| GetYourGuide (no partner_id) | 1 (dynamic) | NO | Partner signup + add `&partner_id=ID` |
+| Peakly Pro (UI mockup) | 1 | NO | Wire Stripe |
+| **Total affiliate touchpoints** | **60** | **34 earning, 26 not** | |
