@@ -1,8 +1,8 @@
 # SEO & Analytics Report -- Peakly
 
-**Date:** 2026-03-25 (Run 2)
-**SEO Score:** 91% (holding steady from 03-24)
-**Previous Score:** 91% (03-25 Run 1) | 81% (03-23) | 62% (03-22 baseline)
+**Date:** 2026-03-25 (Run 3)
+**SEO Score:** 91% (holding from 03-24)
+**Previous Score:** 91% (03-25 Run 2) | 91% (03-25 Run 1) | 81% (03-23) | 62% (03-22 baseline)
 
 ---
 
@@ -20,7 +20,7 @@
 | 8 | JSON-LD structured data | PASS | WebSite + WebApplication + Organization in @graph |
 | 9 | Static h1 fallback | PASS | h1 inside #root div, visible before React mounts |
 | 10 | Plausible analytics | PASS | `script.hash.js` (SPA hash-based tracking) |
-| 11 | Plausible custom events | PASS | 8 events firing (details in Section 3) |
+| 11 | Plausible custom events | PASS | 10 events firing (details in Section 3) |
 | 12 | PWA manifest | PASS | manifest.json + SW + apple-mobile-web-app meta |
 | 13 | lang attribute | PASS | `<html lang="en">` |
 | 14 | Favicon | PASS | SVG data URI |
@@ -35,12 +35,14 @@
 - OG image is generic Unsplash mountain (not branded)
 - `user-scalable=no` on viewport meta (accessibility concern)
 - Plausible event naming inconsistency (mixed PascalCase and snake_case)
+- Static h1 paragraph says "170+" but app now has 2,226 venues
+- JSON-LD featureList says "180+ adventure venues" but should say "2,200+"
 
 ---
 
 ## 1. JSON-LD Structured Data -- SHIPPED, Enhancement Ready
 
-Current JSON-LD in index.html (lines 35-64) has WebSite, WebApplication, Organization. Missing SearchAction (for sitelinks searchbox) and ItemList (for rich category results).
+Current JSON-LD in index.html (lines 35-64) has WebSite, WebApplication, Organization. Missing SearchAction (for sitelinks searchbox) and ItemList (for rich category results). Venue count is stale (says 180+, should be 2,200+).
 
 ### Paste-ready enhanced JSON-LD (replace entire existing `<script type="application/ld+json">` block in index.html):
 
@@ -72,7 +74,7 @@ Current JSON-LD in index.html (lines 35-64) has WebSite, WebApplication, Organiz
       "applicationCategory": "TravelApplication",
       "operatingSystem": "Web",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "featureList": "Real-time condition scoring, Flight price tracking, 192 adventure venues worldwide, Vibe-based AI search, Trip planning, Condition alerts, Surf forecasts, Ski conditions, Beach weather scoring, Kitesurfing conditions, Diving visibility, Climbing weather"
+      "featureList": "Real-time condition scoring, Flight price tracking, 2200+ adventure venues worldwide, Vibe-based AI search, Trip planning, Condition alerts, Surf forecasts, Ski conditions, Beach weather scoring, Kitesurfing conditions, Diving visibility, Climbing weather"
     },
     {
       "@type": "Organization",
@@ -103,7 +105,7 @@ Current JSON-LD in index.html (lines 35-64) has WebSite, WebApplication, Organiz
     {
       "@type": "TouristDestination",
       "name": "Adventure Destinations on Peakly",
-      "description": "192 adventure destinations across 6 continents with live condition scoring, flight prices, and weather forecasts",
+      "description": "2,226 adventure destinations across 6 continents with live condition scoring, flight prices, and weather forecasts",
       "touristType": ["Adventure traveler", "Surfer", "Skier", "Hiker", "Diver", "Climber"]
     }
   ]
@@ -115,24 +117,26 @@ Current JSON-LD in index.html (lines 35-64) has WebSite, WebApplication, Organiz
 - SearchAction for Google sitelinks searchbox eligibility
 - ItemList with 11 categories (matched to current CATEGORIES array minus "All")
 - TouristDestination schema for destination-intent queries
-- Expanded featureList with more keyword coverage
+- Expanded featureList with updated venue count (2,200+)
 - Organization.sameAs ready for social profiles when available
 
 ---
 
-## 2. Static H1 Fallback -- SHIPPED, Minor Update Needed
+## 2. Static H1 Fallback -- SHIPPED, Stale Venue Count
 
-Current static h1 in index.html (lines 238-243):
+Current static content in index.html (lines 238-243):
 ```html
 <h1>Peakly -- Surf, Ski & Adventure Spots with Live Conditions & Cheap Flights</h1>
 <p>Discover 170+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.</p>
 ```
 
-**Fix needed:** Update "170+" to "190+" to match current venue count (192 venues). This is a 1-character edit at line 242 of index.html:
+The h1 is correct. The paragraph is stale -- says "170+" but app now has 2,226 venues.
+
+**Fix needed (1-character edit at index.html line 242):**
 
 ```html
 <p style="text-align:center;color:#717171;font-size:14px;max-width:400px;margin:0 auto;">
-  Discover 190+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
+  Discover 2,200+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
 </p>
 ```
 
@@ -146,39 +150,49 @@ Current static h1 in index.html (lines 238-243):
 ```
 Located at index.html line 32. Using `script.hash.js` for hash-based SPA navigation. No change needed.
 
-### Complete Event Audit
+### Domain note
+When peakly.app domain is registered, update `data-domain` to `peakly.app` and add it as a site in Plausible dashboard.
 
-| Event | Method | Naming | Location in app.jsx | Status |
-|-------|--------|--------|---------------------|--------|
-| Tab Switch | `window.plausible()` direct | PascalCase | ~line 8616 (BottomNav callback) | LIVE |
-| Venue Click (venue_open) | `logEvent()` wrapper | snake_case | ~line 8463 (openDetail) | LIVE |
-| Flight Search (flight_click) | `logEvent()` wrapper | snake_case | ~line 7553 (flight link onClick) | LIVE |
-| Wishlist Add | `window.plausible()` direct | PascalCase | ~line 8453 | LIVE |
-| Onboarding Complete | `window.plausible()` direct | PascalCase | ~line 6669 | LIVE |
-| Score Validation | `window.plausible()` direct | PascalCase | ~line 7096 | LIVE |
-| Share (share_click) | `logEvent()` wrapper | snake_case | ~lines 3637, 7181 | LIVE |
-| Hotel Click (hotel_click) | `logEvent()` wrapper | snake_case | ~line 7565 | LIVE |
+### Complete Event Audit (app.jsx)
 
-**Additional non-Plausible events logged to localStorage:**
-- `install_pwa` / `install_pwa {result: "installed"}` -- PWA install events (~lines 3855-3856)
+| Event | Method | Naming | Location | Status |
+|-------|--------|--------|----------|--------|
+| Tab Switch | `window.plausible()` direct | PascalCase | Line ~8942 (BottomNav callback) | LIVE |
+| venue_open | `logEvent()` wrapper | snake_case | Line ~8802 (openDetail) | LIVE |
+| flight_click | `logEvent()` wrapper | snake_case | Line ~7878 (flight link onClick) | LIVE |
+| book_click | `window.plausible()` direct | snake_case | Line ~4086 (ListingCard book button) | LIVE |
+| Wishlist Add | `window.plausible()` direct | PascalCase | Line ~8789 | LIVE |
+| Onboarding Complete | `window.plausible()` direct | PascalCase | Line ~6985 | LIVE |
+| Score Validation | `window.plausible()` direct | PascalCase | Line ~7421 | LIVE |
+| share_click | `logEvent()` wrapper | snake_case | Lines ~3696, ~7506 | LIVE |
+| hotel_click | `logEvent()` wrapper | snake_case | Line ~7890 | LIVE |
+| install_pwa | `logEvent()` wrapper | snake_case | Lines ~3914-3915 | LIVE |
 
-### Naming Inconsistency (Carryover)
+**All 5 spec-required events are LIVE:**
+- Tab Switch = Tab Switch (exact match)
+- Venue Click = `venue_open` (name differs)
+- Flight Search = `flight_click` (name differs)
+- Wishlist Add = Wishlist Add (exact match)
+- Onboarding Complete = Onboarding Complete (exact match)
+
+### Naming Inconsistency (Carryover from Run 2)
 
 Two conventions coexist:
 - **PascalCase** (called directly via `window.plausible()`): Tab Switch, Wishlist Add, Onboarding Complete, Score Validation
-- **snake_case** (called via `logEvent()` wrapper): venue_open, flight_click, share_click, hotel_click, install_pwa
+- **snake_case** (called via `logEvent()` wrapper or direct): venue_open, flight_click, book_click, share_click, hotel_click, install_pwa
 
-Both reach Plausible (logEvent wraps window.plausible at line 3844). The dashboard will show mixed naming.
+Both reach Plausible (logEvent wraps window.plausible at line ~3903). The Plausible dashboard shows mixed naming.
 
 **Recommended standardization** (all to PascalCase to match Plausible convention):
 
-| Current | Recommended | Code Change |
+| Current | Recommended | File / Line |
 |---------|------------|-------------|
-| `venue_open` | `Venue Click` | line 8463: `logEvent('Venue Click', ...)` |
-| `flight_click` | `Flight Search` | line 7553: `logEvent('Flight Search', ...)` |
-| `share_click` | `Share` | lines 3637, 7181: `logEvent('Share', ...)` |
-| `hotel_click` | `Hotel Click` | line 7565: `logEvent('Hotel Click', ...)` |
-| `install_pwa` | `PWA Install` | lines 3855-3856: `logEvent('PWA Install', ...)` |
+| `venue_open` | `Venue Click` | app.jsx ~8802 |
+| `flight_click` | `Flight Search` | app.jsx ~7878 |
+| `book_click` | `Book Click` | app.jsx ~4086 |
+| `share_click` | `Share` | app.jsx ~3696, ~7506 |
+| `hotel_click` | `Hotel Click` | app.jsx ~7890 |
+| `install_pwa` | `PWA Install` | app.jsx ~3914-3915 |
 
 ### Recommended New Events (Not Yet Implemented)
 
@@ -240,7 +254,7 @@ Current SPA architecture renders everything client-side, which limits Google's a
 
 ### The Single Biggest CWV Issue: LCP
 
-**Root cause:** Babel Standalone (~690KB) must download, parse, then transpile app.jsx (5400+ lines) before any React content renders. This adds 2-4 seconds to LCP on top of network latency.
+**Root cause:** Babel Standalone (~690KB gzipped ~180KB) must download, parse, then transpile app.jsx (~5,400 lines) before any React content renders. This adds 2-4 seconds to LCP on top of network latency.
 
 Loading chain:
 1. HTML (~7KB) -- instant
@@ -248,8 +262,8 @@ Loading chain:
 3. Sentry SDK (~30KB) -- synchronous script, blocks parser
 4. React 18 UMD (~130KB) -- synchronous, CDN cached
 5. **Babel Standalone (~690KB) -- MAIN BOTTLENECK**
-6. app.jsx (~180KB) -- moderate
-7. **Babel transpiles 5400 lines in-browser -- 1-3s on mobile**
+6. app.jsx (~200KB+) -- moderate
+7. **Babel transpiles 5,400 lines in-browser -- 1-3s on mobile**
 8. React mounts, splash screen dismisses
 
 **Total time to interactive on 4G mobile: ~4-6 seconds.**
@@ -270,7 +284,7 @@ Add to `<head>` in index.html, immediately after the charset meta tag:
 
 **Impact:** ~200-400ms LCP improvement. Browsers start DNS/TLS for unpkg before hitting the script tags.
 
-**Option 2: Move Sentry to defer/async (2 min)**
+**Option 2: Move Sentry to defer/async (1 min)**
 
 Current (line 77): `<script src='https://js.sentry-cdn.com/...' crossorigin='anonymous'></script>`
 
@@ -287,22 +301,22 @@ npx @babel/cli@7.24.7 --presets @babel/preset-react app.jsx -o app.js
 Replace in index.html:
 ```html
 <!-- Remove Babel Standalone script tag entirely -->
-<script src="./app.js?v=20260325d"></script>
+<script src="./app.js?v=20260326a"></script>
 ```
 
-**Impact:** Removes 690KB download + 1-3s transpilation. LCP drops from ~4s to ~1.5-2s. Trade-off: Adds a build step. Conflicts with "no build step" architecture.
+**Impact:** Removes 690KB download + 1-3s transpilation. LCP drops from ~4s to ~1.5-2s. Trade-off: Adds a build step. Conflicts with "no build step" architecture decision.
 
-**Recommendation:** Implement Options 1 and 2 now (7 minutes combined). These shave ~400-600ms with zero risk. Defer Option 3 until mobile bounce rate data from Plausible warrants it.
+**Recommendation:** Implement Options 1 and 2 now (6 minutes combined, ~400-600ms improvement). Defer Option 3 until mobile bounce rate data from Plausible justifies the architecture change.
 
 ---
 
 ## 6. Highest-Impact Single Change for Reddit-Driven Organic Growth
 
-**Dynamic meta tags on venue open for better Reddit/social link previews.**
+**Dynamic meta tags on venue open for better social link previews.**
 
-When someone shares a Peakly venue link on Reddit (e.g., `https://j1mmychu.github.io/peakly/#venue-pipeline`), Reddit's OEmbed/OpenGraph preview crawler currently shows the same generic description and mountain photo for every venue. Every shared link looks identical.
+When someone shares a Peakly venue link on Reddit (e.g., `https://j1mmychu.github.io/peakly/#venue-pipeline`), Reddit's OpenGraph crawler currently shows the same generic description and mountain photo for every venue. Every shared link looks identical.
 
-### Paste-ready implementation (add to openDetail function in app.jsx, after the logEvent call at ~line 8463):
+### Paste-ready implementation (add to openDetail function in app.jsx, after the logEvent call at ~line 8802):
 
 ```javascript
 // Dynamic meta tags for social sharing previews
@@ -329,19 +343,21 @@ try {
 ```javascript
 // Reset meta tags to defaults
 try {
-  document.querySelector('meta[name="description"]')?.setAttribute('content', 'Peakly \u2014 Find surf, ski & adventure spots when conditions and cheap flights align.');
-  document.querySelector('meta[property="og:description"]')?.setAttribute('content', 'Find surf, ski & beach spots with perfect conditions and cheap flights. Real-time weather scoring for 180+ venues worldwide.');
-  document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Peakly \u2014 Adventure When Conditions Align');
+  document.querySelector('meta[name="description"]')?.setAttribute('content', 'Peakly -- Find surf, ski & adventure spots when conditions and cheap flights align.');
+  document.querySelector('meta[property="og:description"]')?.setAttribute('content', 'Find surf, ski & beach spots with perfect conditions and cheap flights. Real-time weather scoring for 2,200+ venues worldwide.');
+  document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Peakly -- Adventure When Conditions Align');
   document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center');
 } catch {}
 ```
 
-**Why this is highest ROI for Reddit launch:** When users post venue links in r/surfing, r/skiing, r/solotravel, the embed will show the venue-specific name, photo, condition score, and flight price instead of the same generic "Peakly -- Adventure When Conditions Align" card every time. Venue-specific previews dramatically increase click-through from social threads.
+**Important caveat:** Reddit and most social crawlers do NOT execute JavaScript. They read the initial HTML meta tags. This dynamic approach improves: browser tab titles per venue, any JS-executing crawler (Google, some Twitter/X crawlers), and future prerender service integration. For true social preview improvement on Reddit, a prerender service or SSR would be needed.
 
-**Important caveat:** Reddit and most social crawlers do NOT execute JavaScript. They read the initial HTML meta tags. This dynamic meta tag approach improves the experience for users who copy the URL from an already-open venue sheet. For true social preview improvement, you need server-side rendering or a prerender service. However, the hash-based URLs mean the meta tags in the initial HTML are always what social crawlers see. This code still provides value for:
-- Browser tab titles updating per venue
-- Any crawler that does execute JS (Google, some Twitter/X crawlers)
-- Future prerender service integration
+**Highest immediate ROI for Reddit launch:** Write subreddit-specific posts with keyword-rich titles. Peakly's strongest Reddit angles:
+- r/surfing: "I built a free tool that shows cheapest flights to surf spots when conditions are actually good"
+- r/skiing: "Made a site tracking live ski conditions + flight prices to 2,200+ spots worldwide"
+- r/solotravel: "Free tool: find adventure destinations where conditions are perfect AND flights are cheap"
+
+Each post links to a category-specific hash URL (e.g., `#surfing`, `#skiing`) tracked by Plausible.
 
 ---
 
@@ -349,17 +365,18 @@ try {
 
 | # | Item | Effort | Impact | Status |
 |---|------|--------|--------|--------|
-| 1 | Add preconnect/dns-prefetch + preload hints to index.html | 5 min | ~300-400ms LCP | OPEN -- carryover x4 |
-| 2 | Add `defer` to Sentry script tag | 1 min | ~100-200ms LCP | NEW |
-| 3 | Update static p tag: "170+" to "190+" | 1 min | Accuracy | OPEN -- carryover x3 |
-| 4 | Add SearchAction + ItemList + TouristDestination to JSON-LD (paste-ready above) | 10 min | Rich SERP results | OPEN -- carryover x3 |
-| 5 | Standardize Plausible event names to PascalCase | 15 min | Clean analytics dashboard | OPEN -- carryover x2 |
-| 6 | Dynamic meta tags on venue open (paste-ready above) | 15 min | Better link previews, SEO | OPEN -- carryover x2 |
-| 7 | Add Gear Click + Alert Create + Ski Pass Filter Plausible events | 10 min | Revenue + engagement attribution | NEW |
-| 8 | Create branded OG image (not generic Unsplash) | 30 min | Social CTR | OPEN -- carryover x2 |
-| 9 | Pre-transpile JSX to eliminate Babel runtime | 1 hr | ~2s LCP improvement | DEFERRED -- Phase 2 |
+| 1 | Add preconnect/dns-prefetch + preload hints to index.html | 5 min | ~300-400ms LCP | OPEN -- carryover x5 |
+| 2 | Add `defer` to Sentry script tag | 1 min | ~100-200ms LCP | OPEN -- carryover x1 |
+| 3 | Update static p tag: "170+" to "2,200+" | 1 min | Accuracy | OPEN -- carryover x4 |
+| 4 | Add SearchAction + ItemList + TouristDestination to JSON-LD (paste-ready above) | 10 min | Rich SERP results | OPEN -- carryover x4 |
+| 5 | Update JSON-LD featureList: "180+" to "2,200+" | 1 min | Accuracy | NEW |
+| 6 | Standardize Plausible event names to PascalCase | 15 min | Clean analytics dashboard | OPEN -- carryover x3 |
+| 7 | Dynamic meta tags on venue open (paste-ready above) | 15 min | Better link previews | OPEN -- carryover x3 |
+| 8 | Add Gear Click + Alert Create + Ski Pass Filter Plausible events | 10 min | Revenue + engagement attribution | OPEN -- carryover x1 |
+| 9 | Create branded OG image (not generic Unsplash) | 30 min | Social CTR | OPEN -- carryover x3 |
+| 10 | Pre-transpile JSX to eliminate Babel runtime | 1 hr | ~2s LCP improvement | DEFERRED -- Phase 2 |
 
-**Critical editorial note:** Items 1-4 represent 17 minutes of work, have been open for 3-4 consecutive cycles, and would push SEO score from 91% to ~95%. They should be the next commit.
+**Critical editorial note:** Items 1-5 represent 18 minutes of work, have been open for multiple cycles, and would push SEO score from 91% to ~95%. They should be the next commit.
 
 ---
 
@@ -370,9 +387,9 @@ try {
 | 2026-03-22 | 62% | Baseline |
 | 2026-03-23 | 81% | Title, canonical, robots.txt, sitemap, Plausible, OG tags |
 | 2026-03-24 | 91% | JSON-LD, static h1, script.hash.js, 5 custom events, PWA manifest |
-| 2026-03-25 | 91% | No SEO-impacting changes. 8 events total. Hotel click event added. |
-| Target | 95%+ | Needs: preconnect hints, enhanced JSON-LD, defer Sentry, branded OG image |
+| 2026-03-25 | 91% | No SEO-impacting changes. 10 events total. Venues expanded to 2,226. Weather cache live. |
+| Target | 95%+ | Needs: preconnect hints, enhanced JSON-LD, defer Sentry, fix stale venue counts, branded OG image |
 
 ---
 
-*Next run: Check if preconnect hints (item #1), Sentry defer (item #2), and JSON-LD enhancement (item #4) have been implemented. If Reddit launch date is set, escalate item #6 (dynamic meta tags) to P0.*
+*Next run: Check if preconnect hints (item #1), Sentry defer (item #2), stale venue counts (items #3, #5), and JSON-LD enhancement (item #4) have been implemented. If Reddit launch date is set, escalate item #7 (dynamic meta tags) to P0.*
