@@ -4833,9 +4833,53 @@ function applyFilters(listings, activeCat, filters, search = {}) {
   return out;
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile }) {
+function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
+  const [pullDist, setPullDist] = useState(0);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
+  const scrollRef = useRef(null);
+  const touchStartY = useRef(0);
+  const pullDistRef = useRef(0);
+  const onRefreshRef = useRef(onRefresh);
+  useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const THRESHOLD = 80;
+    const onTouchStart = e => {
+      touchStartY.current = el.scrollTop === 0 ? e.touches[0].clientY : 0;
+    };
+    const onTouchMove = e => {
+      if (!touchStartY.current) return;
+      const dist = Math.max(0, e.touches[0].clientY - touchStartY.current);
+      if (dist > 5) {
+        e.preventDefault();
+        const capped = Math.min(dist, THRESHOLD + 30);
+        pullDistRef.current = capped;
+        setPullDist(capped);
+      }
+    };
+    const onTouchEnd = () => {
+      if (pullDistRef.current >= THRESHOLD && onRefreshRef.current) {
+        setPullRefreshing(true);
+        onRefreshRef.current();
+        setTimeout(() => setPullRefreshing(false), 1500);
+      }
+      pullDistRef.current = 0;
+      setPullDist(0);
+      touchStartY.current = 0;
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Best Right Now" — personalized + respects active category filter
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
@@ -4888,9 +4932,16 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Default: All, Skiing, Surfing, Beach & Tan. Rest behind "+ More"
-  const defaultCatIds = ["all", "skiing", "surfing", "tanning"];
-  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+  // Sort: "All" first, then user's selected sports, then the rest
+  const sortedCats = [
+    CATEGORIES.find(c => c.id === "all"),
+    ...CATEGORIES.filter(c => c.id !== "all" && userSports.includes(c.id)),
+    ...CATEGORIES.filter(c => c.id !== "all" && !userSports.includes(c.id)),
+  ].filter(Boolean);
+  // Collapsed: show "All" + user's sports (up to 3) + fill with defaults if needed
+  const defaultFallbacks = ["skiing", "surfing", "tanning"];
+  const collapsedIds = new Set(["all", ...userSports.slice(0, 3), ...defaultFallbacks]);
+  const visibleCats = showAllCats ? sortedCats : sortedCats.filter(c => collapsedIds.has(c.id)).slice(0, 4);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -4907,11 +4958,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               fontSize:12, fontWeight:700, fontFamily:F,
           }}>
             {c.emoji} {c.label}
-            {c.id !== "all" && !loading && listings.filter(l => l.category === c.id).length >= 3 && (
-              <span style={{ fontSize:10, fontWeight:600, opacity:0.8, marginLeft:2 }}>
-                {listings.filter(l => l.category === c.id).length}
-              </span>
-            )}
           </button>
         ))}
         {!showAllCats && (
@@ -4973,7 +5019,26 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         </div>
       )}
 
-      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+
+        {/* Pull-to-refresh indicator */}
+        {(pullDist > 0 || pullRefreshing) && (
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"center",
+            height: pullRefreshing ? 44 : Math.min(pullDist, 80) * 0.55,
+            overflow:"hidden",
+            transition: pullDist === 0 ? "height 0.25s ease" : "none",
+          }}>
+            <div style={{
+              width:20, height:20, borderRadius:"50%",
+              border:"2.5px solid #e5e7eb",
+              borderTop:"2.5px solid #0284c7",
+              animation: pullRefreshing ? "spin 0.7s linear infinite" : "none",
+              opacity: pullRefreshing ? 1 : Math.min(pullDist / 80, 1),
+              transform: `rotate(${pullDist * 3}deg)`,
+            }} />
+          </div>
+        )}
 
         {/* ── Saved venues inline (replaces wishlists tab) ── */}
         {showSaved && (
@@ -6665,7 +6730,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               {
                 bg:"#f0fdf4", color:"#16a34a",
                 icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title:"Cheap flights from you",
+                title:`Cheap flights from ${AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "your airport"}`,
                 desc:"Real-time prices from your home airport. Book when the conditions and the deal line up.",
               },
               {
@@ -8431,6 +8496,7 @@ function App() {
               onOpenDetail={openDetail}
               namedLists={namedLists} setNamedLists={setNamedLists}
               wxLastUpdated={wxLastUpdated} profile={profile}
+              onRefresh={() => fetchAllWeather(false)}
             />
           )}
           {activeTab === "alerts" && (
