@@ -3918,6 +3918,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
       <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
+            ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
@@ -4043,6 +4044,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
       }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
+            ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
@@ -4109,6 +4111,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
       <div style={{ position:"relative", height:128, overflow:"hidden" }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
+            ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
@@ -5128,7 +5131,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
-                        <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span><span style={{ fontSize:9, color:"#888", fontFamily:F, marginLeft:2 }}>rt</span>
+                        <span style={{ display:"flex", alignItems:"baseline", gap:2 }}>
+                          <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
+                          <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>rt</span>
+                        </span>
                         <span style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.conditionScore}/100</span>
                       </div>
                     </div>
