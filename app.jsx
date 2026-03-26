@@ -886,7 +886,25 @@ const ALL_AIRPORTS = [
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
 
+// ─── weather localStorage cache (30-min TTL) ─────────────────────────────────
+const WX_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const WX_CACHE_KEY = "peakly_wx_cache";
+function _readWxCache() {
+  try { const r = localStorage.getItem(WX_CACHE_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; }
+}
+function _writeWxCache(next) {
+  try { localStorage.setItem(WX_CACHE_KEY, JSON.stringify(next)); } catch {}
+}
+function _evict(cache) {
+  // Remove entries older than 2× TTL to prevent unbounded growth
+  const cutoff = Date.now() - WX_CACHE_TTL * 2;
+  return Object.fromEntries(Object.entries(cache).filter(([, v]) => v.ts > cutoff));
+}
+
 async function fetchWeather(lat, lon) {
+  const key = `wx_${lat}_${lon}`;
+  const cache = _readWxCache();
+  if (cache[key] && Date.now() - cache[key].ts < WX_CACHE_TTL) return cache[key].data;
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
@@ -896,10 +914,16 @@ async function fetchWeather(lat, lon) {
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) throw new Error("weather fetch failed");
-  return r.json();
+  const data = await r.json();
+  const next = _evict({ ...cache, [key]: { data, ts: Date.now() } });
+  _writeWxCache(next);
+  return data;
 }
 
 async function fetchMarine(lat, lon) {
+  const key = `mar_${lat}_${lon}`;
+  const cache = _readWxCache();
+  if (cache[key] && Date.now() - cache[key].ts < WX_CACHE_TTL) return cache[key].data;
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
@@ -908,7 +932,10 @@ async function fetchMarine(lat, lon) {
     `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
-  return r.json();
+  const data = await r.json();
+  const next = _evict({ ...cache, [key]: { data, ts: Date.now() } });
+  _writeWxCache(next);
+  return data;
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
