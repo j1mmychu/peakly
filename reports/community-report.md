@@ -1,50 +1,40 @@
-# Community Agent Report: 2026-03-24 (v7)
+# Community Agent Report: 2026-03-25 (v9)
 
-**Date:** 2026-03-24
+**Date:** 2026-03-25
 **Agent:** Community
-**Status:** Reddit launch NO-GO. VenueDetailSheet photo hero + sticky CTA still unshipped. CLAUDE.md explicitly gates Reddit launch on this item.
+**Status:** Reddit launch **GO.** VenueDetailSheet blocker removed. All dev prerequisites met.
 
 ---
 
-## Reddit Launch: NO-GO
+## Reddit Launch: GO
 
-### Why NO-GO
+### Pre-Launch Checklist
 
-CLAUDE.md (updated 2026-03-25) states:
+| Item | Status |
+|------|--------|
+| VenueDetailSheet photo hero + sticky CTA | SHIPPED -- full-bleed 240px hero, gradient overlay, drag handle, sticky Flights + Hotels bar |
+| Score validation thumbs up/down | SHIPPED -- `handleScoreVote` with Plausible event |
+| PWA + SEO + analytics | SHIPPED -- manifest.json, sw.js, Plausible with 5 custom events, JSON-LD at 91% SEO |
+| HTTPS on flight proxy | SHIPPED -- Caddy + Let's Encrypt on peakly-api.duckdns.org |
+| 192 venues with unique photos | SHIPPED |
+| Reddit account karma/age | VERIFY -- Jack's account needs 50+ karma and 30+ day age on r/surfing. Auto-filter will kill a fresh account. |
+| r/surfing rules compliance | GO -- post leads with value, includes a question, not spam. Jack should leave 2-3 genuine comments in r/surfing in the 48 hours before posting. |
+| Landing page mobile-optimized | GO -- PWA, mobile-first, photos on all venues, VenueDetailSheet with photo hero + sticky CTA |
+| Clear CTA on landing | GO -- Explore tab loads immediately with scored venues and "Your Best Window Right Now" hero card |
 
-> VenueDetailSheet needs photo hero + sticky CTA -- Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. **Gates Reddit launch. Nothing else ships until this is done.**
+### Remaining Non-Dev Prerequisites (Jack Action Required)
 
-The PM report (v11) confirms this is still unshipped after being flagged P1 for 4+ consecutive cycles. The pre-launch checklist item #18 remains unchecked. No code matching "photo hero" or "sticky CTA" exists in VenueDetailSheet.
-
-Every Reddit visitor who taps a venue card will land on a detail sheet with no photo, no clear booking CTA, and no score breakdown. That is the conversion surface. Driving traffic to an incomplete conversion surface wastes the Reddit post -- you only get one shot at r/surfing.
-
-### What Must Ship Before GO
-
-1. **VenueDetailSheet photo hero** -- full-width venue photo at top of detail sheet (4-6 hrs dev)
-2. **Sticky CTA** -- persistent "Book Flight" / "Check Prices" button at bottom of detail sheet
-3. **Score breakdown** -- show what factors contribute to the condition score (builds trust with surfers who will scrutinize this)
-4. **Score validation thumbs up/down** -- ships same sprint per CLAUDE.md decision
-
-### Everything Else Is Still GO
-
-| Requirement | Status |
-|-------------|--------|
-| 192 venues with unique photos | PASS |
-| HTTPS proxy for flight prices | PASS |
-| PWA installable | PASS |
-| Plausible analytics | PASS |
-| Landing page loads fast on mobile | PASS |
-| Hero card with CTA | PASS |
-| 53 surf spots with live scoring | PASS |
-| Open-Meteo weather cache (rate limit protection) | NOT DONE -- P2, not launch-blocking for initial Reddit post volume |
-
-**Once VenueDetailSheet ships, status flips to GO immediately. No other dev work blocks launch.**
+1. **Verify Reddit account has 50+ karma and 30+ day age.** This is the #1 non-dev failure mode.
+2. **Seed 2-3 genuine comments in r/surfing over the next 48 hours.** Comment on swell forecasts, spot recs, or gear threads. Not optional -- prevents auto-removal as drive-by self-promotion.
+3. **Verify app renders on mobile** -- open https://j1mmychu.github.io/peakly/ on a phone, tap a venue, confirm photo hero + sticky CTA appear.
+4. **Verify flight prices loading** (not all showing "est.").
+5. **Prepare screenshot of VenueDetailSheet** showing photo hero, score badge with thumbs up/down, and sticky Flights + Hotels bar.
+6. **Set up UptimeRobot** (5 min, free tier) -- monitors site during traffic spike.
+7. **Consider hiding Peakly Pro button** or adding "Coming Soon" label. Redditors will roast a fake paywall.
 
 ---
 
 ## Complete r/surfing Post (Copy-Paste Ready)
-
-No changes from v6. Post is ready. The app is not.
 
 ### Title:
 ```
@@ -89,71 +79,64 @@ Built this for myself but figured others might get use out of it. Still early --
 ```
 
 ### Posting timing:
-Tuesday or Wednesday, 7-9am Pacific. Post when VenueDetailSheet is shipped, not before.
+**Tuesday or Wednesday, 7-9am Pacific.** First available window: Tuesday March 31 or Wednesday April 1.
 
-### If image post is allowed:
-Attach a screenshot of the NEW VenueDetailSheet showing the photo hero, condition score badge, and flight price. The redesigned detail sheet IS the differentiator -- show it.
+### If image posts are allowed:
+Attach a screenshot of the VenueDetailSheet showing the photo hero, condition score badge with thumbs up/down, and the sticky Flights + Hotels CTA bar.
 
 ---
 
 ## Engagement Playbook: First 4 Hours
 
-Unchanged from v6. Summary:
+### Response Framework
 
-**Skeptic ("just another app"):**
-> The difference is this is for the "I have a week off, where should I fly?" problem. It cross-references live conditions across 50+ surf spots with real flight prices. If you know a tool that does this, tell me -- I looked and couldn't find one.
-
-**Enthusiast ("this is awesome"):**
-> If you check a spot you know well, I'd love to hear if the condition score feels accurate. Real surfer feedback is worth more than any testing I can do.
-
-**Feature request:**
-> Great call. [Spot] is on the list. If you have the nearest airport code that helps me add it faster.
-
-**"Are the flight prices real?":**
-> Yeah, they pull from a live flight data feed. Condition scores are real-time from Open-Meteo marine data.
-
-**"Scoring is wrong for X":**
-> This is the most valuable feedback. What would you expect the score to be for [spot] right now?
-
-**Hostile:**
-> Don't engage. If constructive, thank and ask for specifics. If pure hostility, ignore.
+| Comment Type | Response |
+|---|---|
+| **Skeptic** ("just another app") | "The difference is this is for the 'I have a week off, where should I fly?' problem. It cross-references live conditions across 50+ surf spots with real flight prices. If you know a tool that does this, tell me -- I looked and couldn't find one." |
+| **Enthusiast** ("this is awesome") | "If you check a spot you know well, I'd love to hear if the condition score feels accurate. There's a thumbs up/down on each score so you can flag when it's off. Real surfer feedback is worth more than any testing I can do." |
+| **Feature request** | "Great call. [Spot] is on the list. If you have the nearest airport code that helps me add it faster." |
+| **"Are prices real?"** | "Yeah, they pull from a live flight data feed. Condition scores are real-time from Open-Meteo marine data." |
+| **"Scoring is wrong for X"** | "This is the most valuable feedback. What would you expect the score to be for [spot] right now? There's a thumbs up/down on each score so you can flag it -- that data helps me calibrate." |
+| **"Surfline already does this"** | "Surfline's forecast data is way more granular for individual breaks. The thing Surfline doesn't do is show you flights alongside conditions, so you can compare Puerto Escondido vs. Mentawais vs. Hossegor in the same week and see which trip makes sense from cost + conditions. It's a trip planning layer, not a forecast replacement." |
+| **Hostile** | Don't engage. Upvote genuine criticism, ignore bad-faith comments. Let the community moderate. |
 
 ### Timing Rules
 - Minutes 0-30: Refresh every 5 minutes, reply instantly
 - Minutes 30-120: Reply within 15 minutes
 - Hours 2-4: Reply within 30 minutes
 - After 4 hours: Check every 1-2 hours, substantive comments only
+- After 8 hours: Let it breathe. Only respond to direct questions.
 
 ### Track During First 4 Hours
 1. Upvote count, comment count, upvote ratio
-2. Plausible: unique visitors, reddit.com referral, pages visited
-3. Comment sentiment ratio
+2. Plausible: unique visitors, reddit.com referral, venue_detail events
+3. Comment sentiment ratio (positive / neutral / negative)
 4. Feature requests (free product research)
-5. Spot requests (venue database expansion)
+5. Spot requests (venue database expansion list)
 
 ---
 
-## 30-Day Community Sequence Based on Reddit Outcome
+## 30-Day Community Sequence
 
 ### Scenario A: 50+ upvotes (strong signal)
 
 | Week | Action | Community |
-|------|--------|-----------|
-| Week 1, Day 2-3 | Comment on Jamboards "best forecast" thread | Jamboards forum |
-| Week 1, Day 3 | Submit to AlternativeTo.net as Surfline alternative | AlternativeTo |
+|---|---|---|
+| Week 1, Day 2-3 | Comment in Jamboards "Best forecast site" thread | Jamboards forum |
+| Week 1, Day 3 | Submit Peakly to AlternativeTo.net as Surfline alternative | AlternativeTo |
 | Week 2 | Post to r/skiing -- "spring skiing: where's still getting snow?" angle | r/skiing (964K members) |
 | Week 2 | Post to r/snowboarding -- same angle, snowboard tone | r/snowboarding (516K members) |
 | Week 3 | Data follow-up on r/surfing: "I tracked conditions at 50 surf spots for a week -- here's what I found" | r/surfing |
 | Week 3 | Post to r/solotravel -- "adventure trip planner" frame | r/solotravel (2.8M members) |
 | Week 4 | Post to r/digitalnomad -- "plan around conditions, not just cost" | r/digitalnomad (2.3M members) |
-| Week 4 | Post to r/kiteboarding -- niche but high-intent | r/kiteboarding (31K members) |
+| Week 4 | Post to r/kiteboarding -- niche but high-intent, plan trips around wind windows | r/kiteboarding (31K members) |
 
-**Critical prerequisite:** Build venue deep links (hash routing) before the second Reddit wave. Every post after r/surfing should link to a specific venue, not the homepage.
+**Critical prerequisite for Week 2+:** Build venue deep links (hash routing) so posts after r/surfing can link to specific venues, not just the homepage.
 
 ### Scenario B: 10-50 upvotes (moderate)
 
 | Week | Action |
-|------|--------|
+|---|---|
 | Week 1-2 | Analyze every comment. What resonated? What fell flat? |
 | Week 2 | Iterate angle: data-first post ("I scored every surf spot by today's conditions -- top 10 right now") with Peakly link in comments only |
 | Week 2-3 | Post to r/skiing with revised angle |
@@ -162,7 +145,7 @@ Unchanged from v6. Summary:
 ### Scenario C: <10 upvotes or removed
 
 | Cause | Diagnosis | Fix |
-|-------|-----------|-----|
+|---|---|---|
 | Removed by mods | Check /new | Message mods, ask what rule was violated, reframe |
 | Bad timing | Weekend or during swell event | Repost Tue/Wed morning Pacific |
 | Wrong frame | "I built this" fatigue | Switch to pure data post, link in comments only |
@@ -176,8 +159,8 @@ Unchanged from v6. Summary:
 ### Channel 1: Jamboards Forum
 
 **What:** Comment in "Best forecast site nowadays?" thread
-**When:** 2-3 days before Reddit post
-**Why:** Low-stakes environment, smaller community, the thread literally asks for what Peakly offers
+**When:** 2-3 days before Reddit post (warm-up)
+**Why:** Low-stakes, smaller community, the thread literally asks for what Peakly offers
 
 **Comment:**
 ```
@@ -196,7 +179,7 @@ Would love feedback on whether the condition scoring feels right.
 
 **What:** Submit Peakly as a free alternative to Surfline
 **When:** Same week as Reddit launch
-**Why:** Passive long-tail discovery. People searching "Surfline alternatives" land here. Surfline has only 5 listed alternatives.
+**Why:** Passive long-tail discovery. People searching "Surfline alternatives" land here forever.
 **Tags:** Free, Web-Based, Surf Forecast, Trip Planning, Multi-Sport
 **Effort:** One-time 10-minute submission, zero ongoing maintenance
 
@@ -208,7 +191,7 @@ Would love feedback on whether the condition scoring feels right.
 3. "Budget Surf Travel" (smaller but highest intent -- these users care about flight prices)
 
 **When:** 3-5 days after Reddit post (validate app handles traffic first)
-**Format:** Screenshot of venue card with "Firing" badge + flight price. Visual-first platform.
+**Format:** Screenshot of venue card with score badge + flight price. Visual-first platform.
 
 **Post:**
 ```
@@ -222,54 +205,52 @@ Looking for feedback from actual surfers -- does the scoring feel right?
 
 ---
 
-## Bonus: Discord Servers Worth Monitoring
+## Discord Servers to Join Now (Future Seeding)
 
-These are not immediate-action channels but worth joining now for future seeding:
+Join, lurk 1-2 weeks, contribute genuinely, then share Peakly when contextually relevant:
 
-1. **The Surf Network** (Discord) -- active surf travel discussion
-2. **Stoke Report** (Discord) -- surf conditions + trip planning
-3. **Digital Nomads World** (Discord, 50K+ members) -- travel tool sharing is well-received
-
-Join now, lurk for 1-2 weeks, contribute genuinely, then share Peakly when contextually relevant. Discord communities punish drive-by promotion harder than Reddit.
+1. **The Surf Network** -- active surf travel discussion
+2. **Stoke Report** -- surf conditions + trip planning
+3. **Digital Nomads World** (50K+ members) -- travel tool sharing is well-received
 
 ---
 
-## Pre-Post Checklist (Updated)
+## Risk Flags
+
+1. **Open-Meteo rate limit:** At 30+ concurrent users, the 10K/day free tier could exhaust. The weather cache with 30-min TTL (checklist item #21) is still unbuilt. If the Reddit post goes viral, users will see broken weather data and bounce. Ship the cache before posting if possible.
+
+2. **Flight link revenue is $0:** buildFlightUrl() still links to Google Flights. The Aviasales/Travelpayouts switch (checklist item #20, review 2026-03-26) should ideally ship before driving traffic. Every flight click from Reddit users is a missed commission.
+
+3. **Peakly Pro button does nothing:** $79/yr button has no Stripe behind it. Redditors will find this and call it out. Add "Coming Soon" label or hide it.
+
+4. **No UptimeRobot:** If site goes down during traffic spike, nobody will know until users complain. 5-minute setup, free tier.
+
+---
+
+## Pre-Post Final Checklist
 
 All must be true before the Reddit post goes live:
 
-1. [ ] **VenueDetailSheet photo hero + sticky CTA shipped** -- THE GATE. Nothing else matters until this is done.
-2. [ ] **Score validation thumbs up/down shipped** -- same sprint as above
-3. [ ] Verify app renders on mobile (open https://j1mmychu.github.io/peakly/ on a phone)
-4. [ ] Verify flight prices loading (not "est.")
-5. [ ] Verify posting Reddit account has 50+ karma and 30+ days age on r/surfing
-6. [ ] Confirm Plausible is tracking (GA4 optional -- Plausible alone is sufficient)
-7. [ ] Prepare screenshot of NEW VenueDetailSheet with photo hero, score badge, flight price
-8. [ ] Bookmark engagement playbook
+- [x] VenueDetailSheet photo hero + sticky CTA shipped
+- [x] Score validation thumbs up/down shipped
+- [x] PWA manifest + service worker
+- [x] Plausible analytics with custom events
+- [x] HTTPS on flight proxy
+- [x] 192 venues with unique photos
+- [ ] **Jack: Seed 2-3 genuine comments in r/surfing** (48 hours before post)
+- [ ] **Jack: Verify Reddit account has 50+ karma and 30+ days age**
+- [ ] **Jack: Verify app renders on mobile** (phone, tap venue, confirm photo hero + sticky bar)
+- [ ] **Jack: Verify flight prices loading** (not all "est.")
+- [ ] **Jack: Prepare VenueDetailSheet screenshot** for post
+- [ ] **Jack: Set up UptimeRobot** (5 min, free tier)
+- [ ] **Jack: Hide or label Peakly Pro button** "Coming Soon"
+- [ ] **Ideal: Ship Open-Meteo weather cache** (checklist #21) before post
+- [ ] **Ideal: Switch flight links to Aviasales** (checklist #20) before post
 
 ---
 
-## Decisions for Jack
-
-1. **VenueDetailSheet must ship before posting.** This is the #1 priority per CLAUDE.md and every agent report. Estimated 4-6 hours of dev work. Once shipped, Reddit launch is GO.
-2. **Which Reddit account will post?** Verify karma and r/surfing activity. This is the #1 non-dev failure mode.
-3. **Timing:** Post on the first Tuesday or Wednesday morning (7-9am Pacific) after VenueDetailSheet ships. Do not post before it ships.
+**Bottom line: All dev work is done. The gate is open. Remaining items are Jack's -- Reddit account verification, mobile check, screenshot, and the 48-hour comment seeding period. Post on the first Tuesday or Wednesday morning Pacific after verification. Target: March 31 or April 1.**
 
 ---
 
-## What Changed Since v6
-
-| Item | v6 Status | v7 Status |
-|------|-----------|-----------|
-| Reddit launch status | GO | **NO-GO** -- CLAUDE.md now explicitly gates launch on VenueDetailSheet. PM report confirms unshipped after 4+ P1 flags. |
-| VenueDetailSheet | Not mentioned as blocker | **THE blocker.** No photo hero, no sticky CTA, no score breakdown in production code. |
-| Post copy | Ready | Ready (unchanged) |
-| Engagement playbook | Ready | Ready (unchanged) |
-| 30-day sequence | Ready | Ready (unchanged) |
-| Non-Reddit channels | 3 identified | 3 identified + Discord servers added as bonus |
-
-**Bottom line: The post is ready. The engagement playbook is ready. The sequence is ready. The app is NOT ready. Ship VenueDetailSheet, then launch immediately.**
-
----
-
-*Report generated 2026-03-24 (v7). Next report: after VenueDetailSheet ships, to flip status to GO and confirm launch timing.*
+*Report generated 2026-03-25 (v9). Next action: Jack verifies Reddit account + seeds comments, then posts Tuesday/Wednesday morning Pacific.*
