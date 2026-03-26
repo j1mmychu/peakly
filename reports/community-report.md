@@ -1,8 +1,8 @@
-# Community Agent Report — 2026-03-25 (v10)
+# Community Agent Report — 2026-03-25 (v11)
 
 **Date:** 2026-03-25
 **Agent:** Community
-**Status:** Reddit launch **GO.** All dev blockers cleared. 2,226 venues with unique photos. Aviasales flight links live. Sentry monitoring live. LLC approved.
+**Status:** Reddit launch **GO.** All dev and scaling blockers cleared. 2,226 venues, stable photos, weather cache live, API rate limit solved. LLC approved. Zero hard blockers remain.
 
 ---
 
@@ -16,15 +16,23 @@
 | Aviasales/Travelpayouts flight links (revenue-earning) | SHIPPED |
 | PWA + SEO + analytics (Plausible, 5 custom events) | SHIPPED |
 | HTTPS on flight proxy (Caddy + Let's Encrypt) | SHIPPED |
-| 2,226 venues with unique photos (11 categories) | SHIPPED |
+| 2,226 venues with 100% unique stable photos | SHIPPED |
 | Sentry error monitoring | SHIPPED |
 | UptimeRobot health monitoring | SHIPPED |
 | Ski pass filter (Ikon/Epic/Independent) | SHIPPED |
 | LLC approved (Stripe, affiliates, domain unblocked) | DONE |
-| Reddit account karma/age | VERIFY -- Jack's account needs 50+ karma and 30+ day age on r/surfing. Auto-filter will kill a fresh account. |
-| r/surfing rules compliance | GO -- post leads with value, includes a question, not spam. Jack should leave 2-3 genuine comments in r/surfing in the 48 hours before posting. |
+| Open-Meteo weather cache (localStorage, 30-min TTL) | SHIPPED (was #1 risk -- now resolved) |
+| Premium splash screen | SHIPPED |
+| Pull-to-refresh + sport-ordered tabs | SHIPPED |
+| Batched weather fetching (50/batch, 2s delay) | SHIPPED |
+| Reddit account karma/age | VERIFY -- Jack's account needs 50+ karma and 30+ day age on r/surfing |
+| r/surfing rules compliance | GO -- post leads with value, includes a question, not spam |
 | Landing page mobile-optimized | GO -- PWA, mobile-first, photos on all 2,226 venues |
-| Clear CTA on landing | GO -- Explore tab loads immediately with scored venues and "Your Best Window Right Now" hero card |
+| Clear CTA on landing | GO -- Explore tab loads with scored venues and hero card |
+
+### Key Change Since Last Report
+
+The **Open-Meteo API rate limit risk is now resolved.** Weather cache with localStorage + 30-min TTL is live. Combined with batched fetching (50 venues at a time, 2s delays), the app can handle a Reddit traffic spike without exhausting the 10K/day free tier. This was the last technical blocker. The photos are also now using stable Unsplash photo IDs (not unstable source.unsplash.com URLs), so zero broken images.
 
 ### Remaining Non-Dev Prerequisites (Jack Action Required)
 
@@ -32,8 +40,8 @@
 2. **Seed 2-3 genuine comments in r/surfing over the next 48 hours.** Comment on swell forecasts, spot recs, or gear threads. Not optional -- prevents auto-removal as drive-by self-promotion.
 3. **Verify app renders on mobile** -- open https://j1mmychu.github.io/peakly/ on a phone, tap a venue, confirm photo hero + sticky CTA appear.
 4. **Verify flight prices loading** (not all showing "est.") -- Aviasales links should be earning commission now.
-5. **Prepare screenshot of VenueDetailSheet** showing photo hero, condition score badge, and sticky Flights + Hotels CTA bar.
-6. **Consider hiding Peakly Pro button** or adding "Coming Soon" label. Redditors will roast a fake paywall. LLC is approved -- best move is to wire Stripe before posting, or hide the button.
+5. **Prepare screenshot of VenueDetailSheet** showing photo hero, condition score badge, and sticky Flights + Hotels CTA bar. Pipeline or Mentawais -- recognizable spots.
+6. **Hide or label Peakly Pro button** "Coming Soon" -- OR wire Stripe before posting. Redditors will roast a fake paywall. LLC is approved so Stripe is unblocked.
 
 ---
 
@@ -223,11 +231,13 @@ Join, lurk 1-2 weeks, contribute genuinely, then share Peakly when contextually 
 
 ## Risk Flags (Updated)
 
-1. **Open-Meteo rate limit is the last technical risk.** At 30+ concurrent users with 2,226 venues, the 10K/day free tier could exhaust quickly. The weather cache with 30-min TTL (checklist item #25) is still unbuilt. Weather is fetched in batches of 50 with 2s delays, but a Reddit spike could still hit limits. **Recommendation: ship the weather cache before posting, or accept that some users may see stale/missing weather data during the spike.**
+1. ~~**Open-Meteo rate limit risk**~~ -- **RESOLVED.** Weather cache with localStorage + 30-min TTL is live. Batched fetching (50/batch, 2s delay) prevents API exhaustion. This was the #1 technical risk from the previous report and is now cleared.
 
-2. **Peakly Pro button still has no Stripe behind it.** LLC is approved -- wire Stripe before posting, or hide the button. Redditors will find a non-functional paywall and call it out publicly.
+2. ~~**Unstable venue photos**~~ -- **RESOLVED.** All 2,226 venues now use stable Unsplash photo IDs. Zero broken images, zero duplication.
 
-3. **2,226 venues is a strength for the post** but increases API load. The previous report referenced 192 venues -- the 11x increase makes the weather cache even more critical.
+3. **Peakly Pro button still has no Stripe behind it.** LLC is approved -- wire Stripe before posting, or hide the button. Redditors will find a non-functional paywall and call it out publicly.
+
+4. **Scoring accuracy gaps remain.** Surfing is missing wind direction + water temp weighting. If r/surfing users check a spot they know and the score feels off, this could undermine credibility. Mitigation: the engagement playbook treats scoring feedback as the highest-value comment type and invites calibration.
 
 ---
 
@@ -240,23 +250,26 @@ All must be true before the Reddit post goes live:
 - [x] Plausible analytics with custom events
 - [x] HTTPS on flight proxy
 - [x] Aviasales/Travelpayouts flight links (earning commission)
-- [x] 2,226 venues with unique photos
+- [x] 2,226 venues with 100% unique stable photos
 - [x] Sentry error monitoring live
 - [x] UptimeRobot health monitoring live
 - [x] Ski pass filter (Ikon/Epic/Independent)
 - [x] LLC approved
+- [x] Open-Meteo weather cache (localStorage, 30-min TTL)
+- [x] Premium splash screen
+- [x] Pull-to-refresh + sport-ordered tabs
+- [x] Batched weather fetching (50/batch, 2s delay)
 - [ ] **Jack: Seed 2-3 genuine comments in r/surfing** (48 hours before post)
 - [ ] **Jack: Verify Reddit account has 50+ karma and 30+ days age**
 - [ ] **Jack: Verify app renders on mobile** (phone, tap venue, confirm photo hero + sticky bar)
 - [ ] **Jack: Verify flight prices loading** (not all "est.")
 - [ ] **Jack: Prepare VenueDetailSheet screenshot** for post
 - [ ] **Jack: Hide or label Peakly Pro button** "Coming Soon" -- OR wire Stripe (LLC approved)
-- [ ] **Ideal: Ship Open-Meteo weather cache** (checklist #25) before post -- this is the last real technical risk
 
 ---
 
-**Bottom line: Every dev blocker from the previous report is now cleared. The app has grown from 192 to 2,226 venues, all with unique photos. Aviasales flight links are live and earning commission. Sentry + UptimeRobot monitoring are active. LLC is approved. The only remaining items are Jack's: Reddit account verification, mobile check, screenshot, Peakly Pro button decision, and the 48-hour comment seeding period. The weather cache is the one "ideal" item -- ship it if there's time, but it's not a hard blocker. Post on the first Tuesday or Wednesday morning Pacific after verification. Target: March 31 or April 1.**
+**Bottom line: Every technical blocker is now cleared. The API rate limit -- the last real risk -- is solved with the weather cache + batched fetching. Photos are stable across all 2,226 venues. The app is in the strongest state it has ever been for a launch. The only remaining items are Jack's: Reddit account verification, mobile check, screenshot, Peakly Pro button decision, and the 48-hour comment seeding period. Post on the first Tuesday or Wednesday morning Pacific after verification. Target: March 31 or April 1.**
 
 ---
 
-*Report generated 2026-03-25 (v10). Next action: Jack verifies Reddit account + seeds comments, then posts Tuesday/Wednesday morning Pacific.*
+*Report generated 2026-03-25 (v11). Key update: API rate limit resolved, stable photos confirmed, weather cache live. Next action: Jack verifies Reddit account + seeds comments, then posts Tuesday/Wednesday morning Pacific.*

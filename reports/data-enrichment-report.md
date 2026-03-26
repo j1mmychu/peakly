@@ -1,6 +1,6 @@
 # Data Enrichment Report
 
-**Date:** 2026-03-25 (v10 -- scheduled audit)
+**Date:** 2026-03-25 (v11 -- scheduled audit)
 **Auditor:** Data Enrichment Agent
 **Scope:** Venue data integrity, category health, photo coverage, geographic diversity, data completeness
 **File:** `app.jsx` (VENUES array, line 296)
@@ -12,11 +12,11 @@
 
 **Total venues: 2,226** (target 200+ -- exceeded by 11x)
 
-All 11 categories have 200+ venues. Photo duplication has been fully resolved -- 0 duplicate photo URLs across the entire dataset. Geographic coverage spans 214 countries across all 6 continents. No duplicate IDs.
+All 11 categories have 200+ venues. The source.unsplash.com migration is **complete** -- 100% of venues now use stable `images.unsplash.com/photo-{ID}` direct links. Geographic coverage spans 214 countries across all 6 continents. No duplicate IDs.
 
-**The critical issue this cycle is photo URL stability.** 92.1% of venues (2,050) use `source.unsplash.com` keyword-search URLs, which are deprecated by Unsplash. These serve random images per page load rather than stable, venue-specific photos. The remaining 176 venues use correct `images.unsplash.com/photo-{ID}` direct links.
+**Previous critical issue (source.unsplash.com deprecation): RESOLVED.** All 2,226 venues now use stable Unsplash photo URLs. This was the top priority from the v10 report.
 
-**Secondary issue:** 41.5% of venues have fewer than 5 tags. No venues have `description`, `difficulty`, or `bestMonths` fields (these fields are not in the current schema).
+**Current critical issue: Zero venue descriptions.** None of the 2,226 venues have a `description`, `difficulty`, or `bestMonths` field. Descriptions are the single biggest content gap affecting user experience. Secondary issue: 55 duplicate photo URLs (2.5%) and 41.5% of venues with fewer than 5 tags.
 
 ---
 
@@ -45,44 +45,46 @@ All 11 categories have 200+ venues. Photo duplication has been fully resolved --
 ## 2. Photo Coverage
 
 - **Coverage:** 100% (2,226/2,226 venues have a `photo` URL)
-- **Duplicate photo URLs:** 0 (fully resolved from previous 142-duplicate regression)
-- **Duplicate `sig` values:** 3 out of 2,050 (trivial)
+- **URL format:** 100% `images.unsplash.com` (stable, direct photo links)
+- **source.unsplash.com URLs:** 0 (migration COMPLETE -- was 2,050 in v10)
+- **Unique photo URLs:** 2,171
+- **Duplicate photo URLs:** 55 (2.5% duplication rate)
 
-### CRITICAL: source.unsplash.com Deprecation
+### source.unsplash.com Migration: COMPLETE
 
-| URL Type | Count | % | Status |
-|----------|-------|---|--------|
-| `source.unsplash.com` | 2,050 | 92.1% | DEPRECATED -- keyword search, non-deterministic |
-| `images.unsplash.com` | 176 | 7.9% | STABLE -- direct photo links |
+| Metric | v10 Report | v11 (Current) | Status |
+|--------|-----------|---------------|--------|
+| source.unsplash.com URLs | 2,050 (92.1%) | 0 (0%) | RESOLVED |
+| images.unsplash.com URLs | 176 (7.9%) | 2,226 (100%) | RESOLVED |
+| Duplicate photo URLs | 0 | 55 (2.5%) | NEW (minor) |
 
-**`source.unsplash.com` is deprecated by Unsplash.** These URLs (e.g., `source.unsplash.com/800x600/?skiing+snow+mountain&sig=450983`) serve a random image matching the search keywords on each request. Consequences:
+The full migration to stable photo IDs is the most significant data quality improvement since the venue expansion to 2,226.
 
-1. **Non-deterministic:** User sees a different photo for the same venue on every page load.
-2. **Not venue-specific:** A ski resort in Japan and one in Colorado both get random "skiing+snow+mountain" stock images.
-3. **Reliability risk:** Unsplash may fully retire this endpoint at any time, breaking 92% of venue photos.
+### Remaining Photo Issue: 55 Duplicate URLs
 
-The 176 `images.unsplash.com` URLs (e.g., `images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop`) are stable, direct links to specific photos. These are the correct format.
+52 unique Unsplash photo IDs are reused across 55 extra venue entries. Most are used 2x; two are used 3x:
+- `photo-1523819088009-c3ecf1e34000` -- used 3x
+- `photo-1578001647043-3b4c50869f21` -- used 3x
 
-**Recommendation:** Migrate all 2,050 `source.unsplash.com` URLs to `images.unsplash.com/photo-{ID}` format. This is the single biggest data quality issue in the dataset.
+**Priority: LOW.** Affects 2.5% of venues. Replace with unique Unsplash IDs when convenient.
 
 ---
 
 ## 3. Geographic Diversity
 
-### By Continent (estimated from coordinates)
+### By Continent (inferred from coordinates)
 
 | Continent | Venues | % |
 |-----------|--------|---|
-| North America | 642 | 28.8% |
-| Europe | 614 | 27.6% |
+| Europe | 737 | 33.1% |
+| North America | 708 | 31.8% |
 | Asia | 311 | 14.0% |
-| South America | 216 | 9.7% |
-| Africa | 154 | 6.9% |
-| Oceania | 130 | 5.8% |
-| Middle East | 58 | 2.6% |
-| Other | 101 | 4.5% |
+| Oceania | 174 | 7.8% |
+| South America | 152 | 6.8% |
+| Africa | 96 | 4.3% |
+| Pacific Islands / Other | 48 | 2.2% |
 
-All 6 continents are represented. No major adventure destination regions are missing.
+All 6 continents represented. No major adventure destination regions missing.
 
 ### Top 10 Countries (214 total)
 
@@ -99,112 +101,118 @@ All 6 continents are represented. No major adventure destination regions are mis
 | Mexico | 51 | 2.3% |
 | Greece | 44 | 2.0% |
 
-US at 17.9% is reasonable. Africa and South America are thinner but still well-covered given realistic venue density.
+### Category x Continent Matrix
 
-### US Venues by Category
+| Category | N.Amer | Europe | Asia | S.Amer | Oceania | Africa | Other |
+|----------|--------|--------|------|--------|---------|--------|-------|
+| climbing | 73 | 83 | 8 | 7 | 29 | 4 | 0 |
+| diving | 46 | 39 | 77 | 5 | 17 | 11 | 10 |
+| fishing | 81 | 39 | 27 | 24 | 11 | 13 | 7 |
+| hiking | 51 | 83 | 27 | 14 | 15 | 10 | 0 |
+| kayak | 57 | 61 | 33 | 14 | 20 | 11 | 5 |
+| kite | 54 | 85 | 18 | 11 | 17 | 13 | 2 |
+| mtb | 96 | 71 | 5 | 11 | 14 | 4 | 0 |
+| paraglide | 31 | 99 | 34 | 17 | 7 | 8 | 5 |
+| skiing | 93 | 88 | 7 | 7 | 9 | 0 | 0 |
+| surfing | 56 | 40 | 39 | 27 | 22 | 14 | 5 |
+| tanning | 70 | 49 | 36 | 15 | 13 | 8 | 14 |
 
-| Category | US Count | US % of Category |
-|----------|---------|-----------------|
-| Skiing | 79 | 38.7% |
-| Climbing | 70 | 34.3% |
-| MTB | 67 | 33.3% |
-| Hiking | 46 | 23.0% |
-| Fishing | 29 | 14.4% |
-| Kayak | 25 | 12.4% |
-| Surfing | 24 | 11.8% |
-| Kite | 22 | 11.0% |
-| Paraglide | 20 | 10.0% |
-| Diving | 12 | 5.9% |
-| Tanning | 5 | 2.4% |
+### Geographic Gaps
+
+- **Skiing in Africa: 0 venues** -- only category/continent zero. Geographically expected (Afriski in Lesotho exists but is a curiosity, not a gap).
+- **MTB in Asia: 5 venues** -- thin. Chiang Mai, Kathmandu, Taipei, Bali all have world-class trails.
+- **Climbing in Asia: 8 venues** -- thin. Yangshuo, Railay, Kalymnos-adjacent spots in Turkey, Hampi could fill this.
+- **MTB in Africa: 4 venues** -- thin. Cape Town, Stellenbosch, Kilimanjaro foothills are missing.
+- **Climbing in Africa: 4 venues** -- thin. Todra Gorge (Morocco), Table Mountain, Waterval Boven could be added.
 
 ---
 
 ## 4. Data Completeness Score
 
-### Core Fields
+### Core Fields (present on all venues)
 
 | Field | Coverage | Status |
 |-------|----------|--------|
-| id | 2,226/2,226 | 100% -- 0 duplicates |
-| title | 2,226/2,226 | 100% |
-| category | 2,226/2,226 | 100% |
-| location | 2,226/2,226 | 100% |
-| lat | 2,226/2,226 | 100% |
-| lon | 2,226/2,226 | 100% |
-| ap (airport) | 2,226/2,226 | 100% |
-| rating | 2,226/2,226 | 100% |
-| photo | 2,226/2,226 | 100% |
-| tags | 2,226/2,226 | 100% |
+| id | 2,226/2,226 (100%) | 0 duplicates |
+| category | 2,226/2,226 (100%) | -- |
+| title | 2,226/2,226 (100%) | -- |
+| location | 2,226/2,226 (100%) | -- |
+| lat/lon | 2,226/2,226 (100%) | -- |
+| ap (airport) | 2,226/2,226 (100%) | -- |
+| rating | 2,226/2,226 (100%) | -- |
+| photo | 2,226/2,226 (100%) | -- |
+| tags | 2,226/2,226 (100%) | -- |
 
-**Structural completeness: 100%** -- all venues will render without errors.
+**Structural completeness: 100%** -- all venues render without errors.
 
-### Fields Not in Schema
+### Missing Enrichment Fields
 
-| Field | Present | Note |
-|-------|---------|------|
-| description | 0/2,226 | Not in current venue schema |
-| difficulty | 0/2,226 | Not in current venue schema |
-| bestMonths | 0/2,226 | Not in current venue schema |
-
-These fields are referenced in the agent spec but do not exist in the actual data model. The app does not currently use them.
+| Field | Coverage | Impact |
+|-------|----------|--------|
+| description | 0/2,226 (0%) | No venue descriptions -- biggest content gap |
+| bestMonths | 0/2,226 (0%) | Cannot display or filter by best travel months |
+| difficulty | 0/2,226 (0%) | No difficulty ratings for route/safety planning |
 
 ### Tags Quality
 
 - **Venues with tags:** 2,226/2,226 (100%)
+- **Average tags per venue:** 4.4
 - **Venues with fewer than 5 tags:** 924 (41.5%)
 - **Unique tags:** 3,781
 - **Inconsistency:** "Year-Round" (202 uses) vs "Year Round" (106 uses) -- same meaning, different format
 
-**Top tags:** Year-Round (202), Remote (177), Intermediate (171), All Levels (140), Year Round (106), Summer (92), UV 10+ (80), Advanced (75), Beach Break (72), Snorkeling (72)
+**Top 10 tags:** Year-Round (202), Remote (177), Intermediate (171), All Levels (140), Year Round (106), Summer (92), UV 10+ (80), Advanced (75), Beach Break (72), Snorkeling (72)
 
-### Overall Completeness Score: ~58%
+### Overall Data Completeness Score: 73%
 
-Core fields 100%, tags quality 58.5% (threshold: 5+ tags), optional fields 0%.
+- Core structural fields: 100%
+- Photo stability: 100% (up from 8% in v10)
+- Tags quality (5+ tags): 58.5%
+- Enrichment fields (description/bestMonths/difficulty): 0%
 
 ---
 
 ## 5. Daily Additions -- NOT RECOMMENDED
 
-All 11 categories are at 200+ venues. No stubs remain. CLAUDE.md states "192 venues is enough for launch" and "Venue expansion CUT until post-launch." Further additions offer diminishing returns. Priority should be quality remediation on existing venues.
+All 11 categories are at 200+ venues. No stubs remain. Further venue additions offer diminishing returns. Priority should be quality remediation on existing 2,226 venues.
 
 ---
 
 ## 6. One Data Gap Hurting User Experience Right Now
 
-### source.unsplash.com URLs Serve Random Photos
+### Zero Venue Descriptions
 
-2,050 of 2,226 venues (92.1%) use `source.unsplash.com` keyword-search URLs. This means:
+None of the 2,226 venues have a `description` field. When a user opens VenueDetailSheet, there is no text explaining what makes the venue special, what to expect, or why it is worth visiting.
 
-- **A user viewing "Whistler Blackcomb" sees a random skiing stock photo, not Whistler.**
-- **The same venue shows a different photo every time the page loads.**
-- **Unsplash has deprecated this endpoint -- it could break entirely at any time.**
+Every competing travel platform -- AllTrails, Surfline, OnTheSnow, TripAdvisor -- has venue descriptions as a core content element. Without them, Peakly venues feel like data points rather than destinations. This directly undermines the documented principle: "Photos before features. A polished app with fewer features beats a feature-rich app that looks unfinished."
 
-This directly contradicts the documented decision: "Photos before features. A polished app with fewer features beats a feature-rich app that looks unfinished."
-
-**Fix:** Replace all 2,050 `source.unsplash.com` URLs with `images.unsplash.com/photo-{ID}` direct links pointing to venue-specific or at minimum category-appropriate stable images.
+**Estimated effort:** High (2,226 descriptions at 40-80 words each). Can be batched by category. Consider prioritizing the top 50 most-viewed venues first if analytics data is available.
 
 ---
 
 ## Summary Table
 
-| Metric | Last Report (v9) | Current (v10) | Target | Status |
-|--------|-----------------|---------------|--------|--------|
+| Metric | v10 Report | v11 (Current) | Target | Status |
+|--------|-----------|---------------|--------|--------|
 | Total venues | 2,226 | 2,226 | 200+ | PASS |
 | Categories 10+ | 11/11 | 11/11 | 11/11 | PASS |
 | Photo coverage | 100% | 100% | 100% | PASS |
-| Duplicate photo URLs | 142 | 0 | 0 | PASS (fixed) |
+| Duplicate photo URLs | 0 | 55 | 0 | REGRESSED (minor, 2.5%) |
 | Duplicate IDs | 0 | 0 | 0 | PASS |
-| Stable photo URLs | ~8% | 7.9% | 100% | FAIL (2,050 deprecated) |
-| Venues with 5+ tags | 0% | 58.5% | 100% | IMPROVED, still failing |
+| Stable photo URLs | 7.9% | 100% | 100% | PASS (FIXED) |
+| Venues with 5+ tags | 58.5% | 58.5% | 100% | FAIL (unchanged) |
 | Continents represented | 6/6 | 6/6 | 6/6 | PASS |
-| Countries | -- | 214 | -- | PASS |
-| Overall completeness | 52% | ~58% | 90%+ | FAIL |
+| Countries | 214 | 214 | -- | PASS |
+| Venue descriptions | 0% | 0% | 100% | FAIL (top priority) |
+| Overall completeness | ~58% | ~73% | 90%+ | IMPROVED (photo stability) |
 
 ---
 
 ## Recommendations (Priority Order)
 
-1. **Migrate 2,050 source.unsplash.com URLs to images.unsplash.com direct links.** This is the top data quality issue. Every venue should have a stable, venue-specific photo.
-2. **Normalize duplicate tags** -- merge "Year-Round" / "Year Round" and similar inconsistencies.
-3. **Enrich tags to 5+ per venue** on the remaining 924 venues below threshold. Improves vibe search and filtering.
-4. **Evaluate whether description/difficulty/bestMonths fields should be added** to the venue schema. If VenueDetailSheet expects them, they need to exist.
+1. **Add descriptions to all 2,226 venues** (40-80 words each). This is the single highest-ROI data enrichment task. Can be batched by category.
+2. **Add bestMonths arrays** to enable "Best time to visit" display and seasonal filtering.
+3. **Add difficulty ratings** to enable skill-based filtering for safety-critical activities.
+4. **Normalize tag inconsistencies** -- merge "Year-Round" / "Year Round" (308 venues affected). Bring 924 venues below 5-tag minimum up to threshold.
+5. **Deduplicate 55 photo URLs** -- replace reused Unsplash IDs with unique ones.
+6. **Strengthen thin category/continent combos** -- Asia MTB (5), Asia climbing (8), Africa MTB (4), Africa climbing (4).
