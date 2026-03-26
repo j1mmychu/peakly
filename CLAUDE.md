@@ -230,7 +230,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ### What's Broken / Missing (Priority Order)
 
-1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. **Gates Reddit launch. Nothing else ships until this is done.** Flagged P1 for 4 consecutive cycles.
+1. ~~VenueDetailSheet photo hero + sticky CTA~~ — **SHIPPED.** Photo hero with fade-in, sticky Flights + Hotels bar, Set Alert button, swipe dismiss all live.
 2. **Flight links go to Google Flights (earns $0)** — buildFlightUrl() links to google.com/flights which has no affiliate program. Switch to Aviasales/Travelpayouts deep links to actually earn commission on flight clicks. **REVIEW 2026-03-26.**
 3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, Backcountry), and domain registration (peakly.app). +$21.17 RPM (+176%) waiting to unlock.
 4. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
