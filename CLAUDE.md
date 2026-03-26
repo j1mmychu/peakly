@@ -230,7 +230,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ### What's Broken / Missing (Priority Order)
 
-1. ~~VenueDetailSheet photo hero + sticky CTA~~ — **SHIPPED.** Photo hero with fade-in, sticky Flights + Hotels bar, Set Alert button, swipe dismiss all live.
+1. **VenueDetailSheet needs photo hero + sticky CTA** — Primary conversion surface. Every card tap lands here. Zero Booking.com / Travelpayouts revenue until fixed. **Gates Reddit launch. Nothing else ships until this is done.** Flagged P1 for 4 consecutive cycles.
 2. **Flight links go to Google Flights (earns $0)** — buildFlightUrl() links to google.com/flights which has no affiliate program. Switch to Aviasales/Travelpayouts deep links to actually earn commission on flight clicks. **REVIEW 2026-03-26.**
 3. **LLC approval pending** — Blocking Stripe integration (Peakly Pro), affiliate program signups (GetYourGuide, Backcountry), and domain registration (peakly.app). +$21.17 RPM (+176%) waiting to unlock.
 4. **Open-Meteo rate limit risk** — ~30 concurrent users will exhaust 10K/day free tier. Need localStorage weather cache with 30-min TTL. Prerequisite for any growth push.
@@ -287,7 +287,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 15. [x] Venues trimmed to 192 with 100% unique photos
 16. [x] Syntax error fix (double comma at line 300)
 17. [x] Service worker + CDN cache recovery (cache buster bump to v=20260325c)
-18. [x] **VenueDetailSheet photo hero + sticky CTA** — full-bleed 240px hero, drag handle overlaid, sticky bottom bar with Flights + Hotels always visible (2026-03-25)
+18. [ ] **VenueDetailSheet photo hero + sticky CTA + score breakdown** — **#1 PRIORITY, gates Reddit launch**
 19. [ ] **Score validation thumbs up/down on VenueDetailSheet** — ship same sprint as #18
 20. [ ] **Switch flight links to Aviasales/Travelpayouts** — review 2026-03-26
 21. [ ] **Open-Meteo weather cache** — localStorage, 30-min TTL, prerequisite for any growth push
