@@ -8583,18 +8583,48 @@ function App() {
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F, flexShrink:0 }}>
-                  peakly
-                </span>
+                <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
+                  <div style={{
+                    width:30, height:30, borderRadius:9,
+                    background:"linear-gradient(135deg,#0284c7,#38bdf8)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    flexShrink:0,
+                  }}>
+                    <svg width={15} height={15} viewBox="0 0 24 24" fill="none">
+                      <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
+                    </svg>
+                  </div>
+                  <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                    peakly
+                  </span>
+                </div>
                 <div style={{ flex:1 }}>
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
               </div>
+              <button onClick={() => setShowVibeSearch(true)} style={{
+                background:"none", border:"none", cursor:"pointer", padding:"8px 0 0",
+                fontSize:12, fontWeight:700, color:"#6366f1", fontFamily:F,
+                display:"flex", alignItems:"center", gap:4,
+              }}>
+                <span>✨</span>
+                <span>Search by vibe</span>
+              </button>
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+              <div style={{
+                width:30, height:30, borderRadius:9,
+                background:"linear-gradient(135deg,#0284c7,#38bdf8)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                flexShrink:0,
+              }}>
+                <svg width={15} height={15} viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
+                </svg>
+              </div>
               <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
@@ -8655,6 +8685,16 @@ function App() {
             wishlists={wishlists}
             onToggle={toggleWishlist}
             onOpenDetail={(l) => { setShowSearch(false); openDetail(l); }}
+          />
+        )}
+
+        {showVibeSearch && (
+          <VibeSearchSheet
+            listings={listings}
+            wishlists={wishlists}
+            onToggle={toggleWishlist}
+            onOpenDetail={(v) => { setShowVibeSearch(false); openDetail(v); }}
+            onClose={() => setShowVibeSearch(false)}
           />
         )}
 
