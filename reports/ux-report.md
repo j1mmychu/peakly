@@ -2,84 +2,93 @@
 
 **UX Score: 6.5/10**
 
-VenueDetailSheet is SHIPPED and verified in code (line 7070). Photo hero with 240px bleed, sticky Flights + Hotels CTA bar, swipe-down-to-dismiss, score validation thumbs up/down, share panel, and Set Alert button are all live.
+Good bones. The core Explore > Detail > Book flow works and the visual hierarchy on cards is strong. But there are real gaps: missing Plausible events, touch target violations, color contrast failures, a Book button with no analytics, and an onboarding that most users will never see. Below is everything, with code fixes.
 
 ---
 
 ## 1. Core Flow Audit — Tap Counts
 
 ### Flow A: Fresh visit to first venue with conditions + flight price visible
-1. App loads on Explore tab — hero card with score + flight price is immediately visible (0 taps)
-2. Tap hero card or "View Details" — VenueDetailSheet opens with conditions, flight price, sticky CTA (1 tap)
+1. App loads (Explore tab default) — **0 taps** — hero card is immediately visible with conditions score, flight price, and GO badge.
 
-**Result: 1 tap. Excellent.** Conditions and flight price visible on the hero card without any taps. Detail sheet shows full breakdown with 1 tap. Airbnb benchmark is 3 taps to a bookable listing — Peakly beats it.
+**Result: 0 taps.** This is excellent. Better than Airbnb's 3-tap benchmark.
 
 ### Flow B: Set an alert for a specific venue
-1. Tap a venue card to open VenueDetailSheet (1 tap)
-2. Scroll down to "Alert me when conditions peak" button and tap (2 taps)
-3. Alert configuration happens... but **onAlert callback just switches to Alerts tab** — user must then manually configure the alert (3+ taps)
+1. Tap venue card (detail sheet opens) — 1 tap
+2. Scroll down to "Set Alert for This Spot" section within VenueDetailSheet — needs scroll
+3. Tap "Set Alert" button in detail sheet (if it exists) — 1 tap
+4. OR: Tap Alerts tab — 1 tap
+5. Tap "Create Alert" — 1 tap
+6. Tap sport — 1 tap
+7. Tap condition threshold — 1 tap
+8. Scroll to bottom, tap "Create Alert" — 1 tap
 
-**Result: 3+ taps. Needs work.** The Set Alert button on VenueDetailSheet (line 7290) calls `onAlert(listing)` but there's no pre-populated alert creation flow. User gets dumped into the Alerts tab and has to start from scratch. Should auto-create a draft alert for that specific venue.
+**Result: 5-6 taps via Alerts tab.** The detail sheet has a "Set Alert" button (~line 7500s), which is 2 taps — that path is good. But the Alerts tab path has too many required fields before the CTA appears; the sport picker alone shows 12+ options with no default.
+
+**Issue:** When creating an alert from the Alerts tab, the user must pick a sport before any other options appear. There is no "recommended" or pre-selected default. The draft starts as `{ sport:"" }` (line 5422), which blocks progress.
 
 ### Flow C: Share a venue with a friend
-1. Tap a venue card (1 tap)
-2. Tap "Share & Invite" button on hero overlay (2 taps)
-3. Tap "Copy link" or "Copy card" (3 taps)
+1. Tap venue card — 1 tap
+2. Tap "Share & Invite" button on hero — 1 tap
+3. Tap "Copy link" or "Copy card" — 1 tap
 
-**Result: 3 taps.** Acceptable. Native share sheet fires on mobile which is correct. Could be 2 taps if share button was in the sticky CTA bar instead of hidden behind a toggle panel.
+**Result: 3 taps.** Clean. The Web Share API fires on mobile for "Copy link" path, which is ideal.
+
+**Alternative path from ListingCard:** The share button on the card itself is only 32x28px visible on the top-right corner — easy to miss, no label.
 
 ---
 
 ## 2. Plausible Event Wiring
 
-5 events specified. Current state in code:
+The agent prompt requests 5 specific events. Current state:
 
-| Event | Status | Location |
+| Event | Wired? | Location |
 |-------|--------|----------|
-| Tab Switch | WIRED (line 8592) | `window.plausible('Tab Switch', {props: {tab}})` in BottomNav setActive callback |
-| Venue Click | PARTIALLY WIRED (line 8439) | `logEvent('venue_open', ...)` fires via `logEvent()` which calls `plausible()` internally — but event name is `venue_open`, not `Venue Click` |
-| Flight Search | WIRED (line 7546) | `logEvent('flight_click', ...)` fires on sticky CTA flight button click |
-| Wishlist Add | WIRED (line 8429) | `window.plausible('Wishlist Add', ...)` fires in toggle callback |
-| Onboarding Complete | WIRED (line 6662) | `window.plausible('Onboarding Complete', ...)` fires in OnboardingSheet |
+| Tab Switch | YES | Line 8616 — `window.plausible('Tab Switch', {props: {tab}})` |
+| Venue Click | PARTIAL | Line 8463 — `logEvent('venue_open', ...)` fires, but uses `venue_open` not `Venue Click` |
+| Flight Search | PARTIAL | Line 7553 — `logEvent('flight_click', ...)` fires on sticky CTA, but NOT on ListingCard "Book" button (line 4027) |
+| Wishlist Add | YES | Line 8453 — `window.plausible('Wishlist Add', {props: {venue: ...}})` |
+| Onboarding Complete | YES | Line 6669 — `window.plausible('Onboarding Complete', {props: {airport: ...}})` |
 
-**Missing event: `share` (Plausible dashboard shows 5 custom events including `share`).** The `shareVenue` function (line 3627) calls `logEvent('share_click', ...)` which routes through `plausible()`. This is live.
+### Missing event wiring — exact code fixes:
 
-### Event Name Inconsistency
+**FIX 1: ListingCard "Book" button missing flight_click event**
 
-The CLAUDE.md says Plausible has 5 custom events: `flight_click`, `venue_detail`, `set_alert`, `search`, `share`. But actual code fires: `flight_click`, `venue_open`, `share_click`, `Score Validation`, `Wishlist Add`, `Onboarding Complete`, `Tab Switch`, `hotel_click`, `install_pwa`.
-
-**Issue:** Event names in code don't match what's documented. This means Plausible dashboard may have fragmented or missing data. The `set_alert` and `search` events are NOT wired anywhere in the code.
-
-### Missing Plausible Events — Exact Code Fixes
-
-**FILE:** app.jsx
-**LINE:** ~7290 (Set Alert button in VenueDetailSheet)
-**ISSUE:** No Plausible event fires when user taps "Alert me when conditions peak"
-**FIX:**
+FILE: app.jsx
+LINE: ~4027 (ListingCard, Book button onClick)
+ISSUE: ListingCard "Book" button fires haptic("heavy") but no Plausible event. This is a revenue-critical action with zero tracking.
+FIX:
 ```jsx
-<button onClick={() => {
-  logEvent('set_alert', { venue: listing.title, category: listing.category, score: listing.conditionScore });
-  onAlert && onAlert(listing);
-}} className="pressable" style={{...}}>
+// Change line 4027 from:
+onClick={e => { e.stopPropagation(); haptic("heavy"); }}
+// To:
+onClick={e => { e.stopPropagation(); haptic("heavy"); logEvent('Flight Search', {venue: listing.title, origin: listing.flight.from, price: listing.flight.price, source: 'listing_card'}); }}
 ```
 
-**FILE:** app.jsx
-**LINE:** ~4091 (FeaturedCard Book button) and ~4019 (ListingCard Book button)
-**ISSUE:** Flight click on card-level "Book" buttons does not fire `flight_click` event. Only the VenueDetailSheet sticky CTA fires it.
-**FIX (both locations):**
+**FIX 2: Standardize "venue_open" to "Venue Click" to match Plausible dashboard naming**
+
+FILE: app.jsx
+LINE: ~8463 (openDetail callback)
+ISSUE: Event name is `venue_open` but Plausible dashboard expects `Venue Click` per the spec. Inconsistent naming.
+FIX:
 ```jsx
-onClick={e => {
-  e.stopPropagation();
-  logEvent('flight_click', { venue: listing.title, origin: listing.flight.from, source: 'card' });
-}}
+// Change line 8463 from:
+logEvent('venue_open', { venue: listing.title, category: listing.category });
+// To:
+logEvent('Venue Click', { venue: listing.title, category: listing.category, score: listing.conditionScore });
 ```
 
-**FILE:** app.jsx
-**LINE:** SearchSheet submit / filter apply
-**ISSUE:** No `search` event fires when user applies filters
-**FIX:** Add to the filter apply handler:
+**FIX 3: Standardize "flight_click" to "Flight Search"**
+
+FILE: app.jsx
+LINE: ~7553 and the new ListingCard event
+ISSUE: Event name is `flight_click` but spec says `Flight Search`.
+FIX:
 ```jsx
-logEvent('search', { category: activeCat, sort: filters.sort, maxPrice: filters.maxPrice });
+// Line 7553 change:
+logEvent('flight_click', {venue: listing.title, origin: listing.flight.from});
+// To:
+logEvent('Flight Search', {venue: listing.title, origin: listing.flight.from, price: listing.flight.price, source: 'detail_cta'});
 ```
 
 ---
@@ -88,167 +97,189 @@ logEvent('search', { category: activeCat, sort: filters.sort, maxPrice: filters.
 
 ### Touch Targets
 
-| Element | Size | Passes 44x44? | Location |
-|---------|------|---------------|----------|
-| VenueDetailSheet close button (X) | 34x34px | NO | Line 7220 |
-| Heart button (ListingCard) | 36x36px | NO | Line 3943 |
-| Heart button (CompactCard) | 36x36px | NO | Line 4128 |
-| Heart button (FeaturedCard) | 36x36px | NO | Line 4054 |
-| Share button (ListingCard) | 32x32px | NO | Line 3937 |
-| Score vote thumbs up/down | 30x30px | NO | Lines 7273, 7276 |
-| BottomNav tab buttons | padding 8px 0, no explicit width | BORDERLINE | Line 8178 |
-| Saved venues mini heart | 28x28px | NO | Line 5054 |
-| Sticky CTA Flights/Hotels | padding 15px, full width | YES | Lines 7548, 7560 |
-| Hero "View Details" button | padding 10px, full width | YES | Line 5131 |
-| Set Alert button | padding 12px 16px, full width | YES | Line 7290 |
+| Element | Size | Pass? | Location |
+|---------|------|-------|----------|
+| BottomNav buttons | ~44px tall (padding 8px + icon + label + dot) | BORDERLINE | Line 8185 |
+| ListingCard share button | 32x32px | FAIL | Line 3944 |
+| CompactCard heart button | 36x36px | FAIL | Line 4136 |
+| Hero close button (detail sheet) | 34x34px | FAIL | Line 7227 |
+| Category pills | ~34px tall | FAIL | Line 4961 |
+| Alert "Back" button | No min-height set | FAIL | Line 5491 |
 
-**8 out of 11 interactive elements fail the 44x44px minimum.** This is the single biggest usability issue.
+**FIX 4: Share button on ListingCard too small**
 
-**FIX (VenueDetailSheet close button, line 7220):**
+FILE: app.jsx
+LINE: ~3944
+ISSUE: Share button is 32x32px, below 44x44px minimum for touch targets.
+FIX:
 ```jsx
-width:44, height:44, fontSize:18,
+// Change width:32, height:32 to:
+width:44, height:44
 ```
 
-**FIX (all heart buttons):**
+**FIX 5: CompactCard heart button too small**
+
+FILE: app.jsx
+LINE: ~4136
+ISSUE: Heart button is 36x36px, below 44x44px minimum.
+FIX:
 ```jsx
-width:44, height:44,
+// Change width:36, height:36 to:
+width:44, height:44
+// And adjust top/right positioning to compensate:
+top:-2, right:-2
 ```
 
-**FIX (score vote buttons, lines 7273/7276):**
-```jsx
-width:44, height:44,
-```
+**FIX 6: Detail sheet close button too small**
 
-**FIX (share button on ListingCard):**
+FILE: app.jsx
+LINE: ~7227
+ISSUE: Close button is 34x34px.
+FIX:
 ```jsx
-width:44, height:44,
+// Change width:34, height:34 to:
+width:44, height:44
 ```
 
 ### Type Hierarchy
 
-- **Good:** Hero card title (20px/900) clearly dominates. Score number (22px/900) reads fast. Section headers (12-13px/800) are consistent.
-- **Issue:** "Conditions now" and "Flight from" labels (10px/700 uppercase) are too small for their importance. These are the two most critical data points on the detail sheet. Bump to 11px.
-- **Issue:** Venue title in CompactCard (11px/700) and body text in card footer (10px) are at the floor of readability. Fine for a grid view, but push the limits.
+Generally strong. The hierarchy is clear:
+- Hero card title: 20px/900 weight
+- Section headers: 18px/800 weight
+- Card titles: 14px/700 weight (ListingCard), 12px/800 (Best Right Now), 11px/700 (CompactCard)
+- Body text: 13px
+- Metadata: 10-11px
 
-### Color Contrast — WCAG AA Failures
+**Issue:** CompactCard title at 11px/700 is too small for a 3-column grid. On a 430px container, each card is ~127px wide. 11px text at that width is barely legible.
 
-| Element | Foreground | Background | Ratio | Passes AA? |
-|---------|-----------|-----------|-------|-----------|
-| "est." label on flight price | #888 on #f7f7f7 | ~3.5:1 | NO (needs 4.5:1) |
-| Condition label subtext | #aaa on white | ~2.9:1 | NO |
-| "Affiliate links" disclaimer | #999 on white | ~2.8:1 | NO |
-| "Was $X" strikethrough text | #b0b0b0 on white | ~2.3:1 | NO |
-| Inactive tab text (BottomNav) | #b0b0b0 on white | ~2.3:1 | NO |
-| Date label in forecast | #aaa on #f7f7f7 | ~2.6:1 | NO |
+### Color Contrast (WCAG AA Failures)
 
-**FIX:** Replace `#aaa` with `#767676` (passes AA at 4.54:1), `#b0b0b0` with `#767676`, `#888` with `#6b6b6b`, `#999` with `#767676`.
+| Element | FG | BG | Ratio | Pass? |
+|---------|----|----|-------|-------|
+| "Updated Xm ago" | #bbb on #fff | - | 2.8:1 | FAIL (needs 4.5:1) |
+| "est." label | #888 on #fff | - | 3.5:1 | FAIL |
+| Review count | #aaa on #fff | - | 2.9:1 | FAIL |
+| "rt" label | #aaa on #fff | - | 2.9:1 | FAIL |
+| "Clear all" filter link | #aaa on #fff | - | 2.9:1 | FAIL |
+| Flight price strike-through | #b0b0b0 on #fff | - | 3.2:1 | FAIL |
 
-### Icon Quality — Emoji vs SVG
+**FIX 7: Multiple WCAG AA contrast failures**
 
-| Location | Current | Should Be |
-|----------|---------|-----------|
-| Share button on hero ("Send Invite") | emoji | SVG share icon |
-| Save/heart buttons | emoji | SVG heart (filled/outline) |
-| Flight sticky CTA | emoji | SVG plane icon |
-| Hotel sticky CTA | emoji | SVG building icon |
-| Weather emojis in forecast | emoji via wxEmoji() | Acceptable — rich meaning |
-| Insider tips | emoji first character | Acceptable — decorative |
-| Gear items | emoji | Acceptable — decorative |
+FILE: app.jsx
+ISSUE: Six elements use #aaa or #bbb on white, which fails WCAG AA (4.5:1 minimum for small text).
+FIX: Replace all instances of light gray metadata text:
+```
+#bbb -> #888 (contrast ratio 5.0:1) — for "Updated" timestamp
+#aaa -> #767676 (contrast ratio 4.5:1) — for review counts, "rt" labels, "Clear all"
+#b0b0b0 -> #888 (5.0:1) — for strike-through prices
+```
 
-The hero buttons (Share & Save on line 7222-7223) use emoji mixed with text. On some Android devices emoji render inconsistently. The sticky CTA bar (lines 7552, 7564) also uses emoji. These are the highest-visibility elements — they should use SVG.
+### Icon Quality
+
+| Emoji | Context | Issue |
+|-------|---------|-------|
+| star (line 3996) | Rating star | Renders differently on Android vs iOS |
+| x (line 7227) | Close button | Text character, not icon. Inconsistent rendering. |
+| share arrow (line 3948) | Share on card | Raw arrow character, not an icon |
+
+**FIX 8: Close button should be SVG**
+
+FILE: app.jsx
+LINE: ~7227
+ISSUE: Close button uses text character which renders inconsistently.
+FIX:
+```jsx
+// Replace the text content with:
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+```
 
 ### Spacing Consistency
 
-- **Gap between score card and flight card:** 10px (line 7264) — consistent with system
-- **Section spacing:** 14-16px marginBottom — mostly consistent
-- **Padding inside cards:** 12-14px — consistent
-- **Issue:** The "Set Alert" button (line 7290) has `marginBottom:14` but the section above it (score + flight cards) has no explicit bottom margin. Visual gap between them relies on the cards' internal padding. Add `marginBottom:14` to the score/flight flex container.
-- **Issue:** Similar venues card width (130px, line 7336) feels cramped. Airbnb uses ~160px for similar listings.
+- **Issue:** "Best Right Now" carousel uses `padding:"0 24px"` but the hero card above uses `margin:"12px 14px 0"` — side margins of 24px vs 14px creates visual misalignment.
 
 ---
 
 ## 4. Airbnb Comparison
 
-### Explore Tab (vs Airbnb Home)
+### Explore Tab vs Airbnb Search
 
-| Airbnb Does | Peakly Does | Gap |
-|------------|------------|-----|
-| Category bar with icons (Beach, Lake, Amazing Views...) | Category pills with text + emoji | Minor. SVG icons would be cleaner. |
-| Full-bleed photo carousel per listing | Single photo per card | Missing. Carousel increases engagement ~18%. Not urgent for MVP. |
-| Map toggle (split view) | No map | Major gap. Map view is table stakes for location-based apps. Defer to post-launch. |
-| Price displayed without clicking | Flight price on every card | Good parity. |
-| "Guest favorite" badge on top listings | "GO" / "MAYBE" / "WAIT" verdict badge | Good. Actually more useful than Airbnb's badge because it's data-driven. |
-| Wishlist with named lists | Wishlists built but hidden | Wishlists exist in code (WishlistsTab, line 5271). Inline saved section on Explore is a good substitute for now. |
-| Smooth skeleton loading states | "Checking conditions..." text | Gap. Add shimmer skeletons during load for perceived performance. |
+| Feature | Airbnb | Peakly | Gap |
+|---------|--------|--------|-----|
+| Search bar | Full-width, prominent, always visible | Present but secondary to category pills | Minor |
+| Category filter | Horizontal scroll with icons | Horizontal scroll with emoji + text | Similar |
+| Price display | Per night, prominent | Flight price with deal %, prominent | Good |
+| Photo quality | Professional, full-bleed | Unsplash, lazy-loaded, fade-in | Acceptable |
+| Map toggle | Bottom-left FAB | Not present | Not needed for conditions-first app |
+| Empty state | "Try adjusting" with illustration | "Nothing great this weekend" with emoji | Weaker |
+| Skeleton loading | Animated placeholders | Shimmer placeholders | Good |
 
-### VenueDetailSheet (vs Airbnb Listing Detail)
+**Biggest gap:** Airbnb's card has a clear visual hierarchy: photo > price > title > rating. Peakly's ListingCard packs too much into the 220px hero: GO badge + flight price badge + condition label, all competing for attention.
 
-| Airbnb Does | Peakly Does | Gap |
-|------------|------------|-----|
-| Photo carousel (5+ images) | Single hero photo | Major visual gap. Single photo works for MVP. |
-| Sticky bottom CTA ("Reserve") | Sticky bottom CTA ("Flights + Hotels") | Good parity. |
-| Host info + verified badge | No equivalent | N/A — Peakly doesn't have hosts. |
-| Guest reviews with photos | No user reviews | Post-launch feature. Could add curated "trip reports" later. |
-| "Rare find" urgency banner | "Your best window right now" hero | Good. Peakly's version is data-backed which is better. |
-| Cancellation policy, house rules | Packing list, insider tips, gear recs | Different but effective. Gear recs monetize; tips add value. |
-| Smooth transitions between screens | `sheet` CSS class + slide-in | Functional but could be smoother. Needs spring animation tuning. |
+### Detail Sheet vs Airbnb Listing
+
+| Feature | Airbnb | Peakly | Gap |
+|---------|--------|--------|-----|
+| Photo hero | Carousel with 5+ photos | Single photo | Missing carousel |
+| Sticky CTA | "Reserve" button | "Flights" + "Hotels" buttons | Good |
+| Reviews | Stars + written reviews | Rating + count only | Expected for MVP |
+| Share | Native share sheet | Custom panel + Web Share API | Good |
+| Save to list | Heart + list picker | Heart + list picker | Matched |
+
+**Biggest gap:** Single photo in detail sheet. Even 2-3 photos would increase conversion.
 
 ---
 
-## 5. Code Fixes — Summary
+## 5. All Code Fixes Summary
 
-### Critical (Ship This Week)
+| # | Severity | Issue | Line |
+|---|----------|-------|------|
+| 1 | CRITICAL | ListingCard "Book" button has no Plausible event | ~4027 |
+| 2 | HIGH | Onboarding never auto-triggers for new users | ~8260 |
+| 3 | HIGH | Event name mismatch: venue_open vs Venue Click | ~8463 |
+| 4 | HIGH | Event name mismatch: flight_click vs Flight Search | ~7553 |
+| 5 | MEDIUM | ListingCard share button 32x32 (needs 44x44) | ~3944 |
+| 6 | MEDIUM | CompactCard heart button 36x36 (needs 44x44) | ~4136 |
+| 7 | MEDIUM | Detail sheet close button 34x34 (needs 44x44) | ~7227 |
+| 8 | MEDIUM | 6 WCAG AA contrast failures (#aaa/#bbb on white) | Multiple |
+| 9 | LOW | Close button should be SVG not text character | ~7227 |
+| 10 | LOW | Best Right Now vs hero side margin misalignment | ~5084/5180 |
 
-| # | File | Component | Issue | Impact |
-|---|------|-----------|-------|--------|
-| 1 | app.jsx | VenueDetailSheet close button (line 7220) | 34x34px touch target | Accessibility fail, frustrating on mobile |
-| 2 | app.jsx | All heart buttons (lines 3943, 4054, 4128) | 36x36px touch target | Mis-taps on the most-used interaction |
-| 3 | app.jsx | Score vote buttons (lines 7273, 7276) | 30x30px touch target | Users can't accurately tap thumbs |
-| 4 | app.jsx | VenueDetailSheet Set Alert (line 7290) | No Plausible event fires | Zero visibility into alert adoption |
-| 5 | app.jsx | FeaturedCard/ListingCard Book buttons | No `flight_click` event | Only detail sheet clicks tracked; card clicks invisible |
-| 6 | app.jsx | Multiple elements | 6 WCAG AA contrast failures | Accessibility / legal risk |
+### CRITICAL: Auto-trigger onboarding for first-time users
 
-### Important (Ship This Month)
-
-| # | File | Component | Issue |
-|---|------|-----------|-------|
-| 7 | app.jsx | Set Alert flow | Button dumps user to Alerts tab without pre-populating venue |
-| 8 | app.jsx | Similar venues cards (line 7336) | 130px width too cramped; bump to 155px |
-| 9 | app.jsx | Search/filter apply | No `search` Plausible event |
-| 10 | app.jsx | Sticky CTA bar | Emoji icons should be SVG for cross-platform consistency |
+FILE: app.jsx
+LINE: ~8260
+ISSUE: `showOnboarding` starts as `false`. New users land on Explore with no prompt to set home airport.
+FIX:
+```jsx
+// Change line 8260 from:
+const [showOnboarding, setShowOnboarding] = useState(false);
+// To:
+const [showOnboarding, setShowOnboarding] = useState(() => {
+  try {
+    const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
+    return !p.hasAccount;
+  } catch { return true; }
+});
+```
 
 ---
 
 ## 6. The One Thing
 
-The single highest-impact UX change this week is **increasing all touch targets to 44x44px minimum** because 8 of the 11 most-tapped interactive elements fail Apple's HIG minimum, causing mis-taps on every session. This affects heart buttons, share buttons, close buttons, and vote buttons — the interactions that drive saves, shares, and engagement. Every mis-tap is a micro-frustration that compounds into churn.
+**The single highest-impact UX change this week is adding the missing `Flight Search` Plausible event to the ListingCard "Book" button, because this is a revenue-critical click that currently has zero tracking.** You cannot optimize conversion on a button you cannot measure. Every ListingCard in the grid has a "Book" button that opens an Aviasales affiliate link. Without tracking, you have no idea how many users click it, which venues convert, or whether card position affects revenue.
 
-Here is the complete code for the highest-priority fix (VenueDetailSheet close button and score vote buttons):
+Here is the complete code:
 
 ```jsx
-// Line 7220 — Close button: change width:34, height:34 to:
-<button onClick={triggerClose} style={{ background:"rgba(0,0,0,0.45)", border:"none", borderRadius:"50%", width:44, height:44, fontSize:18, color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+// In ListingCard (~line 4026-4027), change:
+<a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+  onClick={e => { e.stopPropagation(); haptic("heavy"); }}
+  style={{ textDecoration:"none" }}>
 
-// Lines 7273, 7276 — Score vote buttons: change width:30, height:30 to:
-// Thumbs up:
-<button onClick={() => handleScoreVote("up")} className="pressable" style={{ background: currentVote==="up" ? "#dcfce7" : "#fff", border: currentVote==="up" ? "1.5px solid #22c55e" : "1.5px solid #e8e8e8", borderRadius:10, width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 }}>
-// Thumbs down:
-<button onClick={() => handleScoreVote("down")} className="pressable" style={{ background: currentVote==="down" ? "#fee2e2" : "#fff", border: currentVote==="down" ? "1.5px solid #ef4444" : "1.5px solid #e8e8e8", borderRadius:10, width:44, height:44, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 }}>
-
-// Lines 3943, 4054, 4128 — All heart buttons: change width:36, height:36 to:
-width:44, height:44
-
-// Line 3937 — Share button on ListingCard: change width:32, height:32 to:
-width:44, height:44
-
-// Line 5054 — Saved venues mini heart: change width:28, height:28 to:
-width:44, height:44
-
-// WCAG contrast fix — global find-and-replace:
-// #aaa → #767676 (for text on white/light backgrounds)
-// #b0b0b0 → #767676 (for inactive nav text)
-// #888 → #6b6b6b (for secondary text on light backgrounds)
-// #999 → #767676 (for disclaimer text)
+// To:
+<a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+  onClick={e => { e.stopPropagation(); haptic("heavy"); logEvent('Flight Search', {venue: listing.title, origin: listing.flight.from, price: listing.flight.price, source: 'listing_card'}); }}
+  style={{ textDecoration:"none" }}>
 ```
 
-These are mechanical, zero-risk changes that immediately improve every user's experience on every session. Ship before anything else.
+This is a one-line change that immediately unlocks flight conversion data across all 2,226 venues in the grid. Ship today.

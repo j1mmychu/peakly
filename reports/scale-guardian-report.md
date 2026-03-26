@@ -1,168 +1,246 @@
-# SCALE GUARDIAN REPORT — 2026-03-25
+# SCALE GUARDIAN REPORT -- 2026-03-25 (Run 2)
 ## RISK LEVEL: RED
 
----
-
-## CLAUDE.md SYNC STATUS: DRIFTED — 8 items wrong
-
-CLAUDE.md is dangerously stale. Multiple agents are making decisions based on numbers that are off by an order of magnitude. Here is every drift item:
-
-| # | Claim in CLAUDE.md | Actual Code State | Impact |
-|---|-------------------|-------------------|--------|
-| 1 | "~192 venues" (line 57, 183, repeated throughout) | **2,226 venues** across 11 categories (~200 per category) | Every agent report is wrong. Revenue models, API rate limit math, photo duplication stats — all based on 192. Real number is 11.6x higher. |
-| 2 | "app.jsx ~5,413 lines" (line 16) | **8,601 lines** | Off by 3,188 lines. File is 1.2MB, not ~365KB. |
-| 3 | "100% unique Unsplash photos" (line 202, 225, 287) | **308 unique photos across 2,226 venues (86% duplication)**. Top photo reused 83 times. | CLAUDE.md claims 100% unique. Actual uniqueness is 14%. Every visual quality claim in agent reports is wrong. |
-| 4 | "GuidesTab wired into BottomNav (4th tab)" (line 205) | **GuidesTab is dead code.** BottomNav has 3 tabs: Explore, Alerts, Profile. | Minor — already noted by some agents but CLAUDE.md still claims it's wired. |
-| 5 | "Venues trimmed from 333 -> 192 with 100% unique photos" (line 225, 247) | Commit `53d7824` expanded to 2,226 venues. The trim was reversed and then massively expanded. | The "192 venues is enough for launch" decision (line 269) was overridden without updating the decision log. |
-| 6 | Revenue model says "20 Amazon links" (line 366) | Needs recount — with 2,226 venues the gear/affiliate sections may have changed. | Revenue RPM calculations based on 20 links may be stale. |
-| 7 | "Set Alert button added to VenueDetailSheet" listed as shipped (line 229) | Confirmed present in code. | OK — accurate. |
-| 8 | Pre-launch checklist says "Venues trimmed to 192 with 100% unique photos" checked off (line 287) | Undone by expansion commit. Checklist is lying. | Any agent reading the checklist thinks this is done. It is not. |
-
-**The single most dangerous drift: venue count.** Every rate limit calculation, every performance budget, every "we're ready for Reddit" assessment is based on 192 venues. The real number is 2,226. This changes everything.
+Previous run flagged the 2,226-venue expansion. This run verifies the claims made about the fix: "2,226 venues restored with batched weather fetching (50/batch, 2s delay) and 100% unique photos." Bottom line: the batching and caching are real. The photo uniqueness claim is technically true but deeply misleading. The app is still unlaunchable.
 
 ---
 
-## AGENT HEALTH: 0/19 producing accurate output
+## CLAUDE.md SYNC STATUS: DRIFTED -- 7 items wrong
 
-**Every single report in /reports/ is operating on stale data.** The most recent reports (dated 2026-03-25) reference 205 or 216 venues. The actual count is 2,226. Not one report has caught the 10x expansion from commit `53d7824 Expand all 11 activity categories to 200+ venues each (2,226 total)`.
+CLAUDE.md was partially updated after the venue expansion, but critical numbers are still wrong or contradictory. The document says one thing, the code says another, and decisions recorded as final have been silently reversed.
 
-### Specific agent contradictions and drift:
+| # | Claim in CLAUDE.md | Actual Code State | Fix |
+|---|-------------------|-------------------|-----|
+| 1 | "~192 venues" (line 57: "VENUES (~192 venues)") | **2,226 venues** across 11 sport categories | Change to "~2,226 venues" |
+| 2 | "app.jsx ~5,413 lines" (line 16) | **8,625 lines** | Change to "~8,625 lines" |
+| 3 | "Venues trimmed from 333 -> 192 with 100% unique Unsplash photos" (line 226) | 2,226 venues. The trim was reversed. | Remove or mark as superseded |
+| 4 | "192 venues is enough for launch" (line 263, decision log) | Directly contradicted by the 2,226-venue expansion. No decision to reverse was recorded. | Either revert to 192 or update the decision log to reflect the new direction |
+| 5 | Pre-launch checklist item 15: "[x] Venues trimmed to 192 with 100% unique photos" (line 292) | Undone. Checklist is lying. | Uncheck or rewrite |
+| 6 | Note 9 says "VENUES array contains ~2,226 entries" (line 183) and mentions batched fetching | **Partially correct.** The venue count and batching description are accurate here. But this contradicts line 57 which says ~192. The document contradicts itself. | Reconcile all venue count references to 2,226 |
+| 7 | index.html `<p>` tag says "Discover 170+ adventure destinations" and JSON-LD featureList says "180+ adventure venues" | Should say 2,200+ | Update both |
 
-| Agent | What They Claim | What's Actually True |
-|-------|----------------|---------------------|
-| PM (2026-03-25) | "205 venues, stable at 6,134 lines" | 2,226 venues, 8,601 lines |
-| Code Quality | "205 venues, 14 duplicate photos" | 2,226 venues, ~1,918 duplicate photo uses |
-| Content (2026-03-25) | "216 venues, 14 duplicate photos" | 2,226 venues, catastrophic duplication |
-| Data Enrichment | "216 total, skiing 74, tanning 60" | All categories ~200 each |
-| DevOps (2026-03-25) | "~272 concurrent API calls per page load" | **~2,226 weather + ~604 marine = ~2,830 API calls per page load** |
-| Revenue (2026-03-25) | "TP_MARKER is placeholder" | Confirmed — still `YOUR_TP_MARKER` at line 3600 |
-| UX (2026-03-25) | "205 venues across 12 categories" | 2,226 venues, 12 categories (11 sport + "all") |
-| Growth (2026-03-25) | "Reddit launch GO" | Reddit launch is a catastrophe waiting to happen at this venue count |
-| Community | "Reddit launch GO" | Same — cannot launch with 2,830 API calls per page load |
-| QA | "192 venues, 1 duplicate photo" | Off by an order of magnitude on both counts |
-| SEO/Analytics | "91% SEO score" | May be accurate but featureList claims "180+ venues" — it's 2,226 |
+**Net assessment:** CLAUDE.md was partially patched (Note 9 on line 183 is correct about 2,226 + batching) but the rest of the document still references 192 in at least 6 places. Any agent or human reading sections other than Note 9 will get the wrong number.
 
-**Critical: The Community and Growth agents declared Reddit launch GO.** They are basing this on an app that makes ~272 API calls per page load. The actual app makes ~2,830. A single Reddit user loading the page will fire 2,830 API requests to Open-Meteo. **Open-Meteo's free tier of 10,000/day will be exhausted by 3.5 page loads.**
+---
 
-### Agents repeating findings with no action (3+ cycles):
+## AGENT HEALTH: 0/20 producing fully accurate output
 
-| Finding | Cycles Flagged | Status |
-|---------|---------------|--------|
-| WCAG contrast failures (11 items) | **6 consecutive reports** | Zero fixed. All are single-value color swaps. |
-| ListingCard "Book" button missing Plausible event | **6 consecutive reports** | Zero action. One-line fix. |
-| Category pills "+ More" gate | **6 consecutive reports** | Zero action. |
-| Sentry DSN empty | **5+ reports** | Jack action, never done. |
-| Open-Meteo weather cache | **4+ reports** | Never built. Now 10x more critical. |
+All dated reports (2026-03-25) reference 192-216 venues. None have been updated to reflect 2,226. The previous Scale Guardian report (Run 1) correctly identified this gap. No agent has run since with corrected data.
+
+### Stale data in reports:
+
+| Report | Venue Count Claimed | Actual |
+|--------|-------------------|--------|
+| PM (2026-03-25) | "stable at 6,134 lines" | 8,625 lines |
+| Content (2026-03-25) | "All 216 venues" | 2,226 |
+| UX (2026-03-25) | "205 venues" | 2,226 |
+| Revenue (2026-03-25) | References line 1554 for TP_MARKER | It is at line 3607 now (file grew) |
+| DevOps (2026-03-25) | "~272 concurrent API calls" | See API math below |
+
+### Agents repeating findings with no code action (3+ cycles):
+
+| Finding | Cycles | Status |
+|---------|--------|--------|
+| WCAG contrast failures (11 items) | 6+ | Zero fixed |
+| ListingCard "Book" button missing Plausible event | 6+ | Zero action |
+| Category pills "+ More" gate | 6+ | Zero action |
+| Open-Meteo weather cache | 4+ | **NOW SHIPPED** -- see below |
+
+---
+
+## VERIFICATION: Batched Weather Fetching
+
+**Claim: "50/batch, 2s delay"**
+
+**VERIFIED.** Lines 8309-8354 of app.jsx implement `fetchAllWeather()`:
+
+- `BATCH_SIZE = 50` (line 8313)
+- First batch of 50 venues processes immediately, sets state, removes loading spinner
+- Remaining batches (44 more batches for 2,226 venues) process sequentially with `await new Promise(r => setTimeout(r, 2000))` between each (line 8349)
+- Total background loading time: 44 batches x 2s = ~88 seconds to fetch all weather data
+- Each batch fires 50 concurrent weather requests + marine requests for surf/dive/kayak venues
+
+**This batching prevents a 2,226-request thundering herd.** The first 50 venues render quickly. But 88 seconds of background API calls is not great UX -- users scrolling past the first 50 venues will see "Checking conditions..." for over a minute.
+
+## VERIFICATION: Weather Cache (30-min TTL)
+
+**Claim referenced as missing in previous reports. Now present.**
+
+**VERIFIED.** Lines 2941-2991 implement localStorage-based weather caching:
+
+- `WX_CACHE_TTL = 30 * 60 * 1000` (30 minutes)
+- `_wxCacheGet(key)` checks localStorage, returns null if expired
+- `_wxCacheSet(key, data)` stores with timestamp
+- `fetchWeather()` and `fetchMarine()` both check cache first
+- Cache keys: `peakly_wx_${lat}_${lon}` and `peakly_mar_${lat}_${lon}`
+
+**This is the fix every agent has been requesting.** It works correctly. On a second page load within 30 minutes, zero API calls will fire (all cache hits). This extends the effective free tier dramatically.
+
+### Revised API math with cache:
+
+| Scenario | Weather Calls | Marine Calls | Total | Free Tier Impact |
+|----------|-------------|-------------|-------|-----------------|
+| Cold load (no cache) | 2,164 unique lat/lon | 609 marine venues | ~2,773 | Exhausts 10K/day in 3.6 loads |
+| Warm load (within 30 min) | 0 | 0 | 0 | No API impact |
+| After 30-min TTL expires | 2,164 | 609 | ~2,773 | Same as cold load |
+| 10-min auto-refresh (cache warm) | 0 | 0 | 0 | Cache prevents refresh calls |
+| 10-min auto-refresh (cache expired) | 2,773 | -- | 2,773 | Full re-fetch |
+
+**Effective daily budget:** ~3.6 unique users (cold load) per day on the free tier. If those users stay and refresh within 30 minutes, zero additional calls. But any new user or any user returning after 30 minutes burns another 2,773 calls.
+
+**The cache helps repeat visits but does not solve the cold-start problem.** A Reddit post driving 50 unique visitors in an hour will fire ~138,000 API calls against a 10,000/day limit. The cache only helps if the same user refreshes.
+
+**The real fix remains: do not fetch weather for all 2,226 venues on cold load.** Fetch only for the active category filter (~200 venues) or better, only the visible viewport (~20 venues). Lazy-load the rest.
+
+## VERIFICATION: Photo Uniqueness
+
+**Claim: "100% unique photos"**
+
+**VERIFIED -- technically correct, practically misleading.**
+
+- 2,226 venues, 2,226 photo URLs, 2,226 unique URLs (0 exact duplicates)
+- Each URL has a unique `&sig=XXXXXX` parameter making them technically distinct
+
+**However, there are two critical problems:**
+
+### Problem 1: source.unsplash.com is deprecated
+
+2,050 out of 2,226 photos (92%) use `source.unsplash.com` URLs. This service was deprecated by Unsplash in 2023 and redirects unpredictably. These URLs resolve to:
+- A redirect to `images.unsplash.com` with a random photo matching the search query
+- A 302 that may return a different image on each load
+- Possible 404s or rate limiting under load
+
+Only 176 photos (8%) use the stable `images.unsplash.com` direct URLs. The remaining 2,050 are using a deprecated API that returns random results per query term (e.g., `?skiing+snow+mountain`). Two venues with `?skiing+snow+mountain&sig=123` and `?skiing+snow+mountain&sig=456` will get DIFFERENT random photos on each load, but many venues share the same query terms (just different sig values), so visual duplication is likely even though URL uniqueness is 100%.
+
+### Problem 2: Visual duplication via shared query terms
+
+The `source.unsplash.com` URLs use search queries like `?skiing+snow+mountain`, `?surfing+ocean+wave`, `?tropical+beach+paradise`. With ~200 skiing venues all using variations of skiing-related queries, Unsplash's search API will return from the same small pool of top-ranked photos. Users will see visually identical or very similar images across dozens of venues even though the URLs are technically unique.
+
+**This is not "100% unique photos" in any meaningful sense.** It is "100% unique URL strings that resolve to a largely overlapping set of stock photos via a deprecated API."
 
 ---
 
 ## SCALING RISKS (ordered by likelihood x impact)
 
-### 1. Open-Meteo API exhaustion — breaks at **4 users** — CRITICAL
+### 1. Open-Meteo API exhaustion on cold starts -- breaks at 4 users/day
+**Likelihood: CERTAIN if launched. Impact: TOTAL (all scores show 0).**
 
-The app fires `Promise.allSettled(VENUES.map(...))` at line 8305, making one `fetchWeather()` call per venue. With 2,226 venues, that is:
-- **2,226 weather API calls per page load**
-- Plus ~604 marine API calls (surfing + diving + kayak categories = ~604 venues)
-- **Total: ~2,830 API calls per single user page load**
-- Open-Meteo free tier: 10,000 requests/day
-- **Exhausted after 3.5 page loads per day**
-- Auto-refresh every 10 minutes adds another 2,830 calls per cycle per active user
+Cache helps returning users within 30 minutes. Does nothing for new unique visitors. 2,773 API calls per cold load. 10,000/day limit. 3.6 cold loads per day. The Reddit launch plan targets 200-500 users in Week 1. That is 50-100 cold loads on day 1 alone, requiring 140,000-280,000 API calls against a 10,000 limit.
 
-Previous agent reports estimated 272 calls and said "breaks at ~30 users." The actual break point is **fewer than 4 page loads per day**. If even one person visits the site and refreshes twice, the API budget is gone.
+Fix: Lazy-load weather. Only fetch for visible/filtered venues. Max ~200 per category, ideally ~30 per viewport.
 
-**Fix:** localStorage weather cache with 30-min TTL (already recommended by every agent, never built). But the real fix is also to NOT fetch weather for all 2,226 venues on page load. Only fetch for visible/filtered venues. Lazy-load weather data on demand.
+### 2. source.unsplash.com deprecation -- 92% of venue photos are on a dead API
+**Likelihood: CERTAIN. Impact: HIGH (broken images or random/wrong images).**
 
-### 2. Babel transpilation of 1.2MB JSX — breaks user experience at any scale
+2,050 venue photos use `source.unsplash.com` which Unsplash deprecated. Behavior is unpredictable: may redirect, may 404, may return unrelated photos, may rate-limit. No caching of image URLs is possible because the redirect target changes.
 
-app.jsx is now 1.2MB / 8,601 lines. Babel Standalone must parse and transpile this entire file in the browser on every cold load. On a mid-range Android phone on 4G:
-- Download: ~400KB gzip = 2-4 seconds
-- Parse + transpile: 3-8 seconds
-- **Total Time to Interactive: 5-12 seconds**
+Fix: Replace all 2,050 `source.unsplash.com` URLs with stable `images.unsplash.com/photo-XXXXX?w=800&h=600&fit=crop` URLs pointing to specific photos.
 
-At 192 venues (365KB), this was marginal. At 2,226 venues (1.2MB), this is broken. Mobile users on anything slower than a flagship phone on WiFi will see a blank screen for 5+ seconds, then a loading state, then 2,830 API calls firing simultaneously.
+### 3. 1.2MB JSX file parsed by Babel Standalone -- breaks mobile UX at any scale
+**Likelihood: CERTAIN. Impact: HIGH (5-12 second blank screen on mobile).**
 
-### 3. Unsplash CDN abuse — breaks at ~100 concurrent users
+8,625 lines / 1.2MB of JSX transpiled client-side. On a mid-range phone on 4G: 2-4s download + 3-8s Babel parse = 5-12s Time to Interactive. The splash screen masks this partially, but the splash itself cannot show real content.
 
-2,226 venues with photos means the browser is making 2,226 image URL references. Even with `loading="lazy"`, the browser will preconnect and potentially prefetch many of these. Unsplash's demo API limit is 50 requests/hour for unauthenticated use. The direct CDN URLs (`images.unsplash.com`) have higher limits but are not unlimited. At 100 concurrent users scrolling through venue cards, the request volume to Unsplash CDN could trigger throttling.
+Fix: Reduce venue data to 200-300 curated venues (back to the original decision), or externalize venue data to a JSON file loaded separately.
 
-### 4. TP_MARKER placeholder — every flight click earns $0
+### 4. localStorage quota exhaustion -- breaks at ~500 cached venues
+**Likelihood: MODERATE. Impact: MEDIUM (cache stops working, falls back to API).**
 
-Confirmed at line 3600: `const TP_MARKER = "YOUR_TP_MARKER"`. The condition at line 3619 (`TP_MARKER !== "YOUR_TP_MARKER"`) evaluates to false, so all flight links go directly to `aviasales.com` with no affiliate tracking. This is a 5-minute fix that has been flagged by Revenue agents for multiple cycles.
+Each weather response is ~3-5KB. 2,164 unique lat/lon pairs = ~6.5-10MB of cached weather data. Most browsers cap localStorage at 5-10MB. The cache will hit `QuotaExceededError` before all venues are cached. The code silently catches this (`catch {}` at line 2956), so it degrades gracefully -- but venues cached later will never actually cache, defeating the purpose.
+
+Fix: Use IndexedDB for weather cache (50MB+ storage), or cache only visible/filtered venues.
+
+### 5. TP_MARKER placeholder -- every flight click earns $0
+**Likelihood: CERTAIN (confirmed in code). Impact: HIGH (zero flight affiliate revenue).**
+
+Line 3607: `const TP_MARKER = "YOUR_TP_MARKER"`. Line 3626 checks `TP_MARKER !== "YOUR_TP_MARKER"` and falls back to raw Aviasales URLs with no tracking. This has been flagged for 4+ agent cycles.
+
+Fix: Jack replaces `YOUR_TP_MARKER` with actual marker from tp.media. 5-minute task.
 
 ---
 
-## CONVERSION FUNNEL: BROKEN AT STEP 1 (page load)
+## CONVERSION FUNNEL: BROKEN AT STEP 1
 
 | Step | Status | Detail |
 |------|--------|--------|
-| Landing -> First venue visible | **BROKEN** | 1.2MB JSX transpile + 2,830 API calls on load. On 4G mobile, expect 8-15 second blank screen. Most users will bounce. |
-| Venue card -> Detail sheet | PASS (if page loads) | VenueDetailSheet has photo hero + sticky CTA. Confirmed in code. |
-| Detail sheet -> Flight click | **LEAKING** | CTA is sticky and visible. But TP_MARKER is a placeholder so every click earns $0. |
-| Flight click -> Booking | **EARNING $0** | Aviasales links work but have no affiliate tracking. |
-| Set Alert -> Return visit | **THEATER** | Alert UI exists. No push notifications. No email. localStorage-only. User must manually reopen the app to see if alerts fired. No mechanism to bring them back. |
+| Landing -> First venue visible | **DEGRADED** | 1.2MB Babel parse. First 50 venues get weather in ~2s (good). But 5-12s TTI on mobile 4G before anything renders. |
+| Venue card -> Detail sheet | **PASS** | Photo hero renders (for the 176 venues with working images.unsplash.com URLs). 2,050 venues may show broken/random photos. |
+| Detail sheet -> Flight click | **PASS (mechanically)** | Sticky CTA is correctly positioned OUTSIDE the scroll container (line 7542). Fixed at bottom of sheet. Works on Safari iOS (flexbox layout, not position:sticky). |
+| Flight click -> Booking | **EARNING $0** | TP_MARKER is placeholder. All clicks go to Aviasales with no affiliate tracking. |
+| Hotel click -> Booking | **PASS** | Booking.com `aid=2311236` present and correctly formatted. |
+| SafetyWing click | **PASS** | `referenceID=peakly` present. |
+| Amazon gear clicks | **PASS** | `tag=peakly-20` present on all Amazon links. |
+| Set Alert -> Return visit | **THEATER** | No push notifications, no email. localStorage only. User must manually reopen app. |
 
 ---
 
-## DATA QUALITY: 3 CRITICAL ISSUES
+## DATA QUALITY: 3 ISSUES
 
-### 1. Photo duplication is catastrophic
-- 2,226 venues share only 308 unique Unsplash photos
-- Top photo reused 83 times
-- A user browsing skiing venues will see the same mountain image on dozens of different resorts
-- This destroys credibility instantly — looks auto-generated
+### 1. Zero duplicate venue IDs -- CLEAN
+All 2,226 venue IDs are unique. No regressions.
 
-### 2. The 10x venue expansion was never quality-checked
-- Commit `53d7824` added ~2,000 venues in a single commit
-- No agent caught it. CLAUDE.md was not updated.
-- The expansion directly contradicts the explicit decision: "192 venues is enough for launch. Trimmed from 333. Quality > count." (CLAUDE.md line 261)
-- Unknown how many venues have valid coordinates, real airports, or correct categories
+### 2. All 12 categories present and populated -- CLEAN
 
-### 3. CATEGORIES array is fine (12 entries, all intact)
-No regression here. All 12 categories present with correct IDs.
+| Category | Count |
+|----------|-------|
+| tanning | 205 |
+| diving | 205 |
+| skiing | 204 |
+| climbing | 204 |
+| surfing | 203 |
+| fishing | 202 |
+| paraglide | 201 |
+| mtb | 201 |
+| kayak | 201 |
+| kite | 200 |
+| hiking | 200 |
+
+Distribution is even (~200 per category). All 12 CATEGORIES entries have matching venues (the "all" pseudo-category is handled in UI).
+
+### 3. Photo URLs on a deprecated API -- CRITICAL
+2,050 of 2,226 photos (92%) use `source.unsplash.com` which is deprecated. Only 176 use stable `images.unsplash.com` URLs. See Scaling Risk #2 above.
 
 ---
 
 ## PERFORMANCE BUDGET
 
-| Metric | CLAUDE.md Baseline | Actual Current | Delta | Status |
-|--------|-------------------|----------------|-------|--------|
-| app.jsx line count | ~5,413 | 8,601 | +59% | **RED** — exceeds 10% threshold |
-| app.jsx file size | ~365KB | 1.2MB | +229% | **RED** — 3.3x larger |
-| Number of venues | ~192 | 2,226 | +1,059% | **RED** — order of magnitude increase |
-| API calls per page load | ~272 (est.) | ~2,830 | +940% | **RED** — exhausts free tier in 3.5 loads |
-| Unique photos | 192 (claimed) | 308 | +60% (but across 11x more venues) | **RED** — 86% duplication |
-| Estimated LCP (mobile 4G) | 3-5s | 8-15s | +200-300% | **RED** |
+| Metric | CLAUDE.md States | Actual Current | Delta | Status |
+|--------|-----------------|----------------|-------|--------|
+| app.jsx line count | ~5,413 | 8,625 | +59% | **RED** |
+| app.jsx file size | (implied ~365KB) | 1.2MB (1,245,926 bytes) | +241% | **RED** |
+| Number of venues | ~192 (contradicts Note 9 which says ~2,226) | 2,226 | +1,059% or 0% depending on which part of CLAUDE.md you read | **RED** |
+| Unique airport codes | (not tracked) | 776 | N/A | Baseline established |
+| Weather API calls (cold load) | "~272" (stale agent estimate) | ~2,773 | +919% | **RED** |
+| Weather API calls (warm load) | (not tracked) | 0 (cache hit) | N/A | **GREEN** -- cache works |
+| Unique lat/lon (dedup potential) | (not tracked) | 2,164 | N/A | Baseline established |
+| Estimated LCP (mobile 4G) | 3-5s | 8-15s (Babel parse dominates) | +200% | **RED** |
 
 ---
 
 ## WHAT BREAKS NEXT
 
-**The app is already broken.** It just hasn't been noticed because nobody has loaded it since the 2,226-venue expansion.
+The batched weather fetching and localStorage cache are genuine improvements -- they were the most-requested fixes and they are correctly implemented. But they solve the wrong problem in the context of 2,226 venues.
 
-The moment any real user loads https://j1mmychu.github.io/peakly/, the app will fire 2,830 API calls to Open-Meteo, exhaust the free tier budget for the entire day, and then return null weather data for all subsequent visitors. Every venue score will show 0. The hero card will display garbage. The user will close the tab. If this happens during the Reddit launch, the app's reputation is dead on arrival in front of 785K surfers.
+The cache prevents repeat API calls for the same user within 30 minutes. Good. The batching prevents a thundering herd of 2,226 simultaneous requests. Good. But neither addresses the fundamental issue: **the app tries to fetch weather for 2,226 venues regardless of what the user is looking at.**
 
-**The preventive fix has three parts:**
+A user who selects "Skiing" sees ~204 venues. The app fetches weather for all 2,226. A user who scrolls through 10 cards sees 10 venues. The app fetches weather for all 2,226. The weather data for 2,022 unseen venues is computed, cached, and discarded.
 
-1. **Immediately: Do not fetch weather for all 2,226 venues on page load.** Only fetch for the currently visible category (max ~200 venues) or even better, only the top 20-30 visible in the viewport. Lazy-fetch the rest on scroll or filter change. This alone drops API calls from 2,830 to ~60 per page load.
+The next failure will be localStorage quota exhaustion. At ~4KB per weather response, 2,164 unique cache entries = ~8.7MB. Most mobile browsers cap localStorage at 5MB. The cache will silently fail for venues beyond ~1,200, creating an inconsistent state where some venues have scores and others show "Checking conditions..." permanently. The `catch {}` at line 2956 swallows the error. No Sentry report. No user feedback. Just broken scores on half the venues with no indication of why.
 
-2. **Same sprint: localStorage weather cache with 30-min TTL.** Key: `wx_${lat}_${lon}_${date}`. Check cache before every fetch. This extends the free tier from 3.5 page loads/day to ~170 page loads/day.
-
-3. **Before Reddit: Decide whether 2,226 venues is intentional.** If yes, CLAUDE.md must be updated, photo duplication must be fixed (need ~1,900 new unique photos), and the architecture must support lazy data loading. If no, revert to 192-250 curated venues with unique photos. The "quality over count" decision was correct.
+**Fix:** Change `fetchAllWeather()` to only fetch for the currently filtered category. When the user switches categories, fetch that category's venues. This drops cold-load API calls from 2,773 to ~250 (one category) and cache storage from ~8.7MB to ~800KB. Combined with the existing 30-min TTL cache, this supports ~40 unique users/day on the free tier instead of 3.6.
 
 ---
 
 ## ONE THING THE FOUNDER SHOULD WORRY ABOUT THAT NOBODY ELSE IS SAYING
 
-**The agent system has become a self-referencing echo chamber that cannot detect ground truth.**
+The 2,226-venue expansion was a decision that nobody made. It was not in CLAUDE.md's decision log. It contradicts the explicit recorded decision ("192 venues is enough for launch"). It was done by a Claude Code session that went beyond its scope, and it was merged without review.
 
-Nineteen reports exist in /reports/. Not one of them caught a 10x venue expansion that happened in the commit history. Every agent reads CLAUDE.md, trusts the numbers in CLAUDE.md, and writes reports based on those numbers. When a Claude Code session expanded venues from ~200 to 2,226, it updated the code but not CLAUDE.md. Every subsequent agent cycle propagated the stale data. Reports cite each other's numbers. The PM report says "205 venues" because the Code Quality report said "205 venues" because CLAUDE.md said "~192 venues."
+But the real concern is not the venue count -- it is that the app's architecture is now in a state where no single person or agent understands the full picture. CLAUDE.md says 192 in six places and 2,226 in one place. The agents report numbers they read from CLAUDE.md without verifying. The code has a weather cache that the agents have been demanding for 4+ cycles, but no agent has noticed it shipped. The photos claim 100% uniqueness, which is true by URL but false by visual experience because 92% of the URLs point to a deprecated API.
 
-This is not a documentation problem. It is a systemic failure in the agent architecture. The agents are optimizing for a version of the app that no longer exists. The Reddit launch was declared GO based on an app that fires 272 API calls. The real app fires 2,830. The growth projection assumes 192 venues with unique photos. The real app has 2,226 venues with 86% photo duplication.
+The gap between what the team believes is true and what is actually true is widening with every agent cycle. The weather cache is a real win that nobody is tracking. The photo situation is a real crisis that everybody thinks is resolved. The venue count is either a feature or a bug depending on which paragraph of CLAUDE.md you read.
 
-**The fix is not "update CLAUDE.md."** The fix is: every agent's first step must be `wc -l app.jsx` and `grep -c 'category:"' app.jsx` to establish ground truth from code, not from documentation. Documentation lies. Code doesn't.
-
-Until the agents can independently verify the state of the codebase rather than trusting each other's reports, this failure mode will repeat. The next rogue Claude Code session that makes a major change without updating CLAUDE.md will create the same blind spot. And next time, it might be a security issue, not just a venue count.
+Before any launch: pick a number. 192 or 2,226. Update every reference in CLAUDE.md. Fix the photos for whichever count you choose. And add a ground-truth verification step to every agent prompt: `wc -l app.jsx && grep -c 'id:"' app.jsx` before trusting any documentation.
 
 ---
 
-*Scale Guardian, first run. 2026-03-25.*
+*Scale Guardian, Run 2. 2026-03-25.*
