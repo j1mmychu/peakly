@@ -8586,16 +8586,11 @@ function App() {
             <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
-                  <div style={{
-                    width:30, height:30, borderRadius:9,
-                    background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    flexShrink:0,
-                  }}>
-                    <svg width={15} height={15} viewBox="0 0 24 24" fill="none">
-                      <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
-                    </svg>
-                  </div>
+                  <svg width={28} height={23} viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 42 L17 13 L31 42" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" fill="rgba(14,165,233,0.12)"/>
+                    <path d="M20 42 L32 6 L44 42" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
+                    <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="#0284c7"/>
+                  </svg>
                   <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                     peakly
                   </span>
@@ -8604,27 +8599,23 @@ function App() {
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
               </div>
-              <button onClick={() => setShowVibeSearch(true)} style={{
-                background:"none", border:"none", cursor:"pointer", padding:"8px 0 0",
-                fontSize:12, fontWeight:700, color:"#6366f1", fontFamily:F,
-                display:"flex", alignItems:"center", gap:4,
+              <button onClick={() => setShowVibeSearch(true)} className="pressable" style={{
+                display:"flex", alignItems:"center", gap:5, marginTop:8,
+                background:"#f5f0ff", border:"1.5px solid #ddd6fe",
+                borderRadius:20, padding:"6px 14px", cursor:"pointer",
+                fontSize:12, fontWeight:700, color:"#6d28d9", fontFamily:F,
               }}>
-                <span>✨</span>
-                <span>Search by vibe</span>
+                <span style={{ fontSize:13 }}>✨</span>
+                <span>Vibe Search</span>
               </button>
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <div style={{
-                width:30, height:30, borderRadius:9,
-                background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                flexShrink:0,
-              }}>
-                <svg width={15} height={15} viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
-                </svg>
-              </div>
+              <svg width={28} height={23} viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 42 L17 13 L31 42" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" fill="rgba(14,165,233,0.12)"/>
+                <path d="M20 42 L32 6 L44 42" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
+                <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="#0284c7"/>
+              </svg>
               <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
