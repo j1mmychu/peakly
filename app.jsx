@@ -159,7 +159,7 @@ const F = "'Plus Jakarta Sans', sans-serif";
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
-  { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
+  { id:"skiing",  label:"Ski/Board",   emoji:"❄️" },
   { id:"surfing", label:"Surfing",    emoji:"🏄" },
   { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"diving",  label:"Diving",     emoji:"🤿" },
@@ -5207,42 +5207,42 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills — scrollable area + pinned "+ More" button */}
-      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0 }}>
-        <div style={{ flex:1, display:"flex", gap:6, padding:"8px 0 8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", alignItems:"center", minWidth:0 }}>
-          {visibleCats.map(c => (
-            <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-              onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
-              aria-label={`Filter by ${c.label}`}
-              aria-pressed={activeCat === c.id}
-              style={{
-                padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0,
-                background: activeCat === c.id ? "#222" : "#f5f5f5",
-                color: activeCat === c.id ? "#fff" : "#555",
-                border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
-                fontSize:12, fontWeight:700, fontFamily:F,
-            }}>
-              {c.emoji} {c.label}
-            </button>
-          ))}
-          {/* Saved quick-access */}
-          {savedCount > 0 && (
-            <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-              padding:"7px 12px", borderRadius:20, cursor:"pointer", flexShrink:0,
-              background: showSaved ? "#fee2e2" : "#f5f5f5",
-              border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-              fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
-            }}>
-              ❤️ {savedCount}
-            </button>
-          )}
-        </div>
+      {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
+      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
+        {visibleCats.map(c => (
+          <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
+            onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            aria-label={`Filter by ${c.label}`}
+            aria-pressed={activeCat === c.id}
+            style={{
+              flex: showAllCats ? "0 0 auto" : 1, minWidth:0,
+              padding:"5px 6px", borderRadius:18, cursor:"pointer",
+              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
+              background: activeCat === c.id ? "#222" : "#f5f5f5",
+              color: activeCat === c.id ? "#fff" : "#555",
+              border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
+              fontSize:11, fontWeight:700, fontFamily:F,
+          }}>
+            {c.emoji} {c.label}
+          </button>
+        ))}
         {!showAllCats && (
           <button onClick={() => { setShowAllCats(true); haptic(); }} className="pill" style={{
-            flexShrink:0, padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
-            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
-            margin:"0 10px 0 6px", whiteSpace:"nowrap",
+            flex:"0 0 auto", padding:"5px 6px", borderRadius:18, cursor:"pointer", background:"#f0f0f0",
+            border:"1.5px solid transparent", fontSize:11, fontWeight:700, color:"#888", fontFamily:F,
+            whiteSpace:"nowrap",
           }}>+ More</button>
+        )}
+        {/* Saved quick-access — always last */}
+        {savedCount > 0 && (
+          <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
+            flex:"0 0 auto", padding:"5px 8px", borderRadius:18, cursor:"pointer",
+            background: showSaved ? "#fee2e2" : "#f5f5f5",
+            border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
+            fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+          }}>
+            ❤️ {savedCount}
+          </button>
         )}
       </div>
 
@@ -8114,7 +8114,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { id:"skiing", label:"Skiing" },
+                { id:"skiing", label:"Ski/Board" },
                 { id:"surfing", label:"Surfing" },
                 { id:"tanning", label:"Beach & Tan" }
               ].map(s => (
