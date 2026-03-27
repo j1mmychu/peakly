@@ -1,23 +1,42 @@
-# PM Report — 2026-03-26 (v15)
+# PM Report — 2026-03-27 (v16)
 
-## Status: YELLOW — same as v14. Same P0. Same Jack action. Five cycles.
+## Status: ORANGE — Good velocity, wrong priorities. Algorithm over-rotation is a launch risk.
 
-The app is in excellent technical shape. The TP_MARKER placeholder is not a technical problem — it is a 5-minute copy-paste. It has now appeared in five consecutive PM reports as a P0. Until it is resolved, every flight click earns $0 and there is zero attribution data in the Travelpayouts dashboard.
+We shipped 10+ commits overnight. Most were correct. Two decisions require a hard stop and course correction before the Reddit launch.
 
 ---
 
-## Shipped Since v14
+## Shipped Since v15
 
-| Item | Type | Right call? |
-|------|------|-------------|
-| **Splash screen 1.8s minimum + network-first SW** — splash stays visible for min 1.8s, SW bumped to peakly-20260326b, index.html network-first | Polish / infra | **MARGINAL.** Fixed a real first-impression bug (splash disappearing in <200ms on fast connections). Network-first SW is correct. But 1.8s of forced wait on every cold load is dead time for returning users who want live conditions. Low opportunity cost, but watch it. |
+| Commit | What | Right call? |
+|--------|------|-------------|
+| `b2aa247` | 9-score algorithm improvements: wind direction for surfing, swell ratio, fishing seasonal, hiking elevation, score floor 20→5 | **MIXED. See risk section.** |
+| `27be255` | Research-backed scoring: surfing water temp tiers, diving wind/current proxy, climbing humidity tiers, kayaking water temp | **RIGHT direction, wrong timing. See risk section.** |
+| `518b690` | Hero card = highest-scoring venue always; Best Right Now carousel GO-only (≥80) | **RIGHT. Core UX improvement. Reduces misleading signals.** |
+| `f36e1dd` | More button pinned outside scroll, geo prompt explainer, hide badges until weather loads, spring animations | **RIGHT. All high-value, low-risk polish.** |
+| `082dd09` | Heart favorites auto-sync, top-10 airport search, date contrast, scroll lock, $1k default price | **RIGHT. Airport search was real friction.** |
+| `5ac53cb` | Remove Peakly Pro UI entirely + add 192x192 icon to manifest for TWA | **RIGHT. Eliminates the $9/mo vs $79/yr confusion permanently. TWA readiness is free.** |
+| `7a9d193` | Category pills equal-width, Ski/Board rename | **RIGHT. Visual consistency.** |
+| `5aafc6b` | No hero card/badge until weather loads | **RIGHT. Prevents misleading WAIT state on cold load.** |
+| `025ff9c` | Daily Content report | **RIGHT. Content team surfaced a critical issue (see below).** |
 
-**Confirmed live (not newly shipped, but resolved from v14 P1 blockers):**
+---
 
-| Item | Finding |
-|------|---------|
-| **Score validation thumbs** | **CONFIRMED LIVE.** Lines 7349–7353 of app.jsx. Up/down buttons render in VenueDetailSheet with green/red active states, `scoreVotes` persisted to `peakly_score_votes` localStorage, Plausible `Score Validation` event fires on vote. Previously listed as "unconfirmed UI" — it is live and working. Remove from blocker list. |
-| **Kayaking water temp safety floor** | **CONFIRMED DONE.** Lines 3344–3352. The 120°F rule is implemented: if airC + waterTemp < 49°C, score drops 15 points and label reads "Cold Water Risk". Previously listed as a scoring gap. It shipped. Remove from gap list. |
+## Critical Finding: Algorithm Over-Rotation
+
+**v15 explicitly DEFERRED surfing wind direction** — the PM report stated "requires adding coastOrientation data to ~300 surf venues. Not a pre-launch fix." That decision was overridden overnight. `b2aa247` shipped offshore/onshore wind logic and swell direction scoring.
+
+The code is at lines 3142–3176. Here is the problem:
+
+```js
+const spotFacing = venue.facing ?? 270;  // Default: west-facing for ALL surf venues
+```
+
+**Zero surf venues have a `facing` property.** The algorithm defaults every surf break on earth to west-facing (270°). Barbados faces east. Nazaré faces west. J-Bay faces south. This means the swell direction logic produces wrong results for every non-west-facing break, which is at least half of the 203 surf venues. The algorithm now scores worse than the simpler version it replaced for eastern and southern hemisphere breaks.
+
+**Same issue with `peakMonths` for fishing:** `venue.peakMonths ?? null` — zero fishing venues have this field. The seasonal fishing logic is dead code with a null fallback.
+
+**Decision required:** FREEZE the scoring algorithm before launch. The algorithm has been modified 11+ times in 48 hours without calibration data. The correct next step is to gather signal (score votes, real user feedback post-Reddit) before further refinement — not more refinement before signal.
 
 ---
 
@@ -25,10 +44,13 @@ The app is in excellent technical shape. The TP_MARKER placeholder is not a tech
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **TP_MARKER = "YOUR_TP_MARKER"** at line 3666. Every Aviasales flight click earns $0. Zero attribution data. Zero commission. | **P0** | Jack: tp.media → Dashboard → Markers → copy string → paste at line 3666 → push. 5 min. **Five cycles open.** |
-| **Surfing wind direction (offshore vs. onshore)** — code comment at line 3164 explicitly notes this gap. windDir from Open-Meteo is land-level, not coastal-relative. To fix correctly requires a coastOrientation property on each surf venue. This is not a quick scoring tweak — it requires data. | **P2 → DEFER** | Not fixable pre-launch without adding orientation data to ~300 surf venues. Current surfing scoring is defensible on wave height + swell period + water temp. Defer to Phase 2. |
-| **Splash screen 1.8s on every cold load** — returning users hit 1.8 seconds of forced waiting before seeing live scores. | **P3** | Monitor. Not urgent. |
+| **TP_MARKER = "YOUR_TP_MARKER"** — Every Aviasales flight click earns $0. Zero attribution. Zero commission. | **P0** | Jack: tp.media → Dashboard → Markers → copy → paste at line 3771 → push. 5 min. **Cycle 6.** |
+| **All 203 surf venues default to west-facing** — `venue.facing ?? 270` — swell direction scoring applies wrong orientation to non-west-facing breaks worldwide | **P1** | Two options: (A) add `facing` data to surf venues (content work, 1–2 hrs), or (B) revert swell direction logic to pre-b2aa247, which was simpler and correct. Recommend (B) pre-launch. |
+| **Photo diversity collapse** — 176 unique base Unsplash IDs for 2,226 venues. 3 base images cover 515 venues (23% of app). Content agent confirmed. | **P1** | Pre-Reddit must fix the top 3 base IDs (fishing, kayak). 2–3 session content job. |
+| **Onboarding flow not built** — New users still land on Explore with no explanation of scoring. Called highest-impact dev item in v14 and v15. Still unbuilt. | **P1** | Dev, 3–4 hrs. Must ship before Reddit launch. |
+| **`peakMonths` fishing seasonal logic** — dead code, field doesn't exist on any venue, falls through to null | **P2** | Either add `peakMonths` to fishing venues or remove the logic. Recommend remove pre-launch. |
 | **REI 22 links earn $0** | **P2** | Jack: Avantlink signup, 30 min, no LLC needed. |
+| **Splash screen 1.8s forced on every cold load** | **P3** | Monitor post-launch. |
 
 ---
 
@@ -36,25 +58,34 @@ The app is in excellent technical shape. The TP_MARKER placeholder is not a tech
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| TP_MARKER in app.jsx line 3666 | **Jack** — tp.media dashboard | **TODAY. This is cycle 5.** |
-| REI Avantlink signup | **Jack** | This week. 30 min. No LLC needed. |
-| LLC approval | External | Unblocks Stripe, GetYourGuide, Backcountry, peakly.app domain, ToS/Privacy |
+| TP_MARKER in app.jsx line 3771 | **Jack** — tp.media dashboard | **TODAY. Cycle 6.** |
+| Scoring algorithm freeze decision | **PM + Jack** | **Before any more scoring commits.** |
+| Photo diversity fix (top 3 base IDs) | **Dev** | Before Reddit launch |
+| Onboarding flow | **Dev** | Before Reddit launch |
+| REI Avantlink signup | **Jack** | This week. 30 min. |
+| LLC approval | External | Unblocks Stripe, GetYourGuide, Backcountry |
 
 ---
 
 ## Priority Decisions — Top 3 This Sprint
 
-**1. SHIP: Jack sets TP_MARKER (Jack, 5 min)**
+### 1. SHIP: Onboarding flow (Dev, 3–4 hrs)
 
-Code is deployed. Commission is blocked only by one missing string. Jack: log into tp.media → Dashboard → Markers → copy the marker → replace "YOUR_TP_MARKER" at line 3666 → push. Five cycles open. If this is not done before the Reddit launch, we will drive traffic, generate flight clicks, earn $0, and have no attribution data.
+This was #1 in v15. It is still unbuilt. The overnight sprint delivered 10 commits of algorithm tuning and UX polish, none of which were onboarding. A new user arriving from Reddit still lands on Explore with no explanation of what "73 / MAYBE" means, why they should set a home airport, or what the app actually does. This single gap is the largest driver of the difference between 5K and 8K users — not scoring precision, not photo polish, not geo prompts.
 
-**2. SHIP: Build onboarding flow (Dev, 3–4 hrs)**
+**SHIP before Reddit launch. Not after.**
 
-New users land on Explore and have no idea what the score means, what "Epic" vs. "Firing" means, or why they should set a home airport. An onboarding sheet (3 screens: what Peakly does, set your home airport, pick your sports) converts confused visitors into retained users. This is the highest-impact remaining dev item before launch. Directly moves the 8K scenario.
+### 2. FREEZE: Scoring algorithm (0 hrs dev, 5 min discussion)
 
-**3. SHIP: Set Reddit launch date (Jack, 0 hrs dev)**
+The algorithm has shipped 11+ changes in 48 hours. The `venue.facing` bug means the new swell direction logic is actively wrong for east/south-facing surf breaks. The `peakMonths` logic is dead code. Further tuning without calibration data compounds these errors.
 
-The launch-readiness checklist is 95% done. Score thumbs confirmed live. Kayaking water temp confirmed done. The growth lead set April 1 as a target two cycles ago — that date has not been confirmed or updated. A launch without a date is not a launch. **Pick April 1 or April 7. Commit.**
+**Scoring algorithm is FROZEN from this commit forward until post-Reddit.** Two exceptions: (A) revert the `venue.facing ?? 270` swell direction default if it can't be properly populated, and (B) remove the dead `peakMonths` code. No new scoring logic until we have real user votes.
+
+### 3. SHIP: Photo diversity fix — top 3 base IDs (Dev/Content, 2–3 sessions)
+
+The Content agent confirmed: 23% of the app (515 venues) shares 3 base Unsplash images. A user browsing Fishing sees the same Alaskan river 203 times. A user scrolling Kayak sees the same ocean scene 200 times. When they post about Peakly on Reddit — which is the acquisition channel — they will screenshot the repetition and kill the thread. This is not a nice-to-have. Fix the top 3 offenders before launch.
+
+**Priority order:** fishing (203 venues, 1 image), kayak (202 venues, 1 image), mixed mountain/snow (110 venues, 1 image).
 
 ---
 
@@ -62,14 +93,14 @@ The launch-readiness checklist is 95% done. Score thumbs confirmed live. Kayakin
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| Surfing wind direction (offshore/onshore) | **DEFER post-launch** | Requires adding coastOrientation data to ~300 surf venues. Not a quick fix. Current scoring is defensible on wave height + swell + water temp. |
-| Hotel affiliate deep links per venue | **DEFER to post-1K** | Generic Booking.com link earns today. Per-venue deep links add complexity, not conversion. |
-| Trips + Wishlists tabs | **DEFER to 1K users** | Core flow (Explore → Detail → Book) must prove conversion first. |
-| Avalanche risk for ski | **DEFER to Phase 3** | No external API available. Post-launch research project. |
-| Tide data for surf | **DEFER to Phase 3** | Score thumbs now live — get calibration signal first, then add data sources. |
-| Expand venues beyond 2,226 | **CUT until post-launch** | Quality over volume. Venue expansion closed. |
-| Dark mode | **CUT** | No signal it moves any retention or acquisition metric. |
-| Offline support | **CUT** | Stale conditions data defeats the core value prop. |
+| More scoring algorithm refinements | **FROZEN until post-Reddit** | 11 changes in 48 hrs with zero calibration data. Compounding errors, not improving signal. |
+| Add `facing` orientation data to 203 surf venues | **DEFER to Phase 2** | Right solution but wrong timing. Revert the swell direction logic pre-launch instead. |
+| Add `peakMonths` to fishing venues | **CUT pre-launch** | Remove dead code. Add post-launch when data modeling is done properly. |
+| Central America venue expansion | **DEFER to post-1K** | 2,226 venues is sufficient. Photo diversity beats venue count. |
+| Google Play listing via PWABuilder | **DEFER to post-launch** | $25 + a week. Not a launch blocker. Do after Reddit validation. |
+| Trips + Wishlists tabs | **DEFER to 1K users** | Standing decision. Core flow first. |
+| Hotel deep links per venue | **DEFER to post-1K** | Generic Booking.com link earns today. |
+| Dark mode | **CUT** | No signal this moves any metric. |
 
 ---
 
@@ -79,20 +110,19 @@ The launch-readiness checklist is 95% done. Score thumbs confirmed live. Kayakin
 
 | Lever | 5K scenario | 8K scenario |
 |-------|------------|------------|
-| TP_MARKER | Unset. $0 flight revenue. No attribution. | Set before Reddit. Commission active. |
-| Reddit launch date | Drifts to April 15+ with more polish cycles | Hard date set this week. April 1 or April 7. |
-| Onboarding flow | None. 40%+ first-visit bounce. | 3-screen onboarding ships before launch. Bounce rate <25%. |
-| Score thumbs | **CONFIRMED LIVE** | **CONFIRMED LIVE** |
-| Scoring accuracy | Surfing deferred but defensible | Surfing deferred but defensible |
-| Sentry | **DONE** | **DONE** |
+| TP_MARKER | Unset at Reddit launch. $0 revenue. No attribution data. | Set before launch. Commission active from day 1. |
+| Onboarding flow | None. Reddit users bounce within 30 seconds. | 3-screen onboarding. Bounce rate <30%. |
+| Photo diversity | 23% of app shows 3 images. Reddit callout kills thread. | Top 3 offenders replaced before launch. |
+| Scoring accuracy | `venue.facing` bug silently wrong for 100+ surf venues. | Algorithm frozen OR swell direction logic reverted. |
+| Reddit launch date | Still drifting. v14 called April 1/7. Not confirmed. | Hard date set this week. Commit and hold it. |
 
-**Trajectory: 6K if TP_MARKER set + Reddit date locked this week. 8K if onboarding ships before launch and no scoring callouts land.**
+**Trajectory: 5K if TP_MARKER still unset + no onboarding + photo callout on Reddit. 8K if all four blockers above are resolved before the launch post.**
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**We have been in pre-launch for 3+ weeks and shipping polish.** Each cycle adds a legitimate improvement — weather cache, photo stability, splash screen, SW fixes — and each is correct in isolation. The cumulative effect is a team optimizing an app nobody has used yet. The scoring thumbs were "unconfirmed" for three cycles and turned out to be live the whole time. The kayaking water temp fix was "pending" and was already shipped. We are losing visibility into what is actually done vs. what we think is done because nobody is running the app in a browser as a first-time user. **Before the Reddit post, someone needs to spend 30 minutes with the app as a new user, not as a developer.** First-time user experience testing is not on any checklist. It should be.
+**The `venue.facing ?? 270` default is algorithmically gaslighting the scoring system.** Every surf break on the east coast of any continent — Barbados, J-Bay, Hossegor (which faces southwest), Jeffreys Bay, the entire Brazilian coast — now has its swell direction scored against a west-facing default. A swell coming from the southwest (ideal for Hossegor) reads as slightly off-axis against the hardcoded 270° default. A swell from the east (typical for J-Bay) reads as directly opposed. The algorithm shipped this as an improvement. It is, for west-facing breaks only. For the other half of the world's surf, the score got worse and nobody knows. This will be the hardest class of scoring bug to catch without real-world users — because it only shows up when you know both the break orientation and the swell direction simultaneously. It needs to be frozen or reverted, not patched, before launch.
 
 ---
 
@@ -100,14 +130,13 @@ The launch-readiness checklist is 95% done. Score thumbs confirmed live. Kayakin
 
 | Date | Decision |
 |------|----------|
-| 2026-03-26 | **Score validation thumbs → CONFIRMED LIVE.** Remove from blocker list. Lines 7349–7353. |
-| 2026-03-26 | **Kayaking water temp → CONFIRMED DONE.** Remove from gap list. Lines 3344–3352. |
-| 2026-03-26 | **Surfing wind direction → DEFER post-launch.** Requires venue orientation data (~300 surf venues). Not a pre-launch fix. |
-| 2026-03-26 | **Onboarding flow → SHIP this sprint.** Highest-impact remaining dev item before launch. |
-| 2026-03-26 | **Reddit launch date must be set this week.** April 1 or April 7. No more drift. |
-| 2026-03-26 | **TP_MARKER → cycle 5. Jack action, today.** |
-| 2026-03-26 | **Splash screen 1.8s minimum → monitor only.** Watch returning-user bounce post-launch. |
+| 2026-03-27 | **Scoring algorithm FROZEN.** No new scoring logic until post-Reddit calibration. Exceptions: revert `venue.facing` swell direction if data can't be populated, remove dead `peakMonths` code. |
+| 2026-03-27 | **Surfing wind direction decision from v15 was overridden overnight.** Future agent work must respect PM defers. |
+| 2026-03-27 | **Photo diversity — P1 before launch.** Top 3 base IDs must be replaced before Reddit post. |
+| 2026-03-27 | **Onboarding remains top dev priority.** Build before Reddit launch. |
+| 2026-03-27 | **TP_MARKER → cycle 6. Jack action, today.** |
+| 2026-03-27 | **Peakly Pro UI removal confirmed correct.** $9/mo confusion eliminated. |
 
 ---
 
-*Next report: 2026-03-27*
+*Next report: 2026-03-28*
