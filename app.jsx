@@ -150,6 +150,10 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    input[type=date] { color-scheme: light; outline: none; -webkit-appearance: none; appearance: none; }
+    input[type=date]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.15) !important; }
+    input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.65; cursor: pointer; padding: 2px; border-radius: 3px; }
+    input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(2,132,199,0.1); }
   `;
   document.head.appendChild(s);
 })();
@@ -4409,7 +4413,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     fromAirport2: search.fromAirport2 || "",
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
-    maxPrice: filters?.maxPrice ?? 2000,
+    maxPrice: filters?.maxPrice ?? 1000,
     startDate: filters?.startDate || "",
     endDate: filters?.endDate || "",
   });
@@ -4497,7 +4501,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -4507,22 +4511,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
         {/* ── Flying from (at top) ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Flying from</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
-            {US_AIRPORTS.map(ap => {
-              const sel = local.fromAirport === ap.code || local.fromAirport2 === ap.code;
-              const sel1 = local.fromAirport === ap.code;
-              return (
-                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
-                    background: sel1 ? "#222" : "#f5f5f5",
-                    color:      sel1 ? "#fff" : "#555",
-                    border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
-                }}>{ap.code}</button>
-              );
-            })}
-          </div>
-          <div style={{ position:"relative" }}>
+          <div style={{ position:"relative", marginBottom:8 }}>
             <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input type="text" placeholder="Search airports…"
               value={apQuery}
@@ -4559,6 +4548,23 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
                   {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
                 </button>
               ))}
+            </div>
+          )}
+          {/* Top 10 popular airports */}
+          {!apFocus && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
+              {US_AIRPORTS.slice(0, 10).map(ap => {
+                const sel1 = local.fromAirport === ap.code;
+                return (
+                  <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
+                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                      background: sel1 ? "#222" : "#f5f5f5",
+                      color:      sel1 ? "#fff" : "#555",
+                      border:"none",
+                      fontSize:11, fontWeight:700, fontFamily:F,
+                  }}>{ap.code}</button>
+                );
+              })}
             </div>
           )}
           {local.fromAirport && (
@@ -4703,10 +4709,10 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               <div style={{ display:"flex", gap:6 }}>
                 <input type="date" value={local.startDate || ""}
                   onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.startDate ? "#0c4a6e" : "#aaa", background: local.startDate ? "#f0f9ff" : "#fafafa", fontWeight: local.startDate ? 700 : 400, minWidth:0 }} />
                 <input type="date" value={local.endDate || ""}
                   onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.endDate ? "#0c4a6e" : "#aaa", background: local.endDate ? "#f0f9ff" : "#fafafa", fontWeight: local.endDate ? 700 : 400, minWidth:0 }} />
               </div>
             </div>
             <div style={{ width:100 }}>
@@ -5250,7 +5256,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Ski pass filter pills — show when skiing is selected */}
       {activeCat === "skiing" && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           <span style={{ fontSize:10, fontWeight:700, color:"#999", fontFamily:F, whiteSpace:"nowrap", textTransform:"uppercase", letterSpacing:0.5 }}>Pass</span>
           {[{id:"",label:"All"},{id:"ikon",label:"Ikon"},{id:"epic",label:"Epic"},{id:"independent",label:"Independent"}].map(p => (
             <button key={p.id}
@@ -5271,7 +5277,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -5288,7 +5294,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         </div>
       )}
 
-      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", touchAction:"pan-y" }}>
 
         {/* Pull-to-refresh indicator */}
         {(pullDist > 0 || pullRefreshing) && (
@@ -5313,7 +5319,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         {showSaved && (
           <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
             <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
               {listings.filter(l => wishlists.includes(l.id)).map(l => (
                 <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
                   minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
@@ -5460,6 +5466,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
               {bestRightNow.slice(1).map(l => {
                 const v = getGoVerdict(l.conditionScore);
@@ -7101,8 +7108,16 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               We'll show flight prices from your home airport to every spot.
             </div>
 
+            <div style={{ position:"relative", marginBottom:14 }}>
+              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
+              <input type="text" placeholder="Search any airport worldwide…"
+                value={apQuery} onChange={e => setApQuery(e.target.value)}
+                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
+                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
+              />
+            </div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-              {US_AIRPORTS.map(ap => {
+              {US_AIRPORTS.slice(0, 10).map(ap => {
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
@@ -7115,14 +7130,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   }}>{ap.flag} {ap.code} <span style={{ fontSize:10, opacity:0.7 }}>{ap.label}</span></button>
                 );
               })}
-            </div>
-            <div style={{ position:"relative" }}>
-              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
-                value={apQuery} onChange={e => setApQuery(e.target.value)}
-                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
-                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
             </div>
             {apFocus && apResults.length > 0 && (
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
@@ -7678,7 +7685,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {similarVenues.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
@@ -8156,10 +8163,10 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
           <div className="fade-in">
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>When are you going?</div>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:10,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:10, color: startDate ? "#0c4a6e" : "#aaa", background: startDate ? "#f0f9ff" : "#fafafa", fontWeight: startDate ? 700 : 400,
             }} />
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:14,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:14, color: endDate ? "#0c4a6e" : "#aaa", background: endDate ? "#f0f9ff" : "#fafafa", fontWeight: endDate ? 700 : 400,
             }} />
             <button onClick={() => setStep(2)} disabled={!startDate || !endDate} style={{
               width:"100%", background: startDate && endDate ? "#222" : "#ddd", border:"none", borderRadius:12, padding:12,
@@ -8599,7 +8606,7 @@ function App() {
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, startDate:"", endDate:"" });
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
@@ -8816,15 +8823,28 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    setWishlists(p => {
-      const isAdding = !p.includes(id);
-      if (isAdding) {
-        const venue = VENUES.find(v => v.id === id);
-        window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    const isCurrentlySaved = wishlists.includes(id);
+    if (!isCurrentlySaved) {
+      const venue = VENUES.find(v => v.id === id);
+      window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    }
+    setWishlists(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+    // Auto-sync with first named list — create "Favorites" if none exist
+    setNamedLists(lists => {
+      if (!isCurrentlySaved) {
+        // Adding — ensure it's in the first/default list
+        if (lists.length === 0) {
+          return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }];
+        }
+        const first = lists[0];
+        if ((first.venueIds||[]).includes(id)) return lists;
+        return lists.map((l, i) => i === 0 ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
+      } else {
+        // Removing — remove from all named lists
+        return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
-      return p.includes(id) ? p.filter(x => x !== id) : [...p, id];
     });
-  }, [setWishlists]);
+  }, [wishlists, setWishlists, setNamedLists]);
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
