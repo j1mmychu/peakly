@@ -5150,11 +5150,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "Best Right Now" — personalized + respects active category filter
+  // Hero card: always the single highest-scoring venue from the pool
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
-  const bestStrict = [...bestPool]
-    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+  const heroPick = [...bestPool].sort((a, b) => {
+    const aBoost = userSports.includes(a.category) ? 15 : 0;
+    const bBoost = userSports.includes(b.category) ? 15 : 0;
+    return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
+  })[0] || null;
+
+  // "Best Right Now" carousel — GO venues only (80+), need >= 3 to show
+  const bestRightNow = [...bestPool]
+    .filter(l => l.conditionScore >= 80 && l.flight.price < 800)
     .sort((a, b) => {
       const aBoost = userSports.includes(a.category) ? 15 : 0;
       const bBoost = userSports.includes(b.category) ? 15 : 0;
@@ -5163,27 +5170,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return bVal - aVal;
     })
     .slice(0, 5);
-  const bestRightNow = bestStrict.length > 0
-    ? bestStrict
-    : [...bestPool].sort((a, b) => {
-        const aBoost = userSports.includes(a.category) ? 15 : 0;
-        const bBoost = userSports.includes(b.category) ? 15 : 0;
-        return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-      }).slice(0, 5);
-
-  // Both "All" and sport tabs: always show top 5 picks.
-  const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
-  const sportTopPicks = activeCat !== "all"
-    ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
-    : [];
-  const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
 
   const filtered = applyFilters(listings, activeCat, filters, search);
-  const firingIds = new Set(firingTab.map(l => l.id));
-  const bestNowIds = new Set(bestRightNow.map(l => l.id));
-  const gridListings = activeCat === "all"
-    ? filtered.filter(l => !firingIds.has(l.id) && !bestNowIds.has(l.id))
-    : filtered;
+  // Exclude hero + Best Right Now venues from the grid to avoid duplicates
+  const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
+  const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
@@ -5342,8 +5333,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && bestRightNow.length > 0 && !showSaved && (() => {
-          const hero = bestRightNow[0];
+        {!loading && heroPick && !showSaved && (() => {
+          const hero = heroPick;
           const verdict = getGoVerdict(hero.conditionScore);
           return (
             <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden",
@@ -5429,8 +5420,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── Best Right Now carousel ── */}
-        {!loading && bestRightNow.length > 1 && (
+        {/* ── Best Right Now carousel — only shows when >= 3 GO venues (80+) ── */}
+        {!loading && bestRightNow.length >= 3 && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
@@ -5512,8 +5503,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
                   <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
                   <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
-                    {bestRightNow.length > 0
-                      ? `But ${bestRightNow[0].title} looks promising in the coming weeks and flights are still $${bestRightNow[0].flight.price}.`
+                    {heroPick
+                      ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
                       : "Conditions are quiet across the board right now."}
                   </div>
                   <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
