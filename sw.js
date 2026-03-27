@@ -1,5 +1,5 @@
 // Peakly Service Worker — lightweight cache-first for static assets
-const CACHE_NAME = "peakly-v7";
+const CACHE_NAME = "peakly-v8";
 const PRECACHE = [
   "/peakly/app.jsx"
 ];
