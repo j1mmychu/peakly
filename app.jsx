@@ -3009,7 +3009,7 @@ async function fetchMarine(lat, lon) {
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
     `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
-    `wind_wave_height_max,wind_wave_period_max` +
+    `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
@@ -3023,6 +3023,9 @@ async function fetchMarine(lat, lon) {
 function scoreVenue(venue, wx, marine, dayIndex) {
   if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data" };
   const di = dayIndex || 0;
+  // If the requested day is beyond the forecast window, return unavailable
+  const forecastLen = wx.daily.temperature_2m_max?.length ?? 7;
+  if (di >= forecastLen) return { score:50, label:"Forecast unavailable", period:"Beyond 7-day forecast window" };
   const d = wx.daily;
   const md = marine?.daily;
 
@@ -3132,42 +3135,73 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       const light  = wind < 12;
       const blown  = wind > 20;
 
-      // Groundswell quality: long period + swell-dominant = clean, powerful waves
+      // Spot facing direction: the compass direction the break faces (waves come FROM)
+      // Default 270° (west-facing) if not specified on venue
+      const spotFacing = venue.facing ?? 270;
+
+      // ─── Swell direction vs spot orientation (fix #3) ───
+      // Angular difference between swell direction and spot facing
+      const swellAngleDiff = Math.abs(((swellDir - spotFacing) + 180) % 360 - 180);
+      const swellEfficiency = swellAngleDiff <= 45  ? 1.0   // direct hit
+                            : swellAngleDiff <= 90  ? 0.7   // oblique — reduce swell contribution 30%
+                            : 0.4;                           // sheltered — reduce 60%
+
+      // Effective swell height after orientation adjustment
+      const effectiveSwellH = swellH * swellEfficiency;
+
+      // ─── Groundswell quality: long period + swell-dominant = clean, powerful waves ───
       const groundswellQuality = swellPer > 14 ? 1.15
                                 : swellPer > 12 ? 1.08
                                 : swellPer > 10 ? 1.0
                                 : swellPer > 8  ? 0.9
                                 : 0.75;
 
-      // Base from swell height (using swell, not total wave, for accuracy)
-      if      (swellH > 3.5) score = 88;
-      else if (swellH > 2.5) score = 80;
-      else if (swellH > 1.8) score = 72;
-      else if (swellH > 1.2) score = 63;
-      else if (swellH > 0.7) score = 50;
-      else                    score = 30;
+      // Base from effective swell height (orientation-adjusted)
+      if      (effectiveSwellH > 3.5) score = 88;
+      else if (effectiveSwellH > 2.5) score = 80;
+      else if (effectiveSwellH > 1.8) score = 72;
+      else if (effectiveSwellH > 1.2) score = 63;
+      else if (effectiveSwellH > 0.7) score = 50;
+      else                             score = 30;
 
       // Period quality multiplier (long period = more power per foot)
       score = score * groundswellQuality;
+
+      // ─── SwellRatio: clean groundswell vs wind swell dominance (fix #8) ───
+      if (swellRatio > 0.7) score += 4;      // clean groundswell dominant — bonus
+      else if (swellRatio < 0.4) score -= 6; // mostly wind swell — choppy, penalty
 
       // Wind chop penalty: high wind waves relative to swell = messy
       if (windWaveH > swellH * 0.6) score -= 8;       // wind swell dominant = messy
       else if (windWaveH > swellH * 0.3) score -= 3;
 
-      // Surface conditions from wind
-      if (glassy) score += 6;                    // glass-off = dream
-      else if (light) score += 2;                // light texture, rideable
-      else if (blown) score -= 12;               // blown out
-      if (gusts > 30 && !glassy) score -= 4;     // gusty onshore = choppy
+      // ─── Wind direction: offshore vs onshore (fix #2) ───
+      // Offshore wind (blowing FROM same direction as swell) = ideal; onshore = bad
+      // Angular diff between wind direction and swell direction
+      const windSwellDiff = Math.abs(((windDir - swellDir) + 180) % 360 - 180);
+      if (windSwellDiff < 30) {
+        // Wind is blowing from the same direction as swell = offshore = clean up faces
+        score += 10;
+      } else if (windSwellDiff < 60) {
+        score += 6;  // mostly offshore, slight angle
+      } else if (windSwellDiff > 150) {
+        // Wind blowing the same way waves travel = onshore = messy choppy
+        score -= 12;
+      } else if (windSwellDiff > 120) {
+        score -= 6;  // mostly onshore
+      } else {
+        // Cross-shore: minor penalty
+        score -= 3;
+      }
+      // Override: if glassy (very light wind), wind direction matters less
+      if (glassy) { score += 6; }  // glass-off overrides direction penalty
+      else if (blown && windSwellDiff > 120) score -= 4; // double penalty: strong + onshore
 
       // Overhead+ danger for average surfers (>2.5m swell)
       if (swellH > 4) score -= 5;               // expert only
       if (swellH > 6) score -= 10;              // XXL / tow-in territory
 
-      // Water temperature comfort (if marine data provides it)
-      // NOTE: Wind direction (offshore vs onshore) would dramatically improve surf scoring
-      // but is not available from Open-Meteo marine API. windDir from weather is land-level
-      // 10m wind direction, not reliable for surf break orientation analysis.
+      // Water temperature comfort
       if (waterTemp !== null) {
         if (waterTemp > 24) score += 4;          // tropical, boardshorts
         else if (waterTemp >= 20) score += 2;    // comfortable with spring suit
@@ -3178,14 +3212,14 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Rain doesn't ruin surf but low vis + runoff = dirty water
       if (rain > 15) score -= 4;
 
-      const windLabel = glassy ? "Glassy" : light ? "Light offshore" : blown ? "Choppy onshore" : `${wind.toFixed(0)}mph`;
+      const windLabel = glassy ? "Glassy" : light ? "Light wind" : blown ? "Choppy" : `${wind.toFixed(0)}mph`;
       const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
-      label = swellH > 0.7
+      label = effectiveSwellH > 0.7
         ? `${fFt}ft ${perLabel} · ${windLabel}`
         : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
-      period = swellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : swellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
-             : swellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
+      period = effectiveSwellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : effectiveSwellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
+             : effectiveSwellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
              : (tmrwWaveH > 0.7 ? "Swell incoming" : "Flat — check back");
       break;
     }
@@ -3392,26 +3426,52 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "fishing": {
       const calm = wind < 15 && waveH < 1;
       const lightW = wind < 12;
-      const mo = new Date().getMonth() + 1;
+      const mo = new Date().getMonth() + 1; // 1-12
       const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
-      // Barometric pressure drops = fish feed more (rain approaching = good)
+
+      // ─── Seasonal / species bonuses (fix #4) ───
+      // peakMonths on venue: array of peak month numbers, e.g. [3,4,5,9,10]
+      const venuePeakMonths = venue.peakMonths ?? null;
+      const inPeakSeason = venuePeakMonths ? venuePeakMonths.includes(mo) : false;
+
+      // Tropical / reef fishing: bonus during calmer (non-monsoon) months
+      const isTropical = venue.subtype === "reef" || venue.subtype === "tropical";
+      const tropicalCalm = isTropical && (mo <= 4 || mo >= 11); // Nov–Apr calm season
+
+      // River / fly fishing: bonus during hatch seasons (Mar–May, Sep–Oct)
+      const isFly = venue.subtype === "fly" || venue.subtype === "river";
+      const hatchSeason = isFly && (mo >= 3 && mo <= 5 || mo >= 9 && mo <= 10);
+
+      // Barometric pressure proxy: falling pressure = fish feeding actively
+      // Proxy: rain probability 40–75% with light precip = frontal approach = active feeding
       const feedWindow = precipPct > 40 && precipPct < 75 && precip < 5;
+      // Hard rain / storm kills bite
+      const stormFront = precipPct > 85 || rain > 15;
 
       score = peak && calm ? 96
             : peak ? 85
+            : inPeakSeason && calm && feedWindow ? 88 + bestDays
+            : inPeakSeason && calm ? 82 + bestDays
+            : tropicalCalm && calm ? 84 + bestDays
+            : hatchSeason && calm ? 82 + bestDays
             : calm && feedWindow ? 80 + bestDays
             : calm ? 72 + bestDays
             : lightW ? 62
             : 48;
 
+      if (inPeakSeason && !peak) score += 4;  // peak season bonus
+      if (hatchSeason) score += 4;            // hatch season = surface action
+      if (feedWindow) score += 3;             // actively feeding due to pressure drop
+      if (stormFront) score -= 10;            // post-front lockjaw
       if (gusts > 25) score -= 6;
-      if (rain > 10) score -= 8;             // washout
-      if (tempMax < 35) score -= 4;          // ice/danger
+      if (tempMax < 35) score -= 4;           // ice/danger
       if (sunHrs < 3 && !feedWindow) score -= 3;
 
-      const biteLabel = feedWindow ? "Active bite" : calm ? "Good conditions" : "Choppy";
+      const biteLabel = stormFront ? "Storm — poor bite" : feedWindow ? "Active bite" : inPeakSeason || hatchSeason ? "Peak season" : calm ? "Good conditions" : "Choppy";
       label = peak ? `King Salmon run · ${biteLabel}` : `${tempMax}°F · ${biteLabel} · ${wind.toFixed(0)}mph`;
       period = peak ? "Peak run this week"
+             : hatchSeason ? `Hatch season — dry fly action${feedWindow ? " · feeding" : ""}`
+             : inPeakSeason ? `Peak season${calm ? " · " + Math.min(bestDays, 5) + " fishable days" : ""}`
              : feedWindow ? `Front moving in — fish feeding${bestDays > 1 ? " · " + bestDays + "d" : ""}`
              : calm ? `${Math.min(bestDays, 5)} fishable days`
              : "Wait for calmer water";
@@ -3447,8 +3507,24 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "hiking": {
       const dry = precip < 2 && precipPct < 40;
       const dryish = precip < 5;
-      const idealTemp = tempMax > 45 && tempMax < 85;
-      const hotHike = tempMax >= 85 && tempMax < 100;
+
+      // ─── Elevation awareness (fix #5) ───
+      // venue.elevation in metres if available; otherwise estimate from lat (rough proxy)
+      const elevM = venue.elevation ?? 0;
+      // Temperature lapse rate: -6.5°C per 1000m above sea level
+      const tempLapseC = (elevM / 1000) * 6.5;
+      const tempLapseF = tempLapseC * 9 / 5;
+      // Effective summit temp estimate
+      const summitTempMax = tempMax - tempLapseF;
+      // Alpine zone: above 2000m
+      const isAlpine = elevM > 2000;
+      const aboveTreeline = elevM > 3000;
+      // Shoulder season snow risk (Mar–May, Sep–Nov above treeline)
+      const shoulderMo = [3,4,5,9,10,11].includes(new Date().getMonth() + 1);
+      const snowRisk = aboveTreeline && shoulderMo;
+
+      const idealTemp = summitTempMax > 45 && summitTempMax < 85;
+      const hotHike = summitTempMax >= 85 && summitTempMax < 100;
 
       score = dry && idealTemp && wind < 15 ? 86 + Math.min(10, bestDays * 2)
             : dry && idealTemp ? 78
@@ -3458,18 +3534,28 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : 35;
 
       if (sunHrs > 8 && idealTemp) score += 3;  // scenic day
-      if (tempMax > 100) score -= 10;            // heat danger
+      if (summitTempMax > 100) score -= 10;      // heat danger
       if (gusts > 30) score -= 6;                // exposed ridge danger
       else if (wind > 20) score -= 3;
       if (precipPct > 70) score -= 8;            // lightning risk
-      if (uv > 10) score -= 2;                   // sun exposure risk at altitude
 
-      const trailNote = wind > 20 ? " · Windy ridges" : uv > 9 ? " · High UV" : "";
-      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${trailNote}` : `${precipPct}% rain · ${tempMax}°F`;
+      // Altitude UV: UV increases ~10% per 1000m
+      const altitudeUV = uv * (1 + elevM / 10000);
+      if (altitudeUV > 11) score -= 3;           // extreme UV at altitude
+      else if (altitudeUV > 9) score -= 1;
+
+      // Alpine-specific hazards
+      if (isAlpine && wind > 25) score -= 5;     // exposed above treeline = dangerous
+      if (snowRisk) score -= 6;                  // shoulder-season snow above treeline
+      if (isAlpine && summitTempMax < 32) score -= 8; // freezing summit = technical gear required
+
+      const elevNote = isAlpine ? ` · Summit ~${Math.round(summitTempMax)}°F` : "";
+      const trailNote = wind > 20 ? " · Windy ridges" : altitudeUV > 9 ? " · High UV" : snowRisk ? " · Snow risk above treeline" : "";
+      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${elevNote}${trailNote}` : `${precipPct}% rain · ${tempMax}°F${elevNote}`;
       period = dry && bestDays > 3 ? `${bestDays}-day hiking window`
              : dry && bestDays > 1 ? "Clear through tomorrow"
              : dry ? "Good today — rain coming"
-             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : " in ${bestDays}d"}`;
+             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : ` in ${bestDays}d`}`;
       break;
     }
 
@@ -3477,7 +3563,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
-  return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
+  return { score: Math.round(Math.min(100, Math.max(5, score))), label, period };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
@@ -8652,7 +8738,7 @@ function App() {
   }, [loading, profile.homeAirport, profile.homeAirport2]);
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
-  const scoreDayIndex = filters.startDate ? Math.max(0, Math.min(6, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000))) : 0;
+  const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
