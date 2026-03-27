@@ -5149,6 +5149,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           <button onClick={() => setShowAllCats(true)} className="pill" style={{
             padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
             border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
+            marginRight:16, flexShrink:0,
           }}>+ More</button>
         )}
         {/* Saved quick-access */}
