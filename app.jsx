@@ -164,7 +164,7 @@ const CATEGORIES = [
   { id:"hiking",  label:"Hiking",     emoji:"🥾" },
   { id:"diving",  label:"Diving",     emoji:"🤿" },
   { id:"climbing",label:"Climbing",   emoji:"🧗" },
-  { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
+  { id:"tanning", label:"Beach",      emoji:"🏖️" },
   { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
   { id:"kayak",   label:"Kayak",     emoji:"🛶" },
   { id:"mtb",     label:"MTB",       emoji:"🚵" },
@@ -5152,14 +5152,16 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Hero card: always the single highest-scoring venue from the pool
+  // Hero card: highest-scoring venue that has REAL weather data loaded
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
-  const heroPick = [...bestPool].sort((a, b) => {
-    const aBoost = userSports.includes(a.category) ? 15 : 0;
-    const bBoost = userSports.includes(b.category) ? 15 : 0;
-    return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-  })[0] || null;
+  const heroPick = [...bestPool]
+    .filter(l => l.conditionLabel !== "Checking conditions…")
+    .sort((a, b) => {
+      const aBoost = userSports.includes(a.category) ? 15 : 0;
+      const bBoost = userSports.includes(b.category) ? 15 : 0;
+      return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
+    })[0] || null;
 
   // "Best Right Now" carousel — GO venues only (80+), need >= 3 to show
   const bestRightNow = [...bestPool]
@@ -5337,13 +5339,25 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
+        {!loading && !showSaved && !heroPick && (
+          /* Skeleton while weather is still fetching for first venues */
+          <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div className="shimmer" style={{ height:140 }} />
+            <div style={{ padding:16 }}>
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"45%", marginBottom:10 }} />
+              <div className="shimmer" style={{ height:20, borderRadius:6, width:"70%", marginBottom:8 }} />
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"50%" }} />
+            </div>
+          </div>
+        )}
         {!loading && heroPick && !showSaved && (() => {
           const hero = heroPick;
+          const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
           return (
             <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden",
               background:"#fff",
-              border:`2px solid ${verdict.color}33`,
+              border: weatherLoaded ? `2px solid ${verdict.color}33` : "2px solid #f0f0f0",
               boxShadow:"0 2px 12px rgba(0,0,0,0.08)",
             }} onClick={() => onOpenDetail(hero)} className="card">
               {/* Hero photo */}
@@ -5358,16 +5372,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       Your best window right now
                     </div>
                   </div>
-                  <div style={{ position:"absolute", top:8, right:8 }}>
-                    <GoVerdictBadge score={hero.conditionScore} size="lg" />
-                  </div>
+                  {weatherLoaded && (
+                    <div style={{ position:"absolute", top:8, right:8 }}>
+                      <GoVerdictBadge score={hero.conditionScore} size="lg" />
+                    </div>
+                  )}
                 </div>
               )}
               <div style={{ padding:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                 <div>
                   {!hero.photo && (
-                    <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color: weatherLoaded ? verdict.color : "#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                       Your best window right now
                     </div>
                   )}
@@ -5376,13 +5392,19 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
                 </div>
-                {!hero.photo && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
+                {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
               </div>
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
-                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                  {weatherLoaded ? (
+                    <>
+                      <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                    </>
+                  ) : (
+                    <div className="shimmer" style={{ height:12, borderRadius:6, marginTop:6, marginBottom:4 }} />
+                  )}
                 </div>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
