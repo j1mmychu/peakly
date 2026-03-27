@@ -124,10 +124,10 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     @keyframes scoreCount { from{opacity:0;transform:scale(0.7) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
-    .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
+    .sheet { animation: sheetUp 0.44s cubic-bezier(0.32,1.2,0.4,1); will-change: transform; }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
-    .sheet-exit { animation: sheetDown 0.28s cubic-bezier(0.4,0,1,1) forwards; }
-    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(100%)} }
+    .sheet-exit { animation: sheetDown 0.3s cubic-bezier(0.4,0,0.8,1) forwards; will-change: transform; }
+    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(105%)} }
     .backdrop { animation: bdFade 0.22s ease; }
     @keyframes bdFade { from{opacity:0} to{opacity:1} }
     .backdrop-exit { animation: bdFadeOut 0.28s ease forwards; }
@@ -4142,7 +4142,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Go/No-Go verdict + flight deal */}
         <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
-          <GoVerdictBadge score={listing.conditionScore} />
+          {listing.conditionLabel !== "Checking conditions…" && <GoVerdictBadge score={listing.conditionScore} />}
           <div style={{
             background:"#fff", borderRadius:20, padding:"3px 8px",
             display:"flex", alignItems:"center", gap:3,
@@ -4153,7 +4153,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               ${listing.flight.price}
             </span>
           </div>
-          {listing.conditionScore >= 85 && (
+          {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
             <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
               <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>🔥 TRENDING</span>
             </div>
@@ -4331,9 +4331,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         }}>{saved ? "❤️" : "🤍"}</button>
 
         {/* Go/No-Go verdict */}
-        <div style={{ position:"absolute", top:5, left:5 }}>
-          <GoVerdictBadge score={listing.conditionScore} />
-        </div>
+        {listing.conditionLabel !== "Checking conditions…" && (
+          <div style={{ position:"absolute", top:5, left:5 }}>
+            <GoVerdictBadge score={listing.conditionScore} />
+          </div>
+        )}
 
         {/* Condition label */}
         <div style={{
@@ -5205,40 +5207,42 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills — 2 default + "+" */}
-      <div style={{ display:"flex", gap:6, padding:"8px 14px 8px 14px", paddingRight:24, overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
-        {visibleCats.map(c => (
-          <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-            onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
-            aria-label={`Filter by ${c.label}`}
-            aria-pressed={activeCat === c.id}
-            style={{
-              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
-              background: activeCat === c.id ? "#222" : "#f5f5f5",
-              color: activeCat === c.id ? "#fff" : "#555",
-              border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
-              fontSize:12, fontWeight:700, fontFamily:F,
-          }}>
-            {c.emoji} {c.label}
-          </button>
-        ))}
+      {/* Category pills — scrollable area + pinned "+ More" button */}
+      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0 }}>
+        <div style={{ flex:1, display:"flex", gap:6, padding:"8px 0 8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", alignItems:"center", minWidth:0 }}>
+          {visibleCats.map(c => (
+            <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
+              onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+              aria-label={`Filter by ${c.label}`}
+              aria-pressed={activeCat === c.id}
+              style={{
+                padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0,
+                background: activeCat === c.id ? "#222" : "#f5f5f5",
+                color: activeCat === c.id ? "#fff" : "#555",
+                border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
+                fontSize:12, fontWeight:700, fontFamily:F,
+            }}>
+              {c.emoji} {c.label}
+            </button>
+          ))}
+          {/* Saved quick-access */}
+          {savedCount > 0 && (
+            <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
+              padding:"7px 12px", borderRadius:20, cursor:"pointer", flexShrink:0,
+              background: showSaved ? "#fee2e2" : "#f5f5f5",
+              border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
+              fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+            }}>
+              ❤️ {savedCount}
+            </button>
+          )}
+        </div>
         {!showAllCats && (
-          <button onClick={() => setShowAllCats(true)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
+          <button onClick={() => { setShowAllCats(true); haptic(); }} className="pill" style={{
+            flexShrink:0, padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
             border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
-            marginRight:16, flexShrink:0,
+            margin:"0 10px 0 6px", whiteSpace:"nowrap",
           }}>+ More</button>
-        )}
-        {/* Saved quick-access */}
-        {savedCount > 0 && (
-          <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", marginLeft:"auto",
-            background: showSaved ? "#fee2e2" : "#f5f5f5",
-            border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-            fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
-          }}>
-            ❤️ {savedCount}
-          </button>
         )}
       </div>
 
@@ -6115,6 +6119,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
   const [editMode,          setEditMode]          = useState(false);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
+  const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
   const toggleSport = id => setProfile(p => ({
@@ -6277,22 +6282,42 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
                 <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
                 {navigator.geolocation && (
-                  <button className="pressable" onClick={() => {
-                    setDetectingLocation(true);
-                    navigator.geolocation.getCurrentPosition(
-                      pos => {
-                        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-                        const already = (profile.homeAirports || []).includes(code);
-                        if (!already && (profile.homeAirports || []).length < 3) {
-                          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-                        }
-                        setDetectingLocation(false);
-                      },
-                      () => setDetectingLocation(false)
-                    );
-                  }} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
+                  <button className="pressable" onClick={() => setGeoPromptOpen(true)} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
                     {detectingLocation ? "Detecting…" : "📍 Detect"}
                   </button>
+                )}
+                {/* Geo permission explainer */}
+                {geoPromptOpen && (
+                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => setGeoPromptOpen(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{ width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 36px", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
+                      <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 20px" }} />
+                      <div style={{ fontSize:28, textAlign:"center", marginBottom:8 }}>📍</div>
+                      <div style={{ fontSize:17, fontWeight:800, color:"#222", fontFamily:F, textAlign:"center", marginBottom:8 }}>Find your nearest airport</div>
+                      <div style={{ fontSize:13, color:"#666", fontFamily:F, textAlign:"center", lineHeight:1.5, marginBottom:24 }}>
+                        To find cheap flights from your nearest airport, Peakly needs your location. Your location is only used to match you with the closest airport — it's never stored or shared.
+                      </div>
+                      <button className="pressable" onClick={() => {
+                        setGeoPromptOpen(false);
+                        setDetectingLocation(true);
+                        navigator.geolocation.getCurrentPosition(
+                          pos => {
+                            const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+                            const already = (profile.homeAirports || []).includes(code);
+                            if (!already && (profile.homeAirports || []).length < 3) {
+                              setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
+                            }
+                            setDetectingLocation(false);
+                          },
+                          () => setDetectingLocation(false)
+                        );
+                      }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
+                        Allow Location Access
+                      </button>
+                      <button onClick={() => setGeoPromptOpen(false)} style={{ width:"100%", background:"none", border:"1.5px solid #e8e8e8", borderRadius:14, padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F }}>
+                        Skip — I'll enter manually
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
@@ -6621,7 +6646,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             fontSize:13, fontWeight:700, fontFamily:F, marginBottom:32,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
-            🚪 Sign Out
+            Sign Out
           </button>
         )}
         {hasAccount && signOutConfirm && (
@@ -7417,13 +7442,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     const dy = d.currentY - d.startY;
     if (dy > 120) {
       if (sheetRef.current) {
-        sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
-        sheetRef.current.style.transition = "transform 0.25s cubic-bezier(0.4,0,1,1)";
+        sheetRef.current.style.transform = "translateX(-50%) translateY(105%)";
+        sheetRef.current.style.transition = "transform 0.3s cubic-bezier(0.4,0,0.8,1)";
       }
-      setTimeout(onClose, 240);
+      setTimeout(onClose, 280);
     } else if (sheetRef.current) {
-      sheetRef.current.style.transform = "translateX(-50%)";
-      sheetRef.current.style.transition = "transform 0.38s cubic-bezier(0.34,1.56,0.64,1)";
+      sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
+      sheetRef.current.style.transition = "transform 0.42s cubic-bezier(0.32,1.2,0.4,1)";
     }
   }, [onClose]);
   const d  = rawWx?.daily;
