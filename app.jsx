@@ -5115,6 +5115,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(30);
   const scrollRef = useRef(null);
   const touchStartY = useRef(0);
   const pullDistRef = useRef(0);
@@ -5219,7 +5220,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-            onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
             aria-label={`Filter by ${c.label}`}
             aria-pressed={activeCat === c.id}
             style={{
@@ -5526,7 +5527,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {loading
             ? Array(isAll ? 9 : 4).fill(0).map((_, i) => <SkeletonCard key={i} />)
             : gridListings.length > 0
-              ? gridListings.map(l =>
+              ? gridListings.slice(0, visibleCount).map(l =>
                   isAll
                     ? <CompactCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
@@ -5557,6 +5558,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               )
           }
         </div>
+        {/* Show more button */}
+        {!loading && gridListings.length > visibleCount && (
+          <div style={{ padding:"8px 14px 16px", textAlign:"center" }}>
+            <button onClick={() => setVisibleCount(v => v + 30)} className="pressable" style={{
+              background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:12,
+              padding:"12px 24px", fontSize:13, fontWeight:700, color:"#222",
+              fontFamily:F, cursor:"pointer", width:"100%",
+            }}>
+              Show more ({gridListings.length - visibleCount} remaining)
+            </button>
+          </div>
+        )}
         {/* Email capture */}
         <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
           <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
