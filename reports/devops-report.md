@@ -1,7 +1,7 @@
-# Peakly DevOps Report — 2026-03-27
+# Peakly DevOps Report — 2026-03-28
 
 **Overall Status: YELLOW**
-No outages. HTTPS proxy live. Sentry live. Weather cache live. Three issues requiring immediate action: (1) TP_MARKER still placeholder — earning $0 on all flight affiliate clicks, (2) photo duplication is severe — CLAUDE.md "0% duplication" claim is false, and (3) app.jsx grew 43% overnight and is now 1.25 MB raw, degrading Babel parse time on mobile.
+No outages. HTTPS proxy live. Sentry live. Weather cache live. Four issues requiring action: (1) TP_MARKER still placeholder — earning $0 on all flight affiliate clicks, (2) photo duplication is severe and unresolved — top ID reused 204×, (3) cache buster and SW version 2 days stale, (4) Open-Meteo free tier breaks at ~50 DAU — must upgrade before any growth push.
 
 ---
 
@@ -215,7 +215,11 @@ The single highest-risk silent failure is Open-Meteo hitting 10K calls/day at ~1
 |---|---|---|---|---|
 | P0 | Jack | Set real TP_MARKER in app.jsx (Travelpayouts dashboard) | 5 min | ⏳ PENDING |
 | P0 | Dev | Fix photo duplication across 2,226-venue expansion | 2–4 hrs | ⏳ PENDING |
+| P1 | Dev | Bump cache-buster to `v=20260328a` + SW to `peakly-20260328` | 2 min | ⏳ PENDING |
+| P1 | Jack | Buy Open-Meteo commercial plan ($29/mo) before growth push | 5 min | ⏳ PENDING |
+| P1 | Dev | Increase WX_CACHE_TTL to 2 hours (rate-limit buffer) | 1 min | ⏳ PENDING |
 | P1 | Dev | Pin React/ReactDOM to 18.3.1 in index.html | 2 min | ⏳ PENDING |
+| P2 | Dev | Fix SW PRECACHE to include `?v=...` query param | 5 min | ⏳ PENDING |
 | P2 | Dev | Add rate limiting to VPS Caddy config | 20 min | ⏳ PENDING |
 | P2 | Dev | Update Plausible domain to peakly.app before DNS switch | 30 sec | BLOCKED (domain) |
 | Future | Dev | Server-side weather cache proxy on VPS (pre-growth) | 2 hrs | ⏳ PENDING |
@@ -232,4 +236,8 @@ The single highest-risk silent failure is Open-Meteo hitting 10K calls/day at ~1
 | React unpinned | ⏳ PENDING | ⏳ STILL PENDING |
 | Plausible domain | ⏳ PENDING | ⏳ STILL PENDING |
 | VPS Node.js flight LRU cache | ⏳ PENDING | ⏳ STILL PENDING |
-| Photo duplication | Claimed 0% in CLAUDE.md | ❌ FALSE — 203× worst case |
+| Photo duplication | Claimed 0% in CLAUDE.md | ❌ FALSE — 204× worst case (confirmed today) |
+| Cache-buster staleness | Not checked 3/27 | ❌ `v=20260326a` — 2 days stale, needs bump |
+| SW version | Not checked 3/27 | ❌ `peakly-20260326` — stale, must bump alongside cache buster |
+| SW PRECACHE query param | Not checked 3/27 | ❌ SW caches bare `/peakly/app.jsx` but requests use `?v=...` — SW never hits for main file |
+| Open-Meteo at scale | Estimated safe to ~300 DAU | ⚠️ Re-confirmed: breaks at ~50 DAU on cold load (200 calls/session) |
