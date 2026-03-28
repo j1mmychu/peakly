@@ -1,109 +1,158 @@
-# Peakly Data Enrichment Report — 2026-03-27
+# Peakly Data Enrichment Report -- 2026-03-27 (Updated)
 
 ## Summary
 
-- **Total venues:** 2,226 (target: 200+ — EXCEEDED)
-- **Photo coverage:** 100% (2,226/2,226)
-- **Duplicate IDs:** 0
-- **Duplicate photos:** 52 photo URLs shared across 104+ venues
-- **Data completeness (all required fields + ≥3 tags):** 82.0% (1,826/2,226)
-- **Venues missing `best` field (best months):** 2,226/2,226 — no venue has this field
+- **Total venues:** 2,226 (target 200+ -- EXCEEDED)
+- **Categories:** 11, all SATURATED (200+ each)
+- **Photo coverage:** 100% of venues have a photo URL
+- **Unique base Unsplash photos:** ~176 (CRITICAL -- see below)
+- **Duplicate full photo URLs:** 55 exact URL duplicates
+- **Data completeness score:** 62% (10 of 16 spec'd fields present)
+- **Unique countries/regions:** ~180
 
 ---
 
-## Category Breakdown
+## 1. Category Health
 
 | Category | Count | Status |
 |----------|-------|--------|
-| tanning | 205 | SATURATED |
-| diving | 205 | SATURATED |
-| skiing | 204 | SATURATED |
-| climbing | 204 | SATURATED |
-| surfing | 203 | SATURATED |
-| fishing | 202 | SATURATED |
-| kayak | 201 | SATURATED |
-| mtb | 201 | SATURATED |
-| paraglide | 201 | SATURATED |
-| kite | 200 | SATURATED |
-| hiking | 200 | SATURATED |
+| Tanning (Beach) | 205 | SATURATED |
+| Diving | 205 | SATURATED |
+| Skiing | 204 | SATURATED |
+| Climbing | 204 | SATURATED |
+| Surfing | 203 | SATURATED |
+| Fishing | 202 | SATURATED |
+| Paraglide | 201 | SATURATED |
+| MTB | 201 | SATURATED |
+| Kayak | 201 | SATURATED |
+| Kite | 200 | SATURATED |
+| Hiking | 200 | SATURATED |
 
-All 11 categories are well above the 10-venue HEALTHY threshold. No STUB categories remain. Distribution is remarkably even (~200 each). No new venue additions needed at this time.
-
----
-
-## Geographic Diversity
-
-| Continent | Venues | Share |
-|-----------|--------|-------|
-| North America | 675 | 30.3% |
-| Europe | 661 | 29.7% |
-| Asia | 301 | 13.5% |
-| South America | 190 | 8.5% |
-| Oceania | 183 | 8.2% |
-| Africa | 181 | 8.1% |
-
-All continents represented. North America and Europe dominate (~60% combined), which tracks with the target user base. South America, Oceania, and Africa are thin but present. No continent has zero representation.
+All 11 categories are well above the 10-venue HEALTHY threshold. Distribution is remarkably even (200-205 per category). No STUB categories remain. No new venue additions recommended.
 
 ---
 
-## Data Quality Issues (Priority Order)
+## 2. Photo Coverage
 
-### 1. CRITICAL — 52 Duplicate Photo URLs
+- **Venues with photo URL:** 2,226 / 2,226 = 100%
+- **Unique full URLs (including crop params):** 2,171 (55 exact duplicates)
+- **Unique base Unsplash photo IDs:** ~176
 
-52 Unsplash photo URLs are reused across 104+ venues. Worst offenders by category:
+### CRITICAL: Massive Photo Reuse
 
-- **Kayak:** 1 photo (`photo-1523819088009`) used across 14+ kayak venues
-- **MTB:** 2 photos (`photo-1578001647043`, `photo-1512541405516`) each used 8-10 times
-- **Fishing:** 1 photo (`photo-1529961482160`) used across 12+ fishing venues
-- **Climbing:** 1 photo (`photo-1519904981063`) used across 4+ climbing venues
+While CLAUDE.md claims "0% photo duplication across all 2,226 venues," this is only true at the full-URL level. Different `fp-x`/`fp-y` crop coordinates on the same base photo create technically unique URLs. In reality, only **~176 distinct photographs** are used across 2,226 venues -- an average of **12.6 venues per unique photo**.
 
-**Impact:** Users scrolling kayak, MTB, or fishing listings see the same hero image repeatedly. Kills credibility. This is the #1 data quality issue.
+Top offenders (same base photo reused hundreds of times):
 
-**Fix:** Replace duplicated photos with unique Unsplash IDs. Roughly 52 new unique photo URLs needed.
+| Base Photo ID | Times Used | Likely Category |
+|---------------|-----------|-----------------|
+| `photo-1529961482160` | 203 | Fishing |
+| `photo-1523819088009` | 202 | Kayak |
+| `photo-1578001647043` | 110 | MTB/Climbing |
+| `photo-1512541405516` | 92 | General |
+| `photo-1559288804-29a8e7e43108` | 77 | Kite |
+| `photo-1544551763-77932f2f4648` | 75 | General |
+| `photo-1519904981063` | 73 | Climbing |
+| `photo-1578508461229` | 72 | Climbing |
+| `photo-1559291001-693fb9166cba` | 69 | Diving |
+| `photo-1621288546818` | 65 | General |
 
-### 2. HIGH — 400 Venues Have Only 2 Tags
-
-400 venues (18%) have only 2 tags. These are the original ~192 venues from the first data set that were never enriched when the expansion to 2,226 happened. Breakdown:
-
-- skiing: 204 venues with <5 tags (entire category)
-- climbing: 201 venues with <5 tags
-- hiking: 200 venues with <5 tags
-- kite: 197 venues with <5 tags
-- tanning: 60 venues with <5 tags
-- surfing: 53 venues with <5 tags
-
-**Impact:** Tags power the search/filter UX. 2-tag venues have worse discoverability and feel incomplete on the detail sheet.
-
-**Fix:** Enrich all 400 venues to 5 tags each. Estimated effort: scripted batch update.
-
-### 3. MEDIUM — `best` Field Missing on ALL 2,226 Venues
-
-The `best` field (best months to visit) is not present on any venue. The agent spec lists `bestMonths` as a required field, but the codebase doesn't currently use it.
-
-**Impact:** Low for now — the app uses live weather scoring rather than static best-months data. But this field would be valuable for the Forecast Horizon feature (Phase 3 vision) and SEO content.
-
-**Fix:** Defer until Forecast Horizon development begins. Not blocking any current feature.
+**User impact:** Browsing any single category (200+ venues) means seeing the same ~16 photos with slightly different crops. This makes the app feel auto-generated and undermines the "Steve Jobs-level quality" goal.
 
 ---
 
-## Data Completeness Score
+## 3. Geographic Diversity
 
-**82.0%** of venues pass all required field checks (id, category, title, location, lat, lon, ap, photo, gradient, icon, rating, reviews, tags >= 3).
+| Region | Approx. Venues | Share | Status |
+|--------|---------------|-------|--------|
+| North America (USA, Canada, Mexico, Caribbean) | ~550 | ~25% | HEAVY |
+| Europe (France, Spain, Italy, UK, Norway, etc.) | ~550 | ~25% | HEAVY |
+| Asia-Pacific (Indonesia, Thailand, Philippines, Japan, etc.) | ~350 | ~16% | HEALTHY |
+| Oceania (Australia, New Zealand, Fiji, etc.) | ~180 | ~8% | HEALTHY |
+| South America (Brazil, Chile, Peru, Argentina, etc.) | ~150 | ~7% | HEALTHY |
+| Africa (South Africa, Egypt, Kenya, Morocco, etc.) | ~150 | ~7% | HEALTHY |
+| Middle East (Turkey, UAE, Oman, Jordan) | ~50 | ~2% | THIN |
+| Central Asia (Kazakhstan, Kyrgyzstan, etc.) | ~20 | ~1% | THIN |
 
-The 18% that fail are exclusively due to having only 2 tags. No venues are missing core fields like coordinates, airport codes, or photos.
+No continent has zero representation. North America and Europe dominate at ~50% combined, which tracks with the target user base. South America and Africa are present with decent counts.
+
+**Location formatting inconsistencies:**
+- Some venues use US state names without "USA" (e.g., `"California"`, `"Hawaii"`, `"Alaska"`, `"Florida"`, `"Oregon"`)
+- Some have `"NSW"` instead of `"New South Wales, Australia"`
+- Duplicate country spellings: `"St Lucia"` vs `"St. Lucia"`, `"Turks & Caicos"` vs `"Turks and Caicos"`, `"Trinidad & Tobago"` vs `"Trinidad and Tobago"`
 
 ---
 
-## Recommendations (No New Venues Needed)
+## 4. Data Completeness Score
 
-Since all categories are SATURATED (200+ each), the daily additions target is moot. Instead, enrichment priority is:
+### Fields Present on All Venues (10/16 = 62%)
 
-1. **De-duplicate 52 photo URLs** — swap in unique Unsplash IDs for kayak, MTB, fishing, and climbing venues
-2. **Enrich 400 venues from 2 tags to 5 tags** — focus on skiing (204), climbing (201), hiking (200), kite (197) first
-3. **No new venues until post-launch** — per CLAUDE.md decisions, 2,226 is sufficient
+| Field | Coverage | Notes |
+|-------|----------|-------|
+| id | 100% | No venue-level duplicates |
+| category | 100% | |
+| title | 100% | |
+| location | 100% | Formatting inconsistent (see above) |
+| lat | 100% | |
+| lon | 100% | |
+| ap (airport code) | 100% | |
+| icon | 100% | |
+| rating | 100% | |
+| reviews | 100% | |
+| tags | 100% | All have 2+ tags |
+| photo | 100% | But only ~176 unique base photos |
+| gradient | 100% | |
+| accent | 100% | |
+
+### Fields Missing Entirely (0% coverage)
+
+| Field | Coverage | Impact |
+|-------|----------|--------|
+| **continent** | 0% | App uses AP_CONTINENT lookup instead -- no functional impact |
+| **description** | 0% | VenueDetailSheet has no venue-specific description. Hurts UX and vibe search. |
+| **difficulty** | 0% | Cannot filter by skill level from profile prefs |
+| **bestMonths** | 0% | Cannot show "best time to visit" -- core to "Know when to go" positioning |
+
+### Partial Coverage
+
+| Field | Coverage | Notes |
+|-------|----------|-------|
+| skiPass | ~50% of skiing venues | Ikon/Epic/Independent -- used for ski pass filter pills |
+| tags (5+) | ~82% | ~400 venues (original 192 set) have only 2 tags |
 
 ---
 
-## One Data Gap Hurting UX Right Now
+## 5. Duplicate IDs
 
-**Duplicate photos in kayak and MTB categories.** A user browsing kayak venues sees the same turquoise water kayak photo 14 times. It makes the expanded venue set feel auto-generated rather than curated. Fixing the 52 duplicate photos is the single highest-impact data quality improvement available today.
+No venue-level ID collisions in the VENUES array. IDs like `"all"`, `"score"`, `"skiing"` appear in grep results but belong to CATEGORIES and filter constants, not venues.
+
+---
+
+## 6. New Venue Additions
+
+**Not recommended this cycle.** All 11 categories are SATURATED at 200+. Adding more venues worsens the photo diversity problem and increases API load. Focus should be on enriching existing data quality.
+
+---
+
+## 7. One Data Gap Hurting UX Right Now
+
+**Photo diversity is the #1 data quality problem.** Only ~176 unique Unsplash photographs serve 2,226 venues. Users browsing any single category see the same ~16 photos with slightly different crops. This is the single most damaging quality issue -- it makes an otherwise polished app feel mass-produced.
+
+The previous report flagged "52 duplicate photo URLs" but this understated the problem by an order of magnitude. The true duplication is at the base photo ID level: 2,226 venues sharing 176 photos.
+
+---
+
+## Action Items (Priority Order)
+
+| Priority | Action | Effort | Impact |
+|----------|--------|--------|--------|
+| **P0** | Source 500+ new unique Unsplash photo IDs; assign 1 unique photo per venue for at least top 500 venues | High (scripted) | Eliminates the auto-generated feel |
+| **P1** | Enrich ~400 venues from 2 tags to 5+ tags | Medium (scripted) | Improves search, filtering, vibe matching |
+| **P1** | Add `description` field (40-80 words) to at least top 100 venues | Medium | Improves VenueDetailSheet and vibe search |
+| **P2** | Normalize location formatting (state-only -> state + country, spelling consistency) | Low | Cleaner data, better continent mapping |
+| **P2** | Add `bestMonths` field to all venues | Medium | Enables seasonal recommendations -- core to value prop |
+| **P3** | Add `difficulty` field | Low-Medium | Enables skill-based filtering from profile |
+
+---
+
+*Report generated 2026-03-27. Next run should verify photo deduplication progress.*

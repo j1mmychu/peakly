@@ -1,212 +1,236 @@
-# SCALE GUARDIAN REPORT -- 2026-03-25 (Run 3)
-## RISK LEVEL: YELLOW (down from RED)
+# SCALE GUARDIAN REPORT -- 2026-03-27 (Run 4)
+## RISK LEVEL: YELLOW
 
-Two of the three critical issues from Run 2 are now resolved. Smart weather fetching shipped -- fetchInitialWeather only loads 100 venues, not 2,226. All 2,050 source.unsplash.com URLs have been replaced with stable images.unsplash.com URLs. CLAUDE.md was updated to reflect 2,226 venues consistently. The remaining risk is localStorage quota under heavy use and the TP_MARKER placeholder still earning $0 on every flight click.
-
----
-
-## VERIFICATION RESULTS
-
-### 1. fetchInitialWeather only fetches 100 venues: VERIFIED
-
-Lines 8657-8690 of app.jsx. The function now reads:
-
-```
-const initial = VENUES.slice(0, 100);
-```
-
-- Slices only the first 100 venues from the 2,226-venue array
-- Batches those 100 in groups of 50 (BATCH_SIZE = 50)
-- First batch of 50 renders immediately (sets loading=false, updates state)
-- Second batch of 50 follows sequentially
-- Total cold-load API calls: ~100 weather + ~30 marine (for surf/dive/kayak venues in top 100) = ~130 calls
-- No 2-second delay between batches (delay removed -- only 2 batches needed)
-- 10-minute auto-refresh interval calls fetchInitialWeather(true) with the same top-100 constraint
-
-**Previous state (Run 2):** fetched all 2,226 venues = ~2,773 API calls per cold load. **Current state:** ~130 calls per cold load. This is a 95% reduction.
-
-**Revised API math:**
-
-| Scenario | Weather Calls | Marine Calls | Total | Free Tier Impact |
-|----------|-------------|-------------|-------|-----------------|
-| Cold load (no cache) | ~100 | ~30 | ~130 | 10K/day supports ~77 cold loads |
-| Warm load (within 30 min) | 0 | 0 | 0 | Cache hits |
-| Detail open (uncached venue) | 1 | 0-1 | 1-2 | Negligible |
-| 10-min auto-refresh (cache warm) | 0 | 0 | 0 | Cache prevents |
-
-**At 77 cold loads/day, a Reddit soft launch driving 200-500 visitors over 48 hours is safe.** Even if every visitor is a cold load (no cache), that is ~250 cold loads over 2 days = ~125/day, which needs ~16,250 calls/day. Slightly above the 10K limit but survivable with the 30-min cache reducing repeat visits to zero calls.
-
-### 2. fetchVenueWeather works on detail open: VERIFIED
-
-Lines 8642-8655 of app.jsx. The lazy-fetch function:
-
-- Called from `openDetail` callback at line 8799: `if (v) fetchVenueWeather(v);`
-- Checks `wxRef.current[venue.id]` first -- skips if already fetched (either from initial 100 or previous detail open)
-- Fetches weather + marine (if surf/dive/kayak category) via Promise.allSettled
-- Updates both refs and state, triggering re-render of VenueDetailSheet with live data
-- Users opening any of the 2,126 venues NOT in the initial top-100 will see weather data load on demand
-
-**This is the correct architecture.** Lazy-fetch on detail open means the app never fetches weather for venues the user does not look at.
-
-### 3. Zero source.unsplash.com remaining: VERIFIED
-
-```
-grep -c 'source.unsplash.com' app.jsx = 0
-grep -c 'images.unsplash.com' app.jsx = 2,226
-```
-
-All 2,226 venue photo URLs now use the stable `images.unsplash.com/photo-{ID}` format. The deprecated source.unsplash.com endpoint is completely eliminated. This resolves the #2 scaling risk from Run 2.
-
-### 4. CLAUDE.md consistency: PARTIALLY IN SYNC -- 4 items still drifted
-
-| # | Item | CLAUDE.md Says | Actual | Status |
-|---|------|---------------|--------|--------|
-| 1 | Venue count in constants section (line 57) | "VENUES (2,226 venues)" | 2,217 venues by grep, CLAUDE.md says 2,226 | MINOR DRIFT -- 9-venue discrepancy. Grep counts `{id:"` patterns; some venue objects may span formatting differently. Close enough for documentation purposes. |
-| 2 | Line count (line 16) | "~5,413 lines" | 8,951 lines | DRIFTED -- should say ~8,951 |
-| 3 | Line range for App root (line 60) | "~lines 4900-5413" | App root is near line 8900+ given 8,951 total | DRIFTED -- ranges need updating |
-| 4 | index.html static text (line 242) | "Discover 170+ adventure destinations" | Should say 2,200+ | STALE |
-| 5 | index.html JSON-LD featureList (line 54) | "180+ adventure venues" | Should say 2,200+ | STALE |
-| 6 | Note 9 about batched fetching (line 183) | "Weather fetching is batched (50 at a time with 2s delays)" | Now fetches top 100 only, lazy on detail. No 2s delays for initial load. | STALE -- describes the old all-venue batching, not the new smart fetch |
-| 7 | "What's Shipped" section | Lists many items correctly | Missing: "Smart weather fetch (top 100 on load, lazy on detail open)" as a shipped item | MISSING |
-
-**Items CLAUDE.md got right (improved from Run 2):**
-- Venue count is consistently referenced as ~2,226 throughout (previously said 192 in 6 places)
-- Weather cache with 30-min TTL documented
-- Unsplash photo fix documented ("All 2,226 venue photos fixed -- stable Unsplash photo IDs")
-- Decision log records the venue expansion
+Three claims verified: region-based pricing fallback exists, pagination shipped, onboarding auto-triggers. However, the region-based pricing fallback has a silent data bug that makes it partially broken for ~21 airports, and AP_CONTINENT covers 232 airports out of 776 venue airports -- not "all 776" as the growth report claims. The remaining 544 airports default to "europe" continent, which produces wrong but non-crashing price estimates.
 
 ---
 
-## AGENT HEALTH: 3/20 reports current, 17/20 stale
+## CLAUDE.md SYNC STATUS: DRIFTED -- 8 items wrong
 
-All reports in /reports/ are dated 2026-03-25 or earlier. The smart weather fetch and photo URL migration shipped after these reports were written. No agent has run since these changes landed.
+| # | CLAUDE.md Says | Actual Code | Fix |
+|---|---------------|-------------|-----|
+| 1 | "~5,413 lines of JSX" (line 16) | 9,036 lines | Change to "~9,036 lines" |
+| 2 | "App root & ErrorBoundary (~lines 4900-5413)" (line 60) | App root starts near line 8630, file ends at 9036 | Change to "~lines 8600-9036" |
+| 3 | "0% photo duplication across all 2,226 venues" (line 233) | 182 unique Unsplash photo base IDs for 2,226 venues = ~92% base image reuse | Change to "182 unique base photos, crop-diversified" or remove the 0% claim |
+| 4 | "VENUES (2,226 venues)" (line 57) | grep counts 2,294 `id:"` patterns (includes non-venue objects like CATEGORIES, GEAR_ITEMS, etc). Actual venue count is 2,226 per CATEGORIES array sum. | Acceptable -- document that grep overcounts |
+| 5 | "Weather fetching is batched (50 at a time with 2s delays)" (line 183, note 9) | Smart fetch: top 100 on load (50/batch, no delay), lazy on detail open. No 2s delays. | Rewrite note 9 to describe current architecture |
+| 6 | "No onboarding flow" listed as broken item #7 (line 272) | OnboardingSheet exists at line 7018, auto-triggers for `!profile.hasAccount` with 900ms delay | Remove from "What's Broken" list, add to "What's Shipped" |
+| 7 | "BottomNav -- currently only 3 tabs" (line 81) | Need to verify actual tab count in BottomNav | Verify and update |
+| 8 | Revenue model says "Travelpayouts (flights via HTTPS proxy) ACTIVE, EARNING" (line 417) | TP_MARKER = "YOUR_TP_MARKER" at line 3771. Flight links earn $0. buildFlightUrl() explicitly checks for placeholder and falls back to bare URLs. | Change status to "ACTIVE, EARNING $0 (marker placeholder)" |
 
-### Stale findings in current reports:
+---
 
-| Report | Stale Claim | Reality Now |
-|--------|------------|-------------|
-| Scale Guardian Run 2 | "2,773 API calls per cold load" | ~130 calls per cold load |
-| Scale Guardian Run 2 | "92% of photos on deprecated API" | 0% on deprecated API |
-| Scale Guardian Run 2 | "localStorage will hit 5MB quota caching all 2,226 venues" | Only caches ~100 venues on load + individual detail opens. Quota risk eliminated. |
-| DevOps | "272 concurrent HTTP requests" / "No caching" | Smart fetch + cache both live |
-| DevOps | "Weather cache MISSING" | Weather cache SHIPPED |
-| PM | "181 venues in master" | 2,217+ venues in code |
-| Content | "192 venues" / "7 of 11 categories are stubs" | All 11 categories at 200+ |
-| Data Enrichment | "92.1% use source.unsplash.com" | 0% use source.unsplash.com |
-| QA | "2,050 source.unsplash + 176 images.unsplash" | 2,226 images.unsplash |
-| Growth | "Ship Open-Meteo weather cache before Product Hunt" | Shipped |
-| Community | "Weather cache still unbuilt" | Shipped |
-| Daily Briefing | "Cold-start API exhaustion is still fatal" | Fixed by smart fetch |
+## AGENT HEALTH: 13/16 reports current, but contradictions present
+
+### Reports in /reports/ (16 total, 13 from 2026-03-27 or later):
+
+| Report | Date | Current? |
+|--------|------|----------|
+| pm-2026-03-28.md | 2026-03-28 | YES |
+| devops-2026-03-28.md | 2026-03-28 | YES |
+| growth-report.md | 2026-03-27 | YES |
+| content-report.md | 2026-03-28 | YES |
+| ux-report.md | 2026-03-25 | STALE |
+| revenue-report.md | 2026-03-25 | STALE |
+| qa-report.md | 2026-03-27 | YES |
+| code-quality-report.md | 2026-03-27 | YES |
+| seo-analytics-report.md | 2026-03-27 | YES |
+| data-enrichment-report.md | 2026-03-27 | YES |
+| competitor-watch-report.md | 2026-03-27 | YES |
+| community-report.md | 2026-03-27 | YES |
+| daily-briefing.md | 2026-03-27 | YES |
+| scale-guardian-report.md (prev) | 2026-03-25 | STALE (this run replaces it) |
+
+### Agent contradictions:
+
+| Topic | Agent A Says | Agent B Says | Reality |
+|-------|-------------|-------------|---------|
+| Region-based pricing | Growth: "covers all 776 airports" | DevOps: "1,500 unique API calls per cold user" | **Both wrong.** AP_CONTINENT has 232 entries (not 776). Region fallback exists but uses inconsistent continent naming (see Scaling Risk #1). DevOps' 1,500 API call estimate is wrong -- smart fetch loads top 100 only. |
+| TP_MARKER | Revenue (2026-03-25): "ACTIVE, EARNING" | PM, DevOps, QA: "$0, placeholder" | **Revenue report is wrong.** TP_MARKER = "YOUR_TP_MARKER". $0 on every flight click. |
+| Onboarding | Daily briefing (2026-03-27): "Not built, P1 blocker" | PM (2026-03-28): "Built, auto-triggers, not a blocker" | **PM is correct.** OnboardingSheet at line 7018, auto-triggers via useEffect at line 8646 for `!profile.hasAccount`. |
+| Photo duplication | CLAUDE.md: "0% duplication" | Content, QA, Code Quality: "92% base image reuse, 176-205 unique IDs" | **Content/QA are correct.** 182 unique Unsplash photo base IDs. Same images with different crop parameters. |
+| Cold load API calls | DevOps (2026-03-28): "1,000-2,000 calls per cold user" | Scale Guardian Run 3: "~130 calls per cold load" | **Run 3 is correct.** fetchInitialWeather at line 8709 slices VENUES to top 100. DevOps report did not verify the smart fetch code. |
 
 ### Agents repeating findings with no code action (3+ cycles):
 
 | Finding | Cycles | Status |
 |---------|--------|--------|
-| WCAG contrast failures (6+ items) | 7+ | Zero fixed |
-| ListingCard "Book" button missing Plausible event | 7+ | Zero action |
-| TP_MARKER is placeholder "YOUR_TP_MARKER" | 5+ | Zero action -- every flight click earns $0 |
-| Plausible event naming inconsistency (mixed case) | 4+ | Zero action |
-| Preconnect hints in index.html | 5+ | Zero action |
-| index.html static text says "170+" not "2,200+" | 4+ | Zero action |
+| TP_MARKER placeholder ($0 flight revenue) | **8+** | Jack action. No agent can fix this. |
+| WCAG contrast failures | 8+ | Zero fixed in code |
+| Preconnect hints in index.html | 6+ | Zero action |
+| index.html static text says "170+/180+" not "2,200+" | 5+ | Zero action |
+| Plausible event naming inconsistency | 5+ | Zero action |
+| Photo base image duplication (92%) | 4+ | Zero action |
 
 ---
 
 ## SCALING RISKS (ordered by likelihood x impact)
 
-### 1. TP_MARKER placeholder -- every flight click earns $0
-**Likelihood: CERTAIN. Impact: HIGH (zero flight affiliate revenue).**
+### 1. AP_CONTINENT naming inconsistency -- silent pricing bug (ACTIVE NOW)
 
-Line 3666: `const TP_MARKER = "YOUR_TP_MARKER";`
-Line 3685 checks `TP_MARKER !== "YOUR_TP_MARKER"` and falls back to bare Aviasales URLs with no commission tracking.
+**Likelihood: CERTAIN. Impact: MODERATE (wrong price estimates for ~21 airports).**
 
-This has been flagged for 5+ agent cycles. Growth report says "Aviasales links shipped." Revenue report says flight links earn commission. Both are wrong -- the marker is a placeholder. Every flight click from the Reddit launch will earn exactly $0.
+AP_CONTINENT uses TWO different naming conventions:
 
-Fix: Jack logs into tp.media, copies marker, replaces line 3666. 5 minutes.
+- Lines 191-233 (original): `"na"`, `"latam"`, `"africa"`, `"europe"`, `"asia"`, `"oceania"`
+- Lines 235-300 (expansion): `"north_america"`, `"south_america"` (11 and 10 entries respectively)
 
-### 2. localStorage quota risk on heavy users -- breaks at ~1,200 cached venues
-**Likelihood: LOW-MODERATE (reduced from HIGH). Impact: MEDIUM.**
+The `getFlightDeal()` function at line 3817 uses `AP_CONTINENT[ap] || "europe"` and then looks up routes using the original names (`"na-europe"`, `"na-latam"`, etc.). Airports tagged `"north_america"` or `"south_america"` will:
 
-With smart fetch, only ~100 venues are cached on load. Each detail open adds 1-2 more. A typical user session opens maybe 5-15 venue details. This means ~115-130 cached weather entries per session = ~500-650KB. Well within the 5MB localStorage limit.
+1. Match in `AP_CONTINENT` (so they don't fall through to `"europe"` default)
+2. But produce route keys like `"north_america-europe"` which do NOT exist in the `routes` object
+3. Fall through to `|| 800` default -- a flat $800 estimate regardless of actual route
 
-**Edge case:** A power user who opens 300+ venue details over multiple sessions within 30 minutes could approach ~1.5MB. Still safe. The quota risk from Run 2 (8.7MB for all 2,226 venues) is effectively eliminated by smart fetch.
+**Affected airports (21 total):** ACV, BUR, EUG, MFR, MGA, OAK, PDX, SBA, SJC, SNA, SSC (tagged "north_america"), and FOR, GIG, ILH, MAO, MEC, NAT, TPP, TRU, UIO, AQT (tagged "south_america").
 
-### 3. 1.3MB JSX file parsed by Babel Standalone
-**Likelihood: CERTAIN. Impact: MODERATE (6-15 second blank screen on mobile 4G).**
+**Fix:** Normalize the expansion entries to use `"na"` and `"latam"`:
+```javascript
+// Lines 237, 246, 254, 272-273, 277-278, 282, 284-285, 287 — change:
+"north_america" → "na"
+"south_america" → "latam"
+```
 
-app.jsx is now 8,951 lines / 1.3MB. On a mid-range phone on 4G: 2-4s download + 4-10s Babel parse. The splash screen masks this. This is the inherent cost of the no-build-step architecture with 2,226 inline venue objects.
+### 2. TP_MARKER placeholder -- every flight click earns $0
 
-Fix: Externalize VENUES array to a separate JSON file loaded via fetch after initial render. Reduces app.jsx to ~3,000 lines / ~200KB. Babel parses in <1s. Venues load asynchronously. This is a 2-hour refactor that does not change the "no build step" architecture.
+**Likelihood: CERTAIN. Impact: HIGH. Cycle: 8.**
 
-### 4. Open-Meteo rate limit under traffic spikes
-**Likelihood: LOW (improved from CERTAIN). Impact: HIGH (scores go to zero).**
+Line 3771: `const TP_MARKER = "YOUR_TP_MARKER";`
+Line 3790: `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` -- this branch NEVER executes.
 
-Smart fetch reduced cold-load calls from ~2,773 to ~130. The free tier now supports ~77 cold loads/day. With the 30-min cache, most return visits are zero-cost. A Reddit soft launch (200-500 visitors over 48 hours) is survivable.
+At the Reddit launch target of 500 visitors, ~40 flight clicks will earn $0 instead of an estimated $56-84. This is a 5-minute Jack action that has been flagged for 8 consecutive agent cycles.
 
-**Risk point:** Product Hunt or viral moment driving 500+ unique visitors in a single hour. At ~130 calls each = 65,000 calls/hour against a 10K/day limit. At this traffic level, Open-Meteo's paid tier ($29/month) would be needed.
+### 3. Open-Meteo 429 not handled -- scores disappear silently
+
+**Likelihood: MODERATE (at >77 cold loads/day). Impact: HIGH.**
+
+`fetchWeather()` at line 3001: `if (!r.ok) throw new Error("weather fetch failed")`. No 429-specific handling. When the free tier (10K calls/day) is exceeded, weather calls throw errors, venues show "Checking conditions..." indefinitely, and the core value prop breaks.
+
+Smart fetch (top 100 on load) keeps this manageable at ~77 unique cold loads/day. But a Reddit post driving 200+ new users in a single day would exceed this.
+
+**Fix (10 minutes):**
+```javascript
+// After line 3001 in fetchWeather:
+if (r.status === 429) { console.warn("[Peakly] Rate limited"); return null; }
+
+// After line 3018 in fetchMarine:
+if (r.status === 429) { console.warn("[Peakly] Rate limited"); return null; }
+```
+
+### 4. 1.34 MB JSX parsed by Babel Standalone
+
+**Likelihood: CERTAIN. Impact: MODERATE (5-15 second blank screen on mobile).**
+
+app.jsx is 9,036 lines / 1.34 MB. Babel Standalone must parse this entirely before React renders. On a mid-range phone on LTE: 2-4s download + 4-10s Babel parse = 6-14s to first paint. Splash screen masks this partially.
+
+No fix without either a build step or externalizing the VENUES array to a JSON file loaded via fetch. The latter is a 2-hour refactor compatible with the no-build-step architecture.
+
+### 5. localStorage quota under extreme use
+
+**Likelihood: LOW. Impact: MEDIUM.**
+
+Smart fetch (top 100 venues) plus lazy detail fetches keep storage to ~500-650KB per session. Well within the 5MB limit. Only a power user opening 1,000+ venue details within a 30-minute cache window would approach the limit. Not a realistic concern at current scale.
 
 ---
 
-## CONVERSION FUNNEL: INTACT (improved from BROKEN AT STEP 1)
+## CONVERSION FUNNEL: INTACT (with $0 flight revenue)
 
 | Step | Status | Detail |
 |------|--------|--------|
-| Landing -> First venue visible | **IMPROVED** | Smart fetch means first 50 venues get weather in ~2s. Top 100 covered. Babel parse still dominates LCP on mobile (6-15s). |
-| Venue card -> Detail sheet | **PASS** | All 2,226 venues now have stable images.unsplash.com photos. Photos load reliably. |
-| Detail sheet -> Flight click | **PASS** | Sticky CTA works. Lazy weather fetch fires on open. |
-| Flight click -> Booking | **EARNING $0** | TP_MARKER is still "YOUR_TP_MARKER". All clicks go to bare Aviasales with no tracking. |
-| Hotel click -> Booking | **PASS** | Booking.com aid=2311236 present. |
-| SafetyWing click | **PASS** | referenceID=peakly present. |
-| Amazon gear clicks | **PASS** | tag=peakly-20 present. |
-| Set Alert -> Return visit | **THEATER** | No push notifications. localStorage only. |
+| Landing -> Onboarding | **PASS** | OnboardingSheet auto-triggers for `!profile.hasAccount` with 900ms delay. 3-step flow: welcome, sports, airport. |
+| Onboarding -> First venue | **PASS** | After onboarding, ExploreTab renders with pagination (30 venues visible). Smart fetch loads weather for top 100 in ~2s. |
+| Venue card -> Detail sheet | **PASS** | Lazy weather fetch fires on detail open. 2,226 venues all have photos (though 92% share base images). |
+| Detail sheet -> Flight click | **PASS (functionally)** | Sticky CTA works. Flight deep links generate correctly. |
+| Flight click -> Commission | **EARNING $0** | TP_MARKER placeholder. Every click goes to bare Aviasales URL with no tracking. |
+| Hotel click -> Commission | **PASS** | Booking.com aid=2311236 present. |
+| Email capture | **THEATER** | Email capture form in ExploreTab footer does `alert("You're on the list!")` but POSTs to nowhere. Email stored only in localStorage and Plausible event. No server-side list. No re-engagement possible. |
+| Set Alert -> Return visit | **THEATER** | No push notifications. localStorage only. User must remember to return. |
 
 ---
 
-## DATA QUALITY: CLEAN
+## DATA QUALITY: 3 ISSUES
 
-- **Duplicate venue IDs:** 0 (verified)
-- **All 11 sport categories populated:** 200-205 venues each (verified from Run 2, no changes since)
-- **Photo URLs:** 100% stable images.unsplash.com (0 deprecated URLs)
-- **Duplicate photo URLs:** 0
-
-No regressions since Run 2.
+| Check | Result |
+|-------|--------|
+| Duplicate venue IDs | 0 -- CLEAN |
+| All 11 sport categories populated | 200-205 each -- CLEAN |
+| Photo URLs present | 100% -- CLEAN |
+| Photo base image diversity | **FAIL** -- 182 unique base IDs for 2,226 venues. Top offender reused 203 times. |
+| AP_CONTINENT coverage | **FAIL** -- 232 airports mapped out of 776 unique venue airports. 544 airports default to "europe". |
+| AP_CONTINENT naming consistency | **FAIL** -- Mixed `"na"`/`"north_america"` and `"latam"`/`"south_america"` naming. 21 airports affected. |
+| Rating distribution | **WARNING** -- Average 4.89/5.00 across all venues. Implausibly uniform. |
 
 ---
 
 ## PERFORMANCE BUDGET
 
-| Metric | Run 2 | Current | Delta | Status |
-|--------|-------|---------|-------|--------|
-| app.jsx line count | 8,625 | 8,951 | +326 (+3.8%) | YELLOW |
-| app.jsx file size | 1.2MB | 1.3MB | +100KB (+8%) | YELLOW |
-| Number of venues | 2,226 | ~2,217-2,226 | ~0% | GREEN |
-| Weather API calls (cold load) | ~2,773 | ~130 | -95% | GREEN |
-| Weather API calls (warm load) | 0 | 0 | 0% | GREEN |
-| Weather API calls (detail open) | N/A | 1-2 per venue | NEW | GREEN |
-| Estimated LCP (mobile 4G) | 8-15s | 6-15s (Babel parse) | ~0% | RED |
-| Cache-buster | v=20260325c | v=20260326a | Updated | GREEN |
+| Metric | Run 3 Baseline | Current | Delta | Status |
+|--------|---------------|---------|-------|--------|
+| app.jsx line count | 8,951 | 9,036 | +85 (+0.9%) | GREEN |
+| app.jsx file size | 1.3 MB | 1.34 MB | +40KB (+3%) | YELLOW |
+| Number of venues | ~2,226 | 2,226 | 0% | GREEN |
+| Unique photo base IDs | ~176 | 182 | +6 (+3%) | RED (still 92% reuse) |
+| Weather API calls (cold load) | ~130 | ~130 | 0% | GREEN |
+| Estimated LCP (mobile 4G) | 6-15s | 6-15s | 0% | RED (Babel bottleneck) |
+| AP_CONTINENT coverage | Not tracked | 232/776 (30%) | NEW | RED |
+| BASE_PRICES coverage | Not tracked | 76 airports | NEW | YELLOW |
+| Pagination | Not present | 30 + Show More | NEW | GREEN |
+
+---
+
+## VERIFICATION RESULTS
+
+### 1. Region-based pricing fallback: VERIFIED WITH BUGS
+
+The `getFlightDeal()` function at line 3817 implements a two-tier fallback:
+
+1. **Exact match:** `BASE_PRICES[ap]?.[homeAirport]` -- covers 76 destination airports x 14 home airports
+2. **Region fallback:** Uses `AP_CONTINENT` to look up both destination and home continent, then cross-references a region-to-region price matrix
+
+**The fallback works structurally** -- no venue will show a blank price. But:
+
+- 544 of 776 venue airports are NOT in AP_CONTINENT and default to `"europe"` (line 3821: `AP_CONTINENT[ap] || "europe"`). A venue in Anchorage, Alaska using airport code "FAI" (not in AP_CONTINENT) would be priced as if flying from the US to Europe.
+- 21 airports use `"north_america"` or `"south_america"` instead of `"na"` or `"latam"`, producing route keys that don't exist in the pricing matrix. These get the `|| 800` flat default.
+
+**The growth report's claim that "region-based pricing covers all 776 airports" is technically true** (no airport produces a crash or blank) **but misleading** (544 airports get wrong-continent pricing).
+
+### 2. Pagination: VERIFIED
+
+Line 5145: `const [visibleCount, setVisibleCount] = useState(30);`
+Line 5557: `gridListings.slice(0, visibleCount).map(...)`
+Line 5591: Show More button increments by 30.
+
+Pagination is correctly implemented. Initial render shows 30 venues. "Show more" loads 30 more. Button shows remaining count.
+
+### 3. Onboarding auto-triggers: VERIFIED
+
+Line 8646-8651: `useEffect` checks `!profile.hasAccount` and calls `setShowOnboarding(true)` after 900ms delay. This fires on first load for any user without a saved profile.
+
+OnboardingSheet at line 7031 is a 3-step flow: Welcome -> Sports selection -> Airport/name/email. Sets `hasAccount:true` on completion (line 7050).
 
 ---
 
 ## WHAT BREAKS NEXT
 
-The smart weather fetch and photo URL migration resolved the two most critical issues from Run 2. The app's scaling profile has fundamentally improved: from "breaks at 4 users/day" to "handles 77+ unique visitors/day on the free API tier."
+The AP_CONTINENT naming inconsistency is a silent data bug that will produce wrong price estimates for 21 airports right now, and the 544 unmapped airports will show plausible-but-wrong prices based on a "europe" default. Neither of these crashes the app or produces visible errors -- they just make prices wrong. A surfer checking flights to Oakland (OAK, tagged "north_america" in AP_CONTINENT) from New York will see $800 instead of ~$300 because the route key `"north_america-na"` doesn't exist in the pricing matrix.
 
-The next failure is not technical -- it is revenue. TP_MARKER has been a placeholder for 5+ agent cycles. Every flight click from the Reddit launch will earn $0. The Growth, Community, and Revenue agents all believe Aviasales flight links are earning commission. They are not. The code at line 3685 explicitly checks for the placeholder and falls back to bare URLs with no tracking.
+The fix is a 5-minute find-replace: change all `"north_america"` to `"na"` and all `"south_america"` to `"latam"` in AP_CONTINENT (lines 235-300). Then, over time, add the remaining ~544 venue airports to AP_CONTINENT with correct continent tags.
 
-If the Reddit post drives 5,000 visitors over 4 weeks (Growth agent's low-end estimate), and 8% click a flight link (industry average for travel apps), that is 400 flight clicks earning $0 instead of an estimated $560-840 at a 1.1-1.6% commission rate on $350 average tickets. This is not a bug -- it is a configuration step that has been deferred for over a week.
-
-Fix: `const TP_MARKER = "REAL_MARKER_FROM_TP_MEDIA";` at line 3666. Jack, 5 minutes.
+But the actual next failure at scale is still the Open-Meteo rate limit. At Reddit launch traffic (200-500 visitors in 48 hours), the free tier will be strained. A 429 handler in fetchWeather/fetchMarine (10 minutes of code) is the minimum safety net.
 
 ---
 
 ## ONE THING THE FOUNDER SHOULD WORRY ABOUT THAT NOBODY ELSE IS SAYING
 
-The agent system is producing excellent analysis on a codebase that no longer matches what the agents describe. Every report in /reports/ references the pre-smart-fetch, pre-photo-fix state. The PM report thinks there are 181 venues. The DevOps report thinks there is no weather cache. The Data Enrichment report thinks 92% of photos use a deprecated API. The Daily Briefing says "cold-start API exhaustion is still fatal." None of this is true anymore.
+The email capture is theater. The ExploreTab footer has a "Get notified when conditions peak" form that fires a Plausible event and shows `alert("You're on the list!")` -- but the email goes nowhere. The onboarding collects email into localStorage on one browser on one device. There is no server-side email list. No Mailchimp. No Loops. No webhook.
 
-The agents are not wrong -- they were correct at the time they ran. But the code has changed significantly since their last execution, and no agent has run since. The system looks like it has 20 active agents producing daily intelligence. In reality, it has 20 stale reports from a previous code state that are actively misleading any human or AI that reads them.
+When the Reddit post drives 500 people to the app and 15% complete onboarding and enter their email, those 75 emails will exist in 75 separate browsers' localStorage -- invisible, unretrievable, and lost the moment anyone clears their cache.
 
-The fix is not more agents or better prompts. It is ensuring agents run AFTER code changes land, not before. Every report should open with `wc -l app.jsx && grep -c '{id:"' app.jsx && grep -c 'source.unsplash.com' app.jsx` to ground-truth the codebase before analyzing it. Without this, the gap between agent consensus and code reality will keep widening with every commit.
+The PM flagged this. It is correct. But the deeper problem is that the alerts system has the same issue. Setting an alert stores it in localStorage. There are no push notifications, no email triggers, no server-side state. A user who sets an alert and closes the app will never be notified. The "Alerts" tab only works while the app is open. This makes the alerts feature retention theater -- it feels like engagement but cannot actually bring users back.
+
+At 500 Reddit visitors, maybe 50 will set alerts. Zero will ever receive one. Some will check back manually. Most won't. The retention curve will crater at Day 3, and the cause will be invisible in analytics because Plausible will show "set_alert" events fired successfully -- making it look like the feature works when it doesn't.
+
+The fix is a server-side email capture webhook on the VPS (the VPS is already running). POST `{email, name, airport, alerts}` to a `/api/subscribe` endpoint that writes to a flat JSON file or sends to Mailchimp. This is a 2-hour implementation. It should ship before Reddit, not after. Without it, the Reddit launch is a one-shot event with no mechanism to bring users back.
 
 ---
 
-*Scale Guardian, Run 3. 2026-03-25.*
+*Scale Guardian, Run 4. 2026-03-27.*
