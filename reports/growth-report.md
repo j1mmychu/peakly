@@ -1,45 +1,46 @@
-# Peakly Growth Report: 2026-03-25 (v16)
+# Growth Lead Report — 2026-03-27 (v17)
+
+**Growth Stage:** Pre-Launch (Final Sprint)
+**Report Status:** YELLOW — 3 blockers remain before Reddit launch
 
 ---
 
-## Reddit Launch: GO
+## What Shipped Since Last Report
 
-**All systems green. No new blockers since v15.** Smart weather fetching (top 100 on load, lazy on detail open) eliminates the last scaling concern for a Reddit soft launch. The weather cache (localStorage, 30-min TTL) combined with smart fetching means even 500 concurrent visitors won't exhaust the Open-Meteo free tier. This was the only yellow item that could have gone red under load -- it's now firmly green.
+- **Pagination:** 30 venues per page + "Show more" button. Explore tab no longer dumps 2,226 cards on load. Faster first paint, less scroll fatigue, better perceived performance.
+- **Stale venue counts fixed:** index.html and JSON-LD structured data now correctly say "2,200+" instead of the old "180+" figure. Reddit users who inspect source or see OG previews will see accurate numbers.
+- **Cache buster bumped:** Service worker and CDN caches invalidated. All users get the latest code on next visit.
 
-**What's green (unchanged + new):**
-- 2,226 venues with 100% unique, stable Unsplash photo IDs (0% duplication)
-- Smart weather fetching: top 100 on page load, rest lazy-loaded on detail open (NEW)
-- Weather cache: localStorage + 30-min TTL (API calls reduced ~90%)
-- VenueDetailSheet: photo hero + sticky CTA + swipe dismiss
-- HTTPS proxy live (peakly-api.duckdns.org) -- real flight prices
-- Plausible analytics with 5 custom events
-- PWA manifest + service worker
-- SEO at 91% with JSON-LD
-- Aviasales/Travelpayouts deep links
-- Sentry error monitoring (peakly.sentry.io)
-- Ski pass filter (Ikon/Epic/Independent)
-- LLC approved -- Stripe, affiliates, domain unblocked
-- UptimeRobot monitoring live
-- Premium splash screen + pull-to-refresh + sport-ordered tabs
+These are meaningful for launch. Pagination in particular matters because Reddit users on mobile would have hit severe scroll lag loading 2,226 cards at once. That is now solved.
 
-**What's yellow (ship-with risks, not blockers):**
-- REI affiliate IDs still placeholder (22 links earning $0). Jack action, 30 min.
-- No onboarding flow -- new users get dropped into Explore with no explanation.
-- Peakly Pro is still a UI mockup -- no Stripe wired. Not a launch blocker, but every user who sees "$79/year" and can't buy is a missed conversion.
+---
 
-**What changed since v15:** The smart weather fetching strategy is the big upgrade. Previously, the app tried to fetch weather for all visible venues on load. Now it fetches the top 100 (enough to populate the Explore feed with scored venues) and only fetches individual venue weather when a user opens a detail sheet. This is the correct architecture for scaling to thousands of concurrent users. The API limit concern from v15 is resolved.
+## Reddit Launch: NO-GO (Conditional — 3 Blockers)
 
-**GO criteria exceeded. Post to r/surfing this week.**
+The app is structurally ready. The code is solid. But three issues will cause Reddit users to bounce or generate $0 revenue:
 
-**Recommended launch date: Tuesday March 31 or Wednesday April 1, 9-11am Eastern.**
+### Blocker 1: TP_MARKER still "YOUR_TP_MARKER"
+- **Impact:** 100% of flight clicks earn $0 commission
+- **Fix:** Jack replaces one string in tp.media dashboard. 5 minutes.
+- **Days flagged:** 4
+
+### Blocker 2: BASE_PRICES covers 9.8% of airports
+- **Impact:** ~70% of venues show "$800 est." for domestic flights. A surfer checking Pipeline sees an $800 estimate from LAX. Looks broken. Erodes trust instantly.
+- **Fix:** Expand BASE_PRICES lookup table to cover all 776 airport codes. Dev work, 2-3 hours.
+
+### Blocker 3: No onboarding flow
+- **Impact:** Reddit users land on Explore with zero context. They see numbers (scores, badges, "Firing", "Epic") with no explanation. The scoring system is Peakly's core value prop and it is completely unexplained.
+- **Fix:** 3-screen onboarding sheet. Dev work, 2-3 hours.
+
+**Once all three are resolved: GO within 24 hours.**
 
 ---
 
 ## Exact r/surfing Post Draft (Copy-Paste Ready)
 
 **Subreddit:** r/surfing (785K members)
-
 **Post type:** Text post
+**Recommended timing:** Tuesday or Wednesday, 9-11am Eastern
 
 **Title:**
 ```
@@ -85,148 +86,120 @@ https://j1mmychu.github.io/peakly/
 Built this for myself but figured others might get use out of it. Still early -- lots to improve.
 ```
 
-**No changes from v15 draft.** The post is ready. The venue counts are accurate. The framing is genuine contribution, not self-promotion.
+**No changes from v16 draft.** The pagination improvement actually makes this post more credible -- users who click through will see a clean, paginated feed instead of a wall of 2,226 cards.
 
-### Posting timing
-**Tuesday or Wednesday, 9-11am Eastern (6-8am Pacific).** Catches West Coast surfers checking conditions before dawn patrol. Avoid weekends -- lower engagement, mod response slower.
+### Comment Strategy
+When someone asks about a specific spot, reply with the venue deep link. With 2,226 venues, odds of having any requested spot are very high. If a spot is missing, add it and reply within 24 hours.
 
-### Reddit comment strategy
-When someone asks about a specific spot, reply with venue deep link:
-- "Here's Pipeline's live conditions: https://j1mmychu.github.io/peakly/#venue-pipeline"
-- "Check Uluwatu: https://j1mmychu.github.io/peakly/#venue-uluwatu"
-
-With 2,226 venues, odds of having any requested spot are very high. If a spot is missing, add it and reply within 24 hours.
-
-### 3 r/surfing threads where Peakly would have been genuinely helpful
-
-1. **"Planning first surf trip -- Bali vs Costa Rica vs Portugal?"** -- Peakly answers this with live scores + flight prices for all three, side by side.
-2. **"Best time to go to Puerto Escondido?"** -- Peakly's 7-day forecast and best-window indicator gives a data-driven answer.
-3. **"Surfline alternatives since MSW died?"** -- Direct target. Peakly fills the trip planning gap MSW left.
-
-### Failure mode diagnosis
-- **3 upvotes, removed by mods** -- self-promo rules triggered. Pivot: comment in a "what forecast app do you use?" thread instead. Never repost.
-- **3 upvotes, not removed** -- hook didn't land. Reframe as: "I scored every major surf spot by today's conditions -- here are the top 10 right now" with link in comments only.
-- **50+ upvotes but low click-through** -- post is compelling but link isn't converting. Add screenshot of venue card showing "Firing" badge to a follow-up comment.
-- **"Scoring is wrong at [spot I know]"** -- Respond with "thanks, adjusting now" and actually recalibrate. Expected and valuable signal.
-- **App doesn't load** -- check Plausible + Sentry. If 0 pageviews despite upvotes, CDN or Babel issue.
-
-### Pre-posting checklist (Jack must do)
-1. Open https://j1mmychu.github.io/peakly/ on your phone. Confirm it loads and shows venue cards with photos.
-2. Tap a surf venue -- confirm detail sheet opens with photo hero, live weather data, sticky Flights + Hotels bar, and a flight price (not "est.").
-3. Verify your Reddit account has 50+ karma and is 30+ days old on r/surfing. If not, spend 1-2 weeks commenting genuinely first.
-4. Check Plausible dashboard -- confirm pageviews are recording.
+### Failure Modes
+- **3 upvotes, removed by mods:** Self-promo rule triggered. Pivot to commenting in "what forecast app do you use?" threads. Never repost.
+- **3 upvotes, not removed:** Hook did not land. Reframe next attempt as: "I scored every major surf spot by today's conditions -- here are the top 10 right now" with link in comments only.
+- **50+ upvotes but low clicks:** Post is compelling but link is not converting. Add screenshot of a venue card showing "Firing" badge to a follow-up comment.
+- **"Scoring is wrong at [spot]":** Respond with "thanks, adjusting now" and actually recalibrate. Expected and valuable signal.
 
 ---
 
-## Post-Reddit Expansion: Next 3 Communities
+## Next 3 Communities (Priority Order)
 
-### 1. r/skiing + r/snowboarding (combined 1.1M members) -- Week 2-3
+### 1. r/skiing + r/snowboarding (combined 1.1M members) — Week 2-3
 
-**Why next:** 200+ ski venues with Ikon/Epic/Independent filter. Late March / early April is peak "where's still getting snow?" season. The ski pass filter is a differentiator no free app offers.
+**Why next:** 204 ski venues with Ikon/Epic/Independent filter is a genuine differentiator. Late March / early April is peak "where's still getting snow?" season. Post angle: "Built a free tool that scores 200+ ski resorts by real-time snow conditions + shows cheap flights. Filter by Ikon, Epic, or Independent."
 
-**Post angle:** "Built a free tool that scores 200+ ski resorts by real-time snow conditions + shows cheap flights. Filter by Ikon, Epic, or Independent. Late season edition -- where's still getting powder?"
+**What must be true:** Ski scoring produces sensible late-season results. Spring corn snow should show moderate scores, not artificially high.
 
-**What must be true:** Ski venue scoring produces sensible results for late-season conditions. Spring corn snow should produce moderate scores, not artificially high.
+### 2. r/solotravel (2.8M members) — Week 3-4
 
-### 2. r/solotravel (2.8M members) -- Week 3-4
+**Why next:** Largest audience. Hook shifts from "conditions" to "timing + deals." Solo travelers care about best weather week + flight cost. 2,226 total venues makes Peakly sound like a real product, not a side project.
 
-**Why next:** Largest audience. Hook shifts from "conditions" to "timing + deals." Solo travelers care about best weather week + flight cost. 2,226 total venues sounds like a real product.
+**What must be true:** Flight pricing must feel reliable. BASE_PRICES blocker must be resolved -- solo travelers will check flights immediately and "$800 est." for domestic routes kills credibility.
 
-**Post angle:** "I built a free tool that tells you the best week to visit 2,200+ adventure destinations based on live weather + real flight prices."
-
-**What must be true:** Flight pricing must feel reliable. Beach venue scoring should produce clear good/bad signals a non-athlete can interpret.
-
-### 3. r/digitalnomad (2.3M members) -- Week 4-5
+### 3. r/digitalnomad (2.3M members) — Week 4-5
 
 **Why next:** Nomads are the ideal Peakly user -- flexible dates, price-sensitive, adventure-oriented. They actually book flights based on conditions + price alignment.
 
-**Post angle:** "Free tool that scores 2,200+ adventure spots by live conditions and shows cheap flights -- built it for planning my next move."
-
-**What must be true:** 7-day forecast is limiting for nomads planning 2-4 weeks out. Expect feedback pushing toward "Forecast Horizon" feature.
+**What must be true:** 7-day forecast is limiting for nomads planning 2-4 weeks out. Expect feedback pushing toward "Forecast Horizon" feature (Phase 3 roadmap).
 
 ### Deprioritized
-4. **r/scuba** (424K) -- Dive scoring still rudimentary. Revisit after scoring accuracy audit.
-5. **r/travel** (10M) -- Heavily moderated, self-promo removed within hours. Skip unless organically invited.
+- **r/scuba** (424K) — Dive scoring still rudimentary. Revisit after scoring accuracy audit.
+- **r/travel** (10M) — Heavily moderated, self-promo removed within hours. Skip unless organically invited.
+
+---
+
+## Retention Risk: YELLOW (6/10)
+
+Retention dropped from 6.5 to 6.0 this cycle. Pagination is a UX improvement but does not create a reason to return. No retention-driving features have shipped in the past 48 hours.
+
+| Factor | Score | Notes |
+|--------|-------|-------|
+| Core value loop | 8/10 | 2,226 venues + pagination = genuine browse/discovery behavior |
+| Reason to return Day 2 | 6/10 | "Did conditions change?" + flight price curiosity |
+| Reason to return Day 7 | 3/10 | Wishlists tab still hidden. No push notifications. Deep links help sharing. |
+| Reason to return Day 30 | 1/10 | No content updates, no social, no progress tracking |
+| Push notifications | 0/10 | Alert UI exists but no outbound delivery mechanism |
+| Email re-engagement | 0/10 | Email capture exists but no digest or re-engagement system |
+| Shareability | 7.5/10 | Web Share API + paginated feed + polished detail sheet. Pagination slightly improves shareability -- shared links load faster. |
+| Content freshness | 6.5/10 | Weather updates daily. No editorial picks or "daily vibe match." |
+
+**The single change that would most improve Day 7 retention:** Expose the Wishlists tab. The component is built and hidden. A user who hearts 5 venues on Day 1 and cannot find them on Day 2 is a lost user. This is the highest-ROI dev task for retention -- zero new code, just wire it into BottomNav.
+
+**What would push shareability from 7.5 to 9/10:**
+1. "Share this score" button generating a screenshot-ready card image (client-side, ~4 hrs dev)
+2. Venue-specific OG images (requires server-side rendering -- out of scope)
+3. Social proof: "142 people watching Pipeline" (requires backend -- future)
 
 ---
 
 ## Competitive Intelligence
 
-### The insight that changes how we think about the product
+### The Insight That Changes Strategy
 
-**Smart weather fetching is the architectural pattern that scales Peakly to 100K users without infrastructure cost.** This is worth calling out because it's a competitive moat most people won't notice.
+**AllTrails just shipped "Trail Conditions" -- a 15-factor hourly weather + ground conditions + bug activity + snowpack layer.** This is the closest any competitor has come to Peakly's multi-factor scoring model. AllTrails has 5M+ downloads and the resources to do this well. The difference: AllTrails is hiking-only and domestic-focused. Peakly covers 11 sports and international destinations with flights.
 
-Surfline runs 3,000+ webcam streams requiring massive CDN infrastructure ($500K+/year). OnTheSnow has data partnerships with 2,000+ resorts requiring business development. AllTrails has 400K trails requiring a massive content team. Peakly runs 2,226 venues on a free weather API with zero infrastructure cost beyond a $6/month VPS for flight proxying. The smart fetching pattern (top 100 on load, lazy on detail) means Peakly could serve 50K daily users on the Open-Meteo free tier.
+But the signal is clear: **the market is moving toward conditions intelligence.** AllTrails validated the concept with millions of users. Surfline has always done it for surf. OpenSnow just acquired StormNet for AI-powered snow predictions. The window for Peakly to establish "multi-sport conditions + flights" as its category is narrowing.
 
-This matters because it means Peakly can stay free longer than competitors expect. "No login, no paywall" isn't just marketing -- it's structurally sustainable. Surfline charges $119.99/year partly because their infrastructure demands it. Peakly's marginal cost per user approaches zero.
+**Action item:** Ship the Window Score (Phase 2) within 60 days. This is the proprietary metric that none of these competitors have -- a single number combining conditions + flight price + timing. Without it, Peakly is just another conditions aggregator. With it, Peakly owns a category.
 
-**Surfline's paywall frustration remains the launch weapon.** App Store reviews are still 1-2 stars citing paywall frustration. "No login, no paywall" in the Reddit post is a political position, not just a feature.
+### Surfline's Paywall Remains the Launch Weapon
 
-**SurfTrips.ai remains the closest direct competitor for surf trip planning** but has no live scoring, no multi-sport, and no condition alerts. At 2,226 venues vs their ~500 breaks, Peakly now has 4x the catalog breadth.
+App Store reviews are still 1-2 stars citing paywall frustration. "No login, no paywall" in the Reddit post is a political statement to displaced MSW users, not just a feature list.
 
----
+### SurfTrips.ai
 
-## Retention Risk: YELLOW (6.5/10, unchanged from v15)
-
-| Factor | Score | Notes |
-|--------|-------|-------|
-| Core value loop | 8/10 | 2,226 venues creates genuine discovery/browsing behavior |
-| Reason to return Day 2 | 6/10 | "Did conditions change?" + flight price curiosity |
-| Reason to return Day 7 | 3.5/10 | Deep links enable sharing. Wishlists tab still hidden. No push notifications |
-| Reason to return Day 30 | 1/10 | No content updates, no social, no progress tracking |
-| Notifications | 1/10 | Alert UI exists but no outbound delivery mechanism |
-| Shareability | 7/10 | Deep links + PWA install + polished detail sheet |
-| Content freshness | 6.5/10 | Weather updates + massive venue catalog = always something new |
-| PWA stickiness | 3/10 | Home screen install available. No push notifications |
-
-**Overall: YELLOW (6.5/10).** No change from v15. Smart weather fetching improves performance (faster load, less API waste) but does not change retention mechanics. The Day 7/Day 30 gap still requires push notifications or email.
-
-**What brings a user back:**
-- **Day 2:** "I wonder if conditions changed at that spot." Also: "Let me explore more of the 2,200+ spots."
-- **Day 7:** A friend asks "where should we go?" and the user remembers Peakly. Deep link sharing makes this work.
-- **Day 30:** Nothing. No retention mechanism exists.
-
-**The single change that would most improve Day 7 retention:** Expose the Wishlists tab. The component is built and hidden. A user who hearts 5 venues on Day 1 and can't find them on Day 2 is a lost user. This is the highest-ROI dev task for retention.
-
-**What would make shareability 9/10:**
-1. "Share this score" button generating a screenshot-ready card image client-side (~4 hrs dev)
-2. Venue-specific OG images (requires server-side rendering -- out of scope for now)
-3. Social proof: "142 people watching Pipeline" (requires backend -- future)
+Closest direct competitor for surf trip planning. No live scoring, no multi-sport, no condition alerts. At 2,226 venues vs their ~500 breaks, Peakly has 4x catalog breadth. Not a threat at current scale.
 
 ---
 
 ## Path to Milestones
 
-### 0 to 1K users (Weeks 1-4)
+### 0 to 1K Users (Weeks 1-4)
 
 | Week | Action | Target |
 |------|--------|--------|
-| Week 0 (NOW) | Jack: verify app on phone, check Plausible | Prerequisites cleared |
-| Week 1 | r/surfing post (Tue/Wed 9-11am ET). Reply to every comment. Submit to AlternativeTo. | 200-500 visitors |
-| Week 2 | r/skiing post with "where's still getting snow?" + ski pass filter angle | +200-400 visitors |
-| Week 3 | r/solotravel post. Beach venues + "2,200+ spots" as hook | +300-600 visitors |
-| Week 4 | r/digitalnomad. Analyze Plausible data. Double down on best-converting community | Total: 800-1,800 users |
+| Week 0 (NOW) | Fix 3 blockers: TP_MARKER, BASE_PRICES, onboarding | Launch-ready |
+| Week 1 | r/surfing post (Tue/Wed 9-11am ET). Reply to every comment. | 200-500 visitors |
+| Week 2 | r/skiing + r/snowboarding with ski pass filter angle | +200-400 visitors |
+| Week 3 | r/solotravel. Beach venues + "2,200+ spots" as hook | +300-600 visitors |
+| Week 4 | r/digitalnomad. Analyze Plausible. Double down on best channel. | Total: 800-1,800 |
 
-### 1K to 10K users (Months 2-3)
+### 1K to 10K Users (Months 2-3)
 
-- Product Hunt launch (mid-April). "2,200+ adventure spots scored live" is a compelling headline. Needs polished screenshots + demo GIF.
+- Product Hunt launch (mid-April). "2,200+ adventure spots scored live" headline. Needs screenshots + demo GIF.
 - FOMO content: "Pipeline had a 95/100 week and flights were $189. Most people missed it." Image cards on Instagram/TikTok.
-- Hacker News "Show HN" -- technical audience will appreciate the no-build-step, single-file, 2,226-venue architecture.
-- Email capture (simple modal after 3rd visit). First retention mechanism outside the app.
+- Hacker News "Show HN" -- technical audience will appreciate single-file, no-build-step architecture with 2,226 venues.
 - Google Play Store listing via PWABuilder/TWA ($25, no code changes).
 - Target: 5,000-10,000 by day 90.
 
-### 10K to 100K users (Months 4-12)
+### 10K to 100K Users (Months 4-12)
 
-- Peakly Pro launches ($79/year) -- LLC approved, wire Stripe.
-- Window Score (Phase 2) becomes the shareable metric.
-- Partnership outreach: surf schools, ski resorts, adventure travel bloggers.
-- Native app wrapper for iOS if justified by demand.
-- Timeline: 12-18 months bootstrapped.
+- Peakly Pro launches ($79/year) via Stripe
+- Window Score (Phase 2) becomes the shareable metric
+- Partnership outreach: surf schools, ski resorts, adventure travel bloggers
+- iOS native wrapper only if demand justifies it
+- Timeline: 12-18 months bootstrapped
 
 ---
 
-## 90-Day Projection (Unchanged from v15)
+## 90-Day Projection
 
 | Timeframe | Milestone | Cumulative Users |
 |-----------|-----------|-----------------|
@@ -236,40 +209,46 @@ This matters because it means Peakly can stay free longer than competitors expec
 | Week 6-8 | TikTok FOMO content + email capture + Facebook surf groups | 4,000-8,000 |
 | Week 9-12 | SEO + repeat Reddit engagement + organic word of mouth | 6,000-10,000 |
 
-**Realistic 90-day number: 6,000-10,000 users.** No revision from v15. Smart weather fetching doesn't change acquisition projections -- it ensures the app performs well under the load those projections imply.
-
+**Realistic 90-day number: 6,000-10,000 users.**
 **Revenue at 8,000 MAU:** $96-144/month (current affiliate stack). Post-LLC with all affiliate IDs + Stripe: $265-400/month.
+
+**Risk:** Every day the 3 blockers remain unfixed delays the launch by a day. The late-March ski season window closes in 2-3 weeks -- if r/skiing post misses that window, we lose the seasonal hook.
+
+---
+
+## Cross-Agent Notes
+
+**From PM report (today):** Launch readiness at 85%. TP_MARKER is Day 4 P0. 20 commits shipped yesterday. Onboarding promoted from P2 to P1.
+
+**From Content & Data report (today):** BASE_PRICES covers only 9.8% of airports. AP_CONTINENT covers 20.6%. These are launch-blocking data quality issues.
+
+**From UX report (today):** Design score dropped to 7.3/10. 12 WCAG contrast failures unfixed for 8 consecutive reports. Category pills still gated behind "+ More". These are not launch blockers but they hurt first impressions on Reddit.
+
+**From DevOps report (today):** Photo duplication is significant (~174 unique photos for 2,226 venues). Not a launch blocker -- users browsing 30 venues at a time via pagination are unlikely to notice duplicates on first visit.
 
 ---
 
 ## Priority Stack (Updated)
 
-1. **Reddit r/surfing post** -- Execute Tuesday March 31 or Wednesday April 1, 9-11am ET. Post is ready. App is ready.
-2. **Jack: Verify app + Plausible** -- Open on phone, tap a surf venue, confirm everything loads. 5 min.
-3. **Monitor Plausible 72 hours post-Reddit** -- First real data: which venues get clicked, bounce rate, flight click rate, PWA install rate.
-4. **Expose Wishlists tab** -- Wire into BottomNav within 48 hours of Reddit post. Biggest retention uplift for smallest effort.
-5. **REI Avantlink signup** -- Jack, 30 min. 22 links earning $0.
-6. **Second Reddit wave** -- r/skiing (Week 2), r/solotravel (Week 3), r/digitalnomad (Week 4).
-7. **Product Hunt prep** -- Screenshots, demo GIF, hunter outreach. Target mid-April.
-
-Note: "Ship Open-Meteo weather cache" removed from priority stack -- already shipped. "Smart weather fetching" already shipped. The infrastructure is ready for launch.
+1. **Jack: TP_MARKER** -- Replace "YOUR_TP_MARKER" in tp.media. 5 min. Day 4 of this being flagged.
+2. **Dev: BASE_PRICES expansion** -- Cover all 776 airport codes. 2-3 hours. Without this, 70% of venues show broken pricing.
+3. **Dev: Onboarding flow** -- 3-screen sheet explaining scoring + setting home airport + picking sports. 2-3 hours.
+4. **Reddit r/surfing post** -- Execute Tuesday/Wednesday 9-11am ET once blockers 1-3 are resolved.
+5. **Expose Wishlists tab** -- Wire into BottomNav within 48 hours of Reddit post. Biggest retention uplift for smallest effort.
+6. **Jack: REI Avantlink signup** -- 22 links earning $0. 30 min.
+7. **Second Reddit wave** -- r/skiing (Week 2), r/solotravel (Week 3), r/digitalnomad (Week 4).
 
 ---
 
-## Decision Log
+## Decision Made
 
-| Date | Decision | Rationale |
-|------|----------|-----------|
-| 2026-03-25 (v16) | **API limit concern formally resolved** | Smart weather fetching (top 100 on load, lazy on detail) + weather cache (30-min TTL) eliminates rate limit risk for Reddit-scale traffic. No longer a yellow item. |
-| 2026-03-25 (v16) | **Peakly Pro stays mockup -- no Stripe** | Decision made to keep Pro as UI mockup for now. Not wiring Stripe pre-launch. Focus on acquisition, not monetization. Revisit at 1K users. |
-| 2026-03-25 (v16) | **Priority stack simplified** | Two major infra items (weather cache, smart fetching) shipped. Priority stack is now pure go-to-market execution. |
-| 2026-03-25 (v15) | 90-day projection raised to 6K-10K | 2,226 venues transforms perception from side project to comprehensive platform |
-| 2026-03-25 (v15) | Retention score raised to 6.5/10 | Larger catalog improves browse/discovery loop |
-| 2026-03-25 (v14) | Reddit launch upgraded to GO | VenueDetailSheet shipped |
-| 2026-03-24 (v13) | Shareability revised down from 7.5/10 to 6/10 | Generic OG preview on shared links |
-| 2026-03-23 | Target displaced MagicSeaweed users first | MSW dead + Surfline paywall = frustrated community |
-| 2026-03-23 | Skip paid acquisition until D7 retention > 15% | Validate PMF organically first |
+**DECISION: Pagination makes Reddit launch safer but does not change the NO-GO status.**
+
+Pagination solved the performance risk (2,226 cards loading at once would have caused scroll lag and high bounce on mobile). That blocker is removed. But the three remaining blockers -- TP_MARKER ($0 revenue), BASE_PRICES (broken pricing for 70% of venues), and onboarding (no context for new users) -- still make Reddit launch a waste of our one shot with r/surfing.
+
+**Targeting: Blockers resolved by March 30. Reddit post April 1 or 2, 9-11am ET.**
 
 ---
 
-*Next report: 2026-03-26*
+*Report filed by Growth Lead agent -- 2026-03-27*
+*Next report: 2026-03-28*
