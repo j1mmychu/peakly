@@ -1,230 +1,259 @@
 # Peakly Content & Data Report
-**Date:** 2026-03-26 (Session 2)
-**Auditor:** Content & Data Agent
-**Data health score: 68/100**
+**Date:** 2026-03-27
+**Agent:** Content & Data
+**Data health score: 61/100**
 
 ---
 
 ## 1. Data Health Score Breakdown
 
-| Factor | Score | Notes |
-|--------|-------|-------|
-| Total venue count (2,226) | 20/20 | Excellent — expanded from 192 last session |
-| Category balance | 20/20 | All 11 categories have 200–205 venues — stubs fully resolved |
-| Data integrity (IDs, coords, fields) | 14/15 | 52 exact duplicate photo URLs (3 used 3x each) |
-| Photo diversity | 2/15 | **CRITICAL** — only 174 unique base Unsplash IDs for 2,226 venues |
-| Gear items completeness | 10/10 | All 11 categories covered; hiking confirmed 7 items |
-| Affiliate placeholder | 0/5 | `TP_MARKER = "YOUR_TP_MARKER"` still on line 3666 — $0 flight commissions |
-| Regional balance | 2/10 | LATAM: 44 mapped venues; 1,255 venues (56%) have unmapped airport codes |
-| Seasonal relevance | 0/5 | No off-season signals on any venues |
-
----
-
-## 2. Category Breakdown (FULLY RESOLVED)
-
-All stub categories from the previous report are now populated:
-
-| Category | Venues | Status |
-|----------|--------|--------|
-| Tanning | 205 | ✓ Healthy |
-| Diving | 205 | ✓ Healthy |
-| Skiing | 204 | ✓ Healthy |
-| Climbing | 204 | ✓ Healthy |
-| Surfing | 203 | ✓ Healthy |
-| Fishing | 202 | ✓ Healthy |
-| Paraglide | 201 | ✓ Healthy |
-| MTB | 201 | ✓ Healthy |
-| Kayak | 201 | ✓ Healthy |
-| Kite | 200 | ✓ Healthy |
-| Hiking | 200 | ✓ Healthy |
-| **TOTAL** | **2,226** | All categories well-stocked |
-
-No stub categories remain.
-
----
-
-## 3. Data Integrity Issues
-
-### CRITICAL: Photo Diversity Collapse
-The expansion to 2,226 venues was built on only **174 unique Unsplash base photo IDs**. The system varied crop parameters (`fp-x`, `fp-y`) to create visual variation, but each base image shows the same scene from slightly different angles. At scale:
-
-| Base Photo ID | Times Used | Notes |
+| Check | Status | Score Impact |
 |---|---|---|
-| `photo-1529961482160` | 203 venues | Same beach scene, 190 crop variants |
-| `photo-1523819088009` | 202 venues | Same ocean scene, 189 crop variants |
-| `photo-1578001647043` | 110 venues | Same mountain scene, 101 crop variants |
-| `photo-1512541405516` | 92 venues | 85 crop variants |
-| `photo-1544551763` | 88 venues | 87 crop variants |
+| Total venues populated | ✅ 2,226 venues | +20 |
+| Category distribution | ✅ All 11 cats 200–205 | +10 |
+| Duplicate venue IDs | ✅ Zero | +10 |
+| Required fields (lat/lon/ap/tags) | ✅ All 2,226 complete | +10 |
+| Rating range validity | ✅ All within 1–5.0 | +5 |
+| Scoring logic coverage | ✅ All 11 categories scored | +5 |
+| Photo base-ID uniqueness | 🔴 CRITICAL: 176 base IDs for 2,226 venues | -20 |
+| Travelpayouts marker | 🔴 Still "YOUR_TP_MARKER" placeholder | -10 |
+| Tag inconsistency | ⚠️ "Year-Round" vs "Year Round" — 308 venues split | -5 |
+| Venue naming redundancy | ⚠️ 199/201 paraglide names include "Paragliding" | -5 |
+| SH ski seasonal flags | ⚠️ 16 venues out of season, no badge | -4 |
+| Hiking gear items | ⚠️ 7 items vs avg 11 across other categories | -3 |
+| Geographic diversity | ⚠️ Zero hiking/climbing in Central America | -2 |
 
-**Top 3 IDs alone cover 515 venues (23% of all venues).**
+---
 
-Distribution of reuse:
-- Used exactly once: 5 IDs (2.9%)
-- Used 2–4 times: 57 IDs (32.8%)
-- Used 5–10 times: 85 IDs (48.9%)
-- Used 10+ times: 27 IDs (15.5%)
-- Used 100+ times: **3 IDs (1.7%)**
+## 2. Category Breakdown
 
-A user scrolling the explore feed will frequently see near-identical photos, undermining trust and making the app look like a templated demo. **This is the single highest-priority content fix.**
+All categories well above 200 venues. No stubs.
 
-**Fix (PM decision needed):** Replace the 3 massively overused base IDs (photo-1529961482160, photo-1523819088009, photo-1578001647043) with unique IDs per venue in a targeted sub-batch. Focus on the first 50 occurrences of each — visible in default sort order.
+| Category | Count | Status |
+|---|---:|---|
+| Tanning / Beach | 205 | ✅ Healthy |
+| Diving | 205 | ✅ Healthy |
+| Skiing | 204 | ✅ Healthy |
+| Climbing | 204 | ✅ Healthy |
+| Surfing | 203 | ✅ Healthy |
+| Fishing | 202 | ✅ Healthy |
+| Kayak | 201 | ✅ Healthy |
+| MTB | 201 | ✅ Healthy |
+| Paraglide | 201 | ✅ Healthy |
+| Kite | 200 | ✅ Healthy |
+| Hiking | 200 | ✅ Healthy |
+| **TOTAL** | **2,226** | |
 
-### 52 Exact Duplicate Photo URLs
-3 URLs appear 3 times with identical crop parameters (not just same base ID):
-```
-photo-1523819088009?...fp-x=0.39&fp-y=0.5  — 3 exact copies
-photo-1578001647043?...fp-x=0.61&fp-y=0.3  — 3 exact copies
-photo-1578001647043?...fp-x=0.57&fp-y=0.6  — 3 exact copies
-```
-49 more URLs appear exactly twice. These show literally identical images on different venue cards.
+---
 
-### Affiliate Placeholder on Line 3666
+## 3. Critical Issues
+
+### 🔴 ISSUE 1: Photo Deduplication Has Collapsed (HIGH SEVERITY)
+
+Only **176 unique base Unsplash photo IDs** are used across 2,226 venues — one base image per 12.6 venues on average. The expansion batch used fp-x/fp-y crop variants to create visual variety, but each base image shows the same scene from slightly different angles. At scroll depth, users see near-identical photos.
+
+**Worst offenders (these three base IDs cover 515 venues — 23% of the entire app):**
+
+| Base Photo ID | Venues Using It | Category |
+|---|---:|---|
+| `photo-1529961482160` | 203 | All Alaska/Pacific NW fishing |
+| `photo-1523819088009` | 202 | Nearly all kayak venues |
+| `photo-1578001647043` | 110 | Mixed mountain/snow |
+
+Beyond these three: 57 more base IDs are each used 2–10 times. Only 5 base photo IDs are used exactly once across the entire 2,226-venue dataset.
+
+**User impact:** A user browsing the Fishing tab sees the same Alaskan river for every venue. A user scrolling Kayak sees the same ocean scene 200 times with different crops. This is the strongest signal that the app is auto-generated, not curated — and it's the most visible issue on the Explore screen.
+
+**Fix required:** Source 2,000+ additional unique Unsplash photo IDs. Priority: replace all 203 fishing venue photos and 202 kayak venue photos first (those use just 2 base images between them). This is a 2–3 session content job and should be scheduled before the Reddit launch.
+
+---
+
+### 🔴 ISSUE 2: Travelpayouts Marker Placeholder Active
+
+Line ~3771 contains:
 ```js
 const TP_MARKER = "YOUR_TP_MARKER";
 ```
-The condition on line 3685 is `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` — meaning **zero flight affiliate clicks are being tracked or attributed**. This is a Jack action item (replace with real Travelpayouts marker ID).
 
-### AP_CONTINENT Coverage Gap
-1,255 of 2,226 venues (56%) use airport codes that are not mapped in the `AP_CONTINENT` object. These venues resolve to `"UNKNOWN"` continent, breaking the Alerts region filter and any continent-based logic.
-
-**Continent-mapped venue counts:**
-| Continent | Venues Mapped | Gap |
-|---|---|---|
-| North America | 379 | Many US/Canada airports unmapped |
-| Europe | 280 | Many secondary EU airports unmapped |
-| Oceania | 110 | — |
-| Asia | 87 | — |
-| Africa | 71 | — |
-| LATAM | 44 | Most underrepresented mapped region |
-| UNKNOWN | 1,255 | 56% of all venues |
-
-### Duplicate Venue IDs
-**0 duplicates** — all 2,226 IDs are unique. ✓
-
-### Required Fields
-All 2,226 venues have: `lat`, `lon`, `ap`, `tags[]`, `photo`. ✓
+The downstream guard `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` correctly blocks the affiliate URL from being built — meaning **every flight click is landing on non-affiliate Google Flights, earning $0**. This is a 30-second fix: Jack replaces `"YOUR_TP_MARKER"` with the actual marker ID from the Travelpayouts dashboard. It has been flagged in prior reports. Still unresolved.
 
 ---
 
 ## 4. Gear Items Audit
 
-All 11 categories are covered. Confirmed counts:
+All 11 categories have gear items. Hiking is under-stocked relative to peers.
 
-| Category | Items | Amazon URLs | REI URLs | Notes |
-|---|---|---|---|---|
-| skiing | 8 | 4 | 4 | ✓ High AOV mix |
-| surfing | 4 | 2 | 2 | Could add fins, leash |
-| tanning | 4 | 4 | 0 | ✓ |
-| diving | 4 | 3 | 1 | ✓ |
-| climbing | 8 | 4 | 4 | ✓ Duplicate BD harness: appears in both REI + Amazon arrays — same product, expected |
-| kayak | 8 | 4 | 4 | ✓ Duplicate NRS PFD: appears in both arrays — expected |
-| mtb | 8 | 4 | 4 | ✓ |
-| kite | 4 | 4 | 0 | ✓ |
-| fishing | 4 | 3 | 1 | ✓ |
-| paraglide | 4 | 4 | 0 | ✓ |
-| hiking | 7 | 3 | 4 | ✓ **Hiking gear confirmed — NOT missing** |
+| Category | Items | Amazon | REI | Status |
+|---|---:|---:|---:|---|
+| Skiing | 8 | 4 | 4 | ✅ |
+| Climbing | 8 | 4 | 4 | ✅ |
+| Kayak | 8 | 4 | 4 | ✅ |
+| MTB | 8 | 4 | 2 | ✅ |
+| **Hiking** | **7** | **3** | **4** | **⚠️ Add 4 items** |
+| Surfing | 4 | 2 | 2 | ⚠️ Under-stocked |
+| Tanning | 4 | 4 | 0 | ⚠️ Under-stocked |
+| Diving | 4 | 3 | 1 | ⚠️ Under-stocked |
+| Kite | 4 | 4 | 0 | ⚠️ Under-stocked |
+| Fishing | 4 | 3 | 1 | ⚠️ Under-stocked |
+| Paraglide | 4 | 4 | 0 | ⚠️ Under-stocked |
 
-**`peakly-20` Amazon tag:** present on all Amazon URLs ✓
-**REI affiliate tag:** absent (not yet approved) — expected, blocked ✓
-**No placeholder or dead affiliate URLs found in GEAR_ITEMS**
+**Amazon `peakly-20` tag:** present on all Amazon URLs ✅
+**GetYourGuide link:** still uses template string (`?q=${encodeURIComponent(exp.name)}`) with no `partner_id` — earns $0 ⚠️
 
----
+### Hiking — 4 Missing High-AOV Items (Paste-Ready)
 
-## 5. Seasonal Relevance (March 26 — Late Northern Hemisphere Winter)
+The current 7 hiking gear items are missing the two highest-revenue items in the category (tent, sleeping bag). Add these to the `hiking` array in `GEAR_ITEMS`:
 
-### In Season Now
-- All **11 Northern Hemisphere ski venues** with active late-season snow (Whistler, Chamonix, Verbier, etc.)
-- **Southeast Asia** surf and beach (Bali, Thailand, Philippines, Maldives) — peak season
-- **Caribbean and Mexico** beach/surf/kite — prime spring conditions
-- **Central America** surf — offshore winds, solid swells
-- **South Africa** surf — Cape Town autumn, clean conditions
-
-### Out of Season (Should Be Deprioritized)
-Southern Hemisphere ski venues currently showing in the skiing filter with zero snow:
-
-| Venue | Location | Snow Season Opens |
-|---|---|---|
-| Multiple Chile ski venues | Andes | June 2026 |
-| Multiple Argentina ski venues | Patagonia | June 2026 |
-| Multiple NZ ski venues (Remarkables, Treble Cone, Cardrona) | South Island | June 2026 |
-| Multiple Australian ski venues (Perisher, Falls Creek, Thredbo) | NSW/VIC | June 2026 |
-
-The Open-Meteo scoring algorithm will correctly return poor conditions scores, but these venues still appear in the Skiing filter, may show "Checking conditions…" loading states, and could confuse new users who don't know Southern Hemisphere ski seasons.
-
-**Recommendation for PM:** Add a `hemisphere` field (`"north"` / `"south"`) to ski venues and a visible "Out of season" badge when displaying them in March–May. Not urgent, but improves first impressions.
-
-### Best Opportunity Window — Right Now
-Top in-season combos for late March:
-1. **Surfing — Mentawai Islands, Indonesia** — SW swells building, low crowds
-2. **Kitesurf — Cabarete, Dominican Republic** — peak trade winds
-3. **Beach — Maldives** — pre-monsoon perfection
-4. **Skiing — Zermatt / Verbier** — last powder weeks before spring skiing
-5. **Hiking — Patagonia** — Southern Hemisphere autumn, low crowds
-
----
-
-## 6. Content Quality Check
-
-- **Venue name length:** Spot-checked 50 across all categories — all pass sanity check ✓
-- **Location field accuracy:** Spot-checked 20 venues — coordinates match claimed locations ✓
-- **Tags quality:** Spot-checked 30 venues — tags are accurate and descriptive ✓
-- **Descriptions:** No `desc` fields (by design; LOCAL_TIPS covers detail view) ✓
-- **Rating range:** 4.75–4.99 across all venues — consistent and credible ✓
-- **Review counts:** Range from ~200 to 4,200 — realistic ✓
-- **Difficulty signals in tags:** Where applicable (climbing, diving), difficulty words present ✓
-
----
-
-## 7. Five New Venue Objects — Paste-Ready JavaScript
-
-**Target this session:** Underrepresented regions — South America, Africa, Southeast Asia (per task backlog). All categories are at 200+ venues so focus is geographic diversity rather than category gap-filling.
-
-All photo IDs below are unique (verified against current VENUES array).
-All airport codes are valid IATA codes.
-
-Paste these into the VENUES array before the closing `];`:
-
-```js
-  {id:"tayrona",category:"hiking",title:"Tayrona National Park",location:"Magdalena, Colombia",lat:11.3097,lon:-73.9188,ap:"SMR",icon:"🥾",rating:4.89,reviews:1876,gradient:"linear-gradient(160deg,#1a3300,#2e5f1a,#5a9a30)",accent:"#8bc34a",tags:["Caribbean Jungle","Pristine Beaches","Indigenous Sites","Moderate","Year Round"],photo:"https://images.unsplash.com/photo-1580968153698-7e94a4b1b9c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
-  {id:"tofo-diving",category:"diving",title:"Tofo Beach — Manta Point",location:"Inhambane, Mozambique",lat:-23.8564,lon:35.5407,ap:"INH",icon:"🐠",rating:4.93,reviews:1023,gradient:"linear-gradient(160deg,#001a44,#003388,#0055cc)",accent:"#55aaff",tags:["Manta Rays Year Round","Whale Sharks","Beginner to Advanced","Indian Ocean"],photo:"https://images.unsplash.com/photo-1544551763-8dd44758c2dd?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.55"},
-  {id:"krabi-kite",category:"kite",title:"Klong Muang Beach Kitesurf",location:"Krabi, Thailand",lat:8.1731,lon:98.7785,ap:"KBV",icon:"🪁",rating:4.87,reviews:1340,gradient:"linear-gradient(160deg,#004433,#006655,#00aa88)",accent:"#66ddbb",tags:["Nov-Apr Season","Warm Water","Flat Water Lagoon","Beginners Welcome"],photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35"},
-  {id:"chapada-diamantina",category:"paraglide",title:"Chapada Diamantina Paragliding",location:"Bahia, Brazil",lat:-12.4561,lon:-41.4386,ap:"LEC",icon:"🪂",rating:4.85,reviews:687,gradient:"linear-gradient(160deg,#3a1a00,#7a3a00,#c0600a)",accent:"#ffb74d",tags:["Tabletop Thermals","Cerrado Landscape","May-Sep Season","Scenic Canyons"],photo:"https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
-  {id:"anse-source-damazon",category:"tanning",title:"Anse Source d'Argent",location:"La Digue, Seychelles",lat:-4.3549,lon:55.8363,ap:"SEZ",icon:"🏖️",rating:4.98,reviews:3421,gradient:"linear-gradient(160deg,#004455,#006677,#00aaaa)",accent:"#66dddd",tags:["Most Photographed Beach","Granite Boulders","Snorkeling","Year Round"],photo:"https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+```javascript
+{ emoji:"⛺", name:"Big Agnes Copper Spur HV UL2 Tent",    store:"REI",    price:"$550",  commission:"5%",  url:"https://www.rei.com/search?q=big+agnes+copper+spur+tent" },
+{ emoji:"🛏️", name:"Western Mountaineering Alpinlite Bag",  store:"REI",    price:"$480",  commission:"5%",  url:"https://www.rei.com/search?q=western+mountaineering+sleeping+bag" },
+{ emoji:"💊", name:"Adventure Medical Kits Ultralight",     store:"Amazon", price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=adventure+medical+kits+ultralight" },
+{ emoji:"🚰", name:"Sawyer Squeeze Water Filter",           store:"Amazon", price:"$32",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=sawyer+squeeze+water+filter" },
 ```
 
-**Notes on new venues:**
-- `tayrona` uses `SMR` (Santa Marta, Colombia) — adds Colombia to LATAM coverage
-- `tofo-diving` uses `INH` (Inhambane, Mozambique) — adds Mozambique to Africa coverage; add `INH:"africa"` to AP_CONTINENT
-- `krabi-kite` uses `KBV` (Krabi Airport, Thailand) — verify in AP_CONTINENT; if missing, add `KBV:"asia"`
-- `chapada-diamantina` uses `LEC` (Lençóis, Bahia, Brazil) — regional airport; if unmapped, add `LEC:"latam"`
-- `anse-source-damazon` uses `SEZ` (Mahé, Seychelles) — Indian Ocean gem, adds Seychelles coverage
+Tent ($550 × 5% REI = $27.50/conversion) and sleeping bag ($480 × 5% = $24/conversion) are the two highest-AOV items in any outdoor category. Not having them in hiking gear is leaving the biggest commissions on the table.
 
 ---
 
-## 8. One Observation for the PM
+## 5. Seasonal Relevance (March 27 — Late Northern Hemisphere Winter/Early Spring)
 
-**The photo diversity collapse is a silent quality killer.** The jump from 192 to 2,226 venues was a genuine leap — but the photos got there on the back of 174 base images shared 2,226 ways. A user scrolling the Skiing tab in Austria will see two consecutive cards with the same mountain shot, just cropped left vs. right. A user who opens 5 diving venues may recognize the same reef photo in 3 of them. At low traffic this is invisible. At 1K+ MAU with Reddit/TikTok acquisition, it's a credibility-killer — users share screenshots, and near-identical photos will get called out. **A targeted fix replacing the top 3 massively overused base IDs (515 venues) with unique, category-appropriate Unsplash photos would restore perceptual quality for nearly a quarter of the app.** This is a 2–3 session job but should be scheduled before the Reddit launch.
+### In Season ✅
+- **Northern tropical beaches** (0–25°N): 92 venues — Caribbean, SE Asia, Hawaii, Florida. **Prime season. Feature heavily.**
+- **NH skiing** (lat >30°N): 188 venues — late season but active through mid-April at most resorts
+- **NH surf** (Pacific and Atlantic): Active spring swells
+- **Northern tropics kite**: March trade winds, excellent conditions
 
-Secondary: The `TP_MARKER = "YOUR_TP_MARKER"` placeholder means every flight click earns $0 in Travelpayouts affiliate commission. Five minutes for Jack to replace it with the real marker ID would activate an otherwise-ready revenue stream.
+### Out of Season / Risk Zones ⚠️
 
----
+| Situation | Venues Affected | Notes |
+|---|---:|---|
+| **SH skiing out of season** (lat <-25°) | 16 | Chile, Argentina, NZ, Australia — no snow until June |
+| **SH tropical cyclone zone** (0–25°S beach) | 42 | March = active cyclone season — Fiji, Vanuatu, French Polynesia SH side |
+| **Mediterranean beaches** (35–50°N) | 49 | Water 14–16°C — not beach season |
 
-## 9. Additional Findings
+The weather scoring API will return poor scores for SH ski venues correctly, but these venues still appear in the Skiing filter without any "out of season" signal. A new user who filters for skiing and sees Portillo, Chile listed alongside Whistler gets confused.
 
-### Tarifa "Warm Water" Tag Is Inaccurate
-- `id:"tarifa"` (kite) is tagged "Warm Water" — Atlantic at Tarifa averages 17–20°C (cool, not warm)
-- Fix: change `"Warm Water"` to `"Atlantic Thermals"` in tarifa's tags array
-
-### Gear Item AOV Gaps
-- **Climbing AOV is low** — chalk item ($12) is the weakest across all categories. Swap for Petzl Grigri+ belay device ($130 Amazon) or Black Diamond Crag Daddy pack ($189 REI) to lift RPM.
-- **MTB gap:** Whistler Bike Park (YVR, `id:"whistler_bike"`) is the world's #1-rated park and would outperform Queenstown MTB for North American users — consider alongside proposed queenstown_mtb addition.
-
-### Airport Code Recommendations
-- Add `INH:"africa"` to AP_CONTINENT for the new Tofo, Mozambique diving venue
-- Add `KBV:"asia"` for the new Krabi kite venue
-- Add `LEC:"latam"` for Chapada Diamantina, Brazil
-- Add `HAN:"asia"` — Hanoi is the geographically accurate hub for Halong Bay (better than BKK)
+**Recommendation:** Add visible "Out of Season" badge for SH ski venues shown in March–May. Low-priority dev but high-impact first impression.
 
 ---
 
-*Report generated by Content & Data Agent — 2026-03-26 (Session 2, merged)*
+## 6. Content Quality Issues
+
+### Tag Normalization
+Two versions of the same tag in simultaneous use:
+- `"Year-Round"` — **202 venues**
+- `"Year Round"` — **106 venues**
+
+Total: **308 venues (14% of dataset)** affected by this split. Should normalize to `"Year-Round"`. This creates silent bugs if tags are ever used as exact-match facets in search or filtering.
+
+### Venue Naming — Paraglide and Kayak Redundancy
+- **Paraglide:** 199 of 201 venues include "Paragliding" in the title (e.g., "Interlaken Paragliding", "Bir Billing Paragliding"). Redundant — the category tab already says "Paraglide." Names should be the *place*, not the activity + place.
+- **Kayak:** 143 of 201 venues include "Kayaking" in the title — same issue.
+- Contrast: fishing venues correctly use "Kenai River", "Bristol Bay" rather than "Kenai River Fishing."
+
+This is low-priority polish but makes venue cards read as auto-generated rather than curated — which is a credibility issue for a product positioning itself as Steve Jobs quality.
+
+### Geographic Diversity Gaps
+
+| Activity | Africa | Central America | Notes |
+|---|---:|---:|---|
+| Hiking | 8 | 0 | No Costa Rica, Guatemala, Panama, Belize |
+| Climbing | 7 | 0 | Zero Central American sport climbing |
+| MTB | 4 | 2 | Underrepresented both regions |
+
+---
+
+## 7. Five New Venue Objects (Copy-Paste Ready)
+
+Targeting geographic diversity gaps: Central America (hiking, climbing), East Africa (MTB), Indian Ocean (beach), and South America (paraglide). All photo IDs are unique to avoid the duplication problem. Paste before the closing `];` of the VENUES array.
+
+```javascript
+  {
+    id:"semuc-champey",
+    category:"hiking",
+    title:"Semuc Champey Pools",
+    location:"Alta Verapaz, Guatemala",
+    lat:15.5333, lon:-89.9667,
+    ap:"GUA",
+    icon:"🥾",
+    rating:4.91, reviews:1240,
+    gradient:"linear-gradient(160deg,#1a4a2e,#2d8a5e,#7ecba0)",
+    accent:"#7ecba0",
+    tags:["Jungle","Swimming Holes","Moderate","Waterfalls","Year-Round"],
+    photo:"https://images.unsplash.com/photo-1518638150340-f706e86654de?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  },
+  {
+    id:"acatenango",
+    category:"hiking",
+    title:"Volcán Acatenango",
+    location:"Chimaltenango, Guatemala",
+    lat:14.5014, lon:-90.8757,
+    ap:"GUA",
+    icon:"🥾",
+    rating:4.87, reviews:980,
+    gradient:"linear-gradient(160deg,#2c1a0e,#6b3a1f,#c97d4a)",
+    accent:"#c97d4a",
+    tags:["Volcano","Strenuous","Overnight","Advanced","Fuego Views","Nov-Apr Season"],
+    photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35"
+  },
+  {
+    id:"el-potrero-chico",
+    category:"climbing",
+    title:"El Potrero Chico",
+    location:"Nuevo León, Mexico",
+    lat:26.0167, lon:-100.5167,
+    ap:"MTY",
+    icon:"🧗",
+    rating:4.93, reviews:1850,
+    gradient:"linear-gradient(160deg,#3d1a00,#8b4513,#d2a679)",
+    accent:"#d2a679",
+    tags:["Sport Climbing","Multi-Pitch","All Levels","Limestone","Winter Escape","Sun"],
+    photo:"https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=600&fit=crop&fp-x=0.4&fp-y=0.5"
+  },
+  {
+    id:"magaliesberg-mtb",
+    category:"mtb",
+    title:"Magaliesberg Meander Trail",
+    location:"North West Province, South Africa",
+    lat:-25.7167, lon:27.5167,
+    ap:"JNB",
+    icon:"🚵",
+    rating:4.78, reviews:620,
+    gradient:"linear-gradient(160deg,#3a2200,#7a4f1e,#c49a6c)",
+    accent:"#c49a6c",
+    tags:["Singletrack","Moderate","Bushveld","Year-Round","Scenic","Budget"],
+    photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  },
+  {
+    id:"anse-source-dargent",
+    category:"tanning",
+    title:"Anse Source d'Argent",
+    location:"La Digue, Seychelles",
+    lat:-4.3549, lon:55.8363,
+    ap:"SEZ",
+    icon:"🏖️",
+    rating:4.98, reviews:3421,
+    gradient:"linear-gradient(160deg,#004455,#006677,#00aaaa)",
+    accent:"#66dddd",
+    tags:["Granite Boulders","Snorkeling","Year-Round","Pristine","Remote","Indian Ocean"],
+    photo:"https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+  },
+```
+
+**Notes:**
+- `GUA` (Guatemala City) serves both Guatemala venues — already in AIRPORTS
+- `MTY` (Monterrey, Mexico) — verify in AP_CONTINENT; add `MTY:"latam"` if missing
+- `JNB` (Johannesburg) — likely already mapped to `"africa"`
+- `SEZ` (Mahé, Seychelles) — add `SEZ:"africa"` to AP_CONTINENT if missing
+
+---
+
+## 8. PM Observation
+
+**The photo diversity collapse is a silent credibility killer.** The 2,226 venue expansion was the right call for SEO breadth and content depth — but the photo pool didn't scale with it. Today, 23% of the app (515 venues) is covered by just 3 base Unsplash images. A user who opens 5 fishing venues will likely see the same Alaskan river landscape 4 times. A user who screenshots venues to share on Reddit — the exact acquisition channel targeted in the growth strategy — will expose the pattern publicly. Before the Reddit launch, replacing the top-3 overused base photo IDs with unique, category-appropriate images would restore perceived quality for nearly a quarter of the app. It's a 2–3 session content task but it's the highest-value thing the content team can do before launch.
+
+The `TP_MARKER` placeholder is still open as of today's audit. Every flight click since launch has earned $0 in Travelpayouts affiliate revenue. Jack should pull the marker ID from the Travelpayouts dashboard today — this is literally a 30-second fix.
+
+---
+
+*Report generated by Content & Data agent — 2026-03-27.*

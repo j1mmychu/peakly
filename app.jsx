@@ -164,15 +164,15 @@ const F = "'Plus Jakarta Sans', sans-serif";
 const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
   { id:"skiing",  label:"Ski/Board",   emoji:"❄️" },
-  { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
-  { id:"diving",  label:"Diving",     emoji:"🤿" },
-  { id:"climbing",label:"Climbing",   emoji:"🧗" },
-  { id:"tanning", label:"Beach",      emoji:"🏖️" },
+  { id:"surfing", label:"Surf",       emoji:"🏄" },
+  { id:"hiking",  label:"Hike",      emoji:"🥾" },
+  { id:"diving",  label:"Dive",      emoji:"🤿" },
+  { id:"climbing",label:"Climb",     emoji:"🧗" },
+  { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
   { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
   { id:"kayak",   label:"Kayak",     emoji:"🛶" },
   { id:"mtb",     label:"MTB",       emoji:"🚵" },
-  { id:"fishing", label:"Fishing",   emoji:"🎣" },
+  { id:"fishing", label:"Fish",      emoji:"🎣" },
   { id:"paraglide",label:"Paraglide",emoji:"🪂" },
 ];
 
@@ -3205,12 +3205,13 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (swellH > 4) score -= 5;               // expert only
       if (swellH > 6) score -= 10;              // XXL / tow-in territory
 
-      // Water temperature comfort
+      // Water temperature comfort (wetsuit requirement = deterrent for most surfers)
       if (waterTemp !== null) {
-        if (waterTemp > 24) score += 4;          // tropical, boardshorts
-        else if (waterTemp >= 20) score += 2;    // comfortable with spring suit
-        else if (waterTemp < 10) score -= 8;     // dangerously cold, thick wetsuit required
-        else if (waterTemp < 15) score -= 4;     // cold, full wetsuit mandatory
+        if (waterTemp > 24) score += 4;          // tropical — boardshorts, ideal
+        else if (waterTemp >= 20) score += 2;    // spring suit comfortable
+        else if (waterTemp >= 15) score -= 2;    // 3/2mm wetsuit required — manageable
+        else if (waterTemp >= 10) score -= 5;    // 4/3mm wetsuit — cold, deters many
+        else score -= 10;                        // 5/4mm+ / drysuit — extreme cold, expert only
       }
 
       // Rain doesn't ruin surf but low vis + runoff = dirty water
@@ -3287,10 +3288,13 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : moderate ? 55
             : 38;
 
-      if (wind > 20) score -= 6;       // surface chop, hard entry/exit
-      if (gusts > 30) score -= 4;
-      if (precipPct > 70) score -= 5;  // probable rain = runoff
-      if (bestDays > 2) score += 3;    // multi-day calm = settled vis
+      // Wind as current proxy — sustained wind drives surface current; most dive ops cancel >20kts (~23mph)
+      if (wind > 25) score -= 12;      // strong current — entry/exit dangerous, most ops cancel
+      else if (wind > 20) score -= 7;  // moderate current — challenging, experienced divers only
+      else if (wind > 15) score -= 3;  // light current — manageable with planning
+      if (gusts > 30) score -= 5;      // gusty = unpredictable surge at entry points
+      if (precipPct > 70) score -= 5;  // probable rain = runoff kills visibility
+      if (bestDays > 2) score += 3;    // multi-day calm = settled vis, negligible current
 
       // Water temperature affects comfort, exposure limits, and marine life
       if (waterTemp !== null) {
@@ -3299,7 +3303,8 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         else if (waterTemp < 15) score -= 4;   // cold water — drysuit recommended, shorter dives
       }
 
-      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"} · ${tempMax}°F`;
+      const currentNote = wind > 25 ? " · Strong current" : wind > 20 ? " · Current risk" : "";
+      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"}${currentNote} · ${tempMax}°F`;
       period = calm && bestDays > 2 ? `${bestDays}-day dive window`
              : calm ? "Good today — conditions shifting"
              : "Wait for calmer seas";
@@ -3324,10 +3329,12 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (precipPct > 60) score -= 8;         // don't start a multi-pitch
       if (tempMax > 95) score -= 6;           // heat exhaustion risk
 
-      // Humidity affects rock friction — sweaty hands + greasy holds
+      // Humidity affects rock friction — damp rock, sweaty hands, greasy holds
       if (humidity !== null) {
-        if (humidity > 80) score -= 4;        // slippery holds, bad for grip
-        else if (humidity < 40) score += 2;   // dry air = excellent friction
+        if (humidity > 85) score -= 7;        // severely slippery — limestone weeps, granite glass-slick
+        else if (humidity > 70) score -= 4;   // noticeably reduced friction on most rock types
+        else if (humidity < 35) score += 4;   // desert-dry — exceptional friction
+        else if (humidity < 50) score += 2;   // dry air — good friction
       }
 
       const windNote = gusts > 25 ? " · Gusty" : wind > 15 ? " · Breezy" : "";
@@ -3383,14 +3390,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (gusts > 20) score -= 5;            // control issues
       if (precipPct > 60) score -= 4;
 
-      // 120°F rule: if air temp (°C) + water temp (°C) < 49°C, cold water immersion is dangerous
-      // Convert tempMax from °F to °C for the check
+      // Cold water safety — hypothermia is the #1 killer in kayaking incidents
       if (waterTemp !== null) {
+        // 120°F rule: air°C + water°C < 49 = serious immersion risk (dress for the water, not the air)
         const airC = (tempMax - 32) * 5 / 9;
         if (airC + waterTemp < 49) {
           score -= 15;
-          period = "Cold Water Risk — " + (period || "use caution");
+          period = "Cold Water Risk — dress for immersion";
         }
+        // Standalone water temp thresholds (hypothermia risk even if combined rule passes)
+        if (waterTemp < 10) score -= 12;          // <10°C: incapacitation within minutes of immersion
+        else if (waterTemp < 15) score -= 8;      // 10-15°C: hypothermia in 30-60 min — serious risk
+        else if (waterTemp >= 18 && waterTemp <= 24) score += 3; // ideal range — comfortable, safe
       }
 
       label = `${wind.toFixed(0)}mph · ${calm ? "Flat water" : "Light chop"} · ${tempMax}°F`;
