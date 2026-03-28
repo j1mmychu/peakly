@@ -1,8 +1,8 @@
 # SEO & Analytics Report -- Peakly
 
-**Date:** 2026-03-25 (Run 3)
-**SEO Score:** 91% (holding from 03-24)
-**Previous Score:** 91% (03-25 Run 2) | 91% (03-25 Run 1) | 81% (03-23) | 62% (03-22 baseline)
+**Date:** 2026-03-27
+**SEO Score:** 91% (unchanged since 03-24)
+**Previous Scores:** 91% (03-25) | 91% (03-24) | 81% (03-23) | 62% (03-22 baseline)
 
 ---
 
@@ -392,4 +392,53 @@ Each post links to a category-specific hash URL (e.g., `#surfing`, `#skiing`) tr
 
 ---
 
-*Next run: Check if preconnect hints (item #1), Sentry defer (item #2), stale venue counts (items #3, #5), and JSON-LD enhancement (item #4) have been implemented. If Reddit launch date is set, escalate item #7 (dynamic meta tags) to P0.*
+---
+
+## 2026-03-27 Run Notes
+
+### Changes Since Last Run (03-25)
+- Premium splash screen added (03-26)
+- Pull-to-refresh + sport-ordered tabs added (03-26)
+- Weather cache with localStorage + 30-min TTL shipped (03-26)
+- Scale Guardian agent added as 8th agent (03-26)
+- 2,226 venues confirmed stable with batched weather fetching
+
+### What Has NOT Changed (Carryover Items Still Open)
+All 10 action items from the 03-25 report remain open. None have been implemented. The score is stuck at 91%.
+
+**Items 1-5 have been open for 5+ consecutive runs and represent 18 minutes of cumulative work.** This is the longest-standing set of unshipped SEO fixes.
+
+### Updated Priority Assessment
+
+| # | Item | Carry Count | Effort | Status |
+|---|------|-------------|--------|--------|
+| 1 | Add preconnect/dns-prefetch + preload hints | **6 runs** | 5 min | OPEN |
+| 2 | Add `defer` to Sentry script tag | **2 runs** | 1 min | OPEN |
+| 3 | Update static p tag: "170+" to "2,200+" | **5 runs** | 1 min | OPEN |
+| 4 | Add SearchAction + ItemList to JSON-LD | **5 runs** | 10 min | OPEN |
+| 5 | Update JSON-LD featureList: "180+" to "2,200+" | **2 runs** | 1 min | OPEN |
+| 6 | Standardize Plausible event names to PascalCase | **4 runs** | 15 min | OPEN |
+| 7 | Dynamic meta tags on venue open | **4 runs** | 15 min | OPEN |
+| 8 | Add Gear Click + Alert Create + Ski Pass Filter events | **2 runs** | 10 min | OPEN |
+| 9 | Create branded OG image | **4 runs** | 30 min | OPEN |
+| 10 | Pre-transpile JSX to eliminate Babel runtime | DEFERRED | 1 hr | Phase 2 |
+
+### New Finding: Missing Plausible Events (Verified)
+Confirmed that `Venue Click` and `Flight Search` events (as named in the agent spec) are implemented under different names (`venue_open` and `flight_click` respectively). They ARE firing. The naming inconsistency is cosmetic, not a data gap.
+
+### Recommendation for This Cycle
+**Batch items 1-5 into a single commit.** Total effort: ~18 minutes. This would push SEO score from 91% to ~95% and fix all stale content references. The paste-ready code has been in this report for 5 runs.
+
+### Week-over-Week SEO Score Tracking (Updated)
+
+| Date | Score | Changes |
+|------|-------|---------|
+| 2026-03-22 | 62% | Baseline |
+| 2026-03-23 | 81% | Title, canonical, robots.txt, sitemap, Plausible, OG tags |
+| 2026-03-24 | 91% | JSON-LD, static h1, script.hash.js, 5 custom events, PWA manifest |
+| 2026-03-25 | 91% | No SEO changes. Venues expanded to 2,226. Weather cache live. |
+| 2026-03-26 | 91% | No SEO changes. Splash screen, pull-to-refresh, sport-ordered tabs. |
+| 2026-03-27 | 91% | No SEO changes. All 10 action items still open. |
+| Target | 95%+ | Needs: preconnect hints, enhanced JSON-LD, defer Sentry, fix stale venue counts, branded OG image |
+
+*Next run: If items 1-5 remain unshipped, escalate to product-manager agent for prioritization decision. These are trivially small fixes with outsized SEO impact.*
