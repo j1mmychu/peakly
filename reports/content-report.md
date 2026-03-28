@@ -206,3 +206,66 @@ This is the most visible quality issue in the app right now — more impactful t
 ---
 
 *Report written: 2026-03-28 | Agent: Content & Data | Next run: 2026-03-29 08:00*
+
+---
+
+## 6. GEOGRAPHIC DISTRIBUTION AUDIT
+
+| Region | Venues | % | Gap? |
+|--------|--------|---|------|
+| Europe | 555 | 24.9% | — |
+| North America | 514 | 23.1% | — |
+| Asia | 265 | 11.9% | — |
+| Oceania | 210 | 9.4% | — |
+| South America | 149 | 6.7% | Minor |
+| Africa | 138 | 6.2% | **Yes — thin** |
+| Caribbean | 65 | 2.9% | Minor |
+| Middle East | 40 | 1.8% | **Yes — very thin** |
+| Other/unmatched | 290 | 13.0% | — |
+
+Africa (6.2%) and Middle East (1.8%) are underrepresented given their adventure breadth. Mozambique/Kenya diving and kite, Morocco MTB, Oman and Jordan climbing are all world-class and undercompeted in search. Adding 5 venues/week to these regions would fill the gap with no category imbalance.
+
+---
+
+## 7. CONTENT TYPO — EXPERIENCES CONSTANT
+
+In the `EXPERIENCES` constant, kayak section (~line 7121 of app.jsx):
+
+```javascript
+// WRONG — doubled word:
+{ emoji:"🦦", name:"Wildlife wildlife kayak tour",   price:90,  duration:"3 hrs" },
+
+// CORRECT:
+{ emoji:"🦦", name:"Wildlife kayak tour",            price:90,  duration:"3 hrs" },
+```
+
+This typo appears in VenueDetailSheet "Guided Experiences" for all kayak venues.
+
+---
+
+## 8. SURFING GEAR ADDITIONS — +$1.50 RPM Estimate
+
+Surfing has only 4 gear items. Adding 4 more high-AOV items brings it in line with skiing/climbing (8 items).
+
+**Paste-ready additions for `GEAR_ITEMS.surfing`:**
+
+```javascript
+{ emoji:"🦺", name:"FCS II Performer PC Carbon Fins",     store:"Amazon", price:"$110", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=fcs+ii+performer+pc+carbon+fins" },
+{ emoji:"🧥", name:"Patagonia R1 Yulex 3/2 Wetsuit",     store:"REI",    price:"$349", commission:"5%", url:"https://www.rei.com/search?q=patagonia+r1+yulex+wetsuit" },
+{ emoji:"🎒", name:"Dakine Mission Surf Backpack 25L",    store:"Amazon", price:"$80",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+mission+surf+backpack" },
+{ emoji:"🔒", name:"Creatures Surf Leash 9ft",            store:"Amazon", price:"$32",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=creatures+of+leisure+surf+leash" },
+```
+
+---
+
+## 9. ALTERNATE 5 VENUE ADDITIONS — Africa / Middle East Focus
+
+Supplementary to §5. These target the Africa/Middle East gap with in-season, March-prime destinations.
+
+```javascript
+  {id:"musandam-diving",   category:"diving",   title:"Musandam Peninsula Dive Sites", location:"Musandam, Oman",         lat:26.2000,lon:56.2500,  ap:"MCT",icon:"🤿",rating:4.93,reviews:1840,gradient:"linear-gradient(160deg,#003366,#005fa3,#1a8dc7)",accent:"#4ab8e8",tags:["Hammerhead Sharks","Fjord Diving","Pristine Reefs","March–May Prime"],photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+  {id:"wadi-rum-climbing", category:"climbing", title:"Wadi Rum Desert Walls",         location:"Aqaba, Jordan",          lat:29.5760,lon:35.4157,  ap:"AQJ",icon:"🧗",rating:4.91,reviews:2310,gradient:"linear-gradient(160deg,#3a1a00,#7a4a1a,#c87a3a)",accent:"#e8aa66",tags:["Sandstone Towers","Multi-Pitch","Desert Camping","Beginner Friendly"],photo:"https://images.unsplash.com/photo-1617637830820-5bf574b4e019?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+  {id:"tofo-diving",       category:"diving",   title:"Tofo Beach Dive Sites",         location:"Inhambane, Mozambique",  lat:-23.8620,lon:35.5467, ap:"INH",icon:"🤿",rating:4.94,reviews:1560,gradient:"linear-gradient(160deg,#00263a,#00607a,#00a0c0)",accent:"#40d0f0",tags:["Whale Sharks","Manta Rays","Uncrowded","Oct–Mar Season"],photo:"https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.6"},
+  {id:"atlas-mtb",         category:"mtb",      title:"Atlas Mountains Trail Network", location:"Marrakech, Morocco",     lat:31.0681,lon:-7.8539,  ap:"RAK",icon:"🚵",rating:4.88,reviews:980, gradient:"linear-gradient(160deg,#1a1a00,#4a4a1a,#8a7a3a)",accent:"#c0aa55",tags:["Berber Villages","Desert Singletrack","Guided Expeditions","Mar–May Prime"],photo:"https://images.unsplash.com/photo-1544191696-102dbeb3f2a3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+  {id:"diani-kite",        category:"kite",     title:"Diani Beach Kitesurf Flats",    location:"Kwale County, Kenya",   lat:-4.3152,lon:39.5660,  ap:"MBA",icon:"🪁",rating:4.90,reviews:1230,gradient:"linear-gradient(160deg,#003a1a,#007a4a,#20c07a)",accent:"#50e0a0",tags:["Flat Water Lagoon","Consistent SE Trades","Beginner Safe","Year-Round"],photo:"https://images.unsplash.com/photo-1601024445121-e5b82f020549?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35"},
+```
