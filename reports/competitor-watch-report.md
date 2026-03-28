@@ -1,15 +1,15 @@
-# Competitor Watch Report: 2026-03-27 (v11)
+# Competitor Watch Report: 2026-03-27 (v12)
 
 **Date:** March 27, 2026
 **Agent:** Competitor Watch (Competitive Intelligence)
-**Previous report:** March 25, 2026 (v10)
+**Previous report:** March 27, 2026 (v11)
 
 ---
 
 ## 1. Direct Competitors -- Latest Updates
 
 ### Surfline
-**Pricing (verified March 27, 2026):** Premium $119.99/yr ($15.99/mo) | Premium w/Ads $69.99/yr | Premium+ $149.99/yr (shareable, 3 accounts = ~$50/user/yr)
+**Pricing (verified March 27, 2026):** Premium $119.99/yr ($12.99/mo) | Premium w/Ads $69.99/yr | Premium+ $149.99/yr (shareable with 2 friends, ~$50/user/yr)
 
 **Recent moves (since last report):**
 - **Sessions now on Android + iOS for free AND Premium users.** Session logging no longer premium-gated. Apple Watch integration for auto-wave-clip capture near cams. This is a retention play -- making the app stickier through personal history.
@@ -20,6 +20,7 @@
 - **Surf Etiquette Series ("That's The Way"):** New content play targeting crowded lineups -- extends brand beyond forecasting into surf culture education.
 - **Premium+ AI features fully live:** Smart Cams (CV for wave height/frequency/crowd), Wave Timeline, Wave Distribution, Crowd Prediction, Smart Clips. First real "decision intelligence" from a conditions app.
 - **Price gouging accusations (BeachGrit, May 2025):** Media coverage of $120/yr price as excessive. Still reverberating in community discussions.
+- **21% YoY price increase confirmed:** Premium jumped from $99 to $119.99. PriceTimeline tracked the increase, validating user backlash.
 
 **User sentiment (App Store, Trustpilot, forums -- verified March 27, 2026):**
 - Free tier crippled to 3-5 condition checks per week. Users call it "completely useless."
@@ -43,11 +44,14 @@
 - **Offline Area feature** for Plus: download customized map areas for offline exploration. Smart move for hikers in dead zones.
 - **National Parks Annual Pass bundle** now available with AllTrails Plus subscription -- partnership play, drives perceived value.
 - **30% off discount codes circulating (March 2026)** -- aggressive growth push, likely chasing a MAU milestone.
+- **Subscription model backlash escalating:** Users report features previously at $35/yr now locked behind $80 Peak tier. Trustpilot reviews cite duplicate charges and difficult cancellation flows. Customer service phone number is reportedly a fax line.
 
 **User sentiment:**
 - Billing practices still toxic: auto-renewal complaints, difficult cancellation, duplicate charges reported.
 - "Lost all credibility since they changed the pricing system" -- price increases without perceived new value.
 - Feature-gating free features behind Peak paywall frustrating long-time users.
+- Route creation feature removed from lower tiers -- significant community backlash.
+- Inaccurate difficulty ratings and hike duration estimates noted across reviews.
 
 **Gap Peakly owns:** Hiking/trail only. No water sports, no snow sports. No flight integration. No cross-sport "when to go" intelligence. No real-time conditions scoring. Domestic US heavy. Billing reputation is a liability.
 
@@ -82,7 +86,7 @@
 ---
 
 ### Windy.app
-**Pricing (verified March 27, 2026):** Pro $59.99/yr (annual), 7-day free trial
+**Pricing (verified March 27, 2026):** Pro $18.99-$29.99/yr (mobile), Windy.com web ~$34.99/yr after 2025 increase
 
 **Recent moves:**
 - **Leaflet GL upgrade:** Faster, smoother map performance. Updated March 23, 2026.
@@ -91,6 +95,7 @@
 - **EXPERT profile** displays basic + advanced weather parameters together (wind speed range, rain intensity, CAPE index for thunderstorms).
 - **Unified Dark Mode** across the app.
 - **Referral program:** Invite 3 friends = 1 month Pro free.
+- **50+ weather layers** with all major global forecast models (ECMWF, GFS, ICON) plus local models (NEMS, AROME, UKV, ICON EU, ICON-D2).
 
 **Gap Peakly owns:** Expert weather tool, not an adventure travel product. No venues, no scoring, no trip planning, no flights. Shows raw data but never says "go now" or "wait." Their wind-sport users (surfers, kiters, sailors) ARE Peakly's target demographic.
 
@@ -100,12 +105,12 @@
 **Revenue:** $850M in 2024 (+21.4% YoY). 35M users. 120M+ lifetime downloads.
 
 **Recent moves:**
-- **B2B arm (HTS) is the growth story:** White-label fintech powering Capital One Travel. 40% of revenue from fintech products (Price Freeze, Flight Disruption Guarantee).
+- **B2B arm (HTS) is the growth story:** White-label fintech powering Capital One Travel, AirAsia MOVE, Cloudbeds. 40% of revenue from fintech products (Price Freeze, Flight Disruption Guarantee, seat-upgrade products).
 - **Platform expansion:** Rental cars + homestays now live, competing with Airbnb/Vrbo.
-- **20B priced itineraries/day** (~7 trillion/year) to power price prediction.
+- **20B priced itineraries/day** (~7 trillion/year) to power price prediction. Claims 95% accuracy up to a year in advance.
 - **Downloads declining** despite revenue growth -- fintech monetization offsetting user plateau.
 
-**Gap Peakly owns:** Zero conditions awareness. Sport-agnostic. Purely price-driven. Cannot answer "is it worth going?" B2B white-label playbook remains relevant for Peakly Phase 7+ strategy.
+**Gap Peakly owns:** Zero conditions awareness. Sport-agnostic. Purely price-driven. Cannot answer "is it worth going?" B2B white-label playbook remains relevant for Peakly Phase 7+ strategy. Hopper's Price Freeze concept (hold a fare for 48hrs) is worth considering as a Peakly Pro feature via partnership.
 
 ---
 
@@ -115,17 +120,18 @@
 |-------------|-------------|--------------|-------|
 | **SurfTrips.ai** | 500+ surf breaks + flight comparison + Airbnb listings | MODERATE-HIGH | Closest to Peakly's thesis. Surf-only, no live scoring, no alerts. Still the one to watch. |
 | **WeSki** | Ski vacation packages: flights + hotel + lift tickets + transfers. 5 stars / 3,930 Trustpilot reviews | MEDIUM | Booking-focused OTA, not conditions-aware. Could add conditions layer. |
-| **Adventure On** | Turns social media travel inspiration videos into bookable trips (flights + stays + experiences) | LOW-MEDIUM | NEW since last report. Social-first approach, not conditions-aware. Interesting acquisition funnel. |
+| **Adventure On** | Turns social media travel inspiration videos into bookable trips (flights + stays + experiences) | LOW-MEDIUM | Social-first approach, not conditions-aware. Interesting acquisition funnel. |
 | **Dream Trip** | AI trip planner that saves places from TikTok/Instagram, creates optimized itineraries | LOW-MEDIUM | Social content aggregation + AI planning. No conditions intelligence. |
-| **Thermal Travel** | Thermal/hot spring destination finder | LOW | Niche, but signals demand for conditions-specific travel planning. |
+| **Navifare** (Zurich, 2025) | AI agent finds cheapest public fare, OTAs compete to beat it. Cheaper 70% of the time. | LOW | Not adventure-specific. Interesting flight-pricing data source for potential partnership. |
+| **BreakFinder.surf** | Surf trip planner: find spots, share rides, plan road trips. Community-driven. | LOW | No flights, no conditions scoring. Very early stage. |
+| **LUEX** | Surf trip marketplace. Curated camps and packages worldwide. | LOW | No conditions data, no flight search, no scoring. Pure booking. |
 | **DropIn Surf** | Community surf travel app: live map, shops, camps, group planning | LOW-MEDIUM | Community focus, not conditions + flights. |
-| **Stormrider** | Surf guide matching skill level + travel plans + seasonal preferences | LOW | Content site, not an app. Personalization model is interesting. |
 
 **Key finding:** No direct "conditions + flights + multi-sport" competitor has emerged. The positioning gap remains wide open. SurfTrips.ai is still the closest but hasn't added live scoring or multi-sport.
 
-**New signal:** "Adventure On" (adventureon.app) converting social media inspiration into bookable trips is a trend to monitor. The social-to-booking pipeline is the growth hack everyone is chasing. Peakly's share feature should feed this loop.
+**New signal:** "Adventure On" converting social media inspiration into bookable trips is a trend to monitor. The social-to-booking pipeline is the growth hack everyone is chasing. Peakly's share feature should feed this loop.
 
-**Risk watch:** Surfline adding flights (they have the brand) or Hopper/KAYAK adding conditions (they have the infra). Neither has signaled this. AllTrails expanding beyond trails remains the most credible medium-term threat.
+**Risk watch:** Surfline adding flights (they have the brand) or Hopper/KAYAK adding conditions (they have the infra). Neither has signaled this. AllTrails expanding beyond trails remains the most credible medium-term threat. At 60%+ of 2026 travel startups leaning heavily on AI (per Amadeus Hot 25), the window to establish the "conditions + flights AI" category is now.
 
 ---
 
@@ -144,6 +150,7 @@
 - "cheap flights to ski resorts" (3K-5K/mo) -- Dollar Flight Club ranks but doesn't combine with conditions
 - "powder day flights" (near zero competition) -- category-creating
 - "surfboard airline fees 2026" (1K-2K/mo) -- content play, not core but drives surf traveler traffic
+- "best time to dive [destination]" (1K-3K/mo per destination) -- scuba is underserved, Peakly covers it
 
 **Strategy:** Each of Peakly's 2,226 venues is a potential SEO ranking page. Template: "[Venue] Conditions + Cheap Flights | Peakly" with live data. This is a 2,226-page SEO moat nobody else can replicate because they don't have the combined data.
 
@@ -154,7 +161,7 @@
 ### Pain Points People Express That Peakly Solves
 
 **1. The Multi-App Juggling Problem:**
-The average traveler visits 28 different websites over 76 online sessions to plan a trip. Adventure travelers layer Surfline + Windy + OnTheSnow + flight search + hotel search on top of that. The phone-as-control-tower trend (per 2026 travel app analysis) confirms demand for consolidated platforms. Peakly collapses this into one screen.
+The average traveler visits 28 different websites over 76 online sessions to plan a trip. Adventure travelers layer Surfline + Windy + OnTheSnow + flight search + hotel search on top of that. Quora threads confirm: "planning trips to unfamiliar places is difficult because travelers don't know where to stay, what to do, places to eat, and adventures to try." Peakly collapses this into one screen.
 
 **2. Surfline Price Revolt (intensifying):**
 $119.99/yr + 3-5 checks/week free limit + password crackdown + BeachGrit "price gouging" coverage = surfers actively searching for alternatives. App Store 1-star review volume increasing. "Surfline alternative" as a search query continues to grow.
@@ -206,7 +213,7 @@ Consistent pain point across Reddit and travel forums: lift tickets + lodging + 
 | AllTrails Peak | $79.99 | Hiking/trails + AI routes |
 | **Peakly Pro** | **$79.00** | **Multi-sport + flights** |
 | Surfline Premium w/Ads | $69.99 | Surf only + ads |
-| Windy.app Pro | $59.99 | Weather data only |
+| Windy.app Pro | $18.99-$29.99 | Weather data only (mobile) |
 | OpenSnow Base | $49.99 | Ski only (1 person) |
 | AllTrails Plus | $35.99 | Hiking/trails basic |
 
@@ -216,7 +223,7 @@ Consistent pain point across Reddit and travel forums: lift tickets + lodging + 
 
 1. **Anchored against AllTrails Peak ($79.99/yr)** -- validated price point for premium outdoor conditions apps with AI features.
 2. **34% cheaper than Surfline Premium ($119.99/yr)** while offering multi-sport + flights (dramatically more breadth).
-3. **Above single-data tools** (Windy $60, OpenSnow $50) -- justified by combined conditions + flights value.
+3. **Above single-data tools** (Windy $19-$30, OpenSnow $50) -- justified by combined conditions + flights value.
 4. **Not so cheap it signals hobby project**, not so expensive it triggers comparison shopping.
 5. Adventure travelers spend $2,000-$5,000+ per trip. $79/yr to optimize timing is a trivial investment.
 
@@ -230,11 +237,12 @@ Consistent pain point across Reddit and travel forums: lift tickets + lodging + 
 ## 6. Competitor Moves Worth Copying
 
 1. **Surfline's Sessions (free tier):** Making session logging free for all users is a brilliant retention play. Peakly equivalent: free trip/session history that builds personal data over time, making the app stickier.
-2. **Surfline's Offline Mode:** They shipped offline viewing of last-loaded data. Peakly already decided offline is incompatible (stale conditions = no value), but the UX pattern of "show something useful when offline" is worth noting.
-3. **AllTrails' National Parks bundle:** Packaging subscriptions with physical-world passes drives perceived value. Peakly equivalent: bundle Pro with ski pass discounts or surf camp partnerships.
-4. **AllTrails' generous free tier (500K POIs):** Drives acquisition. Peakly's free tier should feel generous enough that users can't believe it's free.
-5. **OpenSnow's PEAKS accuracy model:** Invest in scoring quality. Accuracy becomes the moat. Aligns with scoring accuracy audit on roadmap.
-6. **Hopper's B2B white-label:** Long-term, Peakly's conditions intelligence could power airline/OTA adventure travel sections. Keep this in Phase 7+ planning.
+2. **AllTrails' National Parks bundle:** Packaging subscriptions with physical-world passes drives perceived value. Peakly equivalent: bundle Pro with ski pass discounts or surf camp partnerships.
+3. **AllTrails' generous free tier (500K POIs):** Drives acquisition. Peakly's free tier should feel generous enough that users can't believe it's free.
+4. **OpenSnow's PEAKS accuracy model:** Invest in scoring quality. Accuracy becomes the moat. Aligns with scoring accuracy audit on roadmap.
+5. **Hopper's B2B white-label (HTS):** Long-term, Peakly's conditions intelligence could power airline/OTA adventure travel sections. Keep this in Phase 7+ planning.
+6. **Hopper's Price Freeze:** "Lock this flight price for 48 hours" as a Peakly Pro feature. Potential partnership opportunity with Hopper Technology Solutions.
+7. **Surfline's Premium+ sharing (3 accounts):** Family/group plans increase word-of-mouth. Consider Peakly Pro for 3 at $149/yr.
 
 ---
 
@@ -245,35 +253,33 @@ Consistent pain point across Reddit and travel forums: lift tickets + lodging + 
 3. **The "Surfline refugee" market** -- Surfline alienated its base with $120/yr pricing, crippled free tier, and password crackdowns. BeachGrit "price gouging" coverage amplifying. These users are actively searching RIGHT NOW.
 4. **Multi-sport conditions scoring** -- Every competitor is single-sport. Peakly covers surf + ski + beach + dive + climb + kayak + MTB + hike.
 5. **Beginner-friendly conditions** -- Surfline and Windy.app both have documented "too complex for beginners" complaints. Peakly's plain-English scoring is the answer.
-6. **Transparent billing** -- Both Surfline and AllTrails have toxic billing reputations. Peakly can differentiate with honest subscription management from day one.
+6. **Transparent billing** -- Both Surfline and AllTrails have toxic billing reputations (difficult cancellation, hidden charges, auto-renewal traps). Peakly can differentiate with honest subscription management from day one.
 7. **OnTheSnow's abandoned user base** -- Nearly 4 months without an app update. Their ski users need a new home. Peakly has 2,226 venues with Ikon/Epic filtering ready.
 
 ---
 
 ## 8. One Thing That Should Change Peakly's Roadmap
 
-### Surfline's Free Tier Exodus + Offline Mode = Peakly's Moment
+### Surfline's AI Investment Is the Race -- Ship the Window Score Now
 
-The situation from the last report has intensified:
+**The situation has two converging signals:**
 
-1. **Surfline restricted free users to 3-5 checks/week** -- still the dominant complaint.
-2. **BeachGrit published "price gouging" accusations** -- media coverage legitimizing the backlash.
-3. **Surfline shipped Sessions for free** -- they're aware they need to give something back, but it's not enough to offset the conditions-check restriction.
-4. **Surfline shipped offline mode** -- they're investing in retention features, which signals they're seeing churn.
+**Signal 1: Surfline is investing heavily in AI condition intelligence.**
+Smart Cams, crowd prediction, wave measurement, Wave Consistency -- Surfline is moving from "show you data" to "tell you what it means." Their Premium+ at $149.99/yr is the first conditions app to sell AI-powered decision intelligence. While Peakly can't compete on hardware (camera networks), the AI direction validates that **condition intelligence is the future, not raw data display.**
 
-**Why this is more urgent than anything else on the roadmap:**
-- Surfline's paywall anger is still at peak intensity. Sentiment will eventually decay.
-- "Surfline alternative free" search volume is still growing with near-zero competition.
-- Peakly's free tier ALREADY delivers more value than Surfline's crippled free tier (unlimited checks, multi-sport, flight prices).
-- A single well-crafted Reddit post on r/surfing (1.2M members) could drive 500-2,000 users in a weekend.
+**Signal 2: Surfline's free tier exodus is at peak intensity.**
+$119.99/yr + 3-5 checks/week + password crackdown + BeachGrit coverage = surfers actively searching for alternatives. "Surfline alternative free" is a growing search query with near-zero competition. This window of maximum user frustration will eventually decay as people either pay, leave surfing apps entirely, or find an alternative.
 
-**Recommended priority (unchanged but more urgent):**
+**Why this changes the roadmap:**
+
+The Window Score (Phase 2) is Peakly's answer to Surfline's AI play. Surfline says "AI tells you when to paddle out." Peakly needs to say "AI tells you when to book your trip." The Window Score -- combining conditions + flight price + weather trend + crowd estimate into one proprietary number -- is the feature that makes Peakly irreplaceable and defensible.
+
+**Recommended priority shift:**
 1. **Complete scoring accuracy audit** -- users WILL compare Peakly's surf scores to Surfline's. They must be credible. This is the #1 blocker for the Reddit launch.
 2. **Create a "surfline alternative" SEO landing page** on peakly.app once the domain is registered.
 3. **Launch Reddit campaign on r/surfing** within 7 days of scoring audit completion. Frame as: "Free app that shows surf conditions + cheap flights in one place."
 4. **Ship Window Score within 60 days** -- lock in the moat before anyone else combines conditions + flights into a single metric.
-
-**Additional signal this week:** AllTrails running 30% off promos and packaging with National Parks passes suggests they're in aggressive growth mode. They have 5M+ downloads and resources. If they expand beyond hiking into multi-sport conditions intelligence, they become a direct threat. Accelerate Window Score delivery to establish the moat.
+5. **Monitor AllTrails expansion** -- they're running 30% off promos and bundling with National Parks passes. If they move into multi-sport conditions intelligence, they have 5M+ downloads and real resources. Accelerate Window Score to establish the moat before this gap closes.
 
 ---
 
@@ -287,7 +293,7 @@ The situation from the last report has intensified:
 | AllTrails | Trail weather + conditions | No | No | AI Routes, Outdoor Lens, Heatmaps | No |
 | Windy.app | Multi-weather (expert-grade) | No | No | No | N/A (weather tool) |
 | KAYAK | No | Yes | No | AI Mode | N/A |
-| Hopper | No | Yes | No | Price prediction AI | N/A |
+| Hopper | No | Yes | No | Price prediction AI (95% accurate) | N/A |
 | WeSki | No | Yes (ski OTA) | Partial (booking) | No | No |
 | SurfTrips.ai | Surf only (static) | Yes | Partial | No | No |
 | Adventure On | No | Yes | No | Social-to-booking AI | N/A |
@@ -301,24 +307,26 @@ The situation from the last report has intensified:
 - [Surfline What's New](https://www.surfline.com/lp/whatsnew/home)
 - [Surfline Premium+ AI Features (Surfer)](https://www.surfer.com/news/surfline-artificial-intelligence-premium-plus)
 - [Surfline US Price & Tier Updates](https://support.surfline.com/hc/en-us/articles/35208905809051-US-Price-Tier-Updates)
-- [Surfline Price Gouging Accusations (BeachGrit)](https://beachgrit.com/2025/05/forecasting-giant-surfline-accused-of-price-gouging-beleaguered-americans/)
+- [Surfline Price Increase (PriceTimeline)](https://pricetimeline.com/news/69)
 - [Surfline Trustpilot Reviews](https://www.trustpilot.com/review/surfline.com)
-- [Surfline App Reviews (JustUseApp)](https://justuseapp.com/en/app/393782096/surfline-surfing-companion/reviews)
+- [Surfline App Store Reviews (JustUseApp)](https://justuseapp.com/en/app/393782096/surfline-surfing-companion/reviews)
+- [Surfline Google Play](https://play.google.com/store/apps/details?id=com.surfline.android&hl=en_US)
 - [AllTrails Peak (TechCrunch)](https://techcrunch.com/2025/05/12/alltrails-debuts-a-80-year-membership-that-includes-ai-powered-smart-routes/)
-- [AllTrails Plans](https://www.alltrails.com/plans)
-- [AllTrails Peak Review (TerraDrift)](https://terradrift.com/the-alltrails-peak-membership-features/)
+- [AllTrails Peak Review (TechRadar)](https://www.techradar.com/health-fitness/fitness-apps/alltrails-is-the-latest-app-with-an-ai-powered-subscription-tier-but-it-looks-way-more-useful-than-the-genai-from-garmin-and-strava)
+- [AllTrails Plans](https://support.alltrails.com/hc/en-us/articles/37186483585556-AllTrails-Plans)
 - [AllTrails Features (The Inertia)](https://www.theinertia.com/mountain/alltrails-releases-new-hiking-features/)
-- [AllTrails + National Parks Bundle](https://shop.alltrails.com/products/alltrails-subscription-national-park-annual-pass-bundle)
+- [AllTrails Trustpilot Reviews](https://www.trustpilot.com/review/alltrails.com)
 - [OnTheSnow (Google Play)](https://play.google.com/store/apps/details?id=com.skireport&hl=en_US)
 - [OpenSnow](https://opensnow.com/)
 - [Windy.app Pro](https://windy.app/pro)
-- [Windy.app News](https://windy.app/news)
+- [Windy.com Subscription](https://www.windy.com/subscription)
+- [Windy.com Price Increase Discussion](https://community.windy.com/topic/37832/new-subscription-pricing)
 - [Hopper Statistics 2026 (Business of Apps)](https://www.businessofapps.com/data/hopper-statistics/)
 - [Hopper Review 2026 (FinanceBuzz)](https://financebuzz.com/hopper-review)
-- [Adventure On](https://adventureon.app/)
-- [Dream Trip Blog](https://www.thedreamtrip.app/blog/best-travel-apps-2026)
-- [Ski Season Flight Deals 2025-26 (Dollar Flight Club)](https://dollarflightclub.com/articles/2025-26-ski-season-flight-deals/)
+- [Top 9 Travel Startups 2026 (Amadeus)](https://amadeus.com/en/blog/articles/travel-startups-2026)
+- [Hot 25 Travel Startups 2026 (PhocusWire)](https://www.phocuswire.com/hot-25-travel-startups-2026)
 - [Travel Startups 2026 (FlightDeck)](https://www.pilotplans.com/blog/travel-startups)
-- [Surfing Keywords (KeySearch)](https://www.keysearch.co/top-keywords/surfing-keywords)
+- [Navifare (PhocusWire)](https://www.phocuswire.com/startup-stage-navifare)
+- [Adventure Travel Startups 2026 (Inventiva)](https://www.inventiva.co.in/trends/top-10-adventure-travel-startups-in-2026/)
 
 *Next scheduled run: 2026-04-03*
