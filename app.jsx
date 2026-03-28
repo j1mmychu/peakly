@@ -3815,7 +3815,23 @@ function shareVenue(listing, onCopied) {
 // getFlightDeal() is the instant fallback when API hasn't responded yet.
 // ─────────────────────────────────────────────────────────────────────────────
 function getFlightDeal(ap, homeAirport = "JFK") {
-  const base = BASE_PRICES[ap]?.[homeAirport] ?? 800;
+  // Smart price estimation: use BASE_PRICES if available, otherwise estimate by region
+  const exact = BASE_PRICES[ap]?.[homeAirport];
+  const base = exact || (() => {
+    const destCont = AP_CONTINENT[ap] || "europe";
+    const homeCont = AP_CONTINENT[homeAirport] || "na";
+    // Region-based price estimates (round-trip from US)
+    if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
+    const routes = {
+      "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
+      "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
+      "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
+      "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
+      "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
+      "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
+    };
+    return routes[`${homeCont}-${destCont}`] || 800;
+  })();
   // Instant estimate shown while Travelpayouts API loads real prices
   const seed = (ap + homeAirport).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const pct  = 28 + (seed % 48); // 28–75% off
@@ -7017,9 +7033,14 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
-  const [airport,     setAirport]    = useState(profile.homeAirport || "JFK");
+  const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
+
+  // Sync airport when geolocation resolves after onboarding opened
+  useEffect(() => {
+    if (profile.homeAirport && !airport) setAirport(profile.homeAirport);
+  }, [profile.homeAirport]);
 
   const toggleSport = id => {
     setSports(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
@@ -7098,7 +7119,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               {
                 bg:"#f0fdf4", color:"#16a34a",
                 icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title:`Cheap flights from ${AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "your airport"}`,
+                title:`Cheap flights from ${profile?.homeAirport ? (AIRPORT_CITY[profile.homeAirport] || profile.homeAirport) : "Detecting…"}`,
                 desc:"Real-time prices from your home airport. Book when the conditions and the deal line up.",
               },
               {
@@ -8616,7 +8637,7 @@ function App() {
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
-    name:"", email:"", homeAirport:"JFK", homeAirport2:"", homeAirports:["JFK"], sports:[], skillLevels:{},
+    name:"", email:"", homeAirport:"", homeAirport2:"", homeAirports:[], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
@@ -8631,12 +8652,12 @@ function App() {
 
   // Auto-detect nearest airport for new users who haven't set one yet
   useEffect(() => {
-    if (profile.homeAirport && profile.homeAirport !== "JFK") return; // already set
+    if (profile.homeAirport && profile.homeAirport !== "JFK") return; // already set by user
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       pos => {
         const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-        if (code !== "JFK" || !profile.homeAirport) {
+        if (code) {
           setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
         }
       },
