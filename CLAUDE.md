@@ -239,6 +239,27 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Scale Guardian agent added (8th agent — catches scaling issues before they break)
 - Weather cache live with localStorage + 30-min TTL
 - Service worker version bump for cache recovery
+- Major scoring algorithm improvements (9 fixes across all activities)
+- Peakly Pro UI removed (replaced with email capture for waitlist)
+- Heart favorites with sync + pop animation
+- Email capture replacing Pro upsell
+- Social proof elements added
+- Geolocation prompt on first visit (auto-detect nearest airport)
+- Logo mountain icon + larger wordmark in header
+- Vibe Search pill in header
+- Equal-width category pills (all fit on screen)
+- Image onError fallbacks on all venue img tags
+- Top-10 airport search with autocomplete
+- Date contrast improvements, scroll lock on sheets
+- $1k default price cap
+- No hero card/badge shown until weather loads
+- Category label renames: Ski/Board, Beach
+- More button pinned outside scroll, clean sign-out flow
+- Highest-scoring venues always shown first
+- GO-only Best Right Now hero card
+- Manifest polished for TWA (Google Play Store prep)
+- Dual home airports support
+- CLAUDE.md auto-sync scheduled task (daily 6pm)
 
 ### What's Broken / Missing (Priority Order)
 
@@ -249,8 +270,8 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 5. ~~Sentry DSN empty~~ — **SHIPPED** (2026-03-25). Sentry Loader Script + Sentry.init() live. Dashboard at peakly.sentry.io.
 6. **REI affiliate IDs** — 22 REI links earn $0. Can sign up via Avantlink (no LLC required). Jack action, 30 min.
 7. **No onboarding flow** — New users get dumped into Explore with no explanation of scoring. Not blocked — can build now.
-8. **Peakly Pro is a UI mockup** — $79/year button does nothing. LLC approved — wire Stripe now.
-9. **Scoring accuracy gaps** — Surfing missing wind direction + water temp. Kayaking missing water temp safety. Climbing missing humidity for grip. Diving missing current strength. Needs research-backed fix.
+8. ~~Peakly Pro UI~~ — **REMOVED** (2026-03-26). Replaced with email capture waitlist. Stripe integration deferred until user demand validated.
+9. ~~Scoring accuracy gaps~~ — **SHIPPED** (2026-03-26). 9 major scoring fixes across all activities.
 10. **5 categories have zero Amazon links** — Skiing, climbing, kayak, MTB, hiking gear all REI-only, earning $0. Can add Amazon items now (+$1.50-2.00 RPM).
 18. **Google Play Store listing** — PWA can ship to Google Play via TWA (Trusted Web Activity) using PWABuilder. $25 one-time. No code changes needed. Skip Apple App Store for now (rejects PWA wrappers under Guideline 4.2).
 11. ~~**HTTPS not configured on VPS**~~ — **DONE** (2026-03-25).

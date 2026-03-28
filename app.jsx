@@ -100,6 +100,8 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
       cursor: pointer;
     }
     .heart:active { transform: scale(1.35); }
+    .heart-pop { animation: heartPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes heartPop { 0%{transform:scale(1)} 40%{transform:scale(1.55)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
     .pressable {
       transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s;
       cursor: pointer;
@@ -118,12 +120,14 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     .fade-in { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .score-count { animation: scoreCount 0.6s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes scoreCount { from{opacity:0;transform:scale(0.7) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
-    .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
+    .sheet { animation: sheetUp 0.44s cubic-bezier(0.32,1.2,0.4,1); will-change: transform; }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
-    .sheet-exit { animation: sheetDown 0.28s cubic-bezier(0.4,0,1,1) forwards; }
-    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(100%)} }
+    .sheet-exit { animation: sheetDown 0.3s cubic-bezier(0.4,0,0.8,1) forwards; will-change: transform; }
+    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(105%)} }
     .backdrop { animation: bdFade 0.22s ease; }
     @keyframes bdFade { from{opacity:0} to{opacity:1} }
     .backdrop-exit { animation: bdFadeOut 0.28s ease forwards; }
@@ -146,6 +150,10 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    input[type=date] { color-scheme: light; outline: none; -webkit-appearance: none; appearance: none; }
+    input[type=date]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.15) !important; }
+    input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.65; cursor: pointer; padding: 2px; border-radius: 3px; }
+    input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(2,132,199,0.1); }
   `;
   document.head.appendChild(s);
 })();
@@ -155,16 +163,16 @@ const F = "'Plus Jakarta Sans', sans-serif";
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
-  { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
-  { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
-  { id:"diving",  label:"Diving",     emoji:"🤿" },
-  { id:"climbing",label:"Climbing",   emoji:"🧗" },
+  { id:"skiing",  label:"Ski/Board",   emoji:"❄️" },
+  { id:"surfing", label:"Surf",       emoji:"🏄" },
+  { id:"hiking",  label:"Hike",      emoji:"🥾" },
+  { id:"diving",  label:"Dive",      emoji:"🤿" },
+  { id:"climbing",label:"Climb",     emoji:"🧗" },
   { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
   { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
   { id:"kayak",   label:"Kayak",     emoji:"🛶" },
   { id:"mtb",     label:"MTB",       emoji:"🚵" },
-  { id:"fishing", label:"Fishing",   emoji:"🎣" },
+  { id:"fishing", label:"Fish",      emoji:"🎣" },
   { id:"paraglide",label:"Paraglide",emoji:"🪂" },
 ];
 
@@ -3005,7 +3013,7 @@ async function fetchMarine(lat, lon) {
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
     `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
-    `wind_wave_height_max,wind_wave_period_max` +
+    `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
@@ -3019,6 +3027,9 @@ async function fetchMarine(lat, lon) {
 function scoreVenue(venue, wx, marine, dayIndex) {
   if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data" };
   const di = dayIndex || 0;
+  // If the requested day is beyond the forecast window, return unavailable
+  const forecastLen = wx.daily.temperature_2m_max?.length ?? 7;
+  if (di >= forecastLen) return { score:50, label:"Forecast unavailable", period:"Beyond 7-day forecast window" };
   const d = wx.daily;
   const md = marine?.daily;
 
@@ -3128,60 +3139,92 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       const light  = wind < 12;
       const blown  = wind > 20;
 
-      // Groundswell quality: long period + swell-dominant = clean, powerful waves
+      // Spot facing direction: the compass direction the break faces (waves come FROM)
+      // Default 270° (west-facing) if not specified on venue
+      const spotFacing = venue.facing ?? 270;
+
+      // ─── Swell direction vs spot orientation (fix #3) ───
+      // Angular difference between swell direction and spot facing
+      const swellAngleDiff = Math.abs(((swellDir - spotFacing) + 180) % 360 - 180);
+      const swellEfficiency = swellAngleDiff <= 45  ? 1.0   // direct hit
+                            : swellAngleDiff <= 90  ? 0.7   // oblique — reduce swell contribution 30%
+                            : 0.4;                           // sheltered — reduce 60%
+
+      // Effective swell height after orientation adjustment
+      const effectiveSwellH = swellH * swellEfficiency;
+
+      // ─── Groundswell quality: long period + swell-dominant = clean, powerful waves ───
       const groundswellQuality = swellPer > 14 ? 1.15
                                 : swellPer > 12 ? 1.08
                                 : swellPer > 10 ? 1.0
                                 : swellPer > 8  ? 0.9
                                 : 0.75;
 
-      // Base from swell height (using swell, not total wave, for accuracy)
-      if      (swellH > 3.5) score = 88;
-      else if (swellH > 2.5) score = 80;
-      else if (swellH > 1.8) score = 72;
-      else if (swellH > 1.2) score = 63;
-      else if (swellH > 0.7) score = 50;
-      else                    score = 30;
+      // Base from effective swell height (orientation-adjusted)
+      if      (effectiveSwellH > 3.5) score = 88;
+      else if (effectiveSwellH > 2.5) score = 80;
+      else if (effectiveSwellH > 1.8) score = 72;
+      else if (effectiveSwellH > 1.2) score = 63;
+      else if (effectiveSwellH > 0.7) score = 50;
+      else                             score = 30;
 
       // Period quality multiplier (long period = more power per foot)
       score = score * groundswellQuality;
+
+      // ─── SwellRatio: clean groundswell vs wind swell dominance (fix #8) ───
+      if (swellRatio > 0.7) score += 4;      // clean groundswell dominant — bonus
+      else if (swellRatio < 0.4) score -= 6; // mostly wind swell — choppy, penalty
 
       // Wind chop penalty: high wind waves relative to swell = messy
       if (windWaveH > swellH * 0.6) score -= 8;       // wind swell dominant = messy
       else if (windWaveH > swellH * 0.3) score -= 3;
 
-      // Surface conditions from wind
-      if (glassy) score += 6;                    // glass-off = dream
-      else if (light) score += 2;                // light texture, rideable
-      else if (blown) score -= 12;               // blown out
-      if (gusts > 30 && !glassy) score -= 4;     // gusty onshore = choppy
+      // ─── Wind direction: offshore vs onshore (fix #2) ───
+      // Offshore wind (blowing FROM same direction as swell) = ideal; onshore = bad
+      // Angular diff between wind direction and swell direction
+      const windSwellDiff = Math.abs(((windDir - swellDir) + 180) % 360 - 180);
+      if (windSwellDiff < 30) {
+        // Wind is blowing from the same direction as swell = offshore = clean up faces
+        score += 10;
+      } else if (windSwellDiff < 60) {
+        score += 6;  // mostly offshore, slight angle
+      } else if (windSwellDiff > 150) {
+        // Wind blowing the same way waves travel = onshore = messy choppy
+        score -= 12;
+      } else if (windSwellDiff > 120) {
+        score -= 6;  // mostly onshore
+      } else {
+        // Cross-shore: minor penalty
+        score -= 3;
+      }
+      // Override: if glassy (very light wind), wind direction matters less
+      if (glassy) { score += 6; }  // glass-off overrides direction penalty
+      else if (blown && windSwellDiff > 120) score -= 4; // double penalty: strong + onshore
 
       // Overhead+ danger for average surfers (>2.5m swell)
       if (swellH > 4) score -= 5;               // expert only
       if (swellH > 6) score -= 10;              // XXL / tow-in territory
 
-      // Water temperature comfort (if marine data provides it)
-      // NOTE: Wind direction (offshore vs onshore) would dramatically improve surf scoring
-      // but is not available from Open-Meteo marine API. windDir from weather is land-level
-      // 10m wind direction, not reliable for surf break orientation analysis.
+      // Water temperature comfort (wetsuit requirement = deterrent for most surfers)
       if (waterTemp !== null) {
-        if (waterTemp > 24) score += 4;          // tropical, boardshorts
-        else if (waterTemp >= 20) score += 2;    // comfortable with spring suit
-        else if (waterTemp < 10) score -= 8;     // dangerously cold, thick wetsuit required
-        else if (waterTemp < 15) score -= 4;     // cold, full wetsuit mandatory
+        if (waterTemp > 24) score += 4;          // tropical — boardshorts, ideal
+        else if (waterTemp >= 20) score += 2;    // spring suit comfortable
+        else if (waterTemp >= 15) score -= 2;    // 3/2mm wetsuit required — manageable
+        else if (waterTemp >= 10) score -= 5;    // 4/3mm wetsuit — cold, deters many
+        else score -= 10;                        // 5/4mm+ / drysuit — extreme cold, expert only
       }
 
       // Rain doesn't ruin surf but low vis + runoff = dirty water
       if (rain > 15) score -= 4;
 
-      const windLabel = glassy ? "Glassy" : light ? "Light offshore" : blown ? "Choppy onshore" : `${wind.toFixed(0)}mph`;
+      const windLabel = glassy ? "Glassy" : light ? "Light wind" : blown ? "Choppy" : `${wind.toFixed(0)}mph`;
       const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
-      label = swellH > 0.7
+      label = effectiveSwellH > 0.7
         ? `${fFt}ft ${perLabel} · ${windLabel}`
         : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
-      period = swellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : swellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
-             : swellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
+      period = effectiveSwellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : effectiveSwellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
+             : effectiveSwellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
              : (tmrwWaveH > 0.7 ? "Swell incoming" : "Flat — check back");
       break;
     }
@@ -3245,10 +3288,13 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : moderate ? 55
             : 38;
 
-      if (wind > 20) score -= 6;       // surface chop, hard entry/exit
-      if (gusts > 30) score -= 4;
-      if (precipPct > 70) score -= 5;  // probable rain = runoff
-      if (bestDays > 2) score += 3;    // multi-day calm = settled vis
+      // Wind as current proxy — sustained wind drives surface current; most dive ops cancel >20kts (~23mph)
+      if (wind > 25) score -= 12;      // strong current — entry/exit dangerous, most ops cancel
+      else if (wind > 20) score -= 7;  // moderate current — challenging, experienced divers only
+      else if (wind > 15) score -= 3;  // light current — manageable with planning
+      if (gusts > 30) score -= 5;      // gusty = unpredictable surge at entry points
+      if (precipPct > 70) score -= 5;  // probable rain = runoff kills visibility
+      if (bestDays > 2) score += 3;    // multi-day calm = settled vis, negligible current
 
       // Water temperature affects comfort, exposure limits, and marine life
       if (waterTemp !== null) {
@@ -3257,7 +3303,8 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         else if (waterTemp < 15) score -= 4;   // cold water — drysuit recommended, shorter dives
       }
 
-      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"} · ${tempMax}°F`;
+      const currentNote = wind > 25 ? " · Strong current" : wind > 20 ? " · Current risk" : "";
+      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"}${currentNote} · ${tempMax}°F`;
       period = calm && bestDays > 2 ? `${bestDays}-day dive window`
              : calm ? "Good today — conditions shifting"
              : "Wait for calmer seas";
@@ -3282,10 +3329,12 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (precipPct > 60) score -= 8;         // don't start a multi-pitch
       if (tempMax > 95) score -= 6;           // heat exhaustion risk
 
-      // Humidity affects rock friction — sweaty hands + greasy holds
+      // Humidity affects rock friction — damp rock, sweaty hands, greasy holds
       if (humidity !== null) {
-        if (humidity > 80) score -= 4;        // slippery holds, bad for grip
-        else if (humidity < 40) score += 2;   // dry air = excellent friction
+        if (humidity > 85) score -= 7;        // severely slippery — limestone weeps, granite glass-slick
+        else if (humidity > 70) score -= 4;   // noticeably reduced friction on most rock types
+        else if (humidity < 35) score += 4;   // desert-dry — exceptional friction
+        else if (humidity < 50) score += 2;   // dry air — good friction
       }
 
       const windNote = gusts > 25 ? " · Gusty" : wind > 15 ? " · Breezy" : "";
@@ -3341,14 +3390,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (gusts > 20) score -= 5;            // control issues
       if (precipPct > 60) score -= 4;
 
-      // 120°F rule: if air temp (°C) + water temp (°C) < 49°C, cold water immersion is dangerous
-      // Convert tempMax from °F to °C for the check
+      // Cold water safety — hypothermia is the #1 killer in kayaking incidents
       if (waterTemp !== null) {
+        // 120°F rule: air°C + water°C < 49 = serious immersion risk (dress for the water, not the air)
         const airC = (tempMax - 32) * 5 / 9;
         if (airC + waterTemp < 49) {
           score -= 15;
-          period = "Cold Water Risk — " + (period || "use caution");
+          period = "Cold Water Risk — dress for immersion";
         }
+        // Standalone water temp thresholds (hypothermia risk even if combined rule passes)
+        if (waterTemp < 10) score -= 12;          // <10°C: incapacitation within minutes of immersion
+        else if (waterTemp < 15) score -= 8;      // 10-15°C: hypothermia in 30-60 min — serious risk
+        else if (waterTemp >= 18 && waterTemp <= 24) score += 3; // ideal range — comfortable, safe
       }
 
       label = `${wind.toFixed(0)}mph · ${calm ? "Flat water" : "Light chop"} · ${tempMax}°F`;
@@ -3388,26 +3441,52 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "fishing": {
       const calm = wind < 15 && waveH < 1;
       const lightW = wind < 12;
-      const mo = new Date().getMonth() + 1;
+      const mo = new Date().getMonth() + 1; // 1-12
       const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
-      // Barometric pressure drops = fish feed more (rain approaching = good)
+
+      // ─── Seasonal / species bonuses (fix #4) ───
+      // peakMonths on venue: array of peak month numbers, e.g. [3,4,5,9,10]
+      const venuePeakMonths = venue.peakMonths ?? null;
+      const inPeakSeason = venuePeakMonths ? venuePeakMonths.includes(mo) : false;
+
+      // Tropical / reef fishing: bonus during calmer (non-monsoon) months
+      const isTropical = venue.subtype === "reef" || venue.subtype === "tropical";
+      const tropicalCalm = isTropical && (mo <= 4 || mo >= 11); // Nov–Apr calm season
+
+      // River / fly fishing: bonus during hatch seasons (Mar–May, Sep–Oct)
+      const isFly = venue.subtype === "fly" || venue.subtype === "river";
+      const hatchSeason = isFly && (mo >= 3 && mo <= 5 || mo >= 9 && mo <= 10);
+
+      // Barometric pressure proxy: falling pressure = fish feeding actively
+      // Proxy: rain probability 40–75% with light precip = frontal approach = active feeding
       const feedWindow = precipPct > 40 && precipPct < 75 && precip < 5;
+      // Hard rain / storm kills bite
+      const stormFront = precipPct > 85 || rain > 15;
 
       score = peak && calm ? 96
             : peak ? 85
+            : inPeakSeason && calm && feedWindow ? 88 + bestDays
+            : inPeakSeason && calm ? 82 + bestDays
+            : tropicalCalm && calm ? 84 + bestDays
+            : hatchSeason && calm ? 82 + bestDays
             : calm && feedWindow ? 80 + bestDays
             : calm ? 72 + bestDays
             : lightW ? 62
             : 48;
 
+      if (inPeakSeason && !peak) score += 4;  // peak season bonus
+      if (hatchSeason) score += 4;            // hatch season = surface action
+      if (feedWindow) score += 3;             // actively feeding due to pressure drop
+      if (stormFront) score -= 10;            // post-front lockjaw
       if (gusts > 25) score -= 6;
-      if (rain > 10) score -= 8;             // washout
-      if (tempMax < 35) score -= 4;          // ice/danger
+      if (tempMax < 35) score -= 4;           // ice/danger
       if (sunHrs < 3 && !feedWindow) score -= 3;
 
-      const biteLabel = feedWindow ? "Active bite" : calm ? "Good conditions" : "Choppy";
+      const biteLabel = stormFront ? "Storm — poor bite" : feedWindow ? "Active bite" : inPeakSeason || hatchSeason ? "Peak season" : calm ? "Good conditions" : "Choppy";
       label = peak ? `King Salmon run · ${biteLabel}` : `${tempMax}°F · ${biteLabel} · ${wind.toFixed(0)}mph`;
       period = peak ? "Peak run this week"
+             : hatchSeason ? `Hatch season — dry fly action${feedWindow ? " · feeding" : ""}`
+             : inPeakSeason ? `Peak season${calm ? " · " + Math.min(bestDays, 5) + " fishable days" : ""}`
              : feedWindow ? `Front moving in — fish feeding${bestDays > 1 ? " · " + bestDays + "d" : ""}`
              : calm ? `${Math.min(bestDays, 5)} fishable days`
              : "Wait for calmer water";
@@ -3443,8 +3522,24 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "hiking": {
       const dry = precip < 2 && precipPct < 40;
       const dryish = precip < 5;
-      const idealTemp = tempMax > 45 && tempMax < 85;
-      const hotHike = tempMax >= 85 && tempMax < 100;
+
+      // ─── Elevation awareness (fix #5) ───
+      // venue.elevation in metres if available; otherwise estimate from lat (rough proxy)
+      const elevM = venue.elevation ?? 0;
+      // Temperature lapse rate: -6.5°C per 1000m above sea level
+      const tempLapseC = (elevM / 1000) * 6.5;
+      const tempLapseF = tempLapseC * 9 / 5;
+      // Effective summit temp estimate
+      const summitTempMax = tempMax - tempLapseF;
+      // Alpine zone: above 2000m
+      const isAlpine = elevM > 2000;
+      const aboveTreeline = elevM > 3000;
+      // Shoulder season snow risk (Mar–May, Sep–Nov above treeline)
+      const shoulderMo = [3,4,5,9,10,11].includes(new Date().getMonth() + 1);
+      const snowRisk = aboveTreeline && shoulderMo;
+
+      const idealTemp = summitTempMax > 45 && summitTempMax < 85;
+      const hotHike = summitTempMax >= 85 && summitTempMax < 100;
 
       score = dry && idealTemp && wind < 15 ? 86 + Math.min(10, bestDays * 2)
             : dry && idealTemp ? 78
@@ -3454,18 +3549,28 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : 35;
 
       if (sunHrs > 8 && idealTemp) score += 3;  // scenic day
-      if (tempMax > 100) score -= 10;            // heat danger
+      if (summitTempMax > 100) score -= 10;      // heat danger
       if (gusts > 30) score -= 6;                // exposed ridge danger
       else if (wind > 20) score -= 3;
       if (precipPct > 70) score -= 8;            // lightning risk
-      if (uv > 10) score -= 2;                   // sun exposure risk at altitude
 
-      const trailNote = wind > 20 ? " · Windy ridges" : uv > 9 ? " · High UV" : "";
-      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${trailNote}` : `${precipPct}% rain · ${tempMax}°F`;
+      // Altitude UV: UV increases ~10% per 1000m
+      const altitudeUV = uv * (1 + elevM / 10000);
+      if (altitudeUV > 11) score -= 3;           // extreme UV at altitude
+      else if (altitudeUV > 9) score -= 1;
+
+      // Alpine-specific hazards
+      if (isAlpine && wind > 25) score -= 5;     // exposed above treeline = dangerous
+      if (snowRisk) score -= 6;                  // shoulder-season snow above treeline
+      if (isAlpine && summitTempMax < 32) score -= 8; // freezing summit = technical gear required
+
+      const elevNote = isAlpine ? ` · Summit ~${Math.round(summitTempMax)}°F` : "";
+      const trailNote = wind > 20 ? " · Windy ridges" : altitudeUV > 9 ? " · High UV" : snowRisk ? " · Snow risk above treeline" : "";
+      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${elevNote}${trailNote}` : `${precipPct}% rain · ${tempMax}°F${elevNote}`;
       period = dry && bestDays > 3 ? `${bestDays}-day hiking window`
              : dry && bestDays > 1 ? "Clear through tomorrow"
              : dry ? "Good today — rain coming"
-             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : " in ${bestDays}d"}`;
+             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : ` in ${bestDays}d`}`;
       break;
     }
 
@@ -3473,7 +3578,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
-  return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
+  return { score: Math.round(Math.min(100, Math.max(5, score))), label, period };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
@@ -3880,6 +3985,30 @@ const AIRPORT_CITY = {
   VLI:"Port Vila",
 };
 
+// ─── activity-specific fallback photos ────────────────────────────────────────
+// Accepts (name, category) — name is unused but reserved for future personalized queries.
+// Uses stable Unsplash photo IDs (never source.unsplash.com which is rate-limited).
+function getVenuePhoto(name, category) {
+  // Support legacy single-arg call: getVenuePhoto(category)
+  const cat = (category || name || "").toLowerCase();
+  const photos = {
+    skiing: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
+    surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
+    tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    diving: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+    climbing: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop",
+    kitesurfing: "https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop",
+    hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
+    kayak: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    kayaking: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    mtb: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&h=600&fit=crop",
+    fishing: "https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
+    paragliding: "https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
+  };
+  return photos[cat] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
+}
+
 // ─── localStorage hook ────────────────────────────────────────────────────────
 function useLocalStorage(key, initial) {
   const [val, setVal] = useState(() => {
@@ -3978,6 +4107,7 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const [savedAnim, setSavedAnim] = useState(false);
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
@@ -3986,6 +4116,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div className="card-img" style={{
@@ -4006,18 +4137,27 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
-          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-            background:"none", border:"none", fontSize:20,
-            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
-            filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
-          }}>
+          <button
+            className={"heart" + (savedAnim ? " heart-pop" : "")}
+            onClick={e => {
+              e.stopPropagation();
+              onToggle(listing.id);
+              if (!saved) { setSavedAnim(true); setTimeout(() => setSavedAnim(false), 400); }
+              haptic("medium");
+            }}
+            aria-label={saved ? "Remove from saved" : "Save venue"}
+            style={{
+              background:"none", border:"none", fontSize:20,
+              width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+              filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
+            }}>
             {saved ? "❤️" : "🤍"}
           </button>
         </div>
 
         {/* Go/No-Go verdict + flight deal */}
         <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
-          <GoVerdictBadge score={listing.conditionScore} />
+          {listing.conditionLabel !== "Checking conditions…" && <GoVerdictBadge score={listing.conditionScore} />}
           <div style={{
             background:"#fff", borderRadius:20, padding:"3px 8px",
             display:"flex", alignItems:"center", gap:3,
@@ -4028,6 +4168,11 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               ${listing.flight.price}
             </span>
           </div>
+          {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
+            <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
+              <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>🔥 TRENDING</span>
+            </div>
+          )}
         </div>
 
         {/* Condition label */}
@@ -4112,12 +4257,13 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
@@ -4179,6 +4325,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div style={{
@@ -4191,7 +4338,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:2, right:2,
           background:"none", border:"none", fontSize:15,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
@@ -4199,9 +4346,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         }}>{saved ? "❤️" : "🤍"}</button>
 
         {/* Go/No-Go verdict */}
-        <div style={{ position:"absolute", top:5, left:5 }}>
-          <GoVerdictBadge score={listing.conditionScore} />
-        </div>
+        {listing.conditionLabel !== "Checking conditions…" && (
+          <div style={{ position:"absolute", top:5, left:5 }}>
+            <GoVerdictBadge score={listing.conditionScore} />
+          </div>
+        )}
 
         {/* Condition label */}
         <div style={{
@@ -4272,14 +4421,17 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     when: search.when || "anytime",
     continent: search.continent || "",
     fromAirport: search.fromAirport || "JFK",
+    fromAirport2: search.fromAirport2 || "",
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
-    maxPrice: filters?.maxPrice ?? 2000,
+    maxPrice: filters?.maxPrice ?? 1000,
     startDate: filters?.startDate || "",
     endDate: filters?.endDate || "",
   });
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
+  const [apQuery2, setApQuery2] = useState("");
+  const [apFocus2, setApFocus2] = useState(false);
 
   // Toggle an activity in/out of the multi-select array
   const toggleActivity = (id) => {
@@ -4302,6 +4454,13 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
       ).slice(0, 6)
     : [];
 
+  const apResults2 = apQuery2.length >= 2
+    ? ALL_AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(apQuery2.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery2.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
   const matchCount = (() => {
     let out = local.activities.length > 0
       ? listings.filter(l => local.activities.includes(l.category))
@@ -4319,7 +4478,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   })();
 
   const apply = () => {
-    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, skiPass: local.skiPass };
+    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
     if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
@@ -4353,10 +4512,137 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
+          </div>
+        </div>
+
+        {/* ── Flying from (at top) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Flying from</SectionLabel>
+          <div style={{ position:"relative", marginBottom:8 }}>
+            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search airports…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              style={{
+                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                background:"#fafafa",
+              }}
+            />
+          </div>
+          {apFocus && apResults.length > 0 && (
+            <div className="bounce-in" style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => {
+                  setLocal(l => ({...l, fromAirport: ap.code}));
+                  setApQuery(""); setApFocus(false);
+                }} style={{
+                  width:"100%", padding:"10px 14px",
+                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F,
+                  display:"flex", alignItems:"center", gap:10,
+                }}>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                  </div>
+                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Top 10 popular airports */}
+          {!apFocus && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
+              {US_AIRPORTS.slice(0, 10).map(ap => {
+                const sel1 = local.fromAirport === ap.code;
+                return (
+                  <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
+                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                      background: sel1 ? "#222" : "#f5f5f5",
+                      color:      sel1 ? "#fff" : "#555",
+                      border:"none",
+                      fontSize:11, fontWeight:700, fontFamily:F,
+                  }}>{ap.code}</button>
+                );
+              })}
+            </div>
+          )}
+          {local.fromAirport && (
+            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
+              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
+                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
+            </div>
+          )}
+
+          {/* Second airport */}
+          <div style={{ marginTop:12 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:"#bbb", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Or also from</div>
+            <div style={{ position:"relative" }}>
+              <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="text" placeholder="Add second airport…"
+                value={apQuery2}
+                onChange={e => setApQuery2(e.target.value)}
+                onFocus={() => setApFocus2(true)}
+                onBlur={() => setTimeout(() => setApFocus2(false), 180)}
+                style={{
+                  width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                  border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                  background:"#fafafa",
+                }}
+              />
+              {local.fromAirport2 && (
+                <button onMouseDown={() => setLocal(l => ({...l, fromAirport2:""}))} style={{
+                  position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
+                  background:"#ddd", border:"none", width:18, height:18, borderRadius:"50%",
+                  fontSize:11, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                }}>×</button>
+              )}
+            </div>
+            {apFocus2 && apResults2.length > 0 && (
+              <div className="bounce-in" style={{
+                background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+                marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+              }}>
+                {apResults2.map((ap, i) => (
+                  <button key={ap.code} onMouseDown={() => {
+                    setLocal(l => ({...l, fromAirport2: ap.code}));
+                    setApQuery2(""); setApFocus2(false);
+                  }} style={{
+                    width:"100%", padding:"10px 14px",
+                    background: local.fromAirport2 === ap.code ? "#f0f9ff" : "#fff",
+                    border:"none", borderBottom: i < apResults2.length-1 ? "1px solid #f5f5f5" : "none",
+                    textAlign:"left", cursor:"pointer", fontFamily:F,
+                    display:"flex", alignItems:"center", gap:10,
+                  }}>
+                    <div style={{ flex:1 }}>
+                      <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                      <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                    </div>
+                    {local.fromAirport2 === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {local.fromAirport2 && (
+              <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+                <strong style={{ color:"#222" }}>{local.fromAirport2}</strong>
+                {ALL_AIRPORTS.find(a => a.code === local.fromAirport2)?.city &&
+                  <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport2).city}</span>}
+                <span style={{ marginLeft:6, color:"#0284c7", fontWeight:700 }}>· cheapest of both shown</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -4434,10 +4720,10 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               <div style={{ display:"flex", gap:6 }}>
                 <input type="date" value={local.startDate || ""}
                   onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.startDate ? "#0c4a6e" : "#aaa", background: local.startDate ? "#f0f9ff" : "#fafafa", fontWeight: local.startDate ? 700 : 400, minWidth:0 }} />
                 <input type="date" value={local.endDate || ""}
                   onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.endDate ? "#0c4a6e" : "#aaa", background: local.endDate ? "#f0f9ff" : "#fafafa", fontWeight: local.endDate ? 700 : 400, minWidth:0 }} />
               </div>
             </div>
             <div style={{ width:100 }}>
@@ -4523,71 +4809,6 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
-        {/* ── Flying from (moved to bottom) ── */}
-        <div style={{ padding:"12px 20px 0" }}>
-          <SectionLabel>Flying from</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
-            {US_AIRPORTS.map(ap => {
-              const sel = local.fromAirport === ap.code;
-              return (
-                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
-                    background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#555",
-                    border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
-                }}>{ap.code}</button>
-              );
-            })}
-          </div>
-          <div style={{ position:"relative" }}>
-            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" placeholder="Search airports…"
-              value={apQuery}
-              onChange={e => setApQuery(e.target.value)}
-              onFocus={() => setApFocus(true)}
-              onBlur={() => setTimeout(() => setApFocus(false), 180)}
-              style={{
-                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
-                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
-                background:"#fafafa",
-              }}
-            />
-          </div>
-          {apFocus && apResults.length > 0 && (
-            <div className="bounce-in" style={{
-              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
-              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
-            }}>
-              {apResults.map((ap, i) => (
-                <button key={ap.code} onMouseDown={() => {
-                  setLocal(l => ({...l, fromAirport: ap.code}));
-                  setApQuery(""); setApFocus(false);
-                }} style={{
-                  width:"100%", padding:"10px 14px",
-                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
-                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
-                  textAlign:"left", cursor:"pointer", fontFamily:F,
-                  display:"flex", alignItems:"center", gap:10,
-                }}>
-                  <div style={{ flex:1 }}>
-                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
-                  </div>
-                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-          {local.fromAirport && (
-            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
-              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
-              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
-                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
-            </div>
-          )}
-        </div>
-
         {/* ── Apply ── */}
         <div style={{ padding:"20px 20px 8px" }}>
           <button onClick={apply} className="pressable" style={{
@@ -4625,7 +4846,7 @@ function SearchBar({ search, onOpen }) {
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
-    <div onClick={onOpen} className="pressable" style={{
+    <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
       display:"flex", alignItems:"center",
       background:"#fff", borderRadius:40,
       boxShadow:"0 3px 22px rgba(0,0,0,0.11)", border:"1.5px solid #ebebeb",
@@ -4905,6 +5126,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(30);
   const scrollRef = useRef(null);
   const touchStartY = useRef(0);
   const pullDistRef = useRef(0);
@@ -4948,11 +5170,20 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "Best Right Now" — personalized + respects active category filter
+  // Hero card: highest-scoring venue that has REAL weather data loaded
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
-  const bestStrict = [...bestPool]
-    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+  const heroPick = [...bestPool]
+    .filter(l => l.conditionLabel !== "Checking conditions…")
+    .sort((a, b) => {
+      const aBoost = userSports.includes(a.category) ? 15 : 0;
+      const bBoost = userSports.includes(b.category) ? 15 : 0;
+      return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
+    })[0] || null;
+
+  // "Best Right Now" carousel — GO venues only (80+), need >= 3 to show
+  const bestRightNow = [...bestPool]
+    .filter(l => l.conditionScore >= 80 && l.flight.price < 800)
     .sort((a, b) => {
       const aBoost = userSports.includes(a.category) ? 15 : 0;
       const bBoost = userSports.includes(b.category) ? 15 : 0;
@@ -4961,27 +5192,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return bVal - aVal;
     })
     .slice(0, 5);
-  const bestRightNow = bestStrict.length > 0
-    ? bestStrict
-    : [...bestPool].sort((a, b) => {
-        const aBoost = userSports.includes(a.category) ? 15 : 0;
-        const bBoost = userSports.includes(b.category) ? 15 : 0;
-        return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-      }).slice(0, 5);
-
-  // Both "All" and sport tabs: always show top 5 picks.
-  const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
-  const sportTopPicks = activeCat !== "all"
-    ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
-    : [];
-  const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
 
   const filtered = applyFilters(listings, activeCat, filters, search);
-  const firingIds = new Set(firingTab.map(l => l.id));
-  const bestNowIds = new Set(bestRightNow.map(l => l.id));
-  const gridListings = activeCat === "all"
-    ? filtered.filter(l => !firingIds.has(l.id) && !bestNowIds.has(l.id))
-    : filtered;
+  // Exclude hero + Best Right Now venues from the grid to avoid duplicates
+  const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
+  const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
@@ -4999,10 +5214,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Sort: "All" first, then user's selected sports, then the rest
+  // Sort: "All" first, then user's selected sports IN PICK ORDER, then the rest
   const sortedCats = [
     CATEGORIES.find(c => c.id === "all"),
-    ...CATEGORIES.filter(c => c.id !== "all" && userSports.includes(c.id)),
+    ...userSports.map(id => CATEGORIES.find(c => c.id === id)).filter(Boolean),
     ...CATEGORIES.filter(c => c.id !== "all" && !userSports.includes(c.id)),
   ].filter(Boolean);
   // Collapsed: show "All" + user's sports (up to 3) + fill with defaults if needed
@@ -5012,34 +5227,39 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills — 2 default + "+" */}
-      <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+      {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
+      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-            onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            aria-label={`Filter by ${c.label}`}
+            aria-pressed={activeCat === c.id}
             style={{
-              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
+              flex: showAllCats ? "0 0 auto" : 1, minWidth:0,
+              padding:"5px 6px", borderRadius:18, cursor:"pointer",
+              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
               background: activeCat === c.id ? "#222" : "#f5f5f5",
               color: activeCat === c.id ? "#fff" : "#555",
               border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
-              fontSize:12, fontWeight:700, fontFamily:F,
+              fontSize:11, fontWeight:700, fontFamily:F,
           }}>
             {c.emoji} {c.label}
           </button>
         ))}
         {!showAllCats && (
-          <button onClick={() => setShowAllCats(true)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
-            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
+          <button onClick={() => { setShowAllCats(true); haptic(); }} className="pill" style={{
+            flex:"0 0 auto", padding:"5px 6px", borderRadius:18, cursor:"pointer", background:"#f0f0f0",
+            border:"1.5px solid transparent", fontSize:11, fontWeight:700, color:"#888", fontFamily:F,
+            whiteSpace:"nowrap",
           }}>+ More</button>
         )}
-        {/* Saved quick-access */}
+        {/* Saved quick-access — always last */}
         {savedCount > 0 && (
           <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", marginLeft:"auto",
+            flex:"0 0 auto", padding:"5px 8px", borderRadius:18, cursor:"pointer",
             background: showSaved ? "#fee2e2" : "#f5f5f5",
             border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-            fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+            fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
           }}>
             ❤️ {savedCount}
           </button>
@@ -5048,7 +5268,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Ski pass filter pills — show when skiing is selected */}
       {activeCat === "skiing" && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           <span style={{ fontSize:10, fontWeight:700, color:"#999", fontFamily:F, whiteSpace:"nowrap", textTransform:"uppercase", letterSpacing:0.5 }}>Pass</span>
           {[{id:"",label:"All"},{id:"ikon",label:"Ikon"},{id:"epic",label:"Epic"},{id:"independent",label:"Independent"}].map(p => (
             <button key={p.id}
@@ -5069,7 +5289,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -5086,7 +5306,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         </div>
       )}
 
-      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", touchAction:"pan-y" }}>
 
         {/* Pull-to-refresh indicator */}
         {(pullDist > 0 || pullRefreshing) && (
@@ -5111,7 +5331,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         {showSaved && (
           <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
             <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
               {listings.filter(l => wishlists.includes(l.id)).map(l => (
                 <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
                   minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
@@ -5137,37 +5357,51 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && bestRightNow.length > 0 && !showSaved && (() => {
-          const hero = bestRightNow[0];
+        {!loading && !showSaved && !heroPick && (
+          /* Skeleton while weather is still fetching for first venues */
+          <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div className="shimmer" style={{ height:140 }} />
+            <div style={{ padding:16 }}>
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"45%", marginBottom:10 }} />
+              <div className="shimmer" style={{ height:20, borderRadius:6, width:"70%", marginBottom:8 }} />
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"50%" }} />
+            </div>
+          </div>
+        )}
+        {!loading && heroPick && !showSaved && (() => {
+          const hero = heroPick;
+          const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
           return (
             <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden",
               background:"#fff",
-              border:`2px solid ${verdict.color}33`,
+              border: weatherLoaded ? `2px solid ${verdict.color}33` : "2px solid #f0f0f0",
               boxShadow:"0 2px 12px rgba(0,0,0,0.08)",
             }} onClick={() => onOpenDetail(hero)} className="card">
               {/* Hero photo */}
               {hero.photo && (
                 <div style={{ position:"relative", height:140, overflow:"hidden" }}>
-                  <img src={hero.photo} alt={hero.title} loading="lazy" style={{
-                    width:"100%", height:"100%", objectFit:"cover", display:"block",
-                  }} />
+                  <img src={hero.photo} alt={hero.title} loading="lazy"
+                    onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(hero.title, hero.category); }}
+                    style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
                   <div style={{ position:"absolute", bottom:8, left:12 }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
                       Your best window right now
                     </div>
                   </div>
-                  <div style={{ position:"absolute", top:8, right:8 }}>
-                    <GoVerdictBadge score={hero.conditionScore} size="lg" />
-                  </div>
+                  {weatherLoaded && (
+                    <div style={{ position:"absolute", top:8, right:8 }}>
+                      <GoVerdictBadge score={hero.conditionScore} size="lg" />
+                    </div>
+                  )}
                 </div>
               )}
               <div style={{ padding:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                 <div>
                   {!hero.photo && (
-                    <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color: weatherLoaded ? verdict.color : "#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                       Your best window right now
                     </div>
                   )}
@@ -5176,13 +5410,19 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
                 </div>
-                {!hero.photo && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
+                {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
               </div>
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
-                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                  {weatherLoaded ? (
+                    <>
+                      <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                    </>
+                  ) : (
+                    <div className="shimmer" style={{ height:12, borderRadius:6, marginTop:6, marginBottom:4 }} />
+                  )}
                 </div>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
@@ -5224,8 +5464,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── Best Right Now carousel ── */}
-        {!loading && bestRightNow.length > 1 && (
+        {/* ── Best Right Now carousel — only shows when >= 3 GO venues (80+) ── */}
+        {!loading && bestRightNow.length >= 3 && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
@@ -5238,6 +5478,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
               {bestRightNow.slice(1).map(l => {
                 const v = getGoVerdict(l.conditionScore);
@@ -5250,7 +5491,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
                     <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
-                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(l.title, l.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                       <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
@@ -5297,7 +5538,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {loading
             ? Array(isAll ? 9 : 4).fill(0).map((_, i) => <SkeletonCard key={i} />)
             : gridListings.length > 0
-              ? gridListings.map(l =>
+              ? gridListings.slice(0, visibleCount).map(l =>
                   isAll
                     ? <CompactCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
@@ -5307,8 +5548,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
                   <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
                   <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
-                    {bestRightNow.length > 0
-                      ? `But ${bestRightNow[0].title} looks promising in the coming weeks and flights are still $${bestRightNow[0].flight.price}.`
+                    {heroPick
+                      ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
                       : "Conditions are quiet across the board right now."}
                   </div>
                   <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
@@ -5327,6 +5568,27 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 </div>
               )
           }
+        </div>
+        {/* Show more button */}
+        {!loading && gridListings.length > visibleCount && (
+          <div style={{ padding:"8px 14px 16px", textAlign:"center" }}>
+            <button onClick={() => setVisibleCount(v => v + 30)} className="pressable" style={{
+              background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:12,
+              padding:"12px 24px", fontSize:13, fontWeight:700, color:"#222",
+              fontFamily:F, cursor:"pointer", width:"100%",
+            }}>
+              Show more ({gridListings.length - visibleCount} remaining)
+            </button>
+          </div>
+        )}
+        {/* Email capture */}
+        <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
+          <div style={{ fontSize:11, color:"#0369a1", fontFamily:F, marginBottom:10 }}>We'll alert you when your saved spots hit 90+</div>
+          <form onSubmit={e => { e.preventDefault(); const email = e.target.email.value; if (email && email.includes("@")) { window.plausible && window.plausible("email_capture", {props:{source:"explore_banner"}}); e.target.email.value = ""; alert("You're on the list! 🎉"); }}} style={{ display:"flex", gap:8 }}>
+            <input name="email" type="email" placeholder="your@email.com" aria-label="Email address for condition alerts" style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #bae6fd", fontSize:12, fontFamily:F, background:"white", outline:"none", color:"#222" }} />
+            <button type="submit" className="pressable" style={{ padding:"9px 14px", background:"#0284c7", border:"none", borderRadius:10, fontSize:12, fontWeight:800, color:"white", fontFamily:F, cursor:"pointer", whiteSpace:"nowrap" }}>Notify me</button>
+          </form>
         </div>
         <div style={{ height:24 }} />
       </div>
@@ -5477,7 +5739,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
 }
 
 // ─── alerts tab ───────────────────────────────────────────────────────────────
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
 
@@ -5779,6 +6041,24 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
         }}>+ New</button>
       </div>
 
+      {/* Vibe Search */}
+      {onShowVibeSearch && (
+        <div style={{ padding:"0 24px 16px" }}>
+          <button onClick={onShowVibeSearch} className="pressable" style={{
+            width:"100%", background:"linear-gradient(135deg,#1a1a2e,#302b63)",
+            border:"none", borderRadius:16, padding:"16px 20px", cursor:"pointer",
+            display:"flex", alignItems:"center", gap:12, color:"white",
+          }}>
+            <span style={{ fontSize:22 }}>✨</span>
+            <div style={{ flex:1, textAlign:"left" }}>
+              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Vibe Search</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontFamily:F, marginTop:2 }}>AI-powered adventure matching</div>
+            </div>
+            <span style={{ background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em" }}>AI</span>
+          </button>
+        </div>
+      )}
+
       {/* Firing banner */}
       {firing.length > 0 && (
         <div style={{ margin:"0 24px 20px" }}>
@@ -5892,6 +6172,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
   const [editMode,          setEditMode]          = useState(false);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
+  const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
   const toggleSport = id => setProfile(p => ({
@@ -6054,22 +6335,42 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
                 <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
                 {navigator.geolocation && (
-                  <button className="pressable" onClick={() => {
-                    setDetectingLocation(true);
-                    navigator.geolocation.getCurrentPosition(
-                      pos => {
-                        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-                        const already = (profile.homeAirports || []).includes(code);
-                        if (!already && (profile.homeAirports || []).length < 3) {
-                          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-                        }
-                        setDetectingLocation(false);
-                      },
-                      () => setDetectingLocation(false)
-                    );
-                  }} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
+                  <button className="pressable" onClick={() => setGeoPromptOpen(true)} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
                     {detectingLocation ? "Detecting…" : "📍 Detect"}
                   </button>
+                )}
+                {/* Geo permission explainer */}
+                {geoPromptOpen && (
+                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => setGeoPromptOpen(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{ width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 36px", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
+                      <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 20px" }} />
+                      <div style={{ fontSize:28, textAlign:"center", marginBottom:8 }}>📍</div>
+                      <div style={{ fontSize:17, fontWeight:800, color:"#222", fontFamily:F, textAlign:"center", marginBottom:8 }}>Find your nearest airport</div>
+                      <div style={{ fontSize:13, color:"#666", fontFamily:F, textAlign:"center", lineHeight:1.5, marginBottom:24 }}>
+                        To find cheap flights from your nearest airport, Peakly needs your location. Your location is only used to match you with the closest airport — it's never stored or shared.
+                      </div>
+                      <button className="pressable" onClick={() => {
+                        setGeoPromptOpen(false);
+                        setDetectingLocation(true);
+                        navigator.geolocation.getCurrentPosition(
+                          pos => {
+                            const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+                            const already = (profile.homeAirports || []).includes(code);
+                            if (!already && (profile.homeAirports || []).length < 3) {
+                              setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
+                            }
+                            setDetectingLocation(false);
+                          },
+                          () => setDetectingLocation(false)
+                        );
+                      }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
+                        Allow Location Access
+                      </button>
+                      <button onClick={() => setGeoPromptOpen(false)} style={{ width:"100%", background:"none", border:"1.5px solid #e8e8e8", borderRadius:14, padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F }}>
+                        Skip — I'll enter manually
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
@@ -6398,7 +6699,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             fontSize:13, fontWeight:700, fontFamily:F, marginBottom:32,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
-            🚪 Sign Out
+            Sign Out
           </button>
         )}
         {hasAccount && signOutConfirm && (
@@ -6776,7 +7077,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
                 </svg>
               </div>
-              <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
+              <span style={{ fontSize:30, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
             </div>
 
             <div style={{ fontSize:32, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, marginBottom:10 }}>
@@ -6831,8 +7132,16 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               We'll show flight prices from your home airport to every spot.
             </div>
 
+            <div style={{ position:"relative", marginBottom:14 }}>
+              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
+              <input type="text" placeholder="Search any airport worldwide…"
+                value={apQuery} onChange={e => setApQuery(e.target.value)}
+                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
+                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
+              />
+            </div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-              {US_AIRPORTS.map(ap => {
+              {US_AIRPORTS.slice(0, 10).map(ap => {
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
@@ -6845,14 +7154,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   }}>{ap.flag} {ap.code} <span style={{ fontSize:10, opacity:0.7 }}>{ap.label}</span></button>
                 );
               })}
-            </div>
-            <div style={{ position:"relative" }}>
-              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
-                value={apQuery} onChange={e => setApQuery(e.target.value)}
-                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
-                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
             </div>
             {apFocus && apResults.length > 0 && (
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
@@ -7194,13 +7495,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     const dy = d.currentY - d.startY;
     if (dy > 120) {
       if (sheetRef.current) {
-        sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
-        sheetRef.current.style.transition = "transform 0.25s cubic-bezier(0.4,0,1,1)";
+        sheetRef.current.style.transform = "translateX(-50%) translateY(105%)";
+        sheetRef.current.style.transition = "transform 0.3s cubic-bezier(0.4,0,0.8,1)";
       }
-      setTimeout(onClose, 240);
+      setTimeout(onClose, 280);
     } else if (sheetRef.current) {
-      sheetRef.current.style.transform = "translateX(-50%)";
-      sheetRef.current.style.transition = "transform 0.38s cubic-bezier(0.34,1.56,0.64,1)";
+      sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
+      sheetRef.current.style.transition = "transform 0.42s cubic-bezier(0.32,1.2,0.4,1)";
     }
   }, [onClose]);
   const d  = rawWx?.daily;
@@ -7281,6 +7582,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {listing.photo ? (
             <img src={listing.photo} alt={listing.title} loading="lazy"
               onLoad={e => { e.target.style.opacity = 1; }}
+              onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
           ) : (
             <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -7407,12 +7709,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {similarVenues.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
                 {similarVenues.map(sv => (
                   <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
                       {sv.photo ? (
-                        <img src={sv.photo} alt={sv.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+                        <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                       ) : (
                         <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       )}
@@ -7534,32 +7836,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <span style={{ fontSize:14, color:"#16a34a" }}>↗</span>
             </div>
           </a>
-
-          {/* ⚡ Peakly Pro upsell */}
-          <div style={{ marginBottom:16, background:"linear-gradient(135deg,#0f172a,#1e3a5f)", borderRadius:16, padding:"16px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>⚡ Peakly Pro</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", fontFamily:F, marginTop:2 }}>Unlock the full experience</div>
-              </div>
-              <div style={{ background:"#0284c7", borderRadius:10, padding:"4px 11px", flexShrink:0 }}>
-                <span style={{ fontSize:11, fontWeight:900, color:"white", fontFamily:F }}>$79/yr</span>
-              </div>
-            </div>
-            {[
-              "🔔 Instant condition alerts — beat the crowds",
-              "📊 Full 90-day historical condition graphs",
-              "📅 Crowd calendar — know before you go",
-              "✈️ Price drop alerts for your saved venues",
-            ].map((feat, i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.82)", fontFamily:F, lineHeight:1.5 }}>{feat}</span>
-              </div>
-            ))}
-            <button className="pressable" onClick={() => alert("Peakly Pro coming soon! 🚀")} style={{ width:"100%", marginTop:8, background:"#0284c7", border:"none", borderRadius:12, padding:"13px", cursor:"pointer", fontSize:13, fontWeight:900, color:"white", fontFamily:F, boxShadow:"0 4px 14px rgba(2,132,199,0.45)" }}>
-              Start free 7-day trial
-            </button>
-          </div>
 
           {/* Save to named list */}
           <div style={{ marginBottom:16 }}>
@@ -7864,7 +8140,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { id:"skiing", label:"Skiing" },
+                { id:"skiing", label:"Ski/Board" },
                 { id:"surfing", label:"Surfing" },
                 { id:"tanning", label:"Beach & Tan" }
               ].map(s => (
@@ -7884,10 +8160,10 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
           <div className="fade-in">
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>When are you going?</div>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:10,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:10, color: startDate ? "#0c4a6e" : "#aaa", background: startDate ? "#f0f9ff" : "#fafafa", fontWeight: startDate ? 700 : 400,
             }} />
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:14,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:14, color: endDate ? "#0c4a6e" : "#aaa", background: endDate ? "#f0f9ff" : "#fafafa", fontWeight: endDate ? 700 : 400,
             }} />
             <button onClick={() => setStep(2)} disabled={!startDate || !endDate} style={{
               width:"100%", background: startDate && endDate ? "#222" : "#ddd", border:"none", borderRadius:12, padding:12,
@@ -8149,7 +8425,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                 height: 130, background: venue.gradient || "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
                 display: "flex", alignItems: "flex-end", padding: 14, position: "relative", overflow: "hidden",
               }}>
-                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(venue.title, venue.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                 <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)" }} />
                 <div style={{
                   position: "absolute", top: 10, right: 10,
@@ -8251,7 +8527,7 @@ function BottomNav({ active, setActive, alertCount }) {
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
+        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" aria-label={t.label} aria-current={active === t.id ? "page" : undefined} style={{
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
@@ -8304,15 +8580,20 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
-  // Dismiss the splash screen after first render
+  // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
     if (!splash) return;
+    // Record when the page started loading (approximated by performance.timing or Date.now)
+    const pageStart = window.performance?.timing?.navigationStart || Date.now();
+    const elapsed = Date.now() - pageStart;
+    const MIN_VISIBLE = 1800; // ms
+    const remaining = Math.max(0, MIN_VISIBLE - elapsed);
     const t1 = setTimeout(() => {
       splash.classList.add('fade-out');
       const t2 = setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
       return () => clearTimeout(t2);
-    }, 350);
+    }, remaining);
     return () => clearTimeout(t1);
   }, []);
 
@@ -8322,7 +8603,7 @@ function App() {
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, startDate:"", endDate:"" });
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
@@ -8335,7 +8616,7 @@ function App() {
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
-    name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
+    name:"", email:"", homeAirport:"JFK", homeAirport2:"", homeAirports:["JFK"], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
@@ -8372,6 +8653,12 @@ function App() {
         const airports = p.homeAirports || [p.homeAirport] || ["JFK"];
         return airports[0] || "JFK";
       } catch { return "JFK"; }
+    })(),
+    fromAirport2: (() => {
+      try {
+        const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
+        return p.homeAirport2 || "";
+      } catch { return ""; }
     })(),
   }));
 
@@ -8455,20 +8742,25 @@ function App() {
 
       // 2. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
+      // If two home airports are set, fetch both and use the cheaper price.
       const apPrices = {}; // airport code → cheapest price
-      const origin = profile.homeAirport || "JFK";
+      const origins = [profile.homeAirport || "JFK"];
+      if (profile.homeAirport2) origins.push(profile.homeAirport2);
       for (let i = 0; i < uniqueAirports.length; i += 3) {
         const batch = uniqueAirports.slice(i, i + 3);
         const results = await Promise.allSettled(
-          batch.map(async ap => {
-            const price = await fetchTravelpayoutsPrice(origin, ap);
-            return { ap, price };
-          })
+          batch.flatMap(ap =>
+            origins.map(async origin => {
+              const price = await fetchTravelpayoutsPrice(origin, ap);
+              return { ap, price };
+            })
+          )
         );
         if (!alive) return;
         results.forEach(r => {
           if (r.status === "fulfilled" && r.value.price !== null) {
-            apPrices[r.value.ap] = r.value.price;
+            const { ap, price } = r.value;
+            if (apPrices[ap] == null || price < apPrices[ap]) apPrices[ap] = price;
           }
         });
         if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
@@ -8485,15 +8777,17 @@ function App() {
       if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
-  }, [loading, profile.homeAirport]);
+  }, [loading, profile.homeAirport, profile.homeAirport2]);
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
-  const scoreDayIndex = filters.startDate ? Math.max(0, Math.min(6, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000))) : 0;
+  const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
-    const estimate   = getFlightDeal(v.ap, profile.homeAirport);
+    const estimate1  = getFlightDeal(v.ap, profile.homeAirport);
+    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2) : null;
+    const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const realPrice  = duffelPrices[v.id];
     const flight     = realPrice != null
       ? {
@@ -8526,15 +8820,28 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    setWishlists(p => {
-      const isAdding = !p.includes(id);
-      if (isAdding) {
-        const venue = VENUES.find(v => v.id === id);
-        window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    const isCurrentlySaved = wishlists.includes(id);
+    if (!isCurrentlySaved) {
+      const venue = VENUES.find(v => v.id === id);
+      window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    }
+    setWishlists(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+    // Auto-sync with first named list — create "Favorites" if none exist
+    setNamedLists(lists => {
+      if (!isCurrentlySaved) {
+        // Adding — ensure it's in the first/default list
+        if (lists.length === 0) {
+          return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }];
+        }
+        const first = lists[0];
+        if ((first.venueIds||[]).includes(id)) return lists;
+        return lists.map((l, i) => i === 0 ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
+      } else {
+        // Removing — remove from all named lists
+        return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
-      return p.includes(id) ? p.filter(x => x !== id) : [...p, id];
     });
-  }, [setWishlists]);
+  }, [wishlists, setWishlists, setNamedLists]);
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
@@ -8578,11 +8885,13 @@ function App() {
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F, flexShrink:0 }}>
-                  peakly
-                </span>
+                <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
+                  <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                    peakly
+                  </span>
+                </div>
                 <div style={{ flex:1 }}>
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
@@ -8590,7 +8899,7 @@ function App() {
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
             </div>
@@ -8617,6 +8926,7 @@ function App() {
               listings={listings} userAlerts={userAlerts}
               setUserAlerts={setUserAlerts} profile={profile}
               onShowOnboarding={() => setShowOnboarding(true)}
+              onShowVibeSearch={() => setShowVibeSearch(true)}
             />
           )}
           {activeTab === "profile" && (
@@ -8643,13 +8953,23 @@ function App() {
               // If exactly one activity selected, switch the tab pill to it; otherwise stay on "all"
               if (s.activities?.length === 1) setActiveCat(s.activities[0]);
               else setActiveCat("all");
-              setProfile(p => ({ ...p, homeAirport: s.fromAirport }));
+              setProfile(p => ({ ...p, homeAirport: s.fromAirport, homeAirport2: s.fromAirport2 || "" }));
             }}
             onClose={() => setShowSearch(false)}
             listings={listings}
             wishlists={wishlists}
             onToggle={toggleWishlist}
             onOpenDetail={(l) => { setShowSearch(false); openDetail(l); }}
+          />
+        )}
+
+        {showVibeSearch && (
+          <VibeSearchSheet
+            listings={listings}
+            wishlists={wishlists}
+            onToggle={toggleWishlist}
+            onOpenDetail={(v) => { setShowVibeSearch(false); openDetail(v); }}
+            onClose={() => setShowVibeSearch(false)}
           />
         )}
 
