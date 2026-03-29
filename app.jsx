@@ -2482,7 +2482,7 @@ function applyFilters(listings, activeCat, filters, search = {}) {
 
 function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile }) {
   const [showSaved, setShowSaved] = useState(false);
-  const [showAllCats, setShowAllCats] = useState(false);
+  // showAllCats removed — only 3 active categories, no expand needed
 
   // "Best Right Now" — top venues where conditions AND price converge
   const bestRightNow = [...listings]
@@ -2524,13 +2524,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Default categories: skiing + surfing + beach, rest behind "+" button
-  const defaultCatIds = ["all", "skiing", "surfing", "tanning"];
-  const visibleCats = showAllCats ? CATEGORIES : CATEGORIES.filter(c => defaultCatIds.includes(c.id));
+  // Only show active categories (skiing, surfing, tanning)
+  const visibleCats = CATEGORIES;
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills — 2 default + "+" */}
+      {/* Category pills */}
       <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
@@ -2545,12 +2544,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             {c.label}
           </button>
         ))}
-        {!showAllCats && (
-          <button onClick={() => setShowAllCats(true)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0", minHeight:44, minWidth:44,
-            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F, display:"inline-flex", alignItems:"center", justifyContent:"center",
-          }}>+</button>
-        )}
         {/* Saved quick-access */}
         {savedCount > 0 && (
           <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
@@ -4223,7 +4216,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                     boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
                   }}>
                     <span style={{ fontSize:14, fontWeight:700, fontFamily:F }}>{cat.label}</span>
-                    {cat.label}
                     {sel && <span style={{ fontSize:13 }}>✓</span>}
                   </button>
                 );
