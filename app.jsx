@@ -154,6 +154,8 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     input[type=date]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.15) !important; }
     input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.65; cursor: pointer; padding: 2px; border-radius: 3px; }
     input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(2,132,199,0.1); }
+    input[type=date].date-filled { background: #0066FF; color: #fff; border-color: #0066FF !important; }
+    input[type=date].date-filled::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.9; }
   `;
   document.head.appendChild(s);
 })();
@@ -5987,14 +5989,16 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>From</label>
                   <input type="date" value={draft.dateFrom || ""}
                     onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontFamily:F, fontSize:13, marginTop:4 }}
+                    className={draft.dateFrom ? "date-filled" : ""}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4 }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
                   <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>To</label>
                   <input type="date" value={draft.dateTo || ""}
                     onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontFamily:F, fontSize:13, marginTop:4 }}
+                    className={draft.dateTo ? "date-filled" : ""}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4 }}
                   />
                 </div>
               </div>
@@ -7589,7 +7593,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         zIndex:301, maxHeight:"94vh", overflow:"hidden",
         display:"flex", flexDirection:"column",
       }}>
-        <div ref={scrollRef} style={{ flex:1, overflowY:"auto" }}>
+        <div ref={scrollRef} data-venue-detail-scroll style={{ flex:1, overflowY:"auto" }}>
         {/* Hero — full bleed */}
         <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
           {listing.photo ? (
@@ -7724,7 +7728,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
               <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
                 {similarVenues.map(sv => (
-                  <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
+                  <button key={sv.id} className="pressable" onClick={() => { scrollRef.current?.scrollTo({top:0,behavior:"auto"}); if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
                       {sv.photo ? (
                         <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
@@ -8625,6 +8629,12 @@ function App() {
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
+  // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
+  const wishlistIds = React.useMemo(() => {
+    if (!wishlists.length) return [];
+    if (typeof wishlists[0] === 'string') return wishlists; // legacy migration
+    return wishlists.find(l => l.name === 'Favorites')?.venues || [];
+  }, [wishlists]);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
@@ -8833,28 +8843,39 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    const isCurrentlySaved = wishlists.includes(id);
+    const isCurrentlySaved = wishlistIds.includes(id);
     if (!isCurrentlySaved) {
       const venue = VENUES.find(v => v.id === id);
       window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
     }
-    setWishlists(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-    // Auto-sync with first named list — create "Favorites" if none exist
+    // Store as [{name:"Favorites", venues:[...]}]; migrate legacy flat array on first write
+    setWishlists(lists => {
+      if (lists.length > 0 && typeof lists[0] === 'string') {
+        // Migrate legacy flat array
+        const migrated = isCurrentlySaved ? lists.filter(x => x !== id) : [...lists, id];
+        return [{ name: 'Favorites', venues: migrated }];
+      }
+      const favIdx = lists.findIndex(l => l.name === 'Favorites');
+      if (!isCurrentlySaved) {
+        if (favIdx === -1) return [{ name: 'Favorites', venues: [id] }];
+        return lists.map((l, i) => i === favIdx ? { ...l, venues: [...(l.venues || []), id] } : l);
+      } else {
+        if (favIdx === -1) return lists;
+        return lists.map((l, i) => i === favIdx ? { ...l, venues: (l.venues || []).filter(x => x !== id) } : l);
+      }
+    });
+    // Keep namedLists in sync for WishlistsTab
     setNamedLists(lists => {
       if (!isCurrentlySaved) {
-        // Adding — ensure it's in the first/default list
-        if (lists.length === 0) {
-          return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }];
-        }
+        if (lists.length === 0) return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }];
         const first = lists[0];
         if ((first.venueIds||[]).includes(id)) return lists;
         return lists.map((l, i) => i === 0 ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
       } else {
-        // Removing — remove from all named lists
         return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
     });
-  }, [wishlists, setWishlists, setNamedLists]);
+  }, [wishlistIds, setWishlists, setNamedLists]);
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
@@ -8924,7 +8945,7 @@ function App() {
           {activeTab === "explore" && (
             <ExploreTab
               listings={listings} loading={loading}
-              wishlists={wishlists} onToggle={toggleWishlist}
+              wishlists={wishlistIds} onToggle={toggleWishlist}
               onViewAlerts={() => setActiveTab("alerts")}
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
@@ -8946,7 +8967,7 @@ function App() {
             <ProfileTab
               profile={profile} setProfile={setProfile}
               filters={filters} setFilters={setFilters}
-              wishlists={wishlists}
+              wishlists={wishlistIds}
               onShowOnboarding={() => setShowOnboarding(true)}
               savedTrips={savedTrips} setSavedTrips={setSavedTrips}
               listings={listings} onOpenDetail={openDetail}
@@ -8970,7 +8991,7 @@ function App() {
             }}
             onClose={() => setShowSearch(false)}
             listings={listings}
-            wishlists={wishlists}
+            wishlists={wishlistIds}
             onToggle={toggleWishlist}
             onOpenDetail={(l) => { setShowSearch(false); openDetail(l); }}
           />
@@ -8979,7 +9000,7 @@ function App() {
         {showVibeSearch && (
           <VibeSearchSheet
             listings={listings}
-            wishlists={wishlists}
+            wishlists={wishlistIds}
             onToggle={toggleWishlist}
             onOpenDetail={(v) => { setShowVibeSearch(false); openDetail(v); }}
             onClose={() => setShowVibeSearch(false)}
@@ -8999,7 +9020,7 @@ function App() {
             listing={detailVenue}
             rawWx={wxData[detailVenue.id]}
             rawMar={marData[detailVenue.id]}
-            wishlists={wishlists}
+            wishlists={wishlistIds}
             onToggle={toggleWishlist}
             onClose={() => { setDetailVenue(null); try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {} }}
             namedLists={namedLists}
