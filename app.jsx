@@ -5990,7 +5990,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <input type="date" value={draft.dateFrom || ""}
                     onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
                     className={draft.dateFrom ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4 }}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateFrom ? "#eef3ff" : "#fff", color: draft.dateFrom ? "#0033cc" : undefined, fontWeight: draft.dateFrom ? 700 : 400 }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
@@ -5998,7 +5998,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <input type="date" value={draft.dateTo || ""}
                     onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
                     className={draft.dateTo ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4 }}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateTo ? "#eef3ff" : "#fff", color: draft.dateTo ? "#0033cc" : undefined, fontWeight: draft.dateTo ? 700 : 400 }}
                   />
                 </div>
               </div>
@@ -7490,6 +7490,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const sheetRef = useRef(null);
   const scrollRef = useRef(null);
   const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
+
+  // Scroll back to top whenever the user navigates to a different venue
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [listing.id]);
+
   const onTouchStart = useCallback((e) => {
     const el = scrollRef.current;
     if (!el || el.scrollTop > 5) return; // only swipe when at top
@@ -8867,10 +8873,14 @@ function App() {
     // Keep namedLists in sync for WishlistsTab
     setNamedLists(lists => {
       if (!isCurrentlySaved) {
-        if (lists.length === 0) return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }];
-        const first = lists[0];
-        if ((first.venueIds||[]).includes(id)) return lists;
-        return lists.map((l, i) => i === 0 ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
+        // Adding — ensure it's in the "Favorites" list (create if none exists)
+        const favIdx = lists.findIndex(l => l.id === "favorites" || l.name === "Favorites");
+        if (favIdx === -1) {
+          return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }, ...lists];
+        }
+        const fav = lists[favIdx];
+        if ((fav.venueIds||[]).includes(id)) return lists;
+        return lists.map((l, i) => i === favIdx ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
       } else {
         return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
