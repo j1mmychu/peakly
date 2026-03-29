@@ -4436,7 +4436,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     destination: search.destination || "",
     when: search.when || "anytime",
     continent: search.continent || "",
-    fromAirport: search.fromAirport || "JFK",
+    fromAirport: search.fromAirport || "",
     fromAirport2: search.fromAirport2 || "",
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
@@ -4681,7 +4681,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
                 </button>
               );
             })()}
-            {CATEGORIES.filter(c => c.id !== "all").map(cat => {
+            {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
               const sel = local.activities.includes(cat.id);
               return (
                 <button key={cat.id} className={"pill" + (sel ? " pill-selected" : "")}
@@ -4873,7 +4873,7 @@ function SearchBar({ search, onOpen }) {
           {topLine}
         </div>
         <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
-          {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
+          {actLabel}{whenLabel}{search.fromAirport ? ` · ${AIRPORT_CITY[search.fromAirport] || search.fromAirport}` : ""}{contLabel}
         </div>
       </div>
       <div style={{
@@ -5188,7 +5188,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   // Hero card: highest-scoring venue that has REAL weather data loaded
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
-  const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
+  const ACTIVE_CATS = new Set(["skiing", "surfing", "tanning"]);
+  const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
+  const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
   const heroPick = [...bestPool]
     .filter(l => l.conditionLabel !== "Checking conditions…")
     .sort((a, b) => {
@@ -5197,19 +5199,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
     })[0] || null;
 
-  // "Best Right Now" carousel — GO venues only (80+), need >= 3 to show
-  const bestRightNow = [...bestPool]
-    .filter(l => l.conditionScore >= 80 && l.flight.price < 800)
-    .sort((a, b) => {
+  // "Best Right Now" carousel — top 10, GO venues first, fill with highest MAYBE scores
+  const bestRightNow = (() => {
+    const allScored = [...bestPool].filter(l => l.conditionLabel !== "Checking conditions…");
+    const sortByVal = (a, b) => {
       const aBoost = userSports.includes(a.category) ? 15 : 0;
       const bBoost = userSports.includes(b.category) ? 15 : 0;
       const aVal = (a.conditionScore + aBoost) - Math.round(a.flight.price / 20);
       const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
       return bVal - aVal;
-    })
-    .slice(0, 5);
+    };
+    const go = allScored.filter(l => l.conditionScore >= 80 && l.flight.price < 800).sort(sortByVal);
+    const rest = allScored.filter(l => l.conditionScore < 80 || l.flight.price >= 800).sort(sortByVal);
+    return [...go, ...rest].slice(0, 10);
+  })();
 
-  const filtered = applyFilters(listings, activeCat, filters, search);
+  const filtered = applyFilters(activeListings, activeCat, filters, search);
   // Exclude hero + Best Right Now venues from the grid to avoid duplicates
   const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
   const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
@@ -5230,16 +5235,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Sort: "All" first, then user's selected sports IN PICK ORDER, then the rest
-  const sortedCats = [
-    CATEGORIES.find(c => c.id === "all"),
-    ...userSports.map(id => CATEGORIES.find(c => c.id === id)).filter(Boolean),
-    ...CATEGORIES.filter(c => c.id !== "all" && !userSports.includes(c.id)),
-  ].filter(Boolean);
-  // Collapsed: show "All" + user's sports (up to 3) + fill with defaults if needed
-  const defaultFallbacks = ["skiing", "surfing", "tanning"];
-  const collapsedIds = new Set(["all", ...userSports.slice(0, 3), ...defaultFallbacks]);
-  const visibleCats = showAllCats ? sortedCats : sortedCats.filter(c => collapsedIds.has(c.id)).slice(0, 4);
+  // Only expose 3 active categories: Ski/Board, Surfing, Beach
+  const VISIBLE_CAT_IDS = ["all", "skiing", "surfing", "tanning"];
+  const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
+    .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
@@ -5251,7 +5250,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             aria-label={`Filter by ${c.label}`}
             aria-pressed={activeCat === c.id}
             style={{
-              flex: showAllCats ? "0 0 auto" : 1, minWidth:0,
+              flex: 1, minWidth:0,
               padding:"5px 6px", borderRadius:18, cursor:"pointer",
               whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
               background: activeCat === c.id ? "#222" : "#f5f5f5",
@@ -5262,13 +5261,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             {c.emoji} {c.label}
           </button>
         ))}
-        {!showAllCats && (
-          <button onClick={() => { setShowAllCats(true); haptic(); }} className="pill" style={{
-            flex:"0 0 auto", padding:"5px 6px", borderRadius:18, cursor:"pointer", background:"#f0f0f0",
-            border:"1.5px solid transparent", fontSize:11, fontWeight:700, color:"#888", fontFamily:F,
-            whiteSpace:"nowrap",
-          }}>+ More</button>
-        )}
         {/* Saved quick-access — always last */}
         {savedCount > 0 && (
           <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
@@ -5480,7 +5472,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── Best Right Now carousel — only shows when >= 3 GO venues (80+) ── */}
+        {/* ── Best Right Now carousel — always show top 10 (min 3 scored) ── */}
         {!loading && bestRightNow.length >= 3 && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
@@ -5496,7 +5488,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
               touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
-              {bestRightNow.slice(1).map(l => {
+              {bestRightNow.map(l => {
                 const v = getGoVerdict(l.conditionScore);
                 return (
                   <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
@@ -5839,7 +5831,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       <div style={{ padding:24 }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Pick a sport</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => c.id !== "all")].map(cat => (
+          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id))].map(cat => (
             <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={{
               padding:"8px 14px", borderRadius:20, cursor:"pointer", fontFamily:F,
               background: draft.sport === cat.id ? "#222" : "#f7f7f7",
@@ -6013,7 +6005,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
             <div style={{ marginTop:28 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
                 <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>
-                  Max flight price · from {profile.homeAirport || "JFK"}
+                  Max flight price{profile.homeAirport ? ` · from ${profile.homeAirport}` : ""}
                 </span>
                 <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>
                   {draft.priceMax >= 2100 ? "Any" : `$${draft.priceMax}`}
@@ -6448,7 +6440,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             {/* Sports + skill levels */}
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your sports</div>
-              {CATEGORIES.filter(c => c.id !== "all").map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <div key={cat.id} style={{ marginBottom:8 }}>
@@ -7213,7 +7205,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
-              {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
@@ -8652,7 +8644,7 @@ function App() {
 
   // Auto-detect nearest airport for new users who haven't set one yet
   useEffect(() => {
-    if (profile.homeAirport && profile.homeAirport !== "JFK") return; // already set by user
+    if (profile.homeAirport) return; // already set by user
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -8671,8 +8663,8 @@ function App() {
     fromAirport: (() => {
       try {
         const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
-        const airports = p.homeAirports || [p.homeAirport] || ["JFK"];
-        return airports[0] || "JFK";
+        const airports = p.homeAirports?.length ? p.homeAirports : (p.homeAirport ? [p.homeAirport] : []);
+        return airports[0] || "";
       } catch { return "JFK"; }
     })(),
     fromAirport2: (() => {
