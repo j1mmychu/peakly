@@ -4143,10 +4143,10 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.2 }}>
-              Never miss your window
+              Cheap flights to peak conditions
             </div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24, lineHeight:1.5 }}>
-              We'll tell you when conditions peak and flights drop — for every adventure on your list.
+              We match the best snow, swell, and sunshine with the cheapest flights — so you never miss your window.
             </div>
 
             <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>Where do you fly from? ✈️</div>
