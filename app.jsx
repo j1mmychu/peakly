@@ -168,7 +168,7 @@ const CATEGORIES = [
   { id:"hiking",  label:"Hike",      emoji:"🥾" },
   { id:"diving",  label:"Dive",      emoji:"🤿" },
   { id:"climbing",label:"Climb",     emoji:"🧗" },
-  { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
+  { id:"tanning", label:"Beach",emoji:"🏖️" },
   { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
   { id:"kayak",   label:"Kayak",     emoji:"🛶" },
   { id:"mtb",     label:"MTB",       emoji:"🚵" },
@@ -8155,7 +8155,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
               {[
                 { id:"skiing", label:"Ski/Board" },
                 { id:"surfing", label:"Surfing" },
-                { id:"tanning", label:"Beach & Tan" }
+                { id:"tanning", label:"Beach" }
               ].map(s => (
                 <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
                   padding:14, borderRadius:12, border:"1.5px solid #e8e8e8", cursor:"pointer", fontFamily:F,
