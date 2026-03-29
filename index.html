@@ -2,20 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <meta name="theme-color" content="#0284c7" />
   <meta name="description" content="Peakly — Find surf, ski &amp; adventure spots when conditions and cheap flights align." />
-  <title>Peakly</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Peakly — Adventure When Conditions Align" />
+  <meta property="og:description" content="Find surf, ski &amp; beach spots with perfect conditions and cheap flights. Real-time weather scoring for 2,200+ venues worldwide." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://j1mmychu.github.io/peakly/" />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center" />
+  <meta property="og:site_name" content="Peakly" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Peakly — Adventure When Conditions Align" />
+  <meta name="twitter:description" content="Find surf, ski &amp; beach spots with perfect conditions and cheap flights." />
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center" />
+
+  <title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>
+  <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
+
+  <!-- Preconnect hints for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="preconnect" href="https://plausible.io" />
+  <link rel="preconnect" href="https://images.unsplash.com" />
+  <link rel="dns-prefetch" href="https://api.open-meteo.com" />
+  <link rel="dns-prefetch" href="https://marine-api.open-meteo.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Analytics: Plausible -->
+  <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://j1mmychu.github.io/peakly/#website",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "name": "Peakly",
+        "description": "Find surf, ski and adventure spots when conditions and cheap flights align.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://j1mmychu.github.io/peakly/#search={search_term_string}" },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://j1mmychu.github.io/peakly/#app",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": "Real-time condition scoring, Flight price tracking, Adventure venues worldwide, Vibe-based AI search, Trip planning, Condition alerts, Surf forecasts, Ski conditions, Beach weather"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://j1mmychu.github.io/peakly/#org",
+        "name": "Peakly",
+        "url": "https://j1mmychu.github.io/peakly/"
+      },
+      {
+        "@type": "ItemList",
+        "name": "Adventure Sport Categories",
+        "numberOfItems": 3,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Skiing Destinations", "url": "https://j1mmychu.github.io/peakly/#skiing" },
+          { "@type": "ListItem", "position": 2, "name": "Surfing Spots", "url": "https://j1mmychu.github.io/peakly/#surfing" },
+          { "@type": "ListItem", "position": 3, "name": "Beach & Tanning", "url": "https://j1mmychu.github.io/peakly/#tanning" }
+        ]
+      },
+      {
+        "@type": "TouristDestination",
+        "name": "Adventure Destinations on Peakly",
+        "description": "Adventure destinations across 6 continents with live condition scoring and flight prices",
+        "touristType": ["Adventure traveler", "Surfer", "Skier", "Beach lover"]
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Peakly" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%230284c7'/><text x='90' y='134' font-size='112' font-family='system-ui' font-weight='700' fill='white' text-anchor='middle'>P</text></svg>" />
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
 
+  <!-- Sentry Error Monitoring -->
+  <script src='https://js.sentry-cdn.com/9416b032a46681d74645b056fcb08eb7.min.js' crossorigin='anonymous'></script>
+
   <!-- React 18 + ReactDOM (UMD, no build step needed) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Sentry Browser SDK (error monitoring) -->
-  <script src="https://browser.sentry-cdn.com/8.45.0/bundle.tracing.min.js" crossorigin="anonymous"></script>
 
   <!-- Babel standalone — transforms JSX in the browser -->
   <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
@@ -25,12 +114,170 @@
     html, body, #root { height: 100%; width: 100%; }
     body { background: #f5f5f5; font-family: sans-serif; }
   </style>
+
+  <!-- Splash screen styles — pure CSS, renders before any JS -->
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: #070b10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    #splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* Radial glow bloom behind content */
+    #splash::before {
+      content: '';
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(2,132,199,0.16) 0%, rgba(2,132,199,0.05) 45%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      animation: splashGlowPulse 3.5s ease-in-out infinite alternate;
+    }
+    /* Top-edge shimmer line */
+    #splash::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 10%, rgba(2,132,199,0.5) 50%, transparent 90%);
+      animation: splashTopShimmer 2.8s ease-in-out infinite;
+    }
+    @keyframes splashGlowPulse {
+      0%   { transform: translate(-50%,-50%) scale(0.8);  opacity: 0.6; }
+      100% { transform: translate(-50%,-50%) scale(1.2);  opacity: 1;   }
+    }
+    @keyframes splashTopShimmer {
+      0%, 100% { opacity: 0.25; }
+      50%       { opacity: 0.9; }
+    }
+    .splash-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .splash-icon {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: splashSlideIn 0.65s cubic-bezier(0.34,1.4,0.64,1) 0.05s forwards;
+      margin-bottom: 22px;
+    }
+    .splash-wordmark {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: -1.8px;
+      color: #ffffff;
+      line-height: 1;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: splashSlideIn 0.65s cubic-bezier(0.34,1.4,0.64,1) 0.15s forwards;
+    }
+    .splash-tagline {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.42);
+      letter-spacing: 0.4px;
+      margin-top: 11px;
+      opacity: 0;
+      animation: splashFadeIn 0.6s ease 0.35s forwards;
+    }
+    .splash-loader {
+      margin-top: 56px;
+      opacity: 0;
+      animation: splashFadeIn 0.5s ease 0.55s forwards;
+    }
+    /* Thin track with glowing orb */
+    .splash-track {
+      width: 120px;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 1px;
+      position: relative;
+    }
+    .splash-orb {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: -2px;
+      left: 0;
+      box-shadow: 0 0 8px 3px rgba(2,132,199,0.95), 0 0 18px 7px rgba(2,132,199,0.35);
+      animation: splashOrbSlide 1.5s cubic-bezier(0.45,0,0.55,1) infinite alternate;
+    }
+    @keyframes splashOrbSlide {
+      0%   { transform: translateX(0);     opacity: 0.45; }
+      20%  { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateX(114px); opacity: 0.45; }
+    }
+    @keyframes splashSlideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes splashFadeIn {
+      to { opacity: 1; }
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <!-- Premium splash — visible immediately, dismissed after React mounts -->
+  <div id="splash" role="status" aria-label="Loading Peakly">
+    <div class="splash-content">
+      <!-- Mountain peak mark -->
+      <div class="splash-icon">
+        <svg width="56" height="46" viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Back range -->
+          <path d="M3 42 L17 13 L31 42" stroke="rgba(2,132,199,0.5)" stroke-width="2" stroke-linejoin="round" fill="rgba(2,132,199,0.1)"/>
+          <!-- Front peak -->
+          <path d="M20 42 L32 6 L44 42" stroke="rgba(255,255,255,0.88)" stroke-width="2.5" stroke-linejoin="round" fill="rgba(255,255,255,0.05)"/>
+          <!-- Snow cap -->
+          <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="white"/>
+        </svg>
+      </div>
+      <div class="splash-wordmark">Peakly</div>
+      <div class="splash-tagline">Know when to go.</div>
+      <div class="splash-loader">
+        <div class="splash-track">
+          <div class="splash-orb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="root">
+    <h1 style="font-family:system-ui;text-align:center;padding:40px 20px;color:#222;font-size:24px;">
+      Peakly — Surf, Ski &amp; Adventure Spots with Live Conditions &amp; Cheap Flights
+    </h1>
+    <p style="text-align:center;color:#717171;font-size:14px;max-width:400px;margin:0 auto;">
+      Discover 2,200+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
+    </p>
+  </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260328a" data-presets="react"></script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(function() {});
+    }
+  </script>
 
   <!-- Babel parse error fallback -->
   <script>
