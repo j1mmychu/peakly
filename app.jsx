@@ -1847,8 +1847,8 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
 
   const apResults = apQuery.length >= 2
     ? ALL_AIRPORTS.filter(a =>
-        a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
-        a.code.toLowerCase().includes(apQuery.toLowerCase())
+        a.flag === "🇺🇸" && (a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery.toLowerCase()))
       ).slice(0, 6)
     : [];
 
@@ -2068,7 +2068,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ position:"relative" }}>
             <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:15, pointerEvents:"none" }}>✈️</span>
-            <input type="text" placeholder="Search any airport…"
+            <input type="text" placeholder="Search US airports…"
               value={apQuery}
               onChange={e => setApQuery(e.target.value)}
               onFocus={() => setApFocus(true)}
@@ -3451,7 +3451,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                   />
                   {airportFocused && airportQuery.length >= 2 && (() => {
                     const q = airportQuery.toLowerCase();
-                    const results = ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)).slice(0, 6);
+                    const results = ALL_AIRPORTS.filter(a => a.flag === "🇺🇸" && (a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q))).slice(0, 6);
                     return results.length > 0 ? (
                       <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12, marginTop:4, overflow:"hidden", boxShadow:"0 6px 20px rgba(0,0,0,0.12)", zIndex:10 }}>
                         {results.map((ap, i) => {
@@ -4111,7 +4111,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   };
 
   const apResults = apQuery.length >= 2
-    ? ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(apQuery.toLowerCase()) || a.code.toLowerCase().includes(apQuery.toLowerCase())).slice(0,5)
+    ? ALL_AIRPORTS.filter(a => a.flag === "🇺🇸" && (a.city.toLowerCase().includes(apQuery.toLowerCase()) || a.code.toLowerCase().includes(apQuery.toLowerCase()))).slice(0,5)
     : [];
 
   return (
@@ -4167,7 +4167,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
             </div>
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
+              <input type="text" placeholder="Search US airports…"
                 value={apQuery} onChange={e => setApQuery(e.target.value)}
                 onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
