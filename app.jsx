@@ -170,15 +170,16 @@ const CATEGORIES = [
   { id:"all",      label:"All" },
   { id:"skiing",   label:"Skiing" },
   { id:"surfing",  label:"Surfing" },
-  { id:"hiking",   label:"Hiking" },
-  { id:"diving",   label:"Diving" },
-  { id:"climbing", label:"Climbing" },
   { id:"tanning",  label:"Beach" },
-  { id:"kite",     label:"Kite" },
-  { id:"kayak",    label:"Kayak" },
-  { id:"mtb",      label:"MTB" },
-  { id:"fishing",  label:"Fishing" },
-  { id:"paraglide",label:"Paraglide" },
+  // Hidden until scoring is perfected for core 3:
+  // { id:"hiking",   label:"Hiking" },
+  // { id:"diving",   label:"Diving" },
+  // { id:"climbing", label:"Climbing" },
+  // { id:"kite",     label:"Kite" },
+  // { id:"kayak",    label:"Kayak" },
+  // { id:"mtb",      label:"MTB" },
+  // { id:"fishing",  label:"Fishing" },
+  // { id:"paraglide",label:"Paraglide" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -5684,7 +5685,8 @@ function App() {
   }, [loading, profile.homeAirport]);
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
-  const listings = VENUES.map(v => {
+  const activeCatIds = CATEGORIES.filter(c => c.id !== "all").map(c => c.id);
+  const listings = VENUES.filter(v => activeCatIds.includes(v.category)).map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id]);
     const estimate   = getFlightDeal(v.ap, profile.homeAirport);
     const realPrice  = duffelPrices[v.id];
