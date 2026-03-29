@@ -4874,7 +4874,7 @@ function SearchBar({ search, onOpen }) {
           {topLine}
         </div>
         <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
-          {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
+          {actLabel}{whenLabel}{contLabel}
         </div>
       </div>
       <div style={{
@@ -5436,7 +5436,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   )}
                 </div>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "you"}</div>
                   <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
                     ${hero.flight.price}
                     {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600 }}> est.</span>}
