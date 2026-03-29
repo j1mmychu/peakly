@@ -186,7 +186,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-26)
+## Current State (Updated 2026-03-28)
 
 ### What's Been Shipped
 
@@ -260,6 +260,13 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - Manifest polished for TWA (Google Play Store prep)
 - Dual home airports support
 - CLAUDE.md auto-sync scheduled task (daily 6pm)
+- Pagination on Explore tab (30 venues per page + "Show more" button) — fixes performance with 2,226 venues
+- Stale venue counts fixed in index.html
+- BASE_PRICES region-based fallback covering all 776 airports (replaces flat fallback)
+- SEO improved from 91% → 95%: preconnect hints, enhanced JSON-LD (SearchAction + ItemList), sitemap with categories, viewport accessibility fix
+- sitemap.xml added with category pages
+- Research-backed scoring accuracy improvements for 4 additional sports (2026-03-27)
+- Cache buster bumped to v=20260328a, service worker bumped to peakly-v12
 
 ### What's Broken / Missing (Priority Order)
 
@@ -309,6 +316,11 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **Weather cache SHIPPED** (2026-03-26). localStorage with 30-min TTL. Reduces Open-Meteo API calls ~90%.
 - **Google Play YES, Apple NO** (2026-03-26). PWA can ship to Google Play via TWA/PWABuilder ($25, no code changes). Apple rejects PWA wrappers under Guideline 4.2 — skip until native features justify the investment.
 - **Venue expansion reversal resolved** (2026-03-26). 2,226 expansion initially broke API limits; fixed with batched fetching + weather cache.
+- **Pagination shipped** (2026-03-27). 30 venues per page + "Show more" button. Required for 2,226 venues — DOM performance was degrading.
+- **BASE_PRICES region-based fallback** (2026-03-27). Flat fallback replaced with region-aware pricing covering all 776 airports. More accurate estimated prices.
+- **Algorithm freeze** (2026-03-27). Per PM report v16 — no more scoring algorithm changes until post-Reddit launch. Stability over perfection.
+- **Reddit hard date: March 31** (2026-03-28). Per PM report v17 — soft launch on Reddit locked for March 31.
+- **SEO pushed to 95%** (2026-03-28). Preconnect hints, enhanced JSON-LD with SearchAction + ItemList schema, sitemap.xml with category pages, viewport accessibility fix.
 
 ### Pre-Launch Checklist (Ordered)
 
@@ -325,7 +337,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 11. [x] Add PWA manifest + service worker basics (manifest.json, sw.js, apple-mobile-web-app meta)
 12. [x] Analytics — Plausible live with 5 custom events (GA4 removed, Plausible only)
 13. [x] Configure HTTPS on VPS (Caddy + Let's Encrypt on peakly-api.duckdns.org)
-14. [x] JSON-LD structured data + SEO at 91%
+14. [x] JSON-LD structured data + SEO at 95% (upgraded from 91% on 2026-03-28: preconnect, SearchAction, ItemList, sitemap)
 15. [x] Venues trimmed to 192 with 100% unique photos
 16. [x] Syntax error fix (double comma at line 300)
 17. [x] Service worker + CDN cache recovery (cache buster bump to v=20260325c)
@@ -340,17 +352,21 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 26. [x] **Premium splash screen** (2026-03-26)
 27. [x] **Pull-to-refresh + sport-ordered tabs** (2026-03-26)
 28. [x] **Scale Guardian agent** — 8th agent, catches scaling issues (2026-03-26)
-29. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents
-30. [ ] REI Avantlink signup (Jack, 30 min)
-31. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
-32. [ ] ListingCard "Book" button Plausible event
-33. [ ] Build onboarding flow for new users
-34. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
-35. [ ] Wire Stripe for Peakly Pro ($79/year) — LLC approved
-36. [ ] Register peakly.app domain — LLC approved
-37. [ ] Terms of Service / Privacy Policy — LLC approved
-38. [ ] **Google Play Store listing via PWABuilder/TWA** — $25, no code changes needed
-39. [ ] Reddit + TikTok launch campaign
+29. [x] **Pagination on Explore tab** — 30 per page + Show more (2026-03-27)
+30. [x] **BASE_PRICES region-based fallback** — covers all 776 airports (2026-03-27)
+31. [x] **SEO 91% → 95%** — preconnect, enhanced JSON-LD, sitemap.xml, viewport fix (2026-03-28)
+32. [x] **Cache buster + SW bump** — v=20260328a, peakly-v12 (2026-03-28)
+33. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents (4-sport improvements shipped 2026-03-27, remaining gaps TBD)
+34. [ ] REI Avantlink signup (Jack, 30 min)
+35. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
+36. [ ] ListingCard "Book" button Plausible event
+37. [ ] Build onboarding flow for new users
+38. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
+39. [ ] Wire Stripe for Peakly Pro ($79/year) — LLC approved
+40. [ ] Register peakly.app domain — LLC approved
+41. [ ] Terms of Service / Privacy Policy — LLC approved
+42. [ ] **Google Play Store listing via PWABuilder/TWA** — $25, no code changes needed
+43. [ ] **Reddit soft launch — March 31** (r/solotravel, r/skiing, r/surfing)
 
 ### Phase 2 — Expansion (After Launch)
 
@@ -375,8 +391,8 @@ LLC is approved. These items are now actionable:
 
 ### Not Blocked — Ship Now
 
-- **Scoring accuracy audit** — fix research-backed gaps in scoreVenue() (surfing wind direction, kayaking water temp safety, climbing humidity, diving currents)
-- **Open-Meteo weather cache** with localStorage (dev, 2 hrs) — prerequisite for any growth push
+- **Scoring accuracy audit** — fix research-backed gaps in scoreVenue() (surfing wind direction, kayaking water temp safety, climbing humidity, diving currents). Note: 4-sport improvements shipped 2026-03-27, remaining gaps TBD.
+- ~~**Open-Meteo weather cache** with localStorage~~ — **SHIPPED** (2026-03-26).
 - REI Avantlink signup (Jack, 30 min)
 - Add Amazon links to 5 zero-Amazon categories: skiing, climbing, kayak, MTB, hiking (dev, 30 min — +$1.50-2.00 RPM)
 - ListingCard "Book" button Plausible event (dev, one-line fix)
@@ -415,10 +431,10 @@ cd ~/peakly && claude "$(cat tasks/agents/product-manager.md)"
 | Booking.com (1 link, `aid=2311236`) | ACTIVE, EARNING | $6.90 |
 | SafetyWing (1 link, `referenceID=peakly`) | ACTIVE, EARNING | $0.54 |
 | Travelpayouts (flights via HTTPS proxy) | ACTIVE, EARNING | $0.14 |
-| REI (22 links, no affiliate tag) | BLOCKED BY LLC | $0.00 (+$6.16 post-LLC) |
-| Backcountry (2 links, no affiliate tag) | BLOCKED BY LLC | $0.00 (+$0.56 post-LLC) |
-| GetYourGuide (1 link, no partner_id) | BLOCKED BY LLC | $0.00 (+$1.28 post-LLC) |
-| Peakly Pro ($79/year) | UI MOCKUP, needs Stripe | $0.00 (+$13.17 post-LLC) |
+| REI (22 links, no affiliate tag) | LLC APPROVED, needs Avantlink signup | $0.00 (+$6.16 when active) |
+| Backcountry (2 links, no affiliate tag) | LLC APPROVED, needs affiliate signup | $0.00 (+$0.56 when active) |
+| GetYourGuide (1 link, no partner_id) | LLC APPROVED, needs partner signup | $0.00 (+$1.28 when active) |
+| Peakly Pro ($79/year) | EMAIL WAITLIST, needs Stripe | $0.00 (+$13.17 when active) |
 
 **Current live RPM:** $12.06/month per 1,000 MAU
 **Post-LLC RPM:** ~$33.23/month per 1,000 MAU (+176%)

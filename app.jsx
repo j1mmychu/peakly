@@ -5990,7 +5990,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <input type="date" value={draft.dateFrom || ""}
                     onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
                     className={draft.dateFrom ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateFrom ? "#eef3ff" : "#fff", color: draft.dateFrom ? "#0033cc" : undefined, fontWeight: draft.dateFrom ? 700 : 400 }}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateFrom ? "#eff6ff" : "#fff", color: draft.dateFrom ? "#0284c7" : "#222", fontWeight: draft.dateFrom ? 700 : 400 }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
@@ -5998,7 +5998,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <input type="date" value={draft.dateTo || ""}
                     onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
                     className={draft.dateTo ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0066FF" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateTo ? "#eef3ff" : "#fff", color: draft.dateTo ? "#0033cc" : undefined, fontWeight: draft.dateTo ? 700 : 400 }}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateTo ? "#eff6ff" : "#fff", color: draft.dateTo ? "#0284c7" : "#222", fontWeight: draft.dateTo ? 700 : 400 }}
                   />
                 </div>
               </div>
@@ -8870,10 +8870,10 @@ function App() {
         return lists.map((l, i) => i === favIdx ? { ...l, venues: (l.venues || []).filter(x => x !== id) } : l);
       }
     });
-    // Keep namedLists in sync for WishlistsTab
+    // Keep namedLists in sync for WishlistsTab — find or create "Favorites" specifically
     setNamedLists(lists => {
       if (!isCurrentlySaved) {
-        // Adding — ensure it's in the "Favorites" list (create if none exists)
+        // Adding — find or create the "Favorites" list specifically (prepend so it appears first)
         const favIdx = lists.findIndex(l => l.id === "favorites" || l.name === "Favorites");
         if (favIdx === -1) {
           return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }, ...lists];
