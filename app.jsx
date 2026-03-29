@@ -5323,9 +5323,11 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
   const guideCategories = [
     { id: "skiing",   title: "Ski & Snow Guides",   emoji: "\u26F7\uFE0F" },
     { id: "surfing",  title: "Surf Guides",          emoji: "\uD83C\uDFC4" },
-    { id: "hiking",   title: "Hiking Guides",         emoji: "\uD83E\uDD7E" },
-    { id: "diving",   title: "Diving Guides",         emoji: "\uD83E\uDD3F" },
-    { id: "climbing", title: "Climbing Guides",        emoji: "\uD83E\uDDD7" },
+    { id: "tanning",  title: "Beach & Sun Guides",   emoji: "\uD83C\uDFD6\uFE0F" },
+    // Hidden until re-enabled:
+    // { id: "hiking",   title: "Hiking Guides",         emoji: "\uD83E\uDD7E" },
+    // { id: "diving",   title: "Diving Guides",         emoji: "\uD83E\uDD3F" },
+    // { id: "climbing", title: "Climbing Guides",        emoji: "\uD83E\uDDD7" },
   ];
 
   const featured = [...listings].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);

@@ -162,6 +162,9 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 8. **Test in browser** — after changes, verify by opening in a browser. Check console for Babel parse errors.
 9. **Venue data is hardcoded** — the `VENUES` array contains 235+ entries with coordinates, airport codes, categories, ratings, etc.
 10. **Error boundary exists** — `ErrorBoundary` wraps the app root and provides a fallback UI.
+11. **Hardcoded lists are everywhere** — when hiding/showing categories, features, or options, do NOT just update the central constant. Grep the entire file for hardcoded arrays, labels, and IDs in every component (SearchSheet, GuidesTab, TripBuilder, OnboardingSheet, AlertsTab, ProfileTab, etc.). Components often have their own local arrays that duplicate or override the central `CATEGORIES` list. Always do a full audit.
+12. **Active categories** — only 3 categories are active: `skiing`, `surfing`, `tanning` (Beach). All others are commented out in `CATEGORIES` and hidden from UI. Data (VENUES, scoring, PACKING, etc.) is preserved for future re-enabling. When re-enabling a category, check: CATEGORIES, GuidesTab `guideCategories`, venue filtering in App(), and any component-local arrays.
+13. **US-only flights** — flight pricing only works for US departure airports. All airport search fields should filter to US airports only (`flag === "🇺🇸"`). Do not show international airports as departure options.
 
 ## TODOs in Codebase
 

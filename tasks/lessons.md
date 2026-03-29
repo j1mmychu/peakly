@@ -9,3 +9,6 @@
 3. **Check before adding** — Always verify data doesn't already exist before adding (e.g., BASE_PRICES airports were already present).
 4. **Push before stopping** — The stop hook checks for unpushed commits. Always push at end of session.
 5. **Branch naming** — Always use the assigned `claude/` branch. Never push to main.
+6. **Hardcoded lists are duplicated everywhere** — Components often have their OWN local arrays of categories/activities that DON'T reference the central `CATEGORIES` constant. When hiding/changing categories, you MUST grep the entire file for every hardcoded list (e.g., GuidesTab has its own `guideCategories` array, TripBuilder has its own sport list). Changing just `CATEGORIES` is NOT enough. Always do `grep` for category IDs and labels across the whole file.
+7. **Don't claim work is done without verifying** — Never say "all X are now hidden/updated" unless you've actually audited every reference. A central constant change doesn't guarantee all UI surfaces are updated. Run a full search before marking complete.
+8. **US-only flights** — Flight pricing only supports US departure airports. Don't show "worldwide" airport search. Filter to US flag emoji.
