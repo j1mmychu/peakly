@@ -4210,7 +4210,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into? 🏄</div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick activities you want to track</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
-              {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
+              {CATEGORIES.filter(c => c.id !== "all").map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
