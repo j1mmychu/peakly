@@ -8534,6 +8534,219 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
   );
 }
 
+// ─── airport setup modal ──────────────────────────────────────────────────────
+function AccountSetupModal({ profile, setProfile, onClose }) {
+  const [apQuery, setApQuery] = useState("");
+  const [apFocus, setApFocus] = useState(false);
+  const [selected, setSelected] = useState(profile.homeAirport || "");
+
+  const TOP_AIRPORTS = [
+    { code:"LAX", city:"Los Angeles",        flag:"🇺🇸" },
+    { code:"JFK", city:"New York (JFK)",     flag:"🇺🇸" },
+    { code:"SFO", city:"San Francisco",      flag:"🇺🇸" },
+    { code:"ORD", city:"Chicago O'Hare",     flag:"🇺🇸" },
+    { code:"ATL", city:"Atlanta",            flag:"🇺🇸" },
+    { code:"DFW", city:"Dallas Fort Worth",  flag:"🇺🇸" },
+    { code:"MIA", city:"Miami",              flag:"🇺🇸" },
+    { code:"SEA", city:"Seattle",            flag:"🇺🇸" },
+    { code:"BOS", city:"Boston",             flag:"🇺🇸" },
+    { code:"DEN", city:"Denver",             flag:"🇺🇸" },
+    { code:"LHR", city:"London Heathrow",    flag:"🇬🇧" },
+    { code:"CDG", city:"Paris Charles de Gaulle", flag:"🇫🇷" },
+    { code:"SYD", city:"Sydney",             flag:"🇦🇺" },
+    { code:"NRT", city:"Tokyo Narita",       flag:"🇯🇵" },
+    { code:"YYZ", city:"Toronto",            flag:"🇨🇦" },
+    { code:"AMS", city:"Amsterdam",          flag:"🇳🇱" },
+  ];
+
+  const apResults = apQuery.length >= 2
+    ? ALL_AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  const handleContinue = () => {
+    if (selected) {
+      setProfile(p => ({
+        ...p,
+        homeAirport: selected,
+        homeAirports: [...new Set([selected, ...(p.homeAirports || [])])],
+      }));
+      window.plausible && window.plausible('Airport Set', { props: { airport: selected, source: 'setup_modal' } });
+    }
+    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
+    onClose();
+  };
+
+  const handleSkip = () => {
+    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
+    onClose();
+  };
+
+  return (
+    <>
+      <div style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:210,
+        backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
+      }} onClick={handleSkip} />
+      <div className="sheet" style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
+        zIndex:211, maxHeight:"88vh", overflowY:"auto",
+        paddingBottom:"max(env(safe-area-inset-bottom,0px),28px)",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+      }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 6px" }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:"#e0e0e0" }} />
+        </div>
+
+        <div style={{ padding:"10px 24px 0" }}>
+          {/* Icon */}
+          <div style={{
+            width:52, height:52, borderRadius:16,
+            background:"linear-gradient(135deg,#0284c7,#38bdf8)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            marginBottom:18,
+            boxShadow:"0 6px 20px rgba(2,132,199,0.32)",
+          }}>
+            <svg width={26} height={26} viewBox="0 0 24 24" fill="none">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+
+          <div style={{ fontSize:26, fontWeight:900, color:"#111", fontFamily:F, lineHeight:1.15, marginBottom:8 }}>
+            Where are you<br/>flying from?
+          </div>
+          <div style={{ fontSize:14, color:"#717171", fontFamily:F, lineHeight:1.55, marginBottom:22 }}>
+            We'll find cheap flights from your home airport to the best conditions worldwide.
+          </div>
+
+          {/* Search input */}
+          <div style={{ position:"relative", marginBottom:16 }}>
+            <svg style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width={17} height={17} viewBox="0 0 24 24" fill="none">
+              <circle cx={11} cy={11} r={8} stroke="#aaa" strokeWidth={2}/>
+              <path d="M21 21l-4.35-4.35" stroke="#aaa" strokeWidth={2} strokeLinecap="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search city or airport code…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              autoComplete="off"
+              style={{
+                width:"100%", padding:"13px 14px 13px 42px",
+                borderRadius:14, border:"1.5px solid #e8e8e8",
+                fontSize:15, fontFamily:F, color:"#222", background:"#fafafa",
+                outline:"none", boxSizing:"border-box",
+              }}
+            />
+          </div>
+
+          {/* Autocomplete dropdown */}
+          {apFocus && apResults.length > 0 && (
+            <div style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14,
+              marginBottom:12, overflow:"hidden",
+              boxShadow:"0 8px 28px rgba(0,0,0,0.12)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => { setSelected(ap.code); setApQuery(""); setApFocus(false); }} style={{
+                  width:"100%", padding:"12px 16px", background: selected===ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
+                }}>
+                  <span style={{ fontSize:20 }}>{ap.flag}</span>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:13, color:"#717171" }}> · {ap.city}</span>
+                  </div>
+                  {selected===ap.code && (
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick-pick top airports */}
+          {!apQuery && (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", marginBottom:10, textTransform:"uppercase" }}>
+                Popular airports
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {TOP_AIRPORTS.map(ap => {
+                  const sel = selected === ap.code;
+                  return (
+                    <button key={ap.code} onClick={() => setSelected(ap.code)} style={{
+                      padding:"9px 13px", borderRadius:20, cursor:"pointer",
+                      background: sel ? "#0284c7" : "#f5f5f5",
+                      color: sel ? "#fff" : "#444",
+                      border:"none",
+                      fontSize:13, fontWeight:700, fontFamily:F,
+                      display:"flex", alignItems:"center", gap:5,
+                      boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.3)" : "none",
+                      transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
+                    }}>
+                      <span style={{ fontSize:14 }}>{ap.flag}</span>
+                      {ap.code}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Selected airport confirmation */}
+          {selected && (
+            <div style={{
+              marginTop:14, padding:"12px 16px", borderRadius:14,
+              background:"#f0f9ff", border:"1.5px solid #bae6fd",
+              display:"flex", alignItems:"center", gap:10,
+            }}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div>
+                <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{selected}</span>
+                <span style={{ fontSize:13, color:"#0369a1", fontFamily:F }}>
+                  {" "}· {ALL_AIRPORTS.find(a => a.code === selected)?.city || TOP_AIRPORTS.find(a => a.code === selected)?.city || selected}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ padding:"20px 24px 4px" }}>
+          <button onClick={handleContinue} className="pressable" style={{
+            width:"100%", background: selected ? "#222" : "#ccc",
+            border:"none", borderRadius:16, padding:"17px 0",
+            color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
+            transition:"background 0.2s",
+          }}>
+            {selected ? "Find my flights" : "Continue"}
+          </button>
+          <div style={{ textAlign:"center", marginTop:12 }}>
+            <button onClick={handleSkip} style={{
+              background:"none", border:"none", fontSize:13, color:"#aaa",
+              fontFamily:F, cursor:"pointer", padding:"4px 12px",
+            }}>
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── onboarding sheet ─────────────────────────────────────────────────────────
 const SKILL_LEVELS = ["Beginner","Intermediate","Advanced","Expert"];
 const AVATAR_COLORS = [
@@ -10156,6 +10369,7 @@ function App() {
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAirportSetup, setShowAirportSetup] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
@@ -10591,7 +10805,23 @@ function App() {
           <OnboardingSheet
             profile={profile}
             setProfile={setProfile}
-            onClose={() => setShowOnboarding(false)}
+            onClose={() => {
+              setShowOnboarding(false);
+              // Show airport setup modal after onboarding if not already done
+              try {
+                if (!localStorage.getItem("peakly_airport_setup_done")) {
+                  setTimeout(() => setShowAirportSetup(true), 350);
+                }
+              } catch {}
+            }}
+          />
+        )}
+
+        {showAirportSetup && (
+          <AccountSetupModal
+            profile={profile}
+            setProfile={setProfile}
+            onClose={() => setShowAirportSetup(false)}
           />
         )}
 
