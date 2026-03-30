@@ -5322,16 +5322,23 @@ const TP_MARKER = "YOUR_TP_MARKER";
 function buildFlightUrl(from, to, opts) {
   if (!from || !to) return "https://www.aviasales.com/";
   const whenId = opts?.whenId || "anytime";
-  const depISO = opts?.startDate || getFlightDate(whenId);   // YYYY-MM-DD
-  // Return date: use endDate if provided, else departure + 7 days
+  // Only use provided dates if they look like valid YYYY-MM-DD strings (length >= 10)
+  const depISO = (opts?.startDate && String(opts.startDate).length >= 10)
+    ? opts.startDate
+    : getFlightDate(whenId);   // YYYY-MM-DD
+  // Return date: use endDate if provided and valid, else departure + 7 days
   const retISO = (() => {
-    if (opts?.endDate) return opts.endDate;
+    if (opts?.endDate && String(opts.endDate).length >= 10) return opts.endDate;
     const d = new Date(depISO); d.setDate(d.getDate() + 7);
     return d.toISOString().slice(0, 10);
   })();
   // Aviasales date format is DDMM (4 chars), NOT YYMMDD
-  const toDDMM = iso => iso.slice(8, 10) + iso.slice(5, 7);
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${toDDMM(depISO)}${to}${toDDMM(retISO)}1`;
+  // Guard: if ISO is malformed, fall back to dateless search
+  const toDDMM = iso => (iso && iso.length >= 10) ? iso.slice(8, 10) + iso.slice(5, 7) : null;
+  const depDDMM = toDDMM(depISO);
+  const retDDMM = toDDMM(retISO);
+  if (!depDDMM || !retDDMM) return `https://www.aviasales.com/search/${from}1${to}1`;
+  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depDDMM}${to}${retDDMM}1`;
   if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
@@ -10697,8 +10704,8 @@ function App() {
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
-    const estimate1  = getFlightDeal(v.ap, profile.homeAirport);
-    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2) : null;
+    const estimate1  = getFlightDeal(v.ap, profile.homeAirport || "JFK");
+    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
     const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const duffelData = duffelPrices[v.id];
     const flight     = duffelData != null
