@@ -4489,6 +4489,43 @@ function _wxCacheCleanup() {
 }
 _wxCacheCleanup();
 
+// ─── flight price cache (localStorage, 15-min TTL) ────────────────────────────
+const FLIGHT_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const FLIGHT_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
+
+function _flightCacheGet(origin, dest) {
+  try {
+    const raw = localStorage.getItem(`peakly_flights_${origin}_${dest}`);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(`peakly_flights_${origin}_${dest}`); return null; }
+    return data;
+  } catch { return null; }
+}
+
+function _flightCacheSet(origin, dest, data) {
+  try {
+    localStorage.setItem(`peakly_flights_${origin}_${dest}`, JSON.stringify({ data, ts: Date.now() }));
+  } catch {} // ignore QuotaExceededError
+}
+
+function _flightCacheCleanup() {
+  try {
+    const now = Date.now();
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith("peakly_flights_")) continue;
+      try {
+        const { ts } = JSON.parse(localStorage.getItem(key));
+        if (now - ts > FLIGHT_CACHE_MAX_AGE) keysToRemove.push(key);
+      } catch { keysToRemove.push(key); }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+_flightCacheCleanup();
+
 async function fetchWeather(lat, lon) {
   const cacheKey = _wxCacheKey("weather", lat, lon);
   const cached = _wxCacheGet(cacheKey);
@@ -5104,7 +5141,11 @@ function _flightRelease() {
 
 // Returns price number or null — caller falls back to BASE_PRICES estimate
 // Includes retry with exponential backoff (up to 2 retries)
+// Checks localStorage cache (15-min TTL) before hitting the API
 async function fetchTravelpayoutsPrice(origin, destination) {
+  const cached = _flightCacheGet(origin, destination);
+  if (cached !== null) return cached;
+
   await _flightAcquire();
   try {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -5141,7 +5182,9 @@ async function fetchTravelpayoutsPrice(origin, destination) {
 
         if (entries.length === 0) return null;
         const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
-        return { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
+        const result = { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
+        _flightCacheSet(origin, destination, result);
+        return result;
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
           await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
@@ -5694,9 +5737,13 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
             boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
           }}>
             <span style={{ fontSize:10 }}>✈️</span>
-            <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-              from ${listing.flight.price}
-            </span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:52, height:10, borderRadius:5, display:"inline-block" }} />
+            ) : (
+              <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
+                from ${listing.flight.price}
+              </span>
+            )}
           </div>
           {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
             <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
@@ -5754,8 +5801,14 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
-            <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
+            ) : (
+              <>
+                <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+              </>
+            )}
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
@@ -5802,7 +5855,11 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           background:"#0284c7", borderRadius:20, padding:"3px 10px",
           display:"flex", alignItems:"center", gap:5,
         }}>
-          <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
+          {listing.flightsLoading && !listing.flight.live ? (
+            <span className="shimmer" style={{ width:60, height:10, borderRadius:5, display:"inline-block" }} />
+          ) : (
+            <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
+          )}
           {listing.flight.live && (
             <span style={{
               fontSize:10, fontWeight:800, color:"#16a34a", fontFamily:F,
@@ -5827,8 +5884,14 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
-            <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
-            <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
+            ) : (
+              <>
+                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
+              </>
+            )}
           </div>
           <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
@@ -5910,16 +5973,22 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           </div>
         )}
         <div style={{ marginTop:5, display:"flex", alignItems:"center", gap:3 }}>
-          <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-            from ${listing.flight.price}
-          </span>
-          {listing.flight.live ? (
-            <span style={{
-              fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
-              borderRadius:5, padding:"1px 4px", fontFamily:F,
-            }}>LIVE</span>
+          {listing.flightsLoading && !listing.flight.live ? (
+            <span className="shimmer" style={{ width:60, height:12, borderRadius:5, display:"inline-block" }} />
           ) : (
-            <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
+            <>
+              <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
+                from ${listing.flight.price}
+              </span>
+              {listing.flight.live ? (
+                <span style={{
+                  fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
+                  borderRadius:5, padding:"1px 4px", fontFamily:F,
+                }}>LIVE</span>
+              ) : (
+                <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -10364,6 +10433,7 @@ function App() {
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
+  const [flightsLoading, setFlightsLoading] = useState(true);
   const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
@@ -10538,9 +10608,11 @@ function App() {
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
+  // Priority: top 10 airports by weather score fetched first for fast hero/carousel load
   useEffect(() => {
     if (loading) return;
     let alive = true;
+    setFlightsLoading(true);
     (async () => {
       // 1. Build a map of unique airport codes → venue IDs that use them
       const apToVenues = {};
@@ -10550,44 +10622,74 @@ function App() {
       });
       const uniqueAirports = Object.keys(apToVenues);
 
-      // 2. Fetch prices only for unique airports, batched in groups of 3
+      // 2. Rank airports by best venue weather score so most visible cards load first
+      const scoredAirports = uniqueAirports.map(ap => {
+        const venueIds = apToVenues[ap];
+        const maxScore = Math.max(...venueIds.map(vid => {
+          const v = VENUES.find(x => x.id === vid);
+          return v ? scoreVenue(v, wxData[v.id], marData[v.id], 0).score : 0;
+        }));
+        return { ap, score: maxScore };
+      }).sort((a, b) => b.score - a.score);
+
+      const priorityAps = scoredAirports.slice(0, 10).map(x => x.ap);
+      const remainingAps = scoredAirports.slice(10).map(x => x.ap);
+
+      // 3. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
       // If two home airports are set, fetch both and use the cheaper price.
       const apPrices = {}; // airport code → { price, foundAt }
       const origins = [profile.homeAirport || "JFK"];
       if (profile.homeAirport2) origins.push(profile.homeAirport2);
-      for (let i = 0; i < uniqueAirports.length; i += 3) {
-        const batch = uniqueAirports.slice(i, i + 3);
-        const results = await Promise.allSettled(
-          batch.flatMap(ap =>
-            origins.map(async origin => {
-              const result = await fetchTravelpayoutsPrice(origin, ap);
-              return { ap, result };
-            })
-          )
-        );
-        if (!alive) return;
-        results.forEach(r => {
-          if (r.status === "fulfilled" && r.value.result !== null) {
-            const { ap, result } = r.value;
-            if (apPrices[ap] == null || result.price < apPrices[ap].price) apPrices[ap] = result;
-          }
-        });
-        if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
-      }
 
-      // 3. Map airport prices back to venue IDs
+      const fetchBatch = async (airports) => {
+        for (let i = 0; i < airports.length; i += 3) {
+          if (!alive) return;
+          const batch = airports.slice(i, i + 3);
+          const results = await Promise.allSettled(
+            batch.flatMap(ap =>
+              origins.map(async origin => {
+                const result = await fetchTravelpayoutsPrice(origin, ap);
+                return { ap, result };
+              })
+            )
+          );
+          if (!alive) return;
+          results.forEach(r => {
+            if (r.status === "fulfilled" && r.value.result !== null) {
+              const { ap, result } = r.value;
+              if (apPrices[ap] == null || result.price < apPrices[ap].price) apPrices[ap] = result;
+            }
+          });
+          if (i + 3 < airports.length) await new Promise(r => setTimeout(r, 400));
+        }
+      };
+
+      // 4. Fetch priority airports first — hero + carousel populate fast
+      await fetchBatch(priorityAps);
+      if (!alive) return;
+
+      // Publish priority prices immediately so visible cards snap in
+      const priorityPrices = {};
+      Object.entries(apPrices).forEach(([ap, data]) => {
+        apToVenues[ap].forEach(venueId => { priorityPrices[venueId] = data; });
+      });
+      if (Object.keys(priorityPrices).length > 0) setDuffelPrices({ ...priorityPrices });
+      setFlightsLoading(false);
+
+      // 5. Fetch remaining airports in background
+      await fetchBatch(remainingAps);
+      if (!alive) return;
+
+      // 6. Publish full price set
       const prices = {};
       Object.entries(apPrices).forEach(([ap, data]) => {
-        apToVenues[ap].forEach(venueId => {
-          prices[venueId] = data;
-        });
+        apToVenues[ap].forEach(venueId => { prices[venueId] = data; });
       });
-
       if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
-  }, [loading, profile.homeAirport, profile.homeAirport2]);
+  }, [loading, profile.homeAirport, profile.homeAirport2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
   const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
@@ -10627,7 +10729,7 @@ function App() {
     }
     const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore };
 
-    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow };
+    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading };
   });
 
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
