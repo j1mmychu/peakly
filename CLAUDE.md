@@ -13,10 +13,12 @@ Peakly is a **single-file React SPA** for discovering surf, ski, and adventure s
 ```
 peakly/
 ├── index.html           # Entry point — React 18, ReactDOM, Babel via CDN
-├── app.jsx              # Entire application (~5,413 lines of JSX)
+├── app.jsx              # Entire application (~6,900+ lines of JSX)
 ├── app.jsx.bak          # Backup of previous version
 ├── CLAUDE.md            # THIS FILE — shared brain for all AI sessions
 ├── README.md            # User-facing documentation
+├── capacitor.config.json # Capacitor native config (iOS/Android)
+├── package.json         # Capacitor dependencies
 ├── tasks/
 │   ├── agents/          # Agent prompts (run via Claude Code)
 │   │   ├── product-manager.md
@@ -39,7 +41,8 @@ peakly/
 - **Babel Standalone 7.24.7** — in-browser JSX transpilation
 - **Vanilla CSS** — injected via `<style>` tags (in both `index.html` and top of `app.jsx`)
 - **Plus Jakarta Sans** — primary font (Google Fonts CDN)
-- **No TypeScript, no package.json, no node_modules**
+- **No TypeScript** in app.jsx — but `package.json` exists for Capacitor CLI dependencies
+- **Capacitor** added for native iOS/Android wrapper (`capacitor.config.json`, `package.json`)
 
 ### Infrastructure
 
@@ -54,10 +57,17 @@ The single file is organized in this order:
 
 1. **Error monitoring & crash detection** (lines 1–66) — Sentry-lite logger, global error/rejection handlers, performance tracking
 2. **CSS injection** (lines 68–136) — animations, tap states, input styles
-3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (2,226 venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
+3. **Constants & data** (~lines 138–950) — `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (3,726 venues), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
 4. **Utility functions** (~lines 950–1100) — `useLocalStorage()` hook, `fetchWeather()`, `fetchMarine()`, `fetchTravelpayoutsPrice()`, `scoreVenue()`, `scoreVibeMatch()`, `buildFlightUrl()`
 5. **UI Components** (~lines 1100–4900) — all React components
 6. **App root & ErrorBoundary** (~lines 4900–5413) — root component, ReactDOM render
+
+### Top 3 Focus Categories (for launch)
+
+**Surfing, Ski/Board, Beach** are the primary focus. Other categories (climbing, MTB, hiking, kayaking, diving, yoga, wellness) still exist and score, but marketing, content, and scoring polish should prioritize these three first.
+
+- Category labels: **Beach** (was "Beach & Tan"), **Ski/Board** with ❄️ emoji
+- No paid/Pro tier at launch — all Pro UI removed. Email capture waitlist only.
 
 ### Main Tabs (currently 3 visible, 5 built)
 
@@ -88,8 +98,8 @@ The single file is organized in this order:
 |-----|----------|------|---------|
 | Open-Meteo Weather | `api.open-meteo.com/v1/forecast` | None (free) | 7-day weather forecasts |
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None (free) | Wave height, swell data |
-| Travelpayouts (via proxy) | `peakly-api.duckdns.org/api/flights` | Server-side token | Flight pricing (HTTPS) |
-| Google Flights | Deep links only | N/A | Flight search URLs |
+| Travelpayouts (via proxy) | `peakly-api.duckdns.org/api/flights/latest` | Server-side token | Flight pricing — "from $X", last-seen timestamps (HTTPS) |
+| Aviasales | Deep links with exact dates | N/A | Flight booking deep links |
 
 **Important:** The Travelpayouts API token is kept server-side on a VPS proxy — never expose it in client code.
 
@@ -101,7 +111,7 @@ All persistence is **client-side localStorage only**. No backend database.
 |-----|----------|
 | `peakly_wishlists` | Saved favorite venues |
 | `peakly_named_lists` | Named custom collections |
-| `peakly_alerts` | User alert configurations |
+| `peakly_alerts` | User alert configs — each entry stores `venueId`, `targetScore`, `maxPrice` for backend polling |
 | `peakly_trips` | Saved trip plans |
 | `peakly_profile` | User profile (name, email, airports, sports, skills) |
 | `peakly_errors` | Error log (max 50 entries) |
@@ -180,13 +190,13 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 6. **Keep the Travelpayouts API token off the client** — always use the VPS proxy.
 7. **Mobile-first design** — all UI should work well on phone screens. Use safe area insets.
 8. **Test in browser** — after changes, verify by opening in a browser. Check console for Babel parse errors.
-9. **Venue data is hardcoded** — the `VENUES` array contains ~2,226 entries with coordinates, airport codes, categories, ratings, etc. Weather fetching is batched (50 at a time with 2s delays) to avoid API rate limits.
+9. **Venue data is hardcoded** — the `VENUES` array contains ~3,726 entries (2,226 original + 500 surf + 500 ski + 500 beach added 2026-03-29) with coordinates, airport codes, categories, ratings, etc. Weather fetching is batched (50 at a time with 2s delays) to avoid API rate limits.
 10a. **Weather API is rate-limited** — Open-Meteo free tier is 10K calls/day. The batched fetcher + localStorage cache handles this, but monitor during traffic spikes.
 10. **Error boundary exists** — `ErrorBoundary` wraps the app root and provides a fallback UI.
 
 ---
 
-## Current State (Updated 2026-03-28)
+## Current State (Updated 2026-03-29)
 
 ### What's Been Shipped
 
@@ -267,6 +277,16 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - sitemap.xml added with category pages
 - Research-backed scoring accuracy improvements for 4 additional sports (2026-03-27)
 - Cache buster bumped to v=20260328a, service worker bumped to peakly-v12
+- **Venues expanded to 3,726** — 500 surf + 500 ski + 500 beach added (2026-03-29)
+- **Top 3 focus** established: Surfing, Ski/Board, Beach (other categories deprioritized for launch)
+- **Capacitor + push notification support added** — capacitor.config.json, package.json, native APNs + web SW fallback registration in app.jsx (2026-03-29)
+- **Alert configs updated** — now store `venueId`, `targetScore`, `maxPrice` for backend polling (2026-03-29)
+- **SW push handler** — sw.js handles push events with deep-link to venue; cache bumped to peakly-v14 (2026-03-29)
+- **Flight pricing fixes** — "from $X" language, `/api/flights/latest` endpoint, last-seen timestamps, exact date deep links (2026-03-29)
+- **Gear section hidden** — `{false && GEAR_ITEMS[...]}` in VenueDetailSheet for launch simplicity; easy to re-enable (2026-03-29)
+- **Audit fixes shipped** — Beach rename (was "Beach & Tan"), Best Right Now expanded to 10 spots, JFK fallback removed, heart favorites list sync, scroll-to-top on similar venue tap, date picker contrast fix (2026-03-29)
+- **Cache buster** v=20260329v1, service worker peakly-v14 (2026-03-29)
+- **No paid/Pro tier at launch** — all Pro UI removed; email capture waitlist only
 
 ### What's Broken / Missing (Priority Order)
 
@@ -321,6 +341,14 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **Algorithm freeze** (2026-03-27). Per PM report v16 — no more scoring algorithm changes until post-Reddit launch. Stability over perfection.
 - **Reddit hard date: March 31** (2026-03-28). Per PM report v17 — soft launch on Reddit locked for March 31.
 - **SEO pushed to 95%** (2026-03-28). Preconnect hints, enhanced JSON-LD with SearchAction + ItemList schema, sitemap.xml with category pages, viewport accessibility fix.
+- **Venues at 3,726** (2026-03-29). Added 500 surf + 500 ski + 500 beach to reach 3,726. Top 3 focus: Surfing, Ski/Board, Beach.
+- **Capacitor added** (2026-03-29). capacitor.config.json + package.json ready. iOS path: `npx cap add ios` + Xcode build (needs Apple Developer account). Android via TWA already viable.
+- **Push notifications infrastructure live** (2026-03-29). Native APNs via Capacitor + web SW fallback. Alert configs store venueId/targetScore/maxPrice. SW push handler with venue deep-link. Server-side polling endpoint still needed at peakly-api.duckdns.org/api/alerts.
+- **Strike alerts UI complete** (2026-03-29). Push infrastructure ready. Missing: server polling endpoint on VPS to fire pushes when conditions hit threshold.
+- **Gear section hidden for launch** (2026-03-29). Amazon affiliate gear links wrapped in `{false && ...}` — zero UX clutter at launch, easy to re-enable post-validation.
+- **iOS App Store path** (2026-03-29). Capacitor config ready. Blockers: Apple Developer enrollment ($99/yr) + `npx cap add ios` + Xcode build + App Store submission. Native push via APNs satisfies Guideline 4.2 differentiator.
+- **No Pro tier at launch** (2026-03-29). All Pro UI removed. Email waitlist only. Stripe deferred until post-Reddit demand validated.
+- **Flight pricing language** (2026-03-29). Now shows "from $X" + last-seen timestamp. Uses `/api/flights/latest` endpoint. Aviasales deep links use exact departure dates.
 
 ### Pre-Launch Checklist (Ordered)
 
@@ -356,28 +384,35 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 30. [x] **BASE_PRICES region-based fallback** — covers all 776 airports (2026-03-27)
 31. [x] **SEO 91% → 95%** — preconnect, enhanced JSON-LD, sitemap.xml, viewport fix (2026-03-28)
 32. [x] **Cache buster + SW bump** — v=20260328a, peakly-v12 (2026-03-28)
-33. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents (4-sport improvements shipped 2026-03-27, remaining gaps TBD)
-34. [ ] REI Avantlink signup (Jack, 30 min)
-35. [ ] Add Amazon links to 5 zero-Amazon categories (skiing, climbing, kayak, MTB, hiking) — +$1.50-2.00 RPM
-36. [ ] ListingCard "Book" button Plausible event
-37. [ ] Build onboarding flow for new users
-38. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
-39. [ ] Wire Stripe for Peakly Pro ($79/year) — LLC approved
-40. [ ] Register peakly.app domain — LLC approved
-41. [ ] Terms of Service / Privacy Policy — LLC approved
-42. [ ] **Google Play Store listing via PWABuilder/TWA** — $25, no code changes needed
-43. [ ] **Reddit soft launch — March 31** (r/solotravel, r/skiing, r/surfing)
+33. [x] **Venues expanded to 3,726** — 500 surf + 500 ski + 500 beach added (2026-03-29)
+34. [x] **Capacitor + push notification infrastructure** — capacitor.config.json, package.json, native APNs + SW fallback, SW push handler (2026-03-29)
+35. [x] **Audit fixes** — Beach rename, Best Right Now 10 spots, JFK fallback removed, heart favorites list, scroll-to-top, date picker contrast (2026-03-29)
+36. [x] **Flight pricing fixes** — "from $X", /latest endpoint, last-seen timestamps, exact date deep links (2026-03-29)
+37. [x] **Gear section hidden** — {false && ...} wrapper for launch simplicity (2026-03-29)
+38. [x] **Cache buster v=20260329v1 + SW peakly-v14** (2026-03-29)
+39. [ ] **Strike alerts server polling** — needs `/api/alerts` endpoint on VPS to fire push when venue hits targetScore (VPS work)
+40. [ ] **iOS App Store** — Apple Developer enrollment ($99/yr) + `npx cap add ios` + Xcode build (Jack action)
+41. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents (4-sport improvements shipped 2026-03-27, remaining gaps TBD)
+42. [ ] REI Avantlink signup (Jack, 30 min)
+43. [ ] ListingCard "Book" button Plausible event
+44. [ ] Build onboarding flow for new users
+45. [ ] Replace placeholder affiliate IDs with real ones (GetYourGuide, Backcountry — LLC approved)
+46. [ ] Register peakly.app domain — LLC approved
+47. [ ] Terms of Service / Privacy Policy — LLC approved
+48. [ ] **Google Play Store listing via PWABuilder/TWA** — $25, no code changes needed
+49. [ ] **Reddit soft launch — Tuesday March 31, 2026** (r/solotravel, r/skiing, r/surfing)
 
 ### Phase 2 — Expansion (After Launch)
 
-- ~~Expand venue list to 400 ski towns worldwide~~ — **SHIPPED** (2026-03-26). Now 2,226 venues.
+- ~~Expand venue list to 400 ski towns worldwide~~ — **SHIPPED** (2026-03-26). Now 3,726 venues.
 - ~~Epic/Ikon/Independent pass integration + filter~~ — **SHIPPED** (2026-03-25)
 - **Google Play Store listing** via PWABuilder/TWA ($25 one-time, 1 week effort)
 - Enhanced search with autocomplete, recent searches, trending destinations
 - Peakly Pro features: extended forecasts, strike missions, historical data
 - Group trip coordination
 - Crowd intelligence estimates
-- **Apple App Store** — only after adding native-exclusive features (push notifications via APNs, offline caching for saved venues, etc.) to pass Guideline 4.2 review
+- **Apple App Store** — Capacitor config ready (2026-03-29). Needs Apple Developer enrollment + `npx cap add ios` + Xcode build. Native APNs push satisfies Guideline 4.2.
+- **Strike alerts server** — polling endpoint at peakly-api.duckdns.org/api/alerts; push infrastructure already in app/SW
 
 ### Unblocked by LLC (2026-03-25) — Can Ship Now
 
