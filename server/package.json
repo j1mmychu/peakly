@@ -1,0 +1,16 @@
+{
+  "name": "peakly-proxy",
+  "version": "1.0.0",
+  "description": "Peakly VPS proxy — Travelpayouts flight pricing + push alert registration",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js",
+    "dev": "node --watch proxy.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.18.3"
+  }
+}
