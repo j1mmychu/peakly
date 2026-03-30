@@ -1,5 +1,5 @@
-// Peakly Service Worker — lightweight cache-first for static assets
-const CACHE_NAME = "peakly-v13";
+// Peakly Service Worker — lightweight cache-first for static assets + web push handler
+const CACHE_NAME = "peakly-v14";
 const PRECACHE = [
   "/peakly/app.jsx"
 ];
@@ -45,5 +45,55 @@ self.addEventListener("fetch", (e) => {
         return cached || fetched;
       })
     )
+  );
+});
+
+// ─── Web Push: Strike Alert notifications ─────────────────────────────────────
+self.addEventListener("push", (e) => {
+  let data = {};
+  try {
+    data = e.data ? e.data.json() : {};
+  } catch {
+    data = { title: "Peakly Strike Alert", body: e.data ? e.data.text() : "Conditions are firing!" };
+  }
+
+  const title = data.title || "Peakly Strike Alert";
+  const options = {
+    body: data.body || "Conditions are peaking — check your window now.",
+    icon: "/peakly/manifest.json",
+    badge: "/peakly/manifest.json",
+    tag: data.venueId ? `venue-${data.venueId}` : "peakly-alert",
+    renotify: true,
+    data: {
+      venueId: data.venueId || null,
+      score: data.score || null,
+      price: data.price || null,
+      url: data.venueId
+        ? `/peakly/?venue=${data.venueId}`
+        : "/peakly/",
+    },
+  };
+
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const targetUrl = (e.notification.data && e.notification.data.url)
+    ? e.notification.data.url
+    : "/peakly/";
+
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // Focus existing tab if already open
+      for (const client of windowClients) {
+        if (client.url.includes("/peakly") && "focus" in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      // Otherwise open a new tab
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
   );
 });

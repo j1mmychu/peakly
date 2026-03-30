@@ -5810,6 +5810,17 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
+    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
+    // venueId: specific venue to watch (null = any matching sport/region)
+    // targetScore: minimum condition score to fire (derived from condition preset)
+    // maxPrice: maximum flight price to fire (from draft.priceMax)
+    // enabled: allows user to pause/resume without deleting
+    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
+    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
+    alertData.venueId = draft.venueId || null;
+    alertData.targetScore = getScoreThreshold(draft.condition);
+    alertData.maxPrice = draft.priceMax || 500;
+    alertData.enabled = true;
     setUserAlerts(p => [...p, alertData]);
     setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
@@ -8655,6 +8666,48 @@ function App() {
     if (!profile.hasAccount) {
       const t = setTimeout(() => setShowOnboarding(true), 900);
       return () => clearTimeout(t);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Push notification registration (Capacitor native + web SW fallback) ─────
+  useEffect(() => {
+    if (window.Capacitor?.isNativePlatform()) {
+      // Native (iOS/Android via Capacitor) — request permission and register for push
+      (async () => {
+        try {
+          const { PushNotifications } = await window.Capacitor.Plugins;
+          const permResult = await PushNotifications.requestPermissions();
+          if (permResult.receive !== "granted") return;
+
+          await PushNotifications.register();
+
+          PushNotifications.addListener("registration", (token) => {
+            try { localStorage.setItem("peakly_push_token", token.value); } catch {}
+          });
+
+          PushNotifications.addListener("pushNotificationReceived", (notification) => {
+            // Foreground notification — surface an in-app banner (optional future enhancement)
+            console.log("[Peakly] Push received (foreground):", notification.title);
+          });
+
+          PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+            // User tapped a notification — deep-link to venue if provided
+            const venueId = action.notification.data?.venueId;
+            if (venueId) {
+              // Navigate to the venue detail via URL so the app can pick it up on render
+              try { history.replaceState(null, "", `${window.location.pathname}?venue=${venueId}`); } catch {}
+            }
+          });
+        } catch (err) {
+          console.warn("[Peakly] Capacitor push registration failed:", err);
+        }
+      })();
+    } else if ("serviceWorker" in navigator && "PushManager" in window) {
+      // Web — register service worker for web push (VAPID keys needed server-side to actually send)
+      navigator.serviceWorker.register("/peakly/sw.js").then((reg) => {
+        // Token will be obtained when backend calls pushManager.subscribe() with VAPID public key
+        try { localStorage.setItem("peakly_push_token", "web-sw-registered"); } catch {}
+      }).catch(() => {});
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
