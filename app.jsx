@@ -5112,7 +5112,7 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const url = `${FLIGHT_PROXY}/api/flights`
+        const url = `${FLIGHT_PROXY}/api/flights/latest`
           + `?origin=${encodeURIComponent(origin)}`
           + `&destination=${encodeURIComponent(destination)}`;
 
@@ -5136,12 +5136,12 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const destData = json.data?.[destination];
         if (!destData) return null;
 
-        const prices = Object.values(destData)
-          .map(d => d.price)
-          .filter(p => typeof p === "number" && p > 0);
+        const entries = Object.values(destData)
+          .filter(d => typeof d.price === "number" && d.price > 0);
 
-        if (prices.length === 0) return null;
-        return Math.round(Math.min(...prices));
+        if (entries.length === 0) return null;
+        const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
+        return { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
           await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
@@ -5293,6 +5293,18 @@ function buildFlightUrl(from, to, opts) {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
   return aviasalesSearch;
+}
+
+// Returns human-readable relative time string for a UTC ISO timestamp (e.g. "2h ago", "Mar 29")
+function relTime(iso) {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return null;
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hrs = Math.round(diff / 3600000);
+  if (hrs < 24) return `${hrs}h ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month:"short", day:"numeric" });
 }
 
 // ─── Share venue ──────────────────────────────────────────────────────────────
@@ -5683,7 +5695,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           }}>
             <span style={{ fontSize:10 }}>✈️</span>
             <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-              ${listing.flight.price}
+              from ${listing.flight.price}
             </span>
           </div>
           {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
@@ -5742,10 +5754,10 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
+            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
             <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
@@ -5815,10 +5827,10 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
-            <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
-            <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> from {listing.flight.from}</span>
+            <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+            <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
@@ -5899,7 +5911,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         )}
         <div style={{ marginTop:5, display:"flex", alignItems:"center", gap:3 }}>
           <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-            ${listing.flight.price}
+            from ${listing.flight.price}
           </span>
           {listing.flight.live ? (
             <span style={{
@@ -9193,8 +9205,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
             <div style={{ flex:1, background:"#f0fff4", borderRadius:14, padding:"12px 14px" }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Flight from {listing.flight.from}</div>
-              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>${listing.flight.price}</div>
+              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>from ${listing.flight.price}</div>
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>Was ${listing.flight.normal} · {listing.flight.pct}% off</div>
+              {listing.flight.foundAt && <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:1 }}>seen {relTime(listing.flight.foundAt)}</div>}
             </div>
           </div>
 
@@ -9259,7 +9272,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                     <div style={{ padding:"7px 9px 9px" }}>
                       <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{sv.title}</div>
                       <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>📍 {sv.location}</div>
-                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>${sv.flight.price} flight</div>
+                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>from ${sv.flight.price}</div>
                     </div>
                   </button>
                 ))}
@@ -9436,7 +9449,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             }}>
               <span style={{ fontSize:16 }}>✈️</span>
-              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · ${listing.flight.price}</span>
+              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · from ${listing.flight.price}</span>
+              {listing.flight.foundAt && <span style={{ fontSize:10, color:"rgba(255,255,255,0.65)", fontFamily:F }}> · {relTime(listing.flight.foundAt)}</span>}
             </div>
           </a>
           <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
@@ -10325,7 +10339,7 @@ function App() {
       // 2. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
       // If two home airports are set, fetch both and use the cheaper price.
-      const apPrices = {}; // airport code → cheapest price
+      const apPrices = {}; // airport code → { price, foundAt }
       const origins = [profile.homeAirport || "JFK"];
       if (profile.homeAirport2) origins.push(profile.homeAirport2);
       for (let i = 0; i < uniqueAirports.length; i += 3) {
@@ -10333,16 +10347,16 @@ function App() {
         const results = await Promise.allSettled(
           batch.flatMap(ap =>
             origins.map(async origin => {
-              const price = await fetchTravelpayoutsPrice(origin, ap);
-              return { ap, price };
+              const result = await fetchTravelpayoutsPrice(origin, ap);
+              return { ap, result };
             })
           )
         );
         if (!alive) return;
         results.forEach(r => {
-          if (r.status === "fulfilled" && r.value.price !== null) {
-            const { ap, price } = r.value;
-            if (apPrices[ap] == null || price < apPrices[ap]) apPrices[ap] = price;
+          if (r.status === "fulfilled" && r.value.result !== null) {
+            const { ap, result } = r.value;
+            if (apPrices[ap] == null || result.price < apPrices[ap].price) apPrices[ap] = result;
           }
         });
         if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
@@ -10350,9 +10364,9 @@ function App() {
 
       // 3. Map airport prices back to venue IDs
       const prices = {};
-      Object.entries(apPrices).forEach(([ap, price]) => {
+      Object.entries(apPrices).forEach(([ap, data]) => {
         apToVenues[ap].forEach(venueId => {
-          prices[venueId] = price;
+          prices[venueId] = data;
         });
       });
 
@@ -10370,16 +10384,19 @@ function App() {
     const estimate1  = getFlightDeal(v.ap, profile.homeAirport);
     const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2) : null;
     const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
-    const realPrice  = duffelPrices[v.id];
-    const flight     = realPrice != null
+    const duffelData = duffelPrices[v.id];
+    const flight     = duffelData != null
       ? {
-          price:  realPrice,
-          normal: estimate.normal,
-          pct:    Math.max(0, Math.round((1 - realPrice / estimate.normal) * 100)),
-          from:   profile.homeAirport || "JFK",
-          live:   true,
+          price:   duffelData.price,
+          normal:  estimate.normal,
+          pct:     Math.max(0, Math.round((1 - duffelData.price / estimate.normal) * 100)),
+          from:    profile.homeAirport || "JFK",
+          live:    true,
+          foundAt: duffelData.foundAt || null,
+          depDate: filters.startDate || null,
+          retDate: filters.endDate   || null,
         }
-      : { ...estimate, live: false };
+      : { ...estimate, live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
     // Find best window in the 7-day forecast
     let bestDay = 0, bestScore = score;
     const vWx = wxData[v.id], vMar = marData[v.id];
