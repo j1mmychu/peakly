@@ -1,89 +1,77 @@
-# QA Report -- Peakly
+# QA Report — Peakly
 
-**Date:** 2026-03-25 (Run 3 -- post smart weather fetch + stable photos)
-**File:** app.jsx (8,951 lines) | index.html (247+ lines)
-**Baseline:** 5,631 lines (original) / 8,625 lines (Run 2)
-**Current:** 8,951 lines / 2,226 venues across 11 sport categories
+**Date:** 2026-03-29 (Run 7 — Full regression check)
+**File:** app.jsx (9,036 lines) | index.html
+**Current:** 9,036 lines / 2,226 venues across 11 sport categories
+**Reddit launch in 2 days (March 31)**
 
 ---
 
-## Overall: 8/11 PASS
+## Overall: 9/11 PASS
 
 | # | Check | Result | Details |
 |---|-------|--------|---------|
 | 1 | CATEGORIES syntax (12 present) | PASS | All 12: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. Correct syntax. |
-| 2 | Venue required fields | PASS | All 2,226 venues have: id, category, title, location, lat, lon, ap, tags, photo. No missing fields. |
+| 2 | Venue required fields | PASS | All 2,226 venues have: id, category, title, location, lat, lon, ap, photo. 0 duplicate IDs. |
 | 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs across 2,226 entries. |
-| 4 | Duplicate photo URLs (full URL) | PASS | 0 duplicate full photo URLs (with crop params). 2,171 unique full URLs. |
-| 4b | Duplicate photo base images | **FAIL (P1)** | Only **176 unique Unsplash photo IDs** for 2,226 venues. The worst offender (`photo-1529961482160`) appears **203 times** with different `fp-x`/`fp-y` crops. Same image, different crop window. Users will notice. |
-| 5 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches at lines: skiing (3072), surfing (3125), tanning (3189), diving (3235), climbing (3267), kite (3300), kayak (3327), mtb (3361), fishing (3388), paraglide (3417), hiking (3443). |
-| 6 | Affiliate links -- Amazon | PASS | 40 Amazon links, all with `tag=peakly-20`. No placeholder IDs. |
-| 7 | Affiliate links -- Booking.com | PASS | 2 Booking.com links with `aid=2311236`. Correctly formatted. |
-| 8 | Affiliate links -- SafetyWing | PASS | 1 SafetyWing link with `referenceID=peakly`. Correctly formatted. |
-| 9 | SEO files | **FAIL (P2)** | robots.txt correct. sitemap.xml present but only contains root URL -- missing category URLs. JSON-LD `featureList` says "180+ adventure venues" (should be 2,200+). OG description also says "180+ venues". |
-| 10 | Plausible analytics | PASS | `script.hash.js` loading with `data-domain="j1mmychu.github.io"`. |
-| 11 | Sentry DSN | PASS | Sentry Loader Script in index.html + `Sentry.init()` at lines 6-13 with valid DSN. |
-
----
-
-## Smart Weather Fetch Verification (NEW)
-
-The "top 100 + lazy" optimization is correctly implemented:
-
-- **Initial load:** Fetches weather for `VENUES.slice(0, 100)` in 2 batches of 50 (lines 8659-8690)
-- **Lazy fetch:** `fetchVenueWeather()` loads individual venue weather when detail sheet opens (line 8799)
-- **Dedup guard:** `wxRef.current[venue.id]` check prevents re-fetching (line 8643)
-- **Auto-refresh:** 10-minute interval refreshes top 100 (line 8694)
-- **API calls:** ~150/load (100 weather + ~50 marine for water-sport venues) vs ~4,452 before
-
-**PASS** -- API usage reduced ~97%. Fits Open-Meteo free tier for moderate traffic.
-
-**Risk:** VENUES[0..99] are position-dependent. If someone reorders the array, the "best" venues won't get weather on initial load. Consider sorting by rating or using a curated priority list.
-
----
-
-## Stable Photos Verification (NEW)
-
-- 0 instances of unstable `source.unsplash.com` URLs -- **PASS**
-- All 2,226 venues use stable `images.unsplash.com/photo-{id}` format -- **PASS**
-- URLs are deterministic and won't rotate -- **PASS**
-- But only 176 unique base images for 2,226 venues -- **FAIL** (see check 4b above)
+| 4 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches in switch statement + default fallback. |
+| 5 | Affiliate links — Amazon | PASS | ~40 Amazon links, all with `tag=peakly-20`. 0 missing tags. |
+| 6 | Affiliate links — Booking.com | PASS | 2 links with `aid=2311236`. |
+| 7 | Affiliate links — SafetyWing | PASS | 1 link with `referenceID=peakly`. |
+| 8 | SEO files | PASS | robots.txt correct, sitemap.xml present with 12 URLs (root + 11 categories), JSON-LD @graph with WebSite/WebApp/Org/ItemList/TouristDestination, Plausible `script.hash.js` loading, preconnect hints for 5 domains. |
+| 9 | Sentry DSN | PASS | Sentry Loader Script + `Sentry.init()` with valid DSN. tracesSampleRate: 1.0, replaysOnErrorSampleRate: 1.0. Live. |
+| 10 | Photo duplication | **WARN (P3)** | ~52 Unsplash photo base IDs reused across venues with different crop params (fp-x/fp-y). Visual appearance differs but base photos not 100% unique. Stable since Run 6. |
+| 11 | Travelpayouts marker | **FAIL (P1)** | `TP_MARKER = "YOUR_TP_MARKER"` (line 3771). Flight links earn $0. **Flagged 3 consecutive runs. Jack action needed BEFORE March 31 Reddit launch.** |
 
 ---
 
 ## Cache-Buster Status
 
-**Current value:** `?v=20260326a` (index.html, line 247)
-**Status:** Value is dated 2026-03-26. If recent smart-weather-fetch and photo changes were deployed in the 03-26 session, this is current. If changes landed after, it's stale.
-
-**Fix if stale (one line, index.html line 247):**
-```html
-<script type="text/babel" src="./app.jsx?v=20260326b" data-presets="react"></script>
-```
+**Current value:** `?v=20260328a` (index.html line 281)
+**Status: PASS** — fresh from yesterday's deploy. Bump on next code change.
 
 ---
 
 ## Sentry Status
 
 **Status: LIVE (PASS)**
-
-- Loader Script: line 77 of index.html
-- `Sentry.init()`: lines 6-13 of app.jsx with valid DSN
-- Dashboard: peakly.sentry.io
-
-No action needed.
+- Loader Script in index.html (`9416b032a46681d74645b056fcb08eb7.min.js`)
+- `Sentry.init()` in app.jsx with valid DSN
+- Replay sampling at 10% session / 100% error
+- No empty DSN found
 
 ---
 
-## Affiliate Link Summary
+## PWA Status
 
-| Type | Count | Earning? |
-|------|-------|----------|
-| Amazon (`tag=peakly-20`) | 40 | Yes |
-| Booking.com (`aid=2311236`) | 2 | Yes |
-| SafetyWing (`referenceID=peakly`) | 1 | Yes |
-| REI (no affiliate tag) | 22 | **No -- $0** |
-| Placeholder IDs found | 0 | N/A |
+| File | Status |
+|------|--------|
+| manifest.json | PASS — present in repo root |
+| sw.js | PASS — CACHE_NAME = "peakly-v12", network-first for index.html, stale-while-revalidate for assets |
+| SW registration | PASS — in index.html |
+| apple-mobile-web-app meta | PASS — capable, black-translucent status bar |
+
+---
+
+## Regression Check vs Run 6
+
+| Check | Run 6 | Run 7 | Delta |
+|-------|-------|-------|-------|
+| Categories | PASS (12) | PASS (12) | — |
+| Venue fields | PASS (2,226) | PASS (2,226) | — |
+| Duplicate IDs | PASS (0) | PASS (0) | — |
+| Duplicate photos | WARN (55 URLs) | WARN (~52 base IDs) | Stable |
+| scoreVenue | PASS (11) | PASS (11) | — |
+| Amazon affiliates | PASS (39) | PASS (~40) | — |
+| Booking.com | PASS (2) | PASS (2) | — |
+| SafetyWing | PASS (1) | PASS (1) | — |
+| SEO files | PASS | PASS | — |
+| Sentry | PASS | PASS | — |
+| Cache buster | PASS (v=20260328a) | PASS (v=20260328a) | — |
+| TP_MARKER | FAIL | FAIL | **Still placeholder — 3rd consecutive run** |
+| Line count | 9,036 | 9,036 | No change |
+
+**Regressions vs Run 6: NONE**
 
 ---
 
@@ -104,52 +92,56 @@ No action needed.
 | hiking | 200 |
 | **Total** | **2,226** |
 
-All categories well-populated (~200 each). No thin categories.
+All categories well-populated (~200 each).
 
 ---
 
-## Regression Check vs Run 2
+## Affiliate Link Summary
 
-| Check | Run 2 | Run 3 | Delta |
-|-------|-------|-------|-------|
-| Categories | PASS (12) | PASS (12) | -- |
-| Venue fields | PASS (2,226) | PASS (2,226) | -- |
-| Duplicate IDs | PASS (0) | PASS (0) | -- |
-| Duplicate photos (full URL) | PASS (0) | PASS (0) | -- |
-| Duplicate photos (base image) | Not checked | **FAIL (176 unique for 2,226)** | NEW CHECK |
-| scoreVenue | PASS (11) | PASS (11) | -- |
-| Amazon affiliates | PASS (30) | PASS (40) | +10 links |
-| Booking.com | PASS (2) | PASS (2) | -- |
-| SafetyWing | PASS (1) | PASS (1) | -- |
-| SEO files | FAIL (sitemap thin) | FAIL (sitemap thin + stale counts) | Same issue, plus stale venue count in JSON-LD/OG |
-| Plausible | PASS | PASS | -- |
-| Sentry | PASS (live) | PASS (live) | -- |
-| Line count | 8,625 | 8,951 | +326 lines (smart weather fetch logic) |
-
-**Regressions vs Run 2: NONE**
-**New finding: 1** (photo base image duplication, P1)
+| Type | Count | Earning? |
+|------|-------|----------|
+| Amazon (`tag=peakly-20`) | ~40 | Yes |
+| Booking.com (`aid=2311236`) | 2 | Yes |
+| SafetyWing (`referenceID=peakly`) | 1 | Yes |
+| Travelpayouts (flight links) | Active | **No — TP_MARKER is placeholder** |
+| REI (no affiliate tag) | 22 | **No — $0, needs Avantlink signup** |
+| Backcountry (no affiliate tag) | 2 | **No — $0, needs affiliate signup** |
+| GetYourGuide (no partner_id) | 1 | **No — $0, needs partner signup** |
 
 ---
 
-## P1 Findings (Fix before launch)
+## Open Findings by Priority
 
-1. **Photo base image duplication is extreme.** 176 unique Unsplash photo IDs serve 2,226 venues. Top offenders:
-   - `photo-1529961482160` (fishing lake): 203 venues
-   - `photo-1523819088009` (kayak fjord): 202 venues
-   - `photo-1578001647043` (MTB desert): 110 venues
-   - `photo-1512541405516` (beach/tan): 92 venues
+### P1 — Fix before Reddit launch (March 31)
 
-   Users scrolling through any category will see the same hero image repeated. This undermines the "Steve Jobs-level quality" standard. Need ~2,050 additional unique Unsplash photo IDs.
+1. **Travelpayouts marker is placeholder.** Line 3771: `const TP_MARKER = "YOUR_TP_MARKER"`. Every flight click across 2,226 venues earns $0 in commission. The code correctly guards against the placeholder (line 3790 checks `TP_MARKER !== "YOUR_TP_MARKER"`), so flight links work but aren't tracked. **One-line fix once Jack provides the real marker from tp.media dashboard.** This is the single highest-impact revenue fix — flight clicks are the most common user action.
 
-## P2 Findings (Fix soon)
+### P3 — Non-blocking
 
-2. **Sitemap only has root URL.** Should include category deep-link URLs.
-3. **JSON-LD featureList says "180+ adventure venues"** -- should say "2,200+".
-4. **OG meta description says "180+ venues"** -- should say "2,200+".
-5. **Cache buster** -- verify `v=20260326a` matches last deploy.
+2. **~52 duplicate Unsplash base photo IDs.** Reused with different crop params. Visual impact is low. CLAUDE.md "0% duplication" claim is technically inaccurate.
+3. **sitemap.xml lastmod dates** still say 2026-03-27. Should bump on next deploy.
+
+---
+
+## Browser Testing
+
+Browser automation tools timed out and egress proxy blocked direct fetch this run. Static code analysis only. **Code review confirms:**
+- Splash screen HTML is well-formed with animations
+- React 18 + ReactDOM + Babel Standalone 7.24.7 script chain intact
+- BottomNav renders Explore, Alerts, Profile tabs
+- CompactCard, ListingCard, FeaturedCard all have photo rendering with `onError` fallbacks
+- VenueDetailSheet has touch drag > 120px dismissal logic
+- ErrorBoundary wraps app root with fallback UI
+- Babel parse error handler in index.html catches syntax failures
+
+**Recommend manual browser check before March 31 launch.**
 
 ---
 
 ## One Thing That Would Break Everything If Not Caught
 
-**The smart weather fetch fixed the API rate limit problem, but it made the VENUES array order critical.** `VENUES.slice(0, 100)` fetches weather only for the first 100 venues in the array. These happen to be the flagship venues (Whistler, Pipeline, Bora Bora, etc.) because that's how the array was originally built. But if any future expansion or sort reorders VENUES, the initial load will fetch weather for random venues instead of the most-viewed ones, and popular venues will show "Checking conditions..." until a user taps into their detail sheet. The fix is trivial: sort or tag priority venues explicitly rather than relying on array position.
+**Service worker serving stale broken code.** SW uses stale-while-revalidate for app.jsx. If a breaking syntax error ships, returning users get cached broken code until `CACHE_NAME` is bumped in sw.js (currently "peakly-v12"). The cache buster (`v=20260328a`) helps for fresh fetches but SW-cached responses may ignore query params. **On any breaking deploy: bump sw.js CACHE_NAME to "peakly-v13" immediately.** This has caused extended outages before.
+
+---
+
+*Report generated: 2026-03-29 by QA Agent (Run 7 — static analysis only, browser unavailable)*

@@ -1,66 +1,60 @@
-# Revenue Report -- 2026-03-25
+# Revenue Report -- 2026-03-27
 
 ## Revenue Health: YELLOW
 
-Affiliate infrastructure is solid and expanding, but 22 REI links and 2 Backcountry links earn $0 because they lack affiliate tracking tags. The biggest near-term revenue lever is activating those existing links. Peakly Pro stays as a UI mockup (no Stripe) per Jack's decision.
+RPM $12.06 is solid for pre-launch, but TP_MARKER is still a placeholder (every flight click earns $0 in commission), REI's 22 links have no affiliate tag, and Backcountry + GetYourGuide remain unactivated. LLC was approved 2026-03-25 -- these streams should be live before the Reddit launch.
 
 ---
 
-## 1. Peakly Pro -- Status
+## 1. Peakly Pro Pricing -- RESOLVED (No Action)
 
-**Pricing FIXED.** The UI correctly shows `$79/yr` (line 7802 of app.jsx). The old `$9/mo` bug is resolved.
+Peakly Pro UI was **removed** (2026-03-26) and replaced with an email capture waitlist. The $9/mo vs $79/yr confusion is no longer user-facing. Stripe integration deferred until waitlist validates demand.
 
-**Decision (per Jack): No Stripe for now.** Too expensive at current scale. Peakly Pro stays as a UI mockup. The button triggers `alert("Peakly Pro coming soon!")`. Revisit when MAU exceeds 5K.
-
-**Peakly Pro is excluded from all revenue projections below.** Affiliate revenue only.
+**LTV model for future reference:**
+- $9/mo at 4-month avg retention = $36 LTV
+- $79/yr at 36% annual renewal (RevenueCat benchmark) = $79 + $28.44 + $10.24 = **$117.68 LTV**
+- Annual plan wins by 3.3x. Keep $79/yr when Pro ships.
 
 ---
 
 ## 2. Affiliate Link Audit
 
-### ACTIVE -- Earning Now
+### Active & Earning
 
-| Stream | Links | Tag/ID | Status |
-|--------|-------|--------|--------|
-| Amazon Associates | 34 links across 12 categories | `peakly-20` | LIVE. Tag consistent on all Amazon URLs. Post-intent placement in VenueDetailSheet gear section. |
-| Booking.com | 2 placements | `aid=2311236` | LIVE. VenueDetailSheet hotel card + sticky CTA. Correct format. |
-| SafetyWing | 1 link | `referenceID=peakly` | LIVE. VenueDetailSheet insurance card. Post-intent placement. |
-| Travelpayouts/Aviasales | Flight deep links | `TP_MARKER` via proxy | LIVE. Commission on flight bookings. |
+| Stream | Tag/ID | Links | Status |
+|--------|--------|-------|--------|
+| Amazon Associates | `peakly-20` | 39 links across 11 categories | LIVE. Tag consistent. Post-intent in VenueDetailSheet gear section. |
+| Booking.com | `aid=2311236` | 2 placements | LIVE. VenueDetailSheet hotel card + sticky CTA. |
+| SafetyWing | `referenceID=peakly` | 1 link | LIVE. VenueDetailSheet insurance card. Post-intent. |
+| Travelpayouts (flight prices) | HTTPS proxy | Flight price API | LIVE. Prices load. But see TP_MARKER issue below. |
 
-### BLOCKED -- Earning $0
+### Earning $0 -- Needs Action
 
-| Stream | Links | Issue | Fix |
-|--------|-------|-------|-----|
-| REI | 22 links across 8 categories | No affiliate tracking param | Avantlink signup, append tracking param to all `rei.com` URLs |
-| Backcountry | 2 links (MTB category, lines 7308 + 7310) | No affiliate tracking param | Avantlink signup, append tracking param |
-| GetYourGuide | 1 dynamic link (line 7737) | No `partner_id` | Partner signup, append `partner_id` to URL template |
+| Stream | Links | Issue | Owner |
+|--------|-------|-------|-------|
+| **Aviasales/TP_MARKER** | Every flight click | `TP_MARKER = "YOUR_TP_MARKER"` (line 3771). Code correctly gates this -- falls back to unattributed Aviasales URLs. **Every flight click earns $0.** | Jack: 5 min |
+| REI | 22 links, 8 categories | No affiliate tracking param on URLs | Jack: Avantlink signup, 30 min |
+| Backcountry | 2 links (MTB) | No affiliate tracking param | Jack: Avantlink signup, 15 min |
+| GetYourGuide | Dynamic links in experiences | No `partner_id` param | Jack: Partner signup, 20 min |
 
-### Link Counts by Category
+### TP_MARKER -- Critical Revenue Leak
 
-| Category | Amazon | REI | Backcountry | Total | Earning |
-|----------|--------|-----|-------------|-------|---------|
-| Skiing | 4 | 4 | 0 | 8 | 4/8 |
-| Surfing | 2 | 2 | 0 | 4 | 2/4 |
-| Tanning | 4 | 0 | 0 | 4 | 4/4 |
-| Diving | 3 | 1 | 0 | 4 | 3/4 |
-| Climbing | 4 | 4 | 0 | 8 | 4/8 |
-| Kayak | 4 | 4 | 0 | 8 | 4/8 |
-| MTB | 4 | 2 | 2 | 8 | 4/8 |
-| Kite | 4 | 0 | 0 | 4 | 4/4 |
-| Fishing | 3 | 1 | 0 | 4 | 3/4 |
-| Paraglide | 4 | 0 | 0 | 4 | 4/4 |
-| Hiking | 3 | 4 | 0 | 7 | 3/7 |
-| **Total** | **39** | **22** | **2** | **63** | **39/63 (62%)** |
+Line 3771: `const TP_MARKER = "YOUR_TP_MARKER";`
+Line 3790 checks: `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` -- correctly falls back to unattributed links.
+
+**This means flight prices display correctly via the proxy, but zero commission is earned on any booking.** Flight clicks are likely the highest-frequency affiliate touchpoint (every venue detail view shows flights). This is the single fastest revenue fix available.
+
+**Fix:** Get marker from Travelpayouts dashboard (Programs > Aviasales > Marker ID). Replace `"YOUR_TP_MARKER"` with real value on line 3771. One line, push to main.
 
 ---
 
 ## 3. Hiking Gear Gap -- RESOLVED
 
-Previously reported as zero items. Now has **7 GEAR_ITEMS** (lines 7335-7343):
+Hiking now has **7 GEAR_ITEMS** (lines 7401-7409):
 
 | Item | Store | Price | Earning? |
 |------|-------|-------|----------|
-| Salomon X Ultra 4 GTX Boots | REI | $200 | No (no affiliate tag) |
+| Salomon X Ultra 4 GTX Boots | REI | $200 | No (no REI tag) |
 | BD Trail Trekking Poles | REI | $140 | No |
 | Osprey Atmos AG 65L Pack | REI | $300 | No |
 | Garmin inReach Mini 2 GPS | REI | $350 | No |
@@ -68,23 +62,23 @@ Previously reported as zero items. Now has **7 GEAR_ITEMS** (lines 7335-7343):
 | BD Spot 400 Headlamp | Amazon | $36 | Yes |
 | Darn Tough Hiker Socks | Amazon | $26 | Yes |
 
-4 of 7 hiking items are REI-only, earning $0 without affiliate tag. The 3 Amazon items are tagged and earning.
+4 of 7 hiking items are REI-only (earning $0). 3 Amazon items are tagged and earning. No code change needed -- gap is filled. Revenue activates when REI Avantlink tag is added.
 
 ---
 
-## 4. Revenue Model -- Affiliate Only
+## 4. Revenue Model
 
 ### Current Live RPM: $12.06 per 1,000 MAU/month
 
 | Stream | RPM |
 |--------|-----|
-| Amazon (39 links) | $4.48 |
-| Booking.com (2 placements) | $6.90 |
-| SafetyWing (1 link) | $0.54 |
-| Travelpayouts (flights) | $0.14 |
+| Amazon (39 links, `peakly-20`) | $4.48 |
+| Booking.com (2 placements, `aid=2311236`) | $6.90 |
+| SafetyWing (1 link, `referenceID=peakly`) | $0.54 |
+| Travelpayouts (flights via proxy) | $0.14 |
 | **Total** | **$12.06** |
 
-### Projections -- Current State
+### Projections at Current RPM ($12.06)
 
 | MAU | Monthly Revenue | Annual Revenue |
 |-----|----------------|----------------|
@@ -93,76 +87,90 @@ Previously reported as zero items. Now has **7 GEAR_ITEMS** (lines 7335-7343):
 | 8,000 (high Reddit) | $96.48 | $1,157.76 |
 | 100,000 | $1,206.00 | $14,472.00 |
 
-### Projections -- After REI + Backcountry + GetYourGuide Activated (RPM $20.06)
+### Projections After All Streams Activate (RPM ~$21.56)
+
+Post-activation RPM = $12.06 + $6.16 (REI) + $0.56 (Backcountry) + $1.28 (GYG) + $1.50 (TP_MARKER fix, conservative) = **$21.56**
 
 | MAU | Monthly Revenue | Annual Revenue | Delta vs Current |
 |-----|----------------|----------------|-----------------|
-| 1,000 | $20.06 | $240.72 | +$8.00/mo |
-| 5,000 | $100.30 | $1,203.60 | +$40.00/mo |
-| 8,000 | $160.48 | $1,925.76 | +$64.00/mo |
-| 100,000 | $2,006.00 | $24,072.00 | +$800.00/mo |
+| 1,000 | $21.56 | $258.72 | +$9.50/mo |
+| 5,000 | $107.80 | $1,293.60 | +$47.50/mo |
+| 8,000 | $172.48 | $2,069.76 | +$76.00/mo |
+| 100,000 | $2,156.00 | $25,872.00 | +$950.00/mo |
 
-### Math
+**Math:** Monthly Revenue = (MAU / 1,000) x RPM
 
-- Monthly Revenue = (MAU / 1,000) x RPM
-- Post-activation RPM = $12.06 + $6.16 (REI) + $0.56 (Backcountry) + $1.28 (GYG) = $20.06
-- Example: 5K MAU x $20.06/1K = $100.30/mo
+**Biggest lever:** REI activation (+$6.16 RPM, +51%) is the largest single RPM jump. But TP_MARKER fix is the fastest (5 minutes, immediate).
 
 ---
 
-## 5. Biggest Lever for Improving RPM
+## 5. LLC Unblock -- Activation Day Sequence
 
-**Activating REI affiliate links.** Rationale:
+LLC approved 2026-03-25. All streams are now actionable. Recommended sequence:
 
-- 22 links already placed across 8 categories -- zero code changes needed
-- REI gear has higher AOV than Amazon ($65-$1,200 vs $9-$449)
-- 5% commission vs Amazon's 4%
-- Estimated RPM lift: +$6.16 (+51% from current $12.06)
-- Effort: 30 minutes of Avantlink signup + URL update
+| Step | Time | Action | RPM Impact |
+|------|------|--------|------------|
+| 1 | 5 min | Replace TP_MARKER with real Travelpayouts marker | +$1.50 est. |
+| 2 | 30 min | REI Avantlink signup, update 22 URLs | +$6.16 |
+| 3 | 15 min | Backcountry Avantlink signup, update 2 URLs | +$0.56 |
+| 4 | 20 min | GetYourGuide partner signup, update URL template | +$1.28 |
+| 5 | 5 min | Push to main | Immediate |
+| **Total** | **~75 min** | **All 4 streams live** | **+$9.50 RPM (+79%)** |
 
-### Revenue Left on the Table Per Day of Delay
+### Revenue Left on Table Per Day of Delay
 
-| MAU | Lost from REI alone | Lost from all 3 blocked streams |
-|-----|--------------------|---------------------------------|
-| 1,000 | $0.21/day | $0.27/day |
-| 5,000 | $1.03/day | $1.33/day |
-| 8,000 | $1.64/day | $2.13/day |
+| MAU | Lost/day (all 4 streams) | Lost/month |
+|-----|--------------------------|------------|
+| 1,000 | $0.32/day | $9.50/mo |
+| 5,000 | $1.58/day | $47.50/mo |
+| 8,000 | $2.53/day | $76.00/mo |
 
-The real cost: launching the Reddit campaign without these affiliate IDs wired means the highest-traffic period earns 40% less than it should.
-
----
-
-## 6. LLC Unblock -- Activation Day Sequence
-
-LLC is approved. Exact steps for affiliate activation:
-
-1. **REI via Avantlink** (30 min, Jack): avantlink.com -> sign up as publisher -> apply to REI program. Approval: 1-3 business days. Once approved, update 22 `rei.com` URLs with tracking param.
-
-2. **Backcountry via Avantlink** (15 min, Jack): Same Avantlink account -> apply to Backcountry. Update 2 URLs (lines 7308, 7310).
-
-3. **GetYourGuide** (20 min, Jack): partner.getyourguide.com -> sign up -> get partner_id -> update URL template (line 7737).
-
-4. **Deploy** (5 min): Single commit updating all affiliate URLs.
-
-Total time: ~1 hour. Expected RPM lift: +$8.00 per 1K MAU (+66%).
+**Critical timing:** These must be wired BEFORE the Reddit launch. Launching without affiliate IDs means the highest-traffic period earns 44% less than it should.
 
 ---
 
-## 7. Summary
+## 6. GEAR_ITEMS Coverage Summary
 
-| Item | Status | Action Required |
-|------|--------|----------------|
-| Peakly Pro pricing ($79/yr) | FIXED | None -- stays as mockup, no Stripe |
-| Amazon (39 links, `peakly-20`) | LIVE | None |
-| Booking.com (2 links, `aid=2311236`) | LIVE | None |
-| SafetyWing (1 link, `referenceID=peakly`) | LIVE | None |
-| Travelpayouts (flights) | LIVE | None |
-| REI (22 links) | EARNING $0 | **Jack: Avantlink signup, 30 min** |
-| Backcountry (2 links) | EARNING $0 | **Jack: Avantlink signup, 15 min** |
-| GetYourGuide (1 link) | EARNING $0 | **Jack: Partner signup, 20 min** |
+| Category | Items | Amazon | REI | Backcountry | Earning? |
+|----------|-------|--------|-----|-------------|----------|
+| Skiing | 8 | 4 | 4 | 0 | Partial (Amazon only) |
+| Surfing | 4 | 2 | 2 | 0 | Partial |
+| Tanning | 4 | 4 | 0 | 0 | Full |
+| Diving | 4 | 3 | 1 | 0 | Partial |
+| Climbing | 8 | 4 | 4 | 0 | Partial |
+| Kayak | 8 | 4 | 4 | 0 | Partial |
+| MTB | 8 | 4 | 2 | 2 | Partial |
+| Kite | 4 | 4 | 0 | 0 | Full |
+| Fishing | 4 | 3 | 1 | 0 | Partial |
+| Paraglide | 4 | 4 | 0 | 0 | Full |
+| Hiking | 7 | 3 | 4 | 0 | Partial |
+| **Total** | **63** | **39** | **22** | **2** | **39/63 (62%)** |
+
+---
+
+## 7. Summary & Action Items
+
+| Item | Status | Action |
+|------|--------|--------|
+| Peakly Pro pricing | RESOLVED (removed, email waitlist) | None |
+| Amazon (39 links) | LIVE | None |
+| Booking.com (2 links) | LIVE | None |
+| SafetyWing (1 link) | LIVE | None |
+| **TP_MARKER** | **PLACEHOLDER -- $0 flight commission** | **Jack: Replace on line 3771, 5 min** |
+| **REI (22 links)** | **EARNING $0** | **Jack: Avantlink signup, 30 min** |
+| **Backcountry (2 links)** | **EARNING $0** | **Jack: Avantlink signup, 15 min** |
+| **GetYourGuide** | **EARNING $0** | **Jack: Partner signup, 20 min** |
 | Hiking GEAR_ITEMS | RESOLVED (7 items) | None |
-| Peakly Pro (Stripe) | DEFERRED | Revisit at 5K MAU |
+| Region-based pricing | SHIPPED (776 airports) | None |
 
 ### Single Highest-Revenue-Impact Change This Week
 
-**Sign up for REI's Avantlink affiliate program and update the 22 REI URLs with the tracking parameter.** 30 minutes of signup + a find-and-replace. Expected lift: +51% RPM. No code architecture changes. No new features.
+**Replace `YOUR_TP_MARKER` with the real Travelpayouts marker (line 3771).** 5 minutes. Every flight click currently earns $0. Flight clicks are the highest-frequency monetization touchpoint in the app.
+
+**Second priority:** REI Avantlink signup (+$6.16 RPM, 30 min). 22 links already placed, high-AOV gear, zero code architecture changes.
+
+Both should happen before the Reddit launch campaign.
+
+---
+
+*Next run: Check if TP_MARKER is still placeholder. Check if REI Avantlink signup is complete. Re-model RPM with any newly activated streams.*
