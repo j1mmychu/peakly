@@ -100,6 +100,8 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
       cursor: pointer;
     }
     .heart:active { transform: scale(1.35); }
+    .heart-pop { animation: heartPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes heartPop { 0%{transform:scale(1)} 40%{transform:scale(1.55)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
     .pressable {
       transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s;
       cursor: pointer;
@@ -118,12 +120,14 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     .fade-in { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .score-count { animation: scoreCount 0.6s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes scoreCount { from{opacity:0;transform:scale(0.7) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
-    .sheet { animation: sheetUp 0.42s cubic-bezier(0.34,1.56,0.64,1); }
+    .sheet { animation: sheetUp 0.44s cubic-bezier(0.32,1.2,0.4,1); will-change: transform; }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
-    .sheet-exit { animation: sheetDown 0.28s cubic-bezier(0.4,0,1,1) forwards; }
-    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(100%)} }
+    .sheet-exit { animation: sheetDown 0.3s cubic-bezier(0.4,0,0.8,1) forwards; will-change: transform; }
+    @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(105%)} }
     .backdrop { animation: bdFade 0.22s ease; }
     @keyframes bdFade { from{opacity:0} to{opacity:1} }
     .backdrop-exit { animation: bdFadeOut 0.28s ease forwards; }
@@ -146,6 +150,12 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
     input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: #0284c7; }
     input[type=text], input[type=email] { outline: none; }
     input[type=text]:focus, input[type=email]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.12) !important; }
+    input[type=date] { color-scheme: light; outline: none; -webkit-appearance: none; appearance: none; }
+    input[type=date]:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(2,132,199,0.15) !important; }
+    input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.65; cursor: pointer; padding: 2px; border-radius: 3px; }
+    input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(2,132,199,0.1); }
+    input[type=date].date-filled { background: #0066FF; color: #fff; border-color: #0066FF !important; }
+    input[type=date].date-filled::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.9; }
   `;
   document.head.appendChild(s);
 })();
@@ -155,16 +165,16 @@ const F = "'Plus Jakarta Sans', sans-serif";
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",     label:"All",        emoji:"✨" },
-  { id:"skiing",  label:"Skiing",     emoji:"⛷️" },
-  { id:"surfing", label:"Surfing",    emoji:"🏄" },
-  { id:"hiking",  label:"Hiking",     emoji:"🥾" },
-  { id:"diving",  label:"Diving",     emoji:"🤿" },
-  { id:"climbing",label:"Climbing",   emoji:"🧗" },
-  { id:"tanning", label:"Beach & Tan",emoji:"🏖️" },
+  { id:"skiing",  label:"Ski/Board",   emoji:"❄️" },
+  { id:"surfing", label:"Surf",       emoji:"🏄" },
+  { id:"hiking",  label:"Hike",      emoji:"🥾" },
+  { id:"diving",  label:"Dive",      emoji:"🤿" },
+  { id:"climbing",label:"Climb",     emoji:"🧗" },
+  { id:"tanning", label:"Beach",emoji:"🏖️" },
   { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
   { id:"kayak",   label:"Kayak",     emoji:"🛶" },
   { id:"mtb",     label:"MTB",       emoji:"🚵" },
-  { id:"fishing", label:"Fishing",   emoji:"🎣" },
+  { id:"fishing", label:"Fish",      emoji:"🎣" },
   { id:"paraglide",label:"Paraglide",emoji:"🪂" },
 ];
 
@@ -2683,7 +2693,1507 @@ const VENUES = [
   {id:"mont-blanc-paraglide",category:"paraglide",title:"Aiguille du Midi Paragliding",location:"Haute-Savoie, France",lat:45.8726,lon:6.8872,ap:"GVA",icon:"🪂",rating:4.99,reviews:2234,gradient:"linear-gradient(160deg,#e1f5fe,#b3e5fc,#0288d1)",accent:"#b3e5fc",tags:["3842m Launch","Highest in Alps","Expert Extreme","Mont Blanc Massif","Once in Lifetime"],photo:"https://images.unsplash.com/photo-1581059089599-0b7e13b9d952?w=800&h=600&fit=crop&fp-x=0.67&fp-y=0.57"},
   {id:"st-moritz-paraglide",category:"paraglide",title:"Corviglia St. Moritz Paragliding",location:"Graubünden, Switzerland",lat:46.4986,lon:9.8384,ap:"ZRH",icon:"🪂",rating:4.95,reviews:934,gradient:"linear-gradient(160deg,#fff9c4,#fff176,#f9a825)",accent:"#fff176",tags:["Luxury Resort","Engadin Valley","Lake St. Moritz","High Society Flying","Swiss Elite"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.68&fp-y=0.37"},
   {id:"murren-paraglide",category:"paraglide",title:"Mürren Schilthorn Paragliding",location:"Bernese Oberland, Switzerland",lat:46.5587,lon:7.8922,ap:"ZRH",icon:"🪂",rating:4.96,reviews:1123,gradient:"linear-gradient(160deg,#b3e5fc,#81d4fa,#0277bd)",accent:"#81d4fa",tags:["Car-Free Village","Eiger Mönch Jungfrau","Bond Villain Lair","Expert Alpine","Swiss Dream"],photo:"https://images.unsplash.com/photo-1605009296117-557ee05cb8cc?w=800&h=600&fit=crop&fp-x=0.37&fp-y=0.67"},
-  {id:"glacier-national-park-paraglide",category:"paraglide",title:"Glacier National Park Paragliding",location:"Montana, USA",lat:48.6962,lon:-113.7182,ap:"FCA",icon:"🪂",rating:4.92,reviews:634,gradient:"linear-gradient(160deg,#80cbc4,#4db6ac,#00695c)",accent:"#4db6ac",tags:["Going-to-the-Sun Road","Glacial Thermals","Wilderness Flying","Continental Divide","Montana Sky"],photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.67"},
+  {id:"glacier-national-park-paraglide",category:"paraglide",title:"Glacier National Park Paragliding",location:"Montana, USA",lat:48.6962,lon:-113.7182,ap:"FCA",icon:"🪂",rating:4.92,reviews:634,gradient:"linear-gradient(160deg,#80cbc4,#4db6ac,#00695c)",accent:"#4db6ac",tags:["Going-to-the-Sun Road","Glacial Thermals","Wilderness Flying","Continental Divide","Montana Sky"],photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.67"},,
+  {id:"popoyo-s0",category:"surfing",title:"Popoyo",location:"Managua, Nicaragua",lat:11.3167,lon:-86.2833,ap:"MGA",icon:"🌊",rating:4.62,reviews:4747,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mentawai-islands-s1",category:"surfing",title:"Mentawai Islands",location:"West Sumatra, Indonesia",lat:-1.5833,lon:99.5833,ap:"PDG",icon:"🌊",rating:4.96,reviews:801,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rincon-point-s2",category:"surfing",title:"Rincon Point",location:"Ventura, California",lat:34.3724,lon:-119.4714,ap:"SBA",icon:"🌊",rating:4.86,reviews:666,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"angourie-point-s3",category:"surfing",title:"Angourie Point",location:"New South Wales, Australia",lat:-29.47,lon:153.3742,ap:"BNK",icon:"🌊",rating:4.98,reviews:4463,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waikiki-beach-s4",category:"surfing",title:"Waikiki Beach",location:"Oahu, Hawaii",lat:21.2765,lon:-157.8268,ap:"HNL",icon:"🌊",rating:4.88,reviews:1151,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-heads-s5",category:"surfing",title:"Noosa Heads",location:"Queensland, Australia",lat:-26.3869,lon:153.0972,ap:"MCY",icon:"🌊",rating:4.82,reviews:4603,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sagres-s6",category:"surfing",title:"Sagres",location:"Algarve, Portugal",lat:37.0099,lon:-8.9327,ap:"FAO",icon:"🌊",rating:4.58,reviews:4422,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baler-s7",category:"surfing",title:"Baler",location:"Aurora, Philippines",lat:15.7594,lon:121.5611,ap:"MNL",icon:"🌊",rating:4.93,reviews:3566,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arrifana-s8",category:"surfing",title:"Arrifana",location:"Algarve, Portugal",lat:37.2966,lon:-8.8584,ap:"FAO",icon:"🌊",rating:4.97,reviews:4517,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ocean-beach-pier-s9",category:"surfing",title:"Ocean Beach Pier",location:"San Diego, California",lat:32.749,lon:-117.2548,ap:"SAN",icon:"🌊",rating:4.87,reviews:1747,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taghazout-s10",category:"surfing",title:"Taghazout",location:"Agadir, Morocco",lat:30.5361,lon:-9.7089,ap:"AGA",icon:"🌊",rating:4.85,reviews:3368,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tamarack-beach-s11",category:"surfing",title:"Tamarack Beach",location:"Carlsbad, California",lat:33.1435,lon:-117.3569,ap:"SAN",icon:"🌊",rating:4.99,reviews:3159,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-roca-s12",category:"surfing",title:"Punta Roca",location:"La Libertad, El Salvador",lat:13.5167,lon:-89.3167,ap:"SAL",icon:"🌊",rating:4.71,reviews:4339,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"haleiwa-alii-s13",category:"surfing",title:"Haleiwa Alii",location:"Oahu, Hawaii",lat:21.5978,lon:-158.1044,ap:"HNL",icon:"🌊",rating:4.72,reviews:2130,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"piha-beach-s14",category:"surfing",title:"Piha Beach",location:"Auckland, New Zealand",lat:-36.9603,lon:174.4631,ap:"AKL",icon:"🌊",rating:4.61,reviews:2869,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-maunganui-s15",category:"surfing",title:"Mount Maunganui",location:"Bay of Plenty, New Zealand",lat:-37.6333,lon:176.1833,ap:"TRG",icon:"🌊",rating:4.51,reviews:4637,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"catanduanes-s16",category:"surfing",title:"Catanduanes",location:"Bicol, Philippines",lat:13.6997,lon:124.2451,ap:"VRC",icon:"🌊",rating:4.61,reviews:1904,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matanzas-s17",category:"surfing",title:"Matanzas",location:"Valparaiso, Chile",lat:-33.95,lon:-71.8833,ap:"SCL",icon:"🌊",rating:4.5,reviews:582,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"supertubos-peniche-s18",category:"surfing",title:"Supertubos Peniche",location:"Leiria, Portugal",lat:39.3583,lon:-9.3828,ap:"LIS",icon:"🌊",rating:4.61,reviews:357,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-s19",category:"surfing",title:"Anchor Point",location:"Agadir, Morocco",lat:30.5478,lon:-9.7208,ap:"AGA",icon:"🌊",rating:4.92,reviews:680,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernando-de-noronha-s20",category:"surfing",title:"Fernando de Noronha",location:"Pernambuco, Brazil",lat:-3.8569,lon:-32.4263,ap:"FEN",icon:"🌊",rating:4.75,reviews:2381,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-fiji-s21",category:"surfing",title:"Cloudbreak Fiji",location:"Tavarua, Fiji",lat:-17.85,lon:177.1833,ap:"NAN",icon:"🌊",rating:4.83,reviews:1855,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"indicator-s22",category:"surfing",title:"Indicator",location:"Santa Barbara, California",lat:34.4048,lon:-119.6864,ap:"SBA",icon:"🌊",rating:4.76,reviews:4777,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsurigasaki-s23",category:"surfing",title:"Tsurigasaki",location:"Chiba, Japan",lat:35.4167,lon:140.45,ap:"NRT",icon:"🌊",rating:4.78,reviews:2090,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pasta-point-s24",category:"surfing",title:"Pasta Point",location:"North Male Atoll, Maldives",lat:4.5167,lon:73.3333,ap:"MLE",icon:"🌊",rating:4.88,reviews:3434,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pichilemu-s25",category:"surfing",title:"Pichilemu",location:"O'Higgins, Chile",lat:-34.3887,lon:-71.9985,ap:"SSC",icon:"🌊",rating:4.59,reviews:894,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snappers-gold-coast-s26",category:"surfing",title:"Snappers Gold Coast",location:"Gold Coast, Australia",lat:-28.1667,lon:153.55,ap:"OOL",icon:"🌊",rating:4.82,reviews:3002,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"capbreton-s27",category:"surfing",title:"Capbreton",location:"Landes, France",lat:43.644,lon:-1.4381,ap:"BIQ",icon:"🌊",rating:4.71,reviews:3925,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fanore-s28",category:"surfing",title:"Fanore",location:"Clare, Ireland",lat:53.1219,lon:-9.2972,ap:"SNN",icon:"🌊",rating:4.92,reviews:543,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"croyde-bay-s29",category:"surfing",title:"Croyde Bay",location:"Devon, England",lat:51.1333,lon:-4.2333,ap:"EXT",icon:"🌊",rating:4.83,reviews:906,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trestles-s30",category:"surfing",title:"Trestles",location:"San Clemente, California",lat:33.3878,lon:-117.58,ap:"SNA",icon:"🌊",rating:4.53,reviews:2879,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nias-island-s31",category:"surfing",title:"Nias Island",location:"North Sumatra, Indonesia",lat:1.14,lon:97.57,ap:"GNS",icon:"🌊",rating:4.89,reviews:995,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chiba-surfing-s32",category:"surfing",title:"Chiba Surfing",location:"Chiba, Japan",lat:35.5333,lon:140.3167,ap:"NRT",icon:"🌊",rating:4.62,reviews:1658,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zicatela-s33",category:"surfing",title:"Zicatela",location:"Oaxaca, Mexico",lat:15.8564,lon:-97.0744,ap:"PXM",icon:"🌊",rating:4.76,reviews:1248,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"uluwatu-s34",category:"surfing",title:"Uluwatu",location:"Bali, Indonesia",lat:-8.8295,lon:115.0879,ap:"DPS",icon:"🌊",rating:4.71,reviews:2381,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arugam-bay-s35",category:"surfing",title:"Arugam Bay",location:"Eastern Province, Sri Lanka",lat:6.8484,lon:81.8344,ap:"KCT",icon:"🌊",rating:4.73,reviews:717,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"safi-s36",category:"surfing",title:"Safi",location:"Marrakech-Safi, Morocco",lat:32.2994,lon:-9.2372,ap:"RAK",icon:"🌊",rating:4.72,reviews:4608,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mundaka-s37",category:"surfing",title:"Mundaka",location:"Basque Country, Spain",lat:43.404,lon:-2.698,ap:"BIO",icon:"🌊",rating:4.55,reviews:4528,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kovalam-s38",category:"surfing",title:"Kovalam",location:"Kerala, India",lat:8.398,lon:76.978,ap:"TRV",icon:"🌊",rating:4.91,reviews:864,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunset-beach-s39",category:"surfing",title:"Sunset Beach",location:"Oahu, Hawaii",lat:21.6781,lon:-158.0497,ap:"HNL",icon:"🌊",rating:4.95,reviews:2036,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huanchaco-s40",category:"surfing",title:"Huanchaco",location:"La Libertad, Peru",lat:-8.0875,lon:-79.1186,ap:"TRU",icon:"🌊",rating:4.58,reviews:4078,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"malibu-surfrider-s41",category:"surfing",title:"Malibu Surfrider",location:"Malibu, California",lat:34.037,lon:-118.6782,ap:"LAX",icon:"🌊",rating:4.74,reviews:3385,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gisborne-s42",category:"surfing",title:"Gisborne",location:"Gisborne, New Zealand",lat:-38.6669,lon:178.0175,ap:"GIS",icon:"🌊",rating:4.94,reviews:1448,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"weligama-s43",category:"surfing",title:"Weligama",location:"Southern Province, Sri Lanka",lat:5.973,lon:80.426,ap:"CMB",icon:"🌊",rating:4.69,reviews:3298,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ubatuba-s44",category:"surfing",title:"Ubatuba",location:"Sao Paulo, Brazil",lat:-23.4336,lon:-45.0839,ap:"GRU",icon:"🌊",rating:4.63,reviews:3827,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"costa-de-caparica-s45",category:"surfing",title:"Costa de Caparica",location:"Lisbon, Portugal",lat:38.5267,lon:-9.2395,ap:"LIS",icon:"🌊",rating:4.64,reviews:4652,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-zonte-s46",category:"surfing",title:"El Zonte",location:"La Libertad, El Salvador",lat:13.5133,lon:-89.4167,ap:"SAL",icon:"🌊",rating:4.82,reviews:4086,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cotillo-s47",category:"surfing",title:"Cotillo",location:"Fuerteventura, Spain",lat:28.682,lon:-14.0199,ap:"FUE",icon:"🌊",rating:4.58,reviews:2530,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"margaret-river-s48",category:"surfing",title:"Margaret River",location:"Western Australia, Australia",lat:-33.9635,lon:114.9831,ap:"BUS",icon:"🌊",rating:4.61,reviews:579,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"miyazaki-surf-s49",category:"surfing",title:"Miyazaki Surf",location:"Miyazaki, Japan",lat:31.9167,lon:131.4167,ap:"KMI",icon:"🌊",rating:4.78,reviews:4541,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"yallingup-s50",category:"surfing",title:"Yallingup",location:"Western Australia, Australia",lat:-33.6487,lon:115.0333,ap:"BUS",icon:"🌊",rating:4.53,reviews:2669,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"biarritz-grande-plage-s51",category:"surfing",title:"Biarritz Grande Plage",location:"Basque Country, France",lat:43.4832,lon:-1.5586,ap:"BIQ",icon:"🌊",rating:4.53,reviews:4885,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-union-s52",category:"surfing",title:"La Union",location:"Ilocos Sur, Philippines",lat:16.6159,lon:120.3209,ap:"MNL",icon:"🌊",rating:4.73,reviews:4450,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seignosse-s53",category:"surfing",title:"Seignosse",location:"Landes, France",lat:43.6897,lon:-1.4122,ap:"BIQ",icon:"🌊",rating:4.58,reviews:4260,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puerto-escondido-s54",category:"surfing",title:"Puerto Escondido",location:"Oaxaca, Mexico",lat:15.8632,lon:-97.0722,ap:"PXM",icon:"🌊",rating:4.54,reviews:1622,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nosara-s55",category:"surfing",title:"Nosara",location:"Guanacaste, Costa Rica",lat:9.9775,lon:-85.6577,ap:"LIR",icon:"🌊",rating:4.53,reviews:656,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thurso-east-s56",category:"surfing",title:"Thurso East",location:"Scotland",lat:58.5933,lon:-3.5175,ap:"INV",icon:"🌊",rating:4.83,reviews:2026,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laniakea-beach-s57",category:"surfing",title:"Laniakea Beach",location:"Oahu, Hawaii",lat:21.6189,lon:-158.0823,ap:"HNL",icon:"🌊",rating:4.7,reviews:4766,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"varkala-s58",category:"surfing",title:"Varkala",location:"Kerala, India",lat:8.7333,lon:76.7167,ap:"TRV",icon:"🌊",rating:4.62,reviews:4970,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mirissa-s59",category:"surfing",title:"Mirissa",location:"Southern Province, Sri Lanka",lat:5.9456,lon:80.4705,ap:"CMB",icon:"🌊",rating:4.52,reviews:771,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"strandhill-s60",category:"surfing",title:"Strandhill",location:"Sligo, Ireland",lat:54.2692,lon:-8.5986,ap:"NOC",icon:"🌊",rating:4.71,reviews:4881,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bells-beach-s61",category:"surfing",title:"Bells Beach",location:"Victoria, Australia",lat:-38.3667,lon:144.2833,ap:"MEL",icon:"🌊",rating:4.78,reviews:2691,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moliets-s62",category:"surfing",title:"Moliets",location:"Landes, France",lat:43.8583,lon:-1.375,ap:"BIQ",icon:"🌊",rating:4.96,reviews:1773,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-mita-s63",category:"surfing",title:"Punta Mita",location:"Nayarit, Mexico",lat:20.7736,lon:-105.5261,ap:"PVR",icon:"🌊",rating:4.83,reviews:2673,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pavones-s64",category:"surfing",title:"Pavones",location:"Puntarenas, Costa Rica",lat:8.3967,lon:-83.1281,ap:"SJO",icon:"🌊",rating:4.62,reviews:3342,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muizenberg-s65",category:"surfing",title:"Muizenberg",location:"Cape Town, South Africa",lat:-34.1025,lon:18.4738,ap:"CPT",icon:"🌊",rating:4.56,reviews:2557,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-s66",category:"surfing",title:"G-Land",location:"East Java, Indonesia",lat:-8.4667,lon:114.3167,ap:"SUB",icon:"🌊",rating:4.72,reviews:694,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chicama-left-s67",category:"surfing",title:"Chicama Left",location:"La Libertad, Peru",lat:-7.6917,lon:-79.4556,ap:"TRU",icon:"🌊",rating:4.5,reviews:4712,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"florianopolis-s68",category:"surfing",title:"Florianopolis",location:"Santa Catarina, Brazil",lat:-27.5954,lon:-48.548,ap:"FLN",icon:"🌊",rating:4.99,reviews:700,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hiriketiya-s69",category:"surfing",title:"Hiriketiya",location:"Southern Province, Sri Lanka",lat:5.9694,lon:80.5303,ap:"CMB",icon:"🌊",rating:4.76,reviews:4244,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snapper-rocks-s70",category:"surfing",title:"Snapper Rocks",location:"Gold Coast, Australia",lat:-28.1667,lon:153.55,ap:"OOL",icon:"🌊",rating:4.63,reviews:2959,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mavericks-s71",category:"surfing",title:"Mavericks",location:"Half Moon Bay, California",lat:37.4958,lon:-122.4985,ap:"SFO",icon:"🌊",rating:4.93,reviews:2101,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-maderas-s72",category:"surfing",title:"Playa Maderas",location:"Managua, Nicaragua",lat:11.35,lon:-86.15,ap:"MGA",icon:"🌊",rating:4.68,reviews:1392,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-de-lobos-s73",category:"surfing",title:"Punta de Lobos",location:"Pichilemu, Chile",lat:-34.4267,lon:-72.015,ap:"SSC",icon:"🌊",rating:4.71,reviews:4550,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"guincho-s74",category:"surfing",title:"Guincho",location:"Lisbon, Portugal",lat:38.7258,lon:-9.474,ap:"LIS",icon:"🌊",rating:4.84,reviews:4433,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anglet-s75",category:"surfing",title:"Anglet",location:"Basque Country, France",lat:43.4833,lon:-1.5167,ap:"BIQ",icon:"🌊",rating:4.5,reviews:4643,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sayulita-s76",category:"surfing",title:"Sayulita",location:"Nayarit, Mexico",lat:20.8688,lon:-105.4367,ap:"PVR",icon:"🌊",rating:4.65,reviews:948,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hossegor-s77",category:"surfing",title:"Hossegor",location:"Landes, France",lat:43.6656,lon:-1.4333,ap:"BIQ",icon:"🌊",rating:4.96,reviews:1200,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"salt-creek-s78",category:"surfing",title:"Salt Creek",location:"Laguna Beach, California",lat:33.4973,lon:-117.7165,ap:"SNA",icon:"🌊",rating:4.63,reviews:976,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"soup-bowl-s79",category:"surfing",title:"Soup Bowl",location:"Bathsheba, Barbados",lat:13.2028,lon:-59.5228,ap:"BGI",icon:"🌊",rating:4.86,reviews:1373,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bundoran-s80",category:"surfing",title:"Bundoran",location:"Donegal, Ireland",lat:54.4778,lon:-8.2833,ap:"NOC",icon:"🌊",rating:4.63,reviews:1825,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gerupuk-s81",category:"surfing",title:"Gerupuk",location:"Lombok, Indonesia",lat:-8.8747,lon:116.3052,ap:"LOP",icon:"🌊",rating:4.85,reviews:1767,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chickens-s82",category:"surfing",title:"Chickens",location:"North Male Atoll, Maldives",lat:4.4167,lon:73.4333,ap:"MLE",icon:"🌊",rating:4.84,reviews:2262,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makaha-beach-s83",category:"surfing",title:"Makaha Beach",location:"Oahu, Hawaii",lat:21.4736,lon:-158.2218,ap:"HNL",icon:"🌊",rating:4.75,reviews:2157,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"siargao-cloud-9-s84",category:"surfing",title:"Siargao Cloud 9",location:"Surigao del Norte, Philippines",lat:9.8483,lon:126.1153,ap:"IAO",icon:"🌊",rating:4.94,reviews:516,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-s85",category:"surfing",title:"Cloudbreak",location:"Tavarua, Fiji",lat:-17.85,lon:177.1833,ap:"NAN",icon:"🌊",rating:4.55,reviews:3569,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lennox-head-s86",category:"surfing",title:"Lennox Head",location:"New South Wales, Australia",lat:-28.798,lon:153.5895,ap:"BNK",icon:"🌊",rating:4.91,reviews:461,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-taghazout-s87",category:"surfing",title:"Anchor Point Taghazout",location:"Agadir, Morocco",lat:30.54,lon:-9.712,ap:"AGA",icon:"🌊",rating:4.5,reviews:1171,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polzeath-s88",category:"surfing",title:"Polzeath",location:"Cornwall, England",lat:50.5767,lon:-4.905,ap:"NQY",icon:"🌊",rating:4.81,reviews:2245,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whangamata-s89",category:"surfing",title:"Whangamata",location:"Waikato, New Zealand",lat:-37.2039,lon:175.8722,ap:"HLZ",icon:"🌊",rating:4.58,reviews:3719,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maresias-s90",category:"surfing",title:"Maresias",location:"Sao Paulo, Brazil",lat:-23.7929,lon:-45.5586,ap:"GRU",icon:"🌊",rating:4.77,reviews:3603,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-ticla-s91",category:"surfing",title:"La Ticla",location:"Michoacan, Mexico",lat:18.35,lon:-103.6333,ap:"ZLO",icon:"🌊",rating:4.77,reviews:1016,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mancora-s92",category:"surfing",title:"Mancora",location:"Piura, Peru",lat:-4.105,lon:-81.0442,ap:"TYL",icon:"🌊",rating:4.54,reviews:1321,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"goa-vagator-s93",category:"surfing",title:"Goa Vagator",location:"Goa, India",lat:15.6037,lon:73.7438,ap:"GOI",icon:"🌊",rating:4.77,reviews:3124,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-azul-s94",category:"surfing",title:"Cerro Azul",location:"Lima, Peru",lat:-13.0231,lon:-76.4769,ap:"LIM",icon:"🌊",rating:4.79,reviews:1313,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"raglan-s95",category:"surfing",title:"Raglan",location:"Waikato, New Zealand",lat:-37.8043,lon:174.8756,ap:"HLZ",icon:"🌊",rating:4.71,reviews:442,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"elands-bay-s96",category:"surfing",title:"Elands Bay",location:"Western Cape, South Africa",lat:-32.3,lon:18.3167,ap:"CPT",icon:"🌊",rating:4.65,reviews:426,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"imsouane-s97",category:"surfing",title:"Imsouane",location:"Agadir, Morocco",lat:30.8417,lon:-9.8264,ap:"AGA",icon:"🌊",rating:4.94,reviews:1820,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huntington-beach-s98",category:"surfing",title:"Huntington Beach",location:"Orange County, California",lat:33.6603,lon:-118.0004,ap:"LAX",icon:"🌊",rating:4.83,reviews:942,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mal-pais-s99",category:"surfing",title:"Mal Pais",location:"Puntarenas, Costa Rica",lat:9.6428,lon:-85.1739,ap:"SJO",icon:"🌊",rating:4.67,reviews:4686,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bidart-s100",category:"surfing",title:"Bidart",location:"Basque Country, France",lat:43.4371,lon:-1.5877,ap:"BIQ",icon:"🌊",rating:4.93,reviews:3429,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hanalei-bay-s101",category:"surfing",title:"Hanalei Bay",location:"Kauai, Hawaii",lat:22.2077,lon:-159.5006,ap:"LIH",icon:"🌊",rating:4.98,reviews:1366,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fuerteventura-north-s102",category:"surfing",title:"Fuerteventura North",location:"Canary Islands, Spain",lat:28.75,lon:-14.0,ap:"FUE",icon:"🌊",rating:4.95,reviews:2039,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"porthleven-s103",category:"surfing",title:"Porthleven",location:"Cornwall, England",lat:50.0819,lon:-5.3139,ap:"NQY",icon:"🌊",rating:4.92,reviews:1550,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"new-pier-durban-s104",category:"surfing",title:"New Pier Durban",location:"KwaZulu-Natal, South Africa",lat:-29.8651,lon:31.0438,ap:"DUR",icon:"🌊",rating:4.93,reviews:303,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kirra-beach-s105",category:"surfing",title:"Kirra Beach",location:"Gold Coast, Australia",lat:-28.1658,lon:153.5415,ap:"OOL",icon:"🌊",rating:4.59,reviews:2821,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rodiles-s106",category:"surfing",title:"Rodiles",location:"Asturias, Spain",lat:43.5333,lon:-5.4167,ap:"OVD",icon:"🌊",rating:4.88,reviews:3472,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"newquay-fistral-s107",category:"surfing",title:"Newquay Fistral",location:"Cornwall, England",lat:50.4236,lon:-5.091,ap:"NQY",icon:"🌊",rating:4.89,reviews:2132,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"padang-padang-s108",category:"surfing",title:"Padang Padang",location:"Bali, Indonesia",lat:-8.8137,lon:115.0896,ap:"DPS",icon:"🌊",rating:4.63,reviews:985,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"canggu-s109",category:"surfing",title:"Canggu",location:"Bali, Indonesia",lat:-8.6478,lon:115.1385,ap:"DPS",icon:"🌊",rating:4.69,reviews:417,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niijima-island-s110",category:"surfing",title:"Niijima Island",location:"Tokyo, Japan",lat:34.37,lon:139.27,ap:"HND",icon:"🌊",rating:4.92,reviews:1922,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kuta-bali-s111",category:"surfing",title:"Kuta Bali",location:"Bali, Indonesia",lat:-8.7184,lon:115.1686,ap:"DPS",icon:"🌊",rating:4.6,reviews:3870,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"todo-santos-s112",category:"surfing",title:"Todo Santos",location:"Baja California Sur, Mexico",lat:23.4464,lon:-110.2261,ap:"SJD",icon:"🌊",rating:4.67,reviews:1964,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-quemao-s113",category:"surfing",title:"El Quemao",location:"Lanzarote, Spain",lat:29.065,lon:-13.594,ap:"ACE",icon:"🌊",rating:4.61,reviews:1682,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"peniche-s114",category:"surfing",title:"Peniche",location:"Leiria, Portugal",lat:39.3546,lon:-9.3793,ap:"LIS",icon:"🌊",rating:4.7,reviews:2382,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-java-s115",category:"surfing",title:"G-Land Java",location:"East Java, Indonesia",lat:-8.4667,lon:114.3167,ap:"SUB",icon:"🌊",rating:4.92,reviews:2386,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keramas-s116",category:"surfing",title:"Keramas",location:"Bali, Indonesia",lat:-8.5844,lon:115.3149,ap:"DPS",icon:"🌊",rating:4.67,reviews:4273,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"poipu-beach-s117",category:"surfing",title:"Poipu Beach",location:"Kauai, Hawaii",lat:21.8723,lon:-159.4639,ap:"LIH",icon:"🌊",rating:4.7,reviews:4492,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jaco-beach-s118",category:"surfing",title:"Jaco Beach",location:"Puntarenas, Costa Rica",lat:9.6156,lon:-84.6271,ap:"SJO",icon:"🌊",rating:4.66,reviews:326,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hikkaduwa-s119",category:"surfing",title:"Hikkaduwa",location:"Southern Province, Sri Lanka",lat:6.139,lon:80.0992,ap:"CMB",icon:"🌊",rating:4.56,reviews:2239,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"santa-teresa-s120",category:"surfing",title:"Santa Teresa",location:"Puntarenas, Costa Rica",lat:9.6367,lon:-85.1696,ap:"SJO",icon:"🌊",rating:4.59,reviews:2274,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tunnels-beach-s121",category:"surfing",title:"Tunnels Beach",location:"Kauai, Hawaii",lat:22.2219,lon:-159.5655,ap:"LIH",icon:"🌊",rating:4.52,reviews:4987,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"byron-bay-s122",category:"surfing",title:"Byron Bay",location:"New South Wales, Australia",lat:-28.6474,lon:153.6178,ap:"BNK",icon:"🌊",rating:4.71,reviews:2669,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-rosa-s123",category:"surfing",title:"Praia do Rosa",location:"Santa Catarina, Brazil",lat:-28.1328,lon:-48.6594,ap:"FLN",icon:"🌊",rating:4.71,reviews:4289,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pismo-beach-pier-s124",category:"surfing",title:"Pismo Beach Pier",location:"Pismo Beach, California",lat:35.1427,lon:-120.6413,ap:"SBP",icon:"🌊",rating:4.56,reviews:4823,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zarautz-s125",category:"surfing",title:"Zarautz",location:"Basque Country, Spain",lat:43.2833,lon:-2.1667,ap:"BIO",icon:"🌊",rating:4.59,reviews:463,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sandy-beach-s126",category:"surfing",title:"Sandy Beach",location:"Oahu, Hawaii",lat:21.2966,lon:-157.6728,ap:"HNL",icon:"🌊",rating:4.85,reviews:113,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamer-lane-s127",category:"surfing",title:"Steamer Lane",location:"Santa Cruz, California",lat:36.9538,lon:-122.0258,ap:"SJC",icon:"🌊",rating:4.75,reviews:4510,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bingin-s128",category:"surfing",title:"Bingin",location:"Bali, Indonesia",lat:-8.8219,lon:115.0937,ap:"DPS",icon:"🌊",rating:4.84,reviews:1714,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dungeons-s129",category:"surfing",title:"Dungeons",location:"Cape Town, South Africa",lat:-34.1378,lon:18.3389,ap:"CPT",icon:"🌊",rating:4.68,reviews:673,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lacanau-s130",category:"surfing",title:"Lacanau",location:"Gironde, France",lat:44.9833,lon:-1.1944,ap:"BOD",icon:"🌊",rating:4.96,reviews:2804,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"blacks-beach-s131",category:"surfing",title:"Blacks Beach",location:"San Diego, California",lat:32.8861,lon:-117.2534,ap:"SAN",icon:"🌊",rating:4.81,reviews:1120,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saquarema-s132",category:"surfing",title:"Saquarema",location:"Rio de Janeiro, Brazil",lat:-22.9203,lon:-42.51,ap:"GIG",icon:"🌊",rating:4.85,reviews:2560,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cardiff-reef-s133",category:"surfing",title:"Cardiff Reef",location:"Cardiff-by-the-Sea, California",lat:33.0275,lon:-117.2816,ap:"SAN",icon:"🌊",rating:4.75,reviews:3445,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-hermosa-s134",category:"surfing",title:"Punta Hermosa",location:"Lima, Peru",lat:-12.3561,lon:-76.8378,ap:"LIM",icon:"🌊",rating:4.66,reviews:2522,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kona-coast-s135",category:"surfing",title:"Kona Coast",location:"Big Island, Hawaii",lat:19.6292,lon:-155.9969,ap:"KOA",icon:"🌊",rating:4.77,reviews:1671,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"killer-point-s136",category:"surfing",title:"Killer Point",location:"Agadir, Morocco",lat:30.6008,lon:-9.6875,ap:"AGA",icon:"🌊",rating:4.71,reviews:3205,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cave-rock-s137",category:"surfing",title:"Cave Rock",location:"Durban, South Africa",lat:-29.9167,lon:31.05,ap:"DUR",icon:"🌊",rating:4.83,reviews:1525,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-bay-s138",category:"surfing",title:"Big Bay",location:"Cape Town, South Africa",lat:-33.7153,lon:18.465,ap:"CPT",icon:"🌊",rating:4.8,reviews:2565,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bodega-bay-s139",category:"surfing",title:"Bodega Bay",location:"Sonoma, California",lat:38.3327,lon:-123.0526,ap:"SFO",icon:"🌊",rating:4.7,reviews:103,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"itacare-s140",category:"surfing",title:"Itacare",location:"Bahia, Brazil",lat:-14.2778,lon:-38.9986,ap:"IOS",icon:"🌊",rating:4.65,reviews:1821,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"teahupoo-s141",category:"surfing",title:"Teahupoo",location:"Tahiti, French Polynesia",lat:-17.8467,lon:-149.2769,ap:"PPT",icon:"🌊",rating:4.71,reviews:4851,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nias-rock-s142",category:"surfing",title:"Nias Rock",location:"Nias Island, Indonesia",lat:1.1,lon:97.55,ap:"GNS",icon:"🌊",rating:4.8,reviews:2739,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sopelana-s143",category:"surfing",title:"Sopelana",location:"Basque Country, Spain",lat:43.3978,lon:-2.9822,ap:"BIO",icon:"🌊",rating:4.73,reviews:3722,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"restaurants-tahiti-s144",category:"surfing",title:"Restaurants Tahiti",location:"Tahiti, French Polynesia",lat:-17.85,lon:-149.2833,ap:"PPT",icon:"🌊",rating:4.83,reviews:4287,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bondi-beach-s145",category:"surfing",title:"Bondi Beach",location:"Sydney, Australia",lat:-33.8908,lon:151.2744,ap:"SYD",icon:"🌊",rating:4.73,reviews:1490,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rincon-puerto-rico-s146",category:"surfing",title:"Rincon Puerto Rico",location:"Puerto Rico",lat:18.3433,lon:-67.2564,ap:"BQN",icon:"🌊",rating:4.82,reviews:2424,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jeffreys-bay-s147",category:"surfing",title:"Jeffreys Bay",location:"Eastern Cape, South Africa",lat:-34.0528,lon:24.9233,ap:"PLZ",icon:"🌊",rating:4.75,reviews:2845,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cabarete-s148",category:"surfing",title:"Cabarete",location:"Dominican Republic",lat:19.7614,lon:-70.4125,ap:"POP",icon:"🌊",rating:4.55,reviews:2024,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"manly-beach-s149",category:"surfing",title:"Manly Beach",location:"Sydney, Australia",lat:-33.7969,lon:151.2884,ap:"SYD",icon:"🌊",rating:4.83,reviews:1940,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waimea-bay-s150",category:"surfing",title:"Waimea Bay",location:"Oahu, Hawaii",lat:21.6434,lon:-158.0643,ap:"HNL",icon:"🌊",rating:4.9,reviews:1307,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hash-point-s151",category:"surfing",title:"Hash Point",location:"Agadir, Morocco",lat:30.5256,lon:-9.7156,ap:"AGA",icon:"🌊",rating:4.51,reviews:2105,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sultans-s152",category:"surfing",title:"Sultans",location:"North Male Atoll, Maldives",lat:4.3333,lon:73.5833,ap:"MLE",icon:"🌊",rating:4.98,reviews:696,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chicama-s153",category:"surfing",title:"Chicama",location:"La Libertad, Peru",lat:-7.6933,lon:-79.4567,ap:"TRU",icon:"🌊",rating:4.72,reviews:4815,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"macaronis-s154",category:"surfing",title:"Macaronis",location:"Mentawai, Indonesia",lat:-2.1167,lon:99.5333,ap:"PDG",icon:"🌊",rating:4.6,reviews:3245,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ensenada-s155",category:"surfing",title:"Ensenada",location:"Baja California, Mexico",lat:31.8676,lon:-116.596,ap:"TIJ",icon:"🌊",rating:4.74,reviews:2098,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hossegor-la-nord-s156",category:"surfing",title:"Hossegor La Nord",location:"Landes, France",lat:43.6806,lon:-1.44,ap:"BIQ",icon:"🌊",rating:4.57,reviews:145,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"desert-point-s157",category:"surfing",title:"Desert Point",location:"Lombok, Indonesia",lat:-8.7831,lon:116.0231,ap:"LOP",icon:"🌊",rating:4.94,reviews:973,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saunton-sands-s158",category:"surfing",title:"Saunton Sands",location:"Devon, England",lat:51.1083,lon:-4.2167,ap:"EXT",icon:"🌊",rating:4.88,reviews:1892,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mundaka-left-s159",category:"surfing",title:"Mundaka Left",location:"Basque Country, Spain",lat:43.4042,lon:-2.6979,ap:"BIO",icon:"🌊",rating:4.59,reviews:4343,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-sunzal-s160",category:"surfing",title:"El Sunzal",location:"La Libertad, El Salvador",lat:13.5167,lon:-89.3833,ap:"SAL",icon:"🌊",rating:4.73,reviews:4666,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shonan-beach-s161",category:"surfing",title:"Shonan Beach",location:"Kanagawa, Japan",lat:35.3156,lon:139.4825,ap:"HND",icon:"🌊",rating:4.62,reviews:1094,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ericeira-s162",category:"surfing",title:"Ericeira",location:"Lisbon, Portugal",lat:38.9641,lon:-9.4199,ap:"LIS",icon:"🌊",rating:4.72,reviews:3906,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lances-right-s163",category:"surfing",title:"Lances Right",location:"Mentawai, Indonesia",lat:-2.2167,lon:99.4833,ap:"PDG",icon:"🌊",rating:4.83,reviews:4678,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pacifica-pier-s164",category:"surfing",title:"Pacifica Pier",location:"Pacifica, California",lat:37.6135,lon:-122.4927,ap:"SFO",icon:"🌊",rating:4.79,reviews:3725,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hookipa-beach-s165",category:"surfing",title:"Hookipa Beach",location:"Maui, Hawaii",lat:20.9397,lon:-156.3532,ap:"OGG",icon:"🌊",rating:4.8,reviews:4235,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jaws-peahi-s166",category:"surfing",title:"Jaws Peahi",location:"Maui, Hawaii",lat:20.9412,lon:-156.3187,ap:"OGG",icon:"🌊",rating:4.71,reviews:4588,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tamarindo-s167",category:"surfing",title:"Tamarindo",location:"Guanacaste, Costa Rica",lat:10.2997,lon:-85.8413,ap:"LIR",icon:"🌊",rating:4.72,reviews:1403,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jailbreaks-s168",category:"surfing",title:"Jailbreaks",location:"South Male Atoll, Maldives",lat:3.8,lon:73.3833,ap:"MLE",icon:"🌊",rating:4.86,reviews:3988,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ventura-pier-s169",category:"surfing",title:"Ventura Pier",location:"Ventura, California",lat:34.2674,lon:-119.2863,ap:"SBA",icon:"🌊",rating:4.72,reviews:2125,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lahinch-s170",category:"surfing",title:"Lahinch",location:"Clare, Ireland",lat:52.9297,lon:-9.3456,ap:"SNN",icon:"🌊",rating:4.91,reviews:2371,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"leo-carrillo-s171",category:"surfing",title:"Leo Carrillo",location:"Malibu, California",lat:34.0453,lon:-118.936,ap:"LAX",icon:"🌊",rating:4.88,reviews:4370,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"burleigh-heads-s172",category:"surfing",title:"Burleigh Heads",location:"Gold Coast, Australia",lat:-28.0872,lon:153.458,ap:"OOL",icon:"🌊",rating:4.74,reviews:2059,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nazare-s173",category:"surfing",title:"Nazare",location:"Leiria, Portugal",lat:39.5986,lon:-9.0707,ap:"LIS",icon:"🌊",rating:4.63,reviews:734,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"carrapateira-s174",category:"surfing",title:"Carrapateira",location:"Algarve, Portugal",lat:37.1963,lon:-8.9021,ap:"FAO",icon:"🌊",rating:4.85,reviews:2020,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"essaouira-s175",category:"surfing",title:"Essaouira",location:"Marrakech, Morocco",lat:31.5125,lon:-9.77,ap:"ESU",icon:"🌊",rating:4.63,reviews:2719,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"honolua-bay-s176",category:"surfing",title:"Honolua Bay",location:"Maui, Hawaii",lat:21.0139,lon:-156.6353,ap:"OGG",icon:"🌊",rating:4.94,reviews:760,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pleasure-point-s177",category:"surfing",title:"Pleasure Point",location:"Santa Cruz, California",lat:36.9595,lon:-121.9795,ap:"SJC",icon:"🌊",rating:4.57,reviews:1994,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"goa-baga-s178",category:"surfing",title:"Goa Baga",location:"Goa, India",lat:15.5564,lon:73.7526,ap:"GOI",icon:"🌊",rating:4.69,reviews:1351,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"popoyo-south-s179",category:"surfing",title:"Popoyo South",location:"Managua, Nicaragua",lat:11.3187,lon:-86.2813,ap:"MGA",icon:"🌊",rating:4.85,reviews:626,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mentawai-islands-south-s180",category:"surfing",title:"Mentawai Islands South",location:"West Sumatra, Indonesia",lat:-1.5813,lon:99.5853,ap:"PDG",icon:"🌊",rating:4.7,reviews:2810,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rincon-point-south-s181",category:"surfing",title:"Rincon Point South",location:"Ventura, California",lat:34.3744,lon:-119.4694,ap:"SBA",icon:"🌊",rating:4.77,reviews:3506,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"angourie-point-south-s182",category:"surfing",title:"Angourie Point South",location:"New South Wales, Australia",lat:-29.468,lon:153.3762,ap:"BNK",icon:"🌊",rating:4.53,reviews:3541,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waikiki-beach-south-s183",category:"surfing",title:"Waikiki Beach South",location:"Oahu, Hawaii",lat:21.2785,lon:-157.8248,ap:"HNL",icon:"🌊",rating:4.69,reviews:4884,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-heads-south-s184",category:"surfing",title:"Noosa Heads South",location:"Queensland, Australia",lat:-26.3849,lon:153.0992,ap:"MCY",icon:"🌊",rating:4.96,reviews:260,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sagres-south-s185",category:"surfing",title:"Sagres South",location:"Algarve, Portugal",lat:37.0119,lon:-8.9307,ap:"FAO",icon:"🌊",rating:4.92,reviews:4816,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baler-south-s186",category:"surfing",title:"Baler South",location:"Aurora, Philippines",lat:15.7614,lon:121.5631,ap:"MNL",icon:"🌊",rating:4.69,reviews:148,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arrifana-south-s187",category:"surfing",title:"Arrifana South",location:"Algarve, Portugal",lat:37.2986,lon:-8.8564,ap:"FAO",icon:"🌊",rating:4.96,reviews:2546,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ocean-beach-pier-south-s188",category:"surfing",title:"Ocean Beach Pier South",location:"San Diego, California",lat:32.751,lon:-117.2528,ap:"SAN",icon:"🌊",rating:4.87,reviews:3532,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taghazout-south-s189",category:"surfing",title:"Taghazout South",location:"Agadir, Morocco",lat:30.5381,lon:-9.7069,ap:"AGA",icon:"🌊",rating:4.76,reviews:4573,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tamarack-beach-south-s190",category:"surfing",title:"Tamarack Beach South",location:"Carlsbad, California",lat:33.1455,lon:-117.3549,ap:"SAN",icon:"🌊",rating:4.89,reviews:1906,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-roca-south-s191",category:"surfing",title:"Punta Roca South",location:"La Libertad, El Salvador",lat:13.5187,lon:-89.3147,ap:"SAL",icon:"🌊",rating:4.74,reviews:2335,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"haleiwa-alii-south-s192",category:"surfing",title:"Haleiwa Alii South",location:"Oahu, Hawaii",lat:21.5998,lon:-158.1024,ap:"HNL",icon:"🌊",rating:4.71,reviews:337,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"piha-beach-south-s193",category:"surfing",title:"Piha Beach South",location:"Auckland, New Zealand",lat:-36.9583,lon:174.4651,ap:"AKL",icon:"🌊",rating:4.69,reviews:3412,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-maunganui-south-s194",category:"surfing",title:"Mount Maunganui South",location:"Bay of Plenty, New Zealand",lat:-37.6313,lon:176.1853,ap:"TRG",icon:"🌊",rating:4.85,reviews:3928,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"catanduanes-south-s195",category:"surfing",title:"Catanduanes South",location:"Bicol, Philippines",lat:13.7017,lon:124.2471,ap:"VRC",icon:"🌊",rating:4.95,reviews:4475,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matanzas-south-s196",category:"surfing",title:"Matanzas South",location:"Valparaiso, Chile",lat:-33.948,lon:-71.8813,ap:"SCL",icon:"🌊",rating:4.51,reviews:3327,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"supertubos-peniche-south-s197",category:"surfing",title:"Supertubos Peniche South",location:"Leiria, Portugal",lat:39.3603,lon:-9.3808,ap:"LIS",icon:"🌊",rating:4.79,reviews:322,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-south-s198",category:"surfing",title:"Anchor Point South",location:"Agadir, Morocco",lat:30.5498,lon:-9.7188,ap:"AGA",icon:"🌊",rating:4.54,reviews:3611,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernando-de-noronha-south-s199",category:"surfing",title:"Fernando de Noronha South",location:"Pernambuco, Brazil",lat:-3.8549,lon:-32.4243,ap:"FEN",icon:"🌊",rating:4.57,reviews:3882,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-fiji-south-s200",category:"surfing",title:"Cloudbreak Fiji South",location:"Tavarua, Fiji",lat:-17.848,lon:177.1853,ap:"NAN",icon:"🌊",rating:4.59,reviews:2231,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"indicator-south-s201",category:"surfing",title:"Indicator South",location:"Santa Barbara, California",lat:34.4068,lon:-119.6844,ap:"SBA",icon:"🌊",rating:4.69,reviews:1833,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsurigasaki-south-s202",category:"surfing",title:"Tsurigasaki South",location:"Chiba, Japan",lat:35.4187,lon:140.452,ap:"NRT",icon:"🌊",rating:4.72,reviews:2864,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pasta-point-south-s203",category:"surfing",title:"Pasta Point South",location:"North Male Atoll, Maldives",lat:4.5187,lon:73.3353,ap:"MLE",icon:"🌊",rating:4.87,reviews:3205,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pichilemu-south-s204",category:"surfing",title:"Pichilemu South",location:"O'Higgins, Chile",lat:-34.3867,lon:-71.9965,ap:"SSC",icon:"🌊",rating:4.64,reviews:3553,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snappers-gold-coast-south-s205",category:"surfing",title:"Snappers Gold Coast South",location:"Gold Coast, Australia",lat:-28.1647,lon:153.552,ap:"OOL",icon:"🌊",rating:4.62,reviews:770,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"capbreton-south-s206",category:"surfing",title:"Capbreton South",location:"Landes, France",lat:43.646,lon:-1.4361,ap:"BIQ",icon:"🌊",rating:4.73,reviews:4518,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fanore-south-s207",category:"surfing",title:"Fanore South",location:"Clare, Ireland",lat:53.1239,lon:-9.2952,ap:"SNN",icon:"🌊",rating:4.53,reviews:2966,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"croyde-bay-south-s208",category:"surfing",title:"Croyde Bay South",location:"Devon, England",lat:51.1353,lon:-4.2313,ap:"EXT",icon:"🌊",rating:4.61,reviews:662,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trestles-south-s209",category:"surfing",title:"Trestles South",location:"San Clemente, California",lat:33.3898,lon:-117.578,ap:"SNA",icon:"🌊",rating:4.88,reviews:429,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nias-island-south-s210",category:"surfing",title:"Nias Island South",location:"North Sumatra, Indonesia",lat:1.142,lon:97.572,ap:"GNS",icon:"🌊",rating:4.87,reviews:2125,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chiba-surfing-south-s211",category:"surfing",title:"Chiba Surfing South",location:"Chiba, Japan",lat:35.5353,lon:140.3187,ap:"NRT",icon:"🌊",rating:4.6,reviews:266,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zicatela-south-s212",category:"surfing",title:"Zicatela South",location:"Oaxaca, Mexico",lat:15.8584,lon:-97.0724,ap:"PXM",icon:"🌊",rating:4.8,reviews:2054,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"uluwatu-south-s213",category:"surfing",title:"Uluwatu South",location:"Bali, Indonesia",lat:-8.8275,lon:115.0899,ap:"DPS",icon:"🌊",rating:4.56,reviews:1037,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arugam-bay-south-s214",category:"surfing",title:"Arugam Bay South",location:"Eastern Province, Sri Lanka",lat:6.8504,lon:81.8364,ap:"KCT",icon:"🌊",rating:4.78,reviews:1885,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"safi-south-s215",category:"surfing",title:"Safi South",location:"Marrakech-Safi, Morocco",lat:32.3014,lon:-9.2352,ap:"RAK",icon:"🌊",rating:4.73,reviews:2199,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mundaka-south-s216",category:"surfing",title:"Mundaka South",location:"Basque Country, Spain",lat:43.406,lon:-2.696,ap:"BIO",icon:"🌊",rating:4.88,reviews:1474,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kovalam-south-s217",category:"surfing",title:"Kovalam South",location:"Kerala, India",lat:8.4,lon:76.98,ap:"TRV",icon:"🌊",rating:4.8,reviews:1038,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunset-beach-south-s218",category:"surfing",title:"Sunset Beach South",location:"Oahu, Hawaii",lat:21.6801,lon:-158.0477,ap:"HNL",icon:"🌊",rating:4.88,reviews:1441,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huanchaco-south-s219",category:"surfing",title:"Huanchaco South",location:"La Libertad, Peru",lat:-8.0855,lon:-79.1166,ap:"TRU",icon:"🌊",rating:4.97,reviews:985,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"malibu-surfrider-south-s220",category:"surfing",title:"Malibu Surfrider South",location:"Malibu, California",lat:34.039,lon:-118.6762,ap:"LAX",icon:"🌊",rating:4.78,reviews:2655,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gisborne-south-s221",category:"surfing",title:"Gisborne South",location:"Gisborne, New Zealand",lat:-38.6649,lon:178.0195,ap:"GIS",icon:"🌊",rating:4.78,reviews:3174,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"weligama-south-s222",category:"surfing",title:"Weligama South",location:"Southern Province, Sri Lanka",lat:5.975,lon:80.428,ap:"CMB",icon:"🌊",rating:4.69,reviews:1724,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ubatuba-south-s223",category:"surfing",title:"Ubatuba South",location:"Sao Paulo, Brazil",lat:-23.4316,lon:-45.0819,ap:"GRU",icon:"🌊",rating:4.54,reviews:2089,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"costa-de-caparica-south-s224",category:"surfing",title:"Costa de Caparica South",location:"Lisbon, Portugal",lat:38.5287,lon:-9.2375,ap:"LIS",icon:"🌊",rating:4.55,reviews:2570,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-zonte-south-s225",category:"surfing",title:"El Zonte South",location:"La Libertad, El Salvador",lat:13.5153,lon:-89.4147,ap:"SAL",icon:"🌊",rating:4.92,reviews:1091,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cotillo-south-s226",category:"surfing",title:"Cotillo South",location:"Fuerteventura, Spain",lat:28.684,lon:-14.0179,ap:"FUE",icon:"🌊",rating:4.89,reviews:4736,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"margaret-river-south-s227",category:"surfing",title:"Margaret River South",location:"Western Australia, Australia",lat:-33.9615,lon:114.9851,ap:"BUS",icon:"🌊",rating:4.88,reviews:2944,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"miyazaki-surf-south-s228",category:"surfing",title:"Miyazaki Surf South",location:"Miyazaki, Japan",lat:31.9187,lon:131.4187,ap:"KMI",icon:"🌊",rating:4.76,reviews:3135,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"yallingup-south-s229",category:"surfing",title:"Yallingup South",location:"Western Australia, Australia",lat:-33.6467,lon:115.0353,ap:"BUS",icon:"🌊",rating:4.53,reviews:2895,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"biarritz-grande-plage-south-s230",category:"surfing",title:"Biarritz Grande Plage South",location:"Basque Country, France",lat:43.4852,lon:-1.5566,ap:"BIQ",icon:"🌊",rating:4.51,reviews:3541,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-union-south-s231",category:"surfing",title:"La Union South",location:"Ilocos Sur, Philippines",lat:16.6179,lon:120.3229,ap:"MNL",icon:"🌊",rating:4.9,reviews:964,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seignosse-south-s232",category:"surfing",title:"Seignosse South",location:"Landes, France",lat:43.6917,lon:-1.4102,ap:"BIQ",icon:"🌊",rating:4.71,reviews:3067,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puerto-escondido-south-s233",category:"surfing",title:"Puerto Escondido South",location:"Oaxaca, Mexico",lat:15.8652,lon:-97.0702,ap:"PXM",icon:"🌊",rating:4.81,reviews:3866,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nosara-south-s234",category:"surfing",title:"Nosara South",location:"Guanacaste, Costa Rica",lat:9.9795,lon:-85.6557,ap:"LIR",icon:"🌊",rating:4.85,reviews:3667,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thurso-east-south-s235",category:"surfing",title:"Thurso East South",location:"Scotland",lat:58.5953,lon:-3.5155,ap:"INV",icon:"🌊",rating:4.59,reviews:4374,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laniakea-beach-south-s236",category:"surfing",title:"Laniakea Beach South",location:"Oahu, Hawaii",lat:21.6209,lon:-158.0803,ap:"HNL",icon:"🌊",rating:4.97,reviews:2312,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"varkala-south-s237",category:"surfing",title:"Varkala South",location:"Kerala, India",lat:8.7353,lon:76.7187,ap:"TRV",icon:"🌊",rating:4.8,reviews:4508,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mirissa-south-s238",category:"surfing",title:"Mirissa South",location:"Southern Province, Sri Lanka",lat:5.9476,lon:80.4725,ap:"CMB",icon:"🌊",rating:4.88,reviews:3908,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"strandhill-south-s239",category:"surfing",title:"Strandhill South",location:"Sligo, Ireland",lat:54.2712,lon:-8.5966,ap:"NOC",icon:"🌊",rating:4.71,reviews:4953,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bells-beach-south-s240",category:"surfing",title:"Bells Beach South",location:"Victoria, Australia",lat:-38.3647,lon:144.2853,ap:"MEL",icon:"🌊",rating:4.63,reviews:2111,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moliets-south-s241",category:"surfing",title:"Moliets South",location:"Landes, France",lat:43.8603,lon:-1.373,ap:"BIQ",icon:"🌊",rating:4.91,reviews:809,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-mita-south-s242",category:"surfing",title:"Punta Mita South",location:"Nayarit, Mexico",lat:20.7756,lon:-105.5241,ap:"PVR",icon:"🌊",rating:4.64,reviews:3792,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pavones-south-s243",category:"surfing",title:"Pavones South",location:"Puntarenas, Costa Rica",lat:8.3987,lon:-83.1261,ap:"SJO",icon:"🌊",rating:4.62,reviews:3906,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muizenberg-south-s244",category:"surfing",title:"Muizenberg South",location:"Cape Town, South Africa",lat:-34.1005,lon:18.4758,ap:"CPT",icon:"🌊",rating:4.78,reviews:3204,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-south-s245",category:"surfing",title:"G-Land South",location:"East Java, Indonesia",lat:-8.4647,lon:114.3187,ap:"SUB",icon:"🌊",rating:4.66,reviews:4149,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chicama-left-south-s246",category:"surfing",title:"Chicama Left South",location:"La Libertad, Peru",lat:-7.6897,lon:-79.4536,ap:"TRU",icon:"🌊",rating:4.92,reviews:1589,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"florianopolis-south-s247",category:"surfing",title:"Florianopolis South",location:"Santa Catarina, Brazil",lat:-27.5934,lon:-48.546,ap:"FLN",icon:"🌊",rating:4.74,reviews:3006,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hiriketiya-south-s248",category:"surfing",title:"Hiriketiya South",location:"Southern Province, Sri Lanka",lat:5.9714,lon:80.5323,ap:"CMB",icon:"🌊",rating:4.89,reviews:2888,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snapper-rocks-south-s249",category:"surfing",title:"Snapper Rocks South",location:"Gold Coast, Australia",lat:-28.1647,lon:153.552,ap:"OOL",icon:"🌊",rating:4.64,reviews:4983,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mavericks-south-s250",category:"surfing",title:"Mavericks South",location:"Half Moon Bay, California",lat:37.4978,lon:-122.4965,ap:"SFO",icon:"🌊",rating:4.84,reviews:2363,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-maderas-south-s251",category:"surfing",title:"Playa Maderas South",location:"Managua, Nicaragua",lat:11.352,lon:-86.148,ap:"MGA",icon:"🌊",rating:4.77,reviews:4332,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-de-lobos-south-s252",category:"surfing",title:"Punta de Lobos South",location:"Pichilemu, Chile",lat:-34.4247,lon:-72.013,ap:"SSC",icon:"🌊",rating:4.96,reviews:801,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"guincho-south-s253",category:"surfing",title:"Guincho South",location:"Lisbon, Portugal",lat:38.7278,lon:-9.472,ap:"LIS",icon:"🌊",rating:4.62,reviews:3429,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anglet-south-s254",category:"surfing",title:"Anglet South",location:"Basque Country, France",lat:43.4853,lon:-1.5147,ap:"BIQ",icon:"🌊",rating:4.74,reviews:2068,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sayulita-south-s255",category:"surfing",title:"Sayulita South",location:"Nayarit, Mexico",lat:20.8708,lon:-105.4347,ap:"PVR",icon:"🌊",rating:4.84,reviews:4120,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hossegor-south-s256",category:"surfing",title:"Hossegor South",location:"Landes, France",lat:43.6676,lon:-1.4313,ap:"BIQ",icon:"🌊",rating:4.72,reviews:241,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"salt-creek-south-s257",category:"surfing",title:"Salt Creek South",location:"Laguna Beach, California",lat:33.4993,lon:-117.7145,ap:"SNA",icon:"🌊",rating:4.55,reviews:1915,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"soup-bowl-south-s258",category:"surfing",title:"Soup Bowl South",location:"Bathsheba, Barbados",lat:13.2048,lon:-59.5208,ap:"BGI",icon:"🌊",rating:4.7,reviews:2093,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bundoran-south-s259",category:"surfing",title:"Bundoran South",location:"Donegal, Ireland",lat:54.4798,lon:-8.2813,ap:"NOC",icon:"🌊",rating:4.65,reviews:4864,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gerupuk-south-s260",category:"surfing",title:"Gerupuk South",location:"Lombok, Indonesia",lat:-8.8727,lon:116.3072,ap:"LOP",icon:"🌊",rating:4.68,reviews:4634,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chickens-south-s261",category:"surfing",title:"Chickens South",location:"North Male Atoll, Maldives",lat:4.4187,lon:73.4353,ap:"MLE",icon:"🌊",rating:4.76,reviews:3585,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makaha-beach-south-s262",category:"surfing",title:"Makaha Beach South",location:"Oahu, Hawaii",lat:21.4756,lon:-158.2198,ap:"HNL",icon:"🌊",rating:4.99,reviews:4608,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"siargao-cloud-9-south-s263",category:"surfing",title:"Siargao Cloud 9 South",location:"Surigao del Norte, Philippines",lat:9.8503,lon:126.1173,ap:"IAO",icon:"🌊",rating:4.66,reviews:3817,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-south-s264",category:"surfing",title:"Cloudbreak South",location:"Tavarua, Fiji",lat:-17.848,lon:177.1853,ap:"NAN",icon:"🌊",rating:4.63,reviews:2159,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lennox-head-south-s265",category:"surfing",title:"Lennox Head South",location:"New South Wales, Australia",lat:-28.796,lon:153.5915,ap:"BNK",icon:"🌊",rating:4.61,reviews:1677,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-taghazout-south-s266",category:"surfing",title:"Anchor Point Taghazout South",location:"Agadir, Morocco",lat:30.542,lon:-9.71,ap:"AGA",icon:"🌊",rating:4.65,reviews:4489,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polzeath-south-s267",category:"surfing",title:"Polzeath South",location:"Cornwall, England",lat:50.5787,lon:-4.903,ap:"NQY",icon:"🌊",rating:4.97,reviews:1616,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whangamata-south-s268",category:"surfing",title:"Whangamata South",location:"Waikato, New Zealand",lat:-37.2019,lon:175.8742,ap:"HLZ",icon:"🌊",rating:4.59,reviews:4066,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maresias-south-s269",category:"surfing",title:"Maresias South",location:"Sao Paulo, Brazil",lat:-23.7909,lon:-45.5566,ap:"GRU",icon:"🌊",rating:4.64,reviews:4929,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-ticla-south-s270",category:"surfing",title:"La Ticla South",location:"Michoacan, Mexico",lat:18.352,lon:-103.6313,ap:"ZLO",icon:"🌊",rating:4.98,reviews:4397,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mancora-south-s271",category:"surfing",title:"Mancora South",location:"Piura, Peru",lat:-4.103,lon:-81.0422,ap:"TYL",icon:"🌊",rating:4.79,reviews:923,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"goa-vagator-south-s272",category:"surfing",title:"Goa Vagator South",location:"Goa, India",lat:15.6057,lon:73.7458,ap:"GOI",icon:"🌊",rating:4.91,reviews:2526,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-azul-south-s273",category:"surfing",title:"Cerro Azul South",location:"Lima, Peru",lat:-13.0211,lon:-76.4749,ap:"LIM",icon:"🌊",rating:4.61,reviews:1569,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"raglan-south-s274",category:"surfing",title:"Raglan South",location:"Waikato, New Zealand",lat:-37.8023,lon:174.8776,ap:"HLZ",icon:"🌊",rating:4.65,reviews:4475,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"elands-bay-south-s275",category:"surfing",title:"Elands Bay South",location:"Western Cape, South Africa",lat:-32.298,lon:18.3187,ap:"CPT",icon:"🌊",rating:4.56,reviews:472,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"imsouane-south-s276",category:"surfing",title:"Imsouane South",location:"Agadir, Morocco",lat:30.8437,lon:-9.8244,ap:"AGA",icon:"🌊",rating:4.98,reviews:4633,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huntington-beach-south-s277",category:"surfing",title:"Huntington Beach South",location:"Orange County, California",lat:33.6623,lon:-117.9984,ap:"LAX",icon:"🌊",rating:4.64,reviews:1134,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mal-pais-south-s278",category:"surfing",title:"Mal Pais South",location:"Puntarenas, Costa Rica",lat:9.6448,lon:-85.1719,ap:"SJO",icon:"🌊",rating:4.81,reviews:4121,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bidart-south-s279",category:"surfing",title:"Bidart South",location:"Basque Country, France",lat:43.4391,lon:-1.5857,ap:"BIQ",icon:"🌊",rating:4.55,reviews:200,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hanalei-bay-south-s280",category:"surfing",title:"Hanalei Bay South",location:"Kauai, Hawaii",lat:22.2097,lon:-159.4986,ap:"LIH",icon:"🌊",rating:4.78,reviews:3945,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fuerteventura-north-south-s281",category:"surfing",title:"Fuerteventura North South",location:"Canary Islands, Spain",lat:28.752,lon:-13.998,ap:"FUE",icon:"🌊",rating:4.73,reviews:2891,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"porthleven-south-s282",category:"surfing",title:"Porthleven South",location:"Cornwall, England",lat:50.0839,lon:-5.3119,ap:"NQY",icon:"🌊",rating:4.59,reviews:520,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"new-pier-durban-south-s283",category:"surfing",title:"New Pier Durban South",location:"KwaZulu-Natal, South Africa",lat:-29.8631,lon:31.0458,ap:"DUR",icon:"🌊",rating:4.62,reviews:4013,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kirra-beach-south-s284",category:"surfing",title:"Kirra Beach South",location:"Gold Coast, Australia",lat:-28.1638,lon:153.5435,ap:"OOL",icon:"🌊",rating:4.56,reviews:635,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rodiles-south-s285",category:"surfing",title:"Rodiles South",location:"Asturias, Spain",lat:43.5353,lon:-5.4147,ap:"OVD",icon:"🌊",rating:4.7,reviews:706,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"newquay-fistral-south-s286",category:"surfing",title:"Newquay Fistral South",location:"Cornwall, England",lat:50.4256,lon:-5.089,ap:"NQY",icon:"🌊",rating:4.78,reviews:539,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"padang-padang-south-s287",category:"surfing",title:"Padang Padang South",location:"Bali, Indonesia",lat:-8.8117,lon:115.0916,ap:"DPS",icon:"🌊",rating:4.57,reviews:4710,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"canggu-south-s288",category:"surfing",title:"Canggu South",location:"Bali, Indonesia",lat:-8.6458,lon:115.1405,ap:"DPS",icon:"🌊",rating:4.97,reviews:797,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niijima-island-south-s289",category:"surfing",title:"Niijima Island South",location:"Tokyo, Japan",lat:34.372,lon:139.272,ap:"HND",icon:"🌊",rating:4.99,reviews:1070,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kuta-bali-south-s290",category:"surfing",title:"Kuta Bali South",location:"Bali, Indonesia",lat:-8.7164,lon:115.1706,ap:"DPS",icon:"🌊",rating:4.77,reviews:3509,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"todo-santos-south-s291",category:"surfing",title:"Todo Santos South",location:"Baja California Sur, Mexico",lat:23.4484,lon:-110.2241,ap:"SJD",icon:"🌊",rating:4.8,reviews:1948,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-quemao-south-s292",category:"surfing",title:"El Quemao South",location:"Lanzarote, Spain",lat:29.067,lon:-13.592,ap:"ACE",icon:"🌊",rating:4.88,reviews:3216,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"peniche-south-s293",category:"surfing",title:"Peniche South",location:"Leiria, Portugal",lat:39.3566,lon:-9.3773,ap:"LIS",icon:"🌊",rating:4.72,reviews:3726,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-java-south-s294",category:"surfing",title:"G-Land Java South",location:"East Java, Indonesia",lat:-8.4647,lon:114.3187,ap:"SUB",icon:"🌊",rating:4.65,reviews:4921,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keramas-south-s295",category:"surfing",title:"Keramas South",location:"Bali, Indonesia",lat:-8.5824,lon:115.3169,ap:"DPS",icon:"🌊",rating:4.99,reviews:2601,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"poipu-beach-south-s296",category:"surfing",title:"Poipu Beach South",location:"Kauai, Hawaii",lat:21.8743,lon:-159.4619,ap:"LIH",icon:"🌊",rating:4.78,reviews:593,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jaco-beach-south-s297",category:"surfing",title:"Jaco Beach South",location:"Puntarenas, Costa Rica",lat:9.6176,lon:-84.6251,ap:"SJO",icon:"🌊",rating:4.8,reviews:912,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hikkaduwa-south-s298",category:"surfing",title:"Hikkaduwa South",location:"Southern Province, Sri Lanka",lat:6.141,lon:80.1012,ap:"CMB",icon:"🌊",rating:4.96,reviews:1802,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"santa-teresa-south-s299",category:"surfing",title:"Santa Teresa South",location:"Puntarenas, Costa Rica",lat:9.6387,lon:-85.1676,ap:"SJO",icon:"🌊",rating:4.81,reviews:2267,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tunnels-beach-south-s300",category:"surfing",title:"Tunnels Beach South",location:"Kauai, Hawaii",lat:22.2239,lon:-159.5635,ap:"LIH",icon:"🌊",rating:4.82,reviews:1386,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"byron-bay-south-s301",category:"surfing",title:"Byron Bay South",location:"New South Wales, Australia",lat:-28.6454,lon:153.6198,ap:"BNK",icon:"🌊",rating:4.62,reviews:4621,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-rosa-south-s302",category:"surfing",title:"Praia do Rosa South",location:"Santa Catarina, Brazil",lat:-28.1308,lon:-48.6574,ap:"FLN",icon:"🌊",rating:4.54,reviews:121,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pismo-beach-pier-south-s303",category:"surfing",title:"Pismo Beach Pier South",location:"Pismo Beach, California",lat:35.1447,lon:-120.6393,ap:"SBP",icon:"🌊",rating:4.7,reviews:4964,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zarautz-south-s304",category:"surfing",title:"Zarautz South",location:"Basque Country, Spain",lat:43.2853,lon:-2.1647,ap:"BIO",icon:"🌊",rating:4.73,reviews:367,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sandy-beach-south-s305",category:"surfing",title:"Sandy Beach South",location:"Oahu, Hawaii",lat:21.2986,lon:-157.6708,ap:"HNL",icon:"🌊",rating:4.61,reviews:2416,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamer-lane-south-s306",category:"surfing",title:"Steamer Lane South",location:"Santa Cruz, California",lat:36.9558,lon:-122.0238,ap:"SJC",icon:"🌊",rating:4.84,reviews:3819,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bingin-south-s307",category:"surfing",title:"Bingin South",location:"Bali, Indonesia",lat:-8.8199,lon:115.0957,ap:"DPS",icon:"🌊",rating:4.53,reviews:2012,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dungeons-south-s308",category:"surfing",title:"Dungeons South",location:"Cape Town, South Africa",lat:-34.1358,lon:18.3409,ap:"CPT",icon:"🌊",rating:4.95,reviews:4931,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lacanau-south-s309",category:"surfing",title:"Lacanau South",location:"Gironde, France",lat:44.9853,lon:-1.1924,ap:"BOD",icon:"🌊",rating:4.82,reviews:1720,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"blacks-beach-south-s310",category:"surfing",title:"Blacks Beach South",location:"San Diego, California",lat:32.8881,lon:-117.2514,ap:"SAN",icon:"🌊",rating:4.71,reviews:4561,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saquarema-south-s311",category:"surfing",title:"Saquarema South",location:"Rio de Janeiro, Brazil",lat:-22.9183,lon:-42.508,ap:"GIG",icon:"🌊",rating:4.61,reviews:1320,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cardiff-reef-south-s312",category:"surfing",title:"Cardiff Reef South",location:"Cardiff-by-the-Sea, California",lat:33.0295,lon:-117.2796,ap:"SAN",icon:"🌊",rating:4.95,reviews:1265,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-hermosa-south-s313",category:"surfing",title:"Punta Hermosa South",location:"Lima, Peru",lat:-12.3541,lon:-76.8358,ap:"LIM",icon:"🌊",rating:4.53,reviews:1459,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kona-coast-south-s314",category:"surfing",title:"Kona Coast South",location:"Big Island, Hawaii",lat:19.6312,lon:-155.9949,ap:"KOA",icon:"🌊",rating:4.89,reviews:4974,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"killer-point-south-s315",category:"surfing",title:"Killer Point South",location:"Agadir, Morocco",lat:30.6028,lon:-9.6855,ap:"AGA",icon:"🌊",rating:4.87,reviews:4762,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cave-rock-south-s316",category:"surfing",title:"Cave Rock South",location:"Durban, South Africa",lat:-29.9147,lon:31.052,ap:"DUR",icon:"🌊",rating:4.95,reviews:3697,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-bay-south-s317",category:"surfing",title:"Big Bay South",location:"Cape Town, South Africa",lat:-33.7133,lon:18.467,ap:"CPT",icon:"🌊",rating:4.56,reviews:2591,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bodega-bay-south-s318",category:"surfing",title:"Bodega Bay South",location:"Sonoma, California",lat:38.3347,lon:-123.0506,ap:"SFO",icon:"🌊",rating:4.84,reviews:2330,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"itacare-south-s319",category:"surfing",title:"Itacare South",location:"Bahia, Brazil",lat:-14.2758,lon:-38.9966,ap:"IOS",icon:"🌊",rating:4.75,reviews:4145,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"teahupoo-south-s320",category:"surfing",title:"Teahupoo South",location:"Tahiti, French Polynesia",lat:-17.8447,lon:-149.2749,ap:"PPT",icon:"🌊",rating:4.71,reviews:4999,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nias-rock-south-s321",category:"surfing",title:"Nias Rock South",location:"Nias Island, Indonesia",lat:1.102,lon:97.552,ap:"GNS",icon:"🌊",rating:4.52,reviews:3639,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sopelana-south-s322",category:"surfing",title:"Sopelana South",location:"Basque Country, Spain",lat:43.3998,lon:-2.9802,ap:"BIO",icon:"🌊",rating:4.86,reviews:2151,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"restaurants-tahiti-south-s323",category:"surfing",title:"Restaurants Tahiti South",location:"Tahiti, French Polynesia",lat:-17.848,lon:-149.2813,ap:"PPT",icon:"🌊",rating:4.51,reviews:1975,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bondi-beach-south-s324",category:"surfing",title:"Bondi Beach South",location:"Sydney, Australia",lat:-33.8888,lon:151.2764,ap:"SYD",icon:"🌊",rating:4.97,reviews:4812,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rincon-puerto-rico-south-s325",category:"surfing",title:"Rincon Puerto Rico South",location:"Puerto Rico",lat:18.3453,lon:-67.2544,ap:"BQN",icon:"🌊",rating:4.79,reviews:269,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jeffreys-bay-south-s326",category:"surfing",title:"Jeffreys Bay South",location:"Eastern Cape, South Africa",lat:-34.0508,lon:24.9253,ap:"PLZ",icon:"🌊",rating:4.99,reviews:2307,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cabarete-south-s327",category:"surfing",title:"Cabarete South",location:"Dominican Republic",lat:19.7634,lon:-70.4105,ap:"POP",icon:"🌊",rating:4.78,reviews:1535,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"manly-beach-south-s328",category:"surfing",title:"Manly Beach South",location:"Sydney, Australia",lat:-33.7949,lon:151.2904,ap:"SYD",icon:"🌊",rating:4.73,reviews:3722,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waimea-bay-south-s329",category:"surfing",title:"Waimea Bay South",location:"Oahu, Hawaii",lat:21.6454,lon:-158.0623,ap:"HNL",icon:"🌊",rating:4.95,reviews:1586,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hash-point-south-s330",category:"surfing",title:"Hash Point South",location:"Agadir, Morocco",lat:30.5276,lon:-9.7136,ap:"AGA",icon:"🌊",rating:4.99,reviews:3670,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sultans-south-s331",category:"surfing",title:"Sultans South",location:"North Male Atoll, Maldives",lat:4.3353,lon:73.5853,ap:"MLE",icon:"🌊",rating:4.81,reviews:4128,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chicama-south-s332",category:"surfing",title:"Chicama South",location:"La Libertad, Peru",lat:-7.6913,lon:-79.4547,ap:"TRU",icon:"🌊",rating:4.97,reviews:3950,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"macaronis-south-s333",category:"surfing",title:"Macaronis South",location:"Mentawai, Indonesia",lat:-2.1147,lon:99.5353,ap:"PDG",icon:"🌊",rating:4.67,reviews:2830,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ensenada-south-s334",category:"surfing",title:"Ensenada South",location:"Baja California, Mexico",lat:31.8696,lon:-116.594,ap:"TIJ",icon:"🌊",rating:4.66,reviews:956,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hossegor-la-nord-south-s335",category:"surfing",title:"Hossegor La Nord South",location:"Landes, France",lat:43.6826,lon:-1.438,ap:"BIQ",icon:"🌊",rating:4.92,reviews:2801,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"desert-point-south-s336",category:"surfing",title:"Desert Point South",location:"Lombok, Indonesia",lat:-8.7811,lon:116.0251,ap:"LOP",icon:"🌊",rating:4.7,reviews:4158,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saunton-sands-south-s337",category:"surfing",title:"Saunton Sands South",location:"Devon, England",lat:51.1103,lon:-4.2147,ap:"EXT",icon:"🌊",rating:4.64,reviews:3380,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mundaka-left-south-s338",category:"surfing",title:"Mundaka Left South",location:"Basque Country, Spain",lat:43.4062,lon:-2.6959,ap:"BIO",icon:"🌊",rating:4.9,reviews:4606,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-sunzal-south-s339",category:"surfing",title:"El Sunzal South",location:"La Libertad, El Salvador",lat:13.5187,lon:-89.3813,ap:"SAL",icon:"🌊",rating:4.52,reviews:821,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shonan-beach-south-s340",category:"surfing",title:"Shonan Beach South",location:"Kanagawa, Japan",lat:35.3176,lon:139.4845,ap:"HND",icon:"🌊",rating:4.65,reviews:2748,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ericeira-south-s341",category:"surfing",title:"Ericeira South",location:"Lisbon, Portugal",lat:38.9661,lon:-9.4179,ap:"LIS",icon:"🌊",rating:4.56,reviews:3411,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lances-right-south-s342",category:"surfing",title:"Lances Right South",location:"Mentawai, Indonesia",lat:-2.2147,lon:99.4853,ap:"PDG",icon:"🌊",rating:4.92,reviews:109,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pacifica-pier-south-s343",category:"surfing",title:"Pacifica Pier South",location:"Pacifica, California",lat:37.6155,lon:-122.4907,ap:"SFO",icon:"🌊",rating:4.82,reviews:4544,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hookipa-beach-south-s344",category:"surfing",title:"Hookipa Beach South",location:"Maui, Hawaii",lat:20.9417,lon:-156.3512,ap:"OGG",icon:"🌊",rating:4.73,reviews:544,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jaws-peahi-south-s345",category:"surfing",title:"Jaws Peahi South",location:"Maui, Hawaii",lat:20.9432,lon:-156.3167,ap:"OGG",icon:"🌊",rating:4.59,reviews:3063,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tamarindo-south-s346",category:"surfing",title:"Tamarindo South",location:"Guanacaste, Costa Rica",lat:10.3017,lon:-85.8393,ap:"LIR",icon:"🌊",rating:4.81,reviews:4183,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jailbreaks-south-s347",category:"surfing",title:"Jailbreaks South",location:"South Male Atoll, Maldives",lat:3.802,lon:73.3853,ap:"MLE",icon:"🌊",rating:4.81,reviews:522,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ventura-pier-south-s348",category:"surfing",title:"Ventura Pier South",location:"Ventura, California",lat:34.2694,lon:-119.2843,ap:"SBA",icon:"🌊",rating:4.6,reviews:4599,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lahinch-south-s349",category:"surfing",title:"Lahinch South",location:"Clare, Ireland",lat:52.9317,lon:-9.3436,ap:"SNN",icon:"🌊",rating:4.56,reviews:2459,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"leo-carrillo-south-s350",category:"surfing",title:"Leo Carrillo South",location:"Malibu, California",lat:34.0473,lon:-118.934,ap:"LAX",icon:"🌊",rating:4.71,reviews:4070,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"burleigh-heads-south-s351",category:"surfing",title:"Burleigh Heads South",location:"Gold Coast, Australia",lat:-28.0852,lon:153.46,ap:"OOL",icon:"🌊",rating:4.56,reviews:2060,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nazare-south-s352",category:"surfing",title:"Nazare South",location:"Leiria, Portugal",lat:39.6006,lon:-9.0687,ap:"LIS",icon:"🌊",rating:4.85,reviews:2645,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"carrapateira-south-s353",category:"surfing",title:"Carrapateira South",location:"Algarve, Portugal",lat:37.1983,lon:-8.9001,ap:"FAO",icon:"🌊",rating:4.77,reviews:4624,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"essaouira-south-s354",category:"surfing",title:"Essaouira South",location:"Marrakech, Morocco",lat:31.5145,lon:-9.768,ap:"ESU",icon:"🌊",rating:4.7,reviews:1940,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"honolua-bay-south-s355",category:"surfing",title:"Honolua Bay South",location:"Maui, Hawaii",lat:21.0159,lon:-156.6333,ap:"OGG",icon:"🌊",rating:4.99,reviews:1029,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pleasure-point-south-s356",category:"surfing",title:"Pleasure Point South",location:"Santa Cruz, California",lat:36.9615,lon:-121.9775,ap:"SJC",icon:"🌊",rating:4.73,reviews:1062,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"goa-baga-south-s357",category:"surfing",title:"Goa Baga South",location:"Goa, India",lat:15.5584,lon:73.7546,ap:"GOI",icon:"🌊",rating:4.82,reviews:1361,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"popoyo-east-s358",category:"surfing",title:"Popoyo East",location:"Managua, Nicaragua",lat:11.3207,lon:-86.2793,ap:"MGA",icon:"🌊",rating:4.74,reviews:2490,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mentawai-islands-east-s359",category:"surfing",title:"Mentawai Islands East",location:"West Sumatra, Indonesia",lat:-1.5793,lon:99.5873,ap:"PDG",icon:"🌊",rating:4.75,reviews:2339,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rincon-point-east-s360",category:"surfing",title:"Rincon Point East",location:"Ventura, California",lat:34.3764,lon:-119.4674,ap:"SBA",icon:"🌊",rating:4.7,reviews:4052,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"angourie-point-east-s361",category:"surfing",title:"Angourie Point East",location:"New South Wales, Australia",lat:-29.466,lon:153.3782,ap:"BNK",icon:"🌊",rating:4.98,reviews:2096,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waikiki-beach-east-s362",category:"surfing",title:"Waikiki Beach East",location:"Oahu, Hawaii",lat:21.2805,lon:-157.8228,ap:"HNL",icon:"🌊",rating:4.72,reviews:1284,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-heads-east-s363",category:"surfing",title:"Noosa Heads East",location:"Queensland, Australia",lat:-26.3829,lon:153.1012,ap:"MCY",icon:"🌊",rating:4.69,reviews:4263,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sagres-east-s364",category:"surfing",title:"Sagres East",location:"Algarve, Portugal",lat:37.0139,lon:-8.9287,ap:"FAO",icon:"🌊",rating:4.87,reviews:1218,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baler-east-s365",category:"surfing",title:"Baler East",location:"Aurora, Philippines",lat:15.7634,lon:121.5651,ap:"MNL",icon:"🌊",rating:4.92,reviews:2363,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arrifana-east-s366",category:"surfing",title:"Arrifana East",location:"Algarve, Portugal",lat:37.3006,lon:-8.8544,ap:"FAO",icon:"🌊",rating:4.88,reviews:3499,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ocean-beach-pier-east-s367",category:"surfing",title:"Ocean Beach Pier East",location:"San Diego, California",lat:32.753,lon:-117.2508,ap:"SAN",icon:"🌊",rating:4.67,reviews:4259,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taghazout-east-s368",category:"surfing",title:"Taghazout East",location:"Agadir, Morocco",lat:30.5401,lon:-9.7049,ap:"AGA",icon:"🌊",rating:4.63,reviews:121,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tamarack-beach-east-s369",category:"surfing",title:"Tamarack Beach East",location:"Carlsbad, California",lat:33.1475,lon:-117.3529,ap:"SAN",icon:"🌊",rating:4.64,reviews:2545,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-roca-east-s370",category:"surfing",title:"Punta Roca East",location:"La Libertad, El Salvador",lat:13.5207,lon:-89.3127,ap:"SAL",icon:"🌊",rating:4.91,reviews:4850,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"haleiwa-alii-east-s371",category:"surfing",title:"Haleiwa Alii East",location:"Oahu, Hawaii",lat:21.6018,lon:-158.1004,ap:"HNL",icon:"🌊",rating:4.99,reviews:4111,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"piha-beach-east-s372",category:"surfing",title:"Piha Beach East",location:"Auckland, New Zealand",lat:-36.9563,lon:174.4671,ap:"AKL",icon:"🌊",rating:4.92,reviews:3758,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-maunganui-east-s373",category:"surfing",title:"Mount Maunganui East",location:"Bay of Plenty, New Zealand",lat:-37.6293,lon:176.1873,ap:"TRG",icon:"🌊",rating:4.76,reviews:2927,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"catanduanes-east-s374",category:"surfing",title:"Catanduanes East",location:"Bicol, Philippines",lat:13.7037,lon:124.2491,ap:"VRC",icon:"🌊",rating:4.66,reviews:4551,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matanzas-east-s375",category:"surfing",title:"Matanzas East",location:"Valparaiso, Chile",lat:-33.946,lon:-71.8793,ap:"SCL",icon:"🌊",rating:4.68,reviews:2736,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"supertubos-peniche-east-s376",category:"surfing",title:"Supertubos Peniche East",location:"Leiria, Portugal",lat:39.3623,lon:-9.3788,ap:"LIS",icon:"🌊",rating:4.93,reviews:2056,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-east-s377",category:"surfing",title:"Anchor Point East",location:"Agadir, Morocco",lat:30.5518,lon:-9.7168,ap:"AGA",icon:"🌊",rating:4.78,reviews:2013,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernando-de-noronha-east-s378",category:"surfing",title:"Fernando de Noronha East",location:"Pernambuco, Brazil",lat:-3.8529,lon:-32.4223,ap:"FEN",icon:"🌊",rating:4.92,reviews:3465,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-fiji-east-s379",category:"surfing",title:"Cloudbreak Fiji East",location:"Tavarua, Fiji",lat:-17.846,lon:177.1873,ap:"NAN",icon:"🌊",rating:4.52,reviews:3974,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"indicator-east-s380",category:"surfing",title:"Indicator East",location:"Santa Barbara, California",lat:34.4088,lon:-119.6824,ap:"SBA",icon:"🌊",rating:4.85,reviews:3223,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsurigasaki-east-s381",category:"surfing",title:"Tsurigasaki East",location:"Chiba, Japan",lat:35.4207,lon:140.454,ap:"NRT",icon:"🌊",rating:4.69,reviews:1346,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pasta-point-east-s382",category:"surfing",title:"Pasta Point East",location:"North Male Atoll, Maldives",lat:4.5207,lon:73.3373,ap:"MLE",icon:"🌊",rating:4.74,reviews:403,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pichilemu-east-s383",category:"surfing",title:"Pichilemu East",location:"O'Higgins, Chile",lat:-34.3847,lon:-71.9945,ap:"SSC",icon:"🌊",rating:4.56,reviews:4934,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snappers-gold-coast-east-s384",category:"surfing",title:"Snappers Gold Coast East",location:"Gold Coast, Australia",lat:-28.1627,lon:153.554,ap:"OOL",icon:"🌊",rating:4.66,reviews:922,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"capbreton-east-s385",category:"surfing",title:"Capbreton East",location:"Landes, France",lat:43.648,lon:-1.4341,ap:"BIQ",icon:"🌊",rating:4.93,reviews:3706,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fanore-east-s386",category:"surfing",title:"Fanore East",location:"Clare, Ireland",lat:53.1259,lon:-9.2932,ap:"SNN",icon:"🌊",rating:4.55,reviews:3843,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"croyde-bay-east-s387",category:"surfing",title:"Croyde Bay East",location:"Devon, England",lat:51.1373,lon:-4.2293,ap:"EXT",icon:"🌊",rating:4.51,reviews:1280,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trestles-east-s388",category:"surfing",title:"Trestles East",location:"San Clemente, California",lat:33.3918,lon:-117.576,ap:"SNA",icon:"🌊",rating:4.7,reviews:1364,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nias-island-east-s389",category:"surfing",title:"Nias Island East",location:"North Sumatra, Indonesia",lat:1.144,lon:97.574,ap:"GNS",icon:"🌊",rating:4.54,reviews:2271,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chiba-surfing-east-s390",category:"surfing",title:"Chiba Surfing East",location:"Chiba, Japan",lat:35.5373,lon:140.3207,ap:"NRT",icon:"🌊",rating:4.67,reviews:3356,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zicatela-east-s391",category:"surfing",title:"Zicatela East",location:"Oaxaca, Mexico",lat:15.8604,lon:-97.0704,ap:"PXM",icon:"🌊",rating:4.82,reviews:2791,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"uluwatu-east-s392",category:"surfing",title:"Uluwatu East",location:"Bali, Indonesia",lat:-8.8255,lon:115.0919,ap:"DPS",icon:"🌊",rating:4.92,reviews:4471,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arugam-bay-east-s393",category:"surfing",title:"Arugam Bay East",location:"Eastern Province, Sri Lanka",lat:6.8524,lon:81.8384,ap:"KCT",icon:"🌊",rating:4.69,reviews:2694,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"safi-east-s394",category:"surfing",title:"Safi East",location:"Marrakech-Safi, Morocco",lat:32.3034,lon:-9.2332,ap:"RAK",icon:"🌊",rating:4.81,reviews:4097,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mundaka-east-s395",category:"surfing",title:"Mundaka East",location:"Basque Country, Spain",lat:43.408,lon:-2.694,ap:"BIO",icon:"🌊",rating:4.93,reviews:394,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kovalam-east-s396",category:"surfing",title:"Kovalam East",location:"Kerala, India",lat:8.402,lon:76.982,ap:"TRV",icon:"🌊",rating:4.8,reviews:2023,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunset-beach-east-s397",category:"surfing",title:"Sunset Beach East",location:"Oahu, Hawaii",lat:21.6821,lon:-158.0457,ap:"HNL",icon:"🌊",rating:4.81,reviews:2454,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huanchaco-east-s398",category:"surfing",title:"Huanchaco East",location:"La Libertad, Peru",lat:-8.0835,lon:-79.1146,ap:"TRU",icon:"🌊",rating:4.99,reviews:840,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"malibu-surfrider-east-s399",category:"surfing",title:"Malibu Surfrider East",location:"Malibu, California",lat:34.041,lon:-118.6742,ap:"LAX",icon:"🌊",rating:4.71,reviews:906,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gisborne-east-s400",category:"surfing",title:"Gisborne East",location:"Gisborne, New Zealand",lat:-38.6629,lon:178.0215,ap:"GIS",icon:"🌊",rating:4.87,reviews:923,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"weligama-east-s401",category:"surfing",title:"Weligama East",location:"Southern Province, Sri Lanka",lat:5.977,lon:80.43,ap:"CMB",icon:"🌊",rating:4.72,reviews:2553,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ubatuba-east-s402",category:"surfing",title:"Ubatuba East",location:"Sao Paulo, Brazil",lat:-23.4296,lon:-45.0799,ap:"GRU",icon:"🌊",rating:4.94,reviews:476,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"costa-de-caparica-east-s403",category:"surfing",title:"Costa de Caparica East",location:"Lisbon, Portugal",lat:38.5307,lon:-9.2355,ap:"LIS",icon:"🌊",rating:4.66,reviews:559,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-zonte-east-s404",category:"surfing",title:"El Zonte East",location:"La Libertad, El Salvador",lat:13.5173,lon:-89.4127,ap:"SAL",icon:"🌊",rating:4.64,reviews:3170,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cotillo-east-s405",category:"surfing",title:"Cotillo East",location:"Fuerteventura, Spain",lat:28.686,lon:-14.0159,ap:"FUE",icon:"🌊",rating:4.71,reviews:2100,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"margaret-river-east-s406",category:"surfing",title:"Margaret River East",location:"Western Australia, Australia",lat:-33.9595,lon:114.9871,ap:"BUS",icon:"🌊",rating:4.76,reviews:4736,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"miyazaki-surf-east-s407",category:"surfing",title:"Miyazaki Surf East",location:"Miyazaki, Japan",lat:31.9207,lon:131.4207,ap:"KMI",icon:"🌊",rating:4.83,reviews:1575,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"yallingup-east-s408",category:"surfing",title:"Yallingup East",location:"Western Australia, Australia",lat:-33.6447,lon:115.0373,ap:"BUS",icon:"🌊",rating:4.58,reviews:746,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"biarritz-grande-plage-east-s409",category:"surfing",title:"Biarritz Grande Plage East",location:"Basque Country, France",lat:43.4872,lon:-1.5546,ap:"BIQ",icon:"🌊",rating:4.8,reviews:3233,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-union-east-s410",category:"surfing",title:"La Union East",location:"Ilocos Sur, Philippines",lat:16.6199,lon:120.3249,ap:"MNL",icon:"🌊",rating:4.8,reviews:2072,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seignosse-east-s411",category:"surfing",title:"Seignosse East",location:"Landes, France",lat:43.6937,lon:-1.4082,ap:"BIQ",icon:"🌊",rating:4.74,reviews:4877,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puerto-escondido-east-s412",category:"surfing",title:"Puerto Escondido East",location:"Oaxaca, Mexico",lat:15.8672,lon:-97.0682,ap:"PXM",icon:"🌊",rating:4.57,reviews:3877,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nosara-east-s413",category:"surfing",title:"Nosara East",location:"Guanacaste, Costa Rica",lat:9.9815,lon:-85.6537,ap:"LIR",icon:"🌊",rating:4.81,reviews:3864,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thurso-east-east-s414",category:"surfing",title:"Thurso East East",location:"Scotland",lat:58.5973,lon:-3.5135,ap:"INV",icon:"🌊",rating:4.63,reviews:176,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laniakea-beach-east-s415",category:"surfing",title:"Laniakea Beach East",location:"Oahu, Hawaii",lat:21.6229,lon:-158.0783,ap:"HNL",icon:"🌊",rating:4.94,reviews:3911,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"varkala-east-s416",category:"surfing",title:"Varkala East",location:"Kerala, India",lat:8.7373,lon:76.7207,ap:"TRV",icon:"🌊",rating:4.94,reviews:4577,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mirissa-east-s417",category:"surfing",title:"Mirissa East",location:"Southern Province, Sri Lanka",lat:5.9496,lon:80.4745,ap:"CMB",icon:"🌊",rating:4.58,reviews:3718,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"strandhill-east-s418",category:"surfing",title:"Strandhill East",location:"Sligo, Ireland",lat:54.2732,lon:-8.5946,ap:"NOC",icon:"🌊",rating:4.96,reviews:4913,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bells-beach-east-s419",category:"surfing",title:"Bells Beach East",location:"Victoria, Australia",lat:-38.3627,lon:144.2873,ap:"MEL",icon:"🌊",rating:4.65,reviews:3575,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moliets-east-s420",category:"surfing",title:"Moliets East",location:"Landes, France",lat:43.8623,lon:-1.371,ap:"BIQ",icon:"🌊",rating:4.84,reviews:3842,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-mita-east-s421",category:"surfing",title:"Punta Mita East",location:"Nayarit, Mexico",lat:20.7776,lon:-105.5221,ap:"PVR",icon:"🌊",rating:4.91,reviews:1731,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pavones-east-s422",category:"surfing",title:"Pavones East",location:"Puntarenas, Costa Rica",lat:8.4007,lon:-83.1241,ap:"SJO",icon:"🌊",rating:4.99,reviews:4058,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muizenberg-east-s423",category:"surfing",title:"Muizenberg East",location:"Cape Town, South Africa",lat:-34.0985,lon:18.4778,ap:"CPT",icon:"🌊",rating:4.55,reviews:3224,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-east-s424",category:"surfing",title:"G-Land East",location:"East Java, Indonesia",lat:-8.4627,lon:114.3207,ap:"SUB",icon:"🌊",rating:4.78,reviews:4808,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chicama-left-east-s425",category:"surfing",title:"Chicama Left East",location:"La Libertad, Peru",lat:-7.6877,lon:-79.4516,ap:"TRU",icon:"🌊",rating:4.64,reviews:2518,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"florianopolis-east-s426",category:"surfing",title:"Florianopolis East",location:"Santa Catarina, Brazil",lat:-27.5914,lon:-48.544,ap:"FLN",icon:"🌊",rating:4.51,reviews:3342,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hiriketiya-east-s427",category:"surfing",title:"Hiriketiya East",location:"Southern Province, Sri Lanka",lat:5.9734,lon:80.5343,ap:"CMB",icon:"🌊",rating:4.63,reviews:4736,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snapper-rocks-east-s428",category:"surfing",title:"Snapper Rocks East",location:"Gold Coast, Australia",lat:-28.1627,lon:153.554,ap:"OOL",icon:"🌊",rating:4.92,reviews:501,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mavericks-east-s429",category:"surfing",title:"Mavericks East",location:"Half Moon Bay, California",lat:37.4998,lon:-122.4945,ap:"SFO",icon:"🌊",rating:4.95,reviews:4169,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-maderas-east-s430",category:"surfing",title:"Playa Maderas East",location:"Managua, Nicaragua",lat:11.354,lon:-86.146,ap:"MGA",icon:"🌊",rating:4.91,reviews:2444,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-de-lobos-east-s431",category:"surfing",title:"Punta de Lobos East",location:"Pichilemu, Chile",lat:-34.4227,lon:-72.011,ap:"SSC",icon:"🌊",rating:4.88,reviews:1985,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"guincho-east-s432",category:"surfing",title:"Guincho East",location:"Lisbon, Portugal",lat:38.7298,lon:-9.47,ap:"LIS",icon:"🌊",rating:4.8,reviews:2986,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anglet-east-s433",category:"surfing",title:"Anglet East",location:"Basque Country, France",lat:43.4873,lon:-1.5127,ap:"BIQ",icon:"🌊",rating:4.61,reviews:1657,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sayulita-east-s434",category:"surfing",title:"Sayulita East",location:"Nayarit, Mexico",lat:20.8728,lon:-105.4327,ap:"PVR",icon:"🌊",rating:4.8,reviews:1220,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hossegor-east-s435",category:"surfing",title:"Hossegor East",location:"Landes, France",lat:43.6696,lon:-1.4293,ap:"BIQ",icon:"🌊",rating:4.81,reviews:422,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"salt-creek-east-s436",category:"surfing",title:"Salt Creek East",location:"Laguna Beach, California",lat:33.5013,lon:-117.7125,ap:"SNA",icon:"🌊",rating:4.65,reviews:3711,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"soup-bowl-east-s437",category:"surfing",title:"Soup Bowl East",location:"Bathsheba, Barbados",lat:13.2068,lon:-59.5188,ap:"BGI",icon:"🌊",rating:4.52,reviews:3088,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bundoran-east-s438",category:"surfing",title:"Bundoran East",location:"Donegal, Ireland",lat:54.4818,lon:-8.2793,ap:"NOC",icon:"🌊",rating:4.86,reviews:838,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gerupuk-east-s439",category:"surfing",title:"Gerupuk East",location:"Lombok, Indonesia",lat:-8.8707,lon:116.3092,ap:"LOP",icon:"🌊",rating:4.95,reviews:2776,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chickens-east-s440",category:"surfing",title:"Chickens East",location:"North Male Atoll, Maldives",lat:4.4207,lon:73.4373,ap:"MLE",icon:"🌊",rating:4.87,reviews:1538,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makaha-beach-east-s441",category:"surfing",title:"Makaha Beach East",location:"Oahu, Hawaii",lat:21.4776,lon:-158.2178,ap:"HNL",icon:"🌊",rating:4.6,reviews:4518,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"siargao-cloud-9-east-s442",category:"surfing",title:"Siargao Cloud 9 East",location:"Surigao del Norte, Philippines",lat:9.8523,lon:126.1193,ap:"IAO",icon:"🌊",rating:4.93,reviews:3097,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cloudbreak-east-s443",category:"surfing",title:"Cloudbreak East",location:"Tavarua, Fiji",lat:-17.846,lon:177.1873,ap:"NAN",icon:"🌊",rating:4.76,reviews:2332,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lennox-head-east-s444",category:"surfing",title:"Lennox Head East",location:"New South Wales, Australia",lat:-28.794,lon:153.5935,ap:"BNK",icon:"🌊",rating:4.91,reviews:2205,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anchor-point-taghazout-east-s445",category:"surfing",title:"Anchor Point Taghazout East",location:"Agadir, Morocco",lat:30.544,lon:-9.708,ap:"AGA",icon:"🌊",rating:4.95,reviews:4047,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polzeath-east-s446",category:"surfing",title:"Polzeath East",location:"Cornwall, England",lat:50.5807,lon:-4.901,ap:"NQY",icon:"🌊",rating:4.97,reviews:2517,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whangamata-east-s447",category:"surfing",title:"Whangamata East",location:"Waikato, New Zealand",lat:-37.1999,lon:175.8762,ap:"HLZ",icon:"🌊",rating:4.87,reviews:2874,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maresias-east-s448",category:"surfing",title:"Maresias East",location:"Sao Paulo, Brazil",lat:-23.7889,lon:-45.5546,ap:"GRU",icon:"🌊",rating:4.89,reviews:3936,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-ticla-east-s449",category:"surfing",title:"La Ticla East",location:"Michoacan, Mexico",lat:18.354,lon:-103.6293,ap:"ZLO",icon:"🌊",rating:4.97,reviews:1253,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mancora-east-s450",category:"surfing",title:"Mancora East",location:"Piura, Peru",lat:-4.101,lon:-81.0402,ap:"TYL",icon:"🌊",rating:4.87,reviews:1948,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"goa-vagator-east-s451",category:"surfing",title:"Goa Vagator East",location:"Goa, India",lat:15.6077,lon:73.7478,ap:"GOI",icon:"🌊",rating:4.92,reviews:3355,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-azul-east-s452",category:"surfing",title:"Cerro Azul East",location:"Lima, Peru",lat:-13.0191,lon:-76.4729,ap:"LIM",icon:"🌊",rating:4.97,reviews:4665,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"raglan-east-s453",category:"surfing",title:"Raglan East",location:"Waikato, New Zealand",lat:-37.8003,lon:174.8796,ap:"HLZ",icon:"🌊",rating:4.68,reviews:3332,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"elands-bay-east-s454",category:"surfing",title:"Elands Bay East",location:"Western Cape, South Africa",lat:-32.296,lon:18.3207,ap:"CPT",icon:"🌊",rating:4.51,reviews:4495,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"imsouane-east-s455",category:"surfing",title:"Imsouane East",location:"Agadir, Morocco",lat:30.8457,lon:-9.8224,ap:"AGA",icon:"🌊",rating:4.56,reviews:3119,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huntington-beach-east-s456",category:"surfing",title:"Huntington Beach East",location:"Orange County, California",lat:33.6643,lon:-117.9964,ap:"LAX",icon:"🌊",rating:4.83,reviews:2247,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mal-pais-east-s457",category:"surfing",title:"Mal Pais East",location:"Puntarenas, Costa Rica",lat:9.6468,lon:-85.1699,ap:"SJO",icon:"🌊",rating:4.79,reviews:3143,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bidart-east-s458",category:"surfing",title:"Bidart East",location:"Basque Country, France",lat:43.4411,lon:-1.5837,ap:"BIQ",icon:"🌊",rating:4.55,reviews:2015,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hanalei-bay-east-s459",category:"surfing",title:"Hanalei Bay East",location:"Kauai, Hawaii",lat:22.2117,lon:-159.4966,ap:"LIH",icon:"🌊",rating:4.73,reviews:4699,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fuerteventura-north-east-s460",category:"surfing",title:"Fuerteventura North East",location:"Canary Islands, Spain",lat:28.754,lon:-13.996,ap:"FUE",icon:"🌊",rating:4.66,reviews:1913,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"porthleven-east-s461",category:"surfing",title:"Porthleven East",location:"Cornwall, England",lat:50.0859,lon:-5.3099,ap:"NQY",icon:"🌊",rating:4.82,reviews:3903,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"new-pier-durban-east-s462",category:"surfing",title:"New Pier Durban East",location:"KwaZulu-Natal, South Africa",lat:-29.8611,lon:31.0478,ap:"DUR",icon:"🌊",rating:4.95,reviews:2575,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kirra-beach-east-s463",category:"surfing",title:"Kirra Beach East",location:"Gold Coast, Australia",lat:-28.1618,lon:153.5455,ap:"OOL",icon:"🌊",rating:4.82,reviews:1055,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rodiles-east-s464",category:"surfing",title:"Rodiles East",location:"Asturias, Spain",lat:43.5373,lon:-5.4127,ap:"OVD",icon:"🌊",rating:4.57,reviews:404,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"newquay-fistral-east-s465",category:"surfing",title:"Newquay Fistral East",location:"Cornwall, England",lat:50.4276,lon:-5.087,ap:"NQY",icon:"🌊",rating:4.65,reviews:4135,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"padang-padang-east-s466",category:"surfing",title:"Padang Padang East",location:"Bali, Indonesia",lat:-8.8097,lon:115.0936,ap:"DPS",icon:"🌊",rating:4.56,reviews:2023,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"canggu-east-s467",category:"surfing",title:"Canggu East",location:"Bali, Indonesia",lat:-8.6438,lon:115.1425,ap:"DPS",icon:"🌊",rating:4.93,reviews:1211,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niijima-island-east-s468",category:"surfing",title:"Niijima Island East",location:"Tokyo, Japan",lat:34.374,lon:139.274,ap:"HND",icon:"🌊",rating:4.69,reviews:3139,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kuta-bali-east-s469",category:"surfing",title:"Kuta Bali East",location:"Bali, Indonesia",lat:-8.7144,lon:115.1726,ap:"DPS",icon:"🌊",rating:4.83,reviews:4525,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"todo-santos-east-s470",category:"surfing",title:"Todo Santos East",location:"Baja California Sur, Mexico",lat:23.4504,lon:-110.2221,ap:"SJD",icon:"🌊",rating:4.71,reviews:1365,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-quemao-east-s471",category:"surfing",title:"El Quemao East",location:"Lanzarote, Spain",lat:29.069,lon:-13.59,ap:"ACE",icon:"🌊",rating:4.93,reviews:911,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"peniche-east-s472",category:"surfing",title:"Peniche East",location:"Leiria, Portugal",lat:39.3586,lon:-9.3753,ap:"LIS",icon:"🌊",rating:4.91,reviews:3443,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"g-land-java-east-s473",category:"surfing",title:"G-Land Java East",location:"East Java, Indonesia",lat:-8.4627,lon:114.3207,ap:"SUB",icon:"🌊",rating:4.96,reviews:2391,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keramas-east-s474",category:"surfing",title:"Keramas East",location:"Bali, Indonesia",lat:-8.5804,lon:115.3189,ap:"DPS",icon:"🌊",rating:4.52,reviews:3135,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"poipu-beach-east-s475",category:"surfing",title:"Poipu Beach East",location:"Kauai, Hawaii",lat:21.8763,lon:-159.4599,ap:"LIH",icon:"🌊",rating:4.61,reviews:3742,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jaco-beach-east-s476",category:"surfing",title:"Jaco Beach East",location:"Puntarenas, Costa Rica",lat:9.6196,lon:-84.6231,ap:"SJO",icon:"🌊",rating:4.97,reviews:3071,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hikkaduwa-east-s477",category:"surfing",title:"Hikkaduwa East",location:"Southern Province, Sri Lanka",lat:6.143,lon:80.1032,ap:"CMB",icon:"🌊",rating:4.55,reviews:3109,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"santa-teresa-east-s478",category:"surfing",title:"Santa Teresa East",location:"Puntarenas, Costa Rica",lat:9.6407,lon:-85.1656,ap:"SJO",icon:"🌊",rating:4.77,reviews:3038,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tunnels-beach-east-s479",category:"surfing",title:"Tunnels Beach East",location:"Kauai, Hawaii",lat:22.2259,lon:-159.5615,ap:"LIH",icon:"🌊",rating:4.53,reviews:2360,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"byron-bay-east-s480",category:"surfing",title:"Byron Bay East",location:"New South Wales, Australia",lat:-28.6434,lon:153.6218,ap:"BNK",icon:"🌊",rating:4.59,reviews:1100,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-rosa-east-s481",category:"surfing",title:"Praia do Rosa East",location:"Santa Catarina, Brazil",lat:-28.1288,lon:-48.6554,ap:"FLN",icon:"🌊",rating:4.97,reviews:3825,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pismo-beach-pier-east-s482",category:"surfing",title:"Pismo Beach Pier East",location:"Pismo Beach, California",lat:35.1467,lon:-120.6373,ap:"SBP",icon:"🌊",rating:4.54,reviews:1837,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zarautz-east-s483",category:"surfing",title:"Zarautz East",location:"Basque Country, Spain",lat:43.2873,lon:-2.1627,ap:"BIO",icon:"🌊",rating:4.81,reviews:4991,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sandy-beach-east-s484",category:"surfing",title:"Sandy Beach East",location:"Oahu, Hawaii",lat:21.3006,lon:-157.6688,ap:"HNL",icon:"🌊",rating:4.98,reviews:514,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamer-lane-east-s485",category:"surfing",title:"Steamer Lane East",location:"Santa Cruz, California",lat:36.9578,lon:-122.0218,ap:"SJC",icon:"🌊",rating:4.89,reviews:2095,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bingin-east-s486",category:"surfing",title:"Bingin East",location:"Bali, Indonesia",lat:-8.8179,lon:115.0977,ap:"DPS",icon:"🌊",rating:4.98,reviews:4725,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dungeons-east-s487",category:"surfing",title:"Dungeons East",location:"Cape Town, South Africa",lat:-34.1338,lon:18.3429,ap:"CPT",icon:"🌊",rating:4.6,reviews:4640,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lacanau-east-s488",category:"surfing",title:"Lacanau East",location:"Gironde, France",lat:44.9873,lon:-1.1904,ap:"BOD",icon:"🌊",rating:4.6,reviews:1869,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"blacks-beach-east-s489",category:"surfing",title:"Blacks Beach East",location:"San Diego, California",lat:32.8901,lon:-117.2494,ap:"SAN",icon:"🌊",rating:4.9,reviews:2008,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saquarema-east-s490",category:"surfing",title:"Saquarema East",location:"Rio de Janeiro, Brazil",lat:-22.9163,lon:-42.506,ap:"GIG",icon:"🌊",rating:4.66,reviews:1308,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cardiff-reef-east-s491",category:"surfing",title:"Cardiff Reef East",location:"Cardiff-by-the-Sea, California",lat:33.0315,lon:-117.2776,ap:"SAN",icon:"🌊",rating:4.89,reviews:4982,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"punta-hermosa-east-s492",category:"surfing",title:"Punta Hermosa East",location:"Lima, Peru",lat:-12.3521,lon:-76.8338,ap:"LIM",icon:"🌊",rating:4.5,reviews:1285,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kona-coast-east-s493",category:"surfing",title:"Kona Coast East",location:"Big Island, Hawaii",lat:19.6332,lon:-155.9929,ap:"KOA",icon:"🌊",rating:4.98,reviews:4525,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"killer-point-east-s494",category:"surfing",title:"Killer Point East",location:"Agadir, Morocco",lat:30.6048,lon:-9.6835,ap:"AGA",icon:"🌊",rating:4.62,reviews:1529,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cave-rock-east-s495",category:"surfing",title:"Cave Rock East",location:"Durban, South Africa",lat:-29.9127,lon:31.054,ap:"DUR",icon:"🌊",rating:4.55,reviews:311,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-bay-east-s496",category:"surfing",title:"Big Bay East",location:"Cape Town, South Africa",lat:-33.7113,lon:18.469,ap:"CPT",icon:"🌊",rating:4.56,reviews:3034,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bodega-bay-east-s497",category:"surfing",title:"Bodega Bay East",location:"Sonoma, California",lat:38.3367,lon:-123.0486,ap:"SFO",icon:"🌊",rating:4.89,reviews:2049,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"itacare-east-s498",category:"surfing",title:"Itacare East",location:"Bahia, Brazil",lat:-14.2738,lon:-38.9946,ap:"IOS",icon:"🌊",rating:4.79,reviews:229,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"teahupoo-east-s499",category:"surfing",title:"Teahupoo East",location:"Tahiti, French Polynesia",lat:-17.8427,lon:-149.2729,ap:"PPT",icon:"🌊",rating:4.59,reviews:529,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grandvalira-s0",category:"skiing",title:"Grandvalira",location:"Andorra la Vella, Andorra",lat:42.5339,lon:1.7392,ap:"BCN",icon:"🏔️",rating:4.74,reviews:3627,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"AXT",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OST",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aspen-snowmass-s7",category:"skiing",title:"Aspen Snowmass",location:"Pitkin County, Colorado",lat:39.2083,lon:-106.9495,ap:"ASE",icon:"🏔️",rating:4.78,reviews:4797,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-bachelor-s8",category:"skiing",title:"Mt Bachelor",location:"Deschutes County, Oregon",lat:43.9792,lon:-121.6886,ap:"RDM",icon:"🏔️",rating:4.7,reviews:3521,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arapahoe-basin-s9",category:"skiing",title:"Arapahoe Basin",location:"Summit County, Colorado",lat:39.6426,lon:-105.8715,ap:"DEN",icon:"🏔️",rating:4.64,reviews:3418,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kiroro-snow-world-s11",category:"skiing",title:"Kiroro Snow World",location:"Hokkaido, Japan",lat:43.0558,lon:140.9656,ap:"CTS",icon:"🏔️",rating:4.58,reviews:3869,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morzine-s12",category:"skiing",title:"Morzine",location:"Haute-Savoie, France",lat:46.1786,lon:6.7069,ap:"GVA",icon:"🏔️",rating:4.91,reviews:3064,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chamonix-mont-blanc-s18",category:"skiing",title:"Chamonix Mont-Blanc",location:"Haute-Savoie, France",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🏔️",rating:4.66,reviews:1477,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZPC",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-arcs-s20",category:"skiing",title:"Les Arcs",location:"Savoie, France",lat:45.5,lon:6.8333,ap:"GVA",icon:"🏔️",rating:4.76,reviews:1688,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"powder-mountain-s21",category:"skiing",title:"Powder Mountain",location:"Weber County, Utah",lat:41.3833,lon:-111.7833,ap:"SLC",icon:"🏔️",rating:4.94,reviews:2962,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madarao-mountain-s22",category:"skiing",title:"Madarao Mountain",location:"Nagano, Japan",lat:36.9847,lon:138.3381,ap:"NGO",icon:"🏔️",rating:4.67,reviews:1309,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thredbo-village-s23",category:"skiing",title:"Thredbo Village",location:"New South Wales, Australia",lat:-36.5,lon:148.3,ap:"SYD",icon:"🏔️",rating:4.62,reviews:1299,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nevis-range-s24",category:"skiing",title:"Nevis Range",location:"Highlands, Scotland",lat:56.8333,lon:-5.0,ap:"INV",icon:"🏔️",rating:4.63,reviews:1521,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsugaike-kogen-s25",category:"skiing",title:"Tsugaike Kogen",location:"Nagano, Japan",lat:36.7697,lon:137.8158,ap:"NGO",icon:"🏔️",rating:4.8,reviews:717,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-shasta-ski-s26",category:"skiing",title:"Mount Shasta Ski",location:"Siskiyou County, California",lat:41.35,lon:-122.1833,ap:"RDD",icon:"🏔️",rating:4.59,reviews:4147,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lech-zurs-s27",category:"skiing",title:"Lech Zurs",location:"Vorarlberg, Austria",lat:47.2083,lon:10.1444,ap:"INN",icon:"🏔️",rating:4.73,reviews:4718,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-castor-s28",category:"skiing",title:"Cerro Castor",location:"Tierra del Fuego, Argentina",lat:-54.7833,lon:-68.1167,ap:"USH",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flachau-s30",category:"skiing",title:"Flachau",location:"Salzburg, Austria",lat:47.3333,lon:13.3833,ap:"SZG",icon:"🏔️",rating:4.82,reviews:2747,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cairngorm-mountain-s31",category:"skiing",title:"Cairngorm Mountain",location:"Highlands, Scotland",lat:57.1333,lon:-3.6667,ap:"INV",icon:"🏔️",rating:4.92,reviews:2689,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wengen-s32",category:"skiing",title:"Wengen",location:"Berne, Switzerland",lat:46.6097,lon:7.9219,ap:"ZRH",icon:"🏔️",rating:4.57,reviews:659,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"revelstoke-mountain-s33",category:"skiing",title:"Revelstoke Mountain",location:"British Columbia, Canada",lat:51.0,lon:-118.1667,ap:"YKF",icon:"🏔️",rating:4.73,reviews:2580,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarbush-s34",category:"skiing",title:"Sugarbush",location:"Mad River Valley, Vermont",lat:44.1167,lon:-72.8567,ap:"BTV",icon:"🏔️",rating:4.89,reviews:4944,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cortina-d-ampezzo-s35",category:"skiing",title:"Cortina d'Ampezzo",location:"Veneto, Italy",lat:46.54,lon:12.1394,ap:"VCE",icon:"🏔️",rating:4.53,reviews:4256,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jasper-marmot-s36",category:"skiing",title:"Jasper Marmot",location:"Alberta, Canada",lat:52.9167,lon:-118.0667,ap:"YEG",icon:"🏔️",rating:4.54,reviews:3882,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-ski-s37",category:"skiing",title:"Alta Ski",location:"Salt Lake County, Utah",lat:40.5883,lon:-111.6383,ap:"SLC",icon:"🏔️",rating:4.72,reviews:566,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-thorens-s38",category:"skiing",title:"Val Thorens",location:"Savoie, France",lat:45.2983,lon:6.5833,ap:"GVA",icon:"🏔️",rating:4.68,reviews:2451,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baqueira-beret-s39",category:"skiing",title:"Baqueira-Beret",location:"Lleida, Spain",lat:42.6833,lon:0.9167,ap:"BCN",icon:"🏔️",rating:4.54,reviews:839,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-thuile-s40",category:"skiing",title:"La Thuile",location:"Aosta Valley, Italy",lat:45.6833,lon:6.95,ap:"GVA",icon:"🏔️",rating:4.8,reviews:4253,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ohau-snow-fields-s41",category:"skiing",title:"Ohau Snow Fields",location:"Mackenzie, New Zealand",lat:-44.2333,lon:169.9333,ap:"CHC",icon:"🏔️",rating:4.69,reviews:4854,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"copper-mountain-s42",category:"skiing",title:"Copper Mountain",location:"Summit County, Colorado",lat:39.5017,lon:-106.1567,ap:"EGE",icon:"🏔️",rating:4.77,reviews:436,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zermatt-s43",category:"skiing",title:"Zermatt",location:"Valais, Switzerland",lat:46.0207,lon:7.7491,ap:"GVA",icon:"🏔️",rating:4.72,reviews:4783,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"meribel-s44",category:"skiing",title:"Meribel",location:"Savoie, France",lat:45.4,lon:6.5667,ap:"GVA",icon:"🏔️",rating:4.82,reviews:2733,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitefish-mountain-s45",category:"skiing",title:"Whitefish Mountain",location:"Flathead County, Montana",lat:48.4817,lon:-114.3533,ap:"FCA",icon:"🏔️",rating:4.8,reviews:4207,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alpbach-s46",category:"skiing",title:"Alpbach",location:"Tyrol, Austria",lat:47.4,lon:11.9667,ap:"INN",icon:"🏔️",rating:4.57,reviews:606,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"loon-mountain-s47",category:"skiing",title:"Loon Mountain",location:"Grafton County, New Hampshire",lat:44.0269,lon:-71.6247,ap:"MHT",icon:"🏔️",rating:4.72,reviews:2913,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"banff-sunshine-s48",category:"skiing",title:"Banff Sunshine",location:"Alberta, Canada",lat:51.0833,lon:-115.7667,ap:"YYC",icon:"🏔️",rating:4.98,reviews:790,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mayrhofen-s49",category:"skiing",title:"Mayrhofen",location:"Tyrol, Austria",lat:47.1667,lon:11.8667,ap:"INN",icon:"🏔️",rating:4.75,reviews:1513,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"megeve-s50",category:"skiing",title:"Megeve",location:"Haute-Savoie, France",lat:45.8564,lon:6.6186,ap:"GVA",icon:"🏔️",rating:4.52,reviews:3686,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zao-onsen-s51",category:"skiing",title:"Zao Onsen",location:"Yamagata, Japan",lat:38.1358,lon:140.455,ap:"SDJ",icon:"🏔️",rating:4.99,reviews:4393,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sundance-resort-s52",category:"skiing",title:"Sundance Resort",location:"Utah County, Utah",lat:40.3892,lon:-111.5881,ap:"SLC",icon:"🏔️",rating:4.76,reviews:1400,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"geilo-ski-resort-s53",category:"skiing",title:"Geilo Ski Resort",location:"Viken, Norway",lat:60.5286,lon:8.2011,ap:"OSL",icon:"🏔️",rating:4.68,reviews:2417,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"squaw-valley-alpine-s54",category:"skiing",title:"Squaw Valley Alpine",location:"Placer County, California",lat:39.1967,lon:-120.235,ap:"RNO",icon:"🏔️",rating:4.69,reviews:2871,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerler-aragon-s55",category:"skiing",title:"Cerler Aragon",location:"Aragon, Spain",lat:42.6167,lon:0.5,ap:"ZAZ",icon:"🏔️",rating:4.83,reviews:528,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"st-anton-am-arlberg-s56",category:"skiing",title:"St Anton am Arlberg",location:"Tyrol, Austria",lat:47.1281,lon:10.2681,ap:"INN",icon:"🏔️",rating:4.89,reviews:2841,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mad-river-glen-s57",category:"skiing",title:"Mad River Glen",location:"Washington County, Vermont",lat:44.18,lon:-72.8736,ap:"BTV",icon:"🏔️",rating:4.53,reviews:874,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"avoriaz-s58",category:"skiing",title:"Avoriaz",location:"Haute-Savoie, France",lat:46.1897,lon:6.77,ap:"GVA",icon:"🏔️",rating:4.77,reviews:3266,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crested-butte-s59",category:"skiing",title:"Crested Butte",location:"Gunnison County, Colorado",lat:38.9017,lon:-106.9612,ap:"GUC",icon:"🏔️",rating:4.64,reviews:1331,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"breckenridge-s60",category:"skiing",title:"Breckenridge",location:"Summit County, Colorado",lat:39.4817,lon:-102.9844,ap:"DEN",icon:"🏔️",rating:4.66,reviews:4873,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-hood-meadows-s61",category:"skiing",title:"Mt Hood Meadows",location:"Hood River County, Oregon",lat:45.3261,lon:-121.6694,ap:"PDX",icon:"🏔️",rating:4.83,reviews:2965,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"solden-s62",category:"skiing",title:"Solden",location:"Tyrol, Austria",lat:46.9611,lon:11.0014,ap:"INN",icon:"🏔️",rating:4.65,reviews:3310,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-deux-alpes-s63",category:"skiing",title:"Les Deux Alpes",location:"Isere, France",lat:45.0167,lon:6.1167,ap:"GVA",icon:"🏔️",rating:4.56,reviews:794,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"the-remarkables-s64",category:"skiing",title:"The Remarkables",location:"Queenstown, New Zealand",lat:-45.1,lon:168.8333,ap:"ZQN",icon:"🏔️",rating:4.65,reviews:3185,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"silver-star-mountain-s65",category:"skiing",title:"Silver Star Mountain",location:"British Columbia, Canada",lat:50.3667,lon:-119.05,ap:"YLW",icon:"🏔️",rating:4.82,reviews:2790,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waterville-valley-s66",category:"skiing",title:"Waterville Valley",location:"Grafton County, New Hampshire",lat:43.9667,lon:-71.5167,ap:"MHT",icon:"🏔️",rating:4.9,reviews:4412,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saas-fee-s67",category:"skiing",title:"Saas-Fee",location:"Valais, Switzerland",lat:46.11,lon:7.9283,ap:"GVA",icon:"🏔️",rating:4.55,reviews:3568,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vail-mountain-s68",category:"skiing",title:"Vail Mountain",location:"Eagle County, Colorado",lat:39.6433,lon:-106.373,ap:"EGE",icon:"🏔️",rating:4.75,reviews:249,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-parva-s69",category:"skiing",title:"La Parva",location:"Santiago, Chile",lat:-33.3667,lon:-70.3,ap:"SCL",icon:"🏔️",rating:4.68,reviews:1576,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarloaf-s70",category:"skiing",title:"Sugarloaf",location:"Franklin County, Maine",lat:45.035,lon:-70.3117,ap:"PWM",icon:"🏔️",rating:4.97,reviews:2899,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"riksgransen-s71",category:"skiing",title:"Riksgransen",location:"Norrbotten, Sweden",lat:68.4333,lon:18.1167,ap:"LLA",icon:"🏔️",rating:4.96,reviews:4083,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-annupuri-s72",category:"skiing",title:"Niseko Annupuri",location:"Hokkaido, Japan",lat:42.8086,lon:140.6928,ap:"CTS",icon:"🏔️",rating:4.59,reviews:1226,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snowbasin-s73",category:"skiing",title:"Snowbasin",location:"Weber County, Utah",lat:41.2167,lon:-111.8567,ap:"SLC",icon:"🏔️",rating:4.58,reviews:2523,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kaprun-kitzsteinhorn-s74",category:"skiing",title:"Kaprun Kitzsteinhorn",location:"Salzburg, Austria",lat:47.1667,lon:12.7333,ap:"SZG",icon:"🏔️",rating:4.91,reviews:928,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"smugglers-notch-s75",category:"skiing",title:"Smugglers Notch",location:"Lamoille County, Vermont",lat:44.55,lon:-72.8167,ap:"BTV",icon:"🏔️",rating:4.75,reviews:4521,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keystone-resort-s76",category:"skiing",title:"Keystone Resort",location:"Summit County, Colorado",lat:39.6098,lon:-105.9437,ap:"DEN",icon:"🏔️",rating:4.91,reviews:4413,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grindelwald-s77",category:"skiing",title:"Grindelwald",location:"Berne, Switzerland",lat:46.6244,lon:8.0408,ap:"ZRH",icon:"🏔️",rating:4.52,reviews:2858,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madonna-di-campiglio-s78",category:"skiing",title:"Madonna di Campiglio",location:"Trentino, Italy",lat:46.2317,lon:10.8233,ap:"VRN",icon:"🏔️",rating:4.93,reviews:1173,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"valle-nevado-s79",category:"skiing",title:"Valle Nevado",location:"Santiago, Chile",lat:-33.3583,lon:-70.2886,ap:"SCL",icon:"🏔️",rating:4.79,reviews:1363,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ischgl-s80",category:"skiing",title:"Ischgl",location:"Tyrol, Austria",lat:47.0133,lon:10.2919,ap:"INN",icon:"🏔️",rating:4.58,reviews:1456,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shiga-kogen-s81",category:"skiing",title:"Shiga Kogen",location:"Nagano, Japan",lat:36.7167,lon:138.5333,ap:"NGO",icon:"🏔️",rating:4.85,reviews:457,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jackson-hole-s82",category:"skiing",title:"Jackson Hole",location:"Teton County, Wyoming",lat:43.5875,lon:-110.8278,ap:"JAC",icon:"🏔️",rating:4.7,reviews:2045,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"monarch-mountain-s83",category:"skiing",title:"Monarch Mountain",location:"Chaffee County, Colorado",lat:38.5167,lon:-106.3333,ap:"PUB",icon:"🏔️",rating:4.98,reviews:2434,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sestriere-milky-way-s84",category:"skiing",title:"Sestriere Milky Way",location:"Piedmont, Italy",lat:44.9583,lon:6.8778,ap:"TRN",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"las-lenas-s85",category:"skiing",title:"Las Lenas",location:"Mendoza, Argentina",lat:-35.1667,lon:-70.0833,ap:"MDZ",icon:"🏔️",rating:4.61,reviews:2059,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taos-ski-valley-s86",category:"skiing",title:"Taos Ski Valley",location:"Taos County, New Mexico",lat:36.595,lon:-105.4486,ap:"SAF",icon:"🏔️",rating:4.65,reviews:3942,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"naeba-ski-resort-s87",category:"skiing",title:"Naeba Ski Resort",location:"Niigata, Japan",lat:36.8833,lon:138.7667,ap:"KIJ",icon:"🏔️",rating:4.94,reviews:1689,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sierra-at-tahoe-s88",category:"skiing",title:"Sierra-at-Tahoe",location:"El Dorado County, California",lat:38.7944,lon:-120.0808,ap:"RNO",icon:"🏔️",rating:4.68,reviews:4772,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tignes-s89",category:"skiing",title:"Tignes",location:"Savoie, France",lat:45.4667,lon:6.9083,ap:"GVA",icon:"🏔️",rating:4.98,reviews:3882,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flims-laax-s90",category:"skiing",title:"Flims Laax",location:"Graubunden, Switzerland",lat:46.7833,lon:9.2833,ap:"ZRH",icon:"🏔️",rating:4.88,reviews:3228,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"brighton-ski-s91",category:"skiing",title:"Brighton Ski",location:"Salt Lake County, Utah",lat:40.5983,lon:-111.5833,ap:"SLC",icon:"🏔️",rating:4.75,reviews:3529,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stratton-mountain-s92",category:"skiing",title:"Stratton Mountain",location:"Windham County, Vermont",lat:43.1167,lon:-72.9,ap:"BTV",icon:"🏔️",rating:4.97,reviews:1735,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-plagne-s93",category:"skiing",title:"La Plagne",location:"Savoie, France",lat:45.5167,lon:6.6833,ap:"GVA",icon:"🏔️",rating:4.89,reviews:1233,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flaine-s94",category:"skiing",title:"Flaine",location:"Haute-Savoie, France",lat:46.0,lon:6.6833,ap:"GVA",icon:"🏔️",rating:4.93,reviews:527,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"durango-purgatory-s95",category:"skiing",title:"Durango Purgatory",location:"San Juan County, Colorado",lat:37.6286,lon:-107.855,ap:"DRO",icon:"🏔️",rating:4.81,reviews:3140,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"farellones-s96",category:"skiing",title:"Farellones",location:"Santiago, Chile",lat:-33.3667,lon:-70.3167,ap:"SCL",icon:"🏔️",rating:4.77,reviews:940,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitewater-ski-s97",category:"skiing",title:"Whitewater Ski",location:"British Columbia, Canada",lat:49.5,lon:-117.1667,ap:"YXX",icon:"🏔️",rating:4.85,reviews:4326,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"verbier-s98",category:"skiing",title:"Verbier",location:"Valais, Switzerland",lat:46.1,lon:7.2333,ap:"GVA",icon:"🏔️",rating:4.92,reviews:2435,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-valley-s99",category:"skiing",title:"Sun Valley",location:"Blaine County, Idaho",lat:43.69,lon:-114.3533,ap:"SUN",icon:"🏔️",rating:4.54,reviews:1413,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamboat-springs-s100",category:"skiing",title:"Steamboat Springs",location:"Routt County, Colorado",lat:40.4568,lon:-106.7978,ap:"HDN",icon:"🏔️",rating:4.63,reviews:4305,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beitostolen-s101",category:"skiing",title:"Beitostolen",location:"Innlandet, Norway",lat:61.2667,lon:8.9,ap:"OSL",icon:"🏔️",rating:4.57,reviews:3683,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panorama-mountain-s102",category:"skiing",title:"Panorama Mountain",location:"British Columbia, Canada",lat:50.4575,lon:-116.2389,ap:"YYC",icon:"🏔️",rating:4.54,reviews:1918,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"schladming-s103",category:"skiing",title:"Schladming",location:"Styria, Austria",lat:47.3917,lon:13.6833,ap:"GRZ",icon:"🏔️",rating:4.9,reviews:2963,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-badia-s104",category:"skiing",title:"Alta Badia",location:"South Tyrol, Italy",lat:46.5833,lon:11.9167,ap:"VRN",icon:"🏔️",rating:4.96,reviews:3498,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whistler-blackcomb-s105",category:"skiing",title:"Whistler Blackcomb",location:"British Columbia, Canada",lat:50.1163,lon:-122.9574,ap:"YVR",icon:"🏔️",rating:4.53,reviews:4212,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernie-alpine-s106",category:"skiing",title:"Fernie Alpine",location:"British Columbia, Canada",lat:49.4833,lon:-115.0833,ap:"YEG",icon:"🏔️",rating:4.68,reviews:3263,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eldora-mountain-s107",category:"skiing",title:"Eldora Mountain",location:"Boulder County, Colorado",lat:39.9378,lon:-105.5844,ap:"DEN",icon:"🏔️",rating:4.99,reviews:3171,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arosa-s108",category:"skiing",title:"Arosa",location:"Graubunden, Switzerland",lat:46.7833,lon:9.6833,ap:"ZRH",icon:"🏔️",rating:4.61,reviews:2710,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunday-river-s109",category:"skiing",title:"Sunday River",location:"Oxford County, Maine",lat:44.4719,lon:-70.8572,ap:"PWM",icon:"🏔️",rating:4.96,reviews:2846,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-grand-hirafu-s110",category:"skiing",title:"Niseko Grand Hirafu",location:"Hokkaido, Japan",lat:42.8372,lon:140.6861,ap:"CTS",icon:"🏔️",rating:4.89,reviews:1227,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gaustablikk-ski-s111",category:"skiing",title:"Gaustablikk Ski",location:"Telemark, Norway",lat:59.85,lon:8.6,ap:"OSL",icon:"🏔️",rating:4.52,reviews:3970,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"are-ski-resort-s112",category:"skiing",title:"Are Ski Resort",location:"Jamtland, Sweden",lat:63.3986,lon:13.0806,ap:"OST",icon:"🏔️",rating:4.84,reviews:1236,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"powderhorn-s113",category:"skiing",title:"Powderhorn",location:"Mesa County, Colorado",lat:39.0683,lon:-108.1267,ap:"GJT",icon:"🏔️",rating:4.87,reviews:3942,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-rosiere-s114",category:"skiing",title:"La Rosiere",location:"Savoie, France",lat:45.65,lon:6.85,ap:"GVA",icon:"🏔️",rating:4.72,reviews:143,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-molina-s115",category:"skiing",title:"La Molina",location:"Catalonia, Spain",lat:42.3333,lon:1.9333,ap:"BCN",icon:"🏔️",rating:4.94,reviews:255,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cervinia-s116",category:"skiing",title:"Cervinia",location:"Aosta Valley, Italy",lat:45.9333,lon:7.6333,ap:"GVA",icon:"🏔️",rating:4.63,reviews:1324,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lake-louise-ski-s117",category:"skiing",title:"Lake Louise Ski",location:"Alberta, Canada",lat:51.4167,lon:-116.1833,ap:"YYC",icon:"🏔️",rating:4.77,reviews:4423,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bad-gastein-s118",category:"skiing",title:"Bad Gastein",location:"Salzburg, Austria",lat:47.1167,lon:13.1333,ap:"SZG",icon:"🏔️",rating:4.71,reviews:2460,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hafjell-ski-s119",category:"skiing",title:"Hafjell Ski",location:"Innlandet, Norway",lat:61.25,lon:10.45,ap:"OSL",icon:"🏔️",rating:4.62,reviews:1098,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wolf-creek-s120",category:"skiing",title:"Wolf Creek",location:"Mineral County, Colorado",lat:37.4767,lon:-106.7983,ap:"PUB",icon:"🏔️",rating:4.52,reviews:3539,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chapelco-ski-s121",category:"skiing",title:"Chapelco Ski",location:"Neuquen, Argentina",lat:-40.3167,lon:-71.25,ap:"CPC",icon:"🏔️",rating:4.81,reviews:3844,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"okemo-mountain-s122",category:"skiing",title:"Okemo Mountain",location:"Windsor County, Vermont",lat:43.4086,lon:-72.7194,ap:"BTV",icon:"🏔️",rating:4.53,reviews:4194,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beaver-creek-s123",category:"skiing",title:"Beaver Creek",location:"Eagle County, Colorado",lat:39.6042,lon:-106.5169,ap:"EGE",icon:"🏔️",rating:4.79,reviews:234,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunshine-village-s124",category:"skiing",title:"Sunshine Village",location:"Alberta, Canada",lat:51.0833,lon:-115.7667,ap:"YYC",icon:"🏔️",rating:4.81,reviews:4810,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plan-de-corones-s125",category:"skiing",title:"Plan de Corones",location:"South Tyrol, Italy",lat:46.75,lon:11.9167,ap:"VRN",icon:"🏔️",rating:4.62,reviews:1276,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"winter-park-s126",category:"skiing",title:"Winter Park",location:"Grand County, Colorado",lat:39.8869,lon:-105.7624,ap:"DEN",icon:"🏔️",rating:4.64,reviews:112,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hemavan-tarnaby-s127",category:"skiing",title:"Hemavan-Tarnaby",location:"Vasterbotten, Sweden",lat:65.8167,lon:15.0833,ap:"LLA",icon:"🏔️",rating:4.8,reviews:2070,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crystal-mountain-wa-s128",category:"skiing",title:"Crystal Mountain WA",location:"Pierce County, Washington",lat:46.9317,lon:-121.475,ap:"SEA",icon:"🏔️",rating:4.78,reviews:1634,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"obertauern-s129",category:"skiing",title:"Obertauern",location:"Salzburg, Austria",lat:47.25,lon:13.5667,ap:"SZG",icon:"🏔️",rating:4.83,reviews:801,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alpe-d-huez-s130",category:"skiing",title:"Alpe d'Huez",location:"Isere, France",lat:45.0917,lon:6.0667,ap:"GVA",icon:"🏔️",rating:4.76,reviews:3054,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"passo-tonale-s131",category:"skiing",title:"Passo Tonale",location:"Trentino, Italy",lat:46.25,lon:10.5833,ap:"VRN",icon:"🏔️",rating:4.53,reviews:4409,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ski-santa-fe-s132",category:"skiing",title:"Ski Santa Fe",location:"Santa Fe County, New Mexico",lat:35.7889,lon:-105.8228,ap:"SAF",icon:"🏔️",rating:4.77,reviews:4258,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"murren-s133",category:"skiing",title:"Murren",location:"Berne, Switzerland",lat:46.5587,lon:7.8922,ap:"ZRH",icon:"🏔️",rating:4.77,reviews:3298,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mammoth-mountain-s134",category:"skiing",title:"Mammoth Mountain",location:"Mono County, California",lat:37.6308,lon:-119.0326,ap:"MMH",icon:"🏔️",rating:4.93,reviews:456,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sestriere-s135",category:"skiing",title:"Sestriere",location:"Piedmont, Italy",lat:44.9583,lon:6.8778,ap:"TRN",icon:"🏔️",rating:4.81,reviews:3158,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"selva-gardena-s136",category:"skiing",title:"Selva Gardena",location:"South Tyrol, Italy",lat:46.5556,lon:11.7667,ap:"VRN",icon:"🏔️",rating:4.62,reviews:233,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"glencoe-mountain-s137",category:"skiing",title:"Glencoe Mountain",location:"Highlands, Scotland",lat:56.6567,lon:-4.8733,ap:"GLA",icon:"🏔️",rating:4.67,reviews:653,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kitzbuhel-s138",category:"skiing",title:"Kitzbuhel",location:"Tyrol, Austria",lat:47.4456,lon:12.3919,ap:"MUC",icon:"🏔️",rating:4.67,reviews:949,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"livigno-s139",category:"skiing",title:"Livigno",location:"Sondrio, Italy",lat:46.5333,lon:10.1333,ap:"BGY",icon:"🏔️",rating:4.88,reviews:2823,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"courchevel-1850-s140",category:"skiing",title:"Courchevel 1850",location:"Savoie, France",lat:45.4167,lon:6.6333,ap:"GVA",icon:"🏔️",rating:4.57,reviews:2986,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kimberley-alpine-s141",category:"skiing",title:"Kimberley Alpine",location:"British Columbia, Canada",lat:49.65,lon:-116.0,ap:"YEG",icon:"🏔️",rating:4.77,reviews:1534,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trysil-resort-s142",category:"skiing",title:"Trysil Resort",location:"Innlandet, Norway",lat:61.3167,lon:12.2667,ap:"OSL",icon:"🏔️",rating:4.91,reviews:3906,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"red-mountain-bc-s143",category:"skiing",title:"Red Mountain BC",location:"British Columbia, Canada",lat:49.1,lon:-117.8333,ap:"YXX",icon:"🏔️",rating:4.98,reviews:4020,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bariloche-catedral-s144",category:"skiing",title:"Bariloche Catedral",location:"Rio Negro, Argentina",lat:-41.1667,lon:-71.4333,ap:"BRC",icon:"🏔️",rating:4.81,reviews:1204,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-colorado-s145",category:"skiing",title:"El Colorado",location:"Santiago, Chile",lat:-33.35,lon:-70.2833,ap:"SCL",icon:"🏔️",rating:4.53,reviews:3849,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lake-tahoe-heavenly-s146",category:"skiing",title:"Lake Tahoe Heavenly",location:"El Dorado County, California",lat:38.9347,lon:-119.8858,ap:"RNO",icon:"🏔️",rating:4.52,reviews:1751,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ponte-di-legno-s147",category:"skiing",title:"Ponte di Legno",location:"Brescia, Italy",lat:46.2553,lon:10.5064,ap:"BGY",icon:"🏔️",rating:4.52,reviews:1734,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-hutt-s148",category:"skiing",title:"Mt Hutt",location:"Canterbury, New Zealand",lat:-43.5,lon:171.55,ap:"CHC",icon:"🏔️",rating:4.93,reviews:2685,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nozawa-onsen-s149",category:"skiing",title:"Nozawa Onsen",location:"Nagano, Japan",lat:36.925,lon:138.4667,ap:"NGO",icon:"🏔️",rating:4.96,reviews:4322,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"st-moritz-s150",category:"skiing",title:"St Moritz",location:"Graubunden, Switzerland",lat:46.4983,lon:9.8384,ap:"ZRH",icon:"🏔️",rating:4.7,reviews:4548,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-buller-s151",category:"skiing",title:"Mount Buller",location:"Victoria, Australia",lat:-37.15,lon:146.4333,ap:"MEL",icon:"🏔️",rating:4.73,reviews:399,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stubaier-gletscher-s152",category:"skiing",title:"Stubaier Gletscher",location:"Tyrol, Austria",lat:47.1167,lon:11.1167,ap:"INN",icon:"🏔️",rating:4.87,reviews:1665,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"engelberg-s153",category:"skiing",title:"Engelberg",location:"Obwalden, Switzerland",lat:46.8219,lon:8.4078,ap:"ZRH",icon:"🏔️",rating:4.64,reviews:491,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chilian-las-termas-s154",category:"skiing",title:"Chilian Las Termas",location:"Biobio, Chile",lat:-36.9,lon:-71.4333,ap:"CCP",icon:"🏔️",rating:4.92,reviews:2819,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"voss-resort-s155",category:"skiing",title:"Voss Resort",location:"Vestland, Norway",lat:60.6276,lon:6.4169,ap:"BGO",icon:"🏔️",rating:4.63,reviews:3114,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-menuires-s156",category:"skiing",title:"Les Menuires",location:"Savoie, France",lat:45.325,lon:6.5417,ap:"GVA",icon:"🏔️",rating:4.71,reviews:3376,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"catedral-alta-patagonia-s157",category:"skiing",title:"Catedral Alta Patagonia",location:"Rio Negro, Argentina",lat:-41.1667,lon:-71.4333,ap:"BRC",icon:"🏔️",rating:4.86,reviews:3267,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vemdalen-s158",category:"skiing",title:"Vemdalen",location:"Jamtland, Sweden",lat:62.45,lon:13.8833,ap:"OST",icon:"🏔️",rating:4.67,reviews:1630,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-sky-resort-s159",category:"skiing",title:"Big Sky Resort",location:"Gallatin County, Montana",lat:45.2833,lon:-111.4,ap:"BZN",icon:"🏔️",rating:4.74,reviews:4175,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sierra-nevada-spain-s160",category:"skiing",title:"Sierra Nevada Spain",location:"Andalusia, Spain",lat:37.1,lon:-3.4,ap:"GRX",icon:"🏔️",rating:4.68,reviews:4353,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"andermatt-s161",category:"skiing",title:"Andermatt",location:"Uri, Switzerland",lat:46.635,lon:8.5939,ap:"ZRH",icon:"🏔️",rating:4.63,reviews:776,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"solitude-mountain-s162",category:"skiing",title:"Solitude Mountain",location:"Salt Lake County, Utah",lat:40.6217,lon:-111.595,ap:"SLC",icon:"🏔️",rating:4.86,reviews:746,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"deer-valley-s163",category:"skiing",title:"Deer Valley",location:"Summit County, Utah",lat:40.6372,lon:-111.4783,ap:"SLC",icon:"🏔️",rating:4.71,reviews:1578,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rusutsu-resort-s164",category:"skiing",title:"Rusutsu Resort",location:"Hokkaido, Japan",lat:42.7536,lon:140.9014,ap:"CTS",icon:"🏔️",rating:4.77,reviews:2731,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coronet-peak-s165",category:"skiing",title:"Coronet Peak",location:"Queenstown, New Zealand",lat:-45.0333,lon:168.7167,ap:"ZQN",icon:"🏔️",rating:4.55,reviews:2786,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nakiska-ski-s166",category:"skiing",title:"Nakiska Ski",location:"Alberta, Canada",lat:50.9333,lon:-115.1667,ap:"YYC",icon:"🏔️",rating:4.82,reviews:2610,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arabba-s167",category:"skiing",title:"Arabba",location:"Veneto, Italy",lat:46.4986,lon:11.8731,ap:"VRN",icon:"🏔️",rating:4.72,reviews:3590,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"courmayeur-s168",category:"skiing",title:"Courmayeur",location:"Aosta Valley, Italy",lat:45.7917,lon:6.9764,ap:"GVA",icon:"🏔️",rating:4.58,reviews:3736,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tomamu-resort-s169",category:"skiing",title:"Tomamu Resort",location:"Hokkaido, Japan",lat:43.0508,lon:142.5381,ap:"CTS",icon:"🏔️",rating:4.67,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"park-city-mountain-s170",category:"skiing",title:"Park City Mountain",location:"Summit County, Utah",lat:40.6514,lon:-111.508,ap:"SLC",icon:"🏔️",rating:4.86,reviews:2988,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"telluride-s171",category:"skiing",title:"Telluride",location:"San Miguel County, Colorado",lat:37.9374,lon:-107.8123,ap:"TEX",icon:"🏔️",rating:4.8,reviews:3663,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bretton-woods-s172",category:"skiing",title:"Bretton Woods",location:"Coos County, New Hampshire",lat:44.2569,lon:-71.4428,ap:"MHT",icon:"🏔️",rating:4.63,reviews:569,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myoko-kogen-s173",category:"skiing",title:"Myoko Kogen",location:"Niigata, Japan",lat:36.9,lon:138.1,ap:"KIJ",icon:"🏔️",rating:4.54,reviews:3427,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"davos-klosters-s174",category:"skiing",title:"Davos Klosters",location:"Graubunden, Switzerland",lat:46.8,lon:9.8333,ap:"ZRH",icon:"🏔️",rating:4.68,reviews:1410,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"falls-creek-s175",category:"skiing",title:"Falls Creek",location:"Victoria, Australia",lat:-36.8667,lon:147.2667,ap:"MEL",icon:"🏔️",rating:4.97,reviews:1269,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"heavenly-lake-tahoe-s176",category:"skiing",title:"Heavenly Lake Tahoe",location:"El Dorado County, California",lat:38.9347,lon:-119.8858,ap:"RNO",icon:"🏔️",rating:4.92,reviews:3689,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"loveland-ski-s177",category:"skiing",title:"Loveland Ski",location:"Clear Creek County, Colorado",lat:39.68,lon:-105.8983,ap:"DEN",icon:"🏔️",rating:4.52,reviews:650,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"formigal-s178",category:"skiing",title:"Formigal",location:"Aragon, Spain",lat:42.7833,lon:-0.3833,ap:"ZAZ",icon:"🏔️",rating:4.62,reviews:3100,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"marmot-basin-s179",category:"skiing",title:"Marmot Basin",location:"Alberta, Canada",lat:52.9167,lon:-118.0667,ap:"YEG",icon:"🏔️",rating:4.68,reviews:4746,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cardrona-alpine-s180",category:"skiing",title:"Cardrona Alpine",location:"Wanaka, New Zealand",lat:-44.8667,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.52,reviews:1356,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hakuba-valley-s181",category:"skiing",title:"Hakuba Valley",location:"Nagano, Japan",lat:36.7003,lon:137.8572,ap:"NGO",icon:"🏔️",rating:4.83,reviews:3138,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"northstar-california-s182",category:"skiing",title:"Northstar California",location:"Nevada County, California",lat:39.275,lon:-120.1217,ap:"RNO",icon:"🏔️",rating:4.68,reviews:729,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"salen-s183",category:"skiing",title:"Salen",location:"Dalarna, Sweden",lat:61.15,lon:13.2667,ap:"OST",icon:"🏔️",rating:4.78,reviews:4437,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perisher-blue-s184",category:"skiing",title:"Perisher Blue",location:"New South Wales, Australia",lat:-36.4,lon:148.4167,ap:"SYD",icon:"🏔️",rating:4.68,reviews:2675,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saalbach-hinterglemm-s185",category:"skiing",title:"Saalbach-Hinterglemm",location:"Salzburg, Austria",lat:47.3917,lon:12.65,ap:"SZG",icon:"🏔️",rating:4.82,reviews:2144,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"furano-ski-resort-s186",category:"skiing",title:"Furano Ski Resort",location:"Hokkaido, Japan",lat:43.35,lon:142.4,ap:"CTS",icon:"🏔️",rating:4.97,reviews:312,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"teine-ski-resort-s187",category:"skiing",title:"Teine Ski Resort",location:"Hokkaido, Japan",lat:43.0964,lon:141.2219,ap:"CTS",icon:"🏔️",rating:4.86,reviews:4188,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snowbird-s188",category:"skiing",title:"Snowbird",location:"Salt Lake County, Utah",lat:40.5833,lon:-111.6567,ap:"SLC",icon:"🏔️",rating:4.75,reviews:4701,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bear-mountain-s189",category:"skiing",title:"Bear Mountain",location:"San Bernardino, California",lat:34.2333,lon:-116.85,ap:"ONT",icon:"🏔️",rating:4.56,reviews:2232,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-hotham-s190",category:"skiing",title:"Mount Hotham",location:"Victoria, Australia",lat:-36.9833,lon:147.15,ap:"MEL",icon:"🏔️",rating:4.84,reviews:1857,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-gardena-s191",category:"skiing",title:"Val Gardena",location:"South Tyrol, Italy",lat:46.5667,lon:11.75,ap:"VRN",icon:"🏔️",rating:4.99,reviews:2439,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vallnord-andorra-s192",category:"skiing",title:"Vallnord Andorra",location:"Andorra la Vella, Andorra",lat:42.6,lon:1.5167,ap:"BCN",icon:"🏔️",rating:4.84,reviews:4123,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"killington-resort-s193",category:"skiing",title:"Killington Resort",location:"Windsor County, Vermont",lat:43.6189,lon:-72.8208,ap:"BTV",icon:"🏔️",rating:4.6,reviews:1211,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grandvalira-south-s194",category:"skiing",title:"Grandvalira South",location:"Andorra la Vella, Andorra",lat:42.5359,lon:1.7412,ap:"BCN",icon:"🏔️",rating:4.92,reviews:3803,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zell-am-see-south-s195",category:"skiing",title:"Zell am See South",location:"Salzburg, Austria",lat:47.3353,lon:12.802,ap:"SZG",icon:"🏔️",rating:4.58,reviews:3746,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"appi-kogen-south-s196",category:"skiing",title:"Appi Kogen South",location:"Iwate, Japan",lat:39.9731,lon:140.9337,ap:"AXT",icon:"🏔️",rating:4.99,reviews:2718,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hemsedal-south-s197",category:"skiing",title:"Hemsedal South",location:"Viken, Norway",lat:60.8651,lon:8.5667,ap:"OSL",icon:"🏔️",rating:4.83,reviews:631,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"portillo-south-s198",category:"skiing",title:"Portillo South",location:"Valparaiso, Chile",lat:-32.8313,lon:-70.1313,ap:"SCL",icon:"🏔️",rating:4.77,reviews:2478,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-white-ski-south-s199",category:"skiing",title:"Big White Ski South",location:"British Columbia, Canada",lat:49.7187,lon:-118.9313,ap:"YLW",icon:"🏔️",rating:4.94,reviews:1390,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"idre-fjall-south-s200",category:"skiing",title:"Idre Fjall South",location:"Dalarna, Sweden",lat:61.8853,lon:12.6687,ap:"OST",icon:"🏔️",rating:4.85,reviews:1526,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aspen-snowmass-south-s201",category:"skiing",title:"Aspen Snowmass South",location:"Pitkin County, Colorado",lat:39.2103,lon:-106.9475,ap:"ASE",icon:"🏔️",rating:4.89,reviews:4267,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-bachelor-south-s202",category:"skiing",title:"Mt Bachelor South",location:"Deschutes County, Oregon",lat:43.9812,lon:-121.6866,ap:"RDM",icon:"🏔️",rating:4.61,reviews:1746,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arapahoe-basin-south-s203",category:"skiing",title:"Arapahoe Basin South",location:"Summit County, Colorado",lat:39.6446,lon:-105.8695,ap:"DEN",icon:"🏔️",rating:4.89,reviews:2039,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kicking-horse-south-s204",category:"skiing",title:"Kicking Horse South",location:"British Columbia, Canada",lat:51.2999,lon:-117.0427,ap:"YYC",icon:"🏔️",rating:4.89,reviews:315,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kiroro-snow-world-south-s205",category:"skiing",title:"Kiroro Snow World South",location:"Hokkaido, Japan",lat:43.0578,lon:140.9676,ap:"CTS",icon:"🏔️",rating:4.68,reviews:4788,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morzine-south-s206",category:"skiing",title:"Morzine South",location:"Haute-Savoie, France",lat:46.1806,lon:6.7089,ap:"GVA",icon:"🏔️",rating:4.68,reviews:4619,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sainte-foy-tarentaise-south-s207",category:"skiing",title:"Sainte-Foy Tarentaise South",location:"Savoie, France",lat:45.552,lon:6.8853,ap:"GVA",icon:"🏔️",rating:4.56,reviews:806,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stowe-mountain-south-s208",category:"skiing",title:"Stowe Mountain South",location:"Lamoille County, Vermont",lat:44.5287,lon:-72.7797,ap:"BTV",icon:"🏔️",rating:4.53,reviews:3361,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"champoluc-monterosa-south-s209",category:"skiing",title:"Champoluc Monterosa South",location:"Aosta Valley, Italy",lat:45.8187,lon:7.702,ap:"TRN",icon:"🏔️",rating:4.99,reviews:4021,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-d-isere-south-s210",category:"skiing",title:"Val d'Isere South",location:"Savoie, France",lat:45.4503,lon:6.982,ap:"GVA",icon:"🏔️",rating:4.76,reviews:3454,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-peaks-resort-south-s211",category:"skiing",title:"Sun Peaks Resort South",location:"British Columbia, Canada",lat:50.8853,lon:-119.8813,ap:"YKA",icon:"🏔️",rating:4.9,reviews:704,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chamonix-mont-blanc-south-s212",category:"skiing",title:"Chamonix Mont-Blanc South",location:"Haute-Savoie, France",lat:45.9257,lon:6.8714,ap:"GVA",icon:"🏔️",rating:4.56,reviews:2697,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pucon-ski-center-south-s213",category:"skiing",title:"Pucon Ski Center South",location:"Araucania, Chile",lat:-39.2647,lon:-71.948,ap:"ZPC",icon:"🏔️",rating:4.81,reviews:3786,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-arcs-south-s214",category:"skiing",title:"Les Arcs South",location:"Savoie, France",lat:45.502,lon:6.8353,ap:"GVA",icon:"🏔️",rating:4.73,reviews:4338,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"powder-mountain-south-s215",category:"skiing",title:"Powder Mountain South",location:"Weber County, Utah",lat:41.3853,lon:-111.7813,ap:"SLC",icon:"🏔️",rating:4.67,reviews:4616,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madarao-mountain-south-s216",category:"skiing",title:"Madarao Mountain South",location:"Nagano, Japan",lat:36.9867,lon:138.3401,ap:"NGO",icon:"🏔️",rating:4.81,reviews:1590,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thredbo-village-south-s217",category:"skiing",title:"Thredbo Village South",location:"New South Wales, Australia",lat:-36.498,lon:148.302,ap:"SYD",icon:"🏔️",rating:4.88,reviews:1157,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nevis-range-south-s218",category:"skiing",title:"Nevis Range South",location:"Highlands, Scotland",lat:56.8353,lon:-4.998,ap:"INV",icon:"🏔️",rating:4.71,reviews:553,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsugaike-kogen-south-s219",category:"skiing",title:"Tsugaike Kogen South",location:"Nagano, Japan",lat:36.7717,lon:137.8178,ap:"NGO",icon:"🏔️",rating:4.91,reviews:4344,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-shasta-ski-south-s220",category:"skiing",title:"Mount Shasta Ski South",location:"Siskiyou County, California",lat:41.352,lon:-122.1813,ap:"RDD",icon:"🏔️",rating:4.57,reviews:1448,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lech-zurs-south-s221",category:"skiing",title:"Lech Zurs South",location:"Vorarlberg, Austria",lat:47.2103,lon:10.1464,ap:"INN",icon:"🏔️",rating:4.58,reviews:1947,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-castor-south-s222",category:"skiing",title:"Cerro Castor South",location:"Tierra del Fuego, Argentina",lat:-54.7813,lon:-68.1147,ap:"USH",icon:"🏔️",rating:4.67,reviews:4350,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"treble-cone-south-s223",category:"skiing",title:"Treble Cone South",location:"Wanaka, New Zealand",lat:-44.6147,lon:168.952,ap:"ZQN",icon:"🏔️",rating:4.94,reviews:746,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flachau-south-s224",category:"skiing",title:"Flachau South",location:"Salzburg, Austria",lat:47.3353,lon:13.3853,ap:"SZG",icon:"🏔️",rating:4.62,reviews:4612,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cairngorm-mountain-south-s225",category:"skiing",title:"Cairngorm Mountain South",location:"Highlands, Scotland",lat:57.1353,lon:-3.6647,ap:"INV",icon:"🏔️",rating:4.63,reviews:2580,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wengen-south-s226",category:"skiing",title:"Wengen South",location:"Berne, Switzerland",lat:46.6117,lon:7.9239,ap:"ZRH",icon:"🏔️",rating:4.8,reviews:865,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"revelstoke-mountain-south-s227",category:"skiing",title:"Revelstoke Mountain South",location:"British Columbia, Canada",lat:51.002,lon:-118.1647,ap:"YKF",icon:"🏔️",rating:4.75,reviews:1481,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarbush-south-s228",category:"skiing",title:"Sugarbush South",location:"Mad River Valley, Vermont",lat:44.1187,lon:-72.8547,ap:"BTV",icon:"🏔️",rating:4.79,reviews:4856,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cortina-d-ampezzo-south-s229",category:"skiing",title:"Cortina d'Ampezzo South",location:"Veneto, Italy",lat:46.542,lon:12.1414,ap:"VCE",icon:"🏔️",rating:4.58,reviews:2865,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jasper-marmot-south-s230",category:"skiing",title:"Jasper Marmot South",location:"Alberta, Canada",lat:52.9187,lon:-118.0647,ap:"YEG",icon:"🏔️",rating:4.91,reviews:4717,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-ski-south-s231",category:"skiing",title:"Alta Ski South",location:"Salt Lake County, Utah",lat:40.5903,lon:-111.6363,ap:"SLC",icon:"🏔️",rating:4.52,reviews:332,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-thorens-south-s232",category:"skiing",title:"Val Thorens South",location:"Savoie, France",lat:45.3003,lon:6.5853,ap:"GVA",icon:"🏔️",rating:4.54,reviews:4824,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baqueira-beret-south-s233",category:"skiing",title:"Baqueira-Beret South",location:"Lleida, Spain",lat:42.6853,lon:0.9187,ap:"BCN",icon:"🏔️",rating:4.63,reviews:1826,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-thuile-south-s234",category:"skiing",title:"La Thuile South",location:"Aosta Valley, Italy",lat:45.6853,lon:6.952,ap:"GVA",icon:"🏔️",rating:4.88,reviews:3512,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ohau-snow-fields-south-s235",category:"skiing",title:"Ohau Snow Fields South",location:"Mackenzie, New Zealand",lat:-44.2313,lon:169.9353,ap:"CHC",icon:"🏔️",rating:4.8,reviews:348,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"copper-mountain-south-s236",category:"skiing",title:"Copper Mountain South",location:"Summit County, Colorado",lat:39.5037,lon:-106.1547,ap:"EGE",icon:"🏔️",rating:4.74,reviews:4569,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zermatt-south-s237",category:"skiing",title:"Zermatt South",location:"Valais, Switzerland",lat:46.0227,lon:7.7511,ap:"GVA",icon:"🏔️",rating:4.64,reviews:2574,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"meribel-south-s238",category:"skiing",title:"Meribel South",location:"Savoie, France",lat:45.402,lon:6.5687,ap:"GVA",icon:"🏔️",rating:4.74,reviews:3426,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitefish-mountain-south-s239",category:"skiing",title:"Whitefish Mountain South",location:"Flathead County, Montana",lat:48.4837,lon:-114.3513,ap:"FCA",icon:"🏔️",rating:4.65,reviews:697,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alpbach-south-s240",category:"skiing",title:"Alpbach South",location:"Tyrol, Austria",lat:47.402,lon:11.9687,ap:"INN",icon:"🏔️",rating:4.84,reviews:1394,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"loon-mountain-south-s241",category:"skiing",title:"Loon Mountain South",location:"Grafton County, New Hampshire",lat:44.0289,lon:-71.6227,ap:"MHT",icon:"🏔️",rating:4.72,reviews:4066,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"banff-sunshine-south-s242",category:"skiing",title:"Banff Sunshine South",location:"Alberta, Canada",lat:51.0853,lon:-115.7647,ap:"YYC",icon:"🏔️",rating:4.73,reviews:2886,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mayrhofen-south-s243",category:"skiing",title:"Mayrhofen South",location:"Tyrol, Austria",lat:47.1687,lon:11.8687,ap:"INN",icon:"🏔️",rating:4.8,reviews:2660,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"megeve-south-s244",category:"skiing",title:"Megeve South",location:"Haute-Savoie, France",lat:45.8584,lon:6.6206,ap:"GVA",icon:"🏔️",rating:4.92,reviews:2715,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zao-onsen-south-s245",category:"skiing",title:"Zao Onsen South",location:"Yamagata, Japan",lat:38.1378,lon:140.457,ap:"SDJ",icon:"🏔️",rating:4.86,reviews:2929,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sundance-resort-south-s246",category:"skiing",title:"Sundance Resort South",location:"Utah County, Utah",lat:40.3912,lon:-111.5861,ap:"SLC",icon:"🏔️",rating:4.98,reviews:1171,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"geilo-ski-resort-south-s247",category:"skiing",title:"Geilo Ski Resort South",location:"Viken, Norway",lat:60.5306,lon:8.2031,ap:"OSL",icon:"🏔️",rating:4.87,reviews:4318,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"squaw-valley-alpine-south-s248",category:"skiing",title:"Squaw Valley Alpine South",location:"Placer County, California",lat:39.1987,lon:-120.233,ap:"RNO",icon:"🏔️",rating:4.78,reviews:2714,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerler-aragon-south-s249",category:"skiing",title:"Cerler Aragon South",location:"Aragon, Spain",lat:42.6187,lon:0.502,ap:"ZAZ",icon:"🏔️",rating:4.62,reviews:1103,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"st-anton-am-arlberg-south-s250",category:"skiing",title:"St Anton am Arlberg South",location:"Tyrol, Austria",lat:47.1301,lon:10.2701,ap:"INN",icon:"🏔️",rating:4.63,reviews:2130,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mad-river-glen-south-s251",category:"skiing",title:"Mad River Glen South",location:"Washington County, Vermont",lat:44.182,lon:-72.8716,ap:"BTV",icon:"🏔️",rating:4.57,reviews:514,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"avoriaz-south-s252",category:"skiing",title:"Avoriaz South",location:"Haute-Savoie, France",lat:46.1917,lon:6.772,ap:"GVA",icon:"🏔️",rating:4.64,reviews:3246,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crested-butte-south-s253",category:"skiing",title:"Crested Butte South",location:"Gunnison County, Colorado",lat:38.9037,lon:-106.9592,ap:"GUC",icon:"🏔️",rating:4.92,reviews:3525,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"breckenridge-south-s254",category:"skiing",title:"Breckenridge South",location:"Summit County, Colorado",lat:39.4837,lon:-102.9824,ap:"DEN",icon:"🏔️",rating:4.62,reviews:1408,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-hood-meadows-south-s255",category:"skiing",title:"Mt Hood Meadows South",location:"Hood River County, Oregon",lat:45.3281,lon:-121.6674,ap:"PDX",icon:"🏔️",rating:4.9,reviews:4832,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"solden-south-s256",category:"skiing",title:"Solden South",location:"Tyrol, Austria",lat:46.9631,lon:11.0034,ap:"INN",icon:"🏔️",rating:4.85,reviews:1655,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-deux-alpes-south-s257",category:"skiing",title:"Les Deux Alpes South",location:"Isere, France",lat:45.0187,lon:6.1187,ap:"GVA",icon:"🏔️",rating:4.87,reviews:4181,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"the-remarkables-south-s258",category:"skiing",title:"The Remarkables South",location:"Queenstown, New Zealand",lat:-45.098,lon:168.8353,ap:"ZQN",icon:"🏔️",rating:4.99,reviews:3924,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"silver-star-mountain-south-s259",category:"skiing",title:"Silver Star Mountain South",location:"British Columbia, Canada",lat:50.3687,lon:-119.048,ap:"YLW",icon:"🏔️",rating:4.74,reviews:2627,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waterville-valley-south-s260",category:"skiing",title:"Waterville Valley South",location:"Grafton County, New Hampshire",lat:43.9687,lon:-71.5147,ap:"MHT",icon:"🏔️",rating:4.74,reviews:837,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saas-fee-south-s261",category:"skiing",title:"Saas-Fee South",location:"Valais, Switzerland",lat:46.112,lon:7.9303,ap:"GVA",icon:"🏔️",rating:4.96,reviews:4240,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vail-mountain-south-s262",category:"skiing",title:"Vail Mountain South",location:"Eagle County, Colorado",lat:39.6453,lon:-106.371,ap:"EGE",icon:"🏔️",rating:4.72,reviews:2072,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-parva-south-s263",category:"skiing",title:"La Parva South",location:"Santiago, Chile",lat:-33.3647,lon:-70.298,ap:"SCL",icon:"🏔️",rating:4.61,reviews:2990,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarloaf-south-s264",category:"skiing",title:"Sugarloaf South",location:"Franklin County, Maine",lat:45.037,lon:-70.3097,ap:"PWM",icon:"🏔️",rating:4.52,reviews:2404,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"riksgransen-south-s265",category:"skiing",title:"Riksgransen South",location:"Norrbotten, Sweden",lat:68.4353,lon:18.1187,ap:"LLA",icon:"🏔️",rating:4.74,reviews:3955,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-annupuri-south-s266",category:"skiing",title:"Niseko Annupuri South",location:"Hokkaido, Japan",lat:42.8106,lon:140.6948,ap:"CTS",icon:"🏔️",rating:4.64,reviews:166,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snowbasin-south-s267",category:"skiing",title:"Snowbasin South",location:"Weber County, Utah",lat:41.2187,lon:-111.8547,ap:"SLC",icon:"🏔️",rating:4.92,reviews:3630,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kaprun-kitzsteinhorn-south-s268",category:"skiing",title:"Kaprun Kitzsteinhorn South",location:"Salzburg, Austria",lat:47.1687,lon:12.7353,ap:"SZG",icon:"🏔️",rating:4.57,reviews:2266,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"smugglers-notch-south-s269",category:"skiing",title:"Smugglers Notch South",location:"Lamoille County, Vermont",lat:44.552,lon:-72.8147,ap:"BTV",icon:"🏔️",rating:4.86,reviews:3403,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keystone-resort-south-s270",category:"skiing",title:"Keystone Resort South",location:"Summit County, Colorado",lat:39.6118,lon:-105.9417,ap:"DEN",icon:"🏔️",rating:4.68,reviews:3381,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grindelwald-south-s271",category:"skiing",title:"Grindelwald South",location:"Berne, Switzerland",lat:46.6264,lon:8.0428,ap:"ZRH",icon:"🏔️",rating:4.53,reviews:4702,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madonna-di-campiglio-south-s272",category:"skiing",title:"Madonna di Campiglio South",location:"Trentino, Italy",lat:46.2337,lon:10.8253,ap:"VRN",icon:"🏔️",rating:4.6,reviews:4632,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"valle-nevado-south-s273",category:"skiing",title:"Valle Nevado South",location:"Santiago, Chile",lat:-33.3563,lon:-70.2866,ap:"SCL",icon:"🏔️",rating:4.64,reviews:3264,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ischgl-south-s274",category:"skiing",title:"Ischgl South",location:"Tyrol, Austria",lat:47.0153,lon:10.2939,ap:"INN",icon:"🏔️",rating:4.75,reviews:4604,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shiga-kogen-south-s275",category:"skiing",title:"Shiga Kogen South",location:"Nagano, Japan",lat:36.7187,lon:138.5353,ap:"NGO",icon:"🏔️",rating:4.64,reviews:1073,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jackson-hole-south-s276",category:"skiing",title:"Jackson Hole South",location:"Teton County, Wyoming",lat:43.5895,lon:-110.8258,ap:"JAC",icon:"🏔️",rating:4.56,reviews:892,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"monarch-mountain-south-s277",category:"skiing",title:"Monarch Mountain South",location:"Chaffee County, Colorado",lat:38.5187,lon:-106.3313,ap:"PUB",icon:"🏔️",rating:4.69,reviews:2877,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sestriere-milky-way-south-s278",category:"skiing",title:"Sestriere Milky Way South",location:"Piedmont, Italy",lat:44.9603,lon:6.8798,ap:"TRN",icon:"🏔️",rating:4.77,reviews:3095,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"las-lenas-south-s279",category:"skiing",title:"Las Lenas South",location:"Mendoza, Argentina",lat:-35.1647,lon:-70.0813,ap:"MDZ",icon:"🏔️",rating:4.87,reviews:1730,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taos-ski-valley-south-s280",category:"skiing",title:"Taos Ski Valley South",location:"Taos County, New Mexico",lat:36.597,lon:-105.4466,ap:"SAF",icon:"🏔️",rating:4.8,reviews:3388,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"naeba-ski-resort-south-s281",category:"skiing",title:"Naeba Ski Resort South",location:"Niigata, Japan",lat:36.8853,lon:138.7687,ap:"KIJ",icon:"🏔️",rating:4.75,reviews:471,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sierra-at-tahoe-south-s282",category:"skiing",title:"Sierra-at-Tahoe South",location:"El Dorado County, California",lat:38.7964,lon:-120.0788,ap:"RNO",icon:"🏔️",rating:4.52,reviews:2828,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tignes-south-s283",category:"skiing",title:"Tignes South",location:"Savoie, France",lat:45.4687,lon:6.9103,ap:"GVA",icon:"🏔️",rating:4.89,reviews:4354,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flims-laax-south-s284",category:"skiing",title:"Flims Laax South",location:"Graubunden, Switzerland",lat:46.7853,lon:9.2853,ap:"ZRH",icon:"🏔️",rating:4.72,reviews:4323,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"brighton-ski-south-s285",category:"skiing",title:"Brighton Ski South",location:"Salt Lake County, Utah",lat:40.6003,lon:-111.5813,ap:"SLC",icon:"🏔️",rating:4.57,reviews:2709,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stratton-mountain-south-s286",category:"skiing",title:"Stratton Mountain South",location:"Windham County, Vermont",lat:43.1187,lon:-72.898,ap:"BTV",icon:"🏔️",rating:4.58,reviews:2551,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-plagne-south-s287",category:"skiing",title:"La Plagne South",location:"Savoie, France",lat:45.5187,lon:6.6853,ap:"GVA",icon:"🏔️",rating:4.79,reviews:4255,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flaine-south-s288",category:"skiing",title:"Flaine South",location:"Haute-Savoie, France",lat:46.002,lon:6.6853,ap:"GVA",icon:"🏔️",rating:4.91,reviews:4460,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"durango-purgatory-south-s289",category:"skiing",title:"Durango Purgatory South",location:"San Juan County, Colorado",lat:37.6306,lon:-107.853,ap:"DRO",icon:"🏔️",rating:4.74,reviews:4711,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"farellones-south-s290",category:"skiing",title:"Farellones South",location:"Santiago, Chile",lat:-33.3647,lon:-70.3147,ap:"SCL",icon:"🏔️",rating:4.65,reviews:236,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitewater-ski-south-s291",category:"skiing",title:"Whitewater Ski South",location:"British Columbia, Canada",lat:49.502,lon:-117.1647,ap:"YXX",icon:"🏔️",rating:4.68,reviews:997,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"verbier-south-s292",category:"skiing",title:"Verbier South",location:"Valais, Switzerland",lat:46.102,lon:7.2353,ap:"GVA",icon:"🏔️",rating:4.98,reviews:4881,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-valley-south-s293",category:"skiing",title:"Sun Valley South",location:"Blaine County, Idaho",lat:43.692,lon:-114.3513,ap:"SUN",icon:"🏔️",rating:4.65,reviews:318,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamboat-springs-south-s294",category:"skiing",title:"Steamboat Springs South",location:"Routt County, Colorado",lat:40.4588,lon:-106.7958,ap:"HDN",icon:"🏔️",rating:4.79,reviews:2275,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beitostolen-south-s295",category:"skiing",title:"Beitostolen South",location:"Innlandet, Norway",lat:61.2687,lon:8.902,ap:"OSL",icon:"🏔️",rating:4.97,reviews:4838,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panorama-mountain-south-s296",category:"skiing",title:"Panorama Mountain South",location:"British Columbia, Canada",lat:50.4595,lon:-116.2369,ap:"YYC",icon:"🏔️",rating:4.78,reviews:520,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"schladming-south-s297",category:"skiing",title:"Schladming South",location:"Styria, Austria",lat:47.3937,lon:13.6853,ap:"GRZ",icon:"🏔️",rating:4.79,reviews:1496,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-badia-south-s298",category:"skiing",title:"Alta Badia South",location:"South Tyrol, Italy",lat:46.5853,lon:11.9187,ap:"VRN",icon:"🏔️",rating:4.76,reviews:3214,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whistler-blackcomb-south-s299",category:"skiing",title:"Whistler Blackcomb South",location:"British Columbia, Canada",lat:50.1183,lon:-122.9554,ap:"YVR",icon:"🏔️",rating:4.57,reviews:2084,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernie-alpine-south-s300",category:"skiing",title:"Fernie Alpine South",location:"British Columbia, Canada",lat:49.4853,lon:-115.0813,ap:"YEG",icon:"🏔️",rating:4.52,reviews:1000,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eldora-mountain-south-s301",category:"skiing",title:"Eldora Mountain South",location:"Boulder County, Colorado",lat:39.9398,lon:-105.5824,ap:"DEN",icon:"🏔️",rating:4.59,reviews:3712,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arosa-south-s302",category:"skiing",title:"Arosa South",location:"Graubunden, Switzerland",lat:46.7853,lon:9.6853,ap:"ZRH",icon:"🏔️",rating:4.65,reviews:1340,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunday-river-south-s303",category:"skiing",title:"Sunday River South",location:"Oxford County, Maine",lat:44.4739,lon:-70.8552,ap:"PWM",icon:"🏔️",rating:4.7,reviews:1770,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-grand-hirafu-south-s304",category:"skiing",title:"Niseko Grand Hirafu South",location:"Hokkaido, Japan",lat:42.8392,lon:140.6881,ap:"CTS",icon:"🏔️",rating:4.7,reviews:3963,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gaustablikk-ski-south-s305",category:"skiing",title:"Gaustablikk Ski South",location:"Telemark, Norway",lat:59.852,lon:8.602,ap:"OSL",icon:"🏔️",rating:4.93,reviews:610,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"are-ski-resort-south-s306",category:"skiing",title:"Are Ski Resort South",location:"Jamtland, Sweden",lat:63.4006,lon:13.0826,ap:"OST",icon:"🏔️",rating:4.85,reviews:4349,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"powderhorn-south-s307",category:"skiing",title:"Powderhorn South",location:"Mesa County, Colorado",lat:39.0703,lon:-108.1247,ap:"GJT",icon:"🏔️",rating:4.6,reviews:2762,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-rosiere-south-s308",category:"skiing",title:"La Rosiere South",location:"Savoie, France",lat:45.652,lon:6.852,ap:"GVA",icon:"🏔️",rating:4.99,reviews:4018,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-molina-south-s309",category:"skiing",title:"La Molina South",location:"Catalonia, Spain",lat:42.3353,lon:1.9353,ap:"BCN",icon:"🏔️",rating:4.76,reviews:2670,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cervinia-south-s310",category:"skiing",title:"Cervinia South",location:"Aosta Valley, Italy",lat:45.9353,lon:7.6353,ap:"GVA",icon:"🏔️",rating:4.97,reviews:3865,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lake-louise-ski-south-s311",category:"skiing",title:"Lake Louise Ski South",location:"Alberta, Canada",lat:51.4187,lon:-116.1813,ap:"YYC",icon:"🏔️",rating:4.95,reviews:2904,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bad-gastein-south-s312",category:"skiing",title:"Bad Gastein South",location:"Salzburg, Austria",lat:47.1187,lon:13.1353,ap:"SZG",icon:"🏔️",rating:4.77,reviews:2265,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hafjell-ski-south-s313",category:"skiing",title:"Hafjell Ski South",location:"Innlandet, Norway",lat:61.252,lon:10.452,ap:"OSL",icon:"🏔️",rating:4.8,reviews:1675,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wolf-creek-south-s314",category:"skiing",title:"Wolf Creek South",location:"Mineral County, Colorado",lat:37.4787,lon:-106.7963,ap:"PUB",icon:"🏔️",rating:4.97,reviews:2385,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chapelco-ski-south-s315",category:"skiing",title:"Chapelco Ski South",location:"Neuquen, Argentina",lat:-40.3147,lon:-71.248,ap:"CPC",icon:"🏔️",rating:4.77,reviews:1942,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"okemo-mountain-south-s316",category:"skiing",title:"Okemo Mountain South",location:"Windsor County, Vermont",lat:43.4106,lon:-72.7174,ap:"BTV",icon:"🏔️",rating:4.96,reviews:2538,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beaver-creek-south-s317",category:"skiing",title:"Beaver Creek South",location:"Eagle County, Colorado",lat:39.6062,lon:-106.5149,ap:"EGE",icon:"🏔️",rating:4.88,reviews:1798,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunshine-village-south-s318",category:"skiing",title:"Sunshine Village South",location:"Alberta, Canada",lat:51.0853,lon:-115.7647,ap:"YYC",icon:"🏔️",rating:4.84,reviews:4105,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plan-de-corones-south-s319",category:"skiing",title:"Plan de Corones South",location:"South Tyrol, Italy",lat:46.752,lon:11.9187,ap:"VRN",icon:"🏔️",rating:4.66,reviews:2957,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"winter-park-south-s320",category:"skiing",title:"Winter Park South",location:"Grand County, Colorado",lat:39.8889,lon:-105.7604,ap:"DEN",icon:"🏔️",rating:4.77,reviews:2340,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hemavan-tarnaby-south-s321",category:"skiing",title:"Hemavan-Tarnaby South",location:"Vasterbotten, Sweden",lat:65.8187,lon:15.0853,ap:"LLA",icon:"🏔️",rating:4.64,reviews:4797,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crystal-mountain-wa-south-s322",category:"skiing",title:"Crystal Mountain WA South",location:"Pierce County, Washington",lat:46.9337,lon:-121.473,ap:"SEA",icon:"🏔️",rating:4.83,reviews:3210,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"obertauern-south-s323",category:"skiing",title:"Obertauern South",location:"Salzburg, Austria",lat:47.252,lon:13.5687,ap:"SZG",icon:"🏔️",rating:4.94,reviews:3332,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alpe-d-huez-south-s324",category:"skiing",title:"Alpe d'Huez South",location:"Isere, France",lat:45.0937,lon:6.0687,ap:"GVA",icon:"🏔️",rating:4.9,reviews:1299,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"passo-tonale-south-s325",category:"skiing",title:"Passo Tonale South",location:"Trentino, Italy",lat:46.252,lon:10.5853,ap:"VRN",icon:"🏔️",rating:4.64,reviews:2456,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ski-santa-fe-south-s326",category:"skiing",title:"Ski Santa Fe South",location:"Santa Fe County, New Mexico",lat:35.7909,lon:-105.8208,ap:"SAF",icon:"🏔️",rating:4.97,reviews:747,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"murren-south-s327",category:"skiing",title:"Murren South",location:"Berne, Switzerland",lat:46.5607,lon:7.8942,ap:"ZRH",icon:"🏔️",rating:4.67,reviews:3723,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mammoth-mountain-south-s328",category:"skiing",title:"Mammoth Mountain South",location:"Mono County, California",lat:37.6328,lon:-119.0306,ap:"MMH",icon:"🏔️",rating:4.82,reviews:4024,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sestriere-south-s329",category:"skiing",title:"Sestriere South",location:"Piedmont, Italy",lat:44.9603,lon:6.8798,ap:"TRN",icon:"🏔️",rating:4.6,reviews:4512,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"selva-gardena-south-s330",category:"skiing",title:"Selva Gardena South",location:"South Tyrol, Italy",lat:46.5576,lon:11.7687,ap:"VRN",icon:"🏔️",rating:4.63,reviews:4704,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"glencoe-mountain-south-s331",category:"skiing",title:"Glencoe Mountain South",location:"Highlands, Scotland",lat:56.6587,lon:-4.8713,ap:"GLA",icon:"🏔️",rating:4.84,reviews:1224,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kitzbuhel-south-s332",category:"skiing",title:"Kitzbuhel South",location:"Tyrol, Austria",lat:47.4476,lon:12.3939,ap:"MUC",icon:"🏔️",rating:4.55,reviews:4907,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"livigno-south-s333",category:"skiing",title:"Livigno South",location:"Sondrio, Italy",lat:46.5353,lon:10.1353,ap:"BGY",icon:"🏔️",rating:4.62,reviews:515,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"courchevel-1850-south-s334",category:"skiing",title:"Courchevel 1850 South",location:"Savoie, France",lat:45.4187,lon:6.6353,ap:"GVA",icon:"🏔️",rating:4.83,reviews:4450,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kimberley-alpine-south-s335",category:"skiing",title:"Kimberley Alpine South",location:"British Columbia, Canada",lat:49.652,lon:-115.998,ap:"YEG",icon:"🏔️",rating:4.61,reviews:2007,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trysil-resort-south-s336",category:"skiing",title:"Trysil Resort South",location:"Innlandet, Norway",lat:61.3187,lon:12.2687,ap:"OSL",icon:"🏔️",rating:4.53,reviews:3485,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"red-mountain-bc-south-s337",category:"skiing",title:"Red Mountain BC South",location:"British Columbia, Canada",lat:49.102,lon:-117.8313,ap:"YXX",icon:"🏔️",rating:4.66,reviews:3969,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bariloche-catedral-south-s338",category:"skiing",title:"Bariloche Catedral South",location:"Rio Negro, Argentina",lat:-41.1647,lon:-71.4313,ap:"BRC",icon:"🏔️",rating:4.55,reviews:1226,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-colorado-south-s339",category:"skiing",title:"El Colorado South",location:"Santiago, Chile",lat:-33.348,lon:-70.2813,ap:"SCL",icon:"🏔️",rating:4.5,reviews:4608,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lake-tahoe-heavenly-south-s340",category:"skiing",title:"Lake Tahoe Heavenly South",location:"El Dorado County, California",lat:38.9367,lon:-119.8838,ap:"RNO",icon:"🏔️",rating:4.98,reviews:1393,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ponte-di-legno-south-s341",category:"skiing",title:"Ponte di Legno South",location:"Brescia, Italy",lat:46.2573,lon:10.5084,ap:"BGY",icon:"🏔️",rating:4.7,reviews:3996,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-hutt-south-s342",category:"skiing",title:"Mt Hutt South",location:"Canterbury, New Zealand",lat:-43.498,lon:171.552,ap:"CHC",icon:"🏔️",rating:4.73,reviews:1733,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nozawa-onsen-south-s343",category:"skiing",title:"Nozawa Onsen South",location:"Nagano, Japan",lat:36.927,lon:138.4687,ap:"NGO",icon:"🏔️",rating:4.87,reviews:2453,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"st-moritz-south-s344",category:"skiing",title:"St Moritz South",location:"Graubunden, Switzerland",lat:46.5003,lon:9.8404,ap:"ZRH",icon:"🏔️",rating:4.66,reviews:584,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-buller-south-s345",category:"skiing",title:"Mount Buller South",location:"Victoria, Australia",lat:-37.148,lon:146.4353,ap:"MEL",icon:"🏔️",rating:4.94,reviews:832,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stubaier-gletscher-south-s346",category:"skiing",title:"Stubaier Gletscher South",location:"Tyrol, Austria",lat:47.1187,lon:11.1187,ap:"INN",icon:"🏔️",rating:4.82,reviews:2002,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"engelberg-south-s347",category:"skiing",title:"Engelberg South",location:"Obwalden, Switzerland",lat:46.8239,lon:8.4098,ap:"ZRH",icon:"🏔️",rating:4.76,reviews:405,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chilian-las-termas-south-s348",category:"skiing",title:"Chilian Las Termas South",location:"Biobio, Chile",lat:-36.898,lon:-71.4313,ap:"CCP",icon:"🏔️",rating:4.95,reviews:1534,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"voss-resort-south-s349",category:"skiing",title:"Voss Resort South",location:"Vestland, Norway",lat:60.6296,lon:6.4189,ap:"BGO",icon:"🏔️",rating:4.7,reviews:1540,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-menuires-south-s350",category:"skiing",title:"Les Menuires South",location:"Savoie, France",lat:45.327,lon:6.5437,ap:"GVA",icon:"🏔️",rating:4.96,reviews:397,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"catedral-alta-patagonia-south-s351",category:"skiing",title:"Catedral Alta Patagonia South",location:"Rio Negro, Argentina",lat:-41.1647,lon:-71.4313,ap:"BRC",icon:"🏔️",rating:4.99,reviews:3352,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vemdalen-south-s352",category:"skiing",title:"Vemdalen South",location:"Jamtland, Sweden",lat:62.452,lon:13.8853,ap:"OST",icon:"🏔️",rating:4.89,reviews:1626,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-sky-resort-south-s353",category:"skiing",title:"Big Sky Resort South",location:"Gallatin County, Montana",lat:45.2853,lon:-111.398,ap:"BZN",icon:"🏔️",rating:4.96,reviews:2471,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sierra-nevada-spain-south-s354",category:"skiing",title:"Sierra Nevada Spain South",location:"Andalusia, Spain",lat:37.102,lon:-3.398,ap:"GRX",icon:"🏔️",rating:4.93,reviews:175,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"andermatt-south-s355",category:"skiing",title:"Andermatt South",location:"Uri, Switzerland",lat:46.637,lon:8.5959,ap:"ZRH",icon:"🏔️",rating:4.65,reviews:979,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"solitude-mountain-south-s356",category:"skiing",title:"Solitude Mountain South",location:"Salt Lake County, Utah",lat:40.6237,lon:-111.593,ap:"SLC",icon:"🏔️",rating:4.95,reviews:2844,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"deer-valley-south-s357",category:"skiing",title:"Deer Valley South",location:"Summit County, Utah",lat:40.6392,lon:-111.4763,ap:"SLC",icon:"🏔️",rating:4.64,reviews:4550,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rusutsu-resort-south-s358",category:"skiing",title:"Rusutsu Resort South",location:"Hokkaido, Japan",lat:42.7556,lon:140.9034,ap:"CTS",icon:"🏔️",rating:4.76,reviews:1199,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coronet-peak-south-s359",category:"skiing",title:"Coronet Peak South",location:"Queenstown, New Zealand",lat:-45.0313,lon:168.7187,ap:"ZQN",icon:"🏔️",rating:4.92,reviews:3934,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nakiska-ski-south-s360",category:"skiing",title:"Nakiska Ski South",location:"Alberta, Canada",lat:50.9353,lon:-115.1647,ap:"YYC",icon:"🏔️",rating:4.63,reviews:1022,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arabba-south-s361",category:"skiing",title:"Arabba South",location:"Veneto, Italy",lat:46.5006,lon:11.8751,ap:"VRN",icon:"🏔️",rating:4.66,reviews:3859,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"courmayeur-south-s362",category:"skiing",title:"Courmayeur South",location:"Aosta Valley, Italy",lat:45.7937,lon:6.9784,ap:"GVA",icon:"🏔️",rating:4.82,reviews:1625,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tomamu-resort-south-s363",category:"skiing",title:"Tomamu Resort South",location:"Hokkaido, Japan",lat:43.0528,lon:142.5401,ap:"CTS",icon:"🏔️",rating:4.51,reviews:2861,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"park-city-mountain-south-s364",category:"skiing",title:"Park City Mountain South",location:"Summit County, Utah",lat:40.6534,lon:-111.506,ap:"SLC",icon:"🏔️",rating:4.89,reviews:4751,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"telluride-south-s365",category:"skiing",title:"Telluride South",location:"San Miguel County, Colorado",lat:37.9394,lon:-107.8103,ap:"TEX",icon:"🏔️",rating:4.83,reviews:1682,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bretton-woods-south-s366",category:"skiing",title:"Bretton Woods South",location:"Coos County, New Hampshire",lat:44.2589,lon:-71.4408,ap:"MHT",icon:"🏔️",rating:4.59,reviews:3421,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myoko-kogen-south-s367",category:"skiing",title:"Myoko Kogen South",location:"Niigata, Japan",lat:36.902,lon:138.102,ap:"KIJ",icon:"🏔️",rating:4.91,reviews:4321,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"davos-klosters-south-s368",category:"skiing",title:"Davos Klosters South",location:"Graubunden, Switzerland",lat:46.802,lon:9.8353,ap:"ZRH",icon:"🏔️",rating:4.66,reviews:3383,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"falls-creek-south-s369",category:"skiing",title:"Falls Creek South",location:"Victoria, Australia",lat:-36.8647,lon:147.2687,ap:"MEL",icon:"🏔️",rating:4.83,reviews:1613,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"heavenly-lake-tahoe-south-s370",category:"skiing",title:"Heavenly Lake Tahoe South",location:"El Dorado County, California",lat:38.9367,lon:-119.8838,ap:"RNO",icon:"🏔️",rating:4.98,reviews:4011,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"loveland-ski-south-s371",category:"skiing",title:"Loveland Ski South",location:"Clear Creek County, Colorado",lat:39.682,lon:-105.8963,ap:"DEN",icon:"🏔️",rating:4.66,reviews:2132,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"formigal-south-s372",category:"skiing",title:"Formigal South",location:"Aragon, Spain",lat:42.7853,lon:-0.3813,ap:"ZAZ",icon:"🏔️",rating:4.5,reviews:3242,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"marmot-basin-south-s373",category:"skiing",title:"Marmot Basin South",location:"Alberta, Canada",lat:52.9187,lon:-118.0647,ap:"YEG",icon:"🏔️",rating:4.62,reviews:2287,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cardrona-alpine-south-s374",category:"skiing",title:"Cardrona Alpine South",location:"Wanaka, New Zealand",lat:-44.8647,lon:168.952,ap:"ZQN",icon:"🏔️",rating:4.97,reviews:2573,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hakuba-valley-south-s375",category:"skiing",title:"Hakuba Valley South",location:"Nagano, Japan",lat:36.7023,lon:137.8592,ap:"NGO",icon:"🏔️",rating:4.79,reviews:4793,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"northstar-california-south-s376",category:"skiing",title:"Northstar California South",location:"Nevada County, California",lat:39.277,lon:-120.1197,ap:"RNO",icon:"🏔️",rating:4.51,reviews:3045,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"salen-south-s377",category:"skiing",title:"Salen South",location:"Dalarna, Sweden",lat:61.152,lon:13.2687,ap:"OST",icon:"🏔️",rating:4.84,reviews:608,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perisher-blue-south-s378",category:"skiing",title:"Perisher Blue South",location:"New South Wales, Australia",lat:-36.398,lon:148.4187,ap:"SYD",icon:"🏔️",rating:4.83,reviews:3912,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saalbach-hinterglemm-south-s379",category:"skiing",title:"Saalbach-Hinterglemm South",location:"Salzburg, Austria",lat:47.3937,lon:12.652,ap:"SZG",icon:"🏔️",rating:4.65,reviews:3421,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"furano-ski-resort-south-s380",category:"skiing",title:"Furano Ski Resort South",location:"Hokkaido, Japan",lat:43.352,lon:142.402,ap:"CTS",icon:"🏔️",rating:4.84,reviews:2647,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"teine-ski-resort-south-s381",category:"skiing",title:"Teine Ski Resort South",location:"Hokkaido, Japan",lat:43.0984,lon:141.2239,ap:"CTS",icon:"🏔️",rating:4.84,reviews:2516,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snowbird-south-s382",category:"skiing",title:"Snowbird South",location:"Salt Lake County, Utah",lat:40.5853,lon:-111.6547,ap:"SLC",icon:"🏔️",rating:4.68,reviews:1909,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bear-mountain-south-s383",category:"skiing",title:"Bear Mountain South",location:"San Bernardino, California",lat:34.2353,lon:-116.848,ap:"ONT",icon:"🏔️",rating:4.61,reviews:1194,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-hotham-south-s384",category:"skiing",title:"Mount Hotham South",location:"Victoria, Australia",lat:-36.9813,lon:147.152,ap:"MEL",icon:"🏔️",rating:4.73,reviews:3827,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-gardena-south-s385",category:"skiing",title:"Val Gardena South",location:"South Tyrol, Italy",lat:46.5687,lon:11.752,ap:"VRN",icon:"🏔️",rating:4.87,reviews:3160,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vallnord-andorra-south-s386",category:"skiing",title:"Vallnord Andorra South",location:"Andorra la Vella, Andorra",lat:42.602,lon:1.5187,ap:"BCN",icon:"🏔️",rating:4.7,reviews:4599,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"killington-resort-south-s387",category:"skiing",title:"Killington Resort South",location:"Windsor County, Vermont",lat:43.6209,lon:-72.8188,ap:"BTV",icon:"🏔️",rating:4.95,reviews:4503,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grandvalira-east-s388",category:"skiing",title:"Grandvalira East",location:"Andorra la Vella, Andorra",lat:42.5379,lon:1.7432,ap:"BCN",icon:"🏔️",rating:4.89,reviews:1889,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zell-am-see-east-s389",category:"skiing",title:"Zell am See East",location:"Salzburg, Austria",lat:47.3373,lon:12.804,ap:"SZG",icon:"🏔️",rating:4.87,reviews:4980,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"appi-kogen-east-s390",category:"skiing",title:"Appi Kogen East",location:"Iwate, Japan",lat:39.9751,lon:140.9357,ap:"AXT",icon:"🏔️",rating:4.93,reviews:770,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hemsedal-east-s391",category:"skiing",title:"Hemsedal East",location:"Viken, Norway",lat:60.8671,lon:8.5687,ap:"OSL",icon:"🏔️",rating:4.76,reviews:4426,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"portillo-east-s392",category:"skiing",title:"Portillo East",location:"Valparaiso, Chile",lat:-32.8293,lon:-70.1293,ap:"SCL",icon:"🏔️",rating:4.84,reviews:739,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"big-white-ski-east-s393",category:"skiing",title:"Big White Ski East",location:"British Columbia, Canada",lat:49.7207,lon:-118.9293,ap:"YLW",icon:"🏔️",rating:4.95,reviews:1019,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"idre-fjall-east-s394",category:"skiing",title:"Idre Fjall East",location:"Dalarna, Sweden",lat:61.8873,lon:12.6707,ap:"OST",icon:"🏔️",rating:4.53,reviews:4586,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aspen-snowmass-east-s395",category:"skiing",title:"Aspen Snowmass East",location:"Pitkin County, Colorado",lat:39.2123,lon:-106.9455,ap:"ASE",icon:"🏔️",rating:4.94,reviews:1756,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-bachelor-east-s396",category:"skiing",title:"Mt Bachelor East",location:"Deschutes County, Oregon",lat:43.9832,lon:-121.6846,ap:"RDM",icon:"🏔️",rating:4.78,reviews:1327,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arapahoe-basin-east-s397",category:"skiing",title:"Arapahoe Basin East",location:"Summit County, Colorado",lat:39.6466,lon:-105.8675,ap:"DEN",icon:"🏔️",rating:4.58,reviews:4362,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kicking-horse-east-s398",category:"skiing",title:"Kicking Horse East",location:"British Columbia, Canada",lat:51.3019,lon:-117.0407,ap:"YYC",icon:"🏔️",rating:4.72,reviews:1782,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kiroro-snow-world-east-s399",category:"skiing",title:"Kiroro Snow World East",location:"Hokkaido, Japan",lat:43.0598,lon:140.9696,ap:"CTS",icon:"🏔️",rating:4.85,reviews:4104,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morzine-east-s400",category:"skiing",title:"Morzine East",location:"Haute-Savoie, France",lat:46.1826,lon:6.7109,ap:"GVA",icon:"🏔️",rating:4.54,reviews:4280,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sainte-foy-tarentaise-east-s401",category:"skiing",title:"Sainte-Foy Tarentaise East",location:"Savoie, France",lat:45.554,lon:6.8873,ap:"GVA",icon:"🏔️",rating:4.72,reviews:555,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stowe-mountain-east-s402",category:"skiing",title:"Stowe Mountain East",location:"Lamoille County, Vermont",lat:44.5307,lon:-72.7777,ap:"BTV",icon:"🏔️",rating:4.72,reviews:4304,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"champoluc-monterosa-east-s403",category:"skiing",title:"Champoluc Monterosa East",location:"Aosta Valley, Italy",lat:45.8207,lon:7.704,ap:"TRN",icon:"🏔️",rating:4.7,reviews:4719,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-d-isere-east-s404",category:"skiing",title:"Val d'Isere East",location:"Savoie, France",lat:45.4523,lon:6.984,ap:"GVA",icon:"🏔️",rating:4.53,reviews:3887,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-peaks-resort-east-s405",category:"skiing",title:"Sun Peaks Resort East",location:"British Columbia, Canada",lat:50.8873,lon:-119.8793,ap:"YKA",icon:"🏔️",rating:4.83,reviews:2624,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chamonix-mont-blanc-east-s406",category:"skiing",title:"Chamonix Mont-Blanc East",location:"Haute-Savoie, France",lat:45.9277,lon:6.8734,ap:"GVA",icon:"🏔️",rating:4.85,reviews:3343,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pucon-ski-center-east-s407",category:"skiing",title:"Pucon Ski Center East",location:"Araucania, Chile",lat:-39.2627,lon:-71.946,ap:"ZPC",icon:"🏔️",rating:4.62,reviews:124,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-arcs-east-s408",category:"skiing",title:"Les Arcs East",location:"Savoie, France",lat:45.504,lon:6.8373,ap:"GVA",icon:"🏔️",rating:4.87,reviews:4837,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"powder-mountain-east-s409",category:"skiing",title:"Powder Mountain East",location:"Weber County, Utah",lat:41.3873,lon:-111.7793,ap:"SLC",icon:"🏔️",rating:4.54,reviews:3570,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madarao-mountain-east-s410",category:"skiing",title:"Madarao Mountain East",location:"Nagano, Japan",lat:36.9887,lon:138.3421,ap:"NGO",icon:"🏔️",rating:4.67,reviews:622,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"thredbo-village-east-s411",category:"skiing",title:"Thredbo Village East",location:"New South Wales, Australia",lat:-36.496,lon:148.304,ap:"SYD",icon:"🏔️",rating:4.77,reviews:593,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nevis-range-east-s412",category:"skiing",title:"Nevis Range East",location:"Highlands, Scotland",lat:56.8373,lon:-4.996,ap:"INV",icon:"🏔️",rating:4.96,reviews:665,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tsugaike-kogen-east-s413",category:"skiing",title:"Tsugaike Kogen East",location:"Nagano, Japan",lat:36.7737,lon:137.8198,ap:"NGO",icon:"🏔️",rating:4.98,reviews:3967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mount-shasta-ski-east-s414",category:"skiing",title:"Mount Shasta Ski East",location:"Siskiyou County, California",lat:41.354,lon:-122.1793,ap:"RDD",icon:"🏔️",rating:4.52,reviews:3449,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lech-zurs-east-s415",category:"skiing",title:"Lech Zurs East",location:"Vorarlberg, Austria",lat:47.2123,lon:10.1484,ap:"INN",icon:"🏔️",rating:4.59,reviews:1209,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerro-castor-east-s416",category:"skiing",title:"Cerro Castor East",location:"Tierra del Fuego, Argentina",lat:-54.7793,lon:-68.1127,ap:"USH",icon:"🏔️",rating:4.88,reviews:3543,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"treble-cone-east-s417",category:"skiing",title:"Treble Cone East",location:"Wanaka, New Zealand",lat:-44.6127,lon:168.954,ap:"ZQN",icon:"🏔️",rating:4.68,reviews:3233,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flachau-east-s418",category:"skiing",title:"Flachau East",location:"Salzburg, Austria",lat:47.3373,lon:13.3873,ap:"SZG",icon:"🏔️",rating:4.72,reviews:3192,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cairngorm-mountain-east-s419",category:"skiing",title:"Cairngorm Mountain East",location:"Highlands, Scotland",lat:57.1373,lon:-3.6627,ap:"INV",icon:"🏔️",rating:4.68,reviews:4517,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wengen-east-s420",category:"skiing",title:"Wengen East",location:"Berne, Switzerland",lat:46.6137,lon:7.9259,ap:"ZRH",icon:"🏔️",rating:4.57,reviews:2948,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"revelstoke-mountain-east-s421",category:"skiing",title:"Revelstoke Mountain East",location:"British Columbia, Canada",lat:51.004,lon:-118.1627,ap:"YKF",icon:"🏔️",rating:4.56,reviews:4501,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarbush-east-s422",category:"skiing",title:"Sugarbush East",location:"Mad River Valley, Vermont",lat:44.1207,lon:-72.8527,ap:"BTV",icon:"🏔️",rating:4.69,reviews:1143,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cortina-d-ampezzo-east-s423",category:"skiing",title:"Cortina d'Ampezzo East",location:"Veneto, Italy",lat:46.544,lon:12.1434,ap:"VCE",icon:"🏔️",rating:4.86,reviews:1924,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jasper-marmot-east-s424",category:"skiing",title:"Jasper Marmot East",location:"Alberta, Canada",lat:52.9207,lon:-118.0627,ap:"YEG",icon:"🏔️",rating:4.91,reviews:286,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-ski-east-s425",category:"skiing",title:"Alta Ski East",location:"Salt Lake County, Utah",lat:40.5923,lon:-111.6343,ap:"SLC",icon:"🏔️",rating:4.98,reviews:3892,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-thorens-east-s426",category:"skiing",title:"Val Thorens East",location:"Savoie, France",lat:45.3023,lon:6.5873,ap:"GVA",icon:"🏔️",rating:4.83,reviews:4560,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baqueira-beret-east-s427",category:"skiing",title:"Baqueira-Beret East",location:"Lleida, Spain",lat:42.6873,lon:0.9207,ap:"BCN",icon:"🏔️",rating:4.71,reviews:3207,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-thuile-east-s428",category:"skiing",title:"La Thuile East",location:"Aosta Valley, Italy",lat:45.6873,lon:6.954,ap:"GVA",icon:"🏔️",rating:4.9,reviews:2127,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ohau-snow-fields-east-s429",category:"skiing",title:"Ohau Snow Fields East",location:"Mackenzie, New Zealand",lat:-44.2293,lon:169.9373,ap:"CHC",icon:"🏔️",rating:4.73,reviews:1370,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"copper-mountain-east-s430",category:"skiing",title:"Copper Mountain East",location:"Summit County, Colorado",lat:39.5057,lon:-106.1527,ap:"EGE",icon:"🏔️",rating:4.64,reviews:1024,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zermatt-east-s431",category:"skiing",title:"Zermatt East",location:"Valais, Switzerland",lat:46.0247,lon:7.7531,ap:"GVA",icon:"🏔️",rating:4.52,reviews:3534,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"meribel-east-s432",category:"skiing",title:"Meribel East",location:"Savoie, France",lat:45.404,lon:6.5707,ap:"GVA",icon:"🏔️",rating:4.8,reviews:228,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitefish-mountain-east-s433",category:"skiing",title:"Whitefish Mountain East",location:"Flathead County, Montana",lat:48.4857,lon:-114.3493,ap:"FCA",icon:"🏔️",rating:4.62,reviews:651,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alpbach-east-s434",category:"skiing",title:"Alpbach East",location:"Tyrol, Austria",lat:47.404,lon:11.9707,ap:"INN",icon:"🏔️",rating:4.55,reviews:375,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"loon-mountain-east-s435",category:"skiing",title:"Loon Mountain East",location:"Grafton County, New Hampshire",lat:44.0309,lon:-71.6207,ap:"MHT",icon:"🏔️",rating:4.72,reviews:498,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"banff-sunshine-east-s436",category:"skiing",title:"Banff Sunshine East",location:"Alberta, Canada",lat:51.0873,lon:-115.7627,ap:"YYC",icon:"🏔️",rating:4.62,reviews:462,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mayrhofen-east-s437",category:"skiing",title:"Mayrhofen East",location:"Tyrol, Austria",lat:47.1707,lon:11.8707,ap:"INN",icon:"🏔️",rating:4.7,reviews:2019,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"megeve-east-s438",category:"skiing",title:"Megeve East",location:"Haute-Savoie, France",lat:45.8604,lon:6.6226,ap:"GVA",icon:"🏔️",rating:4.76,reviews:562,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zao-onsen-east-s439",category:"skiing",title:"Zao Onsen East",location:"Yamagata, Japan",lat:38.1398,lon:140.459,ap:"SDJ",icon:"🏔️",rating:4.57,reviews:2469,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sundance-resort-east-s440",category:"skiing",title:"Sundance Resort East",location:"Utah County, Utah",lat:40.3932,lon:-111.5841,ap:"SLC",icon:"🏔️",rating:4.61,reviews:4819,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"geilo-ski-resort-east-s441",category:"skiing",title:"Geilo Ski Resort East",location:"Viken, Norway",lat:60.5326,lon:8.2051,ap:"OSL",icon:"🏔️",rating:4.66,reviews:4998,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"squaw-valley-alpine-east-s442",category:"skiing",title:"Squaw Valley Alpine East",location:"Placer County, California",lat:39.2007,lon:-120.231,ap:"RNO",icon:"🏔️",rating:4.88,reviews:2726,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cerler-aragon-east-s443",category:"skiing",title:"Cerler Aragon East",location:"Aragon, Spain",lat:42.6207,lon:0.504,ap:"ZAZ",icon:"🏔️",rating:4.62,reviews:1273,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"st-anton-am-arlberg-east-s444",category:"skiing",title:"St Anton am Arlberg East",location:"Tyrol, Austria",lat:47.1321,lon:10.2721,ap:"INN",icon:"🏔️",rating:4.98,reviews:4370,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mad-river-glen-east-s445",category:"skiing",title:"Mad River Glen East",location:"Washington County, Vermont",lat:44.184,lon:-72.8696,ap:"BTV",icon:"🏔️",rating:4.61,reviews:2561,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"avoriaz-east-s446",category:"skiing",title:"Avoriaz East",location:"Haute-Savoie, France",lat:46.1937,lon:6.774,ap:"GVA",icon:"🏔️",rating:4.63,reviews:4660,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crested-butte-east-s447",category:"skiing",title:"Crested Butte East",location:"Gunnison County, Colorado",lat:38.9057,lon:-106.9572,ap:"GUC",icon:"🏔️",rating:4.96,reviews:1534,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"breckenridge-east-s448",category:"skiing",title:"Breckenridge East",location:"Summit County, Colorado",lat:39.4857,lon:-102.9804,ap:"DEN",icon:"🏔️",rating:4.81,reviews:3599,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mt-hood-meadows-east-s449",category:"skiing",title:"Mt Hood Meadows East",location:"Hood River County, Oregon",lat:45.3301,lon:-121.6654,ap:"PDX",icon:"🏔️",rating:4.77,reviews:484,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"solden-east-s450",category:"skiing",title:"Solden East",location:"Tyrol, Austria",lat:46.9651,lon:11.0054,ap:"INN",icon:"🏔️",rating:4.98,reviews:3222,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"les-deux-alpes-east-s451",category:"skiing",title:"Les Deux Alpes East",location:"Isere, France",lat:45.0207,lon:6.1207,ap:"GVA",icon:"🏔️",rating:4.89,reviews:2711,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"the-remarkables-east-s452",category:"skiing",title:"The Remarkables East",location:"Queenstown, New Zealand",lat:-45.096,lon:168.8373,ap:"ZQN",icon:"🏔️",rating:4.84,reviews:3444,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"silver-star-mountain-east-s453",category:"skiing",title:"Silver Star Mountain East",location:"British Columbia, Canada",lat:50.3707,lon:-119.046,ap:"YLW",icon:"🏔️",rating:4.57,reviews:3183,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"waterville-valley-east-s454",category:"skiing",title:"Waterville Valley East",location:"Grafton County, New Hampshire",lat:43.9707,lon:-71.5127,ap:"MHT",icon:"🏔️",rating:4.59,reviews:4506,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"saas-fee-east-s455",category:"skiing",title:"Saas-Fee East",location:"Valais, Switzerland",lat:46.114,lon:7.9323,ap:"GVA",icon:"🏔️",rating:4.73,reviews:1946,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vail-mountain-east-s456",category:"skiing",title:"Vail Mountain East",location:"Eagle County, Colorado",lat:39.6473,lon:-106.369,ap:"EGE",icon:"🏔️",rating:4.65,reviews:1282,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-parva-east-s457",category:"skiing",title:"La Parva East",location:"Santiago, Chile",lat:-33.3627,lon:-70.296,ap:"SCL",icon:"🏔️",rating:4.89,reviews:572,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sugarloaf-east-s458",category:"skiing",title:"Sugarloaf East",location:"Franklin County, Maine",lat:45.039,lon:-70.3077,ap:"PWM",icon:"🏔️",rating:4.78,reviews:3512,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"riksgransen-east-s459",category:"skiing",title:"Riksgransen East",location:"Norrbotten, Sweden",lat:68.4373,lon:18.1207,ap:"LLA",icon:"🏔️",rating:4.77,reviews:1198,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-annupuri-east-s460",category:"skiing",title:"Niseko Annupuri East",location:"Hokkaido, Japan",lat:42.8126,lon:140.6968,ap:"CTS",icon:"🏔️",rating:4.69,reviews:2188,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"snowbasin-east-s461",category:"skiing",title:"Snowbasin East",location:"Weber County, Utah",lat:41.2207,lon:-111.8527,ap:"SLC",icon:"🏔️",rating:4.6,reviews:747,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kaprun-kitzsteinhorn-east-s462",category:"skiing",title:"Kaprun Kitzsteinhorn East",location:"Salzburg, Austria",lat:47.1707,lon:12.7373,ap:"SZG",icon:"🏔️",rating:4.95,reviews:3139,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"smugglers-notch-east-s463",category:"skiing",title:"Smugglers Notch East",location:"Lamoille County, Vermont",lat:44.554,lon:-72.8127,ap:"BTV",icon:"🏔️",rating:4.55,reviews:1660,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"keystone-resort-east-s464",category:"skiing",title:"Keystone Resort East",location:"Summit County, Colorado",lat:39.6138,lon:-105.9397,ap:"DEN",icon:"🏔️",rating:4.53,reviews:3189,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grindelwald-east-s465",category:"skiing",title:"Grindelwald East",location:"Berne, Switzerland",lat:46.6284,lon:8.0448,ap:"ZRH",icon:"🏔️",rating:4.83,reviews:423,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"madonna-di-campiglio-east-s466",category:"skiing",title:"Madonna di Campiglio East",location:"Trentino, Italy",lat:46.2357,lon:10.8273,ap:"VRN",icon:"🏔️",rating:4.93,reviews:1641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"valle-nevado-east-s467",category:"skiing",title:"Valle Nevado East",location:"Santiago, Chile",lat:-33.3543,lon:-70.2846,ap:"SCL",icon:"🏔️",rating:4.89,reviews:4913,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ischgl-east-s468",category:"skiing",title:"Ischgl East",location:"Tyrol, Austria",lat:47.0173,lon:10.2959,ap:"INN",icon:"🏔️",rating:4.85,reviews:4678,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shiga-kogen-east-s469",category:"skiing",title:"Shiga Kogen East",location:"Nagano, Japan",lat:36.7207,lon:138.5373,ap:"NGO",icon:"🏔️",rating:4.61,reviews:1811,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jackson-hole-east-s470",category:"skiing",title:"Jackson Hole East",location:"Teton County, Wyoming",lat:43.5915,lon:-110.8238,ap:"JAC",icon:"🏔️",rating:4.93,reviews:2827,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"monarch-mountain-east-s471",category:"skiing",title:"Monarch Mountain East",location:"Chaffee County, Colorado",lat:38.5207,lon:-106.3293,ap:"PUB",icon:"🏔️",rating:4.65,reviews:225,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sestriere-milky-way-east-s472",category:"skiing",title:"Sestriere Milky Way East",location:"Piedmont, Italy",lat:44.9623,lon:6.8818,ap:"TRN",icon:"🏔️",rating:4.6,reviews:1656,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"las-lenas-east-s473",category:"skiing",title:"Las Lenas East",location:"Mendoza, Argentina",lat:-35.1627,lon:-70.0793,ap:"MDZ",icon:"🏔️",rating:4.97,reviews:1061,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taos-ski-valley-east-s474",category:"skiing",title:"Taos Ski Valley East",location:"Taos County, New Mexico",lat:36.599,lon:-105.4446,ap:"SAF",icon:"🏔️",rating:4.87,reviews:4023,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"naeba-ski-resort-east-s475",category:"skiing",title:"Naeba Ski Resort East",location:"Niigata, Japan",lat:36.8873,lon:138.7707,ap:"KIJ",icon:"🏔️",rating:4.95,reviews:1775,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sierra-at-tahoe-east-s476",category:"skiing",title:"Sierra-at-Tahoe East",location:"El Dorado County, California",lat:38.7984,lon:-120.0768,ap:"RNO",icon:"🏔️",rating:4.69,reviews:2060,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tignes-east-s477",category:"skiing",title:"Tignes East",location:"Savoie, France",lat:45.4707,lon:6.9123,ap:"GVA",icon:"🏔️",rating:4.77,reviews:2418,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flims-laax-east-s478",category:"skiing",title:"Flims Laax East",location:"Graubunden, Switzerland",lat:46.7873,lon:9.2873,ap:"ZRH",icon:"🏔️",rating:4.69,reviews:4471,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"brighton-ski-east-s479",category:"skiing",title:"Brighton Ski East",location:"Salt Lake County, Utah",lat:40.6023,lon:-111.5793,ap:"SLC",icon:"🏔️",rating:4.82,reviews:2626,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stratton-mountain-east-s480",category:"skiing",title:"Stratton Mountain East",location:"Windham County, Vermont",lat:43.1207,lon:-72.896,ap:"BTV",icon:"🏔️",rating:4.63,reviews:4300,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-plagne-east-s481",category:"skiing",title:"La Plagne East",location:"Savoie, France",lat:45.5207,lon:6.6873,ap:"GVA",icon:"🏔️",rating:4.93,reviews:3917,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flaine-east-s482",category:"skiing",title:"Flaine East",location:"Haute-Savoie, France",lat:46.004,lon:6.6873,ap:"GVA",icon:"🏔️",rating:4.55,reviews:3946,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"durango-purgatory-east-s483",category:"skiing",title:"Durango Purgatory East",location:"San Juan County, Colorado",lat:37.6326,lon:-107.851,ap:"DRO",icon:"🏔️",rating:4.87,reviews:2723,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"farellones-east-s484",category:"skiing",title:"Farellones East",location:"Santiago, Chile",lat:-33.3627,lon:-70.3127,ap:"SCL",icon:"🏔️",rating:4.95,reviews:3136,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitewater-ski-east-s485",category:"skiing",title:"Whitewater Ski East",location:"British Columbia, Canada",lat:49.504,lon:-117.1627,ap:"YXX",icon:"🏔️",rating:4.65,reviews:474,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"verbier-east-s486",category:"skiing",title:"Verbier East",location:"Valais, Switzerland",lat:46.104,lon:7.2373,ap:"GVA",icon:"🏔️",rating:4.78,reviews:1912,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sun-valley-east-s487",category:"skiing",title:"Sun Valley East",location:"Blaine County, Idaho",lat:43.694,lon:-114.3493,ap:"SUN",icon:"🏔️",rating:4.86,reviews:232,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1605540219596-e28d4a3ef38c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"steamboat-springs-east-s488",category:"skiing",title:"Steamboat Springs East",location:"Routt County, Colorado",lat:40.4608,lon:-106.7938,ap:"HDN",icon:"🏔️",rating:4.63,reviews:4884,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beitostolen-east-s489",category:"skiing",title:"Beitostolen East",location:"Innlandet, Norway",lat:61.2707,lon:8.904,ap:"OSL",icon:"🏔️",rating:4.78,reviews:3520,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1473649101-4b97c19d71bd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panorama-mountain-east-s490",category:"skiing",title:"Panorama Mountain East",location:"British Columbia, Canada",lat:50.4615,lon:-116.2349,ap:"YYC",icon:"🏔️",rating:4.64,reviews:1707,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"schladming-east-s491",category:"skiing",title:"Schladming East",location:"Styria, Austria",lat:47.3957,lon:13.6873,ap:"GRZ",icon:"🏔️",rating:4.66,reviews:3211,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"alta-badia-east-s492",category:"skiing",title:"Alta Badia East",location:"South Tyrol, Italy",lat:46.5873,lon:11.9207,ap:"VRN",icon:"🏔️",rating:4.78,reviews:2113,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whistler-blackcomb-east-s493",category:"skiing",title:"Whistler Blackcomb East",location:"British Columbia, Canada",lat:50.1203,lon:-122.9534,ap:"YVR",icon:"🏔️",rating:4.74,reviews:2865,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fernie-alpine-east-s494",category:"skiing",title:"Fernie Alpine East",location:"British Columbia, Canada",lat:49.4873,lon:-115.0793,ap:"YEG",icon:"🏔️",rating:4.63,reviews:4102,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eldora-mountain-east-s495",category:"skiing",title:"Eldora Mountain East",location:"Boulder County, Colorado",lat:39.9418,lon:-105.5804,ap:"DEN",icon:"🏔️",rating:4.97,reviews:4118,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arosa-east-s496",category:"skiing",title:"Arosa East",location:"Graubunden, Switzerland",lat:46.7873,lon:9.6873,ap:"ZRH",icon:"🏔️",rating:4.73,reviews:2985,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sunday-river-east-s497",category:"skiing",title:"Sunday River East",location:"Oxford County, Maine",lat:44.4759,lon:-70.8532,ap:"PWM",icon:"🏔️",rating:4.58,reviews:4577,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"niseko-grand-hirafu-east-s498",category:"skiing",title:"Niseko Grand Hirafu East",location:"Hokkaido, Japan",lat:42.8412,lon:140.6901,ap:"CTS",icon:"🏔️",rating:4.74,reviews:4541,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gaustablikk-ski-east-s499",category:"skiing",title:"Gaustablikk Ski East",location:"Telemark, Norway",lat:59.854,lon:8.604,ap:"OSL",icon:"🏔️",rating:4.99,reviews:581,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ornos-beach-t0",category:"tanning",title:"Ornos Beach",location:"Mykonos, Greece",lat:37.4317,lon:25.3167,ap:"JMK",icon:"🏝️",rating:4.63,reviews:1295,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aruba-eagle-beach-t1",category:"tanning",title:"Aruba Eagle Beach",location:"Aruba",lat:12.5617,lon:-70.0564,ap:"AUA",icon:"🏝️",rating:4.53,reviews:3660,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"agios-prokopios-t2",category:"tanning",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-la-concha-t3",category:"tanning",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huatulco-santa-cruz-t4",category:"tanning",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-de-pampelonne-t5",category:"tanning",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matira-beach-t6",category:"tanning",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"outer-banks-nags-head-t7",category:"tanning",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"OAJ",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"turquoise-bay-t8",category:"tanning",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"BRM",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"natadola-beach-t9",category:"tanning",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tofo-beach-t10",category:"tanning",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tioman-island-t11",category:"tanning",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"TPN",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mana-island-fiji-t12",category:"tanning",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arraial-d-ajuda-t13",category:"tanning",title:"Arraial d'Ajuda",location:"Bahia, Brazil",lat:-16.4406,lon:-39.0808,ap:"BPS",icon:"🏝️",rating:4.57,reviews:2726,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zlatni-rat-t14",category:"tanning",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lovina-beach-t15",category:"tanning",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sarakiniko-beach-t16",category:"tanning",title:"Sarakiniko Beach",location:"Milos, Greece",lat:36.7667,lon:24.4333,ap:"JMK",icon:"🏝️",rating:4.97,reviews:2714,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-dua-beach-t17",category:"tanning",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"patara-beach-t18",category:"tanning",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bulabog-beach-boracay-t19",category:"tanning",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eilat-coral-beach-t20",category:"tanning",title:"Eilat Coral Beach",location:"Israel",lat:29.55,lon:34.95,ap:"ETH",icon:"🏝️",rating:4.9,reviews:3318,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"san-vito-lo-capo-t21",category:"tanning",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hyams-beach-t22",category:"tanning",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lindos-beach-t23",category:"tanning",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laguna-beach-t24",category:"tanning",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-tao-sairee-t25",category:"tanning",title:"Koh Tao Sairee",location:"Surat Thani, Thailand",lat:10.0833,lon:99.8333,ap:"USM",icon:"🏝️",rating:4.96,reviews:1817,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muscat-beach-t26",category:"tanning",title:"Muscat Beach",location:"Oman",lat:23.588,lon:58.3972,ap:"MCT",icon:"🏝️",rating:4.71,reviews:2486,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pigeon-point-t27",category:"tanning",title:"Pigeon Point",location:"Tobago",lat:11.1667,lon:-60.8333,ap:"TAB",icon:"🏝️",rating:4.91,reviews:666,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rendezvous-bay-t28",category:"tanning",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"an-bang-beach-t29",category:"tanning",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makarska-beach-t30",category:"tanning",title:"Makarska Beach",location:"Split-Dalmatia, Croatia",lat:43.2972,lon:17.0178,ap:"SPU",icon:"🏝️",rating:4.81,reviews:2082,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ilha-grande-t31",category:"tanning",title:"Ilha Grande",location:"Rio de Janeiro, Brazil",lat:-23.1622,lon:-44.1831,ap:"GIG",icon:"🏝️",rating:4.62,reviews:1362,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-air-t32",category:"tanning",title:"Gili Air",location:"Lombok, Indonesia",lat:-8.3569,lon:116.0681,ap:"LOP",icon:"🏝️",rating:4.85,reviews:3188,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-bavaro-t33",category:"tanning",title:"Playa Bavaro",location:"Punta Cana, Dominican Republic",lat:18.75,lon:-68.4333,ap:"PUJ",icon:"🏝️",rating:4.54,reviews:4998,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wineglass-bay-t34",category:"tanning",title:"Wineglass Bay",location:"Tasmania, Australia",lat:-42.0833,lon:148.2667,ap:"LST",icon:"🏝️",rating:4.73,reviews:3383,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-jolla-cove-t35",category:"tanning",title:"La Jolla Cove",location:"California, USA",lat:32.8508,lon:-117.2713,ap:"SAN",icon:"🏝️",rating:4.76,reviews:3526,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"holbox-island-t36",category:"tanning",title:"Holbox Island",location:"Quintana Roo, Mexico",lat:21.5232,lon:-87.3837,ap:"CUN",icon:"🏝️",rating:4.77,reviews:3045,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-mondrago-t37",category:"tanning",title:"Cala Mondrago",location:"Mallorca, Spain",lat:39.3333,lon:3.2167,ap:"PMI",icon:"🏝️",rating:4.84,reviews:4498,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jimbaran-bay-t38",category:"tanning",title:"Jimbaran Bay",location:"Bali, Indonesia",lat:-8.7956,lon:115.1617,ap:"DPS",icon:"🏝️",rating:4.79,reviews:796,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lalaria-beach-t39",category:"tanning",title:"Lalaria Beach",location:"Skiathos, Greece",lat:39.1833,lon:23.5167,ap:"JSI",icon:"🏝️",rating:4.55,reviews:2133,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taveuni-island-t40",category:"tanning",title:"Taveuni Island",location:"Fiji",lat:-16.8333,lon:179.9667,ap:"NAN",icon:"🏝️",rating:4.82,reviews:3008,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grace-bay-beach-t41",category:"tanning",title:"Grace Bay Beach",location:"Turks and Caicos",lat:21.7918,lon:-72.2101,ap:"PLS",icon:"🏝️",rating:4.58,reviews:462,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lara-beach-t42",category:"tanning",title:"Lara Beach",location:"Antalya, Turkey",lat:36.85,lon:30.7833,ap:"AYT",icon:"🏝️",rating:4.78,reviews:3373,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sanur-beach-t43",category:"tanning",title:"Sanur Beach",location:"Bali, Indonesia",lat:-8.7089,lon:115.2573,ap:"DPS",icon:"🏝️",rating:4.97,reviews:2816,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cleopatra-beach-t44",category:"tanning",title:"Cleopatra Beach",location:"Alanya, Turkey",lat:36.5333,lon:31.9833,ap:"GZP",icon:"🏝️",rating:4.97,reviews:3626,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nha-trang-beach-t45",category:"tanning",title:"Nha Trang Beach",location:"Khanh Hoa, Vietnam",lat:12.2388,lon:109.1967,ap:"CXR",icon:"🏝️",rating:4.55,reviews:907,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-muro-t46",category:"tanning",title:"Playa de Muro",location:"Mallorca, Spain",lat:39.8167,lon:3.1167,ap:"PMI",icon:"🏝️",rating:4.63,reviews:4283,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baia-dei-turchi-t47",category:"tanning",title:"Baia dei Turchi",location:"Puglia, Italy",lat:40.4167,lon:18.2833,ap:"BDS",icon:"🏝️",rating:4.87,reviews:4671,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"es-trenc-t48",category:"tanning",title:"Es Trenc",location:"Mallorca, Spain",lat:39.35,lon:3.0,ap:"PMI",icon:"🏝️",rating:4.78,reviews:4812,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"denarau-island-t49",category:"tanning",title:"Denarau Island",location:"Fiji",lat:-17.7833,lon:177.3833,ap:"NAN",icon:"🏝️",rating:4.61,reviews:3164,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ipanema-beach-t50",category:"tanning",title:"Ipanema Beach",location:"Rio de Janeiro, Brazil",lat:-22.9836,lon:-43.2016,ap:"GIG",icon:"🏝️",rating:4.69,reviews:4921,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-samui-chaweng-t51",category:"tanning",title:"Koh Samui Chaweng",location:"Surat Thani, Thailand",lat:9.5333,lon:100.0667,ap:"USM",icon:"🏝️",rating:4.84,reviews:1334,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"virginia-beach-t52",category:"tanning",title:"Virginia Beach",location:"Virginia, USA",lat:36.8529,lon:-75.978,ap:"ORF",icon:"🏝️",rating:4.67,reviews:301,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-karon-t53",category:"tanning",title:"Phuket Karon",location:"Phuket, Thailand",lat:7.8367,lon:98.2967,ap:"HKT",icon:"🏝️",rating:4.74,reviews:2520,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-penida-crystal-bay-t54",category:"tanning",title:"Nusa Penida Crystal Bay",location:"Bali, Indonesia",lat:-8.7267,lon:115.5022,ap:"DPS",icon:"🏝️",rating:4.7,reviews:803,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-trawangan-t55",category:"tanning",title:"Gili Trawangan",location:"Lombok, Indonesia",lat:-8.35,lon:116.0333,ap:"LOP",icon:"🏝️",rating:4.56,reviews:1260,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beau-vallon-beach-t56",category:"tanning",title:"Beau Vallon Beach",location:"Mahe, Seychelles",lat:-4.6167,lon:55.4167,ap:"SEZ",icon:"🏝️",rating:4.67,reviews:2910,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jericoacoara-t57",category:"tanning",title:"Jericoacoara",location:"Ceara, Brazil",lat:-2.7972,lon:-40.5122,ap:"FOR",icon:"🏝️",rating:4.72,reviews:1794,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dickenson-bay-t58",category:"tanning",title:"Dickenson Bay",location:"Antigua & Barbuda",lat:17.1833,lon:-61.8,ap:"ANU",icon:"🏝️",rating:4.76,reviews:2953,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-bassa-t59",category:"tanning",title:"Cala Bassa",location:"Ibiza, Spain",lat:38.9833,lon:1.2833,ap:"IBZ",icon:"🏝️",rating:4.73,reviews:3689,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aitutaki-lagoon-t60",category:"tanning",title:"Aitutaki Lagoon",location:"Cook Islands",lat:-18.8667,lon:-159.7833,ap:"AIT",icon:"🏝️",rating:4.85,reviews:3806,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sveti-stefan-t61",category:"tanning",title:"Sveti Stefan",location:"Montenegro",lat:42.2564,lon:18.8903,ap:"TGD",icon:"🏝️",rating:4.66,reviews:2559,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coron-kayangan-t62",category:"tanning",title:"Coron Kayangan",location:"Palawan, Philippines",lat:12.0,lon:120.2,ap:"USU",icon:"🏝️",rating:4.52,reviews:1042,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-lazio-t63",category:"tanning",title:"Anse Lazio",location:"Praslin, Seychelles",lat:-4.2833,lon:55.65,ap:"PRI",icon:"🏝️",rating:4.51,reviews:2910,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-main-beach-t64",category:"tanning",title:"Noosa Main Beach",location:"Queensland, Australia",lat:-26.3869,lon:153.0972,ap:"MCY",icon:"🏝️",rating:4.82,reviews:1446,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"del-mar-beach-t65",category:"tanning",title:"Del Mar Beach",location:"California, USA",lat:32.9595,lon:-117.2653,ap:"SAN",icon:"🏝️",rating:4.96,reviews:2098,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seminyak-beach-t66",category:"tanning",title:"Seminyak Beach",location:"Bali, Indonesia",lat:-8.6954,lon:115.1659,ap:"DPS",icon:"🏝️",rating:4.75,reviews:4621,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polignano-a-mare-t67",category:"tanning",title:"Polignano a Mare",location:"Puglia, Italy",lat:40.9972,lon:17.2233,ap:"BRI",icon:"🏝️",rating:4.58,reviews:4686,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puka-shell-beach-t68",category:"tanning",title:"Puka Shell Beach",location:"Boracay, Philippines",lat:12.0,lon:121.9289,ap:"MPH",icon:"🏝️",rating:4.71,reviews:3885,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lipe-t69",category:"tanning",title:"Koh Lipe",location:"Satun, Thailand",lat:6.5,lon:99.3,ap:"TST",icon:"🏝️",rating:4.61,reviews:3418,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"isla-mujeres-t70",category:"tanning",title:"Isla Mujeres",location:"Quintana Roo, Mexico",lat:21.2339,lon:-86.7295,ap:"CUN",icon:"🏝️",rating:4.81,reviews:1626,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"akumal-beach-t71",category:"tanning",title:"Akumal Beach",location:"Quintana Roo, Mexico",lat:20.3947,lon:-87.3136,ap:"CUN",icon:"🏝️",rating:4.81,reviews:3640,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"clearwater-beach-t72",category:"tanning",title:"Clearwater Beach",location:"Florida, USA",lat:27.9784,lon:-82.8266,ap:"TPA",icon:"🏝️",rating:4.69,reviews:1716,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lanta-long-beach-t73",category:"tanning",title:"Koh Lanta Long Beach",location:"Krabi, Thailand",lat:7.6833,lon:99.0333,ap:"KBV",icon:"🏝️",rating:4.72,reviews:3618,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pakleni-islands-t74",category:"tanning",title:"Pakleni Islands",location:"Hvar, Croatia",lat:43.17,lon:16.4167,ap:"SPU",icon:"🏝️",rating:4.69,reviews:1859,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tel-aviv-gordon-beach-t75",category:"tanning",title:"Tel Aviv Gordon Beach",location:"Israel",lat:32.0781,lon:34.7726,ap:"TLV",icon:"🏝️",rating:4.6,reviews:612,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myrtle-beach-t76",category:"tanning",title:"Myrtle Beach",location:"South Carolina, USA",lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏝️",rating:4.78,reviews:4498,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moorea-temae-t77",category:"tanning",title:"Moorea Temae",location:"French Polynesia",lat:-17.5,lon:-149.75,ap:"MOZ",icon:"🏝️",rating:4.59,reviews:2770,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"four-mile-beach-t78",category:"tanning",title:"Four Mile Beach",location:"Queensland, Australia",lat:-16.4833,lon:145.4667,ap:"PQQ",icon:"🏝️",rating:4.6,reviews:1033,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bathsheba-beach-t79",category:"tanning",title:"Bathsheba Beach",location:"Barbados",lat:13.2028,lon:-59.5228,ap:"BGI",icon:"🏝️",rating:4.63,reviews:4109,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muri-beach-rarotonga-t80",category:"tanning",title:"Muri Beach Rarotonga",location:"Rarotonga, Cook Islands",lat:-21.25,lon:-159.75,ap:"RAR",icon:"🏝️",rating:4.76,reviews:2667,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crane-beach-t81",category:"tanning",title:"Crane Beach",location:"Barbados",lat:13.0664,lon:-59.4272,ap:"BGI",icon:"🏝️",rating:4.79,reviews:3315,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tropea-beach-t82",category:"tanning",title:"Tropea Beach",location:"Calabria, Italy",lat:38.6739,lon:15.8994,ap:"LME",icon:"🏝️",rating:4.79,reviews:2950,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morro-de-sao-paulo-t83",category:"tanning",title:"Morro de Sao Paulo",location:"Bahia, Brazil",lat:-13.3803,lon:-38.9144,ap:"SSA",icon:"🏝️",rating:4.67,reviews:3850,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"luquillo-beach-t84",category:"tanning",title:"Luquillo Beach",location:"Puerto Rico",lat:18.3769,lon:-65.7183,ap:"SJU",icon:"🏝️",rating:4.8,reviews:2536,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-mak-t85",category:"tanning",title:"Koh Mak",location:"Trat, Thailand",lat:11.8333,lon:102.4833,ap:"TDX",icon:"🏝️",rating:4.95,reviews:4934,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-forte-t86",category:"tanning",title:"Praia do Forte",location:"Bahia, Brazil",lat:-12.5786,lon:-38.0044,ap:"SSA",icon:"🏝️",rating:4.54,reviews:1197,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"spiaggia-dei-conigli-t87",category:"tanning",title:"Spiaggia dei Conigli",location:"Lampedusa, Italy",lat:35.4833,lon:12.5667,ap:"LMP",icon:"🏝️",rating:4.65,reviews:2054,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flic-en-flac-t88",category:"tanning",title:"Flic en Flac",location:"Mauritius",lat:-20.2833,lon:57.35,ap:"MRU",icon:"🏝️",rating:4.65,reviews:1599,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"white-beach-boracay-t89",category:"tanning",title:"White Beach Boracay",location:"Aklan, Philippines",lat:11.9557,lon:121.9194,ap:"MPH",icon:"🏝️",rating:4.68,reviews:1258,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trancoso-t90",category:"tanning",title:"Trancoso",location:"Bahia, Brazil",lat:-16.5847,lon:-39.105,ap:"BPS",icon:"🏝️",rating:4.75,reviews:3526,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"my-khe-beach-t91",category:"tanning",title:"My Khe Beach",location:"Da Nang, Vietnam",lat:16.0469,lon:108.2484,ap:"DAD",icon:"🏝️",rating:4.79,reviews:4808,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"paradise-beach-mykonos-t92",category:"tanning",title:"Paradise Beach Mykonos",location:"Mykonos, Greece",lat:37.4114,lon:25.3939,ap:"JMK",icon:"🏝️",rating:4.69,reviews:1621,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grand-anse-praslin-t93",category:"tanning",title:"Grand Anse Praslin",location:"Praslin, Seychelles",lat:-4.35,lon:55.7167,ap:"PRI",icon:"🏝️",rating:4.74,reviews:4502,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perhentian-islands-t94",category:"tanning",title:"Perhentian Islands",location:"Terengganu, Malaysia",lat:5.9,lon:102.7,ap:"KBR",icon:"🏝️",rating:4.84,reviews:1519,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"komodo-island-t95",category:"tanning",title:"Komodo Island",location:"East Nusa Tenggara, Indonesia",lat:-8.55,lon:119.4667,ap:"LBJ",icon:"🏝️",rating:4.77,reviews:4111,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"blue-bay-mauritius-t96",category:"tanning",title:"Blue Bay Mauritius",location:"Mauritius",lat:-20.45,lon:57.7167,ap:"MRU",icon:"🏝️",rating:4.64,reviews:1632,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-conta-t97",category:"tanning",title:"Cala Conta",location:"Ibiza, Spain",lat:38.9667,lon:1.2333,ap:"IBZ",icon:"🏝️",rating:4.65,reviews:3794,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"malapascua-island-t98",category:"tanning",title:"Malapascua Island",location:"Cebu, Philippines",lat:11.35,lon:124.1333,ap:"CEB",icon:"🏝️",rating:4.8,reviews:3041,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"redang-island-t99",category:"tanning",title:"Redang Island",location:"Terengganu, Malaysia",lat:5.7833,lon:103.0167,ap:"KBR",icon:"🏝️",rating:4.97,reviews:4069,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cane-garden-bay-t100",category:"tanning",title:"Cane Garden Bay",location:"Tortola, BVI",lat:18.4253,lon:-64.6294,ap:"EIS",icon:"🏝️",rating:4.57,reviews:3245,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-patong-t101",category:"tanning",title:"Phuket Patong",location:"Phuket, Thailand",lat:7.8961,lon:98.2978,ap:"HKT",icon:"🏝️",rating:4.97,reviews:4240,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perissa-beach-t102",category:"tanning",title:"Perissa Beach",location:"Santorini, Greece",lat:36.35,lon:25.4667,ap:"JTR",icon:"🏝️",rating:4.82,reviews:3451,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pensacola-beach-t103",category:"tanning",title:"Pensacola Beach",location:"Florida, USA",lat:30.3311,lon:-87.1436,ap:"PNS",icon:"🏝️",rating:4.84,reviews:3504,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stiniva-cove-t104",category:"tanning",title:"Stiniva Cove",location:"Vis, Croatia",lat:43.0167,lon:16.1333,ap:"SPU",icon:"🏝️",rating:4.85,reviews:3736,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"balos-lagoon-t105",category:"tanning",title:"Balos Lagoon",location:"Crete, Greece",lat:35.5942,lon:23.5739,ap:"CHQ",icon:"🏝️",rating:4.74,reviews:777,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kite-beach-dubai-t106",category:"tanning",title:"Kite Beach Dubai",location:"Dubai, UAE",lat:25.185,lon:55.2589,ap:"DXB",icon:"🏝️",rating:4.78,reviews:1906,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vilanculos-t107",category:"tanning",title:"Vilanculos",location:"Inhambane, Mozambique",lat:-22.0,lon:35.3167,ap:"VNX",icon:"🏝️",rating:4.64,reviews:2351,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"darkwood-beach-t108",category:"tanning",title:"Darkwood Beach",location:"Antigua",lat:17.0167,lon:-61.8833,ap:"ANU",icon:"🏝️",rating:4.61,reviews:2464,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ao-nang-t109",category:"tanning",title:"Ao Nang",location:"Krabi, Thailand",lat:8.0297,lon:98.8213,ap:"KBV",icon:"🏝️",rating:4.58,reviews:3846,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"doc-let-beach-t110",category:"tanning",title:"Doc Let Beach",location:"Khanh Hoa, Vietnam",lat:12.3833,lon:109.2167,ap:"CXR",icon:"🏝️",rating:4.78,reviews:4157,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-nido-nacpan-t111",category:"tanning",title:"El Nido Nacpan",location:"Palawan, Philippines",lat:11.1833,lon:119.1167,ap:"ENI",icon:"🏝️",rating:4.77,reviews:1027,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flamenco-beach-t112",category:"tanning",title:"Flamenco Beach",location:"Culebra, Puerto Rico",lat:18.3158,lon:-65.3197,ap:"SJU",icon:"🏝️",rating:4.78,reviews:2294,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"raja-ampat-t113",category:"tanning",title:"Raja Ampat",location:"West Papua, Indonesia",lat:-0.2333,lon:130.5167,ap:"RJM",icon:"🏝️",rating:4.88,reviews:3105,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"faliraki-beach-t114",category:"tanning",title:"Faliraki Beach",location:"Rhodes, Greece",lat:36.3333,lon:28.2167,ap:"RHO",icon:"🏝️",rating:4.77,reviews:440,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-du-midi-t115",category:"tanning",title:"Plage du Midi",location:"Cannes, France",lat:43.5472,lon:7.0083,ap:"NCE",icon:"🏝️",rating:4.87,reviews:3715,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-samui-lamai-t116",category:"tanning",title:"Koh Samui Lamai",location:"Surat Thani, Thailand",lat:9.4333,lon:100.0667,ap:"USM",icon:"🏝️",rating:4.77,reviews:3582,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maldives-veligandu-t117",category:"tanning",title:"Maldives Veligandu",location:"North Ari Atoll, Maldives",lat:4.0333,lon:72.8833,ap:"MLE",icon:"🏝️",rating:4.55,reviews:2127,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"port-barton-t118",category:"tanning",title:"Port Barton",location:"Palawan, Philippines",lat:10.3833,lon:119.1167,ap:"PPS",icon:"🏝️",rating:4.65,reviews:364,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hawksbill-beach-t119",category:"tanning",title:"Hawksbill Beach",location:"Antigua",lat:17.05,lon:-61.85,ap:"ANU",icon:"🏝️",rating:4.72,reviews:2955,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fulhadhoo-island-t120",category:"tanning",title:"Fulhadhoo Island",location:"Baa Atoll, Maldives",lat:5.0833,lon:73.1167,ap:"MLE",icon:"🏝️",rating:4.92,reviews:812,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kendwa-beach-t121",category:"tanning",title:"Kendwa Beach",location:"Zanzibar, Tanzania",lat:-5.7167,lon:39.3,ap:"ZNZ",icon:"🏝️",rating:4.72,reviews:1061,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"super-paradise-mykonos-t122",category:"tanning",title:"Super Paradise Mykonos",location:"Mykonos, Greece",lat:37.4267,lon:25.39,ap:"JMK",icon:"🏝️",rating:4.88,reviews:2041,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shoal-bay-t123",category:"tanning",title:"Shoal Bay",location:"Anguilla",lat:18.2417,lon:-63.05,ap:"AXA",icon:"🏝️",rating:4.6,reviews:4916,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cozumel-paradise-t124",category:"tanning",title:"Cozumel Paradise",location:"Quintana Roo, Mexico",lat:20.5082,lon:-86.9488,ap:"CZM",icon:"🏝️",rating:4.84,reviews:3607,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maya-bay-t125",category:"tanning",title:"Maya Bay",location:"Krabi, Thailand",lat:7.6778,lon:98.7633,ap:"KBV",icon:"🏝️",rating:4.58,reviews:1240,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maafushi-beach-t126",category:"tanning",title:"Maafushi Beach",location:"Kaafu Atoll, Maldives",lat:3.95,lon:73.4833,ap:"MLE",icon:"🏝️",rating:4.88,reviews:1795,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nungwi-beach-t127",category:"tanning",title:"Nungwi Beach",location:"Zanzibar, Tanzania",lat:-5.7228,lon:39.2956,ap:"ZNZ",icon:"🏝️",rating:4.89,reviews:4770,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dreamland-beach-t128",category:"tanning",title:"Dreamland Beach",location:"Bali, Indonesia",lat:-8.7989,lon:115.1064,ap:"DPS",icon:"🏝️",rating:4.67,reviews:2402,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"le-morne-beach-t129",category:"tanning",title:"Le Morne Beach",location:"Mauritius",lat:-20.45,lon:57.3167,ap:"MRU",icon:"🏝️",rating:4.79,reviews:1479,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"siesta-key-beach-t130",category:"tanning",title:"Siesta Key Beach",location:"Florida, USA",lat:27.2592,lon:-82.5494,ap:"SRQ",icon:"🏝️",rating:4.66,reviews:2497,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"elafonisi-beach-t131",category:"tanning",title:"Elafonisi Beach",location:"Crete, Greece",lat:35.2667,lon:23.5167,ap:"CHQ",icon:"🏝️",rating:4.64,reviews:2290,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"positano-beach-t132",category:"tanning",title:"Positano Beach",location:"Amalfi Coast, Italy",lat:40.6278,lon:14.4811,ap:"NAP",icon:"🏝️",rating:4.97,reviews:4314,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"worthing-beach-t133",category:"tanning",title:"Worthing Beach",location:"Barbados",lat:13.0667,lon:-59.5833,ap:"BGI",icon:"🏝️",rating:4.98,reviews:880,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-chastanet-t134",category:"tanning",title:"Anse Chastanet",location:"St Lucia",lat:13.85,lon:-61.05,ap:"UVF",icon:"🏝️",rating:4.57,reviews:3471,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coral-bay-t135",category:"tanning",title:"Coral Bay",location:"Western Australia, Australia",lat:-23.15,lon:113.7833,ap:"BRM",icon:"🏝️",rating:4.95,reviews:2371,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phu-quoc-long-beach-t136",category:"tanning",title:"Phu Quoc Long Beach",location:"Kien Giang, Vietnam",lat:10.2333,lon:103.9667,ap:"PQC",icon:"🏝️",rating:4.92,reviews:1139,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"khem-beach-phu-quoc-t137",category:"tanning",title:"Khem Beach Phu Quoc",location:"Kien Giang, Vietnam",lat:10.15,lon:103.9833,ap:"PQC",icon:"🏝️",rating:4.84,reviews:1187,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cabo-san-lucas-t138",category:"tanning",title:"Cabo San Lucas",location:"Baja California Sur, Mexico",lat:22.8905,lon:-109.9167,ap:"SJD",icon:"🏝️",rating:4.62,reviews:2738,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myrtos-beach-t139",category:"tanning",title:"Myrtos Beach",location:"Kefalonia, Greece",lat:38.1897,lon:20.5078,ap:"EFL",icon:"🏝️",rating:4.91,reviews:3317,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rangiroa-atoll-t140",category:"tanning",title:"Rangiroa Atoll",location:"French Polynesia",lat:-15.1333,lon:-147.6667,ap:"RGI",icon:"🏝️",rating:4.74,reviews:4830,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"copacabana-beach-t141",category:"tanning",title:"Copacabana Beach",location:"Rio de Janeiro, Brazil",lat:-22.9711,lon:-43.1822,ap:"GIG",icon:"🏝️",rating:4.81,reviews:3493,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-kata-t142",category:"tanning",title:"Phuket Kata",location:"Phuket, Thailand",lat:7.82,lon:98.2983,ap:"HKT",icon:"🏝️",rating:4.68,reviews:718,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-maspalomas-t143",category:"tanning",title:"Playa de Maspalomas",location:"Gran Canaria, Spain",lat:27.7333,lon:-15.5833,ap:"LPA",icon:"🏝️",rating:4.81,reviews:862,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kaputas-beach-t144",category:"tanning",title:"Kaputas Beach",location:"Antalya, Turkey",lat:36.2083,lon:29.6333,ap:"DLM",icon:"🏝️",rating:4.7,reviews:2379,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-del-carmen-t145",category:"tanning",title:"Playa del Carmen",location:"Quintana Roo, Mexico",lat:20.6296,lon:-87.0739,ap:"CUN",icon:"🏝️",rating:4.84,reviews:3123,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cable-beach-t146",category:"tanning",title:"Cable Beach",location:"Western Australia, Australia",lat:-18.0167,lon:122.1833,ap:"BRM",icon:"🏝️",rating:4.72,reviews:4098,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"yasawa-islands-t147",category:"tanning",title:"Yasawa Islands",location:"Fiji",lat:-17.0,lon:177.5,ap:"NAN",icon:"🏝️",rating:4.66,reviews:120,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"long-bay-antigua-t148",category:"tanning",title:"Long Bay Antigua",location:"Antigua & Barbuda",lat:17.0833,lon:-61.75,ap:"ANU",icon:"🏝️",rating:4.93,reviews:863,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"navagio-beach-t149",category:"tanning",title:"Navagio Beach",location:"Zakynthos, Greece",lat:37.86,lon:20.62,ap:"ZTH",icon:"🏝️",rating:4.86,reviews:3855,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rarotonga-t150",category:"tanning",title:"Rarotonga",location:"Cook Islands",lat:-21.2333,lon:-159.7833,ap:"RAR",icon:"🏝️",rating:4.81,reviews:3034,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"railay-beach-t151",category:"tanning",title:"Railay Beach",location:"Krabi, Thailand",lat:8.01,lon:98.8356,ap:"KBV",icon:"🏝️",rating:4.92,reviews:4478,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panglao-island-t152",category:"tanning",title:"Panglao Island",location:"Bohol, Philippines",lat:9.5667,lon:123.7667,ap:"TAG",icon:"🏝️",rating:4.69,reviews:3619,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"butterfly-valley-t153",category:"tanning",title:"Butterfly Valley",location:"Mugla, Turkey",lat:36.5417,lon:29.0833,ap:"DLM",icon:"🏝️",rating:4.9,reviews:4152,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maho-beach-st-maarten-t154",category:"tanning",title:"Maho Beach St Maarten",location:"Saint Martin",lat:18.04,lon:-63.12,ap:"SXM",icon:"🏝️",rating:4.63,reviews:2423,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-ses-illetes-t155",category:"tanning",title:"Playa de Ses Illetes",location:"Formentera, Spain",lat:38.7333,lon:1.4167,ap:"IBZ",icon:"🏝️",rating:4.67,reviews:4834,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"oludeniz-beach-t156",category:"tanning",title:"Oludeniz Beach",location:"Mugla, Turkey",lat:36.55,lon:29.1167,ap:"DLM",icon:"🏝️",rating:4.56,reviews:4075,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cape-maclear-t157",category:"tanning",title:"Cape Maclear",location:"Malawi",lat:-14.0333,lon:34.8167,ap:"LLW",icon:"🏝️",rating:4.89,reviews:496,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tahaa-island-t158",category:"tanning",title:"Tahaa Island",location:"French Polynesia",lat:-16.6167,lon:-151.5,ap:"RFP",icon:"🏝️",rating:4.52,reviews:3864,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"porto-katsiki-t159",category:"tanning",title:"Porto Katsiki",location:"Lefkada, Greece",lat:38.55,lon:20.5333,ap:"CFU",icon:"🏝️",rating:4.51,reviews:1394,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"red-beach-santorini-t160",category:"tanning",title:"Red Beach Santorini",location:"Santorini, Greece",lat:36.3467,lon:25.3967,ap:"JTR",icon:"🏝️",rating:4.72,reviews:105,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cefal-beach-t161",category:"tanning",title:"Cefalù Beach",location:"Sicily, Italy",lat:38.0414,lon:14.0197,ap:"PMO",icon:"🏝️",rating:4.99,reviews:3604,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"belle-mare-beach-t162",category:"tanning",title:"Belle Mare Beach",location:"Mauritius",lat:-20.2,lon:57.7833,ap:"MRU",icon:"🏝️",rating:4.6,reviews:1180,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"south-beach-miami-t163",category:"tanning",title:"South Beach Miami",location:"Florida, USA",lat:25.7876,lon:-80.1337,ap:"MIA",icon:"🏝️",rating:4.93,reviews:2572,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tangalle-beach-t164",category:"tanning",title:"Tangalle Beach",location:"Southern Province, Sri Lanka",lat:6.0253,lon:80.7997,ap:"CMB",icon:"🏝️",rating:4.58,reviews:2344,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-phangan-haad-rin-t165",category:"tanning",title:"Koh Phangan Haad Rin",location:"Surat Thani, Thailand",lat:9.6833,lon:100.0667,ap:"USM",icon:"🏝️",rating:4.55,reviews:3052,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"venice-beach-t166",category:"tanning",title:"Venice Beach",location:"California, USA",lat:33.985,lon:-118.4695,ap:"LAX",icon:"🏝️",rating:4.62,reviews:3146,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-phi-phi-t167",category:"tanning",title:"Koh Phi Phi",location:"Krabi, Thailand",lat:7.74,lon:98.77,ap:"KBV",icon:"🏝️",rating:4.83,reviews:1455,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"destin-beaches-t168",category:"tanning",title:"Destin Beaches",location:"Florida, USA",lat:30.3935,lon:-86.4958,ap:"ECP",icon:"🏝️",rating:4.53,reviews:2602,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"langkawi-cenang-t169",category:"tanning",title:"Langkawi Cenang",location:"Kedah, Malaysia",lat:6.2833,lon:99.6833,ap:"LGK",icon:"🏝️",rating:4.86,reviews:2018,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trunk-bay-t170",category:"tanning",title:"Trunk Bay",location:"St John, US Virgin Islands",lat:18.3533,lon:-64.7736,ap:"STT",icon:"🏝️",rating:4.71,reviews:847,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trou-aux-biches-t171",category:"tanning",title:"Trou aux Biches",location:"Mauritius",lat:-20.0167,lon:57.5333,ap:"MRU",icon:"🏝️",rating:4.84,reviews:108,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tulum-beach-t172",category:"tanning",title:"Tulum Beach",location:"Quintana Roo, Mexico",lat:20.2114,lon:-87.4654,ap:"CUN",icon:"🏝️",rating:4.6,reviews:738,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"santa-monica-beach-t173",category:"tanning",title:"Santa Monica Beach",location:"California, USA",lat:34.0195,lon:-118.4912,ap:"LAX",icon:"🏝️",rating:4.57,reviews:1952,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lombok-selong-belanak-t174",category:"tanning",title:"Lombok Selong Belanak",location:"West Nusa Tenggara, Indonesia",lat:-8.8994,lon:116.2158,ap:"LOP",icon:"🏝️",rating:4.75,reviews:3745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"orient-beach-t175",category:"tanning",title:"Orient Beach",location:"Saint-Martin",lat:18.0833,lon:-63.0167,ap:"SXM",icon:"🏝️",rating:4.5,reviews:2914,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"palm-cove-t176",category:"tanning",title:"Palm Cove",location:"Queensland, Australia",lat:-16.75,lon:145.6667,ap:"CNS",icon:"🏝️",rating:4.9,reviews:3559,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"unawatuna-beach-t177",category:"tanning",title:"Unawatuna Beach",location:"Galle, Sri Lanka",lat:6.0167,lon:80.25,ap:"CMB",icon:"🏝️",rating:4.84,reviews:4013,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"airlie-beach-t178",category:"tanning",title:"Airlie Beach",location:"Queensland, Australia",lat:-20.2667,lon:148.7167,ap:"PPP",icon:"🏝️",rating:4.53,reviews:3238,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"diani-beach-t179",category:"tanning",title:"Diani Beach",location:"Kwale, Kenya",lat:-4.2833,lon:39.5833,ap:"MBA",icon:"🏝️",rating:4.54,reviews:939,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nilaveli-beach-t180",category:"tanning",title:"Nilaveli Beach",location:"Eastern Province, Sri Lanka",lat:8.7333,lon:81.2167,ap:"KCT",icon:"🏝️",rating:4.55,reviews:3111,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jumeirah-beach-t181",category:"tanning",title:"Jumeirah Beach",location:"Dubai, UAE",lat:25.2048,lon:55.2708,ap:"DXB",icon:"🏝️",rating:4.93,reviews:1223,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"watamu-beach-t182",category:"tanning",title:"Watamu Beach",location:"Kilifi, Kenya",lat:-3.3667,lon:40.0167,ap:"MBA",icon:"🏝️",rating:4.69,reviews:1190,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pinney-s-beach-t183",category:"tanning",title:"Pinney's Beach",location:"Nevis",lat:17.15,lon:-62.6333,ap:"NEV",icon:"🏝️",rating:4.81,reviews:1270,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mui-ne-beach-t184",category:"tanning",title:"Mui Ne Beach",location:"Binh Thuan, Vietnam",lat:10.9333,lon:108.2833,ap:"VCL",icon:"🏝️",rating:4.53,reviews:4714,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitehaven-beach-t185",category:"tanning",title:"Whitehaven Beach",location:"Whitsundays, Australia",lat:-20.2833,lon:149.0167,ap:"PPP",icon:"🏝️",rating:4.5,reviews:1444,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"key-west-smathers-t186",category:"tanning",title:"Key West Smathers",location:"Florida, USA",lat:24.5503,lon:-81.766,ap:"EYW",icon:"🏝️",rating:4.72,reviews:1845,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-barceloneta-t187",category:"tanning",title:"La Barceloneta",location:"Barcelona, Spain",lat:41.3789,lon:2.1897,ap:"BCN",icon:"🏝️",rating:4.81,reviews:1340,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seven-mile-beach-t188",category:"tanning",title:"Seven Mile Beach",location:"Grand Cayman",lat:19.3333,lon:-81.3167,ap:"GCM",icon:"🏝️",rating:4.95,reviews:3724,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dubrovnik-banje-t189",category:"tanning",title:"Dubrovnik Banje",location:"Dubrovnik, Croatia",lat:42.65,lon:18.1167,ap:"DBV",icon:"🏝️",rating:4.92,reviews:810,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-intendance-t190",category:"tanning",title:"Anse Intendance",location:"Mahe, Seychelles",lat:-4.75,lon:55.5,ap:"SEZ",icon:"🏝️",rating:4.94,reviews:1246,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grand-anse-beach-t191",category:"tanning",title:"Grand Anse Beach",location:"Grenada",lat:12.05,lon:-61.7667,ap:"GND",icon:"🏝️",rating:4.87,reviews:4929,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nice-promenade-t192",category:"tanning",title:"Nice Promenade",location:"Cote d'Azur, France",lat:43.6947,lon:7.2619,ap:"NCE",icon:"🏝️",rating:4.86,reviews:2979,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"paje-beach-t193",category:"tanning",title:"Paje Beach",location:"Zanzibar, Tanzania",lat:-6.2667,lon:39.5333,ap:"ZNZ",icon:"🏝️",rating:4.97,reviews:2676,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"voidokilia-beach-t194",category:"tanning",title:"Voidokilia Beach",location:"Peloponnese, Greece",lat:37.0244,lon:21.6639,ap:"KLX",icon:"🏝️",rating:4.89,reviews:2129,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-source-d-argent-t195",category:"tanning",title:"Anse Source d'Argent",location:"La Digue, Seychelles",lat:-4.3667,lon:55.8333,ap:"SEZ",icon:"🏝️",rating:4.64,reviews:790,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pink-sands-beach-t196",category:"tanning",title:"Pink Sands Beach",location:"Eleuthera, Bahamas",lat:25.2167,lon:-76.2167,ap:"GHB",icon:"🏝️",rating:4.62,reviews:2434,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"karimunjawa-t197",category:"tanning",title:"Karimunjawa",location:"Central Java, Indonesia",lat:-5.85,lon:110.4667,ap:"JOG",icon:"🏝️",rating:4.88,reviews:319,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"negril-seven-mile-t198",category:"tanning",title:"Negril Seven Mile",location:"Jamaica",lat:18.3833,lon:-78.35,ap:"MBJ",icon:"🏝️",rating:4.92,reviews:2571,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"passikudah-beach-t199",category:"tanning",title:"Passikudah Beach",location:"Eastern Province, Sri Lanka",lat:7.9333,lon:81.55,ap:"KCT",icon:"🏝️",rating:4.6,reviews:4274,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"white-bay-jost-t200",category:"tanning",title:"White Bay Jost",location:"Jost Van Dyke, BVI",lat:18.45,lon:-64.75,ap:"EIS",icon:"🏝️",rating:4.59,reviews:3309,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"palm-beach-aruba-t201",category:"tanning",title:"Palm Beach Aruba",location:"Aruba",lat:12.575,lon:-70.05,ap:"AUA",icon:"🏝️",rating:4.64,reviews:547,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panama-city-beach-t202",category:"tanning",title:"Panama City Beach",location:"Florida, USA",lat:30.1766,lon:-85.8055,ap:"ECP",icon:"🏝️",rating:4.88,reviews:2060,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ornos-beach-south-t203",category:"tanning",title:"Ornos Beach South",location:"Mykonos, Greece",lat:37.4337,lon:25.3187,ap:"JMK",icon:"🏝️",rating:4.74,reviews:1023,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aruba-eagle-beach-south-t204",category:"tanning",title:"Aruba Eagle Beach South",location:"Aruba",lat:12.5637,lon:-70.0544,ap:"AUA",icon:"🏝️",rating:4.62,reviews:4965,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"agios-prokopios-south-t205",category:"tanning",title:"Agios Prokopios South",location:"Naxos, Greece",lat:37.0687,lon:25.4187,ap:"JNX",icon:"🏝️",rating:4.53,reviews:198,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-la-concha-south-t206",category:"tanning",title:"Playa de la Concha South",location:"San Sebastian, Spain",lat:43.3228,lon:-1.9908,ap:"EAS",icon:"🏝️",rating:4.98,reviews:2692,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huatulco-santa-cruz-south-t207",category:"tanning",title:"Huatulco Santa Cruz South",location:"Oaxaca, Mexico",lat:15.7603,lon:-96.1397,ap:"HUX",icon:"🏝️",rating:4.56,reviews:4756,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-de-pampelonne-south-t208",category:"tanning",title:"Plage de Pampelonne South",location:"Saint-Tropez, France",lat:43.252,lon:6.652,ap:"NCE",icon:"🏝️",rating:4.71,reviews:4575,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matira-beach-south-t209",category:"tanning",title:"Matira Beach South",location:"Bora Bora, French Polynesia",lat:-16.5313,lon:-151.7313,ap:"BOB",icon:"🏝️",rating:4.83,reviews:3958,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"outer-banks-nags-head-south-t210",category:"tanning",title:"Outer Banks Nags Head South",location:"North Carolina, USA",lat:35.9597,lon:-75.6224,ap:"OAJ",icon:"🏝️",rating:4.97,reviews:697,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"turquoise-bay-south-t211",category:"tanning",title:"Turquoise Bay South",location:"Western Australia, Australia",lat:-21.9147,lon:114.1187,ap:"BRM",icon:"🏝️",rating:4.51,reviews:653,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"natadola-beach-south-t212",category:"tanning",title:"Natadola Beach South",location:"Fiji",lat:-18.1147,lon:177.5187,ap:"NAN",icon:"🏝️",rating:4.51,reviews:1867,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tofo-beach-south-t213",category:"tanning",title:"Tofo Beach South",location:"Inhambane, Mozambique",lat:-23.8647,lon:35.5353,ap:"INH",icon:"🏝️",rating:4.52,reviews:595,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tioman-island-south-t214",category:"tanning",title:"Tioman Island South",location:"Pahang, Malaysia",lat:2.802,lon:104.1687,ap:"TPN",icon:"🏝️",rating:4.96,reviews:3360,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mana-island-fiji-south-t215",category:"tanning",title:"Mana Island Fiji South",location:"Fiji",lat:-17.6647,lon:177.0853,ap:"NAN",icon:"🏝️",rating:4.75,reviews:4204,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arraial-d-ajuda-south-t216",category:"tanning",title:"Arraial d'Ajuda South",location:"Bahia, Brazil",lat:-16.4386,lon:-39.0788,ap:"BPS",icon:"🏝️",rating:4.88,reviews:3569,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zlatni-rat-south-t217",category:"tanning",title:"Zlatni Rat South",location:"Brac, Croatia",lat:43.3187,lon:16.6353,ap:"SPU",icon:"🏝️",rating:4.84,reviews:775,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lovina-beach-south-t218",category:"tanning",title:"Lovina Beach South",location:"Bali, Indonesia",lat:-8.1536,lon:115.0264,ap:"DPS",icon:"🏝️",rating:4.81,reviews:4504,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sarakiniko-beach-south-t219",category:"tanning",title:"Sarakiniko Beach South",location:"Milos, Greece",lat:36.7687,lon:24.4353,ap:"JMK",icon:"🏝️",rating:4.8,reviews:2373,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-dua-beach-south-t220",category:"tanning",title:"Nusa Dua Beach South",location:"Bali, Indonesia",lat:-8.8039,lon:115.2345,ap:"DPS",icon:"🏝️",rating:4.54,reviews:747,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"patara-beach-south-t221",category:"tanning",title:"Patara Beach South",location:"Antalya, Turkey",lat:36.2687,lon:29.3187,ap:"DLM",icon:"🏝️",rating:4.75,reviews:1764,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bulabog-beach-boracay-south-t222",category:"tanning",title:"Bulabog Beach Boracay South",location:"Aklan, Philippines",lat:11.962,lon:121.9362,ap:"MPH",icon:"🏝️",rating:4.98,reviews:1372,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eilat-coral-beach-south-t223",category:"tanning",title:"Eilat Coral Beach South",location:"Israel",lat:29.552,lon:34.952,ap:"ETH",icon:"🏝️",rating:4.76,reviews:3300,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"san-vito-lo-capo-south-t224",category:"tanning",title:"San Vito lo Capo South",location:"Sicily, Italy",lat:38.177,lon:12.7353,ap:"TPS",icon:"🏝️",rating:4.79,reviews:641,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hyams-beach-south-t225",category:"tanning",title:"Hyams Beach South",location:"New South Wales, Australia",lat:-35.1147,lon:150.6853,ap:"CBR",icon:"🏝️",rating:4.65,reviews:3683,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lindos-beach-south-t226",category:"tanning",title:"Lindos Beach South",location:"Rhodes, Greece",lat:36.0937,lon:28.0903,ap:"RHO",icon:"🏝️",rating:4.86,reviews:2054,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laguna-beach-south-t227",category:"tanning",title:"Laguna Beach South",location:"California, USA",lat:33.5447,lon:-117.7834,ap:"SNA",icon:"🏝️",rating:4.53,reviews:806,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-tao-sairee-south-t228",category:"tanning",title:"Koh Tao Sairee South",location:"Surat Thani, Thailand",lat:10.0853,lon:99.8353,ap:"USM",icon:"🏝️",rating:4.95,reviews:1050,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muscat-beach-south-t229",category:"tanning",title:"Muscat Beach South",location:"Oman",lat:23.59,lon:58.3992,ap:"MCT",icon:"🏝️",rating:4.72,reviews:550,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pigeon-point-south-t230",category:"tanning",title:"Pigeon Point South",location:"Tobago",lat:11.1687,lon:-60.8313,ap:"TAB",icon:"🏝️",rating:4.65,reviews:1538,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rendezvous-bay-south-t231",category:"tanning",title:"Rendezvous Bay South",location:"Anguilla",lat:18.202,lon:-63.1147,ap:"AXA",icon:"🏝️",rating:4.56,reviews:1224,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"an-bang-beach-south-t232",category:"tanning",title:"An Bang Beach South",location:"Quang Nam, Vietnam",lat:15.9226,lon:108.3389,ap:"DAD",icon:"🏝️",rating:4.84,reviews:1442,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makarska-beach-south-t233",category:"tanning",title:"Makarska Beach South",location:"Split-Dalmatia, Croatia",lat:43.2992,lon:17.0198,ap:"SPU",icon:"🏝️",rating:4.74,reviews:2940,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ilha-grande-south-t234",category:"tanning",title:"Ilha Grande South",location:"Rio de Janeiro, Brazil",lat:-23.1602,lon:-44.1811,ap:"GIG",icon:"🏝️",rating:4.76,reviews:2223,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-air-south-t235",category:"tanning",title:"Gili Air South",location:"Lombok, Indonesia",lat:-8.3549,lon:116.0701,ap:"LOP",icon:"🏝️",rating:4.58,reviews:1139,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-bavaro-south-t236",category:"tanning",title:"Playa Bavaro South",location:"Punta Cana, Dominican Republic",lat:18.752,lon:-68.4313,ap:"PUJ",icon:"🏝️",rating:4.87,reviews:2301,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wineglass-bay-south-t237",category:"tanning",title:"Wineglass Bay South",location:"Tasmania, Australia",lat:-42.0813,lon:148.2687,ap:"LST",icon:"🏝️",rating:4.86,reviews:1067,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-jolla-cove-south-t238",category:"tanning",title:"La Jolla Cove South",location:"California, USA",lat:32.8528,lon:-117.2693,ap:"SAN",icon:"🏝️",rating:4.88,reviews:340,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"holbox-island-south-t239",category:"tanning",title:"Holbox Island South",location:"Quintana Roo, Mexico",lat:21.5252,lon:-87.3817,ap:"CUN",icon:"🏝️",rating:4.66,reviews:3617,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-mondrago-south-t240",category:"tanning",title:"Cala Mondrago South",location:"Mallorca, Spain",lat:39.3353,lon:3.2187,ap:"PMI",icon:"🏝️",rating:4.63,reviews:623,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jimbaran-bay-south-t241",category:"tanning",title:"Jimbaran Bay South",location:"Bali, Indonesia",lat:-8.7936,lon:115.1637,ap:"DPS",icon:"🏝️",rating:4.63,reviews:4823,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lalaria-beach-south-t242",category:"tanning",title:"Lalaria Beach South",location:"Skiathos, Greece",lat:39.1853,lon:23.5187,ap:"JSI",icon:"🏝️",rating:4.81,reviews:4164,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taveuni-island-south-t243",category:"tanning",title:"Taveuni Island South",location:"Fiji",lat:-16.8313,lon:179.9687,ap:"NAN",icon:"🏝️",rating:4.72,reviews:3050,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grace-bay-beach-south-t244",category:"tanning",title:"Grace Bay Beach South",location:"Turks and Caicos",lat:21.7938,lon:-72.2081,ap:"PLS",icon:"🏝️",rating:4.53,reviews:4743,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lara-beach-south-t245",category:"tanning",title:"Lara Beach South",location:"Antalya, Turkey",lat:36.852,lon:30.7853,ap:"AYT",icon:"🏝️",rating:4.58,reviews:1388,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sanur-beach-south-t246",category:"tanning",title:"Sanur Beach South",location:"Bali, Indonesia",lat:-8.7069,lon:115.2593,ap:"DPS",icon:"🏝️",rating:4.63,reviews:942,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cleopatra-beach-south-t247",category:"tanning",title:"Cleopatra Beach South",location:"Alanya, Turkey",lat:36.5353,lon:31.9853,ap:"GZP",icon:"🏝️",rating:4.94,reviews:1044,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nha-trang-beach-south-t248",category:"tanning",title:"Nha Trang Beach South",location:"Khanh Hoa, Vietnam",lat:12.2408,lon:109.1987,ap:"CXR",icon:"🏝️",rating:4.61,reviews:4268,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-muro-south-t249",category:"tanning",title:"Playa de Muro South",location:"Mallorca, Spain",lat:39.8187,lon:3.1187,ap:"PMI",icon:"🏝️",rating:4.5,reviews:200,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baia-dei-turchi-south-t250",category:"tanning",title:"Baia dei Turchi South",location:"Puglia, Italy",lat:40.4187,lon:18.2853,ap:"BDS",icon:"🏝️",rating:4.62,reviews:3964,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"es-trenc-south-t251",category:"tanning",title:"Es Trenc South",location:"Mallorca, Spain",lat:39.352,lon:3.002,ap:"PMI",icon:"🏝️",rating:4.68,reviews:1329,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"denarau-island-south-t252",category:"tanning",title:"Denarau Island South",location:"Fiji",lat:-17.7813,lon:177.3853,ap:"NAN",icon:"🏝️",rating:4.59,reviews:389,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ipanema-beach-south-t253",category:"tanning",title:"Ipanema Beach South",location:"Rio de Janeiro, Brazil",lat:-22.9816,lon:-43.1996,ap:"GIG",icon:"🏝️",rating:4.77,reviews:3535,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-samui-chaweng-south-t254",category:"tanning",title:"Koh Samui Chaweng South",location:"Surat Thani, Thailand",lat:9.5353,lon:100.0687,ap:"USM",icon:"🏝️",rating:4.61,reviews:2133,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"virginia-beach-south-t255",category:"tanning",title:"Virginia Beach South",location:"Virginia, USA",lat:36.8549,lon:-75.976,ap:"ORF",icon:"🏝️",rating:4.7,reviews:2720,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-karon-south-t256",category:"tanning",title:"Phuket Karon South",location:"Phuket, Thailand",lat:7.8387,lon:98.2987,ap:"HKT",icon:"🏝️",rating:4.63,reviews:738,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-penida-crystal-bay-south-t257",category:"tanning",title:"Nusa Penida Crystal Bay South",location:"Bali, Indonesia",lat:-8.7247,lon:115.5042,ap:"DPS",icon:"🏝️",rating:4.78,reviews:1078,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-trawangan-south-t258",category:"tanning",title:"Gili Trawangan South",location:"Lombok, Indonesia",lat:-8.348,lon:116.0353,ap:"LOP",icon:"🏝️",rating:4.75,reviews:531,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beau-vallon-beach-south-t259",category:"tanning",title:"Beau Vallon Beach South",location:"Mahe, Seychelles",lat:-4.6147,lon:55.4187,ap:"SEZ",icon:"🏝️",rating:4.59,reviews:4325,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jericoacoara-south-t260",category:"tanning",title:"Jericoacoara South",location:"Ceara, Brazil",lat:-2.7952,lon:-40.5102,ap:"FOR",icon:"🏝️",rating:4.98,reviews:3384,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dickenson-bay-south-t261",category:"tanning",title:"Dickenson Bay South",location:"Antigua & Barbuda",lat:17.1853,lon:-61.798,ap:"ANU",icon:"🏝️",rating:4.53,reviews:3910,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-bassa-south-t262",category:"tanning",title:"Cala Bassa South",location:"Ibiza, Spain",lat:38.9853,lon:1.2853,ap:"IBZ",icon:"🏝️",rating:4.92,reviews:2645,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aitutaki-lagoon-south-t263",category:"tanning",title:"Aitutaki Lagoon South",location:"Cook Islands",lat:-18.8647,lon:-159.7813,ap:"AIT",icon:"🏝️",rating:4.66,reviews:4630,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sveti-stefan-south-t264",category:"tanning",title:"Sveti Stefan South",location:"Montenegro",lat:42.2584,lon:18.8923,ap:"TGD",icon:"🏝️",rating:4.72,reviews:3122,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coron-kayangan-south-t265",category:"tanning",title:"Coron Kayangan South",location:"Palawan, Philippines",lat:12.002,lon:120.202,ap:"USU",icon:"🏝️",rating:4.6,reviews:4718,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-lazio-south-t266",category:"tanning",title:"Anse Lazio South",location:"Praslin, Seychelles",lat:-4.2813,lon:55.652,ap:"PRI",icon:"🏝️",rating:4.88,reviews:2087,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-main-beach-south-t267",category:"tanning",title:"Noosa Main Beach South",location:"Queensland, Australia",lat:-26.3849,lon:153.0992,ap:"MCY",icon:"🏝️",rating:4.73,reviews:4947,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"del-mar-beach-south-t268",category:"tanning",title:"Del Mar Beach South",location:"California, USA",lat:32.9615,lon:-117.2633,ap:"SAN",icon:"🏝️",rating:4.98,reviews:1700,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seminyak-beach-south-t269",category:"tanning",title:"Seminyak Beach South",location:"Bali, Indonesia",lat:-8.6934,lon:115.1679,ap:"DPS",icon:"🏝️",rating:4.86,reviews:4577,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polignano-a-mare-south-t270",category:"tanning",title:"Polignano a Mare South",location:"Puglia, Italy",lat:40.9992,lon:17.2253,ap:"BRI",icon:"🏝️",rating:4.87,reviews:2108,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puka-shell-beach-south-t271",category:"tanning",title:"Puka Shell Beach South",location:"Boracay, Philippines",lat:12.002,lon:121.9309,ap:"MPH",icon:"🏝️",rating:4.57,reviews:3459,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lipe-south-t272",category:"tanning",title:"Koh Lipe South",location:"Satun, Thailand",lat:6.502,lon:99.302,ap:"TST",icon:"🏝️",rating:4.51,reviews:4536,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"isla-mujeres-south-t273",category:"tanning",title:"Isla Mujeres South",location:"Quintana Roo, Mexico",lat:21.2359,lon:-86.7275,ap:"CUN",icon:"🏝️",rating:4.67,reviews:178,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"akumal-beach-south-t274",category:"tanning",title:"Akumal Beach South",location:"Quintana Roo, Mexico",lat:20.3967,lon:-87.3116,ap:"CUN",icon:"🏝️",rating:4.97,reviews:111,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"clearwater-beach-south-t275",category:"tanning",title:"Clearwater Beach South",location:"Florida, USA",lat:27.9804,lon:-82.8246,ap:"TPA",icon:"🏝️",rating:4.87,reviews:3182,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lanta-long-beach-south-t276",category:"tanning",title:"Koh Lanta Long Beach South",location:"Krabi, Thailand",lat:7.6853,lon:99.0353,ap:"KBV",icon:"🏝️",rating:4.92,reviews:2619,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pakleni-islands-south-t277",category:"tanning",title:"Pakleni Islands South",location:"Hvar, Croatia",lat:43.172,lon:16.4187,ap:"SPU",icon:"🏝️",rating:4.55,reviews:4440,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tel-aviv-gordon-beach-south-t278",category:"tanning",title:"Tel Aviv Gordon Beach South",location:"Israel",lat:32.0801,lon:34.7746,ap:"TLV",icon:"🏝️",rating:4.98,reviews:3539,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myrtle-beach-south-t279",category:"tanning",title:"Myrtle Beach South",location:"South Carolina, USA",lat:33.6911,lon:-78.8847,ap:"MYR",icon:"🏝️",rating:4.74,reviews:590,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moorea-temae-south-t280",category:"tanning",title:"Moorea Temae South",location:"French Polynesia",lat:-17.498,lon:-149.748,ap:"MOZ",icon:"🏝️",rating:4.98,reviews:1266,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"four-mile-beach-south-t281",category:"tanning",title:"Four Mile Beach South",location:"Queensland, Australia",lat:-16.4813,lon:145.4687,ap:"PQQ",icon:"🏝️",rating:4.85,reviews:862,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bathsheba-beach-south-t282",category:"tanning",title:"Bathsheba Beach South",location:"Barbados",lat:13.2048,lon:-59.5208,ap:"BGI",icon:"🏝️",rating:4.52,reviews:1996,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muri-beach-rarotonga-south-t283",category:"tanning",title:"Muri Beach Rarotonga South",location:"Rarotonga, Cook Islands",lat:-21.248,lon:-159.748,ap:"RAR",icon:"🏝️",rating:4.94,reviews:4357,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crane-beach-south-t284",category:"tanning",title:"Crane Beach South",location:"Barbados",lat:13.0684,lon:-59.4252,ap:"BGI",icon:"🏝️",rating:4.7,reviews:3151,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tropea-beach-south-t285",category:"tanning",title:"Tropea Beach South",location:"Calabria, Italy",lat:38.6759,lon:15.9014,ap:"LME",icon:"🏝️",rating:4.72,reviews:795,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morro-de-sao-paulo-south-t286",category:"tanning",title:"Morro de Sao Paulo South",location:"Bahia, Brazil",lat:-13.3783,lon:-38.9124,ap:"SSA",icon:"🏝️",rating:4.78,reviews:4240,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"luquillo-beach-south-t287",category:"tanning",title:"Luquillo Beach South",location:"Puerto Rico",lat:18.3789,lon:-65.7163,ap:"SJU",icon:"🏝️",rating:4.57,reviews:3330,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-mak-south-t288",category:"tanning",title:"Koh Mak South",location:"Trat, Thailand",lat:11.8353,lon:102.4853,ap:"TDX",icon:"🏝️",rating:4.54,reviews:4751,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-forte-south-t289",category:"tanning",title:"Praia do Forte South",location:"Bahia, Brazil",lat:-12.5766,lon:-38.0024,ap:"SSA",icon:"🏝️",rating:4.53,reviews:1170,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"spiaggia-dei-conigli-south-t290",category:"tanning",title:"Spiaggia dei Conigli South",location:"Lampedusa, Italy",lat:35.4853,lon:12.5687,ap:"LMP",icon:"🏝️",rating:4.62,reviews:2238,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flic-en-flac-south-t291",category:"tanning",title:"Flic en Flac South",location:"Mauritius",lat:-20.2813,lon:57.352,ap:"MRU",icon:"🏝️",rating:4.92,reviews:3319,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"white-beach-boracay-south-t292",category:"tanning",title:"White Beach Boracay South",location:"Aklan, Philippines",lat:11.9577,lon:121.9214,ap:"MPH",icon:"🏝️",rating:4.84,reviews:2772,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trancoso-south-t293",category:"tanning",title:"Trancoso South",location:"Bahia, Brazil",lat:-16.5827,lon:-39.103,ap:"BPS",icon:"🏝️",rating:4.66,reviews:2327,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"my-khe-beach-south-t294",category:"tanning",title:"My Khe Beach South",location:"Da Nang, Vietnam",lat:16.0489,lon:108.2504,ap:"DAD",icon:"🏝️",rating:4.61,reviews:1760,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"paradise-beach-mykonos-south-t295",category:"tanning",title:"Paradise Beach Mykonos South",location:"Mykonos, Greece",lat:37.4134,lon:25.3959,ap:"JMK",icon:"🏝️",rating:4.57,reviews:4889,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grand-anse-praslin-south-t296",category:"tanning",title:"Grand Anse Praslin South",location:"Praslin, Seychelles",lat:-4.348,lon:55.7187,ap:"PRI",icon:"🏝️",rating:4.55,reviews:965,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perhentian-islands-south-t297",category:"tanning",title:"Perhentian Islands South",location:"Terengganu, Malaysia",lat:5.902,lon:102.702,ap:"KBR",icon:"🏝️",rating:4.58,reviews:3917,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"komodo-island-south-t298",category:"tanning",title:"Komodo Island South",location:"East Nusa Tenggara, Indonesia",lat:-8.548,lon:119.4687,ap:"LBJ",icon:"🏝️",rating:4.65,reviews:1089,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"blue-bay-mauritius-south-t299",category:"tanning",title:"Blue Bay Mauritius South",location:"Mauritius",lat:-20.448,lon:57.7187,ap:"MRU",icon:"🏝️",rating:4.76,reviews:1800,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-conta-south-t300",category:"tanning",title:"Cala Conta South",location:"Ibiza, Spain",lat:38.9687,lon:1.2353,ap:"IBZ",icon:"🏝️",rating:4.72,reviews:3895,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"malapascua-island-south-t301",category:"tanning",title:"Malapascua Island South",location:"Cebu, Philippines",lat:11.352,lon:124.1353,ap:"CEB",icon:"🏝️",rating:4.63,reviews:1082,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"redang-island-south-t302",category:"tanning",title:"Redang Island South",location:"Terengganu, Malaysia",lat:5.7853,lon:103.0187,ap:"KBR",icon:"🏝️",rating:4.54,reviews:2592,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cane-garden-bay-south-t303",category:"tanning",title:"Cane Garden Bay South",location:"Tortola, BVI",lat:18.4273,lon:-64.6274,ap:"EIS",icon:"🏝️",rating:4.9,reviews:430,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-patong-south-t304",category:"tanning",title:"Phuket Patong South",location:"Phuket, Thailand",lat:7.8981,lon:98.2998,ap:"HKT",icon:"🏝️",rating:4.61,reviews:2785,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"perissa-beach-south-t305",category:"tanning",title:"Perissa Beach South",location:"Santorini, Greece",lat:36.352,lon:25.4687,ap:"JTR",icon:"🏝️",rating:4.57,reviews:2133,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pensacola-beach-south-t306",category:"tanning",title:"Pensacola Beach South",location:"Florida, USA",lat:30.3331,lon:-87.1416,ap:"PNS",icon:"🏝️",rating:4.97,reviews:3346,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stiniva-cove-south-t307",category:"tanning",title:"Stiniva Cove South",location:"Vis, Croatia",lat:43.0187,lon:16.1353,ap:"SPU",icon:"🏝️",rating:4.75,reviews:2548,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"balos-lagoon-south-t308",category:"tanning",title:"Balos Lagoon South",location:"Crete, Greece",lat:35.5962,lon:23.5759,ap:"CHQ",icon:"🏝️",rating:4.63,reviews:1524,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kite-beach-dubai-south-t309",category:"tanning",title:"Kite Beach Dubai South",location:"Dubai, UAE",lat:25.187,lon:55.2609,ap:"DXB",icon:"🏝️",rating:4.52,reviews:3412,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"vilanculos-south-t310",category:"tanning",title:"Vilanculos South",location:"Inhambane, Mozambique",lat:-21.998,lon:35.3187,ap:"VNX",icon:"🏝️",rating:4.92,reviews:4654,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"darkwood-beach-south-t311",category:"tanning",title:"Darkwood Beach South",location:"Antigua",lat:17.0187,lon:-61.8813,ap:"ANU",icon:"🏝️",rating:4.87,reviews:2146,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ao-nang-south-t312",category:"tanning",title:"Ao Nang South",location:"Krabi, Thailand",lat:8.0317,lon:98.8233,ap:"KBV",icon:"🏝️",rating:4.55,reviews:934,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"doc-let-beach-south-t313",category:"tanning",title:"Doc Let Beach South",location:"Khanh Hoa, Vietnam",lat:12.3853,lon:109.2187,ap:"CXR",icon:"🏝️",rating:4.89,reviews:1245,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"el-nido-nacpan-south-t314",category:"tanning",title:"El Nido Nacpan South",location:"Palawan, Philippines",lat:11.1853,lon:119.1187,ap:"ENI",icon:"🏝️",rating:4.56,reviews:605,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flamenco-beach-south-t315",category:"tanning",title:"Flamenco Beach South",location:"Culebra, Puerto Rico",lat:18.3178,lon:-65.3177,ap:"SJU",icon:"🏝️",rating:4.91,reviews:1920,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"raja-ampat-south-t316",category:"tanning",title:"Raja Ampat South",location:"West Papua, Indonesia",lat:-0.2313,lon:130.5187,ap:"RJM",icon:"🏝️",rating:4.56,reviews:3381,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"faliraki-beach-south-t317",category:"tanning",title:"Faliraki Beach South",location:"Rhodes, Greece",lat:36.3353,lon:28.2187,ap:"RHO",icon:"🏝️",rating:4.68,reviews:788,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-du-midi-south-t318",category:"tanning",title:"Plage du Midi South",location:"Cannes, France",lat:43.5492,lon:7.0103,ap:"NCE",icon:"🏝️",rating:4.79,reviews:2220,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-samui-lamai-south-t319",category:"tanning",title:"Koh Samui Lamai South",location:"Surat Thani, Thailand",lat:9.4353,lon:100.0687,ap:"USM",icon:"🏝️",rating:4.95,reviews:714,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maldives-veligandu-south-t320",category:"tanning",title:"Maldives Veligandu South",location:"North Ari Atoll, Maldives",lat:4.0353,lon:72.8853,ap:"MLE",icon:"🏝️",rating:4.51,reviews:628,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"port-barton-south-t321",category:"tanning",title:"Port Barton South",location:"Palawan, Philippines",lat:10.3853,lon:119.1187,ap:"PPS",icon:"🏝️",rating:4.6,reviews:3732,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hawksbill-beach-south-t322",category:"tanning",title:"Hawksbill Beach South",location:"Antigua",lat:17.052,lon:-61.848,ap:"ANU",icon:"🏝️",rating:4.9,reviews:853,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"fulhadhoo-island-south-t323",category:"tanning",title:"Fulhadhoo Island South",location:"Baa Atoll, Maldives",lat:5.0853,lon:73.1187,ap:"MLE",icon:"🏝️",rating:4.94,reviews:2816,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kendwa-beach-south-t324",category:"tanning",title:"Kendwa Beach South",location:"Zanzibar, Tanzania",lat:-5.7147,lon:39.302,ap:"ZNZ",icon:"🏝️",rating:4.56,reviews:3876,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"super-paradise-mykonos-south-t325",category:"tanning",title:"Super Paradise Mykonos South",location:"Mykonos, Greece",lat:37.4287,lon:25.392,ap:"JMK",icon:"🏝️",rating:4.52,reviews:4801,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"shoal-bay-south-t326",category:"tanning",title:"Shoal Bay South",location:"Anguilla",lat:18.2437,lon:-63.048,ap:"AXA",icon:"🏝️",rating:4.71,reviews:3335,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cozumel-paradise-south-t327",category:"tanning",title:"Cozumel Paradise South",location:"Quintana Roo, Mexico",lat:20.5102,lon:-86.9468,ap:"CZM",icon:"🏝️",rating:4.74,reviews:3235,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maya-bay-south-t328",category:"tanning",title:"Maya Bay South",location:"Krabi, Thailand",lat:7.6798,lon:98.7653,ap:"KBV",icon:"🏝️",rating:4.83,reviews:1515,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maafushi-beach-south-t329",category:"tanning",title:"Maafushi Beach South",location:"Kaafu Atoll, Maldives",lat:3.952,lon:73.4853,ap:"MLE",icon:"🏝️",rating:4.67,reviews:1633,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nungwi-beach-south-t330",category:"tanning",title:"Nungwi Beach South",location:"Zanzibar, Tanzania",lat:-5.7208,lon:39.2976,ap:"ZNZ",icon:"🏝️",rating:4.63,reviews:3753,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dreamland-beach-south-t331",category:"tanning",title:"Dreamland Beach South",location:"Bali, Indonesia",lat:-8.7969,lon:115.1084,ap:"DPS",icon:"🏝️",rating:4.93,reviews:383,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"le-morne-beach-south-t332",category:"tanning",title:"Le Morne Beach South",location:"Mauritius",lat:-20.448,lon:57.3187,ap:"MRU",icon:"🏝️",rating:4.8,reviews:2113,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"siesta-key-beach-south-t333",category:"tanning",title:"Siesta Key Beach South",location:"Florida, USA",lat:27.2612,lon:-82.5474,ap:"SRQ",icon:"🏝️",rating:4.82,reviews:4186,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"elafonisi-beach-south-t334",category:"tanning",title:"Elafonisi Beach South",location:"Crete, Greece",lat:35.2687,lon:23.5187,ap:"CHQ",icon:"🏝️",rating:4.7,reviews:4611,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"positano-beach-south-t335",category:"tanning",title:"Positano Beach South",location:"Amalfi Coast, Italy",lat:40.6298,lon:14.4831,ap:"NAP",icon:"🏝️",rating:4.73,reviews:818,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"worthing-beach-south-t336",category:"tanning",title:"Worthing Beach South",location:"Barbados",lat:13.0687,lon:-59.5813,ap:"BGI",icon:"🏝️",rating:4.64,reviews:1224,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-chastanet-south-t337",category:"tanning",title:"Anse Chastanet South",location:"St Lucia",lat:13.852,lon:-61.048,ap:"UVF",icon:"🏝️",rating:4.71,reviews:4407,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coral-bay-south-t338",category:"tanning",title:"Coral Bay South",location:"Western Australia, Australia",lat:-23.148,lon:113.7853,ap:"BRM",icon:"🏝️",rating:4.62,reviews:4553,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phu-quoc-long-beach-south-t339",category:"tanning",title:"Phu Quoc Long Beach South",location:"Kien Giang, Vietnam",lat:10.2353,lon:103.9687,ap:"PQC",icon:"🏝️",rating:4.89,reviews:3233,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"khem-beach-phu-quoc-south-t340",category:"tanning",title:"Khem Beach Phu Quoc South",location:"Kien Giang, Vietnam",lat:10.152,lon:103.9853,ap:"PQC",icon:"🏝️",rating:4.88,reviews:3041,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cabo-san-lucas-south-t341",category:"tanning",title:"Cabo San Lucas South",location:"Baja California Sur, Mexico",lat:22.8925,lon:-109.9147,ap:"SJD",icon:"🏝️",rating:4.74,reviews:4070,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myrtos-beach-south-t342",category:"tanning",title:"Myrtos Beach South",location:"Kefalonia, Greece",lat:38.1917,lon:20.5098,ap:"EFL",icon:"🏝️",rating:4.67,reviews:4733,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rangiroa-atoll-south-t343",category:"tanning",title:"Rangiroa Atoll South",location:"French Polynesia",lat:-15.1313,lon:-147.6647,ap:"RGI",icon:"🏝️",rating:4.75,reviews:3281,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"copacabana-beach-south-t344",category:"tanning",title:"Copacabana Beach South",location:"Rio de Janeiro, Brazil",lat:-22.9691,lon:-43.1802,ap:"GIG",icon:"🏝️",rating:4.63,reviews:313,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-kata-south-t345",category:"tanning",title:"Phuket Kata South",location:"Phuket, Thailand",lat:7.822,lon:98.3003,ap:"HKT",icon:"🏝️",rating:4.66,reviews:1894,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-maspalomas-south-t346",category:"tanning",title:"Playa de Maspalomas South",location:"Gran Canaria, Spain",lat:27.7353,lon:-15.5813,ap:"LPA",icon:"🏝️",rating:4.51,reviews:2401,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kaputas-beach-south-t347",category:"tanning",title:"Kaputas Beach South",location:"Antalya, Turkey",lat:36.2103,lon:29.6353,ap:"DLM",icon:"🏝️",rating:4.53,reviews:3964,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-del-carmen-south-t348",category:"tanning",title:"Playa del Carmen South",location:"Quintana Roo, Mexico",lat:20.6316,lon:-87.0719,ap:"CUN",icon:"🏝️",rating:4.76,reviews:4884,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cable-beach-south-t349",category:"tanning",title:"Cable Beach South",location:"Western Australia, Australia",lat:-18.0147,lon:122.1853,ap:"BRM",icon:"🏝️",rating:4.99,reviews:1407,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"yasawa-islands-south-t350",category:"tanning",title:"Yasawa Islands South",location:"Fiji",lat:-16.998,lon:177.502,ap:"NAN",icon:"🏝️",rating:4.55,reviews:2075,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"long-bay-antigua-south-t351",category:"tanning",title:"Long Bay Antigua South",location:"Antigua & Barbuda",lat:17.0853,lon:-61.748,ap:"ANU",icon:"🏝️",rating:4.63,reviews:558,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"navagio-beach-south-t352",category:"tanning",title:"Navagio Beach South",location:"Zakynthos, Greece",lat:37.862,lon:20.622,ap:"ZTH",icon:"🏝️",rating:4.87,reviews:1897,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rarotonga-south-t353",category:"tanning",title:"Rarotonga South",location:"Cook Islands",lat:-21.2313,lon:-159.7813,ap:"RAR",icon:"🏝️",rating:4.78,reviews:3281,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"railay-beach-south-t354",category:"tanning",title:"Railay Beach South",location:"Krabi, Thailand",lat:8.012,lon:98.8376,ap:"KBV",icon:"🏝️",rating:4.67,reviews:1523,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panglao-island-south-t355",category:"tanning",title:"Panglao Island South",location:"Bohol, Philippines",lat:9.5687,lon:123.7687,ap:"TAG",icon:"🏝️",rating:4.59,reviews:4953,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"butterfly-valley-south-t356",category:"tanning",title:"Butterfly Valley South",location:"Mugla, Turkey",lat:36.5437,lon:29.0853,ap:"DLM",icon:"🏝️",rating:4.66,reviews:3039,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"maho-beach-st-maarten-south-t357",category:"tanning",title:"Maho Beach St Maarten South",location:"Saint Martin",lat:18.042,lon:-63.118,ap:"SXM",icon:"🏝️",rating:4.95,reviews:331,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-ses-illetes-south-t358",category:"tanning",title:"Playa de Ses Illetes South",location:"Formentera, Spain",lat:38.7353,lon:1.4187,ap:"IBZ",icon:"🏝️",rating:4.84,reviews:2980,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"oludeniz-beach-south-t359",category:"tanning",title:"Oludeniz Beach South",location:"Mugla, Turkey",lat:36.552,lon:29.1187,ap:"DLM",icon:"🏝️",rating:4.96,reviews:4717,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cape-maclear-south-t360",category:"tanning",title:"Cape Maclear South",location:"Malawi",lat:-14.0313,lon:34.8187,ap:"LLW",icon:"🏝️",rating:4.57,reviews:1642,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tahaa-island-south-t361",category:"tanning",title:"Tahaa Island South",location:"French Polynesia",lat:-16.6147,lon:-151.498,ap:"RFP",icon:"🏝️",rating:4.91,reviews:4132,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"porto-katsiki-south-t362",category:"tanning",title:"Porto Katsiki South",location:"Lefkada, Greece",lat:38.552,lon:20.5353,ap:"CFU",icon:"🏝️",rating:4.77,reviews:1538,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"red-beach-santorini-south-t363",category:"tanning",title:"Red Beach Santorini South",location:"Santorini, Greece",lat:36.3487,lon:25.3987,ap:"JTR",icon:"🏝️",rating:4.74,reviews:839,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cefal-beach-south-t364",category:"tanning",title:"Cefalù Beach South",location:"Sicily, Italy",lat:38.0434,lon:14.0217,ap:"PMO",icon:"🏝️",rating:4.53,reviews:1892,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"belle-mare-beach-south-t365",category:"tanning",title:"Belle Mare Beach South",location:"Mauritius",lat:-20.198,lon:57.7853,ap:"MRU",icon:"🏝️",rating:4.51,reviews:4015,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"south-beach-miami-south-t366",category:"tanning",title:"South Beach Miami South",location:"Florida, USA",lat:25.7896,lon:-80.1317,ap:"MIA",icon:"🏝️",rating:4.5,reviews:1750,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tangalle-beach-south-t367",category:"tanning",title:"Tangalle Beach South",location:"Southern Province, Sri Lanka",lat:6.0273,lon:80.8017,ap:"CMB",icon:"🏝️",rating:4.9,reviews:2891,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-phangan-haad-rin-south-t368",category:"tanning",title:"Koh Phangan Haad Rin South",location:"Surat Thani, Thailand",lat:9.6853,lon:100.0687,ap:"USM",icon:"🏝️",rating:4.85,reviews:2750,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"venice-beach-south-t369",category:"tanning",title:"Venice Beach South",location:"California, USA",lat:33.987,lon:-118.4675,ap:"LAX",icon:"🏝️",rating:4.53,reviews:1310,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-phi-phi-south-t370",category:"tanning",title:"Koh Phi Phi South",location:"Krabi, Thailand",lat:7.742,lon:98.772,ap:"KBV",icon:"🏝️",rating:4.79,reviews:1260,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"destin-beaches-south-t371",category:"tanning",title:"Destin Beaches South",location:"Florida, USA",lat:30.3955,lon:-86.4938,ap:"ECP",icon:"🏝️",rating:4.88,reviews:4411,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"langkawi-cenang-south-t372",category:"tanning",title:"Langkawi Cenang South",location:"Kedah, Malaysia",lat:6.2853,lon:99.6853,ap:"LGK",icon:"🏝️",rating:4.92,reviews:694,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trunk-bay-south-t373",category:"tanning",title:"Trunk Bay South",location:"St John, US Virgin Islands",lat:18.3553,lon:-64.7716,ap:"STT",icon:"🏝️",rating:4.68,reviews:3340,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trou-aux-biches-south-t374",category:"tanning",title:"Trou aux Biches South",location:"Mauritius",lat:-20.0147,lon:57.5353,ap:"MRU",icon:"🏝️",rating:4.79,reviews:2857,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tulum-beach-south-t375",category:"tanning",title:"Tulum Beach South",location:"Quintana Roo, Mexico",lat:20.2134,lon:-87.4634,ap:"CUN",icon:"🏝️",rating:4.65,reviews:1217,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"santa-monica-beach-south-t376",category:"tanning",title:"Santa Monica Beach South",location:"California, USA",lat:34.0215,lon:-118.4892,ap:"LAX",icon:"🏝️",rating:4.98,reviews:3678,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lombok-selong-belanak-south-t377",category:"tanning",title:"Lombok Selong Belanak South",location:"West Nusa Tenggara, Indonesia",lat:-8.8974,lon:116.2178,ap:"LOP",icon:"🏝️",rating:4.89,reviews:4091,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"orient-beach-south-t378",category:"tanning",title:"Orient Beach South",location:"Saint-Martin",lat:18.0853,lon:-63.0147,ap:"SXM",icon:"🏝️",rating:4.82,reviews:1527,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"palm-cove-south-t379",category:"tanning",title:"Palm Cove South",location:"Queensland, Australia",lat:-16.748,lon:145.6687,ap:"CNS",icon:"🏝️",rating:4.85,reviews:4703,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"unawatuna-beach-south-t380",category:"tanning",title:"Unawatuna Beach South",location:"Galle, Sri Lanka",lat:6.0187,lon:80.252,ap:"CMB",icon:"🏝️",rating:4.84,reviews:3023,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"airlie-beach-south-t381",category:"tanning",title:"Airlie Beach South",location:"Queensland, Australia",lat:-20.2647,lon:148.7187,ap:"PPP",icon:"🏝️",rating:4.61,reviews:4924,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"diani-beach-south-t382",category:"tanning",title:"Diani Beach South",location:"Kwale, Kenya",lat:-4.2813,lon:39.5853,ap:"MBA",icon:"🏝️",rating:4.9,reviews:3199,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nilaveli-beach-south-t383",category:"tanning",title:"Nilaveli Beach South",location:"Eastern Province, Sri Lanka",lat:8.7353,lon:81.2187,ap:"KCT",icon:"🏝️",rating:4.65,reviews:2512,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jumeirah-beach-south-t384",category:"tanning",title:"Jumeirah Beach South",location:"Dubai, UAE",lat:25.2068,lon:55.2728,ap:"DXB",icon:"🏝️",rating:4.56,reviews:114,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"watamu-beach-south-t385",category:"tanning",title:"Watamu Beach South",location:"Kilifi, Kenya",lat:-3.3647,lon:40.0187,ap:"MBA",icon:"🏝️",rating:4.96,reviews:4792,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pinney-s-beach-south-t386",category:"tanning",title:"Pinney's Beach South",location:"Nevis",lat:17.152,lon:-62.6313,ap:"NEV",icon:"🏝️",rating:4.69,reviews:4748,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mui-ne-beach-south-t387",category:"tanning",title:"Mui Ne Beach South",location:"Binh Thuan, Vietnam",lat:10.9353,lon:108.2853,ap:"VCL",icon:"🏝️",rating:4.52,reviews:2706,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"whitehaven-beach-south-t388",category:"tanning",title:"Whitehaven Beach South",location:"Whitsundays, Australia",lat:-20.2813,lon:149.0187,ap:"PPP",icon:"🏝️",rating:4.95,reviews:1909,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"key-west-smathers-south-t389",category:"tanning",title:"Key West Smathers South",location:"Florida, USA",lat:24.5523,lon:-81.764,ap:"EYW",icon:"🏝️",rating:4.81,reviews:952,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-barceloneta-south-t390",category:"tanning",title:"La Barceloneta South",location:"Barcelona, Spain",lat:41.3809,lon:2.1917,ap:"BCN",icon:"🏝️",rating:4.96,reviews:1252,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seven-mile-beach-south-t391",category:"tanning",title:"Seven Mile Beach South",location:"Grand Cayman",lat:19.3353,lon:-81.3147,ap:"GCM",icon:"🏝️",rating:4.66,reviews:737,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dubrovnik-banje-south-t392",category:"tanning",title:"Dubrovnik Banje South",location:"Dubrovnik, Croatia",lat:42.652,lon:18.1187,ap:"DBV",icon:"🏝️",rating:4.62,reviews:2717,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-intendance-south-t393",category:"tanning",title:"Anse Intendance South",location:"Mahe, Seychelles",lat:-4.748,lon:55.502,ap:"SEZ",icon:"🏝️",rating:4.58,reviews:826,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grand-anse-beach-south-t394",category:"tanning",title:"Grand Anse Beach South",location:"Grenada",lat:12.052,lon:-61.7647,ap:"GND",icon:"🏝️",rating:4.9,reviews:2850,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nice-promenade-south-t395",category:"tanning",title:"Nice Promenade South",location:"Cote d'Azur, France",lat:43.6967,lon:7.2639,ap:"NCE",icon:"🏝️",rating:4.72,reviews:2272,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"paje-beach-south-t396",category:"tanning",title:"Paje Beach South",location:"Zanzibar, Tanzania",lat:-6.2647,lon:39.5353,ap:"ZNZ",icon:"🏝️",rating:4.6,reviews:655,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"voidokilia-beach-south-t397",category:"tanning",title:"Voidokilia Beach South",location:"Peloponnese, Greece",lat:37.0264,lon:21.6659,ap:"KLX",icon:"🏝️",rating:4.67,reviews:985,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-source-d-argent-south-t398",category:"tanning",title:"Anse Source d'Argent South",location:"La Digue, Seychelles",lat:-4.3647,lon:55.8353,ap:"SEZ",icon:"🏝️",rating:4.85,reviews:494,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pink-sands-beach-south-t399",category:"tanning",title:"Pink Sands Beach South",location:"Eleuthera, Bahamas",lat:25.2187,lon:-76.2147,ap:"GHB",icon:"🏝️",rating:4.69,reviews:3537,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"karimunjawa-south-t400",category:"tanning",title:"Karimunjawa South",location:"Central Java, Indonesia",lat:-5.848,lon:110.4687,ap:"JOG",icon:"🏝️",rating:4.97,reviews:3491,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"negril-seven-mile-south-t401",category:"tanning",title:"Negril Seven Mile South",location:"Jamaica",lat:18.3853,lon:-78.348,ap:"MBJ",icon:"🏝️",rating:4.74,reviews:3202,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"passikudah-beach-south-t402",category:"tanning",title:"Passikudah Beach South",location:"Eastern Province, Sri Lanka",lat:7.9353,lon:81.552,ap:"KCT",icon:"🏝️",rating:4.67,reviews:3174,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"white-bay-jost-south-t403",category:"tanning",title:"White Bay Jost South",location:"Jost Van Dyke, BVI",lat:18.452,lon:-64.748,ap:"EIS",icon:"🏝️",rating:4.55,reviews:4027,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"palm-beach-aruba-south-t404",category:"tanning",title:"Palm Beach Aruba South",location:"Aruba",lat:12.577,lon:-70.048,ap:"AUA",icon:"🏝️",rating:4.89,reviews:4835,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"panama-city-beach-south-t405",category:"tanning",title:"Panama City Beach South",location:"Florida, USA",lat:30.1786,lon:-85.8035,ap:"ECP",icon:"🏝️",rating:4.82,reviews:1947,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ornos-beach-east-t406",category:"tanning",title:"Ornos Beach East",location:"Mykonos, Greece",lat:37.4357,lon:25.3207,ap:"JMK",icon:"🏝️",rating:4.58,reviews:703,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aruba-eagle-beach-east-t407",category:"tanning",title:"Aruba Eagle Beach East",location:"Aruba",lat:12.5657,lon:-70.0524,ap:"AUA",icon:"🏝️",rating:4.89,reviews:373,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"agios-prokopios-east-t408",category:"tanning",title:"Agios Prokopios East",location:"Naxos, Greece",lat:37.0707,lon:25.4207,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2710,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-la-concha-east-t409",category:"tanning",title:"Playa de la Concha East",location:"San Sebastian, Spain",lat:43.3248,lon:-1.9888,ap:"EAS",icon:"🏝️",rating:4.63,reviews:957,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huatulco-santa-cruz-east-t410",category:"tanning",title:"Huatulco Santa Cruz East",location:"Oaxaca, Mexico",lat:15.7623,lon:-96.1377,ap:"HUX",icon:"🏝️",rating:4.54,reviews:1493,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-de-pampelonne-east-t411",category:"tanning",title:"Plage de Pampelonne East",location:"Saint-Tropez, France",lat:43.254,lon:6.654,ap:"NCE",icon:"🏝️",rating:4.94,reviews:1418,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matira-beach-east-t412",category:"tanning",title:"Matira Beach East",location:"Bora Bora, French Polynesia",lat:-16.5293,lon:-151.7293,ap:"BOB",icon:"🏝️",rating:4.86,reviews:4581,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"outer-banks-nags-head-east-t413",category:"tanning",title:"Outer Banks Nags Head East",location:"North Carolina, USA",lat:35.9617,lon:-75.6204,ap:"OAJ",icon:"🏝️",rating:4.96,reviews:862,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"turquoise-bay-east-t414",category:"tanning",title:"Turquoise Bay East",location:"Western Australia, Australia",lat:-21.9127,lon:114.1207,ap:"BRM",icon:"🏝️",rating:4.67,reviews:4054,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"natadola-beach-east-t415",category:"tanning",title:"Natadola Beach East",location:"Fiji",lat:-18.1127,lon:177.5207,ap:"NAN",icon:"🏝️",rating:4.85,reviews:3633,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tofo-beach-east-t416",category:"tanning",title:"Tofo Beach East",location:"Inhambane, Mozambique",lat:-23.8627,lon:35.5373,ap:"INH",icon:"🏝️",rating:4.96,reviews:1451,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tioman-island-east-t417",category:"tanning",title:"Tioman Island East",location:"Pahang, Malaysia",lat:2.804,lon:104.1707,ap:"TPN",icon:"🏝️",rating:4.8,reviews:3656,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mana-island-fiji-east-t418",category:"tanning",title:"Mana Island Fiji East",location:"Fiji",lat:-17.6627,lon:177.0873,ap:"NAN",icon:"🏝️",rating:4.58,reviews:929,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"arraial-d-ajuda-east-t419",category:"tanning",title:"Arraial d'Ajuda East",location:"Bahia, Brazil",lat:-16.4366,lon:-39.0768,ap:"BPS",icon:"🏝️",rating:4.66,reviews:1656,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zlatni-rat-east-t420",category:"tanning",title:"Zlatni Rat East",location:"Brac, Croatia",lat:43.3207,lon:16.6373,ap:"SPU",icon:"🏝️",rating:4.7,reviews:4639,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lovina-beach-east-t421",category:"tanning",title:"Lovina Beach East",location:"Bali, Indonesia",lat:-8.1516,lon:115.0284,ap:"DPS",icon:"🏝️",rating:4.85,reviews:4524,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sarakiniko-beach-east-t422",category:"tanning",title:"Sarakiniko Beach East",location:"Milos, Greece",lat:36.7707,lon:24.4373,ap:"JMK",icon:"🏝️",rating:4.63,reviews:2406,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-dua-beach-east-t423",category:"tanning",title:"Nusa Dua Beach East",location:"Bali, Indonesia",lat:-8.8019,lon:115.2365,ap:"DPS",icon:"🏝️",rating:4.65,reviews:885,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"patara-beach-east-t424",category:"tanning",title:"Patara Beach East",location:"Antalya, Turkey",lat:36.2707,lon:29.3207,ap:"DLM",icon:"🏝️",rating:4.52,reviews:4783,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bulabog-beach-boracay-east-t425",category:"tanning",title:"Bulabog Beach Boracay East",location:"Aklan, Philippines",lat:11.964,lon:121.9382,ap:"MPH",icon:"🏝️",rating:4.77,reviews:4121,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"eilat-coral-beach-east-t426",category:"tanning",title:"Eilat Coral Beach East",location:"Israel",lat:29.554,lon:34.954,ap:"ETH",icon:"🏝️",rating:4.58,reviews:3055,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"san-vito-lo-capo-east-t427",category:"tanning",title:"San Vito lo Capo East",location:"Sicily, Italy",lat:38.179,lon:12.7373,ap:"TPS",icon:"🏝️",rating:4.5,reviews:817,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hyams-beach-east-t428",category:"tanning",title:"Hyams Beach East",location:"New South Wales, Australia",lat:-35.1127,lon:150.6873,ap:"CBR",icon:"🏝️",rating:4.64,reviews:4034,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lindos-beach-east-t429",category:"tanning",title:"Lindos Beach East",location:"Rhodes, Greece",lat:36.0957,lon:28.0923,ap:"RHO",icon:"🏝️",rating:4.6,reviews:310,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laguna-beach-east-t430",category:"tanning",title:"Laguna Beach East",location:"California, USA",lat:33.5467,lon:-117.7814,ap:"SNA",icon:"🏝️",rating:4.6,reviews:2490,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-tao-sairee-east-t431",category:"tanning",title:"Koh Tao Sairee East",location:"Surat Thani, Thailand",lat:10.0873,lon:99.8373,ap:"USM",icon:"🏝️",rating:4.98,reviews:3979,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muscat-beach-east-t432",category:"tanning",title:"Muscat Beach East",location:"Oman",lat:23.592,lon:58.4012,ap:"MCT",icon:"🏝️",rating:4.91,reviews:2626,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pigeon-point-east-t433",category:"tanning",title:"Pigeon Point East",location:"Tobago",lat:11.1707,lon:-60.8293,ap:"TAB",icon:"🏝️",rating:4.88,reviews:3957,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rendezvous-bay-east-t434",category:"tanning",title:"Rendezvous Bay East",location:"Anguilla",lat:18.204,lon:-63.1127,ap:"AXA",icon:"🏝️",rating:4.74,reviews:2270,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"an-bang-beach-east-t435",category:"tanning",title:"An Bang Beach East",location:"Quang Nam, Vietnam",lat:15.9246,lon:108.3409,ap:"DAD",icon:"🏝️",rating:4.54,reviews:4557,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"makarska-beach-east-t436",category:"tanning",title:"Makarska Beach East",location:"Split-Dalmatia, Croatia",lat:43.3012,lon:17.0218,ap:"SPU",icon:"🏝️",rating:4.69,reviews:3139,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ilha-grande-east-t437",category:"tanning",title:"Ilha Grande East",location:"Rio de Janeiro, Brazil",lat:-23.1582,lon:-44.1791,ap:"GIG",icon:"🏝️",rating:4.93,reviews:3126,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-air-east-t438",category:"tanning",title:"Gili Air East",location:"Lombok, Indonesia",lat:-8.3529,lon:116.0721,ap:"LOP",icon:"🏝️",rating:4.59,reviews:465,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-bavaro-east-t439",category:"tanning",title:"Playa Bavaro East",location:"Punta Cana, Dominican Republic",lat:18.754,lon:-68.4293,ap:"PUJ",icon:"🏝️",rating:4.63,reviews:3909,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"wineglass-bay-east-t440",category:"tanning",title:"Wineglass Bay East",location:"Tasmania, Australia",lat:-42.0793,lon:148.2707,ap:"LST",icon:"🏝️",rating:4.63,reviews:2300,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"la-jolla-cove-east-t441",category:"tanning",title:"La Jolla Cove East",location:"California, USA",lat:32.8548,lon:-117.2673,ap:"SAN",icon:"🏝️",rating:4.78,reviews:1338,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"holbox-island-east-t442",category:"tanning",title:"Holbox Island East",location:"Quintana Roo, Mexico",lat:21.5272,lon:-87.3797,ap:"CUN",icon:"🏝️",rating:4.87,reviews:892,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-mondrago-east-t443",category:"tanning",title:"Cala Mondrago East",location:"Mallorca, Spain",lat:39.3373,lon:3.2207,ap:"PMI",icon:"🏝️",rating:4.54,reviews:2916,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jimbaran-bay-east-t444",category:"tanning",title:"Jimbaran Bay East",location:"Bali, Indonesia",lat:-8.7916,lon:115.1657,ap:"DPS",icon:"🏝️",rating:4.9,reviews:3491,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lalaria-beach-east-t445",category:"tanning",title:"Lalaria Beach East",location:"Skiathos, Greece",lat:39.1873,lon:23.5207,ap:"JSI",icon:"🏝️",rating:4.98,reviews:4931,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"taveuni-island-east-t446",category:"tanning",title:"Taveuni Island East",location:"Fiji",lat:-16.8293,lon:179.9707,ap:"NAN",icon:"🏝️",rating:4.61,reviews:599,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grace-bay-beach-east-t447",category:"tanning",title:"Grace Bay Beach East",location:"Turks and Caicos",lat:21.7958,lon:-72.2061,ap:"PLS",icon:"🏝️",rating:4.91,reviews:4380,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lara-beach-east-t448",category:"tanning",title:"Lara Beach East",location:"Antalya, Turkey",lat:36.854,lon:30.7873,ap:"AYT",icon:"🏝️",rating:4.71,reviews:4486,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sanur-beach-east-t449",category:"tanning",title:"Sanur Beach East",location:"Bali, Indonesia",lat:-8.7049,lon:115.2613,ap:"DPS",icon:"🏝️",rating:4.84,reviews:3989,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cleopatra-beach-east-t450",category:"tanning",title:"Cleopatra Beach East",location:"Alanya, Turkey",lat:36.5373,lon:31.9873,ap:"GZP",icon:"🏝️",rating:4.78,reviews:2030,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nha-trang-beach-east-t451",category:"tanning",title:"Nha Trang Beach East",location:"Khanh Hoa, Vietnam",lat:12.2428,lon:109.2007,ap:"CXR",icon:"🏝️",rating:4.73,reviews:746,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-muro-east-t452",category:"tanning",title:"Playa de Muro East",location:"Mallorca, Spain",lat:39.8207,lon:3.1207,ap:"PMI",icon:"🏝️",rating:4.69,reviews:384,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"baia-dei-turchi-east-t453",category:"tanning",title:"Baia dei Turchi East",location:"Puglia, Italy",lat:40.4207,lon:18.2873,ap:"BDS",icon:"🏝️",rating:4.75,reviews:4333,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"es-trenc-east-t454",category:"tanning",title:"Es Trenc East",location:"Mallorca, Spain",lat:39.354,lon:3.004,ap:"PMI",icon:"🏝️",rating:4.89,reviews:1307,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"denarau-island-east-t455",category:"tanning",title:"Denarau Island East",location:"Fiji",lat:-17.7793,lon:177.3873,ap:"NAN",icon:"🏝️",rating:4.56,reviews:3778,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"ipanema-beach-east-t456",category:"tanning",title:"Ipanema Beach East",location:"Rio de Janeiro, Brazil",lat:-22.9796,lon:-43.1976,ap:"GIG",icon:"🏝️",rating:4.58,reviews:1469,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-samui-chaweng-east-t457",category:"tanning",title:"Koh Samui Chaweng East",location:"Surat Thani, Thailand",lat:9.5373,lon:100.0707,ap:"USM",icon:"🏝️",rating:4.98,reviews:1678,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"virginia-beach-east-t458",category:"tanning",title:"Virginia Beach East",location:"Virginia, USA",lat:36.8569,lon:-75.974,ap:"ORF",icon:"🏝️",rating:4.56,reviews:3568,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"phuket-karon-east-t459",category:"tanning",title:"Phuket Karon East",location:"Phuket, Thailand",lat:7.8407,lon:98.3007,ap:"HKT",icon:"🏝️",rating:4.54,reviews:3666,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-penida-crystal-bay-east-t460",category:"tanning",title:"Nusa Penida Crystal Bay East",location:"Bali, Indonesia",lat:-8.7227,lon:115.5062,ap:"DPS",icon:"🏝️",rating:4.6,reviews:1311,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"gili-trawangan-east-t461",category:"tanning",title:"Gili Trawangan East",location:"Lombok, Indonesia",lat:-8.346,lon:116.0373,ap:"LOP",icon:"🏝️",rating:4.91,reviews:2212,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beau-vallon-beach-east-t462",category:"tanning",title:"Beau Vallon Beach East",location:"Mahe, Seychelles",lat:-4.6127,lon:55.4207,ap:"SEZ",icon:"🏝️",rating:4.66,reviews:648,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"jericoacoara-east-t463",category:"tanning",title:"Jericoacoara East",location:"Ceara, Brazil",lat:-2.7932,lon:-40.5082,ap:"FOR",icon:"🏝️",rating:4.54,reviews:4657,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"dickenson-bay-east-t464",category:"tanning",title:"Dickenson Bay East",location:"Antigua & Barbuda",lat:17.1873,lon:-61.796,ap:"ANU",icon:"🏝️",rating:4.69,reviews:2771,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"cala-bassa-east-t465",category:"tanning",title:"Cala Bassa East",location:"Ibiza, Spain",lat:38.9873,lon:1.2873,ap:"IBZ",icon:"🏝️",rating:4.92,reviews:4357,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"aitutaki-lagoon-east-t466",category:"tanning",title:"Aitutaki Lagoon East",location:"Cook Islands",lat:-18.8627,lon:-159.7793,ap:"AIT",icon:"🏝️",rating:4.72,reviews:201,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sveti-stefan-east-t467",category:"tanning",title:"Sveti Stefan East",location:"Montenegro",lat:42.2604,lon:18.8943,ap:"TGD",icon:"🏝️",rating:4.89,reviews:4913,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"coron-kayangan-east-t468",category:"tanning",title:"Coron Kayangan East",location:"Palawan, Philippines",lat:12.004,lon:120.204,ap:"USU",icon:"🏝️",rating:4.76,reviews:3537,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"anse-lazio-east-t469",category:"tanning",title:"Anse Lazio East",location:"Praslin, Seychelles",lat:-4.2793,lon:55.654,ap:"PRI",icon:"🏝️",rating:4.56,reviews:1325,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"noosa-main-beach-east-t470",category:"tanning",title:"Noosa Main Beach East",location:"Queensland, Australia",lat:-26.3829,lon:153.1012,ap:"MCY",icon:"🏝️",rating:4.57,reviews:4916,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"del-mar-beach-east-t471",category:"tanning",title:"Del Mar Beach East",location:"California, USA",lat:32.9635,lon:-117.2613,ap:"SAN",icon:"🏝️",rating:4.79,reviews:920,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"seminyak-beach-east-t472",category:"tanning",title:"Seminyak Beach East",location:"Bali, Indonesia",lat:-8.6914,lon:115.1699,ap:"DPS",icon:"🏝️",rating:4.95,reviews:4709,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"polignano-a-mare-east-t473",category:"tanning",title:"Polignano a Mare East",location:"Puglia, Italy",lat:41.0012,lon:17.2273,ap:"BRI",icon:"🏝️",rating:4.88,reviews:2443,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"puka-shell-beach-east-t474",category:"tanning",title:"Puka Shell Beach East",location:"Boracay, Philippines",lat:12.004,lon:121.9329,ap:"MPH",icon:"🏝️",rating:4.93,reviews:2916,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lipe-east-t475",category:"tanning",title:"Koh Lipe East",location:"Satun, Thailand",lat:6.504,lon:99.304,ap:"TST",icon:"🏝️",rating:4.93,reviews:2263,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"isla-mujeres-east-t476",category:"tanning",title:"Isla Mujeres East",location:"Quintana Roo, Mexico",lat:21.2379,lon:-86.7255,ap:"CUN",icon:"🏝️",rating:4.69,reviews:4077,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"akumal-beach-east-t477",category:"tanning",title:"Akumal Beach East",location:"Quintana Roo, Mexico",lat:20.3987,lon:-87.3096,ap:"CUN",icon:"🏝️",rating:4.78,reviews:3975,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"clearwater-beach-east-t478",category:"tanning",title:"Clearwater Beach East",location:"Florida, USA",lat:27.9824,lon:-82.8226,ap:"TPA",icon:"🏝️",rating:4.52,reviews:2356,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-lanta-long-beach-east-t479",category:"tanning",title:"Koh Lanta Long Beach East",location:"Krabi, Thailand",lat:7.6873,lon:99.0373,ap:"KBV",icon:"🏝️",rating:4.7,reviews:3390,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pakleni-islands-east-t480",category:"tanning",title:"Pakleni Islands East",location:"Hvar, Croatia",lat:43.174,lon:16.4207,ap:"SPU",icon:"🏝️",rating:4.52,reviews:2815,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tel-aviv-gordon-beach-east-t481",category:"tanning",title:"Tel Aviv Gordon Beach East",location:"Israel",lat:32.0821,lon:34.7766,ap:"TLV",icon:"🏝️",rating:4.84,reviews:503,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"myrtle-beach-east-t482",category:"tanning",title:"Myrtle Beach East",location:"South Carolina, USA",lat:33.6931,lon:-78.8827,ap:"MYR",icon:"🏝️",rating:4.87,reviews:2300,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"moorea-temae-east-t483",category:"tanning",title:"Moorea Temae East",location:"French Polynesia",lat:-17.496,lon:-149.746,ap:"MOZ",icon:"🏝️",rating:4.94,reviews:265,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"four-mile-beach-east-t484",category:"tanning",title:"Four Mile Beach East",location:"Queensland, Australia",lat:-16.4793,lon:145.4707,ap:"PQQ",icon:"🏝️",rating:4.67,reviews:2582,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bathsheba-beach-east-t485",category:"tanning",title:"Bathsheba Beach East",location:"Barbados",lat:13.2068,lon:-59.5188,ap:"BGI",icon:"🏝️",rating:4.65,reviews:4127,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muri-beach-rarotonga-east-t486",category:"tanning",title:"Muri Beach Rarotonga East",location:"Rarotonga, Cook Islands",lat:-21.246,lon:-159.746,ap:"RAR",icon:"🏝️",rating:4.92,reviews:904,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"crane-beach-east-t487",category:"tanning",title:"Crane Beach East",location:"Barbados",lat:13.0704,lon:-59.4232,ap:"BGI",icon:"🏝️",rating:4.98,reviews:1967,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tropea-beach-east-t488",category:"tanning",title:"Tropea Beach East",location:"Calabria, Italy",lat:38.6779,lon:15.9034,ap:"LME",icon:"🏝️",rating:4.57,reviews:3729,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"morro-de-sao-paulo-east-t489",category:"tanning",title:"Morro de Sao Paulo East",location:"Bahia, Brazil",lat:-13.3763,lon:-38.9104,ap:"SSA",icon:"🏝️",rating:4.88,reviews:2728,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"luquillo-beach-east-t490",category:"tanning",title:"Luquillo Beach East",location:"Puerto Rico",lat:18.3809,lon:-65.7143,ap:"SJU",icon:"🏝️",rating:4.63,reviews:3514,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-mak-east-t491",category:"tanning",title:"Koh Mak East",location:"Trat, Thailand",lat:11.8373,lon:102.4873,ap:"TDX",icon:"🏝️",rating:4.8,reviews:831,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"praia-do-forte-east-t492",category:"tanning",title:"Praia do Forte East",location:"Bahia, Brazil",lat:-12.5746,lon:-38.0004,ap:"SSA",icon:"🏝️",rating:4.59,reviews:1831,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"spiaggia-dei-conigli-east-t493",category:"tanning",title:"Spiaggia dei Conigli East",location:"Lampedusa, Italy",lat:35.4873,lon:12.5707,ap:"LMP",icon:"🏝️",rating:4.95,reviews:3435,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"flic-en-flac-east-t494",category:"tanning",title:"Flic en Flac East",location:"Mauritius",lat:-20.2793,lon:57.354,ap:"MRU",icon:"🏝️",rating:4.86,reviews:4331,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"white-beach-boracay-east-t495",category:"tanning",title:"White Beach Boracay East",location:"Aklan, Philippines",lat:11.9597,lon:121.9234,ap:"MPH",icon:"🏝️",rating:4.92,reviews:560,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"trancoso-east-t496",category:"tanning",title:"Trancoso East",location:"Bahia, Brazil",lat:-16.5807,lon:-39.101,ap:"BPS",icon:"🏝️",rating:4.75,reviews:1402,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"my-khe-beach-east-t497",category:"tanning",title:"My Khe Beach East",location:"Da Nang, Vietnam",lat:16.0509,lon:108.2524,ap:"DAD",icon:"🏝️",rating:4.53,reviews:4251,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"paradise-beach-mykonos-east-t498",category:"tanning",title:"Paradise Beach Mykonos East",location:"Mykonos, Greece",lat:37.4154,lon:25.3979,ap:"JMK",icon:"🏝️",rating:4.7,reviews:4394,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"grand-anse-praslin-east-t499",category:"tanning",title:"Grand Anse Praslin East",location:"Praslin, Seychelles",lat:-4.346,lon:55.7207,ap:"PRI",icon:"🏝️",rating:4.93,reviews:337,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"}
 ];
 
 const US_AIRPORTS = [
@@ -2979,6 +4489,43 @@ function _wxCacheCleanup() {
 }
 _wxCacheCleanup();
 
+// ─── flight price cache (localStorage, 15-min TTL) ────────────────────────────
+const FLIGHT_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const FLIGHT_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
+
+function _flightCacheGet(origin, dest) {
+  try {
+    const raw = localStorage.getItem(`peakly_flights_${origin}_${dest}`);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(`peakly_flights_${origin}_${dest}`); return null; }
+    return data;
+  } catch { return null; }
+}
+
+function _flightCacheSet(origin, dest, data) {
+  try {
+    localStorage.setItem(`peakly_flights_${origin}_${dest}`, JSON.stringify({ data, ts: Date.now() }));
+  } catch {} // ignore QuotaExceededError
+}
+
+function _flightCacheCleanup() {
+  try {
+    const now = Date.now();
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith("peakly_flights_")) continue;
+      try {
+        const { ts } = JSON.parse(localStorage.getItem(key));
+        if (now - ts > FLIGHT_CACHE_MAX_AGE) keysToRemove.push(key);
+      } catch { keysToRemove.push(key); }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+_flightCacheCleanup();
+
 async function fetchWeather(lat, lon) {
   const cacheKey = _wxCacheKey("weather", lat, lon);
   const cached = _wxCacheGet(cacheKey);
@@ -3005,7 +4552,7 @@ async function fetchMarine(lat, lon) {
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
     `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
-    `wind_wave_height_max,wind_wave_period_max` +
+    `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   const r = await fetch(url);
   if (!r.ok) return null;
@@ -3019,6 +4566,9 @@ async function fetchMarine(lat, lon) {
 function scoreVenue(venue, wx, marine, dayIndex) {
   if (!wx?.daily) return { score:50, label:"Checking conditions…", period:"Loading live data" };
   const di = dayIndex || 0;
+  // If the requested day is beyond the forecast window, return unavailable
+  const forecastLen = wx.daily.temperature_2m_max?.length ?? 7;
+  if (di >= forecastLen) return { score:50, label:"Forecast unavailable", period:"Beyond 7-day forecast window" };
   const d = wx.daily;
   const md = marine?.daily;
 
@@ -3128,60 +4678,92 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       const light  = wind < 12;
       const blown  = wind > 20;
 
-      // Groundswell quality: long period + swell-dominant = clean, powerful waves
+      // Spot facing direction: the compass direction the break faces (waves come FROM)
+      // Default 270° (west-facing) if not specified on venue
+      const spotFacing = venue.facing ?? 270;
+
+      // ─── Swell direction vs spot orientation (fix #3) ───
+      // Angular difference between swell direction and spot facing
+      const swellAngleDiff = Math.abs(((swellDir - spotFacing) + 180) % 360 - 180);
+      const swellEfficiency = swellAngleDiff <= 45  ? 1.0   // direct hit
+                            : swellAngleDiff <= 90  ? 0.7   // oblique — reduce swell contribution 30%
+                            : 0.4;                           // sheltered — reduce 60%
+
+      // Effective swell height after orientation adjustment
+      const effectiveSwellH = swellH * swellEfficiency;
+
+      // ─── Groundswell quality: long period + swell-dominant = clean, powerful waves ───
       const groundswellQuality = swellPer > 14 ? 1.15
                                 : swellPer > 12 ? 1.08
                                 : swellPer > 10 ? 1.0
                                 : swellPer > 8  ? 0.9
                                 : 0.75;
 
-      // Base from swell height (using swell, not total wave, for accuracy)
-      if      (swellH > 3.5) score = 88;
-      else if (swellH > 2.5) score = 80;
-      else if (swellH > 1.8) score = 72;
-      else if (swellH > 1.2) score = 63;
-      else if (swellH > 0.7) score = 50;
-      else                    score = 30;
+      // Base from effective swell height (orientation-adjusted)
+      if      (effectiveSwellH > 3.5) score = 88;
+      else if (effectiveSwellH > 2.5) score = 80;
+      else if (effectiveSwellH > 1.8) score = 72;
+      else if (effectiveSwellH > 1.2) score = 63;
+      else if (effectiveSwellH > 0.7) score = 50;
+      else                             score = 30;
 
       // Period quality multiplier (long period = more power per foot)
       score = score * groundswellQuality;
+
+      // ─── SwellRatio: clean groundswell vs wind swell dominance (fix #8) ───
+      if (swellRatio > 0.7) score += 4;      // clean groundswell dominant — bonus
+      else if (swellRatio < 0.4) score -= 6; // mostly wind swell — choppy, penalty
 
       // Wind chop penalty: high wind waves relative to swell = messy
       if (windWaveH > swellH * 0.6) score -= 8;       // wind swell dominant = messy
       else if (windWaveH > swellH * 0.3) score -= 3;
 
-      // Surface conditions from wind
-      if (glassy) score += 6;                    // glass-off = dream
-      else if (light) score += 2;                // light texture, rideable
-      else if (blown) score -= 12;               // blown out
-      if (gusts > 30 && !glassy) score -= 4;     // gusty onshore = choppy
+      // ─── Wind direction: offshore vs onshore (fix #2) ───
+      // Offshore wind (blowing FROM same direction as swell) = ideal; onshore = bad
+      // Angular diff between wind direction and swell direction
+      const windSwellDiff = Math.abs(((windDir - swellDir) + 180) % 360 - 180);
+      if (windSwellDiff < 30) {
+        // Wind is blowing from the same direction as swell = offshore = clean up faces
+        score += 10;
+      } else if (windSwellDiff < 60) {
+        score += 6;  // mostly offshore, slight angle
+      } else if (windSwellDiff > 150) {
+        // Wind blowing the same way waves travel = onshore = messy choppy
+        score -= 12;
+      } else if (windSwellDiff > 120) {
+        score -= 6;  // mostly onshore
+      } else {
+        // Cross-shore: minor penalty
+        score -= 3;
+      }
+      // Override: if glassy (very light wind), wind direction matters less
+      if (glassy) { score += 6; }  // glass-off overrides direction penalty
+      else if (blown && windSwellDiff > 120) score -= 4; // double penalty: strong + onshore
 
       // Overhead+ danger for average surfers (>2.5m swell)
       if (swellH > 4) score -= 5;               // expert only
       if (swellH > 6) score -= 10;              // XXL / tow-in territory
 
-      // Water temperature comfort (if marine data provides it)
-      // NOTE: Wind direction (offshore vs onshore) would dramatically improve surf scoring
-      // but is not available from Open-Meteo marine API. windDir from weather is land-level
-      // 10m wind direction, not reliable for surf break orientation analysis.
+      // Water temperature comfort (wetsuit requirement = deterrent for most surfers)
       if (waterTemp !== null) {
-        if (waterTemp > 24) score += 4;          // tropical, boardshorts
-        else if (waterTemp >= 20) score += 2;    // comfortable with spring suit
-        else if (waterTemp < 10) score -= 8;     // dangerously cold, thick wetsuit required
-        else if (waterTemp < 15) score -= 4;     // cold, full wetsuit mandatory
+        if (waterTemp > 24) score += 4;          // tropical — boardshorts, ideal
+        else if (waterTemp >= 20) score += 2;    // spring suit comfortable
+        else if (waterTemp >= 15) score -= 2;    // 3/2mm wetsuit required — manageable
+        else if (waterTemp >= 10) score -= 5;    // 4/3mm wetsuit — cold, deters many
+        else score -= 10;                        // 5/4mm+ / drysuit — extreme cold, expert only
       }
 
       // Rain doesn't ruin surf but low vis + runoff = dirty water
       if (rain > 15) score -= 4;
 
-      const windLabel = glassy ? "Glassy" : light ? "Light offshore" : blown ? "Choppy onshore" : `${wind.toFixed(0)}mph`;
+      const windLabel = glassy ? "Glassy" : light ? "Light wind" : blown ? "Choppy" : `${wind.toFixed(0)}mph`;
       const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
-      label = swellH > 0.7
+      label = effectiveSwellH > 0.7
         ? `${fFt}ft ${perLabel} · ${windLabel}`
         : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
-      period = swellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : swellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
-             : swellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
+      period = effectiveSwellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : effectiveSwellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
+             : effectiveSwellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
              : (tmrwWaveH > 0.7 ? "Swell incoming" : "Flat — check back");
       break;
     }
@@ -3245,10 +4827,13 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : moderate ? 55
             : 38;
 
-      if (wind > 20) score -= 6;       // surface chop, hard entry/exit
-      if (gusts > 30) score -= 4;
-      if (precipPct > 70) score -= 5;  // probable rain = runoff
-      if (bestDays > 2) score += 3;    // multi-day calm = settled vis
+      // Wind as current proxy — sustained wind drives surface current; most dive ops cancel >20kts (~23mph)
+      if (wind > 25) score -= 12;      // strong current — entry/exit dangerous, most ops cancel
+      else if (wind > 20) score -= 7;  // moderate current — challenging, experienced divers only
+      else if (wind > 15) score -= 3;  // light current — manageable with planning
+      if (gusts > 30) score -= 5;      // gusty = unpredictable surge at entry points
+      if (precipPct > 70) score -= 5;  // probable rain = runoff kills visibility
+      if (bestDays > 2) score += 3;    // multi-day calm = settled vis, negligible current
 
       // Water temperature affects comfort, exposure limits, and marine life
       if (waterTemp !== null) {
@@ -3257,7 +4842,8 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         else if (waterTemp < 15) score -= 4;   // cold water — drysuit recommended, shorter dives
       }
 
-      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"} · ${tempMax}°F`;
+      const currentNote = wind > 25 ? " · Strong current" : wind > 20 ? " · Current risk" : "";
+      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"}${currentNote} · ${tempMax}°F`;
       period = calm && bestDays > 2 ? `${bestDays}-day dive window`
              : calm ? "Good today — conditions shifting"
              : "Wait for calmer seas";
@@ -3282,10 +4868,12 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (precipPct > 60) score -= 8;         // don't start a multi-pitch
       if (tempMax > 95) score -= 6;           // heat exhaustion risk
 
-      // Humidity affects rock friction — sweaty hands + greasy holds
+      // Humidity affects rock friction — damp rock, sweaty hands, greasy holds
       if (humidity !== null) {
-        if (humidity > 80) score -= 4;        // slippery holds, bad for grip
-        else if (humidity < 40) score += 2;   // dry air = excellent friction
+        if (humidity > 85) score -= 7;        // severely slippery — limestone weeps, granite glass-slick
+        else if (humidity > 70) score -= 4;   // noticeably reduced friction on most rock types
+        else if (humidity < 35) score += 4;   // desert-dry — exceptional friction
+        else if (humidity < 50) score += 2;   // dry air — good friction
       }
 
       const windNote = gusts > 25 ? " · Gusty" : wind > 15 ? " · Breezy" : "";
@@ -3341,14 +4929,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (gusts > 20) score -= 5;            // control issues
       if (precipPct > 60) score -= 4;
 
-      // 120°F rule: if air temp (°C) + water temp (°C) < 49°C, cold water immersion is dangerous
-      // Convert tempMax from °F to °C for the check
+      // Cold water safety — hypothermia is the #1 killer in kayaking incidents
       if (waterTemp !== null) {
+        // 120°F rule: air°C + water°C < 49 = serious immersion risk (dress for the water, not the air)
         const airC = (tempMax - 32) * 5 / 9;
         if (airC + waterTemp < 49) {
           score -= 15;
-          period = "Cold Water Risk — " + (period || "use caution");
+          period = "Cold Water Risk — dress for immersion";
         }
+        // Standalone water temp thresholds (hypothermia risk even if combined rule passes)
+        if (waterTemp < 10) score -= 12;          // <10°C: incapacitation within minutes of immersion
+        else if (waterTemp < 15) score -= 8;      // 10-15°C: hypothermia in 30-60 min — serious risk
+        else if (waterTemp >= 18 && waterTemp <= 24) score += 3; // ideal range — comfortable, safe
       }
 
       label = `${wind.toFixed(0)}mph · ${calm ? "Flat water" : "Light chop"} · ${tempMax}°F`;
@@ -3388,26 +4980,52 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "fishing": {
       const calm = wind < 15 && waveH < 1;
       const lightW = wind < 12;
-      const mo = new Date().getMonth() + 1;
+      const mo = new Date().getMonth() + 1; // 1-12
       const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
-      // Barometric pressure drops = fish feed more (rain approaching = good)
+
+      // ─── Seasonal / species bonuses (fix #4) ───
+      // peakMonths on venue: array of peak month numbers, e.g. [3,4,5,9,10]
+      const venuePeakMonths = venue.peakMonths ?? null;
+      const inPeakSeason = venuePeakMonths ? venuePeakMonths.includes(mo) : false;
+
+      // Tropical / reef fishing: bonus during calmer (non-monsoon) months
+      const isTropical = venue.subtype === "reef" || venue.subtype === "tropical";
+      const tropicalCalm = isTropical && (mo <= 4 || mo >= 11); // Nov–Apr calm season
+
+      // River / fly fishing: bonus during hatch seasons (Mar–May, Sep–Oct)
+      const isFly = venue.subtype === "fly" || venue.subtype === "river";
+      const hatchSeason = isFly && (mo >= 3 && mo <= 5 || mo >= 9 && mo <= 10);
+
+      // Barometric pressure proxy: falling pressure = fish feeding actively
+      // Proxy: rain probability 40–75% with light precip = frontal approach = active feeding
       const feedWindow = precipPct > 40 && precipPct < 75 && precip < 5;
+      // Hard rain / storm kills bite
+      const stormFront = precipPct > 85 || rain > 15;
 
       score = peak && calm ? 96
             : peak ? 85
+            : inPeakSeason && calm && feedWindow ? 88 + bestDays
+            : inPeakSeason && calm ? 82 + bestDays
+            : tropicalCalm && calm ? 84 + bestDays
+            : hatchSeason && calm ? 82 + bestDays
             : calm && feedWindow ? 80 + bestDays
             : calm ? 72 + bestDays
             : lightW ? 62
             : 48;
 
+      if (inPeakSeason && !peak) score += 4;  // peak season bonus
+      if (hatchSeason) score += 4;            // hatch season = surface action
+      if (feedWindow) score += 3;             // actively feeding due to pressure drop
+      if (stormFront) score -= 10;            // post-front lockjaw
       if (gusts > 25) score -= 6;
-      if (rain > 10) score -= 8;             // washout
-      if (tempMax < 35) score -= 4;          // ice/danger
+      if (tempMax < 35) score -= 4;           // ice/danger
       if (sunHrs < 3 && !feedWindow) score -= 3;
 
-      const biteLabel = feedWindow ? "Active bite" : calm ? "Good conditions" : "Choppy";
+      const biteLabel = stormFront ? "Storm — poor bite" : feedWindow ? "Active bite" : inPeakSeason || hatchSeason ? "Peak season" : calm ? "Good conditions" : "Choppy";
       label = peak ? `King Salmon run · ${biteLabel}` : `${tempMax}°F · ${biteLabel} · ${wind.toFixed(0)}mph`;
       period = peak ? "Peak run this week"
+             : hatchSeason ? `Hatch season — dry fly action${feedWindow ? " · feeding" : ""}`
+             : inPeakSeason ? `Peak season${calm ? " · " + Math.min(bestDays, 5) + " fishable days" : ""}`
              : feedWindow ? `Front moving in — fish feeding${bestDays > 1 ? " · " + bestDays + "d" : ""}`
              : calm ? `${Math.min(bestDays, 5)} fishable days`
              : "Wait for calmer water";
@@ -3443,8 +5061,24 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     case "hiking": {
       const dry = precip < 2 && precipPct < 40;
       const dryish = precip < 5;
-      const idealTemp = tempMax > 45 && tempMax < 85;
-      const hotHike = tempMax >= 85 && tempMax < 100;
+
+      // ─── Elevation awareness (fix #5) ───
+      // venue.elevation in metres if available; otherwise estimate from lat (rough proxy)
+      const elevM = venue.elevation ?? 0;
+      // Temperature lapse rate: -6.5°C per 1000m above sea level
+      const tempLapseC = (elevM / 1000) * 6.5;
+      const tempLapseF = tempLapseC * 9 / 5;
+      // Effective summit temp estimate
+      const summitTempMax = tempMax - tempLapseF;
+      // Alpine zone: above 2000m
+      const isAlpine = elevM > 2000;
+      const aboveTreeline = elevM > 3000;
+      // Shoulder season snow risk (Mar–May, Sep–Nov above treeline)
+      const shoulderMo = [3,4,5,9,10,11].includes(new Date().getMonth() + 1);
+      const snowRisk = aboveTreeline && shoulderMo;
+
+      const idealTemp = summitTempMax > 45 && summitTempMax < 85;
+      const hotHike = summitTempMax >= 85 && summitTempMax < 100;
 
       score = dry && idealTemp && wind < 15 ? 86 + Math.min(10, bestDays * 2)
             : dry && idealTemp ? 78
@@ -3454,18 +5088,28 @@ function scoreVenue(venue, wx, marine, dayIndex) {
             : 35;
 
       if (sunHrs > 8 && idealTemp) score += 3;  // scenic day
-      if (tempMax > 100) score -= 10;            // heat danger
+      if (summitTempMax > 100) score -= 10;      // heat danger
       if (gusts > 30) score -= 6;                // exposed ridge danger
       else if (wind > 20) score -= 3;
       if (precipPct > 70) score -= 8;            // lightning risk
-      if (uv > 10) score -= 2;                   // sun exposure risk at altitude
 
-      const trailNote = wind > 20 ? " · Windy ridges" : uv > 9 ? " · High UV" : "";
-      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${trailNote}` : `${precipPct}% rain · ${tempMax}°F`;
+      // Altitude UV: UV increases ~10% per 1000m
+      const altitudeUV = uv * (1 + elevM / 10000);
+      if (altitudeUV > 11) score -= 3;           // extreme UV at altitude
+      else if (altitudeUV > 9) score -= 1;
+
+      // Alpine-specific hazards
+      if (isAlpine && wind > 25) score -= 5;     // exposed above treeline = dangerous
+      if (snowRisk) score -= 6;                  // shoulder-season snow above treeline
+      if (isAlpine && summitTempMax < 32) score -= 8; // freezing summit = technical gear required
+
+      const elevNote = isAlpine ? ` · Summit ~${Math.round(summitTempMax)}°F` : "";
+      const trailNote = wind > 20 ? " · Windy ridges" : altitudeUV > 9 ? " · High UV" : snowRisk ? " · Snow risk above treeline" : "";
+      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${elevNote}${trailNote}` : `${precipPct}% rain · ${tempMax}°F${elevNote}`;
       period = dry && bestDays > 3 ? `${bestDays}-day hiking window`
              : dry && bestDays > 1 ? "Clear through tomorrow"
              : dry ? "Good today — rain coming"
-             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : " in ${bestDays}d"}`;
+             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : ` in ${bestDays}d`}`;
       break;
     }
 
@@ -3473,7 +5117,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
-  return { score: Math.round(Math.min(100, Math.max(20, score))), label, period };
+  return { score: Math.round(Math.min(100, Math.max(5, score))), label, period };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
@@ -3497,7 +5141,11 @@ function _flightRelease() {
 
 // Returns price number or null — caller falls back to BASE_PRICES estimate
 // Includes retry with exponential backoff (up to 2 retries)
+// Checks localStorage cache (15-min TTL) before hitting the API
 async function fetchTravelpayoutsPrice(origin, destination) {
+  const cached = _flightCacheGet(origin, destination);
+  if (cached !== null) return cached;
+
   await _flightAcquire();
   try {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -3505,7 +5153,7 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const url = `${FLIGHT_PROXY}/api/flights`
+        const url = `${FLIGHT_PROXY}/api/flights/latest`
           + `?origin=${encodeURIComponent(origin)}`
           + `&destination=${encodeURIComponent(destination)}`;
 
@@ -3529,12 +5177,14 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const destData = json.data?.[destination];
         if (!destData) return null;
 
-        const prices = Object.values(destData)
-          .map(d => d.price)
-          .filter(p => typeof p === "number" && p > 0);
+        const entries = Object.values(destData)
+          .filter(d => typeof d.price === "number" && d.price > 0);
 
-        if (prices.length === 0) return null;
-        return Math.round(Math.min(...prices));
+        if (entries.length === 0) return null;
+        const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
+        const result = { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
+        _flightCacheSet(origin, destination, result);
+        return result;
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
           await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
@@ -3672,20 +5322,39 @@ const TP_MARKER = "YOUR_TP_MARKER";
 function buildFlightUrl(from, to, opts) {
   if (!from || !to) return "https://www.aviasales.com/";
   const whenId = opts?.whenId || "anytime";
-  const depISO = opts?.startDate || getFlightDate(whenId);   // YYYY-MM-DD
-  // Return date: use endDate if provided, else departure + 7 days
+  // Only use provided dates if they look like valid YYYY-MM-DD strings (length >= 10)
+  const depISO = (opts?.startDate && String(opts.startDate).length >= 10)
+    ? opts.startDate
+    : getFlightDate(whenId);   // YYYY-MM-DD
+  // Return date: use endDate if provided and valid, else departure + 7 days
   const retISO = (() => {
-    if (opts?.endDate) return opts.endDate;
+    if (opts?.endDate && String(opts.endDate).length >= 10) return opts.endDate;
     const d = new Date(depISO); d.setDate(d.getDate() + 7);
     return d.toISOString().slice(0, 10);
   })();
   // Aviasales date format is DDMM (4 chars), NOT YYMMDD
-  const toDDMM = iso => iso.slice(8, 10) + iso.slice(5, 7);
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${toDDMM(depISO)}${to}${toDDMM(retISO)}1`;
+  // Guard: if ISO is malformed, fall back to dateless search
+  const toDDMM = iso => (iso && iso.length >= 10) ? iso.slice(8, 10) + iso.slice(5, 7) : null;
+  const depDDMM = toDDMM(depISO);
+  const retDDMM = toDDMM(retISO);
+  if (!depDDMM || !retDDMM) return `https://www.aviasales.com/search/${from}1${to}1`;
+  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depDDMM}${to}${retDDMM}1`;
   if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
     return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
   }
   return aviasalesSearch;
+}
+
+// Returns human-readable relative time string for a UTC ISO timestamp (e.g. "2h ago", "Mar 29")
+function relTime(iso) {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return null;
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hrs = Math.round(diff / 3600000);
+  if (hrs < 24) return `${hrs}h ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month:"short", day:"numeric" });
 }
 
 // ─── Share venue ──────────────────────────────────────────────────────────────
@@ -3710,7 +5379,23 @@ function shareVenue(listing, onCopied) {
 // getFlightDeal() is the instant fallback when API hasn't responded yet.
 // ─────────────────────────────────────────────────────────────────────────────
 function getFlightDeal(ap, homeAirport = "JFK") {
-  const base = BASE_PRICES[ap]?.[homeAirport] ?? 800;
+  // Smart price estimation: use BASE_PRICES if available, otherwise estimate by region
+  const exact = BASE_PRICES[ap]?.[homeAirport];
+  const base = exact || (() => {
+    const destCont = AP_CONTINENT[ap] || "europe";
+    const homeCont = AP_CONTINENT[homeAirport] || "na";
+    // Region-based price estimates (round-trip from US)
+    if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
+    const routes = {
+      "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
+      "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
+      "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
+      "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
+      "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
+      "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
+    };
+    return routes[`${homeCont}-${destCont}`] || 800;
+  })();
   // Instant estimate shown while Travelpayouts API loads real prices
   const seed = (ap + homeAirport).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const pct  = 28 + (seed % 48); // 28–75% off
@@ -3880,6 +5565,30 @@ const AIRPORT_CITY = {
   VLI:"Port Vila",
 };
 
+// ─── activity-specific fallback photos ────────────────────────────────────────
+// Accepts (name, category) — name is unused but reserved for future personalized queries.
+// Uses stable Unsplash photo IDs (never source.unsplash.com which is rate-limited).
+function getVenuePhoto(name, category) {
+  // Support legacy single-arg call: getVenuePhoto(category)
+  const cat = (category || name || "").toLowerCase();
+  const photos = {
+    skiing: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
+    surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
+    tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    diving: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+    climbing: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop",
+    kitesurfing: "https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop",
+    hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
+    kayak: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    kayaking: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
+    mtb: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&h=600&fit=crop",
+    fishing: "https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
+    paragliding: "https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
+  };
+  return photos[cat] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
+}
+
 // ─── localStorage hook ────────────────────────────────────────────────────────
 function useLocalStorage(key, initial) {
   const [val, setVal] = useState(() => {
@@ -3978,6 +5687,7 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
+  const [savedAnim, setSavedAnim] = useState(false);
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
@@ -3986,6 +5696,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div className="card-img" style={{
@@ -4006,28 +5717,46 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
-          <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
-            background:"none", border:"none", fontSize:20,
-            width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
-            filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
-          }}>
+          <button
+            className={"heart" + (savedAnim ? " heart-pop" : "")}
+            onClick={e => {
+              e.stopPropagation();
+              onToggle(listing.id);
+              if (!saved) { setSavedAnim(true); setTimeout(() => setSavedAnim(false), 400); }
+              haptic("medium");
+            }}
+            aria-label={saved ? "Remove from saved" : "Save venue"}
+            style={{
+              background:"none", border:"none", fontSize:20,
+              width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+              filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.45))",
+            }}>
             {saved ? "❤️" : "🤍"}
           </button>
         </div>
 
         {/* Go/No-Go verdict + flight deal */}
         <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
-          <GoVerdictBadge score={listing.conditionScore} />
+          {listing.conditionLabel !== "Checking conditions…" && <GoVerdictBadge score={listing.conditionScore} />}
           <div style={{
             background:"#fff", borderRadius:20, padding:"3px 8px",
             display:"flex", alignItems:"center", gap:3,
             boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
           }}>
             <span style={{ fontSize:10 }}>✈️</span>
-            <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-              ${listing.flight.price}
-            </span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:52, height:10, borderRadius:5, display:"inline-block" }} />
+            ) : (
+              <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
+                from ${listing.flight.price}
+              </span>
+            )}
           </div>
+          {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
+            <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
+              <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>🔥 TRENDING</span>
+            </div>
+          )}
         </div>
 
         {/* Condition label */}
@@ -4079,10 +5808,16 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
-            <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
+            ) : (
+              <>
+                <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+              </>
+            )}
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
@@ -4112,12 +5847,13 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <span style={{ fontSize:60, opacity:0.28 }}>{listing.icon}</span>
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)" }} />
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:6, right:6, background:"none", border:"none", fontSize:18,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
         }}>{saved ? "❤️" : "🤍"}</button>
@@ -4126,7 +5862,11 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           background:"#0284c7", borderRadius:20, padding:"3px 10px",
           display:"flex", alignItems:"center", gap:5,
         }}>
-          <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
+          {listing.flightsLoading && !listing.flight.live ? (
+            <span className="shimmer" style={{ width:60, height:10, borderRadius:5, display:"inline-block" }} />
+          ) : (
+            <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
+          )}
           {listing.flight.live && (
             <span style={{
               fontSize:10, fontWeight:800, color:"#16a34a", fontFamily:F,
@@ -4151,10 +5891,16 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
-            <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>${listing.flight.price}</span>
-            <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> from {listing.flight.from}</span>
+            {listing.flightsLoading && !listing.flight.live ? (
+              <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
+            ) : (
+              <>
+                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
+              </>
+            )}
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap)} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
@@ -4179,6 +5925,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
             onLoad={e => { e.target.style.opacity = 1; }}
+            onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.35s ease" }} />
         ) : (
           <div style={{
@@ -4191,7 +5938,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.58) 0%,transparent 50%)" }} />
 
         {/* Heart */}
-        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} style={{
+        <button className="heart" onClick={e => { e.stopPropagation(); onToggle(listing.id); haptic("medium"); }} aria-label={saved ? "Remove from saved" : "Save venue"} style={{
           position:"absolute", top:2, right:2,
           background:"none", border:"none", fontSize:15,
           width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
@@ -4199,9 +5946,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
         }}>{saved ? "❤️" : "🤍"}</button>
 
         {/* Go/No-Go verdict */}
-        <div style={{ position:"absolute", top:5, left:5 }}>
-          <GoVerdictBadge score={listing.conditionScore} />
-        </div>
+        {listing.conditionLabel !== "Checking conditions…" && (
+          <div style={{ position:"absolute", top:5, left:5 }}>
+            <GoVerdictBadge score={listing.conditionScore} />
+          </div>
+        )}
 
         {/* Condition label */}
         <div style={{
@@ -4231,16 +5980,22 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           </div>
         )}
         <div style={{ marginTop:5, display:"flex", alignItems:"center", gap:3 }}>
-          <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-            ${listing.flight.price}
-          </span>
-          {listing.flight.live ? (
-            <span style={{
-              fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
-              borderRadius:5, padding:"1px 4px", fontFamily:F,
-            }}>LIVE</span>
+          {listing.flightsLoading && !listing.flight.live ? (
+            <span className="shimmer" style={{ width:60, height:12, borderRadius:5, display:"inline-block" }} />
           ) : (
-            <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
+            <>
+              <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
+                from ${listing.flight.price}
+              </span>
+              {listing.flight.live ? (
+                <span style={{
+                  fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
+                  borderRadius:5, padding:"1px 4px", fontFamily:F,
+                }}>LIVE</span>
+              ) : (
+                <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -4271,15 +6026,18 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     destination: search.destination || "",
     when: search.when || "anytime",
     continent: search.continent || "",
-    fromAirport: search.fromAirport || "JFK",
+    fromAirport: search.fromAirport || "",
+    fromAirport2: search.fromAirport2 || "",
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
-    maxPrice: filters?.maxPrice ?? 2000,
+    maxPrice: filters?.maxPrice ?? 1000,
     startDate: filters?.startDate || "",
     endDate: filters?.endDate || "",
   });
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
+  const [apQuery2, setApQuery2] = useState("");
+  const [apFocus2, setApFocus2] = useState(false);
 
   // Toggle an activity in/out of the multi-select array
   const toggleActivity = (id) => {
@@ -4302,6 +6060,13 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
       ).slice(0, 6)
     : [];
 
+  const apResults2 = apQuery2.length >= 2
+    ? ALL_AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(apQuery2.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery2.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
   const matchCount = (() => {
     let out = local.activities.length > 0
       ? listings.filter(l => local.activities.includes(l.category))
@@ -4319,7 +6084,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   })();
 
   const apply = () => {
-    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, skiPass: local.skiPass };
+    const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
     if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
@@ -4353,10 +6118,137 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, sort:"score", maxPrice:2000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
+          </div>
+        </div>
+
+        {/* ── Flying from (at top) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Flying from</SectionLabel>
+          <div style={{ position:"relative", marginBottom:8 }}>
+            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search airports…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              style={{
+                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                background:"#fafafa",
+              }}
+            />
+          </div>
+          {apFocus && apResults.length > 0 && (
+            <div className="bounce-in" style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => {
+                  setLocal(l => ({...l, fromAirport: ap.code}));
+                  setApQuery(""); setApFocus(false);
+                }} style={{
+                  width:"100%", padding:"10px 14px",
+                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F,
+                  display:"flex", alignItems:"center", gap:10,
+                }}>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                  </div>
+                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Top 10 popular airports */}
+          {!apFocus && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
+              {US_AIRPORTS.slice(0, 10).map(ap => {
+                const sel1 = local.fromAirport === ap.code;
+                return (
+                  <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
+                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                      background: sel1 ? "#222" : "#f5f5f5",
+                      color:      sel1 ? "#fff" : "#555",
+                      border:"none",
+                      fontSize:11, fontWeight:700, fontFamily:F,
+                  }}>{ap.code}</button>
+                );
+              })}
+            </div>
+          )}
+          {local.fromAirport && (
+            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
+              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
+                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
+            </div>
+          )}
+
+          {/* Second airport */}
+          <div style={{ marginTop:12 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:"#bbb", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Or also from</div>
+            <div style={{ position:"relative" }}>
+              <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="text" placeholder="Add second airport…"
+                value={apQuery2}
+                onChange={e => setApQuery2(e.target.value)}
+                onFocus={() => setApFocus2(true)}
+                onBlur={() => setTimeout(() => setApFocus2(false), 180)}
+                style={{
+                  width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
+                  border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
+                  background:"#fafafa",
+                }}
+              />
+              {local.fromAirport2 && (
+                <button onMouseDown={() => setLocal(l => ({...l, fromAirport2:""}))} style={{
+                  position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
+                  background:"#ddd", border:"none", width:18, height:18, borderRadius:"50%",
+                  fontSize:11, color:"#666", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                }}>×</button>
+              )}
+            </div>
+            {apFocus2 && apResults2.length > 0 && (
+              <div className="bounce-in" style={{
+                background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
+                marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
+              }}>
+                {apResults2.map((ap, i) => (
+                  <button key={ap.code} onMouseDown={() => {
+                    setLocal(l => ({...l, fromAirport2: ap.code}));
+                    setApQuery2(""); setApFocus2(false);
+                  }} style={{
+                    width:"100%", padding:"10px 14px",
+                    background: local.fromAirport2 === ap.code ? "#f0f9ff" : "#fff",
+                    border:"none", borderBottom: i < apResults2.length-1 ? "1px solid #f5f5f5" : "none",
+                    textAlign:"left", cursor:"pointer", fontFamily:F,
+                    display:"flex", alignItems:"center", gap:10,
+                  }}>
+                    <div style={{ flex:1 }}>
+                      <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                      <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
+                    </div>
+                    {local.fromAirport2 === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {local.fromAirport2 && (
+              <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
+                <strong style={{ color:"#222" }}>{local.fromAirport2}</strong>
+                {ALL_AIRPORTS.find(a => a.code === local.fromAirport2)?.city &&
+                  <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport2).city}</span>}
+                <span style={{ marginLeft:6, color:"#0284c7", fontWeight:700 }}>· cheapest of both shown</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -4379,7 +6271,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
                 </button>
               );
             })()}
-            {CATEGORIES.filter(c => c.id !== "all").map(cat => {
+            {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
               const sel = local.activities.includes(cat.id);
               return (
                 <button key={cat.id} className={"pill" + (sel ? " pill-selected" : "")}
@@ -4434,10 +6326,10 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               <div style={{ display:"flex", gap:6 }}>
                 <input type="date" value={local.startDate || ""}
                   onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.startDate ? "#0c4a6e" : "#aaa", background: local.startDate ? "#f0f9ff" : "#fafafa", fontWeight: local.startDate ? 700 : 400, minWidth:0 }} />
                 <input type="date" value={local.endDate || ""}
                   onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222", background:"#fafafa", minWidth:0 }} />
+                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.endDate ? "#0c4a6e" : "#aaa", background: local.endDate ? "#f0f9ff" : "#fafafa", fontWeight: local.endDate ? 700 : 400, minWidth:0 }} />
               </div>
             </div>
             <div style={{ width:100 }}>
@@ -4523,71 +6415,6 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
-        {/* ── Flying from (moved to bottom) ── */}
-        <div style={{ padding:"12px 20px 0" }}>
-          <SectionLabel>Flying from</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
-            {US_AIRPORTS.map(ap => {
-              const sel = local.fromAirport === ap.code;
-              return (
-                <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                    padding:"6px 10px", borderRadius:14, cursor:"pointer",
-                    background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#555",
-                    border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
-                }}>{ap.code}</button>
-              );
-            })}
-          </div>
-          <div style={{ position:"relative" }}>
-            <svg style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" placeholder="Search airports…"
-              value={apQuery}
-              onChange={e => setApQuery(e.target.value)}
-              onFocus={() => setApFocus(true)}
-              onBlur={() => setTimeout(() => setApFocus(false), 180)}
-              style={{
-                width:"100%", padding:"9px 12px 9px 32px", borderRadius:8,
-                border:"1.5px solid #e8e8e8", fontSize:12, fontFamily:F, color:"#222",
-                background:"#fafafa",
-              }}
-            />
-          </div>
-          {apFocus && apResults.length > 0 && (
-            <div className="bounce-in" style={{
-              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:10,
-              marginTop:4, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.1)",
-            }}>
-              {apResults.map((ap, i) => (
-                <button key={ap.code} onMouseDown={() => {
-                  setLocal(l => ({...l, fromAirport: ap.code}));
-                  setApQuery(""); setApFocus(false);
-                }} style={{
-                  width:"100%", padding:"10px 14px",
-                  background: local.fromAirport === ap.code ? "#f0f9ff" : "#fff",
-                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
-                  textAlign:"left", cursor:"pointer", fontFamily:F,
-                  display:"flex", alignItems:"center", gap:10,
-                }}>
-                  <div style={{ flex:1 }}>
-                    <span style={{ fontSize:13, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                    <span style={{ fontSize:11, color:"#717171" }}> {ap.city}</span>
-                  </div>
-                  {local.fromAirport === ap.code && <span style={{ color:"#0284c7", fontSize:14, fontWeight:800 }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-          {local.fromAirport && (
-            <div style={{ marginTop:6, fontSize:11, color:"#717171", fontFamily:F }}>
-              <strong style={{ color:"#222" }}>{local.fromAirport}</strong>
-              {ALL_AIRPORTS.find(a => a.code === local.fromAirport)?.city &&
-                <span> · {ALL_AIRPORTS.find(a => a.code === local.fromAirport).city}</span>}
-            </div>
-          )}
-        </div>
-
         {/* ── Apply ── */}
         <div style={{ padding:"20px 20px 8px" }}>
           <button onClick={apply} className="pressable" style={{
@@ -4625,7 +6452,7 @@ function SearchBar({ search, onOpen }) {
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
-    <div onClick={onOpen} className="pressable" style={{
+    <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
       display:"flex", alignItems:"center",
       background:"#fff", borderRadius:40,
       boxShadow:"0 3px 22px rgba(0,0,0,0.11)", border:"1.5px solid #ebebeb",
@@ -4636,7 +6463,7 @@ function SearchBar({ search, onOpen }) {
           {topLine}
         </div>
         <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2 }}>
-          {actLabel}{whenLabel} · {AIRPORT_CITY[search.fromAirport] || search.fromAirport}{contLabel}
+          {actLabel}{whenLabel}{search.fromAirport ? ` · ${AIRPORT_CITY[search.fromAirport] || search.fromAirport}` : ""}{contLabel}
         </div>
       </div>
       <div style={{
@@ -4905,6 +6732,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(30);
   const scrollRef = useRef(null);
   const touchStartY = useRef(0);
   const pullDistRef = useRef(0);
@@ -4948,40 +6776,38 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "Best Right Now" — personalized + respects active category filter
+  // Hero card: highest-scoring venue that has REAL weather data loaded
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
-  const bestPool = activeCat === "all" ? listings : listings.filter(l => l.category === activeCat);
-  const bestStrict = [...bestPool]
-    .filter(l => l.conditionScore >= 60 && l.flight.price < 800)
+  const ACTIVE_CATS = new Set(["skiing", "surfing", "tanning"]);
+  const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
+  const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
+  const heroPick = [...bestPool]
+    .filter(l => l.conditionLabel !== "Checking conditions…")
     .sort((a, b) => {
+      const aBoost = userSports.includes(a.category) ? 15 : 0;
+      const bBoost = userSports.includes(b.category) ? 15 : 0;
+      return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
+    })[0] || null;
+
+  // "Best Right Now" carousel — top 10, GO venues first, fill with highest MAYBE scores
+  const bestRightNow = (() => {
+    const allScored = [...bestPool].filter(l => l.conditionLabel !== "Checking conditions…");
+    const sortByVal = (a, b) => {
       const aBoost = userSports.includes(a.category) ? 15 : 0;
       const bBoost = userSports.includes(b.category) ? 15 : 0;
       const aVal = (a.conditionScore + aBoost) - Math.round(a.flight.price / 20);
       const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
       return bVal - aVal;
-    })
-    .slice(0, 5);
-  const bestRightNow = bestStrict.length > 0
-    ? bestStrict
-    : [...bestPool].sort((a, b) => {
-        const aBoost = userSports.includes(a.category) ? 15 : 0;
-        const bBoost = userSports.includes(b.category) ? 15 : 0;
-        return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-      }).slice(0, 5);
+    };
+    const go = allScored.filter(l => l.conditionScore >= 80 && l.flight.price < 800).sort(sortByVal);
+    const rest = allScored.filter(l => l.conditionScore < 80 || l.flight.price >= 800).sort(sortByVal);
+    return [...go, ...rest].slice(0, 10);
+  })();
 
-  // Both "All" and sport tabs: always show top 5 picks.
-  const allTopPicks = [...listings].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5);
-  const sportTopPicks = activeCat !== "all"
-    ? [...listings.filter(l => l.category === activeCat)].sort((a, b) => b.conditionScore - a.conditionScore).slice(0, 5)
-    : [];
-  const firingTab = activeCat === "all" ? allTopPicks : sportTopPicks;
-
-  const filtered = applyFilters(listings, activeCat, filters, search);
-  const firingIds = new Set(firingTab.map(l => l.id));
-  const bestNowIds = new Set(bestRightNow.map(l => l.id));
-  const gridListings = activeCat === "all"
-    ? filtered.filter(l => !firingIds.has(l.id) && !bestNowIds.has(l.id))
-    : filtered;
+  const filtered = applyFilters(activeListings, activeCat, filters, search);
+  // Exclude hero + Best Right Now venues from the grid to avoid duplicates
+  const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
+  const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
@@ -4999,47 +6825,39 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Sort: "All" first, then user's selected sports, then the rest
-  const sortedCats = [
-    CATEGORIES.find(c => c.id === "all"),
-    ...CATEGORIES.filter(c => c.id !== "all" && userSports.includes(c.id)),
-    ...CATEGORIES.filter(c => c.id !== "all" && !userSports.includes(c.id)),
-  ].filter(Boolean);
-  // Collapsed: show "All" + user's sports (up to 3) + fill with defaults if needed
-  const defaultFallbacks = ["skiing", "surfing", "tanning"];
-  const collapsedIds = new Set(["all", ...userSports.slice(0, 3), ...defaultFallbacks]);
-  const visibleCats = showAllCats ? sortedCats : sortedCats.filter(c => collapsedIds.has(c.id)).slice(0, 4);
+  // Only expose 3 active categories: Ski/Board, Surfing, Beach
+  const VISIBLE_CAT_IDS = ["all", "skiing", "surfing", "tanning"];
+  const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
+    .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Category pills — 2 default + "+" */}
-      <div style={{ display:"flex", gap:6, padding:"8px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+      {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
+      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
         {visibleCats.map(c => (
           <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-            onClick={() => { setActiveCat(c.id); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+            aria-label={`Filter by ${c.label}`}
+            aria-pressed={activeCat === c.id}
             style={{
-              padding:"7px 14px", borderRadius:20, cursor:"pointer", whiteSpace:"nowrap",
+              flex: 1, minWidth:0,
+              padding:"5px 6px", borderRadius:18, cursor:"pointer",
+              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
               background: activeCat === c.id ? "#222" : "#f5f5f5",
               color: activeCat === c.id ? "#fff" : "#555",
               border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
-              fontSize:12, fontWeight:700, fontFamily:F,
+              fontSize:11, fontWeight:700, fontFamily:F,
           }}>
             {c.emoji} {c.label}
           </button>
         ))}
-        {!showAllCats && (
-          <button onClick={() => setShowAllCats(true)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", background:"#f0f0f0",
-            border:"1.5px solid transparent", fontSize:13, fontWeight:700, color:"#888", fontFamily:F,
-          }}>+ More</button>
-        )}
-        {/* Saved quick-access */}
+        {/* Saved quick-access — always last */}
         {savedCount > 0 && (
           <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-            padding:"7px 12px", borderRadius:20, cursor:"pointer", marginLeft:"auto",
+            flex:"0 0 auto", padding:"5px 8px", borderRadius:18, cursor:"pointer",
             background: showSaved ? "#fee2e2" : "#f5f5f5",
             border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-            fontSize:12, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+            fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
           }}>
             ❤️ {savedCount}
           </button>
@@ -5048,7 +6866,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Ski pass filter pills — show when skiing is selected */}
       {activeCat === "skiing" && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", WebkitOverflowScrolling:"touch", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           <span style={{ fontSize:10, fontWeight:700, color:"#999", fontFamily:F, whiteSpace:"nowrap", textTransform:"uppercase", letterSpacing:0.5 }}>Pass</span>
           {[{id:"",label:"All"},{id:"ikon",label:"Ikon"},{id:"epic",label:"Epic"},{id:"independent",label:"Independent"}].map(p => (
             <button key={p.id}
@@ -5069,7 +6887,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
       {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center" }}>
+        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -5086,7 +6904,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         </div>
       )}
 
-      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", touchAction:"pan-y" }}>
 
         {/* Pull-to-refresh indicator */}
         {(pullDist > 0 || pullRefreshing) && (
@@ -5111,7 +6929,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         {showSaved && (
           <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
             <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
               {listings.filter(l => wishlists.includes(l.id)).map(l => (
                 <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
                   minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
@@ -5137,37 +6955,51 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && bestRightNow.length > 0 && !showSaved && (() => {
-          const hero = bestRightNow[0];
+        {!loading && !showSaved && !heroPick && (
+          /* Skeleton while weather is still fetching for first venues */
+          <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div className="shimmer" style={{ height:140 }} />
+            <div style={{ padding:16 }}>
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"45%", marginBottom:10 }} />
+              <div className="shimmer" style={{ height:20, borderRadius:6, width:"70%", marginBottom:8 }} />
+              <div className="shimmer" style={{ height:12, borderRadius:6, width:"50%" }} />
+            </div>
+          </div>
+        )}
+        {!loading && heroPick && !showSaved && (() => {
+          const hero = heroPick;
+          const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
           return (
             <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden",
               background:"#fff",
-              border:`2px solid ${verdict.color}33`,
+              border: weatherLoaded ? `2px solid ${verdict.color}33` : "2px solid #f0f0f0",
               boxShadow:"0 2px 12px rgba(0,0,0,0.08)",
             }} onClick={() => onOpenDetail(hero)} className="card">
               {/* Hero photo */}
               {hero.photo && (
                 <div style={{ position:"relative", height:140, overflow:"hidden" }}>
-                  <img src={hero.photo} alt={hero.title} loading="lazy" style={{
-                    width:"100%", height:"100%", objectFit:"cover", display:"block",
-                  }} />
+                  <img src={hero.photo} alt={hero.title} loading="lazy"
+                    onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(hero.title, hero.category); }}
+                    style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
                   <div style={{ position:"absolute", bottom:8, left:12 }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
                       Your best window right now
                     </div>
                   </div>
-                  <div style={{ position:"absolute", top:8, right:8 }}>
-                    <GoVerdictBadge score={hero.conditionScore} size="lg" />
-                  </div>
+                  {weatherLoaded && (
+                    <div style={{ position:"absolute", top:8, right:8 }}>
+                      <GoVerdictBadge score={hero.conditionScore} size="lg" />
+                    </div>
+                  )}
                 </div>
               )}
               <div style={{ padding:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                 <div>
                   {!hero.photo && (
-                    <div style={{ fontSize:11, fontWeight:700, color:verdict.color, fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color: weatherLoaded ? verdict.color : "#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                       Your best window right now
                     </div>
                   )}
@@ -5176,13 +7008,19 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
                 </div>
-                {!hero.photo && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
+                {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
               </div>
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
-                  <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                  {weatherLoaded ? (
+                    <>
+                      <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                    </>
+                  ) : (
+                    <div className="shimmer" style={{ height:12, borderRadius:6, marginTop:6, marginBottom:4 }} />
+                  )}
                 </div>
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
@@ -5224,8 +7062,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── Best Right Now carousel ── */}
-        {!loading && bestRightNow.length > 1 && (
+        {/* ── Best Right Now carousel — always show top 10 (min 3 scored) ── */}
+        {!loading && bestRightNow.length >= 3 && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
@@ -5238,8 +7076,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
-              {bestRightNow.slice(1).map(l => {
+              {bestRightNow.map(l => {
                 const v = getGoVerdict(l.conditionScore);
                 return (
                   <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
@@ -5250,7 +7089,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
                     }}>
                     <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
-                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(l.title, l.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                       <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
                       <GoVerdictBadge score={l.conditionScore} />
                       <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
@@ -5297,7 +7136,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {loading
             ? Array(isAll ? 9 : 4).fill(0).map((_, i) => <SkeletonCard key={i} />)
             : gridListings.length > 0
-              ? gridListings.map(l =>
+              ? gridListings.slice(0, visibleCount).map(l =>
                   isAll
                     ? <CompactCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
@@ -5307,8 +7146,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
                   <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
                   <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
-                    {bestRightNow.length > 0
-                      ? `But ${bestRightNow[0].title} looks promising in the coming weeks and flights are still $${bestRightNow[0].flight.price}.`
+                    {heroPick
+                      ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
                       : "Conditions are quiet across the board right now."}
                   </div>
                   <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
@@ -5327,6 +7166,27 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 </div>
               )
           }
+        </div>
+        {/* Show more button */}
+        {!loading && gridListings.length > visibleCount && (
+          <div style={{ padding:"8px 14px 16px", textAlign:"center" }}>
+            <button onClick={() => setVisibleCount(v => v + 30)} className="pressable" style={{
+              background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:12,
+              padding:"12px 24px", fontSize:13, fontWeight:700, color:"#222",
+              fontFamily:F, cursor:"pointer", width:"100%",
+            }}>
+              Show more ({gridListings.length - visibleCount} remaining)
+            </button>
+          </div>
+        )}
+        {/* Email capture */}
+        <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
+          <div style={{ fontSize:11, color:"#0369a1", fontFamily:F, marginBottom:10 }}>We'll alert you when your saved spots hit 90+</div>
+          <form onSubmit={e => { e.preventDefault(); const email = e.target.email.value; if (email && email.includes("@")) { window.plausible && window.plausible("email_capture", {props:{source:"explore_banner"}}); e.target.email.value = ""; alert("You're on the list! 🎉"); }}} style={{ display:"flex", gap:8 }}>
+            <input name="email" type="email" placeholder="your@email.com" aria-label="Email address for condition alerts" style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #bae6fd", fontSize:12, fontFamily:F, background:"white", outline:"none", color:"#222" }} />
+            <button type="submit" className="pressable" style={{ padding:"9px 14px", background:"#0284c7", border:"none", borderRadius:10, fontSize:12, fontWeight:800, color:"white", fontFamily:F, cursor:"pointer", whiteSpace:"nowrap" }}>Notify me</button>
+          </form>
         </div>
         <div style={{ height:24 }} />
       </div>
@@ -5477,7 +7337,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
 }
 
 // ─── alerts tab ───────────────────────────────────────────────────────────────
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
 
@@ -5538,6 +7398,17 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
+    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
+    // venueId: specific venue to watch (null = any matching sport/region)
+    // targetScore: minimum condition score to fire (derived from condition preset)
+    // maxPrice: maximum flight price to fire (from draft.priceMax)
+    // enabled: allows user to pause/resume without deleting
+    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
+    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
+    alertData.venueId = draft.venueId || null;
+    alertData.targetScore = getScoreThreshold(draft.condition);
+    alertData.maxPrice = draft.priceMax || 500;
+    alertData.enabled = true;
     setUserAlerts(p => [...p, alertData]);
     setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
@@ -5561,7 +7432,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
       <div style={{ padding:24 }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Pick a sport</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => c.id !== "all")].map(cat => (
+          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id))].map(cat => (
             <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={{
               padding:"8px 14px", borderRadius:20, cursor:"pointer", fontFamily:F,
               background: draft.sport === cat.id ? "#222" : "#f7f7f7",
@@ -5717,14 +7588,16 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
                   <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>From</label>
                   <input type="date" value={draft.dateFrom || ""}
                     onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontFamily:F, fontSize:13, marginTop:4 }}
+                    className={draft.dateFrom ? "date-filled" : ""}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateFrom ? "#eff6ff" : "#fff", color: draft.dateFrom ? "#0284c7" : "#222", fontWeight: draft.dateFrom ? 700 : 400 }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
                   <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>To</label>
                   <input type="date" value={draft.dateTo || ""}
                     onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:"1.5px solid #e8e8e8", fontFamily:F, fontSize:13, marginTop:4 }}
+                    className={draft.dateTo ? "date-filled" : ""}
+                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateTo ? "#eff6ff" : "#fff", color: draft.dateTo ? "#0284c7" : "#222", fontWeight: draft.dateTo ? 700 : 400 }}
                   />
                 </div>
               </div>
@@ -5735,7 +7608,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
             <div style={{ marginTop:28 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
                 <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>
-                  Max flight price · from {profile.homeAirport || "JFK"}
+                  Max flight price{profile.homeAirport ? ` · from ${profile.homeAirport}` : ""}
                 </span>
                 <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>
                   {draft.priceMax >= 2100 ? "Any" : `$${draft.priceMax}`}
@@ -5778,6 +7651,24 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
           fontFamily:F, cursor:"pointer",
         }}>+ New</button>
       </div>
+
+      {/* Vibe Search */}
+      {onShowVibeSearch && (
+        <div style={{ padding:"0 24px 16px" }}>
+          <button onClick={onShowVibeSearch} className="pressable" style={{
+            width:"100%", background:"linear-gradient(135deg,#1a1a2e,#302b63)",
+            border:"none", borderRadius:16, padding:"16px 20px", cursor:"pointer",
+            display:"flex", alignItems:"center", gap:12, color:"white",
+          }}>
+            <span style={{ fontSize:22 }}>✨</span>
+            <div style={{ flex:1, textAlign:"left" }}>
+              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Vibe Search</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontFamily:F, marginTop:2 }}>AI-powered adventure matching</div>
+            </div>
+            <span style={{ background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em" }}>AI</span>
+          </button>
+        </div>
+      )}
 
       {/* Firing banner */}
       {firing.length > 0 && (
@@ -5892,6 +7783,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
   const [editMode,          setEditMode]          = useState(false);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
+  const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
   const toggleSport = id => setProfile(p => ({
@@ -6054,22 +7946,42 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
                 <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
                 {navigator.geolocation && (
-                  <button className="pressable" onClick={() => {
-                    setDetectingLocation(true);
-                    navigator.geolocation.getCurrentPosition(
-                      pos => {
-                        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-                        const already = (profile.homeAirports || []).includes(code);
-                        if (!already && (profile.homeAirports || []).length < 3) {
-                          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-                        }
-                        setDetectingLocation(false);
-                      },
-                      () => setDetectingLocation(false)
-                    );
-                  }} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
+                  <button className="pressable" onClick={() => setGeoPromptOpen(true)} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
                     {detectingLocation ? "Detecting…" : "📍 Detect"}
                   </button>
+                )}
+                {/* Geo permission explainer */}
+                {geoPromptOpen && (
+                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => setGeoPromptOpen(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{ width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 36px", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
+                      <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 20px" }} />
+                      <div style={{ fontSize:28, textAlign:"center", marginBottom:8 }}>📍</div>
+                      <div style={{ fontSize:17, fontWeight:800, color:"#222", fontFamily:F, textAlign:"center", marginBottom:8 }}>Find your nearest airport</div>
+                      <div style={{ fontSize:13, color:"#666", fontFamily:F, textAlign:"center", lineHeight:1.5, marginBottom:24 }}>
+                        To find cheap flights from your nearest airport, Peakly needs your location. Your location is only used to match you with the closest airport — it's never stored or shared.
+                      </div>
+                      <button className="pressable" onClick={() => {
+                        setGeoPromptOpen(false);
+                        setDetectingLocation(true);
+                        navigator.geolocation.getCurrentPosition(
+                          pos => {
+                            const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+                            const already = (profile.homeAirports || []).includes(code);
+                            if (!already && (profile.homeAirports || []).length < 3) {
+                              setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
+                            }
+                            setDetectingLocation(false);
+                          },
+                          () => setDetectingLocation(false)
+                        );
+                      }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
+                        Allow Location Access
+                      </button>
+                      <button onClick={() => setGeoPromptOpen(false)} style={{ width:"100%", background:"none", border:"1.5px solid #e8e8e8", borderRadius:14, padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F }}>
+                        Skip — I'll enter manually
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
@@ -6131,7 +8043,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             {/* Sports + skill levels */}
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your sports</div>
-              {CATEGORIES.filter(c => c.id !== "all").map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <div key={cat.id} style={{ marginBottom:8 }}>
@@ -6398,7 +8310,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             fontSize:13, fontWeight:700, fontFamily:F, marginBottom:32,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
-            🚪 Sign Out
+            Sign Out
           </button>
         )}
         {hasAccount && signOutConfirm && (
@@ -6698,6 +8610,219 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
   );
 }
 
+// ─── airport setup modal ──────────────────────────────────────────────────────
+function AccountSetupModal({ profile, setProfile, onClose }) {
+  const [apQuery, setApQuery] = useState("");
+  const [apFocus, setApFocus] = useState(false);
+  const [selected, setSelected] = useState(profile.homeAirport || "");
+
+  const TOP_AIRPORTS = [
+    { code:"LAX", city:"Los Angeles",        flag:"🇺🇸" },
+    { code:"JFK", city:"New York (JFK)",     flag:"🇺🇸" },
+    { code:"SFO", city:"San Francisco",      flag:"🇺🇸" },
+    { code:"ORD", city:"Chicago O'Hare",     flag:"🇺🇸" },
+    { code:"ATL", city:"Atlanta",            flag:"🇺🇸" },
+    { code:"DFW", city:"Dallas Fort Worth",  flag:"🇺🇸" },
+    { code:"MIA", city:"Miami",              flag:"🇺🇸" },
+    { code:"SEA", city:"Seattle",            flag:"🇺🇸" },
+    { code:"BOS", city:"Boston",             flag:"🇺🇸" },
+    { code:"DEN", city:"Denver",             flag:"🇺🇸" },
+    { code:"LHR", city:"London Heathrow",    flag:"🇬🇧" },
+    { code:"CDG", city:"Paris Charles de Gaulle", flag:"🇫🇷" },
+    { code:"SYD", city:"Sydney",             flag:"🇦🇺" },
+    { code:"NRT", city:"Tokyo Narita",       flag:"🇯🇵" },
+    { code:"YYZ", city:"Toronto",            flag:"🇨🇦" },
+    { code:"AMS", city:"Amsterdam",          flag:"🇳🇱" },
+  ];
+
+  const apResults = apQuery.length >= 2
+    ? ALL_AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
+        a.code.toLowerCase().includes(apQuery.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  const handleContinue = () => {
+    if (selected) {
+      setProfile(p => ({
+        ...p,
+        homeAirport: selected,
+        homeAirports: [...new Set([selected, ...(p.homeAirports || [])])],
+      }));
+      window.plausible && window.plausible('Airport Set', { props: { airport: selected, source: 'setup_modal' } });
+    }
+    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
+    onClose();
+  };
+
+  const handleSkip = () => {
+    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
+    onClose();
+  };
+
+  return (
+    <>
+      <div style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:210,
+        backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
+      }} onClick={handleSkip} />
+      <div className="sheet" style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
+        zIndex:211, maxHeight:"88vh", overflowY:"auto",
+        paddingBottom:"max(env(safe-area-inset-bottom,0px),28px)",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+      }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 6px" }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:"#e0e0e0" }} />
+        </div>
+
+        <div style={{ padding:"10px 24px 0" }}>
+          {/* Icon */}
+          <div style={{
+            width:52, height:52, borderRadius:16,
+            background:"linear-gradient(135deg,#0284c7,#38bdf8)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            marginBottom:18,
+            boxShadow:"0 6px 20px rgba(2,132,199,0.32)",
+          }}>
+            <svg width={26} height={26} viewBox="0 0 24 24" fill="none">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+
+          <div style={{ fontSize:26, fontWeight:900, color:"#111", fontFamily:F, lineHeight:1.15, marginBottom:8 }}>
+            Where are you<br/>flying from?
+          </div>
+          <div style={{ fontSize:14, color:"#717171", fontFamily:F, lineHeight:1.55, marginBottom:22 }}>
+            We'll find cheap flights from your home airport to the best conditions worldwide.
+          </div>
+
+          {/* Search input */}
+          <div style={{ position:"relative", marginBottom:16 }}>
+            <svg style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width={17} height={17} viewBox="0 0 24 24" fill="none">
+              <circle cx={11} cy={11} r={8} stroke="#aaa" strokeWidth={2}/>
+              <path d="M21 21l-4.35-4.35" stroke="#aaa" strokeWidth={2} strokeLinecap="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search city or airport code…"
+              value={apQuery}
+              onChange={e => setApQuery(e.target.value)}
+              onFocus={() => setApFocus(true)}
+              onBlur={() => setTimeout(() => setApFocus(false), 180)}
+              autoComplete="off"
+              style={{
+                width:"100%", padding:"13px 14px 13px 42px",
+                borderRadius:14, border:"1.5px solid #e8e8e8",
+                fontSize:15, fontFamily:F, color:"#222", background:"#fafafa",
+                outline:"none", boxSizing:"border-box",
+              }}
+            />
+          </div>
+
+          {/* Autocomplete dropdown */}
+          {apFocus && apResults.length > 0 && (
+            <div style={{
+              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14,
+              marginBottom:12, overflow:"hidden",
+              boxShadow:"0 8px 28px rgba(0,0,0,0.12)",
+            }}>
+              {apResults.map((ap, i) => (
+                <button key={ap.code} onMouseDown={() => { setSelected(ap.code); setApQuery(""); setApFocus(false); }} style={{
+                  width:"100%", padding:"12px 16px", background: selected===ap.code ? "#f0f9ff" : "#fff",
+                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
+                  textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
+                }}>
+                  <span style={{ fontSize:20 }}>{ap.flag}</span>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                    <span style={{ fontSize:13, color:"#717171" }}> · {ap.city}</span>
+                  </div>
+                  {selected===ap.code && (
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick-pick top airports */}
+          {!apQuery && (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", marginBottom:10, textTransform:"uppercase" }}>
+                Popular airports
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {TOP_AIRPORTS.map(ap => {
+                  const sel = selected === ap.code;
+                  return (
+                    <button key={ap.code} onClick={() => setSelected(ap.code)} style={{
+                      padding:"9px 13px", borderRadius:20, cursor:"pointer",
+                      background: sel ? "#0284c7" : "#f5f5f5",
+                      color: sel ? "#fff" : "#444",
+                      border:"none",
+                      fontSize:13, fontWeight:700, fontFamily:F,
+                      display:"flex", alignItems:"center", gap:5,
+                      boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.3)" : "none",
+                      transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
+                    }}>
+                      <span style={{ fontSize:14 }}>{ap.flag}</span>
+                      {ap.code}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Selected airport confirmation */}
+          {selected && (
+            <div style={{
+              marginTop:14, padding:"12px 16px", borderRadius:14,
+              background:"#f0f9ff", border:"1.5px solid #bae6fd",
+              display:"flex", alignItems:"center", gap:10,
+            }}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div>
+                <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{selected}</span>
+                <span style={{ fontSize:13, color:"#0369a1", fontFamily:F }}>
+                  {" "}· {ALL_AIRPORTS.find(a => a.code === selected)?.city || TOP_AIRPORTS.find(a => a.code === selected)?.city || selected}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ padding:"20px 24px 4px" }}>
+          <button onClick={handleContinue} className="pressable" style={{
+            width:"100%", background: selected ? "#222" : "#ccc",
+            border:"none", borderRadius:16, padding:"17px 0",
+            color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
+            transition:"background 0.2s",
+          }}>
+            {selected ? "Find my flights" : "Continue"}
+          </button>
+          <div style={{ textAlign:"center", marginTop:12 }}>
+            <button onClick={handleSkip} style={{
+              background:"none", border:"none", fontSize:13, color:"#aaa",
+              fontFamily:F, cursor:"pointer", padding:"4px 12px",
+            }}>
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── onboarding sheet ─────────────────────────────────────────────────────────
 const SKILL_LEVELS = ["Beginner","Intermediate","Advanced","Expert"];
 const AVATAR_COLORS = [
@@ -6716,9 +8841,14 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
-  const [airport,     setAirport]    = useState(profile.homeAirport || "JFK");
+  const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
+
+  // Sync airport when geolocation resolves after onboarding opened
+  useEffect(() => {
+    if (profile.homeAirport && !airport) setAirport(profile.homeAirport);
+  }, [profile.homeAirport]);
 
   const toggleSport = id => {
     setSports(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
@@ -6776,7 +8906,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
                 </svg>
               </div>
-              <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
+              <span style={{ fontSize:30, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
             </div>
 
             <div style={{ fontSize:32, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, marginBottom:10 }}>
@@ -6797,7 +8927,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               {
                 bg:"#f0fdf4", color:"#16a34a",
                 icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title:`Cheap flights from ${AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "your airport"}`,
+                title:`Cheap flights from ${profile?.homeAirport ? (AIRPORT_CITY[profile.homeAirport] || profile.homeAirport) : "Detecting…"}`,
                 desc:"Real-time prices from your home airport. Book when the conditions and the deal line up.",
               },
               {
@@ -6831,8 +8961,16 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               We'll show flight prices from your home airport to every spot.
             </div>
 
+            <div style={{ position:"relative", marginBottom:14 }}>
+              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
+              <input type="text" placeholder="Search any airport worldwide…"
+                value={apQuery} onChange={e => setApQuery(e.target.value)}
+                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
+                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
+              />
+            </div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-              {US_AIRPORTS.map(ap => {
+              {US_AIRPORTS.slice(0, 10).map(ap => {
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
@@ -6845,14 +8983,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                   }}>{ap.flag} {ap.code} <span style={{ fontSize:10, opacity:0.7 }}>{ap.label}</span></button>
                 );
               })}
-            </div>
-            <div style={{ position:"relative" }}>
-              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
-                value={apQuery} onChange={e => setApQuery(e.target.value)}
-                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
-                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
             </div>
             {apFocus && apResults.length > 0 && (
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
@@ -6891,7 +9021,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
-              {CATEGORIES.filter(c => c.id !== "all" && c.id !== "tanning").map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
@@ -7172,6 +9302,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const sheetRef = useRef(null);
   const scrollRef = useRef(null);
   const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
+
+  // Scroll back to top whenever the user navigates to a different venue
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [listing.id]);
+
   const onTouchStart = useCallback((e) => {
     const el = scrollRef.current;
     if (!el || el.scrollTop > 5) return; // only swipe when at top
@@ -7194,13 +9330,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     const dy = d.currentY - d.startY;
     if (dy > 120) {
       if (sheetRef.current) {
-        sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
-        sheetRef.current.style.transition = "transform 0.25s cubic-bezier(0.4,0,1,1)";
+        sheetRef.current.style.transform = "translateX(-50%) translateY(105%)";
+        sheetRef.current.style.transition = "transform 0.3s cubic-bezier(0.4,0,0.8,1)";
       }
-      setTimeout(onClose, 240);
+      setTimeout(onClose, 280);
     } else if (sheetRef.current) {
-      sheetRef.current.style.transform = "translateX(-50%)";
-      sheetRef.current.style.transition = "transform 0.38s cubic-bezier(0.34,1.56,0.64,1)";
+      sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
+      sheetRef.current.style.transition = "transform 0.42s cubic-bezier(0.32,1.2,0.4,1)";
     }
   }, [onClose]);
   const d  = rawWx?.daily;
@@ -7275,12 +9411,13 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         zIndex:301, maxHeight:"94vh", overflow:"hidden",
         display:"flex", flexDirection:"column",
       }}>
-        <div ref={scrollRef} style={{ flex:1, overflowY:"auto" }}>
+        <div ref={scrollRef} data-venue-detail-scroll style={{ flex:1, overflowY:"auto" }}>
         {/* Hero — full bleed */}
         <div style={{ position:"relative", height:240, overflow:"hidden", borderRadius:"28px 28px 0 0" }}>
           {listing.photo ? (
             <img src={listing.photo} alt={listing.title} loading="lazy"
               onLoad={e => { e.target.style.opacity = 1; }}
+              onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(listing.title, listing.category); e.target.style.opacity = 1; }}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0, transition:"opacity 0.4s ease" }} />
           ) : (
             <div style={{ position:"absolute", inset:0, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -7357,8 +9494,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
             <div style={{ flex:1, background:"#f0fff4", borderRadius:14, padding:"12px 14px" }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Flight from {listing.flight.from}</div>
-              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>${listing.flight.price}</div>
+              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>from ${listing.flight.price}</div>
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>Was ${listing.flight.normal} · {listing.flight.pct}% off</div>
+              {listing.flight.foundAt && <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:1 }}>seen {relTime(listing.flight.foundAt)}</div>}
             </div>
           </div>
 
@@ -7407,12 +9545,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {similarVenues.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
                 {similarVenues.map(sv => (
-                  <button key={sv.id} className="pressable" onClick={() => { if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
+                  <button key={sv.id} className="pressable" onClick={() => { scrollRef.current?.scrollTo({top:0,behavior:"auto"}); if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
                     <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
                       {sv.photo ? (
-                        <img src={sv.photo} alt={sv.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+                        <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                       ) : (
                         <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
                       )}
@@ -7423,7 +9561,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                     <div style={{ padding:"7px 9px 9px" }}>
                       <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{sv.title}</div>
                       <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>📍 {sv.location}</div>
-                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>${sv.flight.price} flight</div>
+                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>from ${sv.flight.price}</div>
                     </div>
                   </button>
                 ))}
@@ -7444,8 +9582,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </div>
 
-          {/* 🛍️ Gear — affiliate */}
-          {GEAR_ITEMS[listing.category] && (
+          {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
+          {false && GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
@@ -7535,32 +9673,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </a>
 
-          {/* ⚡ Peakly Pro upsell */}
-          <div style={{ marginBottom:16, background:"linear-gradient(135deg,#0f172a,#1e3a5f)", borderRadius:16, padding:"16px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>⚡ Peakly Pro</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", fontFamily:F, marginTop:2 }}>Unlock the full experience</div>
-              </div>
-              <div style={{ background:"#0284c7", borderRadius:10, padding:"4px 11px", flexShrink:0 }}>
-                <span style={{ fontSize:11, fontWeight:900, color:"white", fontFamily:F }}>$79/yr</span>
-              </div>
-            </div>
-            {[
-              "🔔 Instant condition alerts — beat the crowds",
-              "📊 Full 90-day historical condition graphs",
-              "📅 Crowd calendar — know before you go",
-              "✈️ Price drop alerts for your saved venues",
-            ].map((feat, i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.82)", fontFamily:F, lineHeight:1.5 }}>{feat}</span>
-              </div>
-            ))}
-            <button className="pressable" onClick={() => alert("Peakly Pro coming soon! 🚀")} style={{ width:"100%", marginTop:8, background:"#0284c7", border:"none", borderRadius:12, padding:"13px", cursor:"pointer", fontSize:13, fontWeight:900, color:"white", fontFamily:F, boxShadow:"0 4px 14px rgba(2,132,199,0.45)" }}>
-              Start free 7-day trial
-            </button>
-          </div>
-
           {/* Save to named list */}
           <div style={{ marginBottom:16 }}>
             <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>📂 Save to list</div>
@@ -7626,7 +9738,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             }}>
               <span style={{ fontSize:16 }}>✈️</span>
-              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · ${listing.flight.price}</span>
+              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · from ${listing.flight.price}</span>
+              {listing.flight.foundAt && <span style={{ fontSize:10, color:"rgba(255,255,255,0.65)", fontFamily:F }}> · {relTime(listing.flight.foundAt)}</span>}
             </div>
           </a>
           <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
@@ -7864,9 +9977,9 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { id:"skiing", label:"Skiing" },
+                { id:"skiing", label:"Ski/Board" },
                 { id:"surfing", label:"Surfing" },
-                { id:"tanning", label:"Beach & Tan" }
+                { id:"tanning", label:"Beach" }
               ].map(s => (
                 <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
                   padding:14, borderRadius:12, border:"1.5px solid #e8e8e8", cursor:"pointer", fontFamily:F,
@@ -7884,10 +9997,10 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
           <div className="fade-in">
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>When are you going?</div>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:10,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:10, color: startDate ? "#0c4a6e" : "#aaa", background: startDate ? "#f0f9ff" : "#fafafa", fontWeight: startDate ? 700 : 400,
             }} />
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{
-              width:"100%", padding:12, borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, marginBottom:14,
+              width:"100%", padding:12, borderRadius:12, border:`1.5px solid ${endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:13, fontFamily:F, marginBottom:14, color: endDate ? "#0c4a6e" : "#aaa", background: endDate ? "#f0f9ff" : "#fafafa", fontWeight: endDate ? 700 : 400,
             }} />
             <button onClick={() => setStep(2)} disabled={!startDate || !endDate} style={{
               width:"100%", background: startDate && endDate ? "#222" : "#ddd", border:"none", borderRadius:12, padding:12,
@@ -8149,7 +10262,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
                 height: 130, background: venue.gradient || "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
                 display: "flex", alignItems: "flex-end", padding: 14, position: "relative", overflow: "hidden",
               }}>
-                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                {venue.photo && <img src={venue.photo} alt={venue.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(venue.title, venue.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
                 <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)" }} />
                 <div style={{
                   position: "absolute", top: 10, right: 10,
@@ -8251,7 +10364,7 @@ function BottomNav({ active, setActive, alertCount }) {
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" style={{
+        <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" aria-label={t.label} aria-current={active === t.id ? "page" : undefined} style={{
           background:"none", border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
@@ -8304,15 +10417,20 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
-  // Dismiss the splash screen after first render
+  // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
     if (!splash) return;
+    // Record when the page started loading (approximated by performance.timing or Date.now)
+    const pageStart = window.performance?.timing?.navigationStart || Date.now();
+    const elapsed = Date.now() - pageStart;
+    const MIN_VISIBLE = 1800; // ms
+    const remaining = Math.max(0, MIN_VISIBLE - elapsed);
     const t1 = setTimeout(() => {
       splash.classList.add('fade-out');
       const t2 = setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
       return () => clearTimeout(t2);
-    }, 350);
+    }, remaining);
     return () => clearTimeout(t1);
   }, []);
 
@@ -8322,20 +10440,28 @@ function App() {
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, startDate:"", endDate:"" });
+  const [flightsLoading, setFlightsLoading] = useState(true);
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAirportSetup, setShowAirportSetup] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
+  // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
+  const wishlistIds = React.useMemo(() => {
+    if (!wishlists.length) return [];
+    if (typeof wishlists[0] === 'string') return wishlists; // legacy migration
+    return wishlists.find(l => l.name === 'Favorites')?.venues || [];
+  }, [wishlists]);
   const [namedLists,   setNamedLists]   = useLocalStorage("peakly_named_lists", []);
   const [userAlerts, setUserAlerts] = useLocalStorage("peakly_alerts", []);
   const [savedTrips, setSavedTrips] = useLocalStorage("peakly_trips", []);
   const [profile,    setProfile]    = useLocalStorage("peakly_profile", {
-    name:"", email:"", homeAirport:"JFK", homeAirports:["JFK"], sports:[], skillLevels:{},
+    name:"", email:"", homeAirport:"", homeAirport2:"", homeAirports:[], sports:[], skillLevels:{},
     skill:"Intermediate", hasAccount:false,
     notifyPeak:true, notifyDeal:true, notifyWeekly:false,
   });
@@ -8348,14 +10474,56 @@ function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ─── Push notification registration (Capacitor native + web SW fallback) ─────
+  useEffect(() => {
+    if (window.Capacitor?.isNativePlatform()) {
+      // Native (iOS/Android via Capacitor) — request permission and register for push
+      (async () => {
+        try {
+          const { PushNotifications } = await window.Capacitor.Plugins;
+          const permResult = await PushNotifications.requestPermissions();
+          if (permResult.receive !== "granted") return;
+
+          await PushNotifications.register();
+
+          PushNotifications.addListener("registration", (token) => {
+            try { localStorage.setItem("peakly_push_token", token.value); } catch {}
+          });
+
+          PushNotifications.addListener("pushNotificationReceived", (notification) => {
+            // Foreground notification — surface an in-app banner (optional future enhancement)
+            console.log("[Peakly] Push received (foreground):", notification.title);
+          });
+
+          PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+            // User tapped a notification — deep-link to venue if provided
+            const venueId = action.notification.data?.venueId;
+            if (venueId) {
+              // Navigate to the venue detail via URL so the app can pick it up on render
+              try { history.replaceState(null, "", `${window.location.pathname}?venue=${venueId}`); } catch {}
+            }
+          });
+        } catch (err) {
+          console.warn("[Peakly] Capacitor push registration failed:", err);
+        }
+      })();
+    } else if ("serviceWorker" in navigator && "PushManager" in window) {
+      // Web — register service worker for web push (VAPID keys needed server-side to actually send)
+      navigator.serviceWorker.register("/peakly/sw.js").then((reg) => {
+        // Token will be obtained when backend calls pushManager.subscribe() with VAPID public key
+        try { localStorage.setItem("peakly_push_token", "web-sw-registered"); } catch {}
+      }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-detect nearest airport for new users who haven't set one yet
   useEffect(() => {
-    if (profile.homeAirport && profile.homeAirport !== "JFK") return; // already set
+    if (profile.homeAirport) return; // already set by user
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       pos => {
         const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-        if (code !== "JFK" || !profile.homeAirport) {
+        if (code) {
           setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
         }
       },
@@ -8369,9 +10537,15 @@ function App() {
     fromAirport: (() => {
       try {
         const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
-        const airports = p.homeAirports || [p.homeAirport] || ["JFK"];
-        return airports[0] || "JFK";
+        const airports = p.homeAirports?.length ? p.homeAirports : (p.homeAirport ? [p.homeAirport] : []);
+        return airports[0] || "";
       } catch { return "JFK"; }
+    })(),
+    fromAirport2: (() => {
+      try {
+        const p = JSON.parse(localStorage.getItem("peakly_profile") || "{}");
+        return p.homeAirport2 || "";
+      } catch { return ""; }
     })(),
   }));
 
@@ -8441,9 +10615,11 @@ function App() {
 
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
+  // Priority: top 10 airports by weather score fetched first for fast hero/carousel load
   useEffect(() => {
     if (loading) return;
     let alive = true;
+    setFlightsLoading(true);
     (async () => {
       // 1. Build a map of unique airport codes → venue IDs that use them
       const apToVenues = {};
@@ -8453,57 +10629,97 @@ function App() {
       });
       const uniqueAirports = Object.keys(apToVenues);
 
-      // 2. Fetch prices only for unique airports, batched in groups of 3
+      // 2. Rank airports by best venue weather score so most visible cards load first
+      const scoredAirports = uniqueAirports.map(ap => {
+        const venueIds = apToVenues[ap];
+        const maxScore = Math.max(...venueIds.map(vid => {
+          const v = VENUES.find(x => x.id === vid);
+          return v ? scoreVenue(v, wxData[v.id], marData[v.id], 0).score : 0;
+        }));
+        return { ap, score: maxScore };
+      }).sort((a, b) => b.score - a.score);
+
+      const priorityAps = scoredAirports.slice(0, 10).map(x => x.ap);
+      const remainingAps = scoredAirports.slice(10).map(x => x.ap);
+
+      // 3. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
-      const apPrices = {}; // airport code → cheapest price
-      const origin = profile.homeAirport || "JFK";
-      for (let i = 0; i < uniqueAirports.length; i += 3) {
-        const batch = uniqueAirports.slice(i, i + 3);
-        const results = await Promise.allSettled(
-          batch.map(async ap => {
-            const price = await fetchTravelpayoutsPrice(origin, ap);
-            return { ap, price };
-          })
-        );
-        if (!alive) return;
-        results.forEach(r => {
-          if (r.status === "fulfilled" && r.value.price !== null) {
-            apPrices[r.value.ap] = r.value.price;
-          }
-        });
-        if (i + 3 < uniqueAirports.length) await new Promise(r => setTimeout(r, 400));
-      }
+      // If two home airports are set, fetch both and use the cheaper price.
+      const apPrices = {}; // airport code → { price, foundAt }
+      const origins = [profile.homeAirport || "JFK"];
+      if (profile.homeAirport2) origins.push(profile.homeAirport2);
 
-      // 3. Map airport prices back to venue IDs
-      const prices = {};
-      Object.entries(apPrices).forEach(([ap, price]) => {
-        apToVenues[ap].forEach(venueId => {
-          prices[venueId] = price;
-        });
+      const fetchBatch = async (airports) => {
+        for (let i = 0; i < airports.length; i += 3) {
+          if (!alive) return;
+          const batch = airports.slice(i, i + 3);
+          const results = await Promise.allSettled(
+            batch.flatMap(ap =>
+              origins.map(async origin => {
+                const result = await fetchTravelpayoutsPrice(origin, ap);
+                return { ap, result };
+              })
+            )
+          );
+          if (!alive) return;
+          results.forEach(r => {
+            if (r.status === "fulfilled" && r.value.result !== null) {
+              const { ap, result } = r.value;
+              if (apPrices[ap] == null || result.price < apPrices[ap].price) apPrices[ap] = result;
+            }
+          });
+          if (i + 3 < airports.length) await new Promise(r => setTimeout(r, 400));
+        }
+      };
+
+      // 4. Fetch priority airports first — hero + carousel populate fast
+      await fetchBatch(priorityAps);
+      if (!alive) return;
+
+      // Publish priority prices immediately so visible cards snap in
+      const priorityPrices = {};
+      Object.entries(apPrices).forEach(([ap, data]) => {
+        apToVenues[ap].forEach(venueId => { priorityPrices[venueId] = data; });
       });
+      if (Object.keys(priorityPrices).length > 0) setDuffelPrices({ ...priorityPrices });
+      setFlightsLoading(false);
 
+      // 5. Fetch remaining airports in background
+      await fetchBatch(remainingAps);
+      if (!alive) return;
+
+      // 6. Publish full price set
+      const prices = {};
+      Object.entries(apPrices).forEach(([ap, data]) => {
+        apToVenues[ap].forEach(venueId => { prices[venueId] = data; });
+      });
       if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
     })();
     return () => { alive = false; };
-  }, [loading, profile.homeAirport]);
+  }, [loading, profile.homeAirport, profile.homeAirport2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
-  const scoreDayIndex = filters.startDate ? Math.max(0, Math.min(6, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000))) : 0;
+  const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
-    const estimate   = getFlightDeal(v.ap, profile.homeAirport);
-    const realPrice  = duffelPrices[v.id];
-    const flight     = realPrice != null
+    const estimate1  = getFlightDeal(v.ap, profile.homeAirport || "JFK");
+    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
+    const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
+    const duffelData = duffelPrices[v.id];
+    const flight     = duffelData != null
       ? {
-          price:  realPrice,
-          normal: estimate.normal,
-          pct:    Math.max(0, Math.round((1 - realPrice / estimate.normal) * 100)),
-          from:   profile.homeAirport || "JFK",
-          live:   true,
+          price:   duffelData.price,
+          normal:  estimate.normal,
+          pct:     Math.max(0, Math.round((1 - duffelData.price / estimate.normal) * 100)),
+          from:    profile.homeAirport || "JFK",
+          live:    true,
+          foundAt: duffelData.foundAt || null,
+          depDate: filters.startDate || null,
+          retDate: filters.endDate   || null,
         }
-      : { ...estimate, live: false };
+      : { ...estimate, live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
     // Find best window in the 7-day forecast
     let bestDay = 0, bestScore = score;
     const vWx = wxData[v.id], vMar = marData[v.id];
@@ -8520,21 +10736,49 @@ function App() {
     }
     const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore };
 
-    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow };
+    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading };
   });
 
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    setWishlists(p => {
-      const isAdding = !p.includes(id);
-      if (isAdding) {
-        const venue = VENUES.find(v => v.id === id);
-        window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    const isCurrentlySaved = wishlistIds.includes(id);
+    if (!isCurrentlySaved) {
+      const venue = VENUES.find(v => v.id === id);
+      window.plausible && window.plausible('Wishlist Add', {props: {venue: venue?.title || id}});
+    }
+    // Store as [{name:"Favorites", venues:[...]}]; migrate legacy flat array on first write
+    setWishlists(lists => {
+      if (lists.length > 0 && typeof lists[0] === 'string') {
+        // Migrate legacy flat array
+        const migrated = isCurrentlySaved ? lists.filter(x => x !== id) : [...lists, id];
+        return [{ name: 'Favorites', venues: migrated }];
       }
-      return p.includes(id) ? p.filter(x => x !== id) : [...p, id];
+      const favIdx = lists.findIndex(l => l.name === 'Favorites');
+      if (!isCurrentlySaved) {
+        if (favIdx === -1) return [{ name: 'Favorites', venues: [id] }];
+        return lists.map((l, i) => i === favIdx ? { ...l, venues: [...(l.venues || []), id] } : l);
+      } else {
+        if (favIdx === -1) return lists;
+        return lists.map((l, i) => i === favIdx ? { ...l, venues: (l.venues || []).filter(x => x !== id) } : l);
+      }
     });
-  }, [setWishlists]);
+    // Keep namedLists in sync for WishlistsTab — find or create "Favorites" specifically
+    setNamedLists(lists => {
+      if (!isCurrentlySaved) {
+        // Adding — find or create the "Favorites" list specifically (prepend so it appears first)
+        const favIdx = lists.findIndex(l => l.id === "favorites" || l.name === "Favorites");
+        if (favIdx === -1) {
+          return [{ id:"favorites", name:"Favorites", emoji:"❤️", venueIds:[id] }, ...lists];
+        }
+        const fav = lists[favIdx];
+        if ((fav.venueIds||[]).includes(id)) return lists;
+        return lists.map((l, i) => i === favIdx ? { ...l, venueIds: [...(l.venueIds||[]), id] } : l);
+      } else {
+        return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
+      }
+    });
+  }, [wishlistIds, setWishlists, setNamedLists]);
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
@@ -8578,11 +10822,13 @@ function App() {
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 14px", background:"#fff", flexShrink:0 }}>
+            <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:18, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F, flexShrink:0 }}>
-                  peakly
-                </span>
+                <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
+                  <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+                    peakly
+                  </span>
+                </div>
                 <div style={{ flex:1 }}>
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
@@ -8590,7 +10836,7 @@ function App() {
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:20, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
                 peakly
               </span>
             </div>
@@ -8602,7 +10848,7 @@ function App() {
           {activeTab === "explore" && (
             <ExploreTab
               listings={listings} loading={loading}
-              wishlists={wishlists} onToggle={toggleWishlist}
+              wishlists={wishlistIds} onToggle={toggleWishlist}
               onViewAlerts={() => setActiveTab("alerts")}
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
@@ -8617,13 +10863,14 @@ function App() {
               listings={listings} userAlerts={userAlerts}
               setUserAlerts={setUserAlerts} profile={profile}
               onShowOnboarding={() => setShowOnboarding(true)}
+              onShowVibeSearch={() => setShowVibeSearch(true)}
             />
           )}
           {activeTab === "profile" && (
             <ProfileTab
               profile={profile} setProfile={setProfile}
               filters={filters} setFilters={setFilters}
-              wishlists={wishlists}
+              wishlists={wishlistIds}
               onShowOnboarding={() => setShowOnboarding(true)}
               savedTrips={savedTrips} setSavedTrips={setSavedTrips}
               listings={listings} onOpenDetail={openDetail}
@@ -8643,13 +10890,23 @@ function App() {
               // If exactly one activity selected, switch the tab pill to it; otherwise stay on "all"
               if (s.activities?.length === 1) setActiveCat(s.activities[0]);
               else setActiveCat("all");
-              setProfile(p => ({ ...p, homeAirport: s.fromAirport }));
+              setProfile(p => ({ ...p, homeAirport: s.fromAirport, homeAirport2: s.fromAirport2 || "" }));
             }}
             onClose={() => setShowSearch(false)}
             listings={listings}
-            wishlists={wishlists}
+            wishlists={wishlistIds}
             onToggle={toggleWishlist}
             onOpenDetail={(l) => { setShowSearch(false); openDetail(l); }}
+          />
+        )}
+
+        {showVibeSearch && (
+          <VibeSearchSheet
+            listings={listings}
+            wishlists={wishlistIds}
+            onToggle={toggleWishlist}
+            onOpenDetail={(v) => { setShowVibeSearch(false); openDetail(v); }}
+            onClose={() => setShowVibeSearch(false)}
           />
         )}
 
@@ -8657,7 +10914,23 @@ function App() {
           <OnboardingSheet
             profile={profile}
             setProfile={setProfile}
-            onClose={() => setShowOnboarding(false)}
+            onClose={() => {
+              setShowOnboarding(false);
+              // Show airport setup modal after onboarding if not already done
+              try {
+                if (!localStorage.getItem("peakly_airport_setup_done")) {
+                  setTimeout(() => setShowAirportSetup(true), 350);
+                }
+              } catch {}
+            }}
+          />
+        )}
+
+        {showAirportSetup && (
+          <AccountSetupModal
+            profile={profile}
+            setProfile={setProfile}
+            onClose={() => setShowAirportSetup(false)}
           />
         )}
 
@@ -8666,7 +10939,7 @@ function App() {
             listing={detailVenue}
             rawWx={wxData[detailVenue.id]}
             rawMar={marData[detailVenue.id]}
-            wishlists={wishlists}
+            wishlists={wishlistIds}
             onToggle={toggleWishlist}
             onClose={() => { setDetailVenue(null); try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {} }}
             namedLists={namedLists}
