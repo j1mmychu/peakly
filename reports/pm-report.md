@@ -1,62 +1,65 @@
-# PM Report — 2026-03-26 (v14)
+# Peakly PM Report — 2026-03-30 (v19, Pre-Launch)
 
-## Status: YELLOW — one Jack action blocks all flight revenue
-
-The app is in the best shape it has ever been. Sentry is live with a real DSN. 2,226 venues with stable photos. Smart weather fetching (top 100 on load, lazy-fetch on detail open) prevents API exhaustion at any scale. Aviasales deep links are coded and correct. The only thing standing between $0 and commission revenue on every flight click is Jack pasting a TP marker. That is a 5-minute action. It has been pending for 4 cycles.
+**Reddit launch target: Tomorrow — Tuesday March 31, 9–11am ET. 18 hours out.**
 
 ---
 
-## Shipped Since v13
+## Shipped Since Last Report (2026-03-29)
 
-| Item | Type | Right call? |
-|------|------|-------------|
-| **Smart weather fetching** — top 100 venues on load, lazy individual fetch on detail open | Infrastructure | **YES.** Surgical fix. 272 API calls → ~100 on load. Scales to 10K+ MAU without hitting Open-Meteo limits. |
-| **2,226 venues with stable photo IDs** — all 2,050 source.unsplash.com URLs replaced | Data quality | **YES.** Zero duplicates. First-impression polish win for Reddit launch. |
-| **Sentry DSN live** — real DSN at line 8 (`9416b032...`) | Monitoring | **YES.** Four cycles of blind production errors are over. Crash visibility active. |
-| **Score validation thumbs** — `peakly_score_votes` localStorage + vote state in VenueDetailSheet | UX | **PARTIAL.** Vote persistence wired at line 7151. UI visibility in detail sheet not browser-confirmed. |
-| **ListingCard "Book" Plausible event** — `book_click` event on `onClick` at line 4086 | Analytics | **YES.** Fixed. Four-cycle miss finally resolved. `{venue, category}` props fire on click. |
-| **Aviasales deep links coded** — `buildFlightUrl()` builds Aviasales/Travelpayouts URLs correctly | Revenue | **YES — code correct.** Blocked only by `TP_MARKER = "YOUR_TP_MARKER"` placeholder. Jack action needed. |
+| Commit | Item | Verdict | Notes |
+|--------|------|---------|-------|
+| `dad5068` | Airport setup modal in onboarding | **RIGHT CALL** | Directly addresses the PM-v18 blocker: new users need a home airport to see meaningful flight prices. Good UX fix, executed correctly, ships before Reddit. |
+| `d61e0c5` | Flight price caching + priority fetching + shimmer | **RIGHT CALL** | Priority-fetching top 10 venues by score first is exactly right. The shimmer placeholder is a polish detail that matters on first impression. Prevents API hammering on launch day. |
+| `1e5a026` | **Fix broken flight booking button URL** | **CRITICAL FIX** | This was a P0 — the flight booking button was generating malformed Aviasales URLs. Users who clicked "Book" were going nowhere. Fixed: null/short date guard, JFK fallback for empty homeAirport. Without this, the entire flight CTA was dead. |
+| `ee6f788` | Proxy server: /api/flights/latest + /api/alerts routes | **RIGHT CALL** | Server infrastructure for alerts is correct. In-memory store needs a persistent DB post-launch, but for Reddit day it handles 50–100 registrations fine. |
+| `8f2585b` | Flight pricing: "from $X", last-seen timestamps | **RIGHT CALL** | Language fix + correct endpoint. |
 
-**Still blocked / unconfirmed:**
-- `TP_MARKER = "YOUR_TP_MARKER"` at line 3666 — every flight click earns $0 until Jack replaces this.
-- REI Avantlink signup — Jack action, 30 min. 22 links earn $0.
-- Score validation thumbs UI — not browser-confirmed. Needs a visual check before Reddit post.
+**Assessment:** The flight booking URL fix (`1e5a026`) is the most important commit in this batch. It was a silent revenue killer — every flight click was broken. Shipping this 18 hours before Reddit is a near-miss. It should have been caught earlier.
+
+**Opportunity cost concern:** `d61e0c5` is ~200 lines of refactoring with new state + caching logic the day before a launch. The risk of introducing a regression in the heavily-modified flight fetching layer, 18 hours before Reddit, is real. This is exactly the window where a new bug could go undetected.
 
 ---
 
-## Bug Triage
+## Blocked (Reddit launch in 18 hours)
 
-| Bug | Severity | Status |
-|-----|----------|--------|
-| **TP_MARKER placeholder** — `"YOUR_TP_MARKER"` at line 3666. Code deployed and correct. Every Aviasales click earns $0 until marker is set. | **P0** — Jack: tp.media → Dashboard → Markers → copy string → paste at line 3666 → push. 5 min. | Blocked on Jack. |
-| **Score validation thumbs — UI unconfirmed** | **P1** — `scoreVotes` localStorage wired. UI visibility not confirmed. If hidden, zero scoring feedback before Reddit launch. | Dev: open app, open any venue detail, verify thumbs render. 15 min to confirm or fix. |
-| **REI affiliate links — 22 links earn $0** | **P2** — Avantlink signup unblocked (no LLC needed). ~$4–6 RPM waiting. | Blocked on Jack. |
-
----
-
-## Known Blockers
-
-| Blocker | Owner | Urgency |
-|---------|-------|---------|
-| TP_MARKER in app.jsx line 3666 | Jack — tp.media dashboard | **TODAY. Revenue blocked until this is done.** |
-| REI Avantlink signup | Jack | This week. 30 min. No LLC needed. |
-| LLC approval | External | Unblocks Stripe, GetYourGuide, Backcountry, peakly.app domain |
+| Blocker | Owner | Status | Days Stalled | Launch Risk |
+|---------|-------|--------|-------------|-------------|
+| **TP_MARKER placeholder** | Jack — tp.media dashboard | ❌ NOT DONE | **Day 7** | 🔴 HIGH — Every flight click tomorrow earns $0, zero attribution |
+| **venue.facing swell revert** | Dev | ❌ NOT DONE | Day 3 | 🟡 MEDIUM — Wrong surf scores for ~half of breaks. Surfline users will notice |
+| **React unpinned (@18 vs @18.3.1)** | Dev | ❌ NOT DONE | Day 3 | 🟡 MEDIUM — unpkg @18 resolves to latest minor. React could push a breaking change tonight |
+| **Email server-side capture** | Dev | ❌ NOT DONE | Day 3 | 🟡 MEDIUM — Emails go to localStorage only. No list. No re-engagement. |
+| **Photo diversity** | Dev/Content | ❌ NOT DONE | Day 3 | 🟡 MEDIUM — Same Unsplash photo for 200+ fishing/kayak venues. Reddit callout risk |
+| **LLC approval** | External | Pending | — | 🟢 LOW — Not a launch blocker. Revenue gap, not UX gap |
 
 ---
 
-## Priority Decisions — Top 3 This Sprint
+## This Week's Top 3 Priorities (execution order)
 
-**1. SHIP: Jack sets TP_MARKER today** *(Jack, 5 min)*
+### 1. JACK: Fix TP_MARKER. Right now. Before bed.
 
-The Aviasales code is deployed and correct. `buildFlightUrl()` at line 3685 checks: if `TP_MARKER !== "YOUR_TP_MARKER"`, it wraps the Aviasales search in a `tp.media/r?marker=` redirect that earns commission. Without the marker, users still reach Aviasales but Peakly earns $0 and gets no attribution data in the Travelpayouts dashboard. Jack: log into tp.media → Dashboard → Markers → copy the marker string → replace `"YOUR_TP_MARKER"` at line 3666 → `push "Set TP_MARKER for Travelpayouts affiliate tracking"`. This is the highest-ROI 5-minute action remaining before launch.
+Day 7 of flagging this. Reddit is tomorrow morning. The math: 500 Reddit visitors × 10% flight click rate = 50 flight clicks at $0 commission, zero attribution data. Travelpayouts pays $1.80–2.40 per booking. At 5% booking conversion from 50 clicks, that is 2–3 bookings = $4–7 lost revenue on day 1 alone — plus no data on which destinations are converting.
 
-**2. VERIFY: Score validation thumbs render in VenueDetailSheet** *(Dev, 15 min)*
+This is a 5-minute action on tp.media dashboard.
 
-`scoreVotes` is wired in localStorage and vote state is in the component at line 7151. What is not confirmed: do the thumbs visually render in the detail sheet? Open the app in a browser, tap any venue, check the detail sheet. If they render, done. If not, this is a silent failure — fix before the Reddit post. A miscalibrated score called out on Reddit without a feedback mechanism = no recovery path.
+**Decision: TP_MARKER set before the Reddit post goes live. The only action Jack must personally complete tonight.**
 
-**3. SHIP: Scoring accuracy audit — surfing + kayaking** *(Dev, 2–3 hrs)*
+### 2. DEV: Two fixes before midnight
 
-With 2,226 venues, the scoring algorithm is the most visible product surface. Two gaps are highest-risk given Reddit audiences: (1) Surfing ignores wind direction — offshore = good, onshore = bad, current algo doesn't distinguish. (2) Kayaking has no water temperature safety floor — below 15°C is cold shock risk, current algo doesn't cap score. Fix both before the Reddit post.
+**React pin (2 min):** Change `@18` → `@18.3.1` in both unpkg CDN script tags in `index.html`. The `@18` tag resolves to whatever is latest in the 18.x range. If unpkg serves anything new tonight, it changes what users get. Pin it.
+
+**venue.facing revert (20 min):** Delete `app.jsx` lines 4683–4692 (the `spotFacing`/`swellAlignment` block). Score swell by height + period only, same as pre-b2aa247. The `venue.facing ?? 270` default is wrong for ~half of global surf breaks. East-facing breaks (J-Bay, Brazilian coast, Caribbean) are penalized against a west-facing default. Surfline power-users on Reddit will notice wrong scores.
+
+Neither of these is a feature. Both are risk reduction. Both are reversible in under 5 minutes.
+
+**Decision: Both ship tonight. Total time: 25 minutes. Non-negotiable.**
+
+### 3. HOLD THE LINE: Code freeze until after Reddit
+
+The `d61e0c5` flight caching refactor added ~200 lines to the most critical user flow the day before launch. **Zero additional commits to app.jsx** between midnight tonight and when the Reddit post is live and stable (March 31, 1pm ET minimum).
+
+The only acceptable commits tonight: React pin (index.html, 1 line), venue.facing revert (app.jsx, ~10 lines deleted), TP_MARKER constant (1 line). Nothing else.
+
+**Decision: Code freeze from midnight tonight to March 31 1pm ET.**
 
 ---
 
@@ -64,55 +67,55 @@ With 2,226 venues, the scoring algorithm is the most visible product surface. Tw
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| Expand venues beyond 2,226 | **CUT** | Data quality > volume. Venue expansion closed until post-launch. |
-| Hotel affiliate deep links per venue | **DEFER** | Generic Booking.com link earns today. Per-venue deep links are a post-1K monetization refinement. |
-| Expose Trips + Wishlists tabs | **DEFER to 1K users** | Core flow (Explore → Detail → Book) converts first. More tabs = more confusion. |
-| Trip insurance CTA (World Nomads) | **DEFER** | SafetyWing CTA exists. One insurance CTA is enough pre-launch. |
-| Add airports LAS/PHX/MSP/DTW | **ALREADY DONE** | BASE_PRICES already has them per CLAUDE.md. Do not re-add. |
-| Fuzzy search / search history | **DEFER** | Retention feature. Ships after 500 users give signal on what they're searching for. |
-| Avalanche risk for ski | **DEFER to Phase 3** | No external API. Post-launch research item. |
-| Tide data for surf | **DEFER to Phase 3** | Current scoring not yet validated. Add data after thumbs give calibration signal. |
-| Dark mode | **CUT** | No signal it moves any metric. Not in next 6 months. |
-| Offline support | **CUT** | Stale conditions data defeats the core value prop. |
+| Onboarding email POST to server | **DEFER to April 1** | Don't ship email infrastructure on launch eve. Reddit list is small enough to manually capture if needed. |
+| Photo diversity fix | **DEFER to April 1** | Touching content 18 hours before launch risks introducing errors. The callout risk is lower than a launch-day bug. |
+| Proxy server persistent DB | **DEFER to 100 alerts** | In-memory store is correct for launch scale. Build after demand is validated. |
+| Strike alerts server polling | **DEFER — cut for launch** | `/api/alerts` registers but nothing polls. Audit AlertsTab copy: soften any language promising push delivery. Don't promise functionality that doesn't exist. |
+| Google Play via PWABuilder | **DEFER to 500 users** | Validate Reddit demand first. |
+| Trips + Wishlists tabs | **DEFER to 1K users** | Standing decision since March 25. |
+| Gear section re-enable | **CUT for launch** | `{false && GEAR_ITEMS...}` is correct. Revisit post-launch with real affiliate IDs. |
 
 ---
 
 ## Success Criteria
 
-**90-day target: 5K–8K users.** What separates 8K from 5K:
+**90-day target: 6K–10K users.**
 
-| Lever | 5K scenario | 8K scenario |
-|-------|------------|------------|
-| TP_MARKER | Still placeholder, $0 revenue, no reinvestment loop | Set before Reddit, commission flowing, attribution data active |
-| Score accuracy | r/surfing calls out wind direction bug, thread turns negative | Surfing + kayaking fixed, scores defensible to knowledgeable users |
-| Score thumbs | Zero feedback, miscalibration uncatchable | 50 votes within 48 hrs of Reddit post, calibration data in hand |
-| Sentry | **DONE** — real DSN live, crash visibility active | **DONE** |
-| Weather scaling | **DONE** — smart fetch, top 100 on load | **DONE** |
+| Lever | 6K scenario | 10K scenario |
+|-------|-------------|--------------|
+| TP_MARKER | Set on day 3 after Reddit. Commission data lost for first 3 days. | Set before Reddit post. Every click attributed from minute 1. |
+| Reddit thread quality | "I built a surf/ski conditions app" — generic, forgettable | Specific FOMO: "Pipeline is firing next Thursday. Flights from LAX: $220. Peakly called it 7 days out." |
+| venue.facing bug | Surfline power-users notice wrong scores for J-Bay, Brazil, Caribbean. Thread derails. | Reverted tonight. No wrong scores. |
+| Flight booking | Users who visited before March 29 may remember broken buttons. | All flight CTAs work. Shimmer → price snap is clean. First impression recovers. |
+| Email list | 0 emails captured server-side. No re-engagement ever. | Email POST ships April 1. Reddit users re-engaged when next window opens. |
 
-**Trajectory: 6K if TP_MARKER set + score thumbs confirmed before Reddit post. 8K if scoring accuracy audit ships and no algorithm callouts land.**
+**What separates 10K from 6K is not features — it's one moment of genuine social proof in the Reddit thread.** One person posting "holy shit, it said my local break would fire Thursday and it did" is worth 1,000 MAU more than any feature shipped this week.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 2,226-venue expansion creates a scoring credibility problem that hasn't been stress-tested.** At 192 curated venues, scores were calibrated against real, well-known spots. At 2,226, hundreds of venues are algorithmically populated with no human review. A Reddit user in r/surfing who opens a venue in their home region and sees a wildly wrong score will post about it. That thread will define Peakly's reputation before it has 100 users. Mitigation: before the Reddit post, spot-check 10–15 venues in r/surfing, r/skiing, and r/kayaking home regions for obvious scoring errors. One afternoon of review prevents a reputation-defining moment.
+**The `d61e0c5` flight caching refactor ships 18 hours before Reddit.**
+
+~200 lines of new logic touching `fetchTravelpayoutsPrice`, `ListingCard`, `FeaturedCard`, `CompactCard`, priority fetch queue, and new localStorage keys (`peakly_flights_{origin}_{dest}`). If there is a bug in cache invalidation logic, users could see stale prices indefinitely. If the priority fetch queue has a race condition, the hero card could spin on shimmer for the entire session.
+
+Neither bug would be caught by a casual manual test. Both surface under real load with diverse origin airports — exactly the conditions of a Reddit spike.
+
+The risk is acceptable because the broken URL bug in `1e5a026` was genuinely worse. But the lesson: stop shipping to the critical path on launch eve. Tonight's only commits are React pin + venue.facing revert.
 
 ---
 
-## Decisions Made
+## Decisions Made This Report
 
 | Date | Decision |
 |------|----------|
-| 2026-03-26 | **TP_MARKER → JACK ACTION TODAY.** Code is deployed. Revenue blocked only by missing marker string. |
-| 2026-03-26 | **Scoring accuracy audit — SHIP before Reddit post.** Surfing wind direction + kayaking water temp are highest-risk gaps. |
-| 2026-03-26 | **Score thumbs — confirm render before any Reddit post.** Logic wired; UI visibility unconfirmed. |
-| 2026-03-26 | **Smart weather fetch = DONE.** Top 100 on load + lazy detail fetch solves API scaling to 10K+ MAU. |
-| 2026-03-26 | **Sentry = DONE.** Real DSN at line 8. Production crash visibility active. |
-| 2026-03-26 | **ListingCard Plausible event = DONE.** `book_click` fires at line 4086. |
-| 2026-03-26 | **Venue expansion closed.** 2,226 is the count. No further expansion until post-launch. |
-| 2026-03-25 | **Trips + Wishlists DEFERRED to 1K users.** Core flow first. |
-| 2026-03-25 | **Dark mode CUT. Offline support CUT.** |
+| 2026-03-30 | **Code freeze on app.jsx: midnight tonight to March 31 1pm ET.** Only exceptions: React pin, venue.facing revert, TP_MARKER constant. |
+| 2026-03-30 | **Email server-side POST: defer to April 1.** Not shipping infrastructure on launch eve. |
+| 2026-03-30 | **Photo diversity: defer to April 1.** Content risk lower than launch-day code risk. |
+| 2026-03-30 | **TP_MARKER: Jack sets before Reddit post. Day 7. No exceptions.** |
+| 2026-03-30 | **venue.facing revert: ships tonight.** 20-minute fix, zero feature risk. |
+| 2026-03-30 | **Strike alert copy audit: soften push delivery language** in AlertsTab. Server-side polling doesn't exist yet. Don't promise it. |
 
 ---
 
-*Next report: 2026-03-27*
+*Next report: 2026-04-01 (post-Reddit launch retrospective)*

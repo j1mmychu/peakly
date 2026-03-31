@@ -1,250 +1,177 @@
-# UX Designer Report — 2026-03-25
+# Peakly UX Audit — 2026-03-27
 
-**UX Score: 7.2/10**
+## UX Score: 7.2/10
 
-The app has strong bones — the Explore tab, hero card, and VenueDetailSheet are well-structured. But undersized touch targets, a critical performance issue with 2,226 venues rendering at once, contrast failures, and inconsistent Plausible event naming hold it back from Airbnb-level polish.
-
----
-
-## 1. Core Flow Audit — Tap Counts
-
-### Flow A: Fresh visit to first venue with conditions + flight price visible
-
-1. App loads, splash dismisses automatically
-2. Onboarding appears (if `!profile.hasAccount`): "Get Started" (tap 1)
-3. Airport selection (tap 2), "Continue" (tap 3)
-4. Sports selection, "Show me what's firing" (tap 4)
-5. Hero card visible with conditions score + flight price — 0 additional taps
-
-**Result: 4 taps through onboarding, then 0 taps.** After onboarding completes, it is 0 taps to conditions + price on the hero card. Airbnb benchmark is 3 taps — Peakly matches or beats this for returning users.
-
-**Issue:** The `showOnboarding` state (line 8585) starts as `false`. It only triggers if `!profile.hasAccount` is checked somewhere in App. Confirmed: line 8585 `useState(false)` — new users must manually trigger onboarding from Profile tab. The onboarding should auto-trigger for first-time visitors.
-
-### Flow B: Set an alert for a specific venue
-
-1. Tap venue card (tap 1) — VenueDetailSheet opens
-2. Scroll to "Alert me when conditions peak" button (tap 2)
-3. Redirected to AlertsTab — but alert form is NOT pre-filled
-
-The `onAlert` callback (line 8934) sets `setDetailVenue(null)` and `setActiveTab("alerts")` but does NOT pass the venue's sport or location to AlertsTab. The user must:
-4. Tap "Create Alert" on AlertsTab (tap 3)
-5. Pick sport manually (tap 4)
-6. Pick condition (tap 5)
-7. Save alert (tap 6)
-
-**Result: 6 taps minimum.** The venue context is discarded at step 3. Pre-filling sport and location from the triggering venue would save 2 taps.
-
-### Flow C: Share a venue with a friend
-
-1. Tap venue card (tap 1)
-2. Tap "Share & Invite" in hero (tap 2)
-3. Tap "Copy link" — native Web Share API fires on mobile (tap 3)
-
-**Result: 3 taps.** Clean. Web Share API integration is excellent.
+Recent additions (pagination with "Show more" at 30 venues, region-based pricing fallback) are solid infrastructure decisions. They solve real scaling pain from 2,226 venues without degrading the core flow. But the same persistent UX debt from prior reports remains unaddressed: WCAG contrast failures, emoji in UI chrome, category pill gating, and ListingCard "Book" button color. Score ticks down 0.1 because the new features expose new issues (see below) while old ones compound.
 
 ---
 
-## 2. Plausible Event Wiring
+## 1. PAGINATION ("Show more" at 30)
 
-Plausible loaded via `script.hash.js` with `data-domain="j1mmychu.github.io"` (line 32 of index.html).
+### What's Good
 
-| Event | Status | Location | Notes |
-|-------|--------|----------|-------|
-| Tab Switch | WIRED | Line 8942 | `window.plausible('Tab Switch', {props: {tab}})` |
-| Venue Click | WIRED (different name) | Line 8802 | `logEvent('venue_open', ...)` — fires through `logEvent()` which calls `window.plausible()`. Event name is `venue_open` not `Venue Click` |
-| Flight Search | PARTIALLY WIRED | Line 7878 (detail CTA) | `logEvent('flight_click', ...)` fires on sticky CTA. ListingCard Book button (line 4086) fires `plausible('book_click', ...)` — different event name |
-| Wishlist Add | WIRED | Line 8789 | `window.plausible('Wishlist Add', {props: {venue: ...}})` |
-| Onboarding Complete | WIRED | Line 6985 | `window.plausible('Onboarding Complete', {props: {airport: ...}})` |
+- `visibleCount` state at line 5145 with default of 30 is the right number. Airbnb shows ~20 on mobile; 30 for a conditions app where browsing is the point is reasonable.
+- Increments by 30 (`setVisibleCount(v => v + 30)`) at line 5591 — clean, consistent batches.
+- Resets to 30 on category change (line 5250: `setVisibleCount(30)`) — correct behavior, no stale state.
+- "Show more (X remaining)" label at line 5596 gives users context on how much more there is.
+- Button placed outside the scroll area but inside the main container — no layout jumps.
 
 ### Issues
 
-**1. Flight event naming is split across two event names.** The sticky CTA in VenueDetailSheet sends `flight_click` (line 7878). The ListingCard Book button sends `book_click` (line 4086). These should be unified so Plausible shows one metric for all flight clicks.
+**Issue 1: No scroll-to-top on category switch.**
+When a user switches categories, `visibleCount` resets to 30 but the scroll position stays wherever they were. If they scrolled 200 venues into surfing and tap "Skiing," they land in the middle of a new list.
 
 FILE: app.jsx
-LINE: 4086
-ISSUE: ListingCard Book button fires `book_click` while VenueDetailSheet sticky CTA fires `flight_click`. Split data in Plausible dashboard.
-FIX:
-```jsx
-// Line 4086, change:
-if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}});
-// To:
-logEvent('flight_click', {venue: listing.title, category: listing.category, price: listing.flight.price, source: 'listing_card'});
-```
+LINE: ~5250 (pill onClick)
+ISSUE: Category switch resets count but not scroll position.
+FIX: Add `scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })` inside the pill onClick handler alongside `setVisibleCount(30)`.
 
-**2. No `search` event fires when user applies search filters.**
+**Issue 2: "Show more" button has no loading state.**
+With 2,226 venues, rendering 30 more cards causes a noticeable jank on mid-range phones. The button should show a brief spinner or skeleton state while React reconciles.
 
 FILE: app.jsx
-LINE: 8898 (onApply in SearchSheet)
-ISSUE: SearchSheet apply callback does not fire a Plausible event. Cannot measure search engagement.
-FIX:
-```jsx
-// Line 8898, inside onApply:
-onApply={(s) => {
-  logEvent('search', { activities: (s.activities || []).join(','), destination: s.destination || '', continent: s.continent || '' });
-  if (s.activities?.length === 1) setActiveCat(s.activities[0]);
-  else setActiveCat("all");
-  setProfile(p => ({ ...p, homeAirport: s.fromAirport }));
-}}
-```
+LINE: 5591
+ISSUE: Instant render of 30 new cards causes scroll jank on slower devices.
+FIX: Consider wrapping the `setVisibleCount` call in `startTransition()` (React 18) to keep the UI responsive during the batch render.
+
+**Issue 3: No "Back to top" affordance.**
+After tapping "Show more" 3-4 times (90-120 venues visible), there's no way to quickly return to the hero card or filters. Long lists need a floating "back to top" button that appears after scrolling past ~2 screen heights.
+
+FILE: app.jsx
+LINE: After 5599
+ISSUE: No way to return to top after deep scrolling through paginated results.
+
+**Issue 4: Total count not shown upfront.**
+Users don't know if there are 50 or 500 venues in a category until they start tapping "Show more." A simple count in the section header ("142 spots" or "Showing 30 of 142") sets expectations.
+
+FILE: app.jsx
+LINE: ~5540 (grid section header area)
+ISSUE: No total venue count visible before the grid.
 
 ---
 
-## 3. Visual Quality Audit
+## 2. REGION-BASED PRICING
 
-### Touch Targets (44x44px minimum per Apple HIG)
+### What's Good
 
-| Element | Actual Size | Passes? | Line |
-|---------|-------------|---------|------|
-| ListingCard share button | 32x32px | FAIL | 4003 |
-| ListingCard heart button | 36x36px | FAIL | 4010 |
-| CompactCard heart button | 36x36px | FAIL | 4196 |
-| VenueDetailSheet close button | 34x34px | FAIL | 7552 |
-| Score vote thumbs up/down | 30x30px | FAIL | 7605, 7608 |
-| BottomNav tab buttons | ~42px tall | BORDERLINE | 8510 |
-| Category pills | ~30px tall (`padding: 7px 14px`) | FAIL | 5276 |
-| FilterChip close "x" | No explicit size | FAIL | 5102 |
+- Fallback logic at lines 3820-3834 is well-structured. Checks `BASE_PRICES[ap][homeAirport]` first, then falls back to continent-pair estimates.
+- Route pricing matrix covers all 6 continent pairs (na, europe, asia, oceania, latam, africa) — 30 routes plus same-continent pricing.
+- Same-continent pricing differentiates NA ($350) from other continents ($450) — correct, NA domestic flights are cheaper.
+- The `isEstimate` flag at line 3839 properly flows through to UI ("est." label on CompactCard at line 4408).
+- Seed-based deterministic pricing (line 3836-3838) means the same venue always shows the same estimated price — no flickering between page loads.
 
-FIX: Increase all interactive element sizes to minimum 44x44px:
-```
-Line 4003: width:32,height:32 -> width:44,height:44
-Line 4010: width:36,height:36 -> width:44,height:44
-Line 4196: width:36,height:36 -> width:44,height:44
-Line 7552: width:34,height:34 -> width:44,height:44
-Line 7605,7608: width:30,height:30 -> width:40,height:40
-```
+### Issues
 
-### Type Hierarchy
+**Issue 5: Region estimates skew too low after discount calculation.**
+The seed-based discount (28-75% off at line 3837) applies on top of already-conservative region estimates. Example: Asia from NA base is $1,100 but after a 60% "discount," users see ~$440 — far below any real trans-Pacific round-trip. The "est." label helps, but showing obviously wrong prices erodes trust.
 
-Generally strong. Hero card: label (11px/700) -> title (20px/900) -> location (12px) -> stats -> CTA. Clear hierarchy.
+FILE: app.jsx
+LINE: 3837-3838
+ISSUE: Discount percentage range (28-75%) is too wide for region-based estimates, producing unrealistically low prices.
+FIX: For region-based fallbacks (where `!exact`), cap the discount range narrower (e.g., 15-35%) so estimates stay plausible. The wide discount range was designed for exact `BASE_PRICES` entries which are already above-market.
 
-**Issue:** CompactCard title is 11px (line 4220). In the 3-column grid at 430px container width, each card is ~127px. At 11px, venue names are truncated and barely legible. Should be 12px minimum.
+**Issue 6: "est." label on CompactCard is subtle — not visible on ListingCard.**
+CompactCard (line 4402-4409) shows a green "LIVE" badge or gray "est." text. But ListingCard (line 4242-4245) shows price and strikethrough with no estimate indicator at all. Users can't tell which prices are real vs. guessed on the primary card type.
 
-### Color Contrast — WCAG AA Failures
+FILE: app.jsx
+LINE: ~4242 (ListingCard price section)
+ISSUE: ListingCard doesn't indicate when prices are estimates. Only CompactCard has the "est." label.
+FIX: Add the same `listing.flight.live` / "est." indicator to ListingCard's price area.
 
-| Element | FG | BG | Ratio | Line |
-|---------|----|----|-------|------|
-| "Updated Xm ago" | #bbb | #fff | ~2.8:1 | 5479 |
-| "est." label | #888 | #fff | ~3.5:1 | 4243 |
-| Inactive BottomNav tab | #b0b0b0 | #fff | ~3.2:1 | 8513 |
-| "Skip for now" | #bbb | #fff | ~2.8:1 | 7182, 7214 |
-| Review count "(123)" | #aaa | #fff | ~2.9:1 | 4057 |
-| "rt" label | #aaa | #fff | ~2.9:1 | 5524 |
-| Strike-through price | #b0b0b0 | #fff | ~3.2:1 | 4083 |
+**Issue 7: Region fallback doesn't account for non-US home airports.**
+The route matrix (lines 3826-3832) works for any continent pair, but the same-continent logic at line 3824 only differentiates NA ($350) vs. everything else ($450). A European user flying within Europe should see ~$200 (Ryanair/easyJet reality), not $450. Asian intra-continent is also cheaper (~$300).
 
-All need 4.5:1 minimum for small text. FIX: Replace:
-- `#bbb` -> `#888` (5.0:1)
-- `#aaa` -> `#767676` (4.5:1 — exact AA threshold)
-- `#b0b0b0` -> `#888` (5.0:1)
-
-### Icon Quality — Emoji in UI Chrome
-
-Per the decision "Remove emoji from UI chrome" (CLAUDE.md line 270), several emoji remain in chrome positions:
-
-| Location | Emoji | Line |
-|----------|-------|------|
-| Sticky CTA flight button | plane emoji | 7884 |
-| Sticky CTA hotel button | hotel emoji | 7896 |
-| "Insider Tips" header | target emoji | 7692 |
-| "Gear for this trip" header | shopping bag emoji | 7707 |
-| "You'd also like" header | lightbulb emoji | 7665 |
-| "Save to list" header | folder emoji | 7822 |
-| ListingCard flight badge | plane emoji | 4026 |
-
-The sticky CTA is the highest-conversion element. Replace its plane emoji with SVG:
-```jsx
-// Line 7884, replace emoji with:
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1L11 12l-2 3H6l-1 1 3 2 2 3 1-1v-3l3-2 3.8 7.3c.2.4.7.5 1.1.3l.5-.3c.4-.2.5-.7.4-1.1z"/></svg>
-```
-
-### Spacing Consistency
-
-- Hero card uses `margin:"12px 14px 0"` (14px sides)
-- "Best Right Now" carousel uses `padding:"0 24px"` (24px sides)
-- Grid header uses `padding:"4px 24px 14px"` (24px sides)
-- 3-column grid uses `padding:"0 14px 24px"` (14px sides)
-
-The alternating 14px/24px side margins create visual misalignment. The grid at 14px is fine for density but doesn't align with the 24px section header above it.
-
-FIX (line 5551): Change 3-column grid padding to `"0 24px 24px"` and reduce gap to 8px to compensate.
+FILE: app.jsx
+LINE: 3824
+ISSUE: Same-continent fallback overestimates non-NA intra-continental flights.
+FIX: Expand the same-continent map: `{ na: 350, europe: 250, asia: 350, oceania: 400, latam: 400, africa: 500 }`.
 
 ---
 
-## 4. Airbnb Comparison
+## 3. PLAUSIBLE EVENT WIRING
 
-### Explore Tab vs. Airbnb Home
+Current state of the 5 required custom events:
 
-| Airbnb Does | Peakly Status | Gap |
-|-------------|---------------|-----|
-| Horizontal category icons (icon above, label below) | Emoji + text pills | Minor — pills work fine |
-| Map toggle FAB | No map | Not needed for conditions-first app |
-| Infinite scroll with windowed rendering | All 2,226 venues rendered at once | CRITICAL — see below |
-| Professional photography | Unsplash photos with lazy load | Acceptable |
-| Guest favorites badge | GO/MAYBE/WAIT badge | Peakly's is more actionable |
-| Skeleton loading | Shimmer placeholders | Matched |
+| Event | Status | Location |
+|-------|--------|----------|
+| Tab Switch | WIRED | Line 9027 — fires on BottomNav `setActive` with `{tab}` prop |
+| Venue Click | PARTIALLY WIRED | `venue_detail` logged via `logEvent` but not consistently with `plausible()` on card open |
+| Flight Search | WIRED | Line 7919 — `flight_click` fires on VenueDetailSheet CTA. Line 4247 — `book_click` fires on ListingCard Book button |
+| Wishlist Add | WIRED | Line 8847 — `Wishlist Add` fires with venue title |
+| Onboarding Complete | WIRED | Line 7051 — fires with airport prop |
 
-**Critical gap: No pagination.** With 2,226 venues, the grid renders all filtered venues at once. On lower-end phones this causes significant scroll jank and high memory usage. Airbnb uses virtualized lists. Peakly needs at minimum a "Show more" button.
-
-### VenueDetailSheet vs. Airbnb Listing
-
-| Airbnb Does | Peakly Status | Gap |
-|-------------|---------------|-----|
-| 5+ photo carousel | Single hero photo | Missing carousel |
-| Written reviews | Rating + count only | Expected for MVP |
-| Sticky "Reserve" CTA | Sticky "Flights + Hotels" CTA | Matched |
-| Native share sheet | Web Share API + custom panel | Matched |
-| Save to list | Heart + list picker | Matched |
+Missing: A dedicated `venue_detail` Plausible event when `onOpenDetail` is called. The `logEvent` helper (line 4046) calls `plausible()` internally, but the venue click event name used is inconsistent between the ListingCard `book_click` and the detail sheet open. Consider standardizing to `Venue Click` at the point where `onOpenDetail(listing)` is invoked in the App component.
 
 ---
 
-## 5. All Issues — Priority Ordered
+## 4. VISUAL QUALITY AUDIT (Persisting Issues)
 
-| # | Severity | Issue | Component | Line |
-|---|----------|-------|-----------|------|
-| 1 | CRITICAL | All 2,226 venues rendered at once — no pagination | ExploreTab | 5553 |
-| 2 | HIGH | onAlert discards venue context — alert form starts blank | App | 8934 |
-| 3 | HIGH | Flight event split: `book_click` vs `flight_click` | ListingCard | 4086 |
-| 4 | HIGH | Onboarding does not auto-trigger for new users | App | 8585 |
-| 5 | MEDIUM | 8 touch targets below 44x44px minimum | Multiple | Multiple |
-| 6 | MEDIUM | 7 WCAG AA contrast failures (#aaa/#bbb on white) | Multiple | Multiple |
-| 7 | MEDIUM | No search event fires on filter apply | App | 8898 |
-| 8 | MEDIUM | CompactCard title at 11px is too small | CompactCard | 4220 |
-| 9 | LOW | Emoji in UI chrome (sticky CTA, section headers) | VenueDetailSheet | 7884 |
-| 10 | LOW | Grid/header side padding misalignment (14px vs 24px) | ExploreTab | 5551 |
+### WCAG AA Contrast Failures (Still Unfixed)
+
+These have been reported in 8+ consecutive audits:
+
+| Element | Line | Fg | Bg | Ratio | Fix |
+|---------|------|----|----|-------|-----|
+| Review count (#aaa on #fff) | 4218 | #aaa | #fff | 2.32:1 | Change to #767676 (4.54:1) |
+| "Conditions now" label | 7665 | #aaa | #f0f9ff | ~2.1:1 | Change to #6b7280 |
+| Forecast low temp (#bbb on #f7f7f7) | ~7664 | #bbb | #f7f7f7 | 1.64:1 | Change to #6b7280 |
+| Similar venue location (#aaa on #fff) | ~7703 | #aaa | #fff | 2.32:1 | Change to #767676 |
+
+### Touch Targets
+
+- Category pills: `padding: 5px 6px` (line 5255). On narrow phones with 4 pills + "More" + heart, each pill can render at ~60px wide but only ~28px tall. Below the 44px minimum. Increase vertical padding to `8px 6px`.
+- "Clear all" filter button (line 5321): `padding: 3px 4px` — well below 44px in both dimensions. Increase to `10px 12px`.
+- Heart button on saved venue mini-cards (line 5358): `width:28, height:28` — below 44px minimum.
+
+### Emoji in UI Chrome
+
+Still present in VenueDetailSheet headers, category pills, and various badges. Decision from 2026-03-23 was "Remove emoji from UI chrome" but this hasn't been executed.
 
 ---
 
-## 6. The One Thing
+## 5. AIRBNB COMPARISON
 
-The single highest-impact UX change this week is **adding pagination to the venue grid** because rendering 2,226 cards at once causes scroll jank on mobile devices, directly degrading the core browse experience for every single user. No amount of visual polish matters if the app stutters when scrolling.
+### Pagination
 
-Here is the complete code:
+Airbnb uses infinite scroll with a "Show X homes" button on mobile map view. Peakly's "Show more" button approach is actually cleaner for a conditions app where users want to compare specific venues, not endlessly scroll. No change needed here — the explicit button is the right call.
 
-```jsx
-// In ExploreTab function, after existing state declarations (around line 5161), add:
-const [visibleCount, setVisibleCount] = useState(30);
+### Price Display
 
-// Reset visible count when category or filters change (add after line 5205):
-useEffect(() => { setVisibleCount(30); }, [activeCat, filters.sort, filters.maxPrice, search.skiPass]);
+Airbnb never shows estimated prices. Every price on Airbnb is real and bookable. Peakly shows "est." prices for venues where the flight API hasn't returned data. The "est." label is appropriate, but it needs to appear on ALL card types (currently missing from ListingCard — see Issue 6).
 
-// Before the grid JSX (around line 5553), add:
-const visibleGrid = gridListings.slice(0, visibleCount);
+### Empty States
 
-// In the grid (lines 5556-5559), replace gridListings with visibleGrid:
-// Change: gridListings.map(l => ...)
-// To:     visibleGrid.map(l => ...)
+When Airbnb has no results for a search, it suggests broadening criteria and shows a map of nearby options. Peakly's empty state (lines 5563-5583) is decent — it mentions the hero pick and suggests setting an alert. But it doesn't suggest removing active filters, which is the #1 reason users see empty results after applying a price cap or date range.
 
-// After the grid closing </div> tag (after line 5560), add:
-{!loading && visibleCount < gridListings.length && (
-  <div style={{ padding:"8px 24px 24px", gridColumn:"1 / -1" }}>
-    <button onClick={() => setVisibleCount(c => c + 30)} className="pressable" style={{
-      width:"100%", background:"#f5f5f5", border:"1.5px solid #e8e8e8",
-      borderRadius:14, padding:"14px", fontSize:13, fontWeight:700, color:"#555",
-      fontFamily:F, cursor:"pointer",
-    }}>
-      Show more ({gridListings.length - visibleCount} remaining)
-    </button>
-  </div>
-)}
-```
+FILE: app.jsx
+LINE: ~5563
+ISSUE: Empty state doesn't suggest removing active filters.
+FIX: When `hasActiveFilters` is true, show a "Try removing your filters" CTA alongside the existing options.
 
-This takes the grid from rendering 2,226 DOM nodes to 30, with progressive loading. Initial paint drops dramatically, scroll becomes smooth, and the pattern is standard across every major app. Ship today.
+---
+
+## 6. THE ONE THING
+
+**The single highest-impact UX change this week is adding scroll-to-top on category switch and a venue count header above the grid.**
+
+Reason: With 2,226 venues and pagination live, category switching is the #1 navigation action. Users who switch from Surfing (with 200+ results scrolled deep) to Skiing land in a disorienting mid-page position. Adding scroll-to-top fixes the most common pagination UX break, and showing "142 spots" above the grid sets expectations so users know whether to browse or filter.
+
+These are two surgical changes:
+
+1. **Scroll reset on category switch** — one line in the pill onClick handler
+2. **Venue count above grid** — one line showing `{gridListings.length} spots` in the grid header area
+
+Both are under 5 lines of code, zero risk, and immediately noticeable to every user who switches categories.
+
+---
+
+## Summary
+
+| Area | Verdict |
+|------|---------|
+| Pagination (30 + Show more) | Solid implementation. Missing scroll-to-top on category switch and venue count display. |
+| Region-based pricing | Good fallback architecture. Discount range too wide for estimates. ListingCard missing "est." indicator. |
+| WCAG contrast | 4+ failures persist across 8 reports. |
+| Touch targets | Category pills and filter clear button below 44px minimum. |
+| Plausible events | 4 of 5 wired. Venue Click needs standardization. |
+| Core flow | 2 taps to book. No regression. |
