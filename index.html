@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0284c7" />
   <meta name="description" content="Peakly — Find surf, ski &amp; adventure spots when conditions and cheap flights align." />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Peakly — Adventure When Conditions Align" />
-  <meta property="og:description" content="Find surf, ski &amp; beach spots with perfect conditions and cheap flights. Real-time weather scoring for 2,200+ venues worldwide." />
+  <meta property="og:description" content="Find surf, ski &amp; beach spots with perfect conditions and cheap flights. Real-time weather scoring for 180+ venues worldwide." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://j1mmychu.github.io/peakly/" />
   <meta property="og:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center" />
@@ -23,14 +23,9 @@
   <title>Peakly — Find Surf, Ski &amp; Adventure Spots with Cheap Flights</title>
   <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
 
-  <!-- Preconnect hints for performance -->
+  <!-- Plus Jakarta Sans (needed for splash before app.jsx loads) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://unpkg.com" />
-  <link rel="preconnect" href="https://plausible.io" />
-  <link rel="preconnect" href="https://images.unsplash.com" />
-  <link rel="dns-prefetch" href="https://api.open-meteo.com" />
-  <link rel="dns-prefetch" href="https://marine-api.open-meteo.com" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" />
 
   <!-- Analytics: Plausible -->
@@ -46,12 +41,7 @@
         "@id": "https://j1mmychu.github.io/peakly/#website",
         "url": "https://j1mmychu.github.io/peakly/",
         "name": "Peakly",
-        "description": "Find surf, ski and adventure spots when conditions and cheap flights align.",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": { "@type": "EntryPoint", "urlTemplate": "https://j1mmychu.github.io/peakly/#search={search_term_string}" },
-          "query-input": "required name=search_term_string"
-        }
+        "description": "Find surf, ski and adventure spots when conditions and cheap flights align."
       },
       {
         "@type": "WebApplication",
@@ -61,37 +51,13 @@
         "applicationCategory": "TravelApplication",
         "operatingSystem": "Web",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-        "featureList": "Real-time condition scoring, Flight price tracking, 2200+ adventure venues, Vibe-based AI search, Trip planning, Condition alerts, Surf forecasts, Ski conditions, Beach weather, Kitesurfing, Diving visibility, Climbing weather"
+        "featureList": "Real-time condition scoring, Flight price tracking, 180+ adventure venues, Vibe-based search, Trip planning, Condition alerts"
       },
       {
         "@type": "Organization",
         "@id": "https://j1mmychu.github.io/peakly/#org",
         "name": "Peakly",
         "url": "https://j1mmychu.github.io/peakly/"
-      },
-      {
-        "@type": "ItemList",
-        "name": "Adventure Sport Categories",
-        "numberOfItems": 11,
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Skiing Destinations", "url": "https://j1mmychu.github.io/peakly/#skiing" },
-          { "@type": "ListItem", "position": 2, "name": "Surfing Spots", "url": "https://j1mmychu.github.io/peakly/#surfing" },
-          { "@type": "ListItem", "position": 3, "name": "Beach & Tanning", "url": "https://j1mmychu.github.io/peakly/#tanning" },
-          { "@type": "ListItem", "position": 4, "name": "Hiking Trails", "url": "https://j1mmychu.github.io/peakly/#hiking" },
-          { "@type": "ListItem", "position": 5, "name": "Diving Destinations", "url": "https://j1mmychu.github.io/peakly/#diving" },
-          { "@type": "ListItem", "position": 6, "name": "Rock Climbing", "url": "https://j1mmychu.github.io/peakly/#climbing" },
-          { "@type": "ListItem", "position": 7, "name": "Kitesurfing", "url": "https://j1mmychu.github.io/peakly/#kite" },
-          { "@type": "ListItem", "position": 8, "name": "Kayaking", "url": "https://j1mmychu.github.io/peakly/#kayak" },
-          { "@type": "ListItem", "position": 9, "name": "Mountain Biking", "url": "https://j1mmychu.github.io/peakly/#mtb" },
-          { "@type": "ListItem", "position": 10, "name": "Fishing", "url": "https://j1mmychu.github.io/peakly/#fishing" },
-          { "@type": "ListItem", "position": 11, "name": "Paragliding", "url": "https://j1mmychu.github.io/peakly/#paraglide" }
-        ]
-      },
-      {
-        "@type": "TouristDestination",
-        "name": "Adventure Destinations on Peakly",
-        "description": "2,226 adventure destinations across 6 continents with live condition scoring and flight prices",
-        "touristType": ["Adventure traveler", "Surfer", "Skier", "Hiker", "Diver", "Climber"]
       }
     ]
   }
@@ -273,12 +239,12 @@
       Peakly — Surf, Ski &amp; Adventure Spots with Live Conditions &amp; Cheap Flights
     </h1>
     <p style="text-align:center;color:#717171;font-size:14px;max-width:400px;margin:0 auto;">
-      Discover 2,200+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
+      Discover 170+ adventure destinations worldwide. Real-time weather scoring tells you when conditions are perfect.
     </p>
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260329v1" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260331a" data-presets="react"></script>
 
   <!-- Service Worker registration -->
   <script>
