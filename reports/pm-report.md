@@ -1,109 +1,109 @@
-# Peakly PM Report — 2026-03-28 (v18, Late Day)
+# PM Report — 2026-03-31 (v19)
 
-**Reddit launch target: Tuesday March 31, 9–11am ET. 3 days out.**
-
----
-
-## Shipped Since Last Report
-
-| Item | Verdict | Notes |
-|------|---------|-------|
-| **BASE_PRICES regional fallback** (commit 16ce46d) | **RIGHT CALL** | Covers all 776 airport codes with region-based pricing instead of a flat fallback. This was a P1 — broken flight pricing for 70% of venues was a silent conversion killer. Shipped correctly and surgically. |
-| **Cache buster → v=20260328a, SW → peakly-v12** | Right. | Standard hygiene. No concerns. |
-| **Pagination (30 + Show more)** | Right. | Prevents scroll-lag on mobile with 2,226 venues. Reddit users won't see a 2,226-card wall. |
-| **Competitor report filed** | Signal noted below. | |
-| **Content report filed** | Photo diversity risk quantified. See risk section. |
-
-**Opportunity cost assessment:** BASE_PRICES was the right thing to build. No wasted cycles here. TP_MARKER is now the single highest-ROI unblocked action remaining — and it's Jack's, not dev's.
+*Product Manager agent — daily report*
+*Today is Reddit launch day. Hard date holds.*
 
 ---
 
-## Blocked
+## Shipped Since Last Report (2026-03-29)
 
-| Blocker | Owner | Status | Days Stalled |
-|---------|-------|--------|-------------|
-| **TP_MARKER placeholder** | Jack — tp.media dashboard | ❌ NOT DONE | **Day 5** |
-| **venue.facing swell revert** | Dev | ❌ NOT DONE | Day 2 |
-| **Photo diversity — top 15 base IDs** | Dev/Content | ❌ NOT DONE | Day 1 |
-| **Email capture → server-side list** | Dev | ❌ NOT DONE | Day 1 |
-| **React pin to @18.3.1** | Dev | ❌ NOT DONE | Day 2 |
-| **LLC approval** | External | Pending | — |
+| Commit | Verdict |
+|--------|---------|
+| `fix: repair broken flight booking button URL construction` | **Concerning.** A regression was introduced by the "flight pricing fixes" commit and had to be immediately patched. Indicates the flight URL code is fragile and has no test coverage. The fix is correct but the pattern is worrying on launch day. |
+| `perf: flight price caching, priority fetching, progressive loading` | Correct. Reduces VPS load and makes price display feel faster. Good call, well-timed. |
+| `feat: airport setup modal in onboarding flow` | Good UX improvement. Separates airport setup from the main onboarding flow. Reduces abandonment for users who skip onboarding. |
+| `feat: add proxy server with /api/flights/latest and /api/alerts routes` | **Critical deployment dependency.** This commit added `server/proxy.js` to the repo — but has it been deployed to the VPS? If not, `/api/flights/latest` returns 404 for all users. Flight pricing is broken until Jack SSHes into 198.199.80.21 and deploys this file. This is the biggest risk entering Reddit launch today. |
+| `fix: flight pricing accuracy - from prices, latest endpoint, timestamps, exact date deep links` | Correct direction. "from $X" language with last-seen timestamps is accurate and reduces user disappointment at booking. |
+| `feat: expand venues from 2226 to 3726 (+1500 surf/ski/beach)` | Acceptable. Timing is fine — 3,726 surf/ski/beach venues fits the Top 3 focus for Reddit launch. |
+| `feat: add Capacitor + push notification infrastructure` | **DEFER signal.** This is Phase 2 infrastructure shipped on the day of Phase 1 launch. Not wasted but added complexity on the riskiest day. Server-side polling endpoint is still unbuilt — infrastructure is half-done. |
 
-**TP_MARKER is now at Day 5. This is the only revenue blocker and it is a 5-minute action for Jack. Every Reddit user who clicks a flight link between now and when Jack fixes this is an unattributed, unmonetized conversion.**
+**Opportunity cost flag:** At least 3 of 7 commits on 2026-03-29 were Phase 2 work (Capacitor, proxy alert routes). The two P0/P1 bugs — TP_MARKER and venue.facing — were not touched. Wrong priority order the day before launch.
+
+---
+
+## Bug Triage — Reddit Launch Day Status
+
+| Bug | Severity | Status | Action |
+|-----|----------|--------|--------|
+| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | ❌ STILL UNSET — Day 9 | Jack: tp.media → Dashboard → Markers → copy ID → `app.jsx:5316` → push. 5 minutes. Every flight click since day 1 has earned $0. Reddit sends potentially 500+ flight clicks today. All $0 without this fix. |
+| **proxy server not confirmed deployed** | **P0** | ❓ UNKNOWN | Jack: `curl https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN`. If 404: deploy server/proxy.js per README. Flight prices broken for all Reddit visitors until confirmed live. |
+| **venue.facing ?? 270 swell direction bug** | **P1** | ❌ Still in code (`app.jsx:4683`) | Dev: Remove `spotFacing`/`swellAlignment` block. Revert to height + period scoring only. 30 min. East-facing breaks (J-Bay, Cabarete, Brazilian coast) scored incorrectly. A r/surfing user checking their home break will notice and call it out. |
+| **peakMonths dead code** | **P3** | ❌ `app.jsx:4987` | Dev: Remove 5-line block after Reddit. Not urgent today. |
+| **React/ReactDOM unpinned** | **P2** | ❌ Still `@18` | Pin to `@18.3.1` in index.html. 2-min fix. Low probability but catastrophic if React ships a breaking change on launch day. |
+
+---
+
+## Known Blockers
+
+| Blocker | Owner | Urgency |
+|---------|-------|---------|
+| TP_MARKER placeholder | **Jack** — 5 min at tp.media dashboard | **RIGHT NOW. Before Reddit post goes up.** |
+| VPS proxy deployment of server/proxy.js | **Jack** — SSH to VPS, scp + pm2 restart | **RIGHT NOW. Flight prices may be 404ing since 2026-03-29.** |
+| venue.facing swell direction revert | **Dev** — 30 min | **Before Reddit post goes up** |
+| LLC approval | External | Unblocks REI, Backcountry, GetYourGuide, Stripe |
 
 ---
 
 ## This Week's Top 3 Priorities
 
-### 1. JACK: Fix TP_MARKER. 5 minutes. Do it now.
+### 1. SHIP NOW: Confirm TP_MARKER + VPS proxy deployment — Jack, 15 min total
 
-This is not a PM recommendation. It is a math problem. Reddit post goes live in 72 hours. Average CTR on flight links in adventure travel apps: 8–12%. At 500 Reddit visitors, that is 40–60 flight clicks that earn $0 and have zero attribution if TP_MARKER stays broken. This has been flagged for 5 consecutive days. It is the highest-ROI action in the entire backlog and it takes 5 minutes on the tp.media dashboard. **Do it before anything else.**
+Two Jack actions that must happen before the Reddit post goes live:
 
-**Decision: TP_MARKER must be set before Reddit. No exceptions.**
+**TP_MARKER (5 min):** Log into tp.media dashboard → Markers → copy marker ID → open `app.jsx` → line 5316 → replace `"YOUR_TP_MARKER"` with real ID → push. If Reddit sends 500 users today and 20% click a flight link, that's 100 flight clicks × $0.00 = $0. With marker set, that's $15–40 from launch day alone. It has been 9 days.
 
-### 2. DEV: venue.facing revert + React pin. 35 minutes total.
+**VPS proxy (10 min):** `curl "https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN"`. If 200, you're good. If 404: `scp -r server/ root@198.199.80.21:/opt/peakly-proxy/ && ssh root@198.199.80.21 "cd /opt/peakly-proxy && npm install && pm2 restart peakly-proxy"`. The `server/proxy.js` commit may have added `/api/flights/latest` to the app before deploying the route to the VPS. If so, flight prices have been 404ing since 2026-03-29 20:44 PM — 36+ hours.
 
-**venue.facing (30 min):** Delete the `spotFacing`/`swellAlignment` scoring block in `scoreVenue()`. The `venue.facing ?? 270` default is wrong for roughly half of global surf breaks. East-facing breaks (J-Bay, Brazilian coast) are being penalized against a west-facing default. The surfing community on Reddit has the domain expertise to notice wrong scores. This will be called out in the thread. Revert to scoring swell by height + period only. Option A (delete the block entirely) is the right call. No new data model required.
+### 2. SHIP NOW: Fix venue.facing swell direction bug — Dev, 30 min
 
-**React pin (2 min):** Change `@18` → `@18.3.1` in both CDN script tags in `index.html`. Eliminates the risk of React shipping a breaking change to the CDN that takes the app down during the Reddit launch window.
+Remove lines 4683–4691 in app.jsx (the `spotFacing`/`swellAlignment` block). Revert surf scoring to height + period + wind only. The `venue.facing ?? 270` default is incorrect for all surf breaks that don't face west — which is roughly half of all surf spots globally. On a r/surfing thread, one surfer noticing their local break has a wrong score derails the launch. 30-minute surgical fix, zero downside risk.
 
-**Decision: Both ship before March 31. 35 minutes total. Non-negotiable.**
+### 3. SHIP: Reddit post — 9–11am ET today, r/surfing first
 
-### 3. DEV: Email capture POST to server-side list. 30 minutes.
-
-The onboarding sheet collects `profile.email` into localStorage only. When 500 people try the app after the Reddit post, zero of their emails are captured anywhere retrievable. The fix: `fetch()` POST on onboarding complete to a Mailchimp or Loops.so webhook. The VPS is already running and can proxy this. A Loops.so free tier handles 2,500 contacts with no LLC required and takes 10 minutes to set up.
-
-**This is not a nice-to-have.** Every user who types their email and never hears from Peakly is a failed re-engagement. Condition windows close and reopen — email is the re-engagement vector. Without it, the Reddit spike decays to zero with no retained list.
-
-**Decision: Email capture POST ships before Reddit. If it slips past March 30, Reddit still goes — but it costs us the list.**
+Hard date holds. The app is ready for its first 500 users. Post to r/surfing first (highest relevance for surf venue expansion), then r/skiing and r/solotravel over the following 48 hours. FOMO headline: specific venue, real window, real price. Author must be active in thread for the first 4 hours.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Verdict | Reason |
-|---------|---------|--------|
-| **Photo diversity pass (all 2,226 venues)** | **DEFER to post-Reddit, but top 15 offenders NOW** | Replacing all 2,226 photos is a multi-day content job. Replacing the top 15 base IDs (covering ~1,700 venues) is a 2-hour find-replace. Do the 80/20 version before March 31. Full pass is Phase 2. |
-| **Wishlists tab expose** | **DEFER to post-Reddit, day 2** | Code is built. Wire it 48 hours after the Reddit post, when we have real users to observe. Not a launch blocker. |
-| **Window Score (Phase 2 feature)** | **DEFER to post-Reddit** | This is the moat feature. Build at 500 users with calibration data, not before. |
-| **Google Play Store via PWABuilder** | **DEFER to 500 users** | Amplifies an existing user base — it doesn't create one. |
-| **Trips + Wishlists full feature** | **DEFER to 1K users** | Standing decision. Core flow converts first. |
-| **Open-Meteo 429 handler** | **SHIP — 10 min, not a feature** | Crash prevention. Rate limiting during the Reddit spike breaks Explore silently. Add `if (r.status === 429) return null;` before the `!r.ok` throw. |
-| **More scoring algorithm refinements** | **FROZEN** | Standing decision. venue.facing revert is the one exception (bug fix). No new scoring commits until post-Reddit calibration data. |
-| **Stripe / Peakly Pro** | **DEFER to 1K users** | LLC approved but acquisition before monetization. |
+| Feature | Decision | Reasoning |
+|---------|----------|-----------|
+| **Trips + Wishlists tabs exposed** | **DEFER** | Built but hidden. Post-launch when core Explore → Detail → Book flow is validated. Adding tabs increases cognitive load for first-time Reddit visitors. |
+| **Strike alerts server polling** | **DEFER** | Infrastructure half-built. Full push requires server polling + APNs + Expo Push. Phase 2 after 1K users validate via email waitlist. |
+| **Amazon gear links for 5 zero-revenue categories** | **DEFER to week 2** | +$1.50–2.00 RPM but irrelevant to Reddit conversion. Ship after launch without disrupting momentum. |
+| **Google Play Store via PWABuilder** | **DEFER to week 3** | $25, zero code changes — but focus on Reddit execution first. |
+| **Dark mode** | **CUT** | Permanently. No signal this moves retention. Not in the next 6 months. |
+| **Thumbs up/down feedback** | **CUT** | Research-backed scoring is the right path. Crowd validation introduces noise and requires backend. |
 
 ---
 
 ## Success Criteria
 
-**90-day target: 8K–10K users.** What separates 10K from 8K:
+| Metric | 5K users (base case) | 8K users (upside case) |
+|--------|---------------------|----------------------|
+| Reddit launch | 200–300 upvotes | 500+ upvotes, cross-posted to r/travel |
+| Email capture | 50+ emails from Reddit spike | 150+ emails → re-engagement at day 7 → 20% return rate |
+| TP_MARKER | Set before launch | Set before launch (identical requirement) |
+| VPS proxy | Confirmed live before post | Confirmed live before post (identical requirement) |
+| Retention | 10% of Reddit visitors return week 2 | 20% return via email re-engagement |
+| Affiliate clicks | 50+ Travelpayouts clicks week 1 | 150+ clicks + TP_MARKER set = first commission check |
 
-| Lever | 8K scenario | 10K scenario |
-|-------|-------------|--------------|
-| TP_MARKER | Set before Reddit. Flight clicks attributed and monetized from day 1. | Same — this is table stakes. |
-| Reddit post quality | FOMO headline: "Tavarua is firing next week. Flights from LAX $220." Real window, real price. | Same headline + author active in thread for 4 hours post-launch, answering questions. |
-| Email list | Server-side capture live. 100+ emails from Reddit spike become re-engagement asset. | 200+ emails captured. First re-engagement email within 7 days. |
-| Photo diversity | Top 15 offenders replaced. No screenshot callout on Reddit. | Top 15 replaced + content agent running weekly audits. |
-| Retention signal | 10% of Reddit visitors return in week 2 (condition window changed). | 20% return rate because email re-engagement fires at week 1. |
-
-**Verdict:** Getting to 10K (vs 8K) is not a features question. It is a retention question. The app's value proposition — conditions change, you should know when — is only delivered via re-engagement. Email capture is the mechanism. Build it before Reddit.
+**Verdict:** 8K vs 5K is a Reddit execution + email re-engagement question, not a features question. The app is sufficient. TP_MARKER and VPS proxy confirmation decide the revenue outcome. venue.facing decides the credibility outcome. Everything else is noise today.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The content agent's "0% photo duplication" claim in CLAUDE.md is false, and it is documented as shipped.**
+**The proxy server commit introduced a deployment dependency that may have broken flight pricing for all users since 2026-03-29.**
 
-CLAUDE.md currently states: "All 2,226 venue photos fixed — stable Unsplash photo IDs" and "0% photo duplication across all 2,226 venues." The content agent's report today contradicts this directly: only ~176 unique photos exist for 2,226 venues. Average venue shares its photo with 12 others. Fishing venues share ~1 photo. Kayak venues share ~1 photo.
+`feat: add proxy server with /api/flights/latest and /api/alerts routes` committed `server/proxy.js` on 2026-03-29 at 20:44 PM. The app.jsx was simultaneously updated to call `/api/flights/latest`. If the existing VPS proxy didn't have this route — and there's no git history or deployment log showing it did — then flight prices have been 404ing for 36+ hours before Reddit launch.
 
-The risk is not that this looks bad — though it does. The risk is that **CLAUDE.md, the shared brain for all AI agents, contains a false completed status.** Every agent reading CLAUDE.md this week will treat photo diversity as solved and deprioritize it. This is how the issue has gone 5+ days without a fix.
+UptimeRobot monitors the `/health` endpoint. It does not monitor `/api/flights/latest`. This failure would be invisible to monitoring. Users would see the "Estimated prices" fallback banner — which looks like a data problem, not a broken endpoint.
 
-**Corrective action:**
-1. Update CLAUDE.md: mark "0% photo duplication" as INACCURATE — replace with "176 unique photos across 2,226 venues. Diversity pass required before Reddit."
-2. Add "Photo diversity pass (top 15 base IDs)" to Pre-Launch Checklist as unchecked P1.
-3. Ship the 80/20 version (top 15 offenders, ~2 hrs) before Reddit.
-
-If a Reddit commenter posts a screenshot of the same fishing photo on 20 Alaska venues, that thread will define the brand for 500+ potential users before any response is possible.
+**Corrective action before Reddit post:**
+1. Jack: `curl "https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN"` — right now
+2. If 404: deploy server/proxy.js per README (10 min)
+3. After launch: add `/api/flights/latest` route check to UptimeRobot
 
 ---
 
@@ -111,33 +111,35 @@ If a Reddit commenter posts a screenshot of the same fishing photo on 20 Alaska 
 
 | Date | Decision |
 |------|----------|
-| 2026-03-28 | **TP_MARKER: Day 5 is unacceptable. Must be set before Reddit. Jack action item.** |
-| 2026-03-28 | **venue.facing revert: SHIP before March 31. Option A — delete the block entirely.** |
-| 2026-03-28 | **Email capture POST: SHIP before March 31 or Reddit is a spike with no list.** |
-| 2026-03-28 | **Open-Meteo 429 handler: SHIP — crash prevention, 10 min.** |
-| 2026-03-28 | **Photo diversity top-15 pass: SHIP before March 31. Full pass is Phase 2.** |
-| 2026-03-28 | **CLAUDE.md "0% duplication" status: INACCURATE. Must be corrected immediately.** |
-| 2026-03-28 | **Reddit r/surfing launch: Tuesday March 31, 9–11am ET. Hard date holds.** |
-| 2026-03-28 | **Scoring algorithm: FROZEN. No new commits until post-Reddit calibration.** |
+| 2026-03-31 | **TP_MARKER: P0. Jack must set before Reddit post. 9 days = $0 flight commissions.** |
+| 2026-03-31 | **VPS proxy deployment: P0. Confirm `/api/flights/latest` live before post goes up.** |
+| 2026-03-31 | **venue.facing swell fix: SHIP before Reddit post. 30 min. Credibility risk on r/surfing.** |
+| 2026-03-31 | **Trips + Wishlists tabs: DEFER. Post-launch. Core flow first.** |
+| 2026-03-31 | **Strike alerts server: DEFER to Phase 2. Finish after user validation.** |
+| 2026-03-31 | **Reddit post: 9–11am ET today. r/surfing first. Non-negotiable.** |
 
 ---
 
-## Pre-Reddit Checklist (3 days out)
+## Reddit Launch Day Checklist (Do In Order)
 
-**Must-have (blocks launch quality):**
-- [ ] Jack: Set TP_MARKER in tp.media dashboard (5 min)
-- [ ] Dev: Revert venue.facing swell direction block in scoreVenue() (30 min)
-- [ ] Dev: Pin React to @18.3.1 in index.html (2 min)
+**Before post goes live:**
+- [ ] Jack: set TP_MARKER (`app.jsx:5316`) — 5 min
+- [ ] Jack: `curl https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN` — confirm 200
+- [ ] If 404: deploy server/proxy.js to VPS — 10 min (see server/README.md)
+- [ ] Dev: remove venue.facing block (`app.jsx:4683–4691`) + push — 30 min
+- [ ] Bump cache buster in index.html after venue.facing fix
 
-**Should-have (costs us retention if skipped):**
-- [ ] Dev: Email capture POST to Loops.so or Mailchimp on onboarding complete (30 min)
-- [ ] Dev: Open-Meteo 429 handler (10 min)
-- [ ] Dev/Content: Top-15 most-duplicated photo base IDs replaced (2 hrs)
+**Post live:**
+- [ ] Author active in thread for 4 hours
+- [ ] Monitor Plausible real-time dashboard
+- [ ] Monitor VPS health: `peakly-api.duckdns.org/health`
+- [ ] Cross-post to r/skiing + r/solotravel within 24 hours if ≥ 50 upvotes
 
-**Nice-to-have:**
-- [ ] Jack: REI Avantlink signup (30 min — $0 → $6.16 RPM)
-- [ ] Write Reddit post draft (FOMO headline: specific venue, real window, real price)
+**Within 48 hours:**
+- [ ] Email re-engagement setup (Loops.so or Mailchimp) for new signups
+- [ ] Jack: REI Avantlink signup (30 min — unlocks $6.16 RPM)
+- [ ] Add `/api/flights/latest` route to UptimeRobot monitoring
 
 ---
 
-*Next report: 2026-03-29 | Filed by PM agent (v18)*
+*Next report: 2026-04-01 — post-Reddit launch retrospective | Filed by PM agent (v19)*
