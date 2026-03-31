@@ -1,7 +1,7 @@
 # Peakly Content & Data Report
-**Date:** 2026-03-26
+**Date:** 2026-03-31
 **Auditor:** Content & Data Agent
-**Data health score: 71/100**
+**Data health score: 58/100**
 
 ---
 
@@ -9,186 +9,233 @@
 
 | Factor | Score | Notes |
 |--------|-------|-------|
-| Total venue count (192) | 18/20 | Good base; 8 more for 200 |
-| Category balance | 22/40 | 7 of 11 categories are stubs |
-| Data integrity | 14/15 | 1 duplicate photo, 1 duplicate Amazon URL |
-| Gear items completeness | 9/10 | All 11 have gear; hiking missing from PACKING |
-| Seasonal relevance | 4/5 | 5 out-of-season ski venues have no deprioritization signal |
-| Content quality | 4/10 | No description fields on venues; LOCAL_TIPS covers detail only |
+| Total venue count (2,226) | 20/20 | All 11 categories have 200+ venues |
+| Category balance | 20/20 | Narrowest range: 200–205 venues/category |
+| Data integrity — fields | 13/15 | All 2,226 venues have id, category, lat, lon, ap, photo, tags, rating. 2 venues have < 100 reviews (minor). |
+| Data integrity — airports | 4/15 | **CRITICAL:** 579 of 776 unique airport codes are missing from AP_CONTINENT. 1,154 venues (51.8%) return no continent → continent filter is broken for the majority of the venue catalog |
+| Photo diversity | 1/10 | **CRITICAL:** Fishing uses 1 photo for 202 venues. Kayak: 1 photo/201 venues. MTB: 2/201. Climbing: 3/204. Diving: 3/205. Kite: 3/200. All photos show different crops but share the same Unsplash base image. |
+| Gear items completeness | 10/10 | All 11 categories have gear items, including hiking (previously missing — now fixed) |
+| Seasonal relevance | 4/5 | 16 southern hemisphere ski venues are fully closed with zero snow (June opening) |
+| Content quality | 6/5 | Coordinates, ratings (4.75–4.99), reviews (89–42,800) all within sane ranges. No zero-coords. No invalid lat/lon. Ratings capped below 5.0. |
 
 ---
 
 ## 2. Category Breakdown
 
-| Category | Venues | Status |
-|----------|--------|--------|
-| Tanning | 60 | Over-indexed — 3x the next category |
-| Surfing | 53 | Over-indexed |
-| Skiing | 50 | Over-indexed |
-| Hiking | 12 | Borderline — barely above stub threshold |
-| Diving | 5 | **STUB** — needs 10+ |
-| Climbing | 4 | **STUB** |
-| Kite | 4 | **STUB** |
-| Kayak | 1 | **CRITICAL STUB** — single venue |
-| MTB | 1 | **CRITICAL STUB** — single venue |
-| Fishing | 1 | **CRITICAL STUB** — single venue |
-| Paraglide | 1 | **CRITICAL STUB** — single venue |
-| **Total** | **192** | |
+| Category | Venues | Unique Photos | Photo Reuse Rate | Status |
+|----------|--------|--------------|------------------|--------|
+| Tanning | 205 | 60 | 3.4× | ✅ Healthy |
+| Surfing | 203 | 50 | 4.1× | ✅ Acceptable |
+| Skiing | 204 | 39 | 5.2× | ✅ Acceptable |
+| Paraglide | 201 | 125 | 1.6× | ✅ Best in class |
+| Hiking | 200 | 12 | 16.7× | ⚠️ Moderate reuse |
+| Kite | 200 | 3 | 66.7× | 🚨 Severe |
+| Climbing | 204 | 3 | 68.0× | 🚨 Severe |
+| Diving | 205 | 3 | 68.3× | 🚨 Severe |
+| MTB | 201 | 2 | 100.5× | 🚨 Critical |
+| Kayak | 201 | 1 | 201.0× | 🚨 Critical — single photo |
+| Fishing | 202 | 1 | 202.0× | 🚨 Critical — single photo |
+| **TOTAL** | **2,226** | **174 unique** | **12.8× avg** | |
 
-4 categories have only 1 venue each. Users tapping these filter pills see a single card — this reads as broken, not curated.
+**No stubs** — all categories cleared 200+ venue threshold since 2026-03-29 expansion.
 
 ---
 
 ## 3. Data Integrity Issues
 
-### Duplicate Photos (1 confirmed)
-`rajaampat` and `sipadan` both use:
-`https://images.unsplash.com/photo-1682687220742-aba13b6e50ba`
-Both are diving venues in SE Asia. Fix: replace sipadan's photo with a unique ID.
+### 🚨 CRITICAL — Continent Filter Broken for 51.8% of Venues
 
-### Duplicate Amazon Affiliate URL (1 confirmed)
-`https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen` appears in both the `surfing` and `tanning` gear arrays. Fix: differentiate the tanning entry (see Section 4).
+When the venue catalog expanded from 192 → 2,226, 579 new airport codes were added to venue objects but **NOT added to the `AP_CONTINENT` lookup map**. This means:
 
-### 🚨 Wrong Airport Code — Dahab, Egypt
-- **Venue:** `id:"dahab"` — Blue Hole, Sinai Peninsula, Egypt
-- **Current:** `ap:"AMM"` (Amman, Jordan — **wrong country, wrong continent**)
-- **Fix:** Change to `ap:"SSH"` (Sharm el-Sheikh, Egypt — 90km from Dahab)
-- Flight price lookups for Dahab are currently fetching fares to Jordan, not Egypt. Actively misleading users.
+- Continent matching returns `undefined` for 1,154 venues
+- Users filtering by "N. America," "Europe," "Asia," etc. will miss more than half the catalog
+- Continent-based alert matching is silently broken for the majority of the expanded venue set
 
-### No Other Issues Found
-- All 192 venues have: lat, lon, ap, photo, tags ✓
-- All 127 unique airport codes mapped in AP_CONTINENT ✓
-- No coordinates out of valid range ✓
-- No duplicate venue IDs ✓
-- Rating range 4.75–4.99 — consistent ✓
+**Top 20 affected airport codes (by venue impact):**
 
-### Sentry DSN Empty
-Line 6: `const SENTRY_DSN = "";` — zero production error visibility. Jack action (5 min, sentry.io free tier).
+| Airport | Venues Affected | Correct Continent |
+|---------|----------------|------------------|
+| MRS (Marseille, France) | 16 | europe |
+| HRG (Hurghada, Egypt) | 14 | africa |
+| BCN (Barcelona, Spain) | 12 | europe |
+| SSH (Sharm el-Sheikh, Egypt) | 11 | africa |
+| VRN (Verona, Italy) | 10 | europe |
+| BGO (Bergen, Norway) | 9 | europe |
+| MUC (Munich, Germany) | 8 | europe |
+| SOF (Sofia, Bulgaria) | 8 | europe |
+| FLG (Flagstaff, Arizona) | 8 | na |
+| BZE (Belize City, Belize) | 7 | na |
+| DLM (Dalaman, Turkey) | 7 | asia |
+| NSN (Nelson, New Zealand) | 7 | oceania |
+| CJU (Jeju, South Korea) | 7 | asia |
+| GOA (Genoa, Italy) | 7 | europe |
+| LJU (Ljubljana, Slovenia) | 7 | europe |
+| OSL (Oslo, Norway) | 6 | europe |
+| GLA (Glasgow, Scotland) | 6 | europe |
+| MNL (Manila, Philippines) | 6 | asia |
+| MMH (Mammoth Lakes, CA) | 6 | na |
+| AVL (Asheville, NC) | 6 | na |
+
+Full scope: 579 unmapped codes, 1,154 venues. Fix requires appending all missing IATA codes to `AP_CONTINENT` in app.jsx. The lookup is a flat object — this is a pure data patch with no logic changes.
+
+---
+
+### 🚨 CRITICAL — Photo Pool Collapse in 6 Categories
+
+During the 500+500+500 expansion (2026-03-29), photo IDs were not diversified for all categories:
+
+- **Fishing:** All 202 venues share **1 Unsplash photo** (different crop params only)
+- **Kayak:** All 201 venues share **1 Unsplash photo**
+- **MTB:** 201 venues share **2 photos** (~100 venues per photo)
+- **Climbing:** 204 venues share **3 photos** (~68 venues per photo)
+- **Diving:** 205 venues share **3 photos** (~68 per photo)
+- **Kite:** 200 venues share **3 photos** (~67 per photo)
+
+While different `fp-x`/`fp-y` crop parameters mean users won't see pixel-identical images, scrolling through 200 kayak venues where every card shares the same paddle-on-water base image is obviously broken at a glance. This directly contradicts the Steve Jobs quality bar. The 3 top-priority categories (Surf, Ski, Beach) are in acceptable shape.
+
+**Fix path:** Identify 30–50 unique high-quality Unsplash photo IDs per affected category and distribute them across venues. A dedicated agent run per category can generate and apply the patch.
+
+---
+
+### ✅ Resolved Since Last Report (2026-03-26)
+
+- Dahab airport code fixed (AMM→SSH) — confirmed ✓
+- Hiking gear items added to GEAR_ITEMS.hiking — confirmed (7 items) ✓
+- PACKING.hiking entry present — confirmed ✓
+
+---
+
+### ⚠️ Lingering Issue Not Yet Fixed
+
+**Duplicate Amazon URL in gear:** `reef+safe+sunscreen` appears in both `GEAR_ITEMS.surfing` and `GEAR_ITEMS.tanning`. Flagged 2026-03-26, still present.
+
+**Paste-ready fix:**
+```js
+// In GEAR_ITEMS.tanning, replace first item with:
+{ emoji:"🧴", name:"Sun Bum SPF 50 Sunscreen Lotion", store:"Amazon", price:"$18+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sun+bum+spf+50+sunscreen+lotion" },
+```
 
 ---
 
 ## 4. Gear Items Audit
 
-All 11 categories have gear items (4 items each).
-Amazon `peakly-20` tag present on all Amazon URLs ✓
-REI URLs have no affiliate parameters — expected, blocked by LLC.
+All 11 categories have gear items including hiking (fixed since last report). All Amazon URLs include `tag=peakly-20`. REI links have no affiliate tag (expected — Avantlink signup pending).
 
-### Fix: Duplicate sunscreen URL in tanning gear
-Current (tanning array):
-```js
-{ emoji:"🧴", name:"Reef Safe Sunscreen", store:"Amazon", price:"$15+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
-```
-Replace with (differentiates from surfing entry):
-```js
-{ emoji:"🧴", name:"Sun Bum SPF 50 Sunscreen Lotion", store:"Amazon", price:"$18+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=sun+bum+spf+50+sunscreen+lotion" },
-```
+| Category | Item Count | Amazon Items | REI Items | Backcountry Items |
+|----------|-----------|-------------|-----------|------------------|
+| Skiing | 8 | 4 | 4 | 0 |
+| Surfing | 4 | 2 | 2 | 0 |
+| Tanning | 4 | 4 | 0 | 0 |
+| Diving | 4 | 3 | 1 | 0 |
+| Climbing | 8 | 4 | 4 | 0 |
+| Kayak | 8 | 4 | 4 | 0 |
+| MTB | 8 | 4 | 2 | 2 |
+| Kite | 4 | 4 | 0 | 0 |
+| Fishing | 4 | 3 | 1 | 0 |
+| Paraglide | 4 | 4 | 0 | 0 |
+| Hiking | 7 | 3 | 4 | 0 |
 
-### Fix: Add hiking to PACKING array (currently MISSING)
-Hiking has gear items and 12 venues but is absent from the `PACKING` constant (lines 4513–4524). All other 10 categories are present. Add this line inside the PACKING object:
-```js
-  hiking:   ["🥾 Waterproof trail boots","🥢 Trekking poles","💧 Hydration reservoir (3L)","🎒 30–50L backpack","🧭 Map + compass (offline backup)","🧴 SPF 50+ (UV at altitude)","🩹 Blister prevention tape"],
-```
+All gear hidden at launch behind `{false && GEAR_ITEMS[...]}` — re-enable post-validation.
 
 ---
 
-## 5. Seasonal Relevance (March 26 — Late Northern Winter)
+## 5. Seasonal Relevance (March 31 — Late Northern Winter / Spring Transition)
 
-**In Season**
-- 45 northern hemisphere ski venues — late season, last weeks of powder
-- SE Asia tanning/surf (Bali, Thailand, Philippines, Maldives)
-- Caribbean beach/surf
-- Central America surf (El Salvador, Costa Rica)
+**In season (prime conditions now):**
+- Northern hemisphere surf: California, Hawaii, Mexico, Central America, Morocco, Portugal, Canaries
+- Beach/tanning: SE Asia (Bali, Thailand, Philippines), Caribbean, Maldives, Canaries
+- Alpine skiing (N. hemisphere): Alps, Rockies, Japan (late season, still excellent)
+- Kitesurf: Tarifa, Dakhla, Cabarete, Brazil — March is peak for many of these
 
-**Out of Season — 5 Southern Hemisphere Ski Venues**
-These venues have zero snow in March. The scoring algorithm will correctly reflect poor conditions via Open-Meteo data, but they remain visible in the Skiing filter and may confuse users.
-
-| Venue ID | Location | Season Opens |
-|----------|----------|-------------|
-| corralco | Araucanía, Chile | June 2026 |
-| portillo | Valparaíso, Chile | June 2026 |
-| perisher | New South Wales, Australia | June 2026 |
-| remarkables | Queenstown, NZ | June 2026 |
-| treblecone | Wanaka, NZ | June 2026 |
-
-**Recommendation:** Consider adding `offSeasonMonths` field to venue objects for explicit filtering. PM decision needed.
-
-**Borderline:** `laugavegur` (Iceland hiking) — trails officially closed until early July. Promoted alongside year-round treks.
+**Out of season (zero snow, closed lifts):**
+16 southern hemisphere ski venues won't open until June. See full list in Section 3. Scoring algorithm handles this via live Open-Meteo data (low snow depth → near-zero score), so no urgent fix needed.
 
 ---
 
-## 6. Content Quality
+## 6. Content Quality Check
 
-- Venue location names: all 192 pass sanity check (length 5–55 chars) ✓
-- Tags: all 192 venues have tags arrays ✓
-- Venue descriptions: no inline `desc` field (detail content lives in LOCAL_TIPS — by design)
-- Difficulty/tags accuracy: spot-checked diving venues — Dahab tagged "Beginner Friendly", Sipadan tagged "Expert" — appropriate ✓
+- **Ratings:** 4.75–4.99 across all 2,226 venues. No 5.0 outliers. No below 4.5. ✓
+- **Reviews:** Range 89–42,800. Only 2 venues under 100 reviews (borderline, not flagged). ✓
+- **Coordinates:** All valid lat/lon. No (0,0). ✓
+- **Tags:** All venues have tags arrays. ✓
+- **IDs:** No duplicate venue IDs detected. ✓
+- **Airport field:** All 2,226 venues have `ap:` field. ✓ (Continent mapping is the issue, not missing fields.)
+- **Typo scan:** Spot-checked 50 venue name/location strings — no obvious typos detected.
 
 ---
 
 ## 7. Five New Venue Objects — Paste-Ready JavaScript
 
-**Target:** Fill the 4 single-venue stubs (kayak, mtb, fishing, paraglide) + 1 additional diving.
-All photo IDs verified as not currently used in VENUES array.
-All airport codes already present in AP_CONTINENT.
+**Focus:** Geographic diversity for Surf/Ski/Beach (top-3 launch categories), with verified unique photo IDs not currently in the 174-photo pool.
 
-Paste these into the VENUES array before the closing `]`:
+Paste before the closing `]` of the VENUES array:
 
 ```js
   {
-    id:"halong",        category:"kayak",
-    title:"Halong Bay Sea Kayaking", location:"Quang Ninh, Vietnam",
-    lat:20.9101, lon:107.1839, ap:"BKK",
-    icon:"🛶", rating:4.91, reviews:1430,
-    gradient:"linear-gradient(160deg,#003322,#005544,#009977)",
-    accent:"#66ccaa", tags:["Limestone Karsts","Overnight Camping","Glass-Clear Water","All Levels"], photo:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&h=600&fit=crop",
+    id:"siargao",       category:"surfing",
+    title:"Cloud 9, Siargao", location:"Surigao del Norte, Philippines",
+    lat:9.8617, lon:126.1041, ap:"IAO",
+    icon:"🌊", rating:4.93, reviews:1680,
+    gradient:"linear-gradient(160deg,#064e3b,#059669,#6ee7b7)",
+    accent:"#34d399", tags:["Hollow Barrel","Intermediate+","Reef Break","Oct-Mar Season","Surf Tourism Hub"],
+    photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45",
   },
   {
-    id:"queenstown_mtb", category:"mtb",
-    title:"Queenstown Trail Network", location:"Otago, New Zealand",
-    lat:-45.0312, lon:168.6626, ap:"ZQN",
-    icon:"🚵", rating:4.93, reviews:2105,
-    gradient:"linear-gradient(160deg,#1a2200,#3a5500,#6a9900)",
-    accent:"#aadd44", tags:["World-Class Trails","All Skill Levels","Gondola Access","Scenic Alpine"], photo:"https://images.unsplash.com/photo-1544033527700-bfef443b9ed3?w=800&h=600&fit=crop",
+    id:"niseko",        category:"skiing",
+    title:"Niseko United", location:"Hokkaido, Japan",
+    lat:42.8044, lon:140.6869, ap:"CTS",
+    icon:"🎿", rating:4.98, reviews:4120,
+    gradient:"linear-gradient(160deg,#1e3a5f,#2563eb,#93c5fd)",
+    accent:"#60a5fa", tags:["World's Best Powder","Night Skiing","Tree Runs","Jan-Feb Peak","Onsen Culture"], skiPass:"independent",
+    photo:"https://images.unsplash.com/photo-1540835296355-c04f7a063cbb?w=800&h=600&fit=crop&fp-x=0.40&fp-y=0.55",
   },
   {
-    id:"loscabos_fish",  category:"fishing",
-    title:"Los Cabos Sport Fishing", location:"Baja California Sur, Mexico",
-    lat:22.8905, lon:-109.9167, ap:"SJD",
-    icon:"🎣", rating:4.88, reviews:874,
-    gradient:"linear-gradient(160deg,#002233,#003355,#005588)",
-    accent:"#66bbdd", tags:["Blue Marlin","Year-Round","World Record Waters","Charter Fleet"], photo:"https://images.unsplash.com/photo-1574457195278-12c6c1aee6c3?w=800&h=600&fit=crop",
+    id:"beach_seychelles_anse_source", category:"tanning",
+    title:"Anse Source d'Argent", location:"La Digue, Seychelles",
+    lat:-4.3667, lon:55.8333, ap:"SEZ",
+    icon:"🏝️", rating:4.97, reviews:2230,
+    gradient:"linear-gradient(160deg,#065f46,#047857,#a7f3d0)",
+    accent:"#6ee7b7", tags:["Granite Boulders","UV 12+","Turquoise Shallows","World Top 5 Beach","Snorkelling"],
+    photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.50",
   },
   {
-    id:"pokhara",        category:"paraglide",
-    title:"Pokhara — Annapurna Views", location:"Gandaki, Nepal",
-    lat:28.2096, lon:83.9856, ap:"PKR",
-    icon:"🪂", rating:4.96, reviews:3210,
-    gradient:"linear-gradient(160deg,#1a0044,#3a0088,#7030cc)",
-    accent:"#bb88ff", tags:["Himalaya Backdrop","Oct-May Season","Tandem Flights","UNESCO Region"], photo:"https://images.unsplash.com/photo-1605807646983-377bc5a76493?w=800&h=600&fit=crop",
+    id:"jaws-maui",     category:"surfing",
+    title:"Jaws (Peʻahi)", location:"Maui, Hawaii, USA",
+    lat:20.9441, lon:-156.2983, ap:"OGG",
+    icon:"🌊", rating:4.99, reviews:890,
+    gradient:"linear-gradient(160deg,#1e3a5f,#1d4ed8,#3b82f6)",
+    accent:"#60a5fa", tags:["Big Wave","Expert Only","Tow-In Surf","Nov-Mar Season","World Record Waves"],
+    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.60&fp-y=0.35",
   },
   {
-    id:"palau",          category:"diving",
-    title:"Palau Blue Corner", location:"Ngerchelong, Palau",
-    lat:7.5150, lon:134.5825, ap:"CEB",
-    icon:"🐠", rating:4.97, reviews:1654,
-    gradient:"linear-gradient(160deg,#001a44,#003388,#0055cc)",
-    accent:"#55aaff", tags:["World Top 5 Dive","Shark & Manta","Wall Diving","UNESCO Marine"], photo:"https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=600&fit=crop",
+    id:"beach_aitutaki", category:"tanning",
+    title:"Aitutaki Lagoon", location:"Aitutaki, Cook Islands",
+    lat:-18.8631, lon:-159.7879, ap:"AIT",
+    icon:"🏝️", rating:4.96, reviews:744,
+    gradient:"linear-gradient(160deg,#0c4a6e,#0284c7,#7dd3fc)",
+    accent:"#38bdf8", tags:["Lagoon Swim","UV 11+","One Foot Island","Remote Pacific","World's Most Beautiful Lagoon"],
+    photo:"https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.40",
   },
 ```
 
-**Notes:**
-- `halong` uses `BKK` (Bangkok) as nearest mapped hub — Vietnam has no airports in AP_CONTINENT. Consider adding `HAN` (Hanoi) to AP_CONTINENT.
-- `palau` uses `CEB` (Cebu) as routing hub — Palau's airport (ROR) is not in AP_CONTINENT.
-- `pokhara` uses `PKR` — already mapped as `asia` ✓
-- `queenstown_mtb` uses `ZQN` — already mapped as `oceania` ✓
-- `loscabos_fish` uses `SJD` — already mapped as `na` ✓
+**AP_CONTINENT verification:**
+- `IAO` (Siargao) — mapped `asia` ✓
+- `CTS` (Sapporo/Hokkaido) — mapped `asia` ✓
+- `SEZ` (Seychelles) — mapped `africa` ✓
+- `OGG` (Maui) — mapped `na` ✓
+- `AIT` (Aitutaki) — mapped `oceania` ✓
+- All 5 photo IDs verified unique from current 174-photo pool ✓
 
 ---
 
 ## 8. One Observation for the PM
 
-**The category imbalance is a conversion problem, not just a content gap.** When a user selects "Kayak," "MTB," "Fishing," or "Paraglide" from the filter pills, they see exactly 1 result — which reads as broken. The category pills currently show venue counts; a count of "1" will suppress taps. Short-term fix: hide pills with fewer than 3 venues. Medium-term: 5 new venues per stub category per session until all reach 10+. At this rate, all stubs reach threshold in approximately 2–3 sessions each. The 4 critical stubs added today (halong, queenstown_mtb, loscabos_fish, pokhara) each bring their categories to 2 — still below threshold, but moving in the right direction.
+**The AP_CONTINENT gap is today's most urgent fix and requires zero product decisions.**
+
+51.8% of the catalog is invisible to the continent filter — including European spots in Barcelona, Munich, Oslo, Genoa, and Ljubljana. A user in London tapping "Europe" misses more than half of European venues. The fix is purely additive: one code patch appending 579 missing IATA codes to `AP_CONTINENT`. No UI changes, no scoring changes, no design calls needed. At ~5 codes per line, this is roughly 120 lines of data. A dev agent can generate and apply it in a single run. **This should ship before the Reddit launch today.**
+
+Secondary: Photo pool expansion for Fishing, Kayak, MTB, Climbing, Diving, Kite. These 6 categories scroll like broken apps at >5 cards deep. The 3 launch-priority categories (Surf, Ski, Beach) are acceptable for today's Reddit post but the secondary categories will be noticed immediately by any power user who explores past the hero cards.
 
 ---
 
-*Report generated by Content & Data Agent — 2026-03-26*
+*Report generated by Content & Data Agent — 2026-03-31*
