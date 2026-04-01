@@ -5320,22 +5320,34 @@ const TP_MARKER = "YOUR_TP_MARKER";
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
 function buildFlightUrl(from, to, opts) {
-  if (!from || !to) return "https://www.aviasales.com/";
+  // BULLETPROOF: handles all edge cases for flight URL construction
+  const safeFrom = (from && from.trim()) || "JFK";
+  const safeTo = to && to.trim();
+  if (!safeTo) return "https://www.aviasales.com/";
   const whenId = opts?.whenId || "anytime";
-  const depISO = opts?.startDate || getFlightDate(whenId);   // YYYY-MM-DD
-  // Return date: use endDate if provided, else departure + 7 days
+  const depISO = (opts?.startDate && opts.startDate.length >= 10) ? opts.startDate : getFlightDate(whenId);
   const retISO = (() => {
-    if (opts?.endDate) return opts.endDate;
-    const d = new Date(depISO); d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 10);
+    if (opts?.endDate && opts.endDate.length >= 10) return opts.endDate;
+    try { const d = new Date(depISO); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); }
+    catch(e) { return getFlightDate("anytime"); }
   })();
   // Aviasales date format is DDMM (4 chars), NOT YYMMDD
-  const toDDMM = iso => iso.slice(8, 10) + iso.slice(5, 7);
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${toDDMM(depISO)}${to}${toDDMM(retISO)}1`;
-  if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
-    return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
+  const toDDMM = iso => {
+    try { return iso.slice(8, 10) + iso.slice(5, 7); } catch(e) { return ""; }
+  };
+  try {
+    const dStr = toDDMM(depISO);
+    const rStr = toDDMM(retISO);
+    const datePart = (dStr && rStr) ? `${dStr}${safeTo}${rStr}` : safeTo;
+    const aviasalesSearch = `https://www.aviasales.com/search/${safeFrom}${datePart}1`;
+    if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
+      return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
+    }
+    return aviasalesSearch;
+  } catch(e) {
+    console.warn("buildFlightUrl error:", e);
+    return `https://www.aviasales.com/search/${safeFrom}${safeTo}1`;
   }
-  return aviasalesSearch;
 }
 
 // Returns human-readable relative time string for a UTC ISO timestamp (e.g. "2h ago", "Mar 29")
@@ -10697,8 +10709,8 @@ function App() {
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
-    const estimate1  = getFlightDeal(v.ap, profile.homeAirport);
-    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2) : null;
+    const estimate1  = getFlightDeal(v.ap, profile.homeAirport || "JFK");
+    const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
     const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const duffelData = duffelPrices[v.id];
     const flight     = duffelData != null
@@ -10712,7 +10724,7 @@ function App() {
           depDate: filters.startDate || null,
           retDate: filters.endDate   || null,
         }
-      : { ...estimate, live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
+      : { ...estimate, from: estimate.from || profile.homeAirport || "JFK", live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
     // Find best window in the 7-day forecast
     let bestDay = 0, bestScore = score;
     const vWx = wxData[v.id], vMar = marData[v.id];
