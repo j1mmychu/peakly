@@ -128,49 +128,84 @@
     #splash {
       position: fixed;
       inset: 0;
-      background: #070b10;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 9999;
       opacity: 1;
-      transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
+      /* Rich multi-stop gradient: deep navy → midnight with subtle blue undertone */
+      background: radial-gradient(ellipse 120% 100% at 50% 60%, #0c1829 0%, #060c14 55%, #030609 100%);
     }
     #splash.fade-out {
       opacity: 0;
       pointer-events: none;
     }
-    /* Radial glow bloom behind content */
-    #splash::before {
-      content: '';
+    /* Aurora sweep — slow diagonal gradient that breathes */
+    #splash-aurora {
       position: absolute;
-      width: 700px;
-      height: 700px;
+      inset: -50%;
+      background: conic-gradient(
+        from 200deg at 30% 40%,
+        transparent 0deg,
+        rgba(2,132,199,0.07) 40deg,
+        rgba(56,189,248,0.04) 80deg,
+        transparent 120deg,
+        rgba(14,165,233,0.06) 200deg,
+        rgba(2,132,199,0.03) 240deg,
+        transparent 280deg
+      );
+      animation: splashAuroraRotate 18s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes splashAuroraRotate {
+      to { transform: rotate(360deg); }
+    }
+    /* Central deep glow — the "heart" of the loading screen */
+    #splash-glow {
+      position: absolute;
+      width: 560px;
+      height: 560px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(2,132,199,0.16) 0%, rgba(2,132,199,0.05) 45%, transparent 70%);
+      background: radial-gradient(circle,
+        rgba(2,132,199,0.18) 0%,
+        rgba(2,132,199,0.08) 35%,
+        rgba(56,189,248,0.03) 60%,
+        transparent 75%
+      );
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(1);
-      animation: splashGlowPulse 3.5s ease-in-out infinite alternate;
+      transform: translate(-50%, -50%);
+      animation: splashGlowBreathe 4s ease-in-out infinite alternate;
+      pointer-events: none;
     }
-    /* Top-edge shimmer line */
-    #splash::after {
-      content: '';
+    @keyframes splashGlowBreathe {
+      0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.7; }
+      100% { transform: translate(-50%,-50%) scale(1.15); opacity: 1.0; }
+    }
+    /* Horizontal edge lines — top and bottom — fine light streaks */
+    #splash-edge-top, #splash-edge-bottom {
       position: absolute;
-      top: 0; left: 0; right: 0;
+      left: 0; right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent 10%, rgba(2,132,199,0.5) 50%, transparent 90%);
-      animation: splashTopShimmer 2.8s ease-in-out infinite;
+      pointer-events: none;
     }
-    @keyframes splashGlowPulse {
-      0%   { transform: translate(-50%,-50%) scale(0.8);  opacity: 0.6; }
-      100% { transform: translate(-50%,-50%) scale(1.2);  opacity: 1;   }
+    #splash-edge-top {
+      top: 0;
+      background: linear-gradient(90deg, transparent 5%, rgba(56,189,248,0.4) 40%, rgba(2,132,199,0.6) 50%, rgba(56,189,248,0.4) 60%, transparent 95%);
+      animation: splashEdgePulse 3.2s ease-in-out infinite;
     }
-    @keyframes splashTopShimmer {
-      0%, 100% { opacity: 0.25; }
-      50%       { opacity: 0.9; }
+    #splash-edge-bottom {
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 20%, rgba(2,132,199,0.2) 50%, transparent 80%);
+      animation: splashEdgePulse 3.2s ease-in-out 1.6s infinite;
     }
+    @keyframes splashEdgePulse {
+      0%, 100% { opacity: 0.2; }
+      50%       { opacity: 0.85; }
+    }
+    /* ── Content stack ── */
     .splash-content {
       position: relative;
       z-index: 1;
@@ -178,63 +213,110 @@
       flex-direction: column;
       align-items: center;
     }
+    /* Mountain icon — floats in with spring, then gently levitates */
     .splash-icon {
       opacity: 0;
-      transform: translateY(10px);
-      animation: splashSlideIn 0.65s cubic-bezier(0.34,1.4,0.64,1) 0.05s forwards;
-      margin-bottom: 22px;
+      transform: translateY(14px) scale(0.92);
+      animation:
+        splashIconIn 0.7s cubic-bezier(0.34,1.5,0.64,1) 0.08s forwards,
+        splashIconFloat 5s ease-in-out 0.78s infinite;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 18px rgba(2,132,199,0.55)) drop-shadow(0 0 40px rgba(2,132,199,0.18));
     }
+    @keyframes splashIconIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes splashIconFloat {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-5px); }
+    }
+    /* Wordmark */
     .splash-wordmark {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      font-size: 44px;
+      font-size: 46px;
       font-weight: 900;
-      letter-spacing: -1.8px;
-      color: #ffffff;
+      letter-spacing: -2px;
       line-height: 1;
       opacity: 0;
-      transform: translateY(8px);
-      animation: splashSlideIn 0.65s cubic-bezier(0.34,1.4,0.64,1) 0.15s forwards;
+      transform: translateY(10px);
+      animation: splashSlideIn 0.65s cubic-bezier(0.34,1.3,0.64,1) 0.2s forwards;
+      /* Subtle light-to-white gradient on the text */
+      background: linear-gradient(160deg, #ffffff 30%, rgba(186,230,253,0.9) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
+    /* Tagline */
     .splash-tagline {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
-      color: rgba(255,255,255,0.42);
-      letter-spacing: 0.4px;
-      margin-top: 11px;
+      color: rgba(186,230,253,0.45);
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      margin-top: 13px;
       opacity: 0;
-      animation: splashFadeIn 0.6s ease 0.35s forwards;
+      animation: splashFadeIn 0.6s ease 0.42s forwards;
     }
+    /* ── Loading indicator ── */
     .splash-loader {
-      margin-top: 56px;
+      margin-top: 60px;
       opacity: 0;
-      animation: splashFadeIn 0.5s ease 0.55s forwards;
+      animation: splashFadeIn 0.5s ease 0.62s forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
     }
     /* Thin track with glowing orb */
     .splash-track {
-      width: 120px;
-      height: 2px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 1px;
+      width: 100px;
+      height: 1.5px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
       position: relative;
+      overflow: hidden;
     }
+    /* Orb slides across the track */
     .splash-orb {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: #fff;
+      background: #e0f2fe;
       position: absolute;
-      top: -2px;
-      left: 0;
-      box-shadow: 0 0 8px 3px rgba(2,132,199,0.95), 0 0 18px 7px rgba(2,132,199,0.35);
-      animation: splashOrbSlide 1.5s cubic-bezier(0.45,0,0.55,1) infinite alternate;
+      top: -1.75px;
+      left: -3px;
+      box-shadow:
+        0 0 6px 2px rgba(56,189,248,1),
+        0 0 16px 6px rgba(2,132,199,0.55),
+        0 0 32px 12px rgba(2,132,199,0.18);
+      animation: splashOrbSlide 1.6s cubic-bezier(0.45,0,0.55,1) infinite alternate;
     }
     @keyframes splashOrbSlide {
-      0%   { transform: translateX(0);     opacity: 0.45; }
-      20%  { opacity: 1; }
-      80%  { opacity: 1; }
-      100% { transform: translateX(114px); opacity: 0.45; }
+      0%   { transform: translateX(0);     opacity: 0.4; }
+      15%  { opacity: 1; }
+      85%  { opacity: 1; }
+      100% { transform: translateX(100px); opacity: 0.4; }
     }
+    /* Dot trio beneath the track — pulses like a heartbeat */
+    .splash-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .splash-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.5);
+      animation: splashDotPulse 1.4s ease-in-out infinite;
+    }
+    .splash-dot:nth-child(2) { animation-delay: 0.18s; }
+    .splash-dot:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes splashDotPulse {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.35; }
+      40%            { transform: scale(1.3); opacity: 1; }
+    }
+    /* ── Shared keyframes ── */
     @keyframes splashSlideIn {
       to { opacity: 1; transform: translateY(0); }
     }
@@ -246,23 +328,40 @@
 <body>
   <!-- Premium splash — visible immediately, dismissed after React mounts -->
   <div id="splash" role="status" aria-label="Loading Peakly">
+    <!-- Ambient aurora sweep -->
+    <div id="splash-aurora"></div>
+    <!-- Deep central glow -->
+    <div id="splash-glow"></div>
+    <!-- Edge accent lines -->
+    <div id="splash-edge-top"></div>
+    <div id="splash-edge-bottom"></div>
+
     <div class="splash-content">
-      <!-- Mountain peak mark -->
+      <!-- Mountain peak mark — larger, more refined -->
       <div class="splash-icon">
-        <svg width="56" height="46" viewBox="0 0 56 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Back range -->
-          <path d="M3 42 L17 13 L31 42" stroke="rgba(2,132,199,0.5)" stroke-width="2" stroke-linejoin="round" fill="rgba(2,132,199,0.1)"/>
-          <!-- Front peak -->
-          <path d="M20 42 L32 6 L44 42" stroke="rgba(255,255,255,0.88)" stroke-width="2.5" stroke-linejoin="round" fill="rgba(255,255,255,0.05)"/>
+        <svg width="66" height="54" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Back range (ghost mountains) -->
+          <path d="M2 50 L19 14 L36 50" stroke="rgba(56,189,248,0.3)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(2,132,199,0.06)"/>
+          <!-- Middle range -->
+          <path d="M22 50 L35 22 L48 50" stroke="rgba(56,189,248,0.22)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(2,132,199,0.04)"/>
+          <!-- Hero peak (front) -->
+          <path d="M24 50 L38 4 L52 50" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linejoin="round" fill="rgba(255,255,255,0.04)"/>
           <!-- Snow cap -->
-          <path d="M28.5 13.5 L32 6 L35.5 13.5 Z" fill="white"/>
+          <path d="M34 12 L38 4 L42 12 L38 9 Z" fill="white" opacity="0.95"/>
+          <!-- Subtle ridge line on hero peak -->
+          <path d="M38 4 L38 18" stroke="rgba(255,255,255,0.3)" stroke-width="0.75"/>
         </svg>
       </div>
       <div class="splash-wordmark">Peakly</div>
-      <div class="splash-tagline">Know when to go.</div>
+      <div class="splash-tagline">Know when to go</div>
       <div class="splash-loader">
         <div class="splash-track">
           <div class="splash-orb"></div>
+        </div>
+        <div class="splash-dots">
+          <div class="splash-dot"></div>
+          <div class="splash-dot"></div>
+          <div class="splash-dot"></div>
         </div>
       </div>
     </div>
