@@ -1,7 +1,7 @@
-# Peakly DevOps Report — 2026-03-28
+# Peakly DevOps Report — 2026-03-31
 
 **Overall Status: YELLOW**
-No outages. HTTPS proxy live. Sentry live. Weather cache live. Four issues requiring action: (1) TP_MARKER still placeholder — earning $0 on all flight affiliate clicks, (2) photo duplication is severe and unresolved — top ID reused 204×, (3) cache buster and SW version 2 days stale, (4) Open-Meteo free tier breaks at ~50 DAU — must upgrade before any growth push.
+No site-down issues. One critical revenue bleed (P0), two scaling time bombs (P1), and a growing bundle problem that will eventually catch up with you.
 
 ---
 
@@ -9,97 +9,208 @@ No outages. HTTPS proxy live. Sentry live. Weather cache live. Four issues requi
 
 | Check | Status | Notes |
 |---|---|---|
-| Live site health | ⚠️ YELLOW | 8,695 lines / 1.25 MB — grew 43% since yesterday |
-| Cache-buster | ✅ CONFIRMED | Remote already had `v=20260327v1` — current and correct |
-| HTTPS proxy | ✅ GREEN | `https://peakly-api.duckdns.org` — HTTPS confirmed |
-| Proxy timeout/fallback | ✅ GREEN | 5s AbortController timeout, null fallback |
+| Live site health | ✅ GREEN | app.jsx 8,695 lines / 1.25 MB |
+| HTTPS proxy | ✅ GREEN | `https://peakly-api.duckdns.org` confirmed |
+| Proxy timeout/fallback | ✅ GREEN | 5s timeout, AbortController, semaphore(3) |
 | Plausible analytics | ✅ GREEN | Present, uncommented, firing |
-| Weather cache | ✅ GREEN | 30-min TTL confirmed in code |
-| Sentry DSN | ✅ GREEN | Live — `9416b032a46681d74645b056fcb08eb7` in both index.html and app.jsx |
-| Secrets in client code | ✅ GREEN | No tokens exposed. Travelpayouts token server-side only. |
-| .gitignore | ✅ GREEN | Covers .env, *.pem, *.key, *.bak |
-| TP_MARKER | ❌ PLACEHOLDER | `"YOUR_TP_MARKER"` — all flight affiliate clicks earning $0 |
-| Photo duplication | ❌ CRITICAL | Top photo reused 203×. "0% duplication" claim in CLAUDE.md is false. |
-| React/ReactDOM CDN | ⚠️ UNPINNED | `react@18` floats — supply chain risk |
-| Plausible domain | ⚠️ STALE | `j1mmychu.github.io` — must update to `peakly.app` before domain switch |
+| Sentry DSN | ✅ GREEN | Live at peakly.sentry.io |
+| Secrets in client code | ✅ GREEN | No tokens exposed |
+| .gitignore | ✅ GREEN | Covers .env, *.pem, *.key |
+| Weather cache (localStorage) | ✅ GREEN | 30-min TTL confirmed |
+| Images lazy-loaded | ✅ GREEN | All `<img>` tags have `loading="lazy"` |
+| TP_MARKER placeholder | ❌ P0 | All flight affiliate clicks earn $0 |
+| Cache-buster | ⚠️ P1 | 5 days stale (`v=20260326a`, today is 2026-03-31) |
+| Open-Meteo rate limit risk | ⚠️ P1 | 2,226 venues × ~2 calls = 3K calls/cold start |
+| CDN SRI hashes | ⚠️ P2 | No integrity attributes — supply chain risk |
+| GetYourGuide partner_id | ⚠️ P2 | Links present, no partner_id — earning $0 |
+| Duplicate venue photos | ⚠️ P2 | Kayak category has 6+ duplicates |
+| React CDN version | ⚠️ P2 | Floating `react@18` — pin to 18.3.1 |
 
 ---
 
-## P0 — Fix Today
+## P0 — CRITICAL: TP_MARKER is a placeholder — all flight clicks earn $0
 
-### P0.1 — TP_MARKER Is a Placeholder (All Flight Affiliate Revenue = $0)
+**Location:** `app.jsx:3666`
 
-`app.jsx` line 3666: `const TP_MARKER = "YOUR_TP_MARKER";`
-
-`buildFlightUrl()` at line 3672 correctly falls back to a direct Aviasales link when the marker isn't set — so flight links still work and take users to Aviasales. But no commission is being earned on any booking. Every "View Flights" CTA across all 2,226 venues is live traffic going unrewarded.
-
-**Fix (Jack, 5 minutes):**
-1. Log in to Travelpayouts → dashboard.travelpayouts.com
-2. Programs → Aviasales → Your marker ID
-3. Set in `app.jsx` line 3666:
-
-```javascript
-const TP_MARKER = "YOUR_ACTUAL_MARKER_ID"; // e.g. "597254"
+```js
+const TP_MARKER = "YOUR_TP_MARKER";
 ```
 
-No other code changes needed. The conditional at line 3685 handles the redirect wrapping automatically.
+`buildFlightUrl()` at line 3685 checks `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` before wrapping with Travelpayouts tracking. Since this is still a placeholder, every single flight click goes to a bare Aviasales URL with no affiliate tracking. CLAUDE.md lists Travelpayouts as "ACTIVE, EARNING" at $0.14 RPM — that number is zero until this is fixed. Every day this ships is revenue lost.
 
-**Estimated fix time: 5 minutes, Jack only.**
+**Fix (2 minutes after Jack provides the marker):**
 
----
+```js
+// app.jsx:3666 — replace with real marker from Travelpayouts dashboard
+const TP_MARKER = "599123"; // example — Jack: Partners → Program info → Your marker
+```
 
-### P0.2 — Photo Duplication Is Severe (CLAUDE.md "0% Duplication" Is Wrong)
+**Jack's action:** Log into Travelpayouts → Partners → Aviasales program → copy "Your marker" ID. Paste it here.
 
-The venue expansion to 2,226 entries reused the same Unsplash photo IDs across hundreds of venues. This is not a minor issue — users scrolling the venue list see the same photo repeated back-to-back.
-
-**Actual duplication counts from audit:**
-
-| Unsplash Photo ID | Times Reused | Categories Affected |
-|---|---|---|
-| `photo-1529961482160` | **203 venues** | Ski/snow |
-| `photo-1523819088009` | **202 venues** | Kayak/water |
-| `photo-1578001647043` | 110 venues | MTB |
-| `photo-1512541405516` | 92 venues | MTB/bikes |
-| `photo-1544551763` | 88 venues | Diving/water |
-| `photo-1559288804` | 77 venues | Surf |
-| `photo-1519904981063` | 73 venues | Climbing |
-| `photo-1578508461229` | 72 venues | Various |
-| `photo-1559291001` | 69 venues | Various |
-
-203 venues sharing one photo ID means ~9% of the entire venue list shows the same image. This destroys visual credibility.
-
-**Real fix:** Run a content agent pass to assign unique Unsplash photo IDs to all 2,226 venues. The original 192-venue set was done correctly; the expansion was not. Update CLAUDE.md once fixed.
-
-**Estimated fix time: 2–4 hours dev (content pass on 2,226 venues).**
+**Time to fix:** 30 seconds of code. Blocked on Jack providing the marker ID.
 
 ---
 
-## P1 — Fix This Week
+## P1 — HIGH: Cache buster is 5 days stale
 
-### P1.1 — app.jsx Is Now 1.25 MB Raw (43% Growth Overnight)
+**Location:** `index.html:247`
 
-Yesterday: 6,072 lines / ~395 KB
-Today: **8,695 lines / 1,313,397 bytes (1.25 MB)**
+```html
+<script type="text/babel" src="./app.jsx?v=20260326a" data-presets="react">
+```
 
-Babel Standalone must parse this entire file on every cold first load. There is no minification, no code-splitting, and no build step.
+Today is 2026-03-31. The last push was tagged `v=20260326a`. Browsers and GitHub Pages CDN edge nodes that cached app.jsx with that query param may serve stale code to returning users. This is particularly bad given 2,226 venues were added and weather caching was shipped — users could be running months-old logic.
 
-**Estimated first-paint impact:**
+**Fix (30 seconds):**
 
-| Device | Cold Babel parse time |
-|---|---|
-| iPhone 15 Pro | ~1.5s |
-| Mid-range Android (2022) | ~4–6s |
-| Low-end Android (budget) | ~10–15s |
+```html
+<!-- index.html:247 -->
+<script type="text/babel" src="./app.jsx?v=20260331a" data-presets="react"></script>
+```
 
-The growth is expected given 2,226 venues are now hardcoded. There is no fix without a build step or server-side venue serving. **This is an accepted architectural trade-off per CLAUDE.md.** But it must be tracked — the next major content expansion should be deferred until the bundle cost is re-evaluated.
+Bump this on every meaningful push. Convention: `YYYYMMDD` + letter suffix.
 
-**Monitoring action (no code change):** Watch Plausible for bounce rate increase vs. pre-expansion baseline. If mobile bounce increases >15%, treat as P0.
+---
 
-### P1.2 — React/ReactDOM CDN Unpinned
+## P1 — HIGH: Open-Meteo will rate-limit at any real traffic
 
-`index.html` lines 80–81 load `react@18` / `react-dom@18`. A breaking upstream 18.x patch auto-applies silently to all users.
+**Location:** `app.jsx:8405–8413`
+
+You have 2,226 venues. On a full cold-start refresh cycle (BATCH_SIZE=50):
+- `fetchWeather()` × 2,226 = **2,226 calls** to `api.open-meteo.com`
+- `fetchMarine()` for surf + kite + kayak + diving venues ≈ **~800 calls** to `marine-api.open-meteo.com`
+- **Total per cold-start session: ~3,026 API calls**
+
+Open-Meteo free tier: **10,000 calls/day.**
+
+Three concurrent users with cold caches = 9,078 calls = daily quota gone. At 100 DAU you hit the limit by 9am. The 30-min localStorage TTL helps for returning users on the *same device*, but does nothing across users or devices.
+
+**Fix — server-side weather cache on the VPS (4 hours):**
+
+Add a weather proxy endpoint to the existing VPS Node.js server that caches by lat/lon and is shared across all users:
+
+```js
+// On VPS: server.js — add alongside existing /api/flights handler
+const weatherCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000;
+
+app.get('/api/weather', async (req, res) => {
+  const { lat, lon } = req.query;
+  if (!lat || !lon) return res.status(400).json({ error: 'missing lat/lon' });
+  const key = `${parseFloat(lat).toFixed(3)},${parseFloat(lon).toFixed(3)}`;
+  const cached = weatherCache.get(key);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) return res.json(cached.data);
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max,precipitation_sum,snowfall_sum,uv_index_max,snow_depth&current_weather=true&timezone=auto`;
+    const r = await fetch(url);
+    const data = await r.json();
+    weatherCache.set(key, { data, ts: Date.now() });
+    res.json(data);
+  } catch(e) { res.status(502).json({ error: 'upstream failed' }); }
+});
+```
+
+Then in `app.jsx:2939`, change the METEO constant to proxy through your VPS:
+
+```js
+const METEO = "https://peakly-api.duckdns.org/api/weather"; // was api.open-meteo.com
+```
+
+This changes 3,026 cold-start API calls to ~0 (server cache is warm for all users after the first pass). Without this change you will exhaust Open-Meteo free tier at ~3 concurrent users.
+
+**Time to fix:** 4 hours (VPS code + deploy + test). Do this before any Reddit/TikTok growth push.
+
+---
+
+## P2 — MEDIUM: No Subresource Integrity on CDN scripts
+
+**Location:** `index.html:80–84`
+
+```html
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+```
+
+No `integrity` hashes. If unpkg.com serves a poisoned response, your users execute arbitrary JS in their browser. This is not hypothetical — npm/CDN supply chain attacks happen.
+
+**Fix — generate SRI hashes and pin versions:**
+
+```bash
+# Run this once to get hashes:
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s https://unpkg.com/@babel/standalone@7.24.7/babel.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+```
+
+Then apply to index.html:
+
+```html
+<script crossorigin
+  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-<HASH_FROM_ABOVE>"
+  crossorigin="anonymous"></script>
+```
+
+Also: pin `react@18` to `react@18.3.1` (exact version) or the hash will never match if unpkg resolves a newer minor.
+
+**Time to fix:** 30 minutes.
+
+---
+
+## P2 — MEDIUM: GetYourGuide links have no partner_id — earning $0
+
+**Location:** `app.jsx:7481`
+
+```js
+let u = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
+```
+
+No `partner_id` parameter. CLAUDE.md lists GetYourGuide as "BLOCKED BY LLC" — but LLC was approved 2026-03-25. Sign up at partners.getyourguide.com, get your `partner_id`, then:
+
+```js
+const GYG_PARTNER_ID = "YOUR_PARTNER_ID"; // add near top with other affiliate constants
+// ...in the link builder:
+let u = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}&partner_id=${GYG_PARTNER_ID}`;
+```
+
+**Time to fix:** 5 minutes of code + ~30 minutes of GetYourGuide partner signup.
+
+---
+
+## P2 — MEDIUM: Duplicate venue photos in kayak (and likely other) categories
+
+CLAUDE.md claims "0% photo duplication across all 2,226 venues." That is wrong. At minimum 6 kayak venues share photo ID `photo-1523819088009-c3ecf1e34000`:
+- Florida Keys Kayak (`app.jsx:1911`)
+- Ölüdeniz Blue Lagoon Kayak (`app.jsx:1928`)
+- Tortuguero Canals Kayak (`app.jsx:1953`)
+- Borneo River Kayaking (`app.jsx:2029`)
+- Venice Secret Canals Kayak (`app.jsx:2037`)
+- Cat Ba Island Kayaking (`app.jsx:2077`)
+
+Similarly, the fishing category uses `photo-1529961482160-d7916734da85` for 5 Alaska venues. Spot-check diving and paragliding similarly.
+
+**Fix:**
+
+```bash
+# Find all duplicated photo IDs:
+grep -o 'photo-[a-z0-9]*' app.jsx | sort | uniq -d
+```
+
+Replace duplicates with unique Unsplash photo IDs appropriate to the venue.
+
+**Time to fix:** 30–45 minutes.
+
+---
+
+## P2 — LOW: React CDN version is floating
+
+**Location:** `index.html:80–81`
+
+`react@18` resolves to whatever latest 18.x unpkg serves. A breaking patch auto-applies silently with no warning.
 
 **Fix (2 minutes):**
+
 ```html
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
@@ -107,137 +218,62 @@ The growth is expected given 2,226 venues are now hardcoded. There is no fix wit
 
 ---
 
-## P2 — Fix This Sprint
+## P3 — FUTURE: Plausible domain needs update at launch
 
-### P2.1 — Plausible Domain Will Break on peakly.app Launch
+**Location:** `index.html:31`
 
-`index.html` line 32: `data-domain="j1mmychu.github.io"` — analytics stop recording silently the moment traffic moves to `peakly.app`. No error, just data loss.
-
-**Fix (30 seconds, before domain switch):**
 ```html
-<script defer data-domain="peakly.app" src="https://plausible.io/js/script.hash.js"></script>
-```
-Also add `j1mmychu.github.io` as an additional domain in Plausible dashboard to catch traffic during DNS transition.
-
-### P2.2 — No Rate Limiting on Flight Proxy Endpoint
-
-The VPS Node.js flight proxy at `peakly-api.duckdns.org` has client-side concurrency capping (semaphore of 3) but no server-side rate limiting or auth. Anyone who finds the proxy URL can hit the Travelpayouts API using Peakly's server-side token without limit.
-
-**Fix — add IP-based rate limiting in Caddy config on VPS (SSH to 198.199.80.21):**
-
-Edit `/etc/caddy/Caddyfile`:
-```
-peakly-api.duckdns.org {
-    reverse_proxy localhost:3001 {
-        transport http {
-            dial_timeout 10s
-        }
-    }
-
-    # Rate limit: 60 requests per minute per IP
-    rate_limit {
-        zone peakly_api {
-            key {remote_host}
-            events 60
-            window 1m
-        }
-    }
-}
+<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
 ```
 
-Install plugin:
-```bash
-sudo caddy add-package github.com/mholt/caddy-ratelimit
-sudo systemctl restart caddy
-```
-
-**Estimated fix time: 20 minutes on VPS.**
-
----
-
-## Security Audit
-
-| Check | Result |
-|---|---|
-| Travelpayouts token in client code | ✅ CLEAN — only `YOUR_TP_MARKER` placeholder in client |
-| Sentry DSN in client | ✅ ACCEPTABLE — public DSN by design (browser SDK requires it) |
-| API keys / bearer tokens in app.jsx | ✅ CLEAN — none found |
-| .gitignore coverage | ✅ GOOD — covers .env, *.env, *.pem, *.key, *.p12 |
-| Recent commits (git log -10) | ✅ CLEAN — no secrets in messages or diffs |
-| Flight proxy auth | ⚠️ NONE — see P2.2 above |
-
-**Note on Sentry DSN exposure:** The DSN `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304.ingest.us.sentry.io/4511108673765376` is visible in both `index.html` and `app.jsx`. This is **intentional and correct** for browser SDKs — the Sentry DSN is a write-only ingest key. Anyone who finds it can send errors to your project but cannot read your data. Sentry's own documentation says this is expected for client-side use.
+When `peakly.app` goes live, update `data-domain="peakly.app"` and add a new site in Plausible. Historical data on the GitHub Pages domain does not transfer automatically.
 
 ---
 
 ## Performance Analysis
 
-| Asset | Size | Notes |
+| Asset | Approx size (compressed) | Notes |
 |---|---|---|
-| Babel Standalone 7.24.7 | ~2.0 MB | Largest single asset — blocks parse |
-| ReactDOM 18 UMD prod | ~1.1 MB | Required |
-| React 18 UMD prod | ~130 KB | Required |
-| **app.jsx (raw JSX, today)** | **1.25 MB** | Up from 395 KB yesterday — +216% |
-| **Total first-load JS** | **~4.5 MB** | Up from ~3.6 MB yesterday |
+| Babel Standalone 7.24.7 | ~840 KB gz | Largest single asset — blocks first paint |
+| app.jsx (1.25 MB raw) | ~350 KB gz | Unminified, transpiled at runtime |
+| ReactDOM 18 UMD prod | ~130 KB gz | |
+| React 18 UMD prod | ~42 KB gz | |
+| **Total first-load JS** | **~1.36 MB gz** | On device, ~3.6 MB uncompressed to parse |
 
-**Image lazy loading:** ✅ Verified on all `<img>` tags — `loading="lazy"` present on ListingCard, CompactCard, FeaturedCard, VenueDetailSheet, and hero card.
+**Biggest bottleneck:** Babel Standalone transpiles 1.25 MB of raw JSX synchronously on the main thread at first load. On a mid-range Android on LTE this is 3–6 seconds before anything renders. The splash screen masks this, but Lighthouse/CWV scores are objectively bad. Not fixable without a build step — accepted architectural trade-off. When app.jsx hits 12,000 lines, revisit this.
+
+app.jsx is currently 8,695 lines and growing fast (was ~5,413 per CLAUDE.md six days ago — +60% in a week). At this growth rate it hits 12,000 lines within two weeks.
 
 ---
 
 ## Cost Projections
 
-| MAU | Monthly infra cost | Notes |
+| Scale | Monthly cost | Notes |
 |---|---|---|
-| Current (~0) | $6/mo | VPS only |
-| 1K MAU | $6/mo | Weather cache + free tier Open-Meteo holds |
-| 5K MAU (post-Reddit) | $12/mo | Upgrade VPS to 2GB RAM ($12); Open-Meteo still free |
-| 10K MAU | $18–35/mo | Open-Meteo commercial tier (~$29/mo) + 2GB VPS |
-| 100K MAU | $80–150/mo | CDN (Cloudflare Pro $20) + larger VPS + Open-Meteo commercial |
+| Current (beta) | $6 | VPS only, GitHub Pages free |
+| 1K MAU | $6 | VPS handles it, Open-Meteo free tier fine with server-side cache |
+| 10K MAU | $12–18 | Upgrade VPS to 2GB ($12), add Redis for weather cache |
+| 100K MAU | $70–130 | HA setup needed, Open-Meteo commercial (~$29/mo), Cloudflare Pro |
 
-**Open-Meteo free tier (10K calls/day) capacity with weather cache:**
-- Cold load: ~100 venues fetched per user session (top 100 by score)
-- 30-min cache TTL means returning users = 0 calls within the window
-- Safe to ~300 daily active users before approaching free tier limit
-- At 1K MAU with 10% DAU = 100 DAU = ~10,000 calls/day — **right at the limit**
-- Fix before growth push: move to Open-Meteo commercial ($29/mo) at 500+ DAU
+**Cost optimization:** Server-side weather cache (P1 fix above) eliminates Open-Meteo paid tier requirement up to ~50K MAU.
 
 ---
 
 ## What Breaks First at Scale
 
-The single highest-risk silent failure is Open-Meteo hitting 10K calls/day at ~100 DAU. When this happens, weather data stops loading, venue scores go blank, and the entire value proposition of the app disappears — with no error shown to users. The fix before any growth push: add a server-side weather proxy on the existing VPS (Node.js, ~20 lines, uses the same in-memory Map pattern as the existing flight price semaphore). One VPS fetch per venue per 30 minutes serves all users from cache instead of each browser calling Open-Meteo directly — reduces daily API calls by ~99% regardless of MAU. After that, the next failure point is the Babel 2 MB parse on low-end Android, measurable in Plausible as high mobile bounce rates and fixable only by adding a one-time pre-compile step to eliminate Babel Standalone from production.
+**The VPS flight proxy is a single point of failure with no redundancy.** At a Reddit traffic spike — say 500 users over 30 minutes — each user triggers `fetchTravelpayoutsPrice()` calls capped at 3 concurrent per user via the semaphore. The Node.js process on a 1GB droplet will queue 1,500 concurrent requests. Caddy will hold the TCP connections but the Node process may OOM. Before any growth push: (1) add a `/api/health` endpoint and verify UptimeRobot is alerting on it, (2) add a simple in-memory LRU cache on the VPS for flight prices keyed by `${origin}-${destination}` with a 15-minute TTL. That single addition reduces VPS load by ~90% during a traffic spike since most users share the same home airports. Estimated time: 2 hours. Do this before Reddit launch.
 
 ---
 
-## Action Items
+## Action Summary
 
-| Priority | Owner | Action | Est. Time | Status |
-|---|---|---|---|---|
-| P0 | Jack | Set real TP_MARKER in app.jsx (Travelpayouts dashboard) | 5 min | ⏳ PENDING |
-| P0 | Dev | Fix photo duplication across 2,226-venue expansion | 2–4 hrs | ⏳ PENDING |
-| P1 | Dev | Bump cache-buster to `v=20260328a` + SW to `peakly-20260328` | 2 min | ⏳ PENDING |
-| P1 | Jack | Buy Open-Meteo commercial plan ($29/mo) before growth push | 5 min | ⏳ PENDING |
-| P1 | Dev | Increase WX_CACHE_TTL to 2 hours (rate-limit buffer) | 1 min | ⏳ PENDING |
-| P1 | Dev | Pin React/ReactDOM to 18.3.1 in index.html | 2 min | ⏳ PENDING |
-| P2 | Dev | Fix SW PRECACHE to include `?v=...` query param | 5 min | ⏳ PENDING |
-| P2 | Dev | Add rate limiting to VPS Caddy config | 20 min | ⏳ PENDING |
-| P2 | Dev | Update Plausible domain to peakly.app before DNS switch | 30 sec | BLOCKED (domain) |
-| Future | Dev | Server-side weather cache proxy on VPS (pre-growth) | 2 hrs | ⏳ PENDING |
-
----
-
-## Carried Forward From Previous Reports (Status Update)
-
-| Item | Previous Status | Today Status |
-|---|---|---|
-| Sentry DSN | Reported empty in v1 | ✅ LIVE — confirmed in code |
-| buildFlightUrl → Aviasales | Was Google Flights | ✅ SHIPPED — Aviasales format live |
-| TP_MARKER placeholder | First flagged today | ❌ STILL PLACEHOLDER — P0 |
-| React unpinned | ⏳ PENDING | ⏳ STILL PENDING |
-| Plausible domain | ⏳ PENDING | ⏳ STILL PENDING |
-| VPS Node.js flight LRU cache | ⏳ PENDING | ⏳ STILL PENDING |
-| Photo duplication | Claimed 0% in CLAUDE.md | ❌ FALSE — 204× worst case (confirmed today) |
-| Cache-buster staleness | Not checked 3/27 | ❌ `v=20260326a` — 2 days stale, needs bump |
-| SW version | Not checked 3/27 | ❌ `peakly-20260326` — stale, must bump alongside cache buster |
-| SW PRECACHE query param | Not checked 3/27 | ❌ SW caches bare `/peakly/app.jsx` but requests use `?v=...` — SW never hits for main file |
-| Open-Meteo at scale | Estimated safe to ~300 DAU | ⚠️ Re-confirmed: breaks at ~50 DAU on cold load (200 calls/session) |
+| Priority | Owner | Issue | Fix Time |
+|---|---|---|---|
+| P0 | Jack + Dev | TP_MARKER placeholder — $0 flight commissions | 2 min after Jack provides marker |
+| P1 | Dev | Cache buster 5 days stale | 30 seconds |
+| P1 | Dev | Open-Meteo server-side cache (VPS) | 4 hours |
+| P2 | Dev | SRI hashes on CDN scripts | 30 min |
+| P2 | Jack + Dev | GetYourGuide partner_id signup + code | 35 min |
+| P2 | Dev | Fix duplicate venue photos (kayak + fishing) | 45 min |
+| P2 | Dev | Pin React CDN to 18.3.1 | 2 min |
+| P3 | Dev | Plausible domain update at launch | 5 min (post-domain-registration) |
