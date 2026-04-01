@@ -13,12 +13,21 @@ Peakly is a **single-file React SPA** for discovering surf, ski, and adventure s
 ```
 peakly/
 ├── index.html           # Entry point — React 18, ReactDOM, Babel via CDN
-├── app.jsx              # Entire application (~6,900+ lines of JSX)
+├── app.jsx              # Entire application (~10,500+ lines of JSX)
 ├── app.jsx.bak          # Backup of previous version
 ├── CLAUDE.md            # THIS FILE — shared brain for all AI sessions
 ├── README.md            # User-facing documentation
+├── manifest.json        # PWA manifest
+├── sw.js                # Service worker (peakly-v14, handles push + caching)
+├── sitemap.xml          # SEO sitemap with category pages
+├── robots.txt           # Search engine directives
 ├── capacitor.config.json # Capacitor native config (iOS/Android)
 ├── package.json         # Capacitor dependencies
+├── .github/
+│   └── workflows/
+│       └── deploy.yml   # GitHub Actions Pages deployment (triggers on main + master push)
+├── server/              # Node.js VPS proxy source
+├── peakly-native/       # Capacitor native project files
 ├── tasks/
 │   ├── agents/          # Agent prompts (run via Claude Code)
 │   │   ├── product-manager.md
@@ -196,7 +205,7 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 
 ---
 
-## Current State (Updated 2026-03-29)
+## Current State (Updated 2026-04-01)
 
 ### What's Been Shipped
 
@@ -287,6 +296,12 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **Audit fixes shipped** — Beach rename (was "Beach & Tan"), Best Right Now expanded to 10 spots, JFK fallback removed, heart favorites list sync, scroll-to-top on similar venue tap, date picker contrast fix (2026-03-29)
 - **Cache buster** v=20260329v1, service worker peakly-v14 (2026-03-29)
 - **No paid/Pro tier at launch** — all Pro UI removed; email capture waitlist only
+- **Flight price caching** — prices cached in localStorage with TTL, reduces proxy load; priority fetching for visible venues; progressive loading so cards appear before all prices resolve (2026-04-01)
+- **Airport setup modal in onboarding** — new users see a dedicated airport picker modal during onboarding flow instead of just a profile field (2026-04-01)
+- **Proxy server added to repo** — `server/` directory contains Node.js proxy source for `/api/flights/latest` and `/api/alerts` routes (2026-04-01)
+- **Flight booking button URL fix** — repaired broken URL construction for Aviasales deep links (2026-04-01)
+- **Premium splash screen upgraded** — aurora sweep animation, multi-layer depth gradient background, floating mountain icon with drop-shadow glow, gradient wordmark text, dot-trio pulse indicator (2026-04-01)
+- **GitHub Actions deploy workflow added** — `.github/workflows/deploy.yml` handles Pages deployment on push to main or master; fixes "run failed" email from GitHub (2026-04-01)
 
 ### What's Broken / Missing (Priority Order)
 
@@ -340,6 +355,10 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 - **BASE_PRICES region-based fallback** (2026-03-27). Flat fallback replaced with region-aware pricing covering all 776 airports. More accurate estimated prices.
 - **Algorithm freeze** (2026-03-27). Per PM report v16 — no more scoring algorithm changes until post-Reddit launch. Stability over perfection.
 - **Reddit hard date: March 31** (2026-03-28). Per PM report v17 — soft launch on Reddit locked for March 31.
+- **Flight price caching strategy** (2026-04-01). Prices cached in localStorage with TTL. Priority fetching: visible/hero venues fetched first. Progressive loading: cards render immediately, price fills in asynchronously.
+- **Onboarding airport modal** (2026-04-01). New users now get a dedicated airport picker modal in the onboarding flow. Better conversion than burying it in Profile settings.
+- **GitHub Actions workflow created** (2026-04-01). `.github/workflows/deploy.yml` deploys Pages on push to main or master. Fixes "run failed" emails. Repo must have Pages configured to deploy via GitHub Actions (not "Deploy from branch") in Settings → Pages.
+- **Proxy server source in repo** (2026-04-01). `server/` directory contains the Node.js VPS proxy. Canonical source of truth for the DigitalOcean server at peakly-api.duckdns.org.
 - **SEO pushed to 95%** (2026-03-28). Preconnect hints, enhanced JSON-LD with SearchAction + ItemList schema, sitemap.xml with category pages, viewport accessibility fix.
 - **Venues at 3,726** (2026-03-29). Added 500 surf + 500 ski + 500 beach to reach 3,726. Top 3 focus: Surfing, Ski/Board, Beach.
 - **Capacitor added** (2026-03-29). capacitor.config.json + package.json ready. iOS path: `npx cap add ios` + Xcode build (needs Apple Developer account). Android via TWA already viable.
@@ -390,7 +409,13 @@ Scores drive venue ranking and badge display (e.g., "Epic", "Firing", "Perfect T
 36. [x] **Flight pricing fixes** — "from $X", /latest endpoint, last-seen timestamps, exact date deep links (2026-03-29)
 37. [x] **Gear section hidden** — {false && ...} wrapper for launch simplicity (2026-03-29)
 38. [x] **Cache buster v=20260329v1 + SW peakly-v14** (2026-03-29)
-39. [ ] **Strike alerts server polling** — needs `/api/alerts` endpoint on VPS to fire push when venue hits targetScore (VPS work)
+39. [x] **Flight price caching + progressive loading** — localStorage TTL cache, priority fetching for visible venues, cards load before prices (2026-04-01)
+40. [x] **Airport setup modal in onboarding** — dedicated picker modal for new users (2026-04-01)
+41. [x] **Proxy server in repo** — `server/` directory with Node.js source for /api/flights/latest and /api/alerts (2026-04-01)
+42. [x] **Flight booking button URL fix** — Aviasales deep link URL construction repaired (2026-04-01)
+43. [x] **Premium splash screen** — aurora, depth gradient, floating icon, gradient wordmark, dot-trio loader (2026-04-01)
+44. [x] **GitHub Actions deploy.yml** — Pages workflow on main+master push; fixes failing Actions runs (2026-04-01)
+45. [ ] **Strike alerts server polling** — needs `/api/alerts` endpoint on VPS to fire push when venue hits targetScore (VPS work)
 40. [ ] **iOS App Store** — Apple Developer enrollment ($99/yr) + `npx cap add ios` + Xcode build (Jack action)
 41. [ ] **Scoring accuracy audit** — fix gaps: surfing wind direction + water temp, kayaking water temp, climbing humidity, diving currents (4-sport improvements shipped 2026-03-27, remaining gaps TBD)
 42. [ ] REI Avantlink signup (Jack, 30 min)
