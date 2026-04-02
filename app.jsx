@@ -5323,8 +5323,10 @@ const TP_MARKER = "YOUR_TP_MARKER";
 function buildFlightUrl(from, to, opts) {
   // BULLETPROOF: handles all edge cases for flight URL construction
   const safeFrom = (from && from.trim()) || "JFK";
+  if (!safeFrom || safeFrom === "JFK" && !from) console.warn("[buildFlightUrl] no origin, using JFK fallback", { from, to });
   const safeTo = to && to.trim();
-  if (!safeTo) return "https://www.aviasales.com/";
+  // Return "#" (not aviasales home) so broken links are obvious and non-navigating
+  if (!safeTo) { console.warn("[buildFlightUrl] no destination, returning #", { from, to }); return "#"; }
   const whenId = opts?.whenId || "anytime";
   const depISO = (opts?.startDate && String(opts.startDate).length >= 10) ? opts.startDate : getFlightDate(whenId);
   const retISO = (() => {
@@ -5383,6 +5385,8 @@ function shareVenue(listing, onCopied) {
 // getFlightDeal() is the instant fallback when API hasn't responded yet.
 // ─────────────────────────────────────────────────────────────────────────────
 function getFlightDeal(ap, homeAirport = "JFK") {
+  // BULLETPROOF: empty string bypasses JS default param — normalize explicitly
+  if (!homeAirport || typeof homeAirport !== "string" || homeAirport.trim().length < 3) homeAirport = "JFK";
   // Smart price estimation: use BASE_PRICES if available, otherwise estimate by region
   const exact = BASE_PRICES[ap]?.[homeAirport];
   const base = exact || (() => {
