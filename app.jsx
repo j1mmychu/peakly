@@ -5317,32 +5317,42 @@ const TP_MARKER = "YOUR_TP_MARKER";
 
 // Build an Aviasales/Travelpayouts deep-link URL with pre-filled origin, destination, and dates
 // Earns commission on flight bookings via Travelpayouts (Google Flights earns $0)
+// BULLETPROOF: handles all edge cases — empty/null origin defaults to JFK, bad dates fall back gracefully
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
 function buildFlightUrl(from, to, opts) {
-  if (!from || !to) return "https://www.aviasales.com/";
+  // Default origin to JFK if missing/empty/whitespace
+  const origin = (from && String(from).trim()) ? String(from).trim() : "JFK";
+  // Return # if destination is missing — prevents broken links
+  if (!to || !String(to).trim()) return "#";
+  const dest = String(to).trim();
   const whenId = opts?.whenId || "anytime";
-  // Only use provided dates if they look like valid YYYY-MM-DD strings (length >= 10)
-  const depISO = (opts?.startDate && String(opts.startDate).length >= 10)
-    ? opts.startDate
-    : getFlightDate(whenId);   // YYYY-MM-DD
-  // Return date: use endDate if provided and valid, else departure + 7 days
-  const retISO = (() => {
-    if (opts?.endDate && String(opts.endDate).length >= 10) return opts.endDate;
-    const d = new Date(depISO); d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 10);
-  })();
-  // Aviasales date format is DDMM (4 chars), NOT YYMMDD
-  // Guard: if ISO is malformed, fall back to dateless search
-  const toDDMM = iso => (iso && iso.length >= 10) ? iso.slice(8, 10) + iso.slice(5, 7) : null;
-  const depDDMM = toDDMM(depISO);
-  const retDDMM = toDDMM(retISO);
-  if (!depDDMM || !retDDMM) return `https://www.aviasales.com/search/${from}1${to}1`;
-  const aviasalesSearch = `https://www.aviasales.com/search/${from}${depDDMM}${to}${retDDMM}1`;
-  if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
-    return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
+  try {
+    // Only use provided dates if they look like valid YYYY-MM-DD strings (length >= 10)
+    const depISO = (opts?.startDate && String(opts.startDate).length >= 10)
+      ? opts.startDate
+      : getFlightDate(whenId);   // YYYY-MM-DD
+    // Return date: use endDate if provided and valid, else departure + 7 days
+    const retISO = (() => {
+      if (opts?.endDate && String(opts.endDate).length >= 10) return opts.endDate;
+      const d = new Date(depISO); d.setDate(d.getDate() + 7);
+      return d.toISOString().slice(0, 10);
+    })();
+    // Aviasales date format is DDMM (4 chars), NOT YYMMDD
+    // Guard: if ISO is malformed, fall back to dateless search
+    const toDDMM = iso => (iso && iso.length >= 10) ? iso.slice(8, 10) + iso.slice(5, 7) : null;
+    const depDDMM = toDDMM(depISO);
+    const retDDMM = toDDMM(retISO);
+    if (!depDDMM || !retDDMM) return `https://www.aviasales.com/search/${origin}1${dest}1`;
+    const aviasalesSearch = `https://www.aviasales.com/search/${origin}${depDDMM}${dest}${retDDMM}1`;
+    if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER") {
+      return `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(aviasalesSearch)}`;
+    }
+    return aviasalesSearch;
+  } catch (e) {
+    // Date formatting failed — return dateless search as safe fallback
+    return `https://www.aviasales.com/search/${origin}1${dest}1`;
   }
-  return aviasalesSearch;
 }
 
 // Returns human-readable relative time string for a UTC ISO timestamp (e.g. "2h ago", "Mar 29")
@@ -5817,7 +5827,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               </>
             )}
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
@@ -5900,7 +5910,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
               </>
             )}
           </div>
-          <a href={buildFlightUrl(listing.flight.from, listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
+          <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
@@ -9354,7 +9364,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
   const packing    = PACKING[listing.category]      || PACKING.surfing;
   const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
-  const flightUrl  = buildFlightUrl(listing.flight.from, listing.ap, {
+  const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
     startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
   });
 
