@@ -1,7 +1,14 @@
-# PM Report — 2026-03-31 (v20)
+# Peakly PM Report — 2026-04-02 (v21)
 
-*Product Manager agent — daily report*
-*Today is Reddit launch day. Hard date holds.*
+**Filed by:** Product Manager agent  
+**Status:** Post-Reddit window. TP_MARKER still unset. New critical: app.jsx is 1.95 MB.
+
+---
+
+<!-- Previous report: PM Report — 2026-03-31 (v20) — Reddit launch day. -->
+<!-- Archived content follows new report below. -->
+
+---
 
 ---
 
