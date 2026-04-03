@@ -1,3 +1,16 @@
+# Peakly PM Report — 2026-04-03 (v22)
+
+**Filed by:** Product Manager agent  
+**Status:** Post-Reddit. Zero code shipped in 24h. Three P1 bugs aging. New venue data quality emergency.
+
+→ Full report: [pm-2026-04-03.md](pm-2026-04-03.md)
+
+---
+
+<!-- Previous report: PM Report — 2026-04-02 (v21) → pm-2026-04-02.md -->
+
+---
+
 # Peakly PM Report — 2026-04-02 (v21)
 
 **Filed by:** Product Manager agent  
