@@ -6,6 +6,23 @@ const https = require('https');
 const app = express();
 app.use(express.json());
 
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// 60 requests per minute per IP on all /api/ routes — prevents Travelpayouts quota exhaustion
+// and basic DDoS. Install: npm install express-rate-limit
+let rateLimit;
+try {
+  rateLimit = require('express-rate-limit');
+  app.use('/api/', rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many requests, try again in a minute.' },
+  }));
+} catch (e) {
+  console.warn('[proxy] express-rate-limit not installed — rate limiting disabled. Run: npm install express-rate-limit');
+}
+
 const TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
 if (!TOKEN) {
   console.error('[proxy] TRAVELPAYOUTS_TOKEN env var is required');
