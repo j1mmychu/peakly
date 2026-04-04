@@ -6797,7 +6797,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
     })[0] || null;
 
-  // "Best Right Now" carousel — top 10, GO venues first, fill with highest MAYBE scores
+  // "Best Right Now" carousel — GO venues only (score >= 80), up to 10
   const bestRightNow = (() => {
     const allScored = [...bestPool].filter(l => l.conditionLabel !== "Checking conditions…");
     const sortByVal = (a, b) => {
@@ -6807,9 +6807,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
       return bVal - aVal;
     };
-    const go = allScored.filter(l => l.conditionScore >= 80 && l.flight.price < 800).sort(sortByVal);
-    const rest = allScored.filter(l => l.conditionScore < 80 || l.flight.price >= 800).sort(sortByVal);
-    return [...go, ...rest].slice(0, 10);
+    return allScored.filter(l => l.conditionScore >= 80 && l.flight.price < 800).sort(sortByVal).slice(0, 10);
   })();
 
   const filtered = applyFilters(activeListings, activeCat, filters, search);
@@ -7980,7 +7978,8 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                             }
                             setDetectingLocation(false);
                           },
-                          () => setDetectingLocation(false)
+                          () => setDetectingLocation(false),
+                          { timeout: 2000, maximumAge: 300000 }
                         );
                       }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
                         Allow Location Access
@@ -8625,28 +8624,26 @@ function AccountSetupModal({ profile, setProfile, onClose }) {
   const [selected, setSelected] = useState(profile.homeAirport || "");
 
   const TOP_AIRPORTS = [
-    { code:"LAX", city:"Los Angeles",        flag:"🇺🇸" },
-    { code:"JFK", city:"New York (JFK)",     flag:"🇺🇸" },
-    { code:"SFO", city:"San Francisco",      flag:"🇺🇸" },
-    { code:"ORD", city:"Chicago O'Hare",     flag:"🇺🇸" },
-    { code:"ATL", city:"Atlanta",            flag:"🇺🇸" },
-    { code:"DFW", city:"Dallas Fort Worth",  flag:"🇺🇸" },
-    { code:"MIA", city:"Miami",              flag:"🇺🇸" },
-    { code:"SEA", city:"Seattle",            flag:"🇺🇸" },
-    { code:"BOS", city:"Boston",             flag:"🇺🇸" },
-    { code:"DEN", city:"Denver",             flag:"🇺🇸" },
-    { code:"LHR", city:"London Heathrow",    flag:"🇬🇧" },
-    { code:"CDG", city:"Paris Charles de Gaulle", flag:"🇫🇷" },
-    { code:"SYD", city:"Sydney",             flag:"🇦🇺" },
-    { code:"NRT", city:"Tokyo Narita",       flag:"🇯🇵" },
-    { code:"YYZ", city:"Toronto",            flag:"🇨🇦" },
-    { code:"AMS", city:"Amsterdam",          flag:"🇳🇱" },
+    { code:"LAX", city:"Los Angeles" },
+    { code:"JFK", city:"New York (JFK)" },
+    { code:"SFO", city:"San Francisco" },
+    { code:"ORD", city:"Chicago O'Hare" },
+    { code:"ATL", city:"Atlanta" },
+    { code:"DFW", city:"Dallas Fort Worth" },
+    { code:"MIA", city:"Miami" },
+    { code:"SEA", city:"Seattle" },
+    { code:"BOS", city:"Boston" },
+    { code:"DEN", city:"Denver" },
+    { code:"PHX", city:"Phoenix" },
+    { code:"LAS", city:"Las Vegas" },
   ];
 
   const apResults = apQuery.length >= 2
     ? ALL_AIRPORTS.filter(a =>
-        a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
-        a.code.toLowerCase().includes(apQuery.toLowerCase())
+        a.flag === "🇺🇸" && (
+          a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
+          a.code.toLowerCase().includes(apQuery.toLowerCase())
+        )
       ).slice(0, 6)
     : [];
 
@@ -8743,7 +8740,6 @@ function AccountSetupModal({ profile, setProfile, onClose }) {
                   border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
                   textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
                 }}>
-                  <span style={{ fontSize:20 }}>{ap.flag}</span>
                   <div style={{ flex:1 }}>
                     <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
                     <span style={{ fontSize:13, color:"#717171" }}> · {ap.city}</span>
@@ -8774,11 +8770,9 @@ function AccountSetupModal({ profile, setProfile, onClose }) {
                       color: sel ? "#fff" : "#444",
                       border:"none",
                       fontSize:13, fontWeight:700, fontFamily:F,
-                      display:"flex", alignItems:"center", gap:5,
                       boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.3)" : "none",
                       transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
                     }}>
-                      <span style={{ fontSize:14 }}>{ap.flag}</span>
                       {ap.code}
                     </button>
                   );
@@ -9028,20 +9022,20 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           <div style={{ padding:"16px 24px 0" }}>
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+            <div style={{ display:"flex", flexWrap:"nowrap", gap:10 }}>
               {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
-                    padding:"12px 18px", borderRadius:16, cursor:"pointer",
+                    flex:1, padding:"12px 8px", borderRadius:16, cursor:"pointer",
                     background: sel ? "#222" : "#f5f5f5",
                     color: sel ? "#fff" : "#444",
                     border:"2px solid", borderColor: sel ? "#222" : "transparent",
                     fontSize:14, fontWeight:700, fontFamily:F,
-                    display:"flex", alignItems:"center", gap:8,
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                     boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
                   }}>
-                    <span style={{ fontSize:22 }}>{cat.emoji}</span>
+                    <span style={{ fontSize:26 }}>{cat.emoji}</span>
                     {cat.label}
                     {sel && <span style={{ fontSize:13 }}>✓</span>}
                   </button>
@@ -10535,7 +10529,8 @@ function App() {
           setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
         }
       },
-      () => {} // silent fail — user denied or unavailable
+      () => {}, // silent fail — user denied or unavailable
+      { timeout: 2000, maximumAge: 300000 }
     );
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
