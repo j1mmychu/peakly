@@ -4448,7 +4448,7 @@ const ALL_AIRPORTS = [
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
-const WX_CACHE_TTL = 30 * 60 * 1000; // 30 minutes in ms
+const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 30 minutes in ms
 const WX_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
 
 function _wxCacheKey(prefix, lat, lon) {
@@ -5320,6 +5320,28 @@ const TP_MARKER = "YOUR_TP_MARKER";
 // BULLETPROOF: handles all edge cases — empty/null origin defaults to JFK, bad dates fall back gracefully
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
+// Typical round-trip prices by distance tier from US
+const getTypicalPrice = (venue) => {
+  const lat = venue.lat || 0, lng = venue.lng || 0;
+  // Rough distance tiers from central US (39N, 98W)
+  const dLat = Math.abs(lat - 39), dLng = Math.abs(lng + 98);
+  const dist = Math.sqrt(dLat*dLat + dLng*dLng);
+  if (dist < 15) return 250;   // domestic short
+  if (dist < 30) return 400;   // domestic long
+  if (dist < 40) return 450;   // caribbean/mexico
+  if (dist < 60) return 600;   // central america
+  if (dist < 80) return 800;   // south america
+  if (dist < 100) return 900;  // europe
+  if (dist < 140) return 1200; // asia
+  return 1500;                  // oceania
+};
+
+const getDealScore = (currentPrice, venue) => {
+  if (!currentPrice || currentPrice <= 0) return 0;
+  const typical = getTypicalPrice(venue);
+  return (typical - currentPrice) / typical;
+};
+
 function buildFlightUrl(from, to, opts) {
   // BULLETPROOF: handles all edge cases for flight URL construction
   const safeFrom = (from && from.trim()) || "JFK";
@@ -6792,8 +6814,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const heroPick = [...bestPool]
     .filter(l => l.conditionLabel !== "Checking conditions…")
     .sort((a, b) => {
-      const aBoost = userSports.includes(a.category) ? 15 : 0;
-      const bBoost = userSports.includes(b.category) ? 15 : 0;
+      const aBoost = 0;
+      const bBoost = 0;
       return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
     })[0] || null;
 
@@ -6801,13 +6823,13 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const bestRightNow = (() => {
     const allScored = [...bestPool].filter(l => l.conditionLabel !== "Checking conditions…");
     const sortByVal = (a, b) => {
-      const aBoost = userSports.includes(a.category) ? 15 : 0;
-      const bBoost = userSports.includes(b.category) ? 15 : 0;
+      const aBoost = 0;
+      const bBoost = 0;
       const aVal = (a.conditionScore + aBoost) - Math.round(a.flight.price / 20);
       const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
       return bVal - aVal;
     };
-    return allScored.filter(l => l.conditionScore >= 80 && l.flight.price < 800).sort(sortByVal).slice(0, 10);
+    return allScored.filter(l => l.conditionScore >= 80 && (!l.flight?.price || getDealScore(l.flight.price, l) > -0.2)).sort(sortByVal).slice(0, 10);
   })();
 
   const filtered = applyFilters(activeListings, activeCat, filters, search);
