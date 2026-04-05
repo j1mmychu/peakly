@@ -6,6 +6,23 @@ const https = require('https');
 const app = express();
 app.use(express.json());
 
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// 60 requests per minute per IP on all /api/ routes — prevents Travelpayouts quota exhaustion
+// and basic DDoS. Install: npm install express-rate-limit
+let rateLimit;
+try {
+  rateLimit = require('express-rate-limit');
+  app.use('/api/', rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many requests, try again in a minute.' },
+  }));
+} catch (e) {
+  console.warn('[proxy] express-rate-limit not installed — rate limiting disabled. Run: npm install express-rate-limit');
+}
+
 const TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
 if (!TOKEN) {
   console.error('[proxy] TRAVELPAYOUTS_TOKEN env var is required');
@@ -14,9 +31,38 @@ if (!TOKEN) {
 
 const PORT = process.env.PORT || 3001;
 
+// ─── Rate limiting (in-memory, no deps) ───────────────────────────────────────
+// 60 requests per minute per IP. Resets every 60s window.
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60 * 1000;
+const _rateMap = new Map();
+function rateLimiter(req, res, next) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+  const now = Date.now();
+  const entry = _rateMap.get(ip);
+  if (!entry || now - entry.start > RATE_WINDOW_MS) {
+    _rateMap.set(ip, { start: now, count: 1 });
+    return next();
+  }
+  if (entry.count >= RATE_LIMIT) {
+    res.setHeader('Retry-After', Math.ceil((entry.start + RATE_WINDOW_MS - now) / 1000));
+    return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again in 60s.' });
+  }
+  entry.count++;
+  return next();
+}
+app.use(rateLimiter);
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const cutoff = Date.now() - RATE_WINDOW_MS;
+  for (const [ip, entry] of _rateMap) if (entry.start < cutoff) _rateMap.delete(ip);
+}, 5 * 60 * 1000);
+
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   'https://j1mmychu.github.io',
+  'https://peakly.app',
+  'https://www.peakly.app',
   'http://localhost:8000',
   'http://localhost:3000',
   'http://127.0.0.1:8000',
