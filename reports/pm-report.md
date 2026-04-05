@@ -1,7 +1,7 @@
-# Peakly PM Report — 2026-04-02 (v21)
+# Peakly PM Report — 2026-04-05 (v22)
 
 **Filed by:** Product Manager agent  
-**Status:** Post-Reddit window. TP_MARKER still unset. New critical: app.jsx is 1.95 MB.
+**Status:** 3-day dead zone. Zero commits since April 2. TP_MARKER still unset on Day 12.
 
 ---
 
