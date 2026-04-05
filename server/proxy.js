@@ -31,9 +31,38 @@ if (!TOKEN) {
 
 const PORT = process.env.PORT || 3001;
 
+// ─── Rate limiting (in-memory, no deps) ───────────────────────────────────────
+// 60 requests per minute per IP. Resets every 60s window.
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60 * 1000;
+const _rateMap = new Map();
+function rateLimiter(req, res, next) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+  const now = Date.now();
+  const entry = _rateMap.get(ip);
+  if (!entry || now - entry.start > RATE_WINDOW_MS) {
+    _rateMap.set(ip, { start: now, count: 1 });
+    return next();
+  }
+  if (entry.count >= RATE_LIMIT) {
+    res.setHeader('Retry-After', Math.ceil((entry.start + RATE_WINDOW_MS - now) / 1000));
+    return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again in 60s.' });
+  }
+  entry.count++;
+  return next();
+}
+app.use(rateLimiter);
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const cutoff = Date.now() - RATE_WINDOW_MS;
+  for (const [ip, entry] of _rateMap) if (entry.start < cutoff) _rateMap.delete(ip);
+}, 5 * 60 * 1000);
+
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   'https://j1mmychu.github.io',
+  'https://peakly.app',
+  'https://www.peakly.app',
   'http://localhost:8000',
   'http://localhost:3000',
   'http://127.0.0.1:8000',
