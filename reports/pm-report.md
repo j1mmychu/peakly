@@ -1,56 +1,38 @@
-# Peakly PM Report — 2026-04-04 (v22)
-
-<!-- Previous reports: pm-2026-04-03.md | pm-2026-04-02.md -->
+# Peakly PM Report — 2026-04-05 (v22)
 
 **Filed by:** Product Manager agent  
-**Status:** Day 4 post-Reddit launch. TP_MARKER still unset. Day 12. Zero revenue tracked from any flight click since launch.
+**Date:** 2026-04-05  
+**Status:** 3-day dead zone. Zero commits since April 2. TP_MARKER still unset on Day 12.
 
 ---
 
-## Shipped Since Last Report (2026-04-02 → 2026-04-04)
+## Shipped Since Last Report (2026-04-02 → 2026-04-05)
 
-| Commit | What | Right call? |
-|--------|------|-------------|
-| *Nothing* | No code commits in 48 hours | ⚠️ We are 4 days post-Reddit launch. The TP_MARKER that generates flight revenue is still a placeholder. No commits have addressed it. |
+**Nothing.**
 
-**Opportunity cost:** Reddit launched March 31. It is now April 4. Four days of flight clicks = $0 revenue. TP_MARKER has appeared in every PM report since v12. This is not a reminder — it is a verdict on execution discipline.
+Zero commits in 3 days. The last PM report (v21) identified 6 open issues, requested 4 sub-10-minute fixes, and named TP_MARKER as a P0 revenue blocker for the 12th consecutive day. None of it shipped.
+
+This is not a prioritization problem. The fixes are identified, the code locations are documented, and none require design decisions. The bottleneck is execution.
 
 ---
 
-## Bug Triage — April 4
+## Bug Triage — April 5
 
 | Bug | Severity | Status | Days Open |
 |-----|----------|--------|-----------|
 | **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | ❌ STILL UNSET | **Day 12** |
-| **fetchWeather() throws on 429** | **P1** | ❌ `app.jsx:4542` — `throw new Error` on any `!r.ok` | Day 9 |
-| **venue.facing ?? 270 swell scoring bug** | **P1** | ❌ Still at `app.jsx:4683` | Day 9 |
-| **app.jsx = 1.99 MB (10,976 lines)** | **P1** | ❌ Growing. Babel parse 5-10s on mobile | Day 2 |
-| **Email capture — no backend list** | **P1** | ❌ localStorage only. Post-Reddit emails lost. | Day 12 |
-| **React CDN unpinned (`@18`)** | **P2** | ❌ `index.html:80–81`. One breaking release = dead app. | Day 9 |
-| **Photo duplication** | **P2** | ❌ Confirmed across 3,726 venues | Day 14+ |
+| **app.jsx = 2.0 MB (Babel parse 5-10s on mobile)** | **P1** | ❌ No action taken | Day 3 |
+| **fetchWeather() throws on 429** | **P1** | ❌ `if (!r.ok) throw new Error(...)` — crashes Explore tab | Day 9 |
+| **venue.facing ?? 270 swell scoring bug** | **P1** | ❌ Still in code (`app.jsx:4683`) | Day 9 |
+| **Email capture — no backend list** | **P1** | ❌ localStorage only, no POST to any ESP | Day 12 |
+| **React CDN unpinned (`@18`)** | **P2** | ❌ `index.html:80–81` still `react@18` | Day 9 |
 
-**P0 escalation: TP_MARKER.** Every report since v12 has listed this as P0. Today is Day 12. If Reddit delivered 300 visitors with 8% flight click rate = 24 clicks = ~$12–36 in untracked Travelpayouts revenue. That money is gone. Fix takes 5 minutes. Jack: `app.jsx:5316`. Replace `"YOUR_TP_MARKER"` with your marker ID from tp.media dashboard. Push. Done.
-
-**fetchWeather P1 upgrade:** `fetchMarine()` correctly returns `null` on any error. `fetchWeather()` throws. On Open-Meteo rate limit (429), fetchWeather throws and crashes the entire Explore tab. This is not cosmetic — it silently kills the core tab for users who hit the rate limit. fetchMarine handles it in 1 line. fetchWeather should match.
-
----
-
-## Post-Reddit Launch Assessment (Days 1–4)
-
-Reddit launched March 31. No data has been shared with this agent, but the following can be inferred from code state:
-
-- **Revenue tracked:** $0. TP_MARKER unset for all 4 days of live Reddit traffic.
-- **Email list built:** Unknown — emails captured in localStorage only. No Loops.so backend ever shipped.
-- **Alert usage:** Unknown — no VPS polling endpoint, so alerts can be set but never fire.
-- **Mobile experience:** 1.99 MB Babel parse → 5-10s blank screen → high bounce rate on Reddit mobile traffic (est. 70%+ of Reddit visits are mobile).
-
-**The brutal audit:** We launched on Reddit with:
-1. Flight links not earning commission (TP_MARKER placeholder)
-2. No email capture backend (Reddit spike built zero re-engageable list)
-3. Alerts UI that sets alerts but never fires them (no VPS endpoint)
-4. 5-10 second mobile load time (Reddit is mobile-majority)
-
-This is not a product failure. These are 4 fixable tactical failures that compounded on the most important traffic event to date. The window to fix them before the next traffic event (ProductHunt, influencer, Week 2 Reddit) is right now.
+**Confirmed by code inspection (April 5):**
+- `app.jsx:5316` — `const TP_MARKER = "YOUR_TP_MARKER";` — placeholder. Every flight click since March 24 earns $0.
+- `app.jsx:4543` — `if (!r.ok) throw new Error("weather fetch failed");` — fetchWeather crashes on 429. fetchMarine correctly returns null. One-line fix that has been documented in 3 consecutive reports.
+- `app.jsx:4683` — `const spotFacing = venue.facing ?? 270;` — no `venue.facing` in VENUES data. Every surf break defaults to west-facing. Swell efficiency calculation is wrong for ~80% of breaks.
+- `app.jsx` — 10,976 lines, 2.0 MB. Zero progress on venues.json extraction.
+- Email submit handler — fires Plausible event, clears field, shows alert. Does not POST to any email service.
 
 ---
 
@@ -58,79 +40,78 @@ This is not a product failure. These are 4 fixable tactical failures that compou
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| **TP_MARKER placeholder** | **Jack — 5 minutes. tp.media → Markers → copy ID → app.jsx:5316 → push** | **P0. Day 12. Do it now.** |
-| **Email capture no backend** | Dev — Loops.so free tier, POST on onboarding complete, 30 min | P1. Next traffic spike = zero list again. |
-| **app.jsx 1.99 MB** | Dev — extract VENUES to venues.json, load async | P1. Mobile bounce rate is high. |
-| **venue.facing swell bug** | Dev — delete 5 lines at app.jsx:4683–4691 | P1. Serious surfers from r/surfing distrust scores. |
-| **fetchWeather 429 throw** | Dev — 1 line fix at app.jsx:4542 | P1. Rate limit = Explore tab crash. |
+| **TP_MARKER placeholder** | Jack — tp.media → Markers → copy ID → replace in app.jsx → push | **P0. Day 12. $0 earned since March 24.** |
+| **app.jsx 2.0 MB** | Dev — extract VENUES to `venues.json`, async fetch on init | P1. Mobile visitors bounce before React renders. |
+| **Email capture no backend** | Dev — POST to Loops.so free webhook on onboarding submit | P1. Emails typed since launch go nowhere. |
+| **venue.facing swell bug** | Dev — delete lines 4683–4691, no venue has this field | P1. Surf scores are wrong for most breaks. |
+| **fetchWeather() 429 crash** | Dev — change `throw new Error(...)` to `return null;` on line 4543 | P1. One line. |
+| **React CDN unpinned** | Dev — `index.html:80–81` — pin to `react@18.3.1` | P2. Single CDN breaking change kills all users. |
 | **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
-| **VPS /api/alerts endpoint** | Dev/Jack — needed for alerts to actually fire | P1. Alerts are set but silent. |
 
 ---
 
 ## This Week's Top 3 Priorities
 
-### 1. JACK: TP_MARKER. Day 12. Every click since March 22 = $0.
+### 1. JACK: TP_MARKER. Day 12. This is not a dev task.
 
-`app.jsx:5316`. `"YOUR_TP_MARKER"`. Replace with your marker ID from tp.media → Markers. Push. This is revenue, not polish.
+No code change required. No branch. No PR.
 
-**If this isn't done in the next 24 hours, the next report will say Day 13. And the one after that, Day 14. This is the only item that Jack personally must do, and it has not been done in 12 days.**
+1. Go to tp.media
+2. Log in → Markers → copy your marker ID (looks like `123456`)
+3. Open `app.jsx`, find line 5316: `const TP_MARKER = "YOUR_TP_MARKER";`
+4. Replace `"YOUR_TP_MARKER"` with your actual marker ID
+5. `push "fix: set TP_MARKER for flight affiliate tracking"`
 
-**Decision: SHIP. Jack. Today.**
+Five minutes. Twelve days of zero flight commissions. This is the highest-ROI action available to Peakly right now — it doesn't require writing a line of code.
 
-### 2. DEV: Fix the 4 sub-10-minute P1 code bugs (combined: ~30 minutes)
+**Decision: SHIP. Jack. Today. This is blocking revenue, not features.**
 
-All confirmed in code. All unshipped since flagged. Combined 30 minutes of work:
+### 2. DEV: 3 P1 fixes, under 20 minutes total
 
-**a) fetchWeather 429 fix (2 min):** `app.jsx:4542`
+These have been in every report since March 27. They are documented to the line number. There is no ambiguity about what to do.
+
+**a) fetchWeather() 429 crash — 1 minute:**
+`app.jsx:4543` — change:
 ```
-Change:  if (!r.ok) throw new Error("weather fetch failed");
-To:      if (!r.ok) return null;
+if (!r.ok) throw new Error("weather fetch failed");
 ```
-Prevents Explore tab crash on Open-Meteo rate limit.
-
-**b) venue.facing swell fix (5 min):** Delete lines 4683–4691 in `app.jsx`. The `spotFacing`/`swellAlignment`/`swellAngleDiff` block uses `venue.facing ?? 270` — defaulting every venue without a `facing` property to west-facing. Most surf venues don't have this property. Result: wrong swell efficiency scores for the majority of surf breaks. Surf users on Reddit will notice.
-
-**c) React CDN pin (2 min):** `index.html:80–81`
+to:
 ```
-Change:  react@18/umd/react.production.min.js
-To:      react@18.3.1/umd/react.production.min.js
-(same for react-dom)
+if (r.status === 429) return null;
+if (!r.ok) throw new Error("weather fetch failed");
 ```
-One CDN breaking change kills all users instantly. This is 2 minutes of insurance.
+fetchMarine() already does this correctly. Copy the pattern.
 
-**d) Loops.so email capture (20 min):** In the onboarding email submit handler, add a `fetch()` POST to a Loops.so free-tier webhook. 2,500 contacts free. No LLC required. Current state: every email typed since launch is in localStorage only — inaccessible, not re-engageable. The Reddit spike came and went with zero email list built.
+**b) venue.facing swell bug — 5 minutes:**
+`app.jsx:4683–4691` — delete the spotFacing/swellAngleDiff/swellEfficiency block entirely. No VENUES entry has a `facing` property — the `?? 270` default makes every break appear west-facing. Deleting this block removes wrong data from surf scoring. Surfing is a top-3 focus category.
 
-**Decision: SHIP all 4. No design decisions. No architecture changes.**
+**c) React CDN pin — 2 minutes:**
+`index.html:80–81` — change `react@18` → `react@18.3.1` and `react-dom@18` → `react-dom@18.3.1`. One unpkg breaking change = instant global outage.
 
-### 3. DEV: venues.json extraction — before the next traffic event
+**Decision: SHIP. Bundle into one commit. No design decisions required. Pure risk reduction.**
 
-app.jsx is 1.99 MB. ~1.4 MB is VENUES data. Babel Standalone parses everything before React renders. On mid-range Android at 3G: 5-10 second blank screen. Reddit is 70%+ mobile.
+### 3. DEV: Email capture POST — 30 minutes, P1 revenue
 
-Fix: Move VENUES array to `venues.json`. On component mount, `fetch('./venues.json').then(r=>r.json()).then(setVenues)`. Show shimmer while loading. app.jsx drops to ~600 KB. First-paint time cuts by ~60%.
+Every email typed into the waitlist form since launch is gone. The onboarding submit handler fires a Plausible event and clears the field — it does not save to any list. If Reddit brought 300 visitors and 5% entered their email, that's 15 lost leads.
 
-This is the highest-ROI engineering task in the codebase. It is not a split of the React app — it is data extraction. Single-file architecture is preserved.
+Fix: Sign up for Loops.so free tier (2,500 contacts free, no LLC required). Get the ingest URL. Add `fetch()` POST to the email submit handler in `app.jsx`.
 
-**Decision: SHIP before next traffic event. No new venues until this ships.**
+This directly supports the 8K-not-5K scenario: re-engagement email when a target venue window opens = return visits = retention = word-of-mouth.
+
+**Decision: SHIP this week. Jack signs up for Loops.so. Dev wires the POST (one fetch call).**
 
 ---
 
 ## Explicit Product Decisions This Report
 
-**DECISION 1: No new features until TP_MARKER, email capture, and fetchWeather 429 fix ship.**  
-We are 4 days post-Reddit launch. The product is earning $0 in tracked commissions, has built $0 in email list, and crashes on rate limit. These are not nice-to-haves. They are launch readiness gaps that shipped to Reddit.
+**DECISION 1: TP_MARKER is Jack's task, not a dev task. It cannot be delegated.**  
+The marker ID lives in Jack's tp.media account. No dev has access to it. Jack must log in, copy the ID, and make a 5-line change. Dev cannot unblock this.
 
-**DECISION 2: VPS /api/alerts endpoint — SHIP before ProductHunt.**  
-Alerts are set in the app. They never fire. A user who set an alert for Tavarua at 85+ score will never hear from Peakly again. This is the core retention mechanism and it is broken. The infrastructure (SW push handler, alert localStorage format) is all done. The missing piece is the VPS polling endpoint. This must ship before the next traffic event.
+**DECISION 2: venues.json extraction — DEFER one more week, but hard deadline is April 12.**  
+The 3 P1 fixes above are higher priority than the extraction because they affect scoring correctness and crash behavior. Extract venues.json the week of April 7–12. After that, no new feature work until it ships.
 
-**DECISION 3: Venue expansion — FROZEN until venues.json ships.**  
-app.jsx is 1.99 MB. Any new venue makes mobile load time worse. Freeze. 3,726 venues is more than enough. Unfreeze only after venues.json extraction ships.
-
-**DECISION 4: ProductHunt launch — NOT before Week 2 post-Reddit.**  
-The growth report suggested ProductHunt if Reddit delivered 200+ users. Correct instinct. But do NOT launch ProductHunt until TP_MARKER is set, email capture backend is live, and alerts fire. Sending ProductHunt traffic to a broken funnel wastes the launch slot.
-
-**DECISION 5: Trips + Wishlists tabs — DEFERRED to 1K users.**  
-Standing decision. Unchanged. Core flow (Explore → Detail → Book) is the only thing that matters pre-1K. Three tabs is correct.
+**DECISION 3: Strike alerts server polling — DEFER until 50 alert subscribers confirmed.**  
+Push infrastructure is live. There is no evidence of 50 alert subscribers. Building the server before the audience exists is premature. Check Plausible for `set_alert` events first.
 
 ---
 
@@ -138,51 +119,51 @@ Standing decision. Unchanged. Core flow (Explore → Detail → Book) is the onl
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Venue expansion beyond 3,726 | **FROZEN** | File size. Hurts mobile load. No new venues until venues.json ships. |
-| Strike alerts server polish | **DEFER to 100 subscribers** | Build the list before building the infrastructure. Ship basic endpoint first. |
-| iOS App Store (Capacitor) | **DEFER to 500 validated users** | $99 + 4-week review. Validate PMF first. |
-| Google Play via PWABuilder | **SHIP post-Week-2** | $25, no code. Correct timing: amplify after Reddit traction is measured. |
-| Dark mode | **CUT permanently** | No user signal. Not in 6 months. Unchanged. |
-| Amazon links for zero-affiliate categories | **DEFER to Week 2** | Correct low-effort addition. Fix P1s first. |
-| Scoring algorithm changes | **FROZEN** | Algorithm freeze per v16. Unchanged. |
-| Trips + Wishlists tab exposure | **DEFER to 1K users** | Unchanged. |
+| Trips + Wishlists tab expose | **DEFER to 1K users** | Core flow converts first. CLAUDE.md says "ACTION NEEDED" — ignore it. 3 tabs is correct. |
+| iOS App Store | **DEFER to 500 validated users** | $99 + 4-week review cycle. PMF not validated. |
+| More venue expansion | **CUT until venues.json ships** | File is 2.0 MB. Adding venues worsens load time. |
+| Scoring algorithm changes | **FROZEN** | Per PM v16 decision: algorithm freeze until post-Reddit. Surf facing bug fix is a data fix, not a scoring change. |
+| Amazon links for zero-affiliate categories | **SHIP week 2** (still) | Correct and low-effort. Bundle with next code drop. |
+| Google Play via PWABuilder | **DEFER to week 3 post-Reddit** | Amplify existing users. Can't amplify what doesn't exist yet. |
+| Dark mode | **CUT permanently** | No user signal. Reconfirmed cut. |
 
 ---
 
 ## Success Criteria & 90-Day Projection
 
-**Minimum viable signal from Reddit (Day 4):**
-- 100+ visitors = minimum viable signal
-- >5% alert set rate = value prop lands
-- >8% flight click rate = monetization funnel working
-- >20% 30-day retention = habit-forming product
+**What defines success:**
+- 100 users in first 48 hours post-Reddit = minimum viable signal (Reddit spike was ~4 days ago — check Plausible)
+- Alert set-rate >5% of sessions = core value prop lands
+- Flight click-rate >8% of sessions = monetization funnel working
+- 30-day retention >20% = habit-forming
 
-**5K vs 8K at 90 days:**
+**5K vs 8K at 90 days — updated:**
 
 | Lever | 5K scenario | 8K scenario |
 |-------|-------------|-------------|
-| TP_MARKER | Fixed Week 2 (lost first $50 in commissions) | Fixed TODAY |
-| Mobile load time | 5-10s blank screen throughout | venues.json ships Week 1, <2s on mobile |
-| Email list | 0 re-engageable emails from Reddit | 50+ emails captured → re-engagement campaign |
-| Alerts | Still silent at Week 4 | VPS endpoint ships Week 1, first alert fires |
-| Next traffic event | ProductHunt into broken funnel | ProductHunt into fixed, earning funnel |
+| TP_MARKER | Never set. $0 flight commissions. Can't validate monetization. | Set Day 1. First commission data informs pricing/volume thesis. |
+| Mobile load time | 2.0 MB → 5-10s blank screen → bounce | venues.json async → <2s first paint → users see value |
+| Email list | 0 contacts because no backend POST | 50-200 emails → re-engagement loop when conditions align |
+| Surf scoring | venue.facing bug → wrong scores → r/surfing users don't trust it | Bug deleted → scores credible → NPS climbs in core category |
+| 429 crash | One rate-limit spike kills Explore tab for all concurrent users | Graceful null → degraded but functional |
 
-**Verdict:** The 8K path requires fixing what's broken before the next traffic event. All 4 items are fixable this week. None require design decisions. The 5K path is what happens if we keep discussing them in reports.
+**Verdict:** Path to 8K requires 3 code fixes (< 20 minutes) and one Jack action (TP_MARKER). Nothing on this list is a new feature. All of it is fixing what's broken.
 
 ---
 
 ## The Product Risk Nobody Is Talking About
 
-**We set alerts for users who will never hear from us, and they don't know it.**
+**The email list doesn't exist.**
 
-The alert flow works: users see the AlertsTab, set a venue + score threshold + price cap, and walk away trusting they'll get notified when conditions align. But the VPS `/api/alerts` endpoint that would poll those conditions and fire push notifications was never deployed. The app has been live for 4 days post-Reddit launch.
+Every PM report flags TP_MARKER and the 429 crash. Nobody is talking about the email capture. Since Reddit launch, users who liked the app enough to enter their email — the highest-intent users in the funnel — typed into a form that immediately discarded their address. The Plausible `email_capture` event fires, which means we know it's happening. We just don't know how many because the emails were never saved.
 
-A user who found Peakly on Reddit, explored venues, found their dream surf break, set a score-85 alert for Pipeline, and walked away — they believe Peakly is watching for them. It isn't. When Pipeline goes off in 6 weeks, they won't get a notification. They'll never know Peakly existed.
+These are not anonymous visitors. These are people who are willing to give you their contact information. In acquisition economics, that signal is worth 10–20x a page view. The email list is the re-engagement mechanism — it's how you bring users back when a 3-day powder window opens at their target resort, or when Mavericks starts breaking.
 
-This is the core retention mechanic. Every alert that silently never fires is a user who churns without knowing why. If Reddit brought 200 users and 10% set alerts, that's 20 people currently expecting a notification that will never come. Fix the VPS endpoint before the next traffic event. The infrastructure is done. The endpoint is the missing piece.
+Without the list, Peakly has no retention lever beyond hoping users remember to come back. With the list, you can fire a "Your window just opened" email in week 6 and get 30-day retention numbers that justify the next funding or growth push.
+
+Loops.so is free for 2,500 contacts. This is a 30-minute fix. It has appeared in every report since April 1 and has not shipped.
 
 ---
 
-*PM agent v22 — 2026-04-04*  
-*Filed for: Jack (jjciluzzi@gmail.com)*  
-*Next report: 2026-04-07 (post-Week-1 Reddit debrief)*
+*PM agent v22 — 2026-04-05*  
+*Filed for: Jack (jjciluzzi@gmail.com)*
