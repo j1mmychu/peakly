@@ -1,8 +1,8 @@
-# Peakly DevOps Report — 2026-04-02
+# Peakly DevOps Report — 2026-04-05
 
 **Overall Status: YELLOW**
 
-No outages. HTTPS proxy live. Sentry live. Three P0 issues: (1) app.jsx.bak is committed to git and served as a live 350KB file on GitHub Pages despite `.gitignore` having `*.bak` — it was committed before the ignore rule. (2) TP_MARKER is still a placeholder string — all flight affiliate clicks earning $0. (3) Cache buster `v=20260329v1` is 4 days stale while app.jsx was modified today (Apr 2). Users may be stuck on stale cached code.
+No outages. HTTPS proxy confirmed live. Sentry live and DSN matched. Five fixes shipped in this run: cache buster bumped to `v=20260405a`, SW version bumped to `peakly-20260405`, `app.jsx.bak` untracked from git (was 350KB served live on GitHub Pages), `peakly.app` added to proxy CORS whitelist, and in-memory rate limiting added to proxy. Two remaining P0 items require Jack action: TP_MARKER is still a placeholder (zero affiliate flight revenue since launch), and the VPS proxy needs `git pull` + restart to pick up the CORS/rate-limit changes.
 
 ---
 
@@ -10,257 +10,305 @@ No outages. HTTPS proxy live. Sentry live. Three P0 issues: (1) app.jsx.bak is c
 
 | Check | Status | Notes |
 |---|---|---|
-| Live site health | ⚠️ YELLOW | 10,968 lines / 1.95 MB — 56% growth since last report |
-| Cache-buster | ❌ STALE | `v=20260329v1` — app.jsx modified Apr 2, buster not updated |
-| HTTPS proxy | ✅ GREEN | `https://peakly-api.duckdns.org` confirmed, no HTTP in client code |
-| Proxy timeout/fallback | ✅ GREEN | 5s AbortController, 3-attempt retry with 1.2s backoff, semaphore=3 |
-| Plausible analytics | ⚠️ WRONG DOMAIN | `data-domain="j1mmychu.github.io"` — must update to `peakly.app` before domain switch |
-| Weather cache | ✅ GREEN | 30-min TTL confirmed; initial fetch correctly limited to top 100 venues |
-| Sentry DSN | ✅ GREEN | Live — DSN in index.html + Sentry.init() in app.jsx |
-| Secrets in client code | ✅ GREEN | No Travelpayouts token in client; proxy correctly reads from env var |
-| .gitignore coverage | ⚠️ TRACKING BUG | `*.bak` in .gitignore but `app.jsx.bak` is already tracked — ignore rule doesn't apply retroactively |
-| TP_MARKER | ❌ PLACEHOLDER | `"YOUR_TP_MARKER"` — earning $0 on all flight affiliate clicks |
-| app.jsx.bak in repo | ❌ P0 | 350KB dead file committed and served live by GitHub Pages |
-| React CDN | ⚠️ UNPINNED | `react@18` floats to latest 18.x — minor supply chain risk |
-| Proxy rate limiting | ❌ NONE | No express-rate-limit middleware — open to quota exhaustion attacks |
-| Alert store | ❌ IN-MEMORY | `_alerts = new Map()` — all registered alerts lost on server restart |
+| Live site health | ⚠️ YELLOW | 10,976 lines / 1.95 MB — Babel transpiles all of it on every cold load |
+| Cache-buster | ✅ FIXED | Was `v=20260331a` (5 days stale). Bumped to `v=20260405a` this run. |
+| Service worker version | ✅ FIXED | Was `peakly-20260330` (6 days stale). Bumped to `peakly-20260405`. |
+| HTTPS proxy | ✅ GREEN | `https://peakly-api.duckdns.org` — no HTTP in client code |
+| Proxy timeout/fallback | ✅ GREEN | 5s AbortController + semaphore=3 concurrent cap |
+| Plausible analytics | ⚠️ YELLOW | Domain `j1mmychu.github.io` — must update to `peakly.app` before domain switch |
+| Weather cache | ✅ GREEN | 30-min TTL, localStorage; only top 100 venues fetched on cold load |
+| Sentry DSN | ✅ GREEN | Live — `9416b032` in both index.html (Loader Script) and app.jsx (init), matched |
+| Secrets in client code | ✅ GREEN | No Travelpayouts token; TOKEN read from env var on VPS only |
+| .gitignore coverage | ✅ GREEN | Covers .env, *.pem, *.key, *.bak, node_modules |
+| app.jsx.bak in repo | ✅ FIXED | Was tracked and served live (350KB dead file). Untracked this run. |
+| TP_MARKER placeholder | ❌ P0 | `"YOUR_TP_MARKER"` — earning $0 on ALL flight affiliate clicks. Jack must set this. |
+| Proxy rate limiting | ✅ FIXED | No rate limit existed. Added in-memory 60 req/min limiter this run. |
+| Proxy CORS for peakly.app | ✅ FIXED | `peakly.app` missing from CORS whitelist. Added this run. |
+| Proxy alert store | ⚠️ P2 | `_alerts` is in-memory Map — lost on process restart |
+| React CDN pinning | ⚠️ P2 | `react@18` floats to latest 18.x — minor supply chain risk |
+| Babel transpile overhead | 🔴 PERF | 1.1MB Babel + 2MB app.jsx transpiled on every cold load — biggest perf bottleneck |
 
 ---
 
-## P0 — Fix Today
+## P0 — Fix Today (blocks revenue or launch)
 
-### P0.1 — app.jsx.bak Is Committed and Served Live (350KB Dead Weight)
+### P0-1: TP_MARKER is placeholder — zero affiliate flight revenue since launch
 
-**The problem:** `app.jsx.bak` appears in `git ls-files` — it was committed to the repo before `.gitignore` was updated with `*.bak`. Git's ignore rules do not apply to already-tracked files. GitHub Pages is currently serving this 350KB file as a publicly accessible URL. It contains source code and may contain older versions of logic. It bloats the repo and every Pages deploy.
-
-**Fix (2 minutes):**
-```bash
-git rm app.jsx.bak
-git commit -m "chore: remove tracked backup file from repo"
-git push origin main
-```
-
-After this, `.gitignore`'s `*.bak` rule will prevent it from ever being re-added.
-
----
-
-### P0.2 — Cache Buster Is 4 Days Stale
-
-**The problem:** `index.html` line 380 has `app.jsx?v=20260329v1`. The file `app.jsx` was last modified 2026-04-02 (today). Any user whose service worker or CDN cached the previous `app.jsx` will not receive the updated file because the query param hasn't changed. The service worker's stale-while-revalidate strategy means some users are guaranteed to be on old code.
-
-**Fix — bump the cache buster in index.html (1 minute):**
-
-In `index.html` line 380, change:
-```html
-<script type="text/babel" src="./app.jsx?v=20260329v1" data-presets="react"></script>
-```
-to:
-```html
-<script type="text/babel" src="./app.jsx?v=20260402a" data-presets="react"></script>
-```
-
-Also bump the service worker cache name in `sw.js` line 2:
 ```javascript
-const CACHE_NAME = "peakly-v15";
-```
-
----
-
-### P0.3 — TP_MARKER Is Still a Placeholder (All Flight Revenue = $0)
-
-**The problem:** `app.jsx` line 5316: `const TP_MARKER = "YOUR_TP_MARKER";`
-
-`buildFlightUrl()` correctly falls back to a direct Aviasales link when this is unset, so flights aren't broken — but Peakly is earning $0 commission on every booking. With 3,726 venue detail pages generating flight clicks, this is meaningful lost revenue.
-
-**Fix (5 minutes, Jack only):**
-1. Log into dashboard.travelpayouts.com
-2. Programs → Aviasales → copy your marker ID (numeric string, e.g. `"597254"`)
-3. In `app.jsx` line 5316, replace:
-```javascript
+// app.jsx line 5316 — current broken state:
 const TP_MARKER = "YOUR_TP_MARKER";
 ```
-with:
-```javascript
-const TP_MARKER = "597254"; // your actual marker ID
+
+Line 5344 has a guard: `if (TP_MARKER && TP_MARKER !== "YOUR_TP_MARKER")` — so every flight click falls through to a bare Aviasales URL with no `marker=` attribution. Travelpayouts cannot attribute any commission. This has been earning $0 since launch.
+
+**Jack action required:**
+1. Log in to tp.media dashboard
+2. Copy your marker ID (numeric, e.g. `623456`)
+3. Run these two commands:
+
+```bash
+sed -i 's/const TP_MARKER = "YOUR_TP_MARKER"/const TP_MARKER = "623456"/' app.jsx
+push "fix: set Travelpayouts affiliate marker — flight commission now active"
 ```
 
-No other code changes needed. The conditional at line 5342 handles the redirect automatically.
+**Time to fix: 5 minutes. Revenue impact: immediate, retroactively lost for every click since launch.**
+
+---
+
+### P0-2: VPS proxy needs `git pull` + restart to pick up this session's fixes
+
+This session shipped three changes to `server/proxy.js`:
+1. Added `peakly.app` + `www.peakly.app` to CORS whitelist (flight API will 403 after domain switch without this)
+2. Added in-memory rate limiter (60 req/min/IP) to block quota exhaustion attacks
+3. Rate map cleanup to prevent memory leak on long-running process
+
+**SSH and run:**
+
+```bash
+ssh root@198.199.80.21
+cd /var/www/peakly-server   # adjust path if needed
+git pull origin main
+pm2 restart peakly-proxy
+pm2 save
+```
+
+If not using pm2:
+```bash
+pkill -f "node proxy.js" && nohup node proxy.js &
+```
+
+**Time to fix: 3 minutes. Required before peakly.app domain switch — otherwise flight prices will 403 on the new domain.**
 
 ---
 
 ## P1 — Fix This Week
 
-### P1.1 — Proxy Has No Rate Limiting (Open to Quota Exhaustion)
+### P1-1: Plausible domain must update before peakly.app goes live
 
-**The problem:** `server/proxy.js` has zero request-level rate limiting. The proxy directly forwards to Travelpayouts, which has its own rate limits. A single malicious actor (or a viral Reddit post causing a traffic spike) can exhaust the Travelpayouts API quota for all users by hammering `peakly-api.duckdns.org/api/flights/latest`. The VPS is a 1GB droplet — a trivial flood can OOM it. The proxy only handles upstream 429s; it does not protect itself.
-
-**Fix — add express-rate-limit to server/proxy.js:**
-
-```bash
-# On VPS:
-cd ~/peakly/server && npm install express-rate-limit
-```
-
-Add to `server/proxy.js` after the CORS middleware block (after line ~36):
-```javascript
-const rateLimit = require('express-rate-limit');
-
-const limiter = rateLimit({
-  windowMs: 60 * 1000,       // 1 minute window
-  max: 30,                    // max 30 requests per IP per minute
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Too many requests — slow down.' },
-});
-
-app.use('/api/', limiter);
-```
-
-Also add to `server/package.json` dependencies:
-```json
-"express-rate-limit": "^7.2.0"
-```
-
----
-
-### P1.2 — Plausible Analytics Domain Is Wrong
-
-**The problem:** `index.html` line 37: `data-domain="j1mmychu.github.io"`. When (not if) you register `peakly.app` and redirect the domain, Plausible will stop tracking all events. Every custom event (flight_click, venue_detail, set_alert, search, share) will silently fail. All analytics data will stop — right at the moment of maximum growth.
-
-**Fix (2 minutes):**
-
-In `index.html` line 37, change:
 ```html
+<!-- index.html line 32 — current state: -->
 <script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
 ```
-to:
+
+When traffic moves to peakly.app, Plausible will receive events from the wrong domain and attribute them nowhere. All custom events (flight_click, venue_detail, set_alert, search, share) go dark.
+
+**Fix — do this in the same commit as the domain switch:**
+
 ```html
 <script defer data-domain="peakly.app" src="https://plausible.io/js/script.hash.js"></script>
 ```
 
-Also add `j1mmychu.github.io` as an additional domain alias in the Plausible dashboard so historical data rolls up correctly.
+Also in the Plausible dashboard → Site Settings → Domains: add `peakly.app` as an additional domain. This lets both `j1mmychu.github.io` and `peakly.app` report to the same dashboard during DNS propagation.
+
+**Time to fix: 2 minutes. Blocking before domain switch.**
 
 ---
 
-### P1.3 — Open-Meteo Free Tier Breaks at ~80 New Users/Day
+### P1-2: Open-Meteo API exhaustion risk at 500–1K MAU
 
-**The math:** Each new browser visiting Peakly triggers `fetchInitialWeather()` which fetches weather for top 100 venues. Marine categories require 2 calls (weather + marine) — approximately 130 API calls per cold load. Open-Meteo free tier is **10,000 calls/day shared across all users**. At 80 new visitors/day: `80 × 130 = 10,400` — over the limit. The Reddit launch targets 200–500 users on day 1. That's 26,000–65,000 API calls. The app will return 429 errors, weather scores will fail, and the core value proposition breaks.
+3,726 venues. Top 100 fetched on cold load = 100 weather + 100 marine = **200 API calls per cold session**. Open-Meteo free tier: 10,000 calls/day.
 
-**The cache only helps returning users on the same device.** Every new device, incognito window, or mobile visitor is a cold load.
+At **50 cold sessions/day** = 10,000 calls = ceiling. This happens at roughly 500–700 active daily users assuming ~10% are cold loads.
 
-**Fix Option A (Free, immediate — do this now):** Reduce initial fetch from 100 to 30 venues.
+At **500 cold sessions/day** (post-Reddit at 5K MAU) = 100,000 calls/day = **10x the free tier limit**. When exhausted, Open-Meteo returns 429s silently. scoreVenue() returns 0 for every venue. The hero card disappears. Badges show nothing. Users see a blank Explore tab and think the app is broken.
 
-In `app.jsx` around line 10578, change:
+**Fix Option A — reduce initial cold-load batch (free, 15 min):**
+
 ```javascript
-const initial = VENUES.slice(0, 100);
-```
-to:
-```javascript
+// app.jsx line 10586 — change 100 → 30:
 const initial = VENUES.slice(0, 30);
 ```
 
-Cuts cold load API calls from ~130 to ~40. Breaks even at 250 new users/day on the free tier. The first page of Explore shows 30 venues anyway — no UX impact.
+Reduces calls per cold load from 200 → 60. Buys runway to ~1,500 daily cold sessions before hitting the ceiling.
 
-**Fix Option B (Paid, required at 200+ DAU):** Sign up for Open-Meteo API commercial at open-meteo.com/en/pricing — $0/month for up to 10K calls/day on a dedicated non-shared quota. At 10K DAU you'll need their paid tier ($10–50/month).
+**Fix Option B — upgrade Open-Meteo at 500 MAU ($20/month):**
+- Commercial tier: 10M calls/day vs 10K free
+- Add API key param to both fetch URLs:
 
----
+```javascript
+// app.jsx ~line 4449 — add key constant:
+const METEO_KEY = "YOUR_OPEN_METEO_KEY"; // from api.open-meteo.com/en/pricing
+const METEO  = `https://api.open-meteo.com/v1`;
+const MARINE = `https://marine-api.open-meteo.com/v1`;
 
-### P1.4 — React CDN Is Unpinned (Supply Chain Risk)
-
-**The problem:** `index.html` loads `react@18` and `react-dom@18` — unpkg resolves these to the latest 18.x release. If React ships a breaking patch, or if unpkg CDN is compromised and serves malicious content under a 18.x tag, users get it immediately with zero review.
-
-**Fix (2 minutes):**
-
-In `index.html`, pin to the current stable release:
-```html
-<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+// In fetchWeather() ~line 4455 — append to URL:
+`${METEO}/forecast?latitude=${lat}&longitude=${lon}&...&apikey=${METEO_KEY}`
 ```
 
-Update manually when upgrading React intentionally.
+**Do Option A now. Plan Option B at 300 MAU.**
 
 ---
 
 ## P2 — Fix This Sprint
 
-### P2.1 — Alert Store Is In-Memory (All Registered Alerts Lost on Server Restart)
+### P2-1: Alert persistence lost on proxy restart
 
-**The problem:** `server/proxy.js` uses `const _alerts = new Map()`. Every time the Node.js process restarts — deploy, crash, OOM, VPS reboot — all registered alerts are wiped. Users who set alerts see them in the app UI (localStorage) but the server has forgotten them. Push notifications will never fire after a restart.
-
-**Fix — add SQLite persistence (30 minutes on VPS):**
-
-```bash
-npm install better-sqlite3
-```
-
-Replace the in-memory Map in proxy.js:
 ```javascript
-const Database = require('better-sqlite3');
-const db = new Database('/var/data/peakly-alerts.db');
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS alerts (
-    alertId TEXT PRIMARY KEY,
-    data TEXT NOT NULL,
-    registeredAt TEXT NOT NULL,
-    lastChecked TEXT,
-    fired INTEGER DEFAULT 0
-  )
-`);
-
-function saveAlert(alertId, record) {
-  db.prepare(`
-    INSERT OR REPLACE INTO alerts (alertId, data, registeredAt, lastChecked, fired)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(alertId, JSON.stringify(record), record.registeredAt, record.lastChecked, record.fired ? 1 : 0);
-}
-
-function getAlert(alertId) {
-  const row = db.prepare('SELECT * FROM alerts WHERE alertId = ?').get(alertId);
-  if (!row) return null;
-  return { ...JSON.parse(row.data), lastChecked: row.lastChecked, fired: !!row.fired };
-}
+// server/proxy.js — all registered alerts live here only:
+const _alerts = new Map();  // in-memory, wiped on restart
 ```
+
+Every pm2 restart, deploy, or VPS reboot silently deletes all user alerts. No push notification will ever fire after a restart because there's nothing to poll against.
+
+**Fix — persist to a JSON file (no new deps):**
+
+```javascript
+const ALERTS_FILE = '/var/www/peakly-server/alerts.json';
+const fs = require('fs');
+
+function loadAlerts() {
+  try { return new Map(JSON.parse(fs.readFileSync(ALERTS_FILE, 'utf8'))); }
+  catch { return new Map(); }
+}
+function saveAlerts(map) {
+  try { fs.writeFileSync(ALERTS_FILE, JSON.stringify([...map]), 'utf8'); }
+  catch (e) { console.error('[alerts] save failed:', e.message); }
+}
+const _alerts = loadAlerts();
+// After any _alerts.set() or _alerts.delete(): saveAlerts(_alerts);
+```
+
+**Time to fix: 30 minutes. Required before push notifications launch.**
 
 ---
 
-### P2.2 — Proxy Has No Process Management (Silent Crash = Silent Outage)
+### P2-2: React@18 floats to latest minor on unpkg
 
-**The problem:** The proxy runs as a bare `node proxy.js` process. No PM2, no systemd unit, no auto-restart. If the process crashes at 3am, flight prices go dark for all users until someone manually restarts it. UptimeRobot checks HTTP but doesn't restart the process.
-
-**Fix (15 minutes on VPS):**
-
-```bash
-npm install -g pm2
-cd ~/peakly/server
-pm2 start proxy.js --name peakly-proxy --restart-delay=3000 --max-restarts=10
-pm2 save
-pm2 startup
+```html
+<!-- index.html lines 80-81: -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 ```
+
+A breaking React 18.x minor or an unpkg CDN incident would silently break the entire app with no control to roll back. Risk is low but consequence is total.
+
+**Fix — pin to exact version (React 18.3.1, latest stable):**
+
+```html
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+```
+
+**Time to fix: 2 minutes.**
 
 ---
 
-### P2.3 — Babel Transpilation Is the #1 Performance Bottleneck (Known Tech Debt)
+### P2-3: Babel Standalone not on latest stable
 
-**The numbers:** Babel Standalone 7.24.7 ≈ 800KB gzipped. app.jsx = 1.95MB raw, served uncompressed by GitHub Pages. On first load a browser must: (1) download ~3MB of JS total, (2) parse and execute 800KB of Babel, (3) Babel transpiles 10,968 lines of JSX on the main thread. On a mid-range Android phone this takes 2–4 seconds before React renders anything. The splash screen hides latency but it's real and measurable.
+Current: `7.24.7`. Latest 7.x stable: `7.26.x`. Minor security patches and perf improvements missed.
 
-This cannot be fixed without a build step (Vite, esbuild, Parcel). Deferred per architecture decisions. Document as known tech debt for Phase 2 migration.
+```html
+<!-- index.html line 84: -->
+<script src="https://unpkg.com/@babel/standalone@7.26.10/babel.min.js"></script>
+```
+
+Verify exact version at unpkg.com/@babel/standalone before updating. Test in browser after — Babel major.minor changes can affect JSX edge cases.
+
+**Time to fix: 10 minutes including browser test.**
+
+---
+
+## Performance Analysis
+
+### Single Largest Bottleneck: In-browser Babel transpilation of a 2MB file
+
+Every cold page load:
+
+1. Download `app.jsx` — 1.95 MB raw, ~740 KB gzipped
+2. Download Babel Standalone — 1.1 MB, ~320 KB gzipped  
+3. Babel parses and transpiles 10,976 lines of JSX — **2–5 seconds on mid-range mobile**
+4. React initializes and mounts
+5. 200 Open-Meteo calls fire (batched, 50/batch with 2s delay)
+6. User sees content
+
+Steps 1–3 are blocking. No content renders until they complete. There is no workaround within the no-build constraint — this is the architectural cost of Babel Standalone.
+
+Lighthouse Mobile Performance score estimate: **35–55**. LCP will be red.
+
+**Full CDN payload on cold load:**
+
+| Asset | Raw size | Gzipped est. |
+|---|---|---|
+| Babel Standalone 7.24.7 | ~1,100 KB | ~320 KB |
+| ReactDOM 18 | ~130 KB | ~42 KB |
+| React 18 | ~42 KB | ~11 KB |
+| app.jsx (raw JSX, transpiled in-browser) | ~1,950 KB | ~740 KB |
+| Plus Jakarta Sans (WOFF2) | ~30 KB | ~30 KB |
+| **Total cold load** | **~3,252 KB** | **~1,143 KB** |
+
+**Image lazy loading: ✅ All venue `<img>` tags confirmed `loading="lazy"`.**
+
+**Mitigation at post-1K scale — pre-transpile during GitHub Actions deploy:**
+
+```yaml
+# Add to .github/workflows/deploy.yml before "Upload artifact":
+- name: Pre-transpile JSX
+  run: |
+    npm install -g @babel/core @babel/preset-react
+    npx babel app.jsx --presets @babel/preset-react --out-file app.js
+```
+
+Then in `index.html`, swap:
+```html
+<!-- Remove this: -->
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<!-- Change this: -->
+<script type="text/babel" src="./app.jsx?v=20260405a" data-presets="react">
+<!-- To this: -->
+<script src="./app.js?v=20260405a">
+```
+
+Saves 1.1 MB + 2–5s transpile time. Drops Lighthouse from ~50 → ~75. **Defer until after 1K users — validate product first, optimize second.**
 
 ---
 
 ## Cost Projection
 
-| Scale | Monthly Cost | Bottleneck |
-|---|---|---|
-| Current (0–100 MAU) | **$6/month** | None — within all limits |
-| 1K MAU | **$6/month** | Open-Meteo free tier breaks at ~80 new users/day |
-| 10K MAU | **$28–52/month** | VPS upgrade to 2GB ($12/mo) + Open-Meteo commercial ($10–40/mo) |
-| 100K MAU | **$200–400/month** | CDN for app.jsx, VPS 4GB ($24/mo), Open-Meteo ($200/mo), Cloudflare Workers |
+| Scale | Open-Meteo | VPS (DO) | Sentry | Total/month |
+|---|---|---|---|---|
+| **Current (<100 MAU)** | $0 (free) | $6 (1GB droplet) | $0 (free) | **$6** |
+| **500 MAU** | $0 (edge of limit) | $6 | $0 | **$6** |
+| **1K MAU** | **$20 (upgrade required)** | $6 | $0 | **$26** |
+| **10K MAU** | $20 | $12 (2GB droplet) | $0 | **$32** |
+| **100K MAU** | $20 | $48 (4GB + LB) | $26 (Team) | **$94** |
 
-**All P0 and P1 fixes cost $0.** Rate limiter is a free npm package. Plausible domain is a 2-minute config change. Open-Meteo Option A is a one-line code change. React pinning is copy-paste.
+**Cost optimization opportunities:**
+1. **Now:** Reduce initial weather fetch to 30 venues (free, 15 min). Delays Open-Meteo upgrade by 6+ months.
+2. **At 5K MAU:** Server-side weather cache (VPS Redis or flat JSON). One fetch per venue per 30 min shared across all users. Cuts Open-Meteo calls by ~90% — keeps cost at $20/month to 100K MAU.
+3. **VPS:** $6/month is correct through 50K MAU on the current proxy load. Only upgrade if response time degrades.
 
 ---
 
-## What Will Break First at Scale
+## Scaling Failure Prediction
 
-**Open-Meteo is the single biggest launch risk, and it requires a one-line fix.** A Reddit post sending 200 new users in one day fires 26,000 API calls against a 10,000/day free tier limit. Weather scores fail. The app shows no conditions data. The entire value proposition collapses. The fix is changing `VENUES.slice(0, 100)` to `VENUES.slice(0, 30)` — a 2-minute change that triples the free tier headroom to 250 new users/day. Do this before the Reddit launch. The proxy rate limiting (P1.1) is second priority — without it, a single scraper can exhaust the Travelpayouts quota for all users in minutes.
+**What breaks first: Open-Meteo rate limiting at ~500 daily active users.**
+
+The current architecture makes 200 API calls per cold-load session (100 weather + 100 marine for the first 100 venues). The free tier is 10,000 calls/day. At 500 daily active users with a 10% cold-load rate = 10,000 calls/day — exactly at the limit. Any spike, crawl, or load-test will push it over.
+
+When Open-Meteo 429s start, `fetchWeather()` silently returns null, `scoreVenue()` returns 0 for every venue, and the entire Explore tab renders blank. No error message shown. Users see an app with no scores, no hero, no badges. It looks completely broken, not "loading." Churn is immediate.
+
+**Prevention:** Reduce initial fetch batch from 100 → 30 venues today (15 min effort). Upgrade Open-Meteo commercial tier at 300 MAU ($20/month). Implement a shared server-side weather cache at 5K MAU.
+
+---
+
+## Fixes Shipped This Run
+
+| Fix | File | Status |
+|---|---|---|
+| Cache buster `v=20260331a` → `v=20260405a` | `index.html` | ✅ Committed |
+| SW cache version `peakly-20260330` → `peakly-20260405` | `sw.js` | ✅ Committed |
+| `app.jsx.bak` untracked from git (was 350KB served live) | `git rm --cached` | ✅ Committed |
+| Added `peakly.app` + `www.peakly.app` to CORS whitelist | `server/proxy.js` | ✅ Committed (VPS needs restart) |
+| Added in-memory rate limiter (60 req/min/IP) to proxy | `server/proxy.js` | ✅ Committed (VPS needs restart) |
+
+---
+
+## Jack's Action Items
+
+| # | Action | Time | Impact |
+|---|---|---|---|
+| 1 | Set `TP_MARKER` with actual Travelpayouts marker ID | 5 min | **Flight affiliate revenue starts immediately** |
+| 2 | SSH into VPS: `git pull origin main && pm2 restart peakly-proxy` | 3 min | CORS + rate limit active; required before domain switch |
+| 3 | Update Plausible `data-domain` to `peakly.app` at domain switch time | 2 min | Prevents analytics blackout |
+| 4 | Reduce `VENUES.slice(0, 100)` → `VENUES.slice(0, 30)` in app.jsx | 15 min | Prevents Open-Meteo exhaustion at 500+ MAU |
+| 5 | Pin React to `@18.3.1` in index.html | 2 min | Eliminates CDN float risk |
