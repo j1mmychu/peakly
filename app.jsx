@@ -8640,7 +8640,7 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
 }
 
 // ─── airport setup modal ──────────────────────────────────────────────────────
-function AccountSetupModal({ profile, setProfile, onClose }) {
+function AccountSetupModal({ profile, setProfile, onClose, fetchInitialWeather }) {
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
   const [selected, setSelected] = useState(profile.homeAirport || "");
@@ -8679,6 +8679,8 @@ function AccountSetupModal({ profile, setProfile, onClose }) {
       window.plausible && window.plausible('Airport Set', { props: { airport: selected, source: 'setup_modal' } });
     }
     try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
+    // Pre-fetch weather during onboarding transition
+    setTimeout(() => { if (typeof fetchInitialWeather === 'function') fetchInitialWeather(false); }, 100);
     onClose();
   };
 
@@ -10956,6 +10958,7 @@ function App() {
             profile={profile}
             setProfile={setProfile}
             onClose={() => setShowAirportSetup(false)}
+            fetchInitialWeather={fetchInitialWeather}
           />
         )}
 
