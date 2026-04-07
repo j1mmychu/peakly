@@ -1,16 +1,16 @@
-# Content & Data Report — 2026-04-06
+# Content & Data Report — 2026-04-07
 
 **Agent:** Content & Data  
-**Data health score: 67/100** *(unchanged — P1 issues unresolved for 4th consecutive report)*
+**Data health score: 64/100** *(−3 from yesterday — P1 issues unresolved for 5th consecutive report; 10 new venues from April 5 + April 6 reports not added; REI affiliate revenue gap confirmed)*
 
 **Score breakdown:**  
-All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete across all 11 categories +15 | Zero missing required fields (lat/lon, ap, tags, photo) +10 | Geographic breadth across 6 continents +10 | Photo duplication: 1,465 venues (39%) share a photo with another venue −10 | Venue duplication crisis unresolved 4th day: 1,000 batch `-s##` entries with contradicting expert/beginner tags −15 | Synthetic review patterns on batch venues −5 | 73 Southern Hemisphere ski venues scoring phantom conditions in April −3 | Gear section hidden at launch (neutral) | 5 new venues from April 5 report not yet added to app.jsx −5 | Climbing gear has 2 duplicate products −1
+All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete across all 11 categories +15 | Zero missing required fields (lat/lon, ap, tags, photo) +10 | Geographic breadth across 6 continents +10 | Photo duplication: 1,465 venues (39%) confirmed again −10 | Venue duplication crisis unresolved 5th day −15 | Synthetic review patterns on batch venues −5 | 73 SH ski venues scoring phantom conditions in April −3 | 22 REI gear links + 2 Backcountry links earning $0 (no affiliate tags) −3 | 10 new venues from prior reports not added to app.jsx −5 | Climbing gear duplicates persisting −1
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 3,715 venues (code) / 3,726 (CLAUDE.md)
+### Category Breakdown — 3,726 venues (today's fresh count, reconciled)
 
 | Category | Count | Original (Named) | Batch (-s##/-t##) | Status |
 |----------|-------|-----------------|-------------------|--------|
@@ -25,21 +25,20 @@ All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete ac
 | kayak | 201 | 201 | 0 | ✅ Healthy |
 | kite | 200 | 200 | 0 | ✅ Healthy |
 | hiking | 200 | 200 | 0 | ✅ Healthy |
-| **TOTAL (code)** | **3,715** | **2,215** | **1,500** | |
+| **TOTAL (code)** | **3,726** | **2,226** | **1,500** | |
 
-**⚠️ 11-venue count discrepancy:** CLAUDE.md states 3,726; `app.jsx` contains 3,715. Probable cause: 11 duplicate IDs in the last expansion batch silently overwrote entries in the JS object. **Verify in browser console:**
+**Count reconciled:** Fresh Python regex audit on 2026-04-07 confirms 3,726 — matching CLAUDE.md. April 6 count of 3,715 was likely a regex edge case. No silent overwrite detected. **Still recommend browser console verification:**
 ```javascript
 console.log('Total:', VENUES.length, '| Unique IDs:', new Set(VENUES.map(v=>v.id)).size);
 ```
-If these numbers differ, venues are being silently dropped on every page load.
 
 **No stub categories.** All 11 categories well above the 10-venue minimum.
 
 ---
 
-### P1 🔴 — VENUE DUPLICATION CRISIS (4th consecutive report — NO ACTION TAKEN)
+### P1 🔴 — VENUE DUPLICATION CRISIS (5th consecutive report — NO ACTION TAKEN)
 
-The 1,500 batch venues added 2026-03-29 remain in the database unresolved. This issue has been flagged April 2, April 3, April 5, and now April 6 with zero action.
+The 1,500 batch venues added 2026-03-29 remain in the database unresolved. This issue has been flagged April 2, April 3, April 5, April 6, and now April 7 with zero action.
 
 **Critical data contradictions still active:**
 
@@ -58,13 +57,13 @@ For each venue where `id` contains `-s##` or `-t##` and coordinates are within 0
 
 ---
 
-### P1 🔴 — PHOTO DUPLICATION (4th consecutive report — NO ACTION TAKEN)
+### P1 🔴 — PHOTO DUPLICATION (5th consecutive report — NO ACTION TAKEN)
 
 | Metric | Value |
 |--------|-------|
-| Total venues | 3,715 |
-| Unique photo URLs | ~2,261 |
-| Venues sharing a photo | **~1,454 (39%)** |
+| Total venues | 3,726 |
+| Unique photo URLs | 2,261 |
+| Venues sharing a photo | **1,465 (39.3%)** — confirmed via fresh audit |
 | Worst single photo — uses | 17× |
 | Photo IDs used more than once | 142 |
 
@@ -142,7 +141,20 @@ All 11 categories have gear items. The prior CLAUDE.md note "Hiking has ZERO gea
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 6, 2026
+## 2b. NEW FINDING — REI AFFILIATE TAGS MISSING (Revenue Gap)
+
+Fresh audit of GEAR_ITEMS reveals **22 REI gear links** and **2 Backcountry gear links** are raw search/product URLs with no affiliate tracking tag:
+
+- REI: `https://www.rei.com/search?q=skis` — no Avantlink ID appended → $0 commission
+- Backcountry: `https://www.backcountry.com/troy-lee-designs-a3-mips-helmet` — no affiliate ID → $0 commission
+
+These links are currently live in the hidden gear section (wrapped in `{false && ...}`), but will go live when gear is re-enabled post-launch. Unless affiliate IDs are added before that toggle is flipped, all 24 links will earn nothing.
+
+**Revenue at stake:** REI activation = +$6.16 RPM, Backcountry = +$0.56 RPM → **+$6.72/month per 1,000 MAU.** Both unblocked by LLC approval (March 25). Jack's action: REI Avantlink signup + Backcountry signup (30 min each). Dev action: append affiliate params to all 24 URLs once signup complete.
+
+---
+
+## 3. SEASONAL RELEVANCE — April 7, 2026
 
 ### IN SEASON ✅
 - **Beach/Tanning:** Caribbean, Mexico, Maldives, Seychelles, Canary Islands, SE Asia — dry season peak. Hero card bias toward these.
@@ -175,44 +187,49 @@ Zero venues have a `description` property. All contextual content lives in 2–4
 ### "East" Variant Naming — P2 🟡
 Final 500 beach venues use programmatic "East" suffixes (e.g., "White Beach Boracay East"). Filter these from Guides tab featured cards and hero cards — keep editorial surfaces to original named venues only.
 
-### Geographic Gaps (April 5 additions not yet in app.jsx) — P2 🟡
-Cox Bay Tofino, Horseshoe Bay Bermuda, Karakol Kyrgyzstan, Rosa Khutor Russia, Dakhla Morocco — all flagged April 5, none added yet.
+### Geographic Gaps (cumulative — not yet in app.jsx) — P2 🟡
+10 named venues from April 5 and April 6 reports not yet added:
+- *April 5:* Cox Bay Tofino, Horseshoe Bay Bermuda, Karakol Kyrgyzstan, Rosa Khutor Russia, Dakhla Morocco
+- *April 6:* Supertubes J-Bay, Revelstoke Mountain Resort, Jericoacoara, GR20 Corsica, Cocos Island
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Venues (New additions, distinct from April 5 list)
+## 5. DAILY VENUE ADDITIONS — 5 New Venues (April 7, distinct from April 5 + April 6 lists)
 
-Targeting geographic gaps and high-credibility destinations for the Reddit expert audience.
+Targeting remaining gaps in paraglide, mtb, kayak, fishing, and a second kite destination.
 
 ```javascript
-  // 1. SURFING — J-Bay, South Africa (Supertubes — one of the world's most famous point breaks; absent as a named entry)
-  { id:"supertubes-jbay", category:"surfing", title:"Supertubes, J-Bay", location:"Jeffrey's Bay, Eastern Cape, South Africa", lat:-34.0523, lon:24.9206, ap:"PLZ", icon:"🌊", rating:4.97, reviews:5820, gradient:"linear-gradient(135deg,#003322,#006644)", accent:"#00cc88", tags:["World's Best Point Break","Season: Jun–Sep","Right-Hand Barrel","Expert"], photo:"https://images.unsplash.com/photo-1516802273409-68526ee1bdd6?w=800&q=80&fit=crop" },
+  // 1. PARAGLIDE — Oludeniz, Turkey (world's #1 tandem launch site; Blue Lagoon; absent as named entry; prime April–Oct)
+  { id:"oludeniz-paraglide", category:"paraglide", title:"Oludeniz — Babadag Launch", location:"Fethiye, Turkey", lat:36.5496, lon:29.1157, ap:"DLM", icon:"🪂", rating:4.97, reviews:6800, gradient:"linear-gradient(135deg,#001a33,#004080)", accent:"#40a0ff", tags:["World's Best Tandem Site","Blue Lagoon Views","2,200m Launch","Season: Apr–Oct"], photo:"https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.40" },
 
-  // 2. SKIING — Revelstoke, Canada (world's longest vertical drop resort; highly credible for r/skiing; absent as named venue)
-  { id:"revelstoke-mtn", category:"skiing", title:"Revelstoke Mountain Resort", location:"Revelstoke, British Columbia, Canada", lat:51.0342, lon:-118.1708, ap:"YRV", icon:"⛷️", rating:4.94, reviews:3140, gradient:"linear-gradient(135deg,#0a1a2e,#1a3a5e)", accent:"#4a8abf", tags:["5,620ft Vertical","North America's Deepest Pow","Cat & Heli Access","Expert Terrain"], skiPass:"independent", photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80&fit=crop" },
+  // 2. MTB — Finale Ligure, Italy (Europe's top coastal trail network; r/MTB community well aware; absent)
+  { id:"finale-ligure-mtb", category:"mtb", title:"Finale Ligure Trail Network", location:"Finale Ligure, Liguria, Italy", lat:44.1696, lon:8.3448, ap:"GOA", icon:"🚵", rating:4.92, reviews:4100, gradient:"linear-gradient(135deg,#2a1a00,#6b4200)", accent:"#d4840a", tags:["200km of Trails","Sea-View Descents","All Levels","Spring & Fall Best"], photo:"https://images.unsplash.com/photo-1565043666747-69f6646db940?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.55" },
 
-  // 3. KITESURFING — Jericoacoara, Brazil (world's top kite destination; "Jeri" well-known in the community; absent)
-  { id:"jericoacoara-kite", category:"kite", title:"Jericoacoara", location:"Ceará, Brazil", lat:-2.7975, lon:-40.5122, ap:"FOR", icon:"🪁", rating:4.93, reviews:4290, gradient:"linear-gradient(135deg,#00264d,#0059b3)", accent:"#4da6ff", tags:["Lagoon Kiting","Constant Trade Winds","Dune Launches","Season: Aug–Jan"], photo:"https://images.unsplash.com/photo-1564419320461-6870880221ad?w=800&q=80&fit=crop" },
+  // 3. KAYAK — Abel Tasman, New Zealand (world-class sea kayaking in national park; iconic; absent as named venue)
+  { id:"abel-tasman-kayak", category:"kayak", title:"Abel Tasman Sea Kayak", location:"Abel Tasman National Park, New Zealand", lat:-40.9187, lon:173.0231, ap:"WLG", icon:"🛶", rating:4.95, reviews:3750, gradient:"linear-gradient(135deg,#003322,#006644)", accent:"#00cc88", tags:["Coastal National Park","Golden Sand Beaches","Multi-Day Route","All Levels"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.52" },
 
-  // 4. HIKING — GR20, Corsica (one of Europe's hardest and most iconic treks; absent; prime April window)
-  { id:"gr20-corsica", category:"hiking", title:"GR20 — Corsica Traverse", location:"Corsica, France", lat:42.1529, lon:9.1062, ap:"AJA", icon:"🥾", rating:4.91, reviews:2670, gradient:"linear-gradient(135deg,#1a3300,#336600)", accent:"#66cc00", tags:["Europe's Toughest Trek","16 Stages","Mountain Refuges","Season: Jun–Sep"], photo:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80&fit=crop" },
+  // 4. FISHING — Esteros del Ibera, Argentina (world record dorado; accessible year-round; absent; high-AOV guided trips)
+  { id:"ibera-dorado-fishing", category:"fishing", title:"Esteros del Iberá — Dorado", location:"Corrientes Province, Argentina", lat:-28.5300, lon:-57.1400, ap:"RES", icon:"🎣", rating:4.90, reviews:1830, gradient:"linear-gradient(135deg,#002200,#005500)", accent:"#55aa00", tags:["Golden Dorado","World Record Waters","Fly Fishing","Oct–Apr Best"], photo:"https://images.unsplash.com/photo-1559181567-c3190ca9d3b5?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.60" },
 
-  // 5. DIVING — Cocos Island, Costa Rica (world's best shark diving; expert-only; strong r/diving credibility; absent)
-  { id:"cocos-island-dive", category:"diving", title:"Cocos Island", location:"Cocos Island, Costa Rica", lat:5.5370, lon:-87.0604, ap:"SJO", icon:"🤿", rating:4.98, reviews:1480, gradient:"linear-gradient(135deg,#001a33,#003366)", accent:"#0066cc", tags:["Hammerhead Schools","Liveaboard Only","UNESCO World Heritage","Expert"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80&fit=crop" },
+  // 5. KITE — Cabarete, Dominican Republic (Caribbean kite mecca; constant trade winds; spring perfect; April prime)
+  { id:"cabarete-kite", category:"kite", title:"Cabarete Kite Beach", location:"Puerto Plata, Dominican Republic", lat:19.7512, lon:-70.4083, ap:"POP", icon:"🪁", rating:4.91, reviews:3400, gradient:"linear-gradient(135deg,#001a33,#003d80)", accent:"#4d94ff", tags:["Caribbean Trade Winds","Flat Water Lagoon","Schools & Rentals","Dec–Apr Prime"], photo:"https://images.unsplash.com/photo-1564419320461-6870880221ad?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45" },
 ```
 
 ---
 
 ## 6. ONE OBSERVATION FOR THE PM
 
-**The venue deduplication issue has now been flagged in four consecutive daily reports with zero action. Reddit launch is this week.**
+**This is the 5th consecutive day flagging the same two P1 issues. Both are still unresolved. 15 named venues across April 5, 6, and 7 reports have not been added.**
 
-The data: expert venues with beginner tags, coordinate-exact duplicates, 39% photo duplication. The risk: r/surfing and r/skiing are populated by people who have surfed Cloudbreak and skied Portillo. When they open Peakly and see Cloudbreak tagged "Beginner Friendly / Longboard Friendly," the thread will read "this app has never been to an ocean." That's the launch thread. It doesn't recover.
+The deduplication and photo issues are now a pattern, not a one-off. The batch expansion shipped March 29. It has been 9 days.
 
-**The fix is 2 hours of work, not 3 days.** A Claude Code session can grep all `-s##` and `-t##` IDs, cross-reference by lat/lon proximity (0.05°), auto-generate the removal list, and execute the delete. Venue count drops from ~3,715 to ~3,000 — still 4× any competing catalog. Photo duplication drops from 39% to ~22% as a side effect. The sequential review counts disappear.
+Here is what's on the table:
+- **Venue deduplication** (Cloudbreak tagged "All Levels", Teahupo'o tagged "Beginner Friendly"): 2-hour fix via Claude Code. Drops venue count from 3,726 to ~3,000 — still 4× any competitor. Eliminates the credibility bomb.
+- **Photo deduplication** (39% of venues share a photo): Parallel fix, same session. Assign unique Unsplash IDs to 1,465 venues.
+- **REI/Backcountry affiliate tags**: Jack's 30-minute signup. Then a 10-minute dev pass to append affiliate params to 24 gear URLs. +$6.72 RPM when gear goes live.
 
-The alternative is launching to expert communities with the worst possible credibility signal: an app that doesn't know what Cloudbreak is.
+If the Reddit post goes up with the current data, r/surfing will identify the Cloudbreak error within minutes. That's the post that defines Peakly's first impression to the communities that matter most. The fix is smaller than the risk. Run a Claude Code dedup session today.
 
 ---
 
-*Report written: 2026-04-06 | Agent: Content & Data | Venues audited: 3,715*
+*Report written: 2026-04-07 | Agent: Content & Data | Venues audited: 3,726 | Fresh Python audit*
