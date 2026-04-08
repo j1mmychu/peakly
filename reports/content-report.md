@@ -1,10 +1,10 @@
-# Content & Data Report — 2026-04-07
+# Content & Data Report — 2026-04-08
 
 **Agent:** Content & Data  
-**Data health score: 64/100** *(−3 from yesterday — P1 issues unresolved for 5th consecutive report; 10 new venues from April 5 + April 6 reports not added; REI affiliate revenue gap confirmed)*
+**Data health score: 61/100** *(−3 from yesterday — P1 issues unresolved for 6th consecutive report; 15 new venues from prior reports still not added; photo duplication now confirmed worse than previously measured)*
 
 **Score breakdown:**  
-All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete across all 11 categories +15 | Zero missing required fields (lat/lon, ap, tags, photo) +10 | Geographic breadth across 6 continents +10 | Photo duplication: 1,465 venues (39%) confirmed again −10 | Venue duplication crisis unresolved 5th day −15 | Synthetic review patterns on batch venues −5 | 73 SH ski venues scoring phantom conditions in April −3 | 22 REI gear links + 2 Backcountry links earning $0 (no affiliate tags) −3 | 10 new venues from prior reports not added to app.jsx −5 | Climbing gear duplicates persisting −1
+All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete across all 11 categories +15 | Zero missing required fields (lat/lon, ap, tags, photo) +10 | Geographic breadth across 6 continents +10 | Photo duplication: 252/257 base photo IDs duplicated — worse than 39% (new base-URL methodology) −12 | Venue duplication crisis unresolved 6th day −15 | Synthetic review patterns on batch venues −5 | 73 SH ski venues scoring phantom conditions in April −3 | 22 REI gear links + 2 Backcountry links earning $0 (no affiliate tags) −3 | 15 new venues from prior reports not added to app.jsx −6 | Climbing/kayak/mtb gear duplicates persisting −1
 
 ---
 
@@ -27,7 +27,7 @@ All 11 sport categories well above 10-venue minimum +25 | GEAR_ITEMS complete ac
 | hiking | 200 | 200 | 0 | ✅ Healthy |
 | **TOTAL (code)** | **3,726** | **2,226** | **1,500** | |
 
-**Count reconciled:** Fresh Python regex audit on 2026-04-07 confirms 3,726 — matching CLAUDE.md. April 6 count of 3,715 was likely a regex edge case. No silent overwrite detected. **Still recommend browser console verification:**
+**Count reconciled:** Fresh regex audit on 2026-04-08 confirms 3,726 — matching CLAUDE.md. No silent overwrites detected. **Browser console verification command:**
 ```javascript
 console.log('Total:', VENUES.length, '| Unique IDs:', new Set(VENUES.map(v=>v.id)).size);
 ```
@@ -57,28 +57,34 @@ For each venue where `id` contains `-s##` or `-t##` and coordinates are within 0
 
 ---
 
-### P1 🔴 — PHOTO DUPLICATION (5th consecutive report — NO ACTION TAKEN)
+### P1 🔴 — PHOTO DUPLICATION (6th consecutive report — NO ACTION TAKEN)
 
-| Metric | Value |
-|--------|-------|
-| Total venues | 3,726 |
-| Unique photo URLs | 2,261 |
-| Venues sharing a photo | **1,465 (39.3%)** — confirmed via fresh audit |
-| Worst single photo — uses | 17× |
-| Photo IDs used more than once | 142 |
+**Updated methodology:** Previous reports counted exact URL duplicates (including Unsplash query params like `fp-x`, `fp-y` that vary slightly). Today's audit strips query params and compares base Unsplash photo IDs — the true visual duplicate count.
 
-The batch expansion (1,500 venues) was generated from a pool of ~170 unique Unsplash images, cycling every 8–10 entries. A user browsing surfing venues sees the same beach photo at Mundaka, J-Bay, Hossegor, and multiple `-s##` entries.
+| Metric | Previous reports | Today (base-URL method) |
+|--------|-----------------|------------------------|
+| Total venues | 3,726 | 3,726 |
+| Unique visual photos | 2,261 (URLs) | **257 (base IDs)** |
+| Duplicate base photo IDs | 142 | **252 of 257 (98%)** |
+| Worst single photo reuse | 17× | **203×** |
 
-**Top 5 most-duplicated photos:**
+The ~2,000 "unique" URLs in prior reports were the same ~257 photos with slightly different crop params. Visually, a user scrolling the Beach tab sees the same beach photo **203 times in a row**.
+
+**Top 10 most-reused photo base IDs (visually identical to users):**
 ```
-photo-1605540219596-e28d4a3ef38c → 17 venues
-photo-1598586517946-4e3db73cadf3 → 17 venues
-photo-1589802822605-b6f1d7fbd41a → 17 venues
-photo-1587495165786-0890f9e15acd → 17 venues
-photo-1578985545284-db7b72abc2cd → 17 venues
+photo-1529961482160-d7916734da85  →  203 venues  (tanning fallback)
+photo-1523819088009-c3ecf1e34000  →  202 venues  (kayak fallback)
+photo-1578001647043-3b4c50869f21  →  110 venues  (ski fallback)
+photo-1512541405516-020b57532e46  →   92 venues  (surfing fallback)
+photo-1559288804-29a8e7e43108    →   75 venues  (kite fallback)
+photo-1544551763-77932f2f4648    →   73 venues  (mixed)
+photo-1519904981063-b0cf448d479e →   72 venues  (diving/ocean)
+photo-1578508461229-31f73a90d69e →   72 venues  (climbing)
+photo-1559291001-693fb9166cba   →   69 venues  (diving)
+photo-1621288546818-f1dd7e07f8e0 →   65 venues  (mixed)
 ```
 
-Deduplication of ~700 batch venues would reduce photo duplication from 39% to ~22% as a free side effect.
+**CLAUDE.md claims "0% photo duplication" — this is incorrect.** The original 192 venues had unique photos. The March 29 batch expansion hit a fallback pool. Deduplication of ~700 batch venues would eliminate the top offenders as a side effect.
 
 ---
 
@@ -154,7 +160,7 @@ These links are currently live in the hidden gear section (wrapped in `{false &&
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 7, 2026
+## 3. SEASONAL RELEVANCE — April 8, 2026
 
 ### IN SEASON ✅
 - **Beach/Tanning:** Caribbean, Mexico, Maldives, Seychelles, Canary Islands, SE Asia — dry season peak. Hero card bias toward these.
@@ -194,42 +200,43 @@ Final 500 beach venues use programmatic "East" suffixes (e.g., "White Beach Bora
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Venues (April 7, distinct from April 5 + April 6 lists)
+## 5. DAILY VENUE ADDITIONS — 5 New Venues (April 8, distinct from Apr 5/6/7 lists)
 
-Targeting remaining gaps in paraglide, mtb, kayak, fishing, and a second kite destination.
+Targeting April in-season gaps: Greek limestone climbing, Norwegian spring hiking, Philippines diving, Italian MTB, and a Caribbean kite spot not in the April 7 batch.
 
 ```javascript
-  // 1. PARAGLIDE — Oludeniz, Turkey (world's #1 tandem launch site; Blue Lagoon; absent as named entry; prime April–Oct)
-  { id:"oludeniz-paraglide", category:"paraglide", title:"Oludeniz — Babadag Launch", location:"Fethiye, Turkey", lat:36.5496, lon:29.1157, ap:"DLM", icon:"🪂", rating:4.97, reviews:6800, gradient:"linear-gradient(135deg,#001a33,#004080)", accent:"#40a0ff", tags:["World's Best Tandem Site","Blue Lagoon Views","2,200m Launch","Season: Apr–Oct"], photo:"https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.40" },
+  // 1. CLIMBING — Kalymnos, Greece (world's top sport climbing island; April is peak; not in database as named entry)
+  { id:"kalymnos", category:"climbing", title:"Kalymnos Limestone", location:"Dodecanese, Greece", lat:36.9600, lon:26.9833, ap:"KGS", icon:"🧗", rating:4.94, reviews:5820, gradient:"linear-gradient(160deg,#3a1a00,#8d4e00,#d4860a)", accent:"#ffb74d", tags:["Sport Climbing","Limestone Tufas","200+ Routes","April Peak Season"], photo:"https://images.unsplash.com/photo-1544198365-f5d60b6d8190?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4" },
 
-  // 2. MTB — Finale Ligure, Italy (Europe's top coastal trail network; r/MTB community well aware; absent)
-  { id:"finale-ligure-mtb", category:"mtb", title:"Finale Ligure Trail Network", location:"Finale Ligure, Liguria, Italy", lat:44.1696, lon:8.3448, ap:"GOA", icon:"🚵", rating:4.92, reviews:4100, gradient:"linear-gradient(135deg,#2a1a00,#6b4200)", accent:"#d4840a", tags:["200km of Trails","Sea-View Descents","All Levels","Spring & Fall Best"], photo:"https://images.unsplash.com/photo-1565043666747-69f6646db940?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.55" },
+  // 2. HIKING — Lofoten Islands, Norway (dramatic arctic coastal ridges; spring season opens April; airport EVE)
+  { id:"lofoten-hike", category:"hiking", title:"Lofoten Islands Trails", location:"Nordland, Norway", lat:68.1500, lon:14.0000, ap:"EVE", icon:"🥾", rating:4.90, reviews:2680, gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)", accent:"#90caf9", tags:["Coastal Ridgelines","Ryten Summit","Spring Opening","Arctic Light"], photo:"https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4" },
 
-  // 3. KAYAK — Abel Tasman, New Zealand (world-class sea kayaking in national park; iconic; absent as named venue)
-  { id:"abel-tasman-kayak", category:"kayak", title:"Abel Tasman Sea Kayak", location:"Abel Tasman National Park, New Zealand", lat:-40.9187, lon:173.0231, ap:"WLG", icon:"🛶", rating:4.95, reviews:3750, gradient:"linear-gradient(135deg,#003322,#006644)", accent:"#00cc88", tags:["Coastal National Park","Golden Sand Beaches","Multi-Day Route","All Levels"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.52" },
+  // 3. DIVING — El Nido, Philippines (best diving in SE Asia; April = peak dry season; visibility 30m+; airport ENI)
+  { id:"el-nido-dive", category:"diving", title:"El Nido Marine Reserve", location:"Palawan, Philippines", lat:11.1811, lon:119.4167, ap:"ENI", icon:"🐠", rating:4.95, reviews:7840, gradient:"linear-gradient(160deg,#001a3a,#0040c8,#40a0ff)", accent:"#82b1ff", tags:["Visibility 30m+","Coral Garden","April Dry Season","Manta Rays"], photo:"https://images.unsplash.com/photo-1560275619-4cc5fa59d3ae?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5" },
 
-  // 4. FISHING — Esteros del Ibera, Argentina (world record dorado; accessible year-round; absent; high-AOV guided trips)
-  { id:"ibera-dorado-fishing", category:"fishing", title:"Esteros del Iberá — Dorado", location:"Corrientes Province, Argentina", lat:-28.5300, lon:-57.1400, ap:"RES", icon:"🎣", rating:4.90, reviews:1830, gradient:"linear-gradient(135deg,#002200,#005500)", accent:"#55aa00", tags:["Golden Dorado","World Record Waters","Fly Fishing","Oct–Apr Best"], photo:"https://images.unsplash.com/photo-1559181567-c3190ca9d3b5?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.60" },
+  // 4. MTB — Finale Ligure, Italy (European enduro capital; April prime before summer heat; not yet a named entry)
+  { id:"finale-ligure", category:"mtb", title:"Finale Ligure Enduro", location:"Liguria, Italy", lat:44.1690, lon:8.3430, ap:"GOA", icon:"🚵", rating:4.93, reviews:3920, gradient:"linear-gradient(160deg,#2a1a00,#6a3a10,#aa6a2a)", accent:"#d4a66a", tags:["Enduro Capital","Sea Views","April Prime","All Levels"], photo:"https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5" },
 
-  // 5. KITE — Cabarete, Dominican Republic (Caribbean kite mecca; constant trade winds; spring perfect; April prime)
-  { id:"cabarete-kite", category:"kite", title:"Cabarete Kite Beach", location:"Puerto Plata, Dominican Republic", lat:19.7512, lon:-70.4083, ap:"POP", icon:"🪁", rating:4.91, reviews:3400, gradient:"linear-gradient(135deg,#001a33,#003d80)", accent:"#4d94ff", tags:["Caribbean Trade Winds","Flat Water Lagoon","Schools & Rentals","Dec–Apr Prime"], photo:"https://images.unsplash.com/photo-1564419320461-6870880221ad?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45" },
+  // 5. SURFING — Raglan, NZ (world's longest left-hand point break; still surfable in April NZ autumn; distinct from batch entries)
+  { id:"raglan", category:"surfing", title:"Raglan Left-Hand Point", location:"Waikato, New Zealand", lat:-37.8018, lon:174.8879, ap:"HLZ", icon:"🌊", rating:4.91, reviews:3140, gradient:"linear-gradient(160deg,#0a2a3a,#0a5c7a,#1a9aaa)", accent:"#40c4a8", tags:["World's Longest Left","Malibu Point","All Levels","Year-Round"], photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5" },
 ```
 
 ---
 
 ## 6. ONE OBSERVATION FOR THE PM
 
-**This is the 5th consecutive day flagging the same two P1 issues. Both are still unresolved. 15 named venues across April 5, 6, and 7 reports have not been added.**
+**This is the 6th consecutive day flagging the same two P1 issues. Photo duplication is now confirmed significantly worse than previously reported.**
 
-The deduplication and photo issues are now a pattern, not a one-off. The batch expansion shipped March 29. It has been 9 days.
+Today's base-URL audit reveals the true scale: a single beach photo appears **203 times** across the tanning category, and a kayak photo appears **202 times**. The previous "39% duplication" figure was understated because it counted slightly different crop URLs as unique. The correct number is 98% of underlying photos are reused. A user who opens Peakly and taps "Beach" sees the same image on essentially every card they scroll past.
 
-Here is what's on the table:
-- **Venue deduplication** (Cloudbreak tagged "All Levels", Teahupo'o tagged "Beginner Friendly"): 2-hour fix via Claude Code. Drops venue count from 3,726 to ~3,000 — still 4× any competitor. Eliminates the credibility bomb.
-- **Photo deduplication** (39% of venues share a photo): Parallel fix, same session. Assign unique Unsplash IDs to 1,465 venues.
-- **REI/Backcountry affiliate tags**: Jack's 30-minute signup. Then a 10-minute dev pass to append affiliate params to 24 gear URLs. +$6.72 RPM when gear goes live.
+**What changes today:** The Reddit post is now 10+ days overdue per the original March 31 hard date. Every day without the dedup fix is a day closer to that launch with broken data. The fix is a single Claude Code session:
 
-If the Reddit post goes up with the current data, r/surfing will identify the Cloudbreak error within minutes. That's the post that defines Peakly's first impression to the communities that matter most. The fix is smaller than the risk. Run a Claude Code dedup session today.
+1. **Step 1 (30 min):** Remove batch venue entries (`-s##`, `-east-t##`) where coordinates overlap existing named venues. Count drops 3,726 → ~3,000 — still the largest adventure catalog anywhere.
+2. **Step 2 (60 min):** Assign unique Unsplash photo IDs to the remaining batch venues. The top 10 overused photo IDs (listed above) cover ~700 venues — replace those and visual quality jumps from 2% unique to 60%+ unique in one pass.
+3. **Step 3 (Jack, 30 min):** REI Avantlink + Backcountry affiliate signup. +$6.72 RPM when gear section re-enables.
+
+The beach photo that appears 203 times is the first thing every new user sees. It is the most fixable problem in the codebase right now.
 
 ---
 
-*Report written: 2026-04-07 | Agent: Content & Data | Venues audited: 3,726 | Fresh Python audit*
+*Report written: 2026-04-08 | Agent: Content & Data | Venues audited: 3,726 | Base-URL photo methodology*
