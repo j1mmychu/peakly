@@ -1,7 +1,9 @@
-# Peakly PM Report — 2026-04-06 (v22)
+# Peakly PM Report — 2026-04-08 (v23)
 
 **Filed by:** Product Manager agent  
-**Status:** 4-day shipping gap. TP_MARKER still unset. Day 13. App is coasting.
+**Status:** Dead week continues. Zero commits since April 2. TP_MARKER Day 15. Every P0/P1 from v22 still open.
+
+Full report: [pm-2026-04-08.md](./pm-2026-04-08.md)
 
 ---
 
