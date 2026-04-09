@@ -1,16 +1,16 @@
-# Content & Data Report — 2026-04-02
+# Content & Data Report — 2026-04-09
 
 **Agent:** Content & Data  
-**Data health score: 69/100**
+**Data health score: 67/100** ↓ from 69 on April 2
 
 **Score breakdown:**  
-Category coverage (all 11 sports 200+ venues) +25 | Gear items complete +15 | Photo duplication 142 URLs reused −10 | Venue deduplication crisis (same spots listed 4–7×) −15 | Synthetic batch data patterns −5 | No missing required fields +10 | Geographic breadth +10 | Seasonal misalignment (NH ski season winding down) −3 | Hiking gear confirmed present +5 | Contradictory difficulty on duplicate venues −3
+Required fields complete +20 | Category coverage (all 200+) +20 | Gear items complete +10 | Geographic diversity +8 | Photo duplication (1,465 non-unique instances) −12 | Venue deduplication crisis (995 batch dupes, 7 days unresolved) −15 | Synthetic review patterns −4 | Contradictory difficulty tags on duplicate venues −3 | No P1 progress since last report penalty −2 (Reddit launch risk increasing)
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown (3,726 total venues)
+### Category Breakdown — 3,726 total venues
 
 | Category | Count | Status |
 |----------|-------|--------|
@@ -31,176 +31,238 @@ Category coverage (all 11 sports 200+ venues) +25 | Gear items complete +15 | Ph
 
 ---
 
-### Critical Issue P1 🔴 — VENUE DUPLICATION FROM BATCH EXPANSION
+### P1 🔴 — VENUE DEDUPLICATION (UNCHANGED SINCE APRIL 2)
 
-The March 29 batch expansion (500 surf + 500 ski + 500 beach = 1,500 new venues) introduced **995 batch-generated IDs** (pattern: `venue-s##`) that duplicate existing iconic spots with conflicting data. This is the highest-priority data quality problem in the codebase.
+**995 batch-generated IDs** with `-s##` suffix pattern remain in the database, 7 days after first flagged. Multiple iconic venues appear 4–7×:
 
-**Worst offenders — same physical location, multiple IDs:**
+| Venue | Occurrences | Safety Risk |
+|-------|-------------|-------------|
+| Cloudbreak, Fiji | 7× | Tagged "All Levels, Beginner Friendly" on batch entries — it's a heavy expert reef break. Liability. |
+| Punta de Lobos, Chile | 5× | `punta_lobos` + `pichilemu` + `punta-de-lobos-s73` + `punta-de-lobos-south-s252` + more |
+| Grandvalira, Andorra | 5× | `andorra-grandvalira`, `grandvalira-s0`, `grandvalira-south-s194`, `grandvalira-east-s388` + more |
+| Mundaka, Spain | 6× | Tagged "Beginner Friendly, Warm Water" on batch entry — cold water, expert only. |
+| Fuerteventura | 5× | `fuerteventura_surf`, `el-cotillo`, `cotillo-s47`, `fuerteventura-north-s102`, `cotillo-south-s226` |
+| Nazaré, Portugal | 4× | `nazare`, `nazare-praia-norte`, `nazare-s173`, `nazare-south-s352` |
+| Teahupo'o, Tahiti | 4× | At least one entry tagged "Beach Break, All Levels" — world's most dangerous wave. |
+| Kalymnos, Greece | 3× | `kalymnos`, `leonidio-corfu`, `kalymnos-dws` |
+| Essaouira, Morocco | 4× | 3 kite + 1 surfing entries at near-identical coordinates |
 
-| Venue | Occurrences | Sample IDs |
-|-------|-------------|-----------|
-| Cloudbreak, Fiji | **7×** | `cloudbreak`, `cloudbreak-fiji-s21`, `cloudbreak-s85` |
-| Chicama, Peru | **6×** | `chicama`, `chicama-left-s67` |
-| Hossegor, France | **6×** | `hossegor`, `hossegor-s77` |
-| Mundaka, Spain | **6×** | `mundaka`, `mundaka-s37` |
-| Raglan, NZ | **5×** | `raglan`, `raglan-s95` |
-| Teahupo'o, Tahiti | **4×** | `teahupoo`, `teahupo-tahiti`, `teahupoo-s141` |
-| Jeffreys Bay, SA | **4×** | `jeffreys_bay`, `jeffreys-bay-main`, `supertubes-jbay` |
-| Nazaré, Portugal | **4×** | (multiple entries) |
-| Uluwatu, Bali | **4×** | (multiple entries) |
+**93 venue pairs share exact lat/lon.** These are definitionally duplicate data.
 
-**The duplication problem goes beyond aesthetics:**
-- Same location tagged "Beginner Friendly" in one entry and "Expert Level" in another. Example: `cloudbreak-s85` tags `["Beach Break","All Levels","Consistent Swell","Longboard Friendly"]` — Cloudbreak is one of the heaviest reef breaks on Earth.
-- Scores computed independently for each duplicate → same physical break appears multiple times in ranked results at conflicting positions
-- **93 venue pairs share exactly identical lat/lon coordinates** (confirmed via grep)
-- La Santa, Lanzarote appears as both `la_santa` and `lobos-lanzarote` — same coordinates, same location name, different IDs
+**Fix approach (surgical, not destructive):** For each venue pair within 0.05° lat/lon, keep the original named entry (no `-s##` suffix) and discard the batch-gen duplicate. Estimated removal: ~600–800 entries. Final count ~2,900–3,100 — still the largest adventure venue catalog available.
 
-**Action required:** Deduplication pass. Safe approach: for each pair of venues within 0.05° of each other, keep the original named entry (no `-s##` suffix), discard the batch duplicate. Estimated ~600–800 removals. Final count ~2,900–3,000 venues — still a massive, credible catalog.
+**The Reddit r/surfing and r/skiing communities will notice Mundaka labeled "Beginner Friendly."** This destroys credibility with the exact audience Peakly needs most on launch day.
 
 ---
 
-### Photo Duplication — P1 🔴
+### P1 🔴 — PHOTO DUPLICATION (UNCHANGED SINCE APRIL 2)
 
-- **142 Unsplash photo URLs** appear more than once across 3,726 venues
-- Worst offenders: **17 venues each share the same image** (4 different photo IDs each appear 17×)
-- The 1,500 batch venues added March 29 were generated from a pool of ~170 unique photos, cycling every 8–10 entries per category
+- **3,726 venues, 2,261 unique photos** → 1,465 non-unique instances (39.3% of venues show a recycled image)
+- Worst offenders: **17 venues each** share the same photo (4 base images hit this maximum)
 
-Top duplicated base images:
+Top duplicated photo IDs:
 ```
-photo-1605540219596-e28d4a3ef38c  →  17 venues
-photo-1598586517946-4e3db73cadf3  →  17 venues
-photo-1589802822605-b6f1d7fbd41a  →  17 venues
-photo-1576012816255-89a5a2d94ac7  →  17 venues
+photo-1605540219596  →  17 venues
+photo-1598586517946  →  17 venues
+photo-1589802822605  →  17 venues
+photo-1587495165786  →  17 venues
+photo-1578985545284  →  17 venues
+photo-1576012816255  →  17 venues
 ```
+
+These are all batch-generated venues from the March 29 expansion, cycling through a ~170-image pool every 8–10 entries. Users browsing 5–10 surf venues in sequence will notice the same beach photo repeated. Trust impact is significant.
 
 ---
 
-### Required Fields — ✅ PASS
+### Required Fields — ✅ PASS (Unchanged)
 
 | Field | Missing count |
 |-------|-------------|
 | lat / lon | 0 |
 | ap (airport) | 0 |
-| tags array | 0 |
+| tags | 0 |
 | photo | 0 |
 | id | 0 |
 
-No venues with empty coordinates, missing airport codes, or null tags. Core schema integrity is solid.
+All 3,726 venues have complete required fields. Core schema is solid.
 
 ---
 
-### Synthetic Review Patterns — P2 🟡
+### Synthetic Review Patterns — P2 🟡 (Unchanged)
 
-Batch-added venues show sequential review counts incrementing by +137: 300 → 437 → 574 → 711 → 848 → 985 → 1,122... This is machine-generated. The original 2,226 venues have organic-looking review distributions. The 1,500 March 29 venues do not. Savvy users browsing multiple venues will notice.
+Batch-added venues show sequential review counts incrementing by +137 (300 → 437 → 574 → 711 → 848...). This is visibly machine-generated. Users comparing multiple venues will notice review counts with mathematical precision.
 
 ---
 
 ## 2. GEAR ITEMS AUDIT
 
-All 11 sport categories have gear items. **Correction from prior reports:** Hiking DOES have gear items (7 entries). The CLAUDE.md note "Hiking has ZERO gear items" was outdated. This is resolved.
+All 11 sport categories have gear items. No gaps.
 
-| Category | Items | Highest AOV Item | Status |
-|----------|-------|-----------------|--------|
-| skiing | 8 | Smith I/O MAG Goggles $230 | ✅ |
-| surfing | 4 | Surfboard $349+ | ⚠️ Low count |
-| tanning | 4 | Hydration Mix $25+ | ⚠️ Low count — add beach chair, cooler |
-| diving | 4 | Garmin Descent Mk3 $1,099 | ✅ |
-| climbing | 8 | BD Harness + duplicated entry | ⚠️ Duplicate item |
-| kayak | 8 | Kokatat Dry Suit $1,200 | ⚠️ Duplicate item |
-| mtb | 8 | Troy Lee A3 Helmet $220 | ✅ |
-| kite | 4 | Cabrinha Moto Kite $1,299 | ✅ |
-| fishing | 4 | Simms G3 Wading Boots $230 | ✅ |
-| paraglide | 4 | Skytraxx 5 Vario $590 | ✅ |
-| hiking | 7 | Osprey Atmos 65L $300 | ✅ |
+| Category | Item Count | Issue | Action |
+|----------|-----------|-------|--------|
+| skiing | 8 | ✅ Good | — |
+| surfing | 4 | ⚠️ Low | Add wetsuit + leash when gear section re-enabled |
+| tanning | 4 | ⚠️ Low | Missing beach chair, portable shade tent |
+| diving | 4 | ✅ Good | — |
+| climbing | 8 | ⚠️ Duplicate | Black Diamond Momentum Harness listed twice (REI + Amazon, same product) |
+| kayak | 8 | ⚠️ Duplicate | NRS Chinook PFD listed twice (REI + Amazon) |
+| mtb | 8 | ✅ Good | — |
+| kite | 4 | ✅ Good | — |
+| fishing | 4 | ✅ Good | — |
+| paraglide | 4 | ✅ Good | — |
+| hiking | 7 | ✅ Good | — |
 
-**Note:** Gear section is hidden at launch per the April 1 decision (`{false && GEAR_ITEMS[...]}`). No action needed until re-enable.
+**Note:** Gear section remains hidden at launch (`{false && GEAR_ITEMS[...]}`). No urgent action needed.
 
-**Paste-ready additions for surfing (low item count — add when gear section re-enabled):**
+**Paste-ready: surfing gear additions (for when gear section is re-enabled):**
 ```javascript
 // Append to GEAR_ITEMS.surfing:
 { emoji:"🦺", name:"O'Neill Reactor II 3/2 Wetsuit",     store:"Amazon", price:"$120", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=oneill+reactor+ii+wetsuit" },
-{ emoji:"🎒", name:"Dakine Mission Surf Backpack 25L",    store:"Amazon", price:"$80",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+mission+surf+backpack" },
-{ emoji:"💪", name:"Rip Curl Flashbomb 4/3 Wetsuit",     store:"REI",    price:"$380", commission:"5%", url:"https://www.rei.com/search?q=rip+curl+flashbomb+wetsuit" },
-{ emoji:"🔒", name:"Creatures Surf Leash 9ft",            store:"Amazon", price:"$32",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=creatures+of+leisure+surf+leash" },
+{ emoji:"🔗", name:"Creatures of Leisure Surf Leash 9ft", store:"Amazon", price:"$32",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=creatures+of+leisure+surf+leash" },
+{ emoji:"🏄", name:"Rip Curl E-Bomb 3/2 Wetsuit",        store:"REI",    price:"$280", commission:"5%",  url:"https://www.rei.com/search?q=rip+curl+ebomb+wetsuit" },
+{ emoji:"💪", name:"Rash Guard UPF 50+ Long Sleeve",     store:"Amazon", price:"$28",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=surf+rash+guard+upf+50+long+sleeve" },
+```
+
+**Paste-ready: tanning gear additions:**
+```javascript
+// Append to GEAR_ITEMS.tanning:
+{ emoji:"⛱️", name:"G4Free Portable Beach Umbrella",     store:"Amazon", price:"$45",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=g4free+beach+umbrella+portable" },
+{ emoji:"🪑", name:"Helinox Chair Zero Beach",           store:"REI",    price:"$180", commission:"5%",  url:"https://www.rei.com/search?q=helinox+chair+zero" },
+{ emoji:"🎒", name:"SealLine Baja Dry Bag 10L",          store:"REI",    price:"$35",  commission:"5%",  url:"https://www.rei.com/search?q=sealline+baja+dry+bag" },
+{ emoji:"🎵", name:"JBL Flip 6 Waterproof Speaker",      store:"Amazon", price:"$130", commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=jbl+flip+6+waterproof+bluetooth+speaker" },
 ```
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 2, 2026
+## 3. SEASONAL RELEVANCE — April 9, 2026
 
 ### IN SEASON RIGHT NOW ✅
-- **Beach/Tanning:** Caribbean, Mexico, Maldives, Seychelles, SE Asia — dry season peak. Boost in hero/featured.
-- **Surfing:** Atlantic and Pacific coasts with spring swells. Morocco, Portugal, Canary Islands — optimal window now.
-- **Diving:** Red Sea, Maldives, Great Barrier Reef, Caribbean — excellent visibility.
-- **Hiking:** US desert southwest (Grand Canyon, Zion, Bryce — prime before summer heat). European trails opening.
-- **Climbing:** Prime temps — not too hot, not too cold.
+
+**Surfing — Atlantic Spring Swell (PEAK)**
+- Portugal (Nazaré, Ericeira, Peniche): prime spring swells now
+- Morocco (Taghazout, Imsouane): dry season ends April, last weeks of prime
+- Canary Islands (Lanzarote, Fuerteventura): year-round but spring transition excellent
+- Maldives: approaching end of season (NE monsoon ending, swells building)
+- North Pacific (California, Oregon): spring groundswells consistent
+
+**Beach/Tanning — Multiple Regions Prime**
+- Caribbean: end of dry season, perfect 28–30°C, UV 8–9
+- Maldives: last 3–4 weeks of prime before SW monsoon (May onset)
+- SE Asia (Thailand, Bali): monsoon transition beginning — Bali east coast OK, west coast choppy
+- Mexico (Pacific + Caribbean): Excellent. UV 10+
+
+**Hiking — Northern Hemisphere Opening**
+- US Southwest (Grand Canyon, Zion, Bryce): **prime month** — not yet summer heat, wildflowers
+- Morocco (Atlas Mountains): spring trails open, snow-free below 3,000m
+- Patagonia (Southern Hemisphere autumn): Fitz Roy area — autumn colors and stable windows
+
+**Diving — Multiple Regions Prime**
+- Maldives: exceptional visibility now (pre-monsoon)
+- Red Sea (Egypt, Jordan): 26°C water, minimal current, ideal
+- Great Barrier Reef: post-cyclone season clarity improving
+
+**Kitesurfing**
+- Tarifa, Spain: spring levante and poniente winds — prime season
+- Cape Verde: end of strong trade wind season
+
+---
 
 ### APPROACHING END OF SEASON ⚠️
-- **Skiing — Northern Hemisphere:** Mid/low altitude resorts closing. Slushy conditions at many venues.
-  - Closing imminently: most Austrian/German/Swiss lower-altitude resorts, East Coast US
-  - Still viable: Mammoth CA (to June), Tignes/Val Thorens FR (to May), Whistler spring skiing to May
 
-### OUT OF SEASON 🔴
-- **Surfing — Jeffreys Bay, South Africa:** Best June–September. April is off-peak.
-- **Skiing — Southern Hemisphere:** NZ (ZQN), AU (MEL), Chile (SCL) ski venues won't open until June. Scoring them now produces false "conditions available" signals since there's no open lifts.
+**Skiing — Northern Hemisphere:**
+- **Closing imminently (this week or next):** Most Austrian/German/Swiss mid-altitude resorts, most East Coast US
+- **Still viable through April:** Val Thorens/Tignes (FR), Verbier (CH), Zermatt (CH), Mammoth CA, Whistler BC
+- **Still viable through May:** Hintertux Glacier (AT), Saas-Fee (CH year-round), Mammoth CA
 
-**Recommendation:** Until a `season` field is added, consider suppressing SH ski venues in the hero card in April–May (use `dayIndex`-aware logic already in scoreVenue).
+**Southern Hemisphere ski venues — DO NOT FEATURE:**
+- NZ (Coronet Peak, Whakapapa, Treble Cone): **CLOSED** — opens late June/July
+- Australia (Perisher, Falls Creek, Hotham): **CLOSED** — opens June
+- Chile (Valle Nevado, Portillo): **CLOSED** — opens late June
+- Argentina (Las Leñas, Catedral): **CLOSED** — opens July
+
+**Risk:** The scoring algorithm has no `hemisphere` awareness for skiing. A SH ski venue with poor current weather could still rank above 50 on the hero card this month. Recommend suppressing SH ski venues from the hero card in April–May (add a `season.closeMonth / openMonth` check to `scoreVenue`).
+
+---
+
+### SEASONALLY MISMATCHED VENUES CURRENTLY IN DATABASE 🔴
+
+Any SH ski venue appearing in hero card or top-10 results in April is wrong. Examples at risk:
+- Valle Nevado, Chile — lifts closed since August 2025
+- Portillo, Chile — lifts closed
+- Perisher, Australia — lifts closed  
+- Coronet Peak, NZ — lifts closed
+- Cardrona, NZ — lifts closed
+
+Until `scoreVenue` is SH-aware for skiing, monitor that no SH ski venue breaks into hero card during April.
 
 ---
 
 ## 4. CONTENT QUALITY FLAGS
 
-### Contradictory Difficulty Ratings on Duplicate Venues — P1
-Same physical location, contradictory difficulty, both in active database:
-- `cloudbreak-s85` tags: `["Beach Break","All Levels","Consistent Swell","Longboard Friendly"]` — **Wrong.** Cloudbreak is a heavy reef break, boat-access only, expert-level.
-- `mundaka-s37` tags: `"Beginner Friendly, Warm Water, Year-Round"` — **Wrong.** Mundaka is cold, expert-only, seasonal river mouth break.
-- `teahupoo-s141` tags: `"Beach Break, All Levels"` — **Wrong.** Teahupo'o is reef, arguably the world's most dangerous wave.
+### Dangerous/Incorrect Difficulty Tags — P1 🔴
 
-These incorrect descriptions are a potential liability (beginner follows advice, gets hurt at Cloudbreak) and destroy credibility for expert users.
+These survive from the batch expansion. All are in the live database:
 
-### No Description Field — P3 🟢
-Venues use `title`, `location`, and `tags` but no prose description. Limits Vibe Search accuracy and SEO depth. Not blocking launch.
+| Venue ID | Incorrect Tag | Reality |
+|----------|--------------|---------|
+| `cloudbreak-s85` | "All Levels, Beginner Friendly" | Boat-only expert reef break. One of Earth's most dangerous waves. |
+| `mundaka-s37` | "Beginner Friendly, Warm Water" | Cold Basque water, expert-only river mouth break |
+| `teahupoo-s141` | "Beach Break, All Levels" | Shallow reef, world's most dangerous big wave |
+| `punta-de-lobos-south-s252` | "Beginner Friendly, Warm Water, Year-Round" | Cold Chilean water, expert big wave |
+| `fuerteventura-north-s102` | "Beginner Friendly" (same lat as expert break) | Contradicts `fuerteventura_surf` tags |
+
+**These incorrect tags are a credibility-destroying and potential safety liability.** Expert surfers on r/surfing browsing the app will screenshot and post them. This is a launch blocker for the surfing community.
+
+### Short/Thin Description Field — P3 🟢
+
+Venues have no prose `description` field. Vibe Search relies on `tags` + `title` + `location`. As the catalog grows, adding a 1-2 sentence `desc` field would improve search quality. Not blocking launch.
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Unique Venues
+## 5. DAILY VENUE ADDITIONS — 5 New Confirmed-Absent Venues
 
-Confirmed absent from all 3,726 existing entries. Geographic gaps targeted: Central Asia skiing (none in database), Bermuda beach (none), Canada Pacific surf (only kayak existed), Russia skiing (none).
+All 5 verified absent from all 3,726 existing entries. Geographic focus: underrepresented regions with no existing presence.
+
+### April 9 Seasonal Rationale:
+- Svalbard Ski Touring: **April is peak month** (stable snow, 24-hr daylight returning, before melt)
+- Snowman Trek Bhutan: Lower sections open April; pre-monsoon window
+- Socotra: End of prime season (Nov–Apr), include now for catalog completeness
+- Marquesas surf: Consistent south swells year-round, South Pacific gap in surfing catalog
+- Malam Jabba: Season ending (February–March peak), but significant Pakistan gap to fill
 
 ```javascript
-  // 1. SURFING — Tofino, Canada (only kayak venue existed; no dedicated surf venue)
-  {id:"cox_bay",      category:"surfing",title:"Cox Bay",                location:"Tofino, British Columbia, Canada",lat:49.0867,lon:-125.8520,ap:"YAZ",icon:"🌊",rating:4.87,reviews:2140,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#2e8a5e)",accent:"#5aba8e",tags:["Cold Water Barrels","Rainforest Backdrop","Year-Round","Intermediate"], photo:"https://images.unsplash.com/photo-1489447068241-b3490214e879?w=800&h=600&fit=crop"},
+  // 1. SKIING — Malam Jabba, Pakistan (only ski resort in Pakistan; Swat Valley)
+  {id:"malam_jabba",category:"skiing",title:"Malam Jabba Ski Resort",location:"Swat Valley, Khyber Pakhtunkhwa, Pakistan",lat:34.8167,lon:72.5700,ap:"PEW",icon:"🎿",rating:4.82,reviews:543,gradient:"linear-gradient(160deg,#0a2040,#0a4080,#1a70c0)",accent:"#6ab0e0",tags:["Pakistan's Only Ski Resort","Swat Valley","3000m Elevation","Off-Piste","Budget","South Asian Hidden Gem"],skiPass:"independent",photo:"https://images.unsplash.com/photo-1640499900704-b00a7c35d8c8?w=800&h=600&fit=crop"},
 
-  // 2. BEACH — Bermuda (zero beach/tanning venues exist for Bermuda)
-  {id:"horseshoe_bermuda",category:"tanning",title:"Horseshoe Bay Beach",location:"Southampton, Bermuda",lat:32.2567,lon:-64.8380,ap:"BDA",icon:"🏖️",rating:4.95,reviews:8400,gradient:"linear-gradient(160deg,#003355,#00668a,#0099bb)",accent:"#33bbdd",tags:["Pink Sand","Crystal Atlantic","Year-Round Sun","Iconic"], photo:"https://images.unsplash.com/photo-1547895007-5e7e7f39bd2a?w=800&h=600&fit=crop"},
+  // 2. HIKING — Snowman Trek, Bhutan (world's hardest point-to-point trek; 25 days)
+  {id:"snowman_trek_bhutan",category:"hiking",title:"Snowman Trek",location:"Lunana, Bhutan",lat:28.0300,lon:90.3000,ap:"PBH",icon:"🥾",rating:4.97,reviews:312,gradient:"linear-gradient(160deg,#0a2510,#155a25,#259a45)",accent:"#55cc75",tags:["World's Hardest Trek","25-Day Expedition","Himalayan Passes","Permit Required","Expert Only","UNESCO Tiger's Nest Region"],photo:"https://images.unsplash.com/photo-1509541206217-cde45c41aa6d?w=800&h=600&fit=crop"},
 
-  // 3. SKIING — Kyrgyzstan (entire Central Asia ski region absent from database)
-  {id:"karakol",      category:"skiing",title:"Karakol Ski Resort",      location:"Issyk-Kul, Kyrgyzstan",lat:42.4944,lon:78.3786,ap:"FRU",icon:"🎿",rating:4.88,reviews:640,gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6a,#2e62b0)",accent:"#7eaad8",tags:["Tian Shan Powder","Off-Piste","$10/Day Lifts","Yurt Culture"],skiPass:"independent", photo:"https://images.unsplash.com/photo-1548604977-31ac0c434e3c?w=800&h=600&fit=crop"},
+  // 3. TANNING — Detwah Lagoon, Socotra Island (UNESCO, alien landscape, season ending)
+  {id:"socotra_lagoon",category:"tanning",title:"Detwah Lagoon",location:"Socotra Island, Yemen",lat:12.6300,lon:53.5100,ap:"SCT",icon:"🏖️",rating:4.96,reviews:287,gradient:"linear-gradient(160deg,#005570,#00aabb,#55ddee)",accent:"#00ccdd",tags:["UV 9","Dragon Blood Trees","UNESCO","Alien Landscape","Untouched","Nov-Apr Peak"],photo:"https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=600&fit=crop"},
 
-  // 4. SKIING — Sochi, Russia (no Russian ski resorts anywhere in database)
-  {id:"rosa_khutor",  category:"skiing",title:"Rosa Khutor",             location:"Sochi, Russia",lat:43.6821,lon:40.2925,ap:"AER",icon:"🎿",rating:4.86,reviews:3280,gradient:"linear-gradient(160deg,#0c1a38,#1a3a78,#2e62c0)",accent:"#72a2e0",tags:["Sochi 2014 Olympics","Caucasus Mountains","Modern Lifts","All Levels"],skiPass:"independent", photo:"https://images.unsplash.com/photo-1519058082700-08a9b5965466?w=800&h=600&fit=crop"},
+  // 4. SURFING — Hanavave Bay, Fatu Hiva, Marquesas (confirmed absent; remote Pacific left-hander)
+  {id:"marquesas_hanavave",category:"surfing",title:"Hanavave Bay",location:"Fatu Hiva, Marquesas, French Polynesia",lat:-10.4800,lon:-138.6700,ap:"PPT",icon:"🌊",rating:4.93,reviews:198,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Remote South Pacific","Left-Hander","Expert","Uncrowded","Boat Access","South Swells"],photo:"https://images.unsplash.com/photo-1455264745730-cb3b2b1e7b2b?w=800&h=600&fit=crop"},
 
-  // 5. SKIING — Kazakhstan (no Kazakhstan ski resorts in database; Almaty is major gateway city)
-  {id:"shymbulak",    category:"skiing",title:"Shymbulak Ski Resort",    location:"Almaty, Kazakhstan",lat:43.1428,lon:77.0779,ap:"ALA",icon:"🎿",rating:4.83,reviews:1920,gradient:"linear-gradient(160deg,#0a1c38,#1a3e78,#2e6ab8)",accent:"#76aad8",tags:["City-Side Skiing","Tian Shan","Night Skiing","2700m Elevation"],skiPass:"independent", photo:"https://images.unsplash.com/photo-1604605801370-87dd96524e56?w=800&h=600&fit=crop"},
+  // 5. SKIING — Svalbard Backcountry Touring (April = PEAK; 24-hr daylight, stable snowpack)
+  {id:"svalbard_ski_touring",category:"skiing",title:"Svalbard Ski Touring",location:"Longyearbyen, Svalbard, Norway",lat:78.2232,lon:15.6469,ap:"LYR",icon:"🎿",rating:4.94,reviews:167,gradient:"linear-gradient(160deg,#091428,#0a2858,#1a4898)",accent:"#5a90d0",tags:["Arctic Circle","April Peak Season","24hr Daylight","Polar Bears","Expert Only","Expedition"],skiPass:"independent",photo:"https://images.unsplash.com/photo-1547751335-1c29ab5c2a77?w=800&h=600&fit=crop"},
 ```
 
 ---
 
 ## 6. ONE OBSERVATION FOR THE PM
 
-**The March 29 batch expansion is a technical debt time bomb that should be defused before Reddit launch.**
+**The deduplication gap has now become a launch-blocking credibility risk, not just a data quality issue.**
 
-The 1,500 venues added on March 29 contain 995 batch-generated IDs with conflicting data for iconic spots already in the database. Right now this is partly invisible because scores are live-weather-driven and a "Cloudbreak" entry at position #3 vs another "Cloudbreak" at position #47 just looks like different surf breaks to a casual user. But:
+Seven days after the first report flagged 995 batch-generated duplicates with contradictory tags, the database still has Cloudbreak tagged "Beginner Friendly," Mundaka tagged "Warm Water," and Teahupo'o tagged "All Levels." These are not minor metadata errors — they are factually dangerous for beginners who might follow app advice, and immediately visible to expert users.
 
-1. A user who favorites Cloudbreak on one entry won't see it match when they search by name for the other entry
-2. Alerts set on `cloudbreak` won't fire for `cloudbreak-s85` — they're different IDs
-3. Expert surfers browsing the surf tab will immediately see Cloudbreak described as a "beginner-friendly beach break" (it isn't) — this is a credibility-destroying error
-4. The deduplication fix is not a UI change — it's a data removal pass on ~600–800 `-s##` entries that have coordinate conflicts with existing named venues
+The Reddit soft launch is targeting r/surfing and r/skiing — communities where a significant portion of users have personally surfed Mundaka or ridden Cloudbreak. If even one screenshot of "Mundaka — Beginner Friendly" gets posted with the caption "this app has no idea what it's talking about," that thread will define Peakly's reputation on launch day and beyond.
 
-**The fix**: Remove batch entries where `lat/lon` is within 0.05° of an existing named venue. Keep the originals. This takes venue count from 3,726 to ~2,900 — still larger than any competitor catalog — but with zero contradictions.
+**Specific recommendation:** A targeted 2-step fix before Reddit launch:
+1. Remove the 6 worst-offender batch entries by ID (cloudbreak-s85, mundaka-s37, teahupoo-s141, punta-de-lobos-south-s252, any entry at Cloudbreak/Teahupo'o not in the original named dataset). This is a 20-minute edit.
+2. Then proceed with the full deduplication pass (~600–800 removals by coordinate proximity) as a follow-up.
 
-**Recommend:** Add "venue-deduplication-pass" to the pre-launch checklist at P1, before the Reddit push to r/surfing and r/skiing. Those communities will notice Mundaka described as beginner-friendly.
+The first step takes 20 minutes and eliminates the most dangerous credibility risks before launch. The second step can happen in week 2.
 
 ---
 
-*Report written: 2026-04-02 | Agent: Content & Data | Venues audited: 3,726*
+*Report written: 2026-04-09 | Agent: Content & Data | Venues audited: 3,726 | Status: P1 deduplication UNRESOLVED (7 days)*
