@@ -10628,6 +10628,10 @@ function App() {
         setLoading(false);
         setWxLastUpdated(new Date());
       }
+      // Throttle batches to stay within Open-Meteo free tier (10K calls/day)
+      if (i + BATCH_SIZE < initial.length) {
+        await new Promise(res => setTimeout(res, 1000));
+      }
     }
     setWxData({...wxRef.current});
     setMarData({...marRef.current});
