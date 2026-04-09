@@ -1,9 +1,9 @@
-# Peakly PM Report — 2026-04-08 (v23)
+# Peakly PM Report — 2026-04-09 (v24)
 
 **Filed by:** Product Manager agent  
-**Status:** Dead week continues. Zero commits since April 2. TP_MARKER Day 15. Every P0/P1 from v22 still open.
+**Status:** One real code fix today (push icon, cache buster). TP_MARKER Day 16. New P0 from DevOps: proxy has zero rate limiting. React CDN pin resolved. Everything else still open.
 
-Full report: [pm-2026-04-08.md](./pm-2026-04-08.md)
+Full report: [pm-2026-04-09.md](./pm-2026-04-09.md)
 
 ---
 
