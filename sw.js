@@ -1,5 +1,5 @@
 // Peakly Service Worker — lightweight cache-first for static assets + web push handler
-const CACHE_NAME = "peakly-20260330";
+const CACHE_NAME = "peakly-20260409";
 const PRECACHE = [
   "/peakly/app.jsx"
 ];
@@ -60,8 +60,8 @@ self.addEventListener("push", (e) => {
   const title = data.title || "Peakly Strike Alert";
   const options = {
     body: data.body || "Conditions are peaking — check your window now.",
-    icon: "/peakly/manifest.json",
-    badge: "/peakly/manifest.json",
+    icon: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="%230284c7"/><text x="96" y="142" font-size="120" font-family="system-ui" font-weight="700" fill="white" text-anchor="middle">P</text></svg>'),
+    badge: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="18" fill="%230284c7"/><text x="48" y="71" font-size="60" font-family="system-ui" font-weight="700" fill="white" text-anchor="middle">P</text></svg>'),
     tag: data.venueId ? `venue-${data.venueId}` : "peakly-alert",
     renotify: true,
     data: {
