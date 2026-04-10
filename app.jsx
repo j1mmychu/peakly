@@ -4448,7 +4448,7 @@ const ALL_AIRPORTS = [
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
-const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 30 minutes in ms
+const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours in ms
 const WX_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
 
 function _wxCacheKey(prefix, lat, lon) {
