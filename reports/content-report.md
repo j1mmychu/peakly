@@ -8,9 +8,22 @@ Required fields 100% +20 | No duplicate IDs +5 | 11-category coverage (200+ each
 
 ---
 
-## 1. DATA INTEGRITY AUDIT
+## 1. CATEGORY BREAKDOWN
 
-### Category Breakdown — 3,726 total venues
+| Category | Count | Focus Tier | Status | Notes |
+|----------|-------|------------|--------|-------|
+| Tanning/Beach | 705 | ⭐ TOP 3 | ✅ Healthy | |
+| Skiing | 704 | ⭐ TOP 3 | ✅ Healthy | Late NH season; SH not open until June |
+| Surfing | 703 | ⭐ TOP 3 | ✅ Healthy | Multiple prime regions right now |
+| Diving | 205 | Secondary | ✅ Healthy | |
+| Climbing | 204 | Secondary | ✅ Healthy | Prime season NOW (NH spring) |
+| Fishing | 202 | Secondary | ✅ Healthy | NH trout season opening |
+| Paragliding | 201 | Secondary | ✅ Healthy | |
+| MTB | 201 | Secondary | ✅ Healthy | Prime season NOW |
+| Kayak | 201 | Secondary | ✅ Healthy | |
+| Kite | 200 | Secondary | ✅ Healthy | |
+| Hiking | 200 | Secondary | ✅ Healthy | Prime season starting NH |
+| **TOTAL** | **3,726** | | | No stub categories |
 
 | Category | Count | Status |
 |----------|-------|--------|
@@ -40,7 +53,7 @@ Required fields 100% +20 | No duplicate IDs +5 | 11-category coverage (200+ each
 | lat / lon | 0 |
 | ap (airport) | 0 |
 | tags | 0 |
-| photo | 0 |
+| photo URL | 0 |
 | id | 0 |
 
 All 3,726 venues have complete required fields. No duplicate IDs.
@@ -133,7 +146,7 @@ These venues can still score >50 if their current weather is mild, putting them 
 
 ---
 
-## 2. GEAR ITEMS AUDIT
+## 4. EXPERIENCES CONSTANT — Hiking Missing, Kayak Typo
 
 All 11 categories have gear items. No zero-item gaps.
 
@@ -157,7 +170,7 @@ All 11 categories have gear items. No zero-item gaps.
 
 ## 3. SEASONAL RELEVANCE — April 11, 2026
 
-### IN SEASON RIGHT NOW ✅
+All 11 categories have GEAR_ITEMS entries. ✅ No category at zero.
 
 **Surfing — Spring Atlantic prime:**
 - Portugal (Nazaré, Ericeira, Peniche): peak spring groundswells
@@ -189,7 +202,7 @@ All 11 categories have gear items. No zero-item gaps.
 
 ---
 
-## 4. CONTENT QUALITY FLAGS
+## 8. FIVE NEW VENUE OBJECTS — April 10
 
 ### Descriptions — N/A
 Venues have no prose `description` field. Tagging and title are the only search surface. Not launch-blocking, but limits Vibe Search quality as catalog grows.
@@ -279,7 +292,7 @@ All 5 verified absent from all 3,726 existing entries. Targeting geographic gaps
 
 ---
 
-## 6. ONE OBSERVATION FOR THE PM
+## 9. ONE OBSERVATION FOR THE PM
 
 **The photo crisis has now crossed a threshold that makes the app look like a demo, not a product — and fishing and kayak are the worst-affected categories.**
 

@@ -1,104 +1,166 @@
-# Data Enrichment Report - 2026-03-29
+# Data Enrichment Report
 
-## Summary
+**Date:** 2026-04-10
+**Run type:** Scheduled (automated, unattended)
+**Source:** `app.jsx` VENUES array (lines 306–4197)
+**Total venues parsed:** 3,726
 
-Total venues: **2,226**
-Duplicate IDs: **0**
-All 11 categories represented: **YES**
-Data completeness (required fields): **100%**
-Photo coverage: **100%** (2,226/2,226)
+---
 
-## Category Breakdown
+## Headline
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Tanning | 205 | SATURATED |
-| Diving | 205 | SATURATED |
-| Skiing | 204 | SATURATED |
-| Climbing | 204 | SATURATED |
-| Surfing | 203 | SATURATED |
-| Fishing | 202 | SATURATED |
-| Kayak | 201 | SATURATED |
-| MTB | 201 | SATURATED |
-| Paraglide | 201 | SATURATED |
-| Kite | 200 | HEALTHY |
-| Hiking | 200 | HEALTHY |
+Field hygiene is clean. The scale of the data is now the problem: 3,726 venues, but only **61% of photos are unique**, **507 venues share duplicate titles**, and **100% of venues are missing the spec-required `best` (best months) field**. The top 3 launch categories (surfing, skiing, tanning/beach) are the worst photo-recyclers at 33% uniqueness each. ProductHunt is 5 days out.
 
-No STUB categories. All 11 categories have 200+ venues. Distribution is nearly even — well-balanced.
+---
 
-## Field Coverage (All Required Fields)
+## 1. Required-Field Validation
 
-Every one of the 2,226 venues has all required fields present: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo. **Zero gaps.**
+Checked against spec fields: `id, title, location, category, lat, lon, ap, photo, gradient, icon, rating, reviews, tags, best`.
 
-Notable absence: No `best` or `bestMonths` field exists on any venue. This was flagged in the agent spec as a required field, but the codebase has never included it. Scoring is computed dynamically from weather data, so this is by design — not a gap.
+| Field | Missing / Invalid | Notes |
+|---|---|---|
+| id | 0 | All unique. No duplicate IDs. |
+| title | 0 | |
+| location | 0 | |
+| category | 0 | Values match 11-category taxonomy. |
+| lat | 0 | All numeric, in valid range. |
+| lon | 0 | All numeric, in valid range. |
+| ap | 0 | All 3-letter IATA codes (813 distinct). |
+| photo | 0 | 100% coverage, all Unsplash URLs. |
+| gradient | 0 | |
+| icon | 0 | |
+| rating | 0 | |
+| reviews | 0 | |
+| tags | 0 | Min 2, max 6 per venue (see distribution below). |
+| **best** | **3,726 (100%)** | **Spec field completely missing — not implemented in schema.** |
 
-## Photo Quality
+**Tag length distribution:** 2 tags: 400 venues · 4 tags: 2,024 · 5 tags: 904 · 6 tags: 398.
 
-Unique photo URLs: **2,171** (97.5%)
-Duplicate photo URLs: **52 URLs used more than once**, affecting **55 venues**
+**Completeness score (spec-strict, counting `best`):** 0%.
+**Completeness score (excluding the unimplemented `best` field):** 100%.
 
-**Critical finding: 169 base Unsplash photo IDs are reused across 2,052+ venues with different crop parameters (fp-x, fp-y).** These render as nearly identical images to the user. Only ~174 truly unique Unsplash source images exist. The rest are the same photo with slightly shifted crop coordinates.
+> `best` is in the validation spec but the schema never defined it. Either add it, or remove it from the spec. Recommendation is below.
 
-This is the single biggest data quality issue in the venue database. Users scrolling through venues will see repetitive imagery despite the URLs being technically "unique."
+---
 
-### Top Duplicate Photo Groups (exact URL matches)
+## 2. Category Health
 
-| Base Photo ID | Duplicates | Venues |
-|--------------|-----------|--------|
-| photo-1523819088009 | 3x | hvar-kayak, glacier-bay-kayak, cinque-terre-kayak |
-| photo-1578001647043 | 3x | crested-butte-mtb, crown-range-nz-mtb, bariloche-argentina-mtb |
-| photo-1578001647043 | 3x | madeira-mtb, tenerife-canary-mtb, hamsterley-forest-uk-mtb |
+Spec: STUB <10, SATURATED >60.
 
-## Geographic Distribution
+| Category | Count | Flag |
+|---|---|---|
+| tanning | 705 | SATURATED |
+| skiing | 704 | SATURATED |
+| surfing | 703 | SATURATED |
+| diving | 205 | SATURATED |
+| climbing | 204 | SATURATED |
+| fishing | 202 | SATURATED |
+| kayak | 201 | SATURATED |
+| mtb | 201 | SATURATED |
+| paraglide | 201 | SATURATED |
+| kite | 200 | SATURATED |
+| hiking | 200 | SATURATED |
 
-| Region | Venues | % |
-|--------|--------|---|
-| Europe | 623 | 28.0% |
-| North America | 607 | 27.3% |
-| Asia | 290 | 13.0% |
-| Oceania | 182 | 8.2% |
-| Africa | 154 | 6.9% |
-| South America | 148 | 6.6% |
-| Unclassified | 222 | 10.0% |
+No stubs. Every category is past the spec saturation threshold. Adding more venues is **not** the leverage point. Quality over quantity is now the mandate.
 
-**222 "unclassified" venues** have location strings that don't resolve to a recognized country — most are US states listed as countries (e.g., "Hawaii", "Alaska", "California", "Florida"), Caribbean territories (Barbados, Cayman Islands, Seychelles), or sub-national regions ("Western Australia", "Queensland"). These aren't broken — the app works fine — but a continent lookup based on location parsing would fail on them.
+---
 
-Top unclassified: Hawaii (22), Caribbean (11), Alaska (11), Seychelles (10), Western Australia (9).
+## 3. Photo Coverage & Uniqueness
 
-South America and Africa are represented but thin relative to Europe/NA. Not urgent given the user base is primarily US/EU for launch.
+- Total photos present: 3,726 / 3,726 (100% coverage)
+- Unique photo URLs: **2,261 / 3,726 (60.7% unique)**
+- Photos reused >1x: 142 distinct URLs, covering 1,607 venues
+- Most-reused photo appears **17 times**
 
-## Tag Quality
+### Uniqueness by category (worst first)
 
-- Min tags per venue: 2
-- Max tags per venue: 6
-- Average tags: 4.4
-- Venues with 5+ tags: 1,302 (58.5%)
-- Venues with <2 tags: 0
+| Category | Unique / Total | % |
+|---|---|---|
+| skiing | 234 / 704 | 33% |
+| surfing | 233 / 703 | 33% |
+| tanning | 233 / 705 | 33% |
+| mtb | 186 / 201 | 93% |
+| kayak | 188 / 201 | 94% |
+| fishing | 189 / 202 | 94% |
+| climbing | 199 / 204 | 98% |
+| hiking | 197 / 200 | 99% |
+| diving | 203 / 205 | 99% |
+| kite | 199 / 200 | 100% |
+| paraglide | 201 / 201 | 100% |
 
-Tag coverage is solid. No empty tag arrays.
+**The top 3 launch categories are the worst offenders.** Every surf, ski, and beach category has a "hero" photo used 17 times. Users swiping Explore will see the same mountain / wave / beach shot over and over. This is the single biggest visual-polish gap before ProductHunt.
 
-## Ski Pass Coverage
+---
 
-204 skiing venues, 208 skiPass entries. Coverage is effectively 100% for skiing.
+## 4. Duplicate Titles
 
-## Top 15 Countries by Venue Count
+- **242 distinct titles collide**, affecting **507 venues**.
+- Concentrated almost entirely in expansion batches (IDs ending with `-s###`, `-surf`, etc.).
+- Top offenders by category: surfing (161), skiing (154), kite (62), tanning (53), climbing (44).
+- Concrete examples: `Whistler Blackcomb` (whistler + whistler-blackcomb-s105), `Aspen Snowmass` (aspen + aspen-snowmass-s7), `Vail Mountain` (vail + vail-mountain-s68), `Pipeline` and `Cloudbreak` variants.
 
-USA (399), France (90), Australia (83), Spain (78), Indonesia (63), Canada (62), Italy (61), New Zealand (54), Mexico (51), Greece (44), Brazil (37), Norway (37), Austria (34), Portugal (34), South Africa (33).
+This is P1 in CLAUDE.md ("Venue duplicates — dangerous mis-tags"). Confirmed at 507 venues today, worse than the 265 figure in CLAUDE.md.
 
-## Critical Issue: Photo Deduplication Needed
+---
 
-**The #1 data gap hurting user experience right now is photo repetition.** With only ~174 truly unique Unsplash source images across 2,226 venues, users will see the same mountain, beach, or reef photo dozens of times. The crop-parameter trick (varying fp-x and fp-y) makes URLs look different but produces nearly identical visual results.
+## 5. Geographic Diversity
 
-### Recommendation
+Approximated from lat/lon bounding boxes:
 
-Before Reddit launch on March 31, the highest-ROI data fix is assigning unique Unsplash photo IDs to the ~2,050 venues currently sharing photos. This is a large batch operation (search Unsplash for activity-specific + location-specific photos). Even getting to 500 unique base photos would be a massive improvement.
+| Continent | Venues |
+|---|---|
+| North America | 1,041 |
+| Europe | 1,000 |
+| Asia | 629 |
+| South America | 301 |
+| Oceania | 295 |
+| Africa | 282 |
+| Uncategorized | 178 |
 
-### No New Venue Objects Recommended This Run
+Africa and South America are **not** thin (unlike the old note in the agent prompt). Every continent is well represented.
 
-All 11 categories are at 200+ venues. The spec calls for 5-10 new venues targeting stub categories, but there are no stub categories. Adding venues is low ROI compared to fixing photo uniqueness. The venue count (2,226) is well above the 200+ target.
+---
 
-## Action Items (Priority Order)
+## 6. Fixes Applied This Run
 
-1. **FIX: Photo deduplication** — Replace ~2,050 crop-varied duplicate photos with unique Unsplash photo IDs. This is visible to users and will be immediately noticed on Reddit launch.
-2. **MINOR: Normalize unclassified locations** — 222 venues use US states or territories as countries ("Hawaii", "Alaska"). Adding a country suffix (e.g., "Maui, Hawaii, USA") would improve any future continent-based filtering.
-3. **NICE-TO-HAVE: Boost tags to 5+ on remaining 924 venues** — 41.5% of venues have fewer than 5 tags. More tags improve vibe search matching.
+None. I deliberately did not edit `app.jsx` on this run because:
+
+1. The agent prompt asks for a report; the real wins (dedupe, unique photos) are destructive and need human review to pick which venue survives each collision.
+2. Adding a `best` field to 3,726 venues in one autonomous pass would create a massive diff without domain review of seasonality per venue, and could stomp on future human edits.
+3. CLAUDE.md explicitly says "do NOT change the scoring algorithm" and "each fix should be surgical".
+
+Recommended fixes are below; each is a discrete, reviewable PR.
+
+---
+
+## 7. Recommended Actions (ordered)
+
+### P0 — Before ProductHunt (April 15)
+
+1. **Dedupe 507 duplicate-title venues.** Script that groups by normalized title, keeps the richest record (most tags, best rating, original seed ID), drops the `-s###` clones. This also fixes the Teahupo'o / Cloudbreak mis-tagging flagged in CLAUDE.md issue #12.
+2. **Unique photos for surfing / skiing / tanning.** Each of the three launch categories needs ~470 additional unique Unsplash IDs. Batch via a curated list; reject any photo ID that already appears in the VENUES array.
+
+### P1 — First week post-launch
+
+3. **Add `best` (best months) field to all venues.** Define a category-level default table, override per venue where seasonality is extreme. Schema:
+   ```js
+   best: ["Dec","Jan","Feb","Mar"]     // skiing default (N. hemisphere)
+   ```
+4. **Remove `best` from the validation spec** if the decision is not to ship it, so this report stops flagging it at 100% missing.
+5. **Tag normalization.** 400 venues still only have 2 tags. Target: every venue ≥4 tags.
+
+---
+
+## 8. New Venue Objects
+
+I am intentionally not providing new venue objects this run. Every category is already past the saturation threshold. Adding more venues makes dedupe harder, photo uniqueness worse, and the Explore tab slower. If a future run wants new venues, the agent prompt should be updated to target gaps in *geography* or *season* rather than raw counts.
+
+---
+
+## 9. The One Data Gap Hurting UX Right Now
+
+**Photo recycling on the three flagship categories.** A new user lands, taps Surfing, and scrolls through a list where the same teal-wave hero shot appears every 6th card. Same thing on Ski. Same on Beach. It instantly signals "this is a placeholder app" and directly contradicts the "Steve Jobs level quality. Every pixel matters" standard in CLAUDE.md. Fix this before ProductHunt or ProductHunt will fix it for us.
+
+---
+
+*Generated by the Peakly Data Enrichment Agent, 2026-04-10.*
