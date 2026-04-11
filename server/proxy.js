@@ -4,24 +4,7 @@ const express = require('express');
 const https = require('https');
 
 const app = express();
-app.use(express.json());
-
-// ─── Rate limiting ────────────────────────────────────────────────────────────
-// 60 requests per minute per IP on all /api/ routes — prevents Travelpayouts quota exhaustion
-// and basic DDoS. Install: npm install express-rate-limit
-let rateLimit;
-try {
-  rateLimit = require('express-rate-limit');
-  app.use('/api/', rateLimit({
-    windowMs: 60 * 1000,
-    max: 60,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: 'Too many requests, try again in a minute.' },
-  }));
-} catch (e) {
-  console.warn('[proxy] express-rate-limit not installed — rate limiting disabled. Run: npm install express-rate-limit');
-}
+app.use(express.json({ limit: '16kb' }));
 
 const TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
 if (!TOKEN) {
@@ -112,6 +95,8 @@ function currentMonthParam() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
+const IATA_RE = /^[A-Z]{3}$/;
+
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
 // Calls Travelpayouts v2/prices/month-matrix
 // Query params: origin (IATA), destination (IATA)
@@ -119,8 +104,8 @@ function currentMonthParam() {
 app.get('/api/flights', async (req, res) => {
   const { origin, destination } = req.query;
 
-  if (!origin || !destination) {
-    return res.status(400).json({ success: false, error: 'origin and destination are required' });
+  if (!IATA_RE.test(origin || '') || !IATA_RE.test(destination || '')) {
+    return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter IATA codes' });
   }
 
   const month = currentMonthParam();
@@ -180,8 +165,11 @@ app.get('/api/flights/latest', async (req, res) => {
     one_way = 'true',
   } = req.query;
 
-  if (!origin || !destination) {
-    return res.status(400).json({ success: false, error: 'origin and destination are required' });
+  if (!IATA_RE.test(origin || '') || !IATA_RE.test(destination || '')) {
+    return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter IATA codes' });
+  }
+  if (!['month', 'year'].includes(period_type)) {
+    return res.status(400).json({ success: false, error: 'period_type must be month or year' });
   }
 
   const url = `https://api.travelpayouts.com/v1/prices/latest`
@@ -241,16 +229,36 @@ app.get('/api/flights/latest', async (req, res) => {
 // Response: { success, id, message }
 const _alerts = new Map(); // in-memory store (replace with DB later)
 
+const ALERTS_MAX = 10000;
+
 app.post('/api/alerts', (req, res) => {
   const body = req.body || {};
-  const { alertId, pushToken, pushPlatform } = body;
+  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform } = body;
 
-  if (!alertId) {
-    return res.status(400).json({ success: false, error: 'alertId is required' });
+  if (typeof alertId !== 'string' || alertId.length === 0 || alertId.length > 128) {
+    return res.status(400).json({ success: false, error: 'alertId must be a string of 1-128 chars' });
+  }
+  if (venueId !== undefined && (typeof venueId !== 'string' || venueId.length > 128)) {
+    return res.status(400).json({ success: false, error: 'venueId must be a string of ≤128 chars' });
+  }
+  if (targetScore !== undefined && (typeof targetScore !== 'number' || targetScore < 0 || targetScore > 100)) {
+    return res.status(400).json({ success: false, error: 'targetScore must be a number 0-100' });
+  }
+  if (maxPrice !== undefined && (typeof maxPrice !== 'number' || maxPrice < 0 || maxPrice > 100000)) {
+    return res.status(400).json({ success: false, error: 'maxPrice must be a number 0-100000' });
+  }
+  if (_alerts.size >= ALERTS_MAX && !_alerts.has(alertId)) {
+    return res.status(503).json({ success: false, error: 'Alert capacity reached' });
   }
 
   const record = {
-    ...body,
+    alertId,
+    venueId: venueId || null,
+    sport: typeof sport === 'string' ? sport.slice(0, 32) : null,
+    targetScore: targetScore ?? null,
+    maxPrice: maxPrice ?? null,
+    pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
+    pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
     registeredAt: new Date().toISOString(),
     lastChecked: null,
     fired: false,

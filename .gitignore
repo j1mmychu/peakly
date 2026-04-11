@@ -40,4 +40,6 @@ yarn-error.*
 # Temp / backup
 *.bak
 *.tmp
+*.orig
+*.rej
 .claude/
