@@ -1,147 +1,87 @@
-# QA Report — Peakly
+# Peakly QA Report — 2026-04-10
 
-**Date:** 2026-03-29 (Run 7 — Full regression check)
-**File:** app.jsx (9,036 lines) | index.html
-**Current:** 9,036 lines / 2,226 venues across 11 sport categories
-**Reddit launch in 2 days (March 31)**
+**URL tested:** https://j1mmychu.github.io/peakly/
+**Environment:** Chrome desktop (via MCP browser automation)
+**Overall:** 8/8 PASS (browser smoke test)
 
----
+## Browser Smoke Test Results
 
-## Overall: 9/11 PASS
+| # | Check | Result | Notes |
+|---|-------|--------|-------|
+| 1 | Site loads (HTTP 200, React mounts) | PASS | Title: "Peakly — Find Surf, Ski & Adventure Spots with Cheap Flights" |
+| 2 | Onboarding sheet renders + dismisses | PASS | "Know when to go." sheet shows, "Skip for now" works |
+| 3 | Explore tab renders | PASS | Hero "Your Best Window Right Now" = Mammoth Mountain, 66/100, $145 flight, 54% off. 2,043 spots shown in grid. |
+| 4 | Venue cards render with photos + scores | PASS | Sölden, Kirkwood, Palisades Tahoe all show photos + MAYBE/WAIT badges. Hero card photo loads. |
+| 5 | Alerts tab loads | PASS | Empty state + Vibe Search pill + "Create your first alert" CTA |
+| 6 | Profile tab loads | PASS | Onboarding CTA + notification toggles + travel window picker |
+| 7 | Venue detail sheet opens | PASS | Photo hero, Conditions 66, Flight from JFK $145, 7-day forecast, sticky Flights CTA |
+| 8 | Swipe-down dismisses detail sheet | PASS | 300px touch drag on `.sheet` dispatched → sheet closed, URL reverted from `#venue-mammoth` to `/`. |
 
-| # | Check | Result | Details |
-|---|-------|--------|---------|
-| 1 | CATEGORIES syntax (12 present) | PASS | All 12: all, skiing, surfing, hiking, diving, climbing, tanning, kite, kayak, mtb, fishing, paraglide. Correct syntax. |
-| 2 | Venue required fields | PASS | All 2,226 venues have: id, category, title, location, lat, lon, ap, photo. 0 duplicate IDs. |
-| 3 | Duplicate venue IDs | PASS | 0 duplicate venue IDs across 2,226 entries. |
-| 4 | scoreVenue covers all categories | PASS | All 11 sport categories have scoring branches in switch statement + default fallback. |
-| 5 | Affiliate links — Amazon | PASS | ~40 Amazon links, all with `tag=peakly-20`. 0 missing tags. |
-| 6 | Affiliate links — Booking.com | PASS | 2 links with `aid=2311236`. |
-| 7 | Affiliate links — SafetyWing | PASS | 1 link with `referenceID=peakly`. |
-| 8 | SEO files | PASS | robots.txt correct, sitemap.xml present with 12 URLs (root + 11 categories), JSON-LD @graph with WebSite/WebApp/Org/ItemList/TouristDestination, Plausible `script.hash.js` loading, preconnect hints for 5 domains. |
-| 9 | Sentry DSN | PASS | Sentry Loader Script + `Sentry.init()` with valid DSN. tracesSampleRate: 1.0, replaysOnErrorSampleRate: 1.0. Live. |
-| 10 | Photo duplication | **WARN (P3)** | ~52 Unsplash photo base IDs reused across venues with different crop params (fp-x/fp-y). Visual appearance differs but base photos not 100% unique. Stable since Run 6. |
-| 11 | Travelpayouts marker | **FAIL (P1)** | `TP_MARKER = "YOUR_TP_MARKER"` (line 3771). Flight links earn $0. **Flagged 3 consecutive runs. Jack action needed BEFORE March 31 Reddit launch.** |
+## Console Errors
 
----
+**NONE.** Zero JavaScript errors, zero exceptions.
 
-## Cache-Buster Status
+Only 2 non-fatal warnings from the Sentry CDN bundle:
+- `browserTracingIntegration()` used but bundle does not include tracing
+- `replayIntegration()` used but bundle does not include replay
 
-**Current value:** `?v=20260328a` (index.html line 281)
-**Status: PASS** — fresh from yesterday's deploy. Bump on next code change.
+**Fix (P3, optional):** upgrade Sentry bundle to tracing+replay variant, OR remove those integrations from `Sentry.init()`. They pass through without errors — non-blocking.
 
----
+## Issues Observed (Known Bugs Still Live)
 
-## Sentry Status
+### P1 — Already flagged in CLAUDE.md, still live
 
-**Status: LIVE (PASS)**
-- Loader Script in index.html (`9416b032a46681d74645b056fcb08eb7.min.js`)
-- `Sentry.init()` in app.jsx with valid DSN
-- Replay sampling at 10% session / 100% error
-- No empty DSN found
+**1. Score vote thumbs up/down still rendered in VenueDetailSheet** (bug #19)
+- Visible in Mammoth Mountain detail view next to Conditions 66 block.
+- Decision to CUT was made 2026-03-25. Still rendering 16 days later.
+- Fix: remove the thumbs up/down JSX at `app.jsx:9305-9317` and `app.jsx:9510-9515`.
 
----
+**2. Emoji still in UI chrome** (bug #20)
+- Profile tab: 🔥 Peak conditions, ✈️ Flight deals, 📅 Weekly digest, 🚀 Create my adventure profile.
+- VenueDetailSheet: 📍 location pin, 💡 "You'd also like", ⭐ rating, ✈️ Flights button, 🏛️ Hotels button.
+- Explore: ✨ All, ❄️ Ski/Board, 🏄 Surf, 🏖️ Beach category pills.
+- Decision to CUT was made 2026-03-25. Day 16, still live.
+- Fix: replace emoji with clean text + inline SVG across `app.jsx`.
 
-## PWA Status
+### P2 — Cache Buster Stale
 
-| File | Status |
-|------|--------|
-| manifest.json | PASS — present in repo root |
-| sw.js | PASS — CACHE_NAME = "peakly-v12", network-first for index.html, stale-while-revalidate for assets |
-| SW registration | PASS — in index.html |
-| apple-mobile-web-app meta | PASS — capable, black-translucent status bar |
+- **Current:** `app.jsx?v=20260331a`
+- **Today:** 2026-04-10 → **10 days stale**
+- **Fix (one-line):**
+  ```html
+  <script type="text/babel" src="app.jsx?v=20260410a"></script>
+  ```
+  in `index.html`. Also bump `CACHE_NAME` in `sw.js` to `peakly-v15`.
 
----
+### P0 Process — Code Freeze Continues
 
-## Regression Check vs Run 6
+Last product commit was April 4 (`fd6e4e8`). Today is April 10 → **6 consecutive days** with no commits. All P1 bugs above were already open before this run. ProductHunt launch is April 15 (5 days out).
 
-| Check | Run 6 | Run 7 | Delta |
-|-------|-------|-------|-------|
-| Categories | PASS (12) | PASS (12) | — |
-| Venue fields | PASS (2,226) | PASS (2,226) | — |
-| Duplicate IDs | PASS (0) | PASS (0) | — |
-| Duplicate photos | WARN (55 URLs) | WARN (~52 base IDs) | Stable |
-| scoreVenue | PASS (11) | PASS (11) | — |
-| Amazon affiliates | PASS (39) | PASS (~40) | — |
-| Booking.com | PASS (2) | PASS (2) | — |
-| SafetyWing | PASS (1) | PASS (1) | — |
-| SEO files | PASS | PASS | — |
-| Sentry | PASS | PASS | — |
-| Cache buster | PASS (v=20260328a) | PASS (v=20260328a) | — |
-| TP_MARKER | FAIL | FAIL | **Still placeholder — 3rd consecutive run** |
-| Line count | 9,036 | 9,036 | No change |
+## Static Checks
 
-**Regressions vs Run 6: NONE**
+| Check | Result | Notes |
+|-------|--------|-------|
+| `app.jsx` file present | PASS | 10,993 lines (above 5,631 baseline — expected since venues expanded to 3,726) |
+| `index.html` cache buster present | PASS (value stale — see P2) | `v=20260331a` |
+| Sentry initialized | PASS | Sentry CDN bundle loads (warnings originate from browser.sentry-cdn.com) |
+| Site reachable over HTTPS | PASS | github.io HTTPS |
+| Proxy API responding | PASS (implicit) | Flight price $145 rendered on hero card → `peakly-api.duckdns.org` responded |
 
----
+## Regressions vs Last Run
 
-## Venue Distribution by Category
+**NONE.** All tabs still load, all cards still render, venue detail still opens and dismisses cleanly. Thumbs up/down, emoji chrome, and stale cache buster were all open prior to this run — this report confirms they remain live, not that they newly broke.
 
-| Category | Count |
-|----------|-------|
-| tanning | 205 |
-| diving | 205 |
-| skiing | 204 |
-| climbing | 204 |
-| surfing | 203 |
-| fishing | 202 |
-| paraglide | 201 |
-| mtb | 201 |
-| kayak | 201 |
-| kite | 200 |
-| hiking | 200 |
-| **Total** | **2,226** |
+## The One Thing That Would Break Everything If Not Caught
 
-All categories well-populated (~200 each).
+**Cache buster + service worker staleness during ProductHunt week.**
+
+If the first post-freeze fix ships without bumping both `app.jsx?v=` AND `sw.js` `CACHE_NAME`, returning users will be served the old cached bundle and any P1 fix silently won't take effect. Given 6 days of freeze + ProductHunt on April 15, the first post-freeze commit is the most important one — and `v=20260331a` is already 10 days stale.
+
+**Mandatory on next commit:**
+1. `index.html` → `app.jsx?v=20260410a`
+2. `sw.js` → `CACHE_NAME = 'peakly-v15'`
+3. After deploy, verify DevTools → Application → Service Workers shows the new version.
 
 ---
 
-## Affiliate Link Summary
-
-| Type | Count | Earning? |
-|------|-------|----------|
-| Amazon (`tag=peakly-20`) | ~40 | Yes |
-| Booking.com (`aid=2311236`) | 2 | Yes |
-| SafetyWing (`referenceID=peakly`) | 1 | Yes |
-| Travelpayouts (flight links) | Active | **No — TP_MARKER is placeholder** |
-| REI (no affiliate tag) | 22 | **No — $0, needs Avantlink signup** |
-| Backcountry (no affiliate tag) | 2 | **No — $0, needs affiliate signup** |
-| GetYourGuide (no partner_id) | 1 | **No — $0, needs partner signup** |
-
----
-
-## Open Findings by Priority
-
-### P1 — Fix before Reddit launch (March 31)
-
-1. **Travelpayouts marker is placeholder.** Line 3771: `const TP_MARKER = "YOUR_TP_MARKER"`. Every flight click across 2,226 venues earns $0 in commission. The code correctly guards against the placeholder (line 3790 checks `TP_MARKER !== "YOUR_TP_MARKER"`), so flight links work but aren't tracked. **One-line fix once Jack provides the real marker from tp.media dashboard.** This is the single highest-impact revenue fix — flight clicks are the most common user action.
-
-### P3 — Non-blocking
-
-2. **~52 duplicate Unsplash base photo IDs.** Reused with different crop params. Visual impact is low. CLAUDE.md "0% duplication" claim is technically inaccurate.
-3. **sitemap.xml lastmod dates** still say 2026-03-27. Should bump on next deploy.
-
----
-
-## Browser Testing
-
-Browser automation tools timed out and egress proxy blocked direct fetch this run. Static code analysis only. **Code review confirms:**
-- Splash screen HTML is well-formed with animations
-- React 18 + ReactDOM + Babel Standalone 7.24.7 script chain intact
-- BottomNav renders Explore, Alerts, Profile tabs
-- CompactCard, ListingCard, FeaturedCard all have photo rendering with `onError` fallbacks
-- VenueDetailSheet has touch drag > 120px dismissal logic
-- ErrorBoundary wraps app root with fallback UI
-- Babel parse error handler in index.html catches syntax failures
-
-**Recommend manual browser check before March 31 launch.**
-
----
-
-## One Thing That Would Break Everything If Not Caught
-
-**Service worker serving stale broken code.** SW uses stale-while-revalidate for app.jsx. If a breaking syntax error ships, returning users get cached broken code until `CACHE_NAME` is bumped in sw.js (currently "peakly-v12"). The cache buster (`v=20260328a`) helps for fresh fetches but SW-cached responses may ignore query params. **On any breaking deploy: bump sw.js CACHE_NAME to "peakly-v13" immediately.** This has caused extended outages before.
-
----
-
-*Report generated: 2026-03-29 by QA Agent (Run 7 — static analysis only, browser unavailable)*
+**Report generated:** 2026-04-10 (Peakly QA Agent, scheduled run)
