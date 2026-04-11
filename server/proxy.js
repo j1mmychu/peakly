@@ -112,6 +112,9 @@ function currentMonthParam() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
+// ─── IATA validation ──────────────────────────────────────────────────────────
+const IATA_RE = /^[A-Z]{3}$/;
+
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
 // Calls Travelpayouts v2/prices/month-matrix
 // Query params: origin (IATA), destination (IATA)
@@ -121,6 +124,9 @@ app.get('/api/flights', async (req, res) => {
 
   if (!origin || !destination) {
     return res.status(400).json({ success: false, error: 'origin and destination are required' });
+  }
+  if (!IATA_RE.test(origin) || !IATA_RE.test(destination)) {
+    return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter uppercase IATA codes (e.g. LAX)' });
   }
 
   const month = currentMonthParam();
@@ -183,6 +189,9 @@ app.get('/api/flights/latest', async (req, res) => {
   if (!origin || !destination) {
     return res.status(400).json({ success: false, error: 'origin and destination are required' });
   }
+  if (!IATA_RE.test(origin) || !IATA_RE.test(destination)) {
+    return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter uppercase IATA codes (e.g. LAX)' });
+  }
 
   const url = `https://api.travelpayouts.com/v1/prices/latest`
     + `?origin=${encodeURIComponent(origin)}`
@@ -231,6 +240,31 @@ app.get('/api/flights/latest', async (req, res) => {
   } catch (err) {
     console.error('[/api/flights/latest] error:', err.message);
     return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── POST /api/waitlist ───────────────────────────────────────────────────────
+// Appends email to server/data/waitlist.jsonl
+// Body: { email }
+// Response: { success, message }
+const fs = require('fs');
+const path = require('path');
+const WAITLIST_FILE = path.join(__dirname, 'data', 'waitlist.jsonl');
+
+app.post('/api/waitlist', (req, res) => {
+  const { email } = req.body || {};
+  if (!email || !email.includes('@') || email.length > 254) {
+    return res.status(400).json({ success: false, error: 'Valid email required' });
+  }
+  try {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    const entry = JSON.stringify({ email: email.trim().toLowerCase(), joinedAt: new Date().toISOString() });
+    fs.appendFileSync(WAITLIST_FILE, entry + '\n', 'utf8');
+    console.log(`[/api/waitlist] +1 signup: ${email}`);
+    return res.status(201).json({ success: true, message: "You're on the list!" });
+  } catch (err) {
+    console.error('[/api/waitlist] write error:', err.message);
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 });
 
