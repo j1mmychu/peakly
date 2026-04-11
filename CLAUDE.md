@@ -76,7 +76,7 @@ Trips and Wishlists deferred until 1K users — keep nav lean.
 |-----|----------|------|---------|
 | Open-Meteo Weather | `api.open-meteo.com/v1/forecast` | None | 7-day forecasts |
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None | Wave height, swell |
-| Travelpayouts (via VPS proxy) | `peakly-api.duckdns.org/api/flights/latest` | Server-side token | "from $X" pricing |
+| Travelpayouts (via VPS proxy) | `peakly-api.duckdns.org/api/flights` | Server-side token | "from $X" pricing |
 | Aviasales | Deep links with exact dates | N/A | Flight booking |
 
 **Travelpayouts token is server-side only.** Never put it in client code.
