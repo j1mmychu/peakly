@@ -6876,7 +6876,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
               fontSize:11, fontWeight:700, fontFamily:F,
           }}>
-            {c.emoji} {c.label}
+            {c.label}
           </button>
         ))}
         {/* Saved quick-access — always last */}
@@ -7468,7 +7468,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
               border:"1.5px solid", borderColor: draft.sport === cat.id ? "#222" : "#e8e8e8",
               fontSize:13, fontWeight:600, display:"flex", alignItems:"center", gap:5,
             }}>
-              {cat.emoji} {cat.label}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -9304,7 +9304,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   const [newListName,    setNewListName]    = useState("");
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [shareVenueCopied, setShareVenueCopied] = useState(false);
-  const [scoreVotes, setScoreVotes] = useLocalStorage("peakly_score_votes", {});
   const [closing, setClosing] = useState(false);
   const saved = wishlists.includes(listing.id);
 
@@ -9312,17 +9311,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     setClosing(true);
     setTimeout(onClose, 270);
   }, [onClose]);
-
-  const currentVote = scoreVotes[listing.id] || null;
-  const handleScoreVote = (vote) => {
-    const next = currentVote === vote ? null : vote;
-    setScoreVotes({ ...scoreVotes, [listing.id]: next });
-    if (next) {
-      window.plausible && window.plausible('Score Validation', {
-        props: { venue: listing.title, score: listing.conditionScore, category: listing.category, vote: next }
-      });
-    }
-  };
 
   // ─── Swipe-down-to-dismiss ──────────────────────────────────────────────────
   const sheetRef = useRef(null);
@@ -9503,19 +9491,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           <div style={{ display:"flex", gap:10, marginBottom:14 }}>
             <div style={{ flex:1, background: listing.conditionScore >= 85 ? "#f0f9ff" : listing.conditionScore >= 70 ? "#fff7ed" : "#f7f7f7", borderRadius:14, padding:"12px 14px" }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Conditions now</div>
-              <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
-                <div>
-                  <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}</div>
-                  <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.conditionLabel}</div>
-                </div>
-                <div style={{ display:"flex", gap:4, marginBottom:2 }}>
-                  <button onClick={() => handleScoreVote("up")} className="pressable" style={{ background: currentVote==="up" ? "#dcfce7" : "#fff", border: currentVote==="up" ? "1.5px solid #22c55e" : "1.5px solid #e8e8e8", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill={currentVote==="up" ? "#22c55e" : "none"} stroke={currentVote==="up" ? "#22c55e" : "#aaa"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                  </button>
-                  <button onClick={() => handleScoreVote("down")} className="pressable" style={{ background: currentVote==="down" ? "#fee2e2" : "#fff", border: currentVote==="down" ? "1.5px solid #ef4444" : "1.5px solid #e8e8e8", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill={currentVote==="down" ? "#ef4444" : "none"} stroke={currentVote==="down" ? "#ef4444" : "#aaa"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
-                  </button>
-                </div>
+              <div>
+                <div style={{ fontSize:22, fontWeight:900, color: listing.conditionScore >= 85 ? "#ff385c" : listing.conditionScore >= 70 ? "#ea580c" : "#555", fontFamily:F }}>{listing.conditionScore}</div>
+                <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{listing.conditionLabel}</div>
               </div>
             </div>
             <div style={{ flex:1, background:"#f0fff4", borderRadius:14, padding:"12px 14px" }}>
