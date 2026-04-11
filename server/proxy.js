@@ -2,6 +2,8 @@
 
 const express = require('express');
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(express.json({ limit: '16kb' }));
@@ -304,6 +306,34 @@ app.delete('/api/alerts/:alertId', (req, res) => {
   }
   _alerts.delete(alertId);
   return res.json({ success: true, message: 'Alert removed' });
+});
+
+// ─── POST /api/waitlist ───────────────────────────────────────────────────────
+// Append an email signup to data/waitlist.jsonl on disk. Zero-cost email capture.
+// Body: { email, source? }
+const WAITLIST_PATH = process.env.WAITLIST_PATH || path.join(__dirname, 'data', 'waitlist.jsonl');
+try { fs.mkdirSync(path.dirname(WAITLIST_PATH), { recursive: true }); } catch {}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+app.post('/api/waitlist', (req, res) => {
+  const { email, source } = req.body || {};
+  if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email)) {
+    return res.status(400).json({ success: false, error: 'valid email required' });
+  }
+  const record = {
+    email: email.trim().toLowerCase(),
+    source: typeof source === 'string' ? source.slice(0, 64) : null,
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress,
+    at: new Date().toISOString(),
+  };
+  try {
+    fs.appendFileSync(WAITLIST_PATH, JSON.stringify(record) + '\n');
+    return res.status(201).json({ success: true, message: "You're on the list." });
+  } catch (err) {
+    console.error('[/api/waitlist] write failed:', err.message);
+    return res.status(500).json({ success: false, error: 'failed to save signup' });
+  }
 });
 
 // ─── Health check ─────────────────────────────────────────────────────────────
