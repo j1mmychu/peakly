@@ -1,42 +1,56 @@
-# Peakly Daily Briefing — 2026-03-29
+# Peakly Daily Briefing — 2026-04-10
 
-**Overall Status:** YELLOW — 48 hours to Reddit launch. App is stable but **revenue is leaking**.
+**Overall Status:** 🔴 **RED** — Code freeze Day 5-7 (depending on branch). ProductHunt launch is **5 days out (April 15)**. Zero P1 bugs have moved in a week. Agents are screaming into a folder.
 
 ## What Shipped
-- Codebase frozen since Mar 28 — no changes, no regressions
-- All 8 agent reports filed (DevOps, Content, PM, Growth, Revenue, QA, Code Quality, Data Enrichment)
-- SEO at 95%, PWA ready, Sentry + Plausible live, SW v12 stable
+- **Nothing.** Last product commit is `ce730cf` (April 5, "pre-fetch weather during onboarding") on `main`. No code has shipped in 5+ days. Agents keep filing reports; nothing merges.
 
 ## Decisions Made Today
-- **PM:** Launch March 31 even if only TP_MARKER + React pinning ship. 6/10 launch is acceptable. If TP_MARKER doesn't ship → delay to Wednesday.
-- **Growth:** Post on r/surfing Tue 9am ET. Copy-paste post is finalized and ready. r/skiing Apr 7, r/solotravel Apr 14.
-- **Revenue:** Only 3 of 8 monetization touchpoints are earning. Flight clicks (the #1 CTA) earn $0.
-- **DevOps:** Infrastructure is GO but revenue infrastructure is NOT. CDN versions still unpinned (day 5).
-- **Content:** Don't block launch on BASE_PRICES/AP_CONTINENT gaps — fallbacks work. Photo duplication is the real visual quality risk.
+- **PM:** Recommends **slipping ProductHunt to April 22** unless the quick-win bundle + dedup + emoji ship by end-of-day Sunday April 12. Proposes a "shipbot" scheduled task that auto-PRs trivial fixes.
+- **Growth:** Hard rule — **slip to April 22 if the 4 critical P1s (dedup, photo dedup, emoji, email capture) aren't shipped by Sunday midnight PT**. Will stop writing "launch April 15" until there's code evidence.
+- **DevOps:** Add **rate limiting to the VPS proxy** before launch (~10 lines in `server/proxy.js`, 15 min). Only pre-launch infra change being recommended. Also flags a historical Duffel test token in git history — rotate it.
+- **UX:** **"Design work stops until the backlog ships."** No new proposals until the 6 unfixed items (emoji, score votes, cache buster, SW bump, hero overlay, alerts empty state) land. Total cleanup = ~30 min of actual work.
+- **Revenue:** Wants authorization to ship a **single-commit unblock package**: un-hide gear section, bump cache buster, add "Great Deal" badge, add localStorage fallback for email capture. Awaiting green light.
+- **Content/Data:** Data Health Score **58/100**. Dedup is the launch blocker — especially Teahupo'o tagged "Beach Break, All Levels" (legal/safety hazard). 686 airport codes missing from AIRPORT_CITY (Vail, Queenstown, Zurich, Innsbruck render as raw IATA codes).
 
 ## Top 3 Actions Needed
 
-1. **FIX TP_MARKER** (line 3771, app.jsx) — Day 5 unfixed. Every flight click earns $0. Log into tp.media, grab marker, replace `"YOUR_TP_MARKER"`. **5 minutes. Non-negotiable before launch.**
-2. **Pin React CDN versions** — `@18` → `@18.2.0` in index.html lines 114-115. If unpkg ships a bad minor, the app breaks silently. **2 minutes.**
-3. **Git sync** — Local branch is 6 commits behind origin/master with 16 uncommitted files. 2 days of agent reports at risk of being lost. Run `git pull && push "sync agent reports"`.
+1. **🔥 BREAK THE CODE FREEZE TODAY.** Ship the ~46-minute quick-win bundle: bump cache buster to `v=20260410a`, delete score vote buttons, kill emoji from category pills + VenueDetailSheet headers + share button, fix `venue.facing ?? 270` swell fallback, bump SW to `peakly-20260410`. One commit. The UX report has copy-paste code ready at `reports/ux-2026-04-10.md`.
+
+2. **🔥 Replace `TP_MARKER = "YOUR_TP_MARKER"` at app.jsx:5316.** Day 19 of this blocker. 5-minute paste from the tp.media dashboard. Every flight click on ProductHunt launch day earns **$0** without this. The single biggest preventable revenue miss of the launch.
+
+3. **🔥 Make a launch date call: April 15 or April 22.** Growth + PM both recommend slipping. Drifting into next week with no decision is the worst outcome. Need the call by end of day today — tomorrow's reports get rewritten around whichever date is real.
 
 ## Numbers
-- **Venues:** 2,226 total, 11 categories, 100% field coverage
-- **Site:** Stable (no code changes since Mar 28)
-- **HTTPS:** Done (Caddy + Let's Encrypt auto-renewing)
-- **Code Quality Score:** 82/100 (down from 88 — git drift)
-- **QA:** 9/11 checks pass (TP_MARKER fail, photo duplication warn)
-- **Revenue Readiness:** 37.5% of touchpoints earning ($11.92 RPM vs $22.72 potential)
-- **Photo Uniqueness:** ~174 base photos across 2,226 venues (12.3x duplication ratio — Reddit WILL notice)
+- **Venues:** 3,726 total (242 duplicates, 60.7% unique photos, 2,112 in top-3 focus categories)
+- **Site:** Presumed UP (sandbox egress blocked — spot-check `j1mmychu.github.io/peakly/` in browser)
+- **HTTPS:** ✅ Done (Caddy + Let's Encrypt on peakly-api.duckdns.org)
+- **Design Score:** **4/10** (downgraded from 5 — not because it got worse, because nothing shipped)
+- **Data Health:** 58/100
+- **Revenue Readiness:** SOFT LAUNCH — 2 of 7 streams earning (Booking.com + SafetyWing). Current RPM **$12.06/1K MAU**; fixable to **$24.68** with ~2 hours of Jack work.
+- **app.jsx:** 10,993 lines, ~1.95 MB cold load
+- **Cache buster:** `v=20260331a` (10 days stale)
+- **Code freeze:** **Day 5-7** depending on branch
+- **Emoji references still live:** **1,296** (decided CUT 16 days ago)
 
-## Jack's To-Do
-- **NOW:** Replace TP_MARKER at app.jsx line 3771 with real tp.media marker (5 min)
-- **NOW:** Pin React versions in index.html: `@18` → `@18.2.0` (2 min)
-- **NOW:** `git pull && push "sync agent reports"` (2 min)
-- **Before launch:** Verify UptimeRobot monitors are active (5 min)
-- **Launch week:** REI Avantlink signup (30 min), register peakly.app domain (10 min)
-- **Tuesday 9am ET:** Post r/surfing, be active in thread for 4 hours
+## Jack's To-Do (Do These Today — In Order)
+
+1. **Paste TP_MARKER value** from tp.media → `app.jsx:5316`. 5 minutes. Day 19. No excuses.
+2. **Open Claude Code** and run the one-liner from `reports/ux-2026-04-10.md` (bottom) to ship the UX backlog cleanup in ~30 min. Then `push "ship UX backlog"`.
+3. **Decide: April 15 or April 22.** Reply to the PM + Growth reports with the call.
+4. **Register peakly.app domain.** Namecheap or Cloudflare. LLC approved March 25. 30 minutes.
+5. **Post the "missed window" question in r/surfing** (template in growth report). Build karma for launch.
+6. **Authorize the Revenue agent's unblock package** (un-hide gear section + email localStorage fallback). Unlocks ~$4.62 RPM.
+7. **Before launch week:** Add rate limiting to VPS proxy (DevOps report has the 10-line snippet). Rotate the Duffel test token.
 
 ---
 
-*Compiled from 8 agent reports. Read time: 60 seconds.*
+**The bottom line:** Every agent is saying the same thing in different words — **the problem isn't the product, it's that nothing is shipping.** 46 minutes of engineering would clear most of the P1 backlog. ProductHunt is 5 days away. Ship something today or slip the launch.
+
+Sources:
+- [PM Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/pm-2026-04-10.md)
+- [Growth Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/growth-2026-04-10.md)
+- [DevOps Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/devops-2026-04-10.md)
+- [UX Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/ux-2026-04-10.md)
+- [Revenue Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/revenue-2026-04-10.md)
+- [Content/Data Report](computer:///sessions/epic-focused-gauss/mnt/peakly-github/reports/content-2026-04-10.md)
