@@ -4537,11 +4537,23 @@ async function fetchWeather(lat, lon) {
     `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,` +
     `rain_sum,showers_sum,relative_humidity_2m_max` +
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("weather fetch failed");
-  const data = await r.json();
-  _wxCacheSet(cacheKey, data);
-  return data;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url);
+      if (r.status === 429 || r.status >= 500) {
+        if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+        return null;
+      }
+      if (!r.ok) return null;
+      const data = await r.json();
+      _wxCacheSet(cacheKey, data);
+      return data;
+    } catch (err) {
+      if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+      return null;
+    }
+  }
+  return null;
 }
 
 async function fetchMarine(lat, lon) {
