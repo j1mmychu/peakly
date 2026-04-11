@@ -1,117 +1,110 @@
-# Peakly PM Report — 2026-04-05 (v22)
+# Peakly PM Report — 2026-04-10 (v23)
 
 **Filed by:** Product Manager agent  
-**Date:** 2026-04-05  
-**Status:** 3-day dead zone. Zero commits since April 2. TP_MARKER still unset on Day 12.
+**Status:** One fix shipped. Six priorities still open. New credibility threat discovered.**TP_MARKER Day 17.**
 
 ---
 
-## Shipped Since Last Report (2026-04-02 → 2026-04-05)
+## Overnight Activity — April 8 → April 10
 
-**Nothing.**
+**Commits since last report: 3** (1 code, 2 content reports)
 
-Zero commits in 3 days. The last PM report (v21) identified 6 open issues, requested 4 sub-10-minute fixes, and named TP_MARKER as a P0 revenue blocker for the 12th consecutive day. None of it shipped.
+| Commit | What | Assessment |
+|--------|------|------------|
+| `1db7079` — DevOps | Push notification icons fixed, SW cache bumped to `peakly-20260409`, inter-batch delay added (1s), cache buster → v=20260409a | **Right call.** Silent push failures affect every user who set an alert. Shipping this was correct. |
+| `3129564`, `f79ff26` — Content | Two content reports filed (duplicate commit, likely merge) | Reports only — no code. |
 
-This is not a prioritization problem. The fixes are identified, the code locations are documented, and none require design decisions. The bottleneck is execution.
+**Assessment:** One real fix in 48 hours. Progress, but the backlog from v22 is fully intact. The DevOps agent is shipping fixes. The core product blockers (TP_MARKER, venue deduplication, email capture) remain untouched.
 
 ---
 
-## Bug Triage — April 5
+## Bug Triage — April 10
 
-| Bug | Severity | Status | Days Open |
-|-----|----------|--------|-----------|
-| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | ❌ STILL UNSET | **Day 12** |
-| **app.jsx = 2.0 MB (Babel parse 5-10s on mobile)** | **P1** | ❌ No action taken | Day 3 |
-| **fetchWeather() throws on 429** | **P1** | ❌ `if (!r.ok) throw new Error(...)` — crashes Explore tab | Day 9 |
-| **venue.facing ?? 270 swell scoring bug** | **P1** | ❌ Still in code (`app.jsx:4683`) | Day 9 |
-| **Email capture — no backend list** | **P1** | ❌ localStorage only, no POST to any ESP | Day 12 |
-| **React CDN unpinned (`@18`)** | **P2** | ❌ `index.html:80–81` still `react@18` | Day 9 |
+| Bug | Severity | File/Line | Status | Days Open |
+|-----|----------|-----------|--------|-----------|
+| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | `app.jsx:5316` | ❌ UNSET | **Day 17** |
+| **995 duplicate venues — wrong difficulty tags** | **P0** | VENUES array | ❌ NEW CRITICAL | Day 1 |
+| **Proxy has no rate limiting** | **P0** | `server/proxy.js` | ❌ Open door to quota theft | Day 1 |
+| **venue.facing defaults to 270° west** | **P1** | `app.jsx:4683` | ❌ Unfixed | Day 14 |
+| **fetchWeather() no 429 handler** | **P1** | `app.jsx:4540` | ❌ Unfixed | Day 14 |
+| **Email capture no backend** | **P1** | `app.jsx:8884` | ❌ localStorage only | Day 17 |
+| **app.jsx = 2.0 MB (11,000 lines)** | **P1** | — | ❌ Unfixed | Day 8 |
+| **1,465 duplicate photos (39%)** | **P2** | VENUES array | ❌ Unfixed | Day 21+ |
 
-**Confirmed by code inspection (April 5):**
-- `app.jsx:5316` — `const TP_MARKER = "YOUR_TP_MARKER";` — placeholder. Every flight click since March 24 earns $0.
-- `app.jsx:4543` — `if (!r.ok) throw new Error("weather fetch failed");` — fetchWeather crashes on 429. fetchMarine correctly returns null. One-line fix that has been documented in 3 consecutive reports.
-- `app.jsx:4683` — `const spotFacing = venue.facing ?? 270;` — no `venue.facing` in VENUES data. Every surf break defaults to west-facing. Swell efficiency calculation is wrong for ~80% of breaks.
-- `app.jsx` — 10,976 lines, 2.0 MB. Zero progress on venues.json extraction.
-- Email submit handler — fires Plausible event, clears field, shows alert. Does not POST to any email service.
+### New P0: Venue Deduplication + Safety Tags
+
+The content agent identified 995 batch-generated venues with `-s##` ID suffixes. Multiple world-famous spots appear 4–7× with contradictory data. The credibility risk is not abstract:
+
+- **Cloudbreak, Fiji** — 7 entries, at least one tagged "Beginner Friendly." Cloudbreak is a heavy expert-only reef break. This is a liability, not just embarrassment.
+- **Teahupo'o, Tahiti** — at least one entry tagged "Beach Break, All Levels." Teahupo'o is widely cited as the world's most dangerous wave.
+- **Mundaka, Spain** — 6 entries, batch entry tagged "Beginner Friendly, Warm Water." Cold water. Expert only.
+
+**r/surfing users will test Peakly by searching spots they know personally.** When they see Teahupo'o labeled "All Levels," the post writes itself: "This app is dangerous. Don't use it." One viral Reddit comment kills the launch. This is now P0.
+
+### New P0: Proxy Rate Limiting
+
+`server/proxy.js` has zero rate limiting. A single script or competitor can exhaust the Travelpayouts daily quota in minutes by calling `/api/flights/latest?origin=LAX&destination=BKK` in a loop. When quota is gone, every real user sees broken flight prices. Fix is 15 minutes on the VPS: `express-rate-limit`, 20 requests/IP/minute on `/api/flights`.
 
 ---
 
 ## Known Blockers
 
-| Blocker | Owner | Urgency |
-|---------|-------|---------|
-| **TP_MARKER placeholder** | Jack — tp.media → Markers → copy ID → replace in app.jsx → push | **P0. Day 12. $0 earned since March 24.** |
-| **app.jsx 2.0 MB** | Dev — extract VENUES to `venues.json`, async fetch on init | P1. Mobile visitors bounce before React renders. |
-| **Email capture no backend** | Dev — POST to Loops.so free webhook on onboarding submit | P1. Emails typed since launch go nowhere. |
-| **venue.facing swell bug** | Dev — delete lines 4683–4691, no venue has this field | P1. Surf scores are wrong for most breaks. |
-| **fetchWeather() 429 crash** | Dev — change `throw new Error(...)` to `return null;` on line 4543 | P1. One line. |
-| **React CDN unpinned** | Dev — `index.html:80–81` — pin to `react@18.3.1` | P2. Single CDN breaking change kills all users. |
-| **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
+| Blocker | Owner | Action |
+|---------|-------|--------|
+| **TP_MARKER** | Jack | tp.media → Markers → copy ID → `app.jsx:5316` → push. 5 min. **Day 17.** |
+| **Venue dedup** | Dev | Remove 800 `-s##` suffix duplicates from VENUES array. Keep named originals. ~2-3 hrs. |
+| **Proxy rate limit** | Jack | SSH to VPS, `npm install express-rate-limit`, add 20 req/IP/min to `/api/flights`. 15 min. |
+| **Email capture backend** | Dev | Loops.so free webhook in onboarding complete handler (`app.jsx:8884`). 30 min. |
+| **venue.facing bug** | Dev | `app.jsx:4683` — replace directional multiplier with neutral (1.0) until facing data exists. 10 min. |
+| **fetchWeather 429** | Dev | `app.jsx:4540` — add `if (r.status === 429) return null;` before generic `!r.ok` throw. 5 min. |
+| **LLC** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe. |
 
 ---
 
 ## This Week's Top 3 Priorities
 
-### 1. JACK: TP_MARKER. Day 12. This is not a dev task.
+### 1. JACK: TP_MARKER. Still. Day 17.
 
-No code change required. No branch. No PR.
+This is the 12th consecutive PM report naming this as P0. The action has not changed. It is still a 5-minute string substitution at `app.jsx:5316`. No design decision required. No code review needed. Every user who clicked a flight link over the last 17 days earned Peakly $0 from Travelpayouts.
 
-1. Go to tp.media
-2. Log in → Markers → copy your marker ID (looks like `123456`)
-3. Open `app.jsx`, find line 5316: `const TP_MARKER = "YOUR_TP_MARKER";`
-4. Replace `"YOUR_TP_MARKER"` with your actual marker ID
-5. `push "fix: set TP_MARKER for flight affiliate tracking"`
+**Decision: SHIP. Jack. Today.**
 
-Five minutes. Twelve days of zero flight commissions. This is the highest-ROI action available to Peakly right now — it doesn't require writing a line of code.
+### 2. DEV: Venue deduplication — ship before any new Reddit push
 
-**Decision: SHIP. Jack. Today. This is blocking revenue, not features.**
+This is the week's most important engineering task, and it's newly P0. The fix is surgical:
 
-### 2. DEV: 3 P1 fixes, under 20 minutes total
+1. For each venue where another entry exists within 0.05° lat/lon, keep the entry with no `-s##` suffix in the ID, discard the batch-generated duplicate.
+2. Manually verify difficulty tags on the 9 flagged credibility risks (Cloudbreak, Teahupo'o, Mundaka, Nazaré, Punta de Lobos, Grandvalira, Fuerteventura, Mundaka, Kalymnos).
+3. Final count will drop from 3,726 → ~2,900–3,100. This is fine. Quality beats count.
 
-These have been in every report since March 27. They are documented to the line number. There is no ambiguity about what to do.
+Do NOT launch another Reddit post until this ships. Credibility is the only thing the early adopter community cares about.
 
-**a) fetchWeather() 429 crash — 1 minute:**
-`app.jsx:4543` — change:
-```
-if (!r.ok) throw new Error("weather fetch failed");
-```
-to:
-```
-if (r.status === 429) return null;
-if (!r.ok) throw new Error("weather fetch failed");
-```
-fetchMarine() already does this correctly. Copy the pattern.
+**Decision: SHIP this week. Blocks all future Reddit/social activity.**
 
-**b) venue.facing swell bug — 5 minutes:**
-`app.jsx:4683–4691` — delete the spotFacing/swellAngleDiff/swellEfficiency block entirely. No VENUES entry has a `facing` property — the `?? 270` default makes every break appear west-facing. Deleting this block removes wrong data from surf scoring. Surfing is a top-3 focus category.
+### 3. JACK: Proxy rate limiting on VPS
 
-**c) React CDN pin — 2 minutes:**
-`index.html:80–81` — change `react@18` → `react@18.3.1` and `react-dom@18` → `react-dom@18.3.1`. One unpkg breaking change = instant global outage.
+15 minutes. SSH to the VPS, install `express-rate-limit`, add the middleware. The proxy is currently an open throttle on Travelpayouts quota. One bad actor kills flight prices for all real users.
 
-**Decision: SHIP. Bundle into one commit. No design decisions required. Pure risk reduction.**
-
-### 3. DEV: Email capture POST — 30 minutes, P1 revenue
-
-Every email typed into the waitlist form since launch is gone. The onboarding submit handler fires a Plausible event and clears the field — it does not save to any list. If Reddit brought 300 visitors and 5% entered their email, that's 15 lost leads.
-
-Fix: Sign up for Loops.so free tier (2,500 contacts free, no LLC required). Get the ingest URL. Add `fetch()` POST to the email submit handler in `app.jsx`.
-
-This directly supports the 8K-not-5K scenario: re-engagement email when a target venue window opens = return visits = retention = word-of-mouth.
-
-**Decision: SHIP this week. Jack signs up for Loops.so. Dev wires the POST (one fetch call).**
+**Decision: SHIP. Jack. Same session as TP_MARKER.**
 
 ---
 
-## Explicit Product Decisions This Report
+## Explicit Product Decisions
 
-**DECISION 1: TP_MARKER is Jack's task, not a dev task. It cannot be delegated.**  
-The marker ID lives in Jack's tp.media account. No dev has access to it. Jack must log in, copy the ID, and make a 5-line change. Dev cannot unblock this.
+**DECISION 1: Venue dedup is P0, not P1.**  
+Wrong difficulty tags on Cloudbreak and Teahupo'o are a safety/liability issue, not a cosmetic one. The content agent identified this. It must ship before any community outreach. Upgraded from P1 to P0 as of this report.
 
-**DECISION 2: venues.json extraction — DEFER one more week, but hard deadline is April 12.**  
-The 3 P1 fixes above are higher priority than the extraction because they affect scoring correctness and crash behavior. Extract venues.json the week of April 7–12. After that, no new feature work until it ships.
+**DECISION 2: No new Reddit posts until venue dedup ships.**  
+The first viral negative comment from a surfer who knows Teahupo'o kills the launch window. Do not accept this risk.
 
-**DECISION 3: Strike alerts server polling — DEFER until 50 alert subscribers confirmed.**  
-Push infrastructure is live. There is no evidence of 50 alert subscribers. Building the server before the audience exists is premature. Check Plausible for `set_alert` events first.
+**DECISION 3: venues.json extraction — DEFER one more week, dedup first.**  
+Extracting VENUES to venues.json is still the right call for load time. But deduplication must happen first — otherwise we extract and deploy 800 known-bad entries. Dedup → extract, in that order. Estimated sequence: dedup this week, extract next week.
+
+**DECISION 4: Push notification alerts — HOLD until dedup + TP_MARKER ship.**  
+The push infrastructure is live and working (icons fixed yesterday). But sending alerts that drive users to venues with wrong difficulty tags is worse than not sending alerts. Fix data quality before activating push.
+
+**DECISION 5: Photo deduplication — DEFER after venue dedup.**  
+39% photo duplication is a P2, not P0. Fixing it before dedup wastes effort on venues that will be deleted. Order: dedup first, then reassign photos to surviving entries.
 
 ---
 
@@ -119,51 +112,48 @@ Push infrastructure is live. There is no evidence of 50 alert subscribers. Build
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Trips + Wishlists tab expose | **DEFER to 1K users** | Core flow converts first. CLAUDE.md says "ACTION NEEDED" — ignore it. 3 tabs is correct. |
-| iOS App Store | **DEFER to 500 validated users** | $99 + 4-week review cycle. PMF not validated. |
-| More venue expansion | **CUT until venues.json ships** | File is 2.0 MB. Adding venues worsens load time. |
-| Scoring algorithm changes | **FROZEN** | Per PM v16 decision: algorithm freeze until post-Reddit. Surf facing bug fix is a data fix, not a scoring change. |
-| Amazon links for zero-affiliate categories | **SHIP week 2** (still) | Correct and low-effort. Bundle with next code drop. |
-| Google Play via PWABuilder | **DEFER to week 3 post-Reddit** | Amplify existing users. Can't amplify what doesn't exist yet. |
-| Dark mode | **CUT permanently** | No user signal. Reconfirmed cut. |
+| **Venue expansion beyond 3,726** | **CUT** | Already have 800+ bad entries. Adding more before fixing dedup is net negative. |
+| **Trips + Wishlists tab expose** | **DEFER to 1K users** | Standing decision. 3-tab nav is correct. |
+| **Strike alerts server polling** | **DEFER to 100 alert subscribers** | Build audience before push system. Also: hold until data quality fixed. |
+| **iOS App Store** | **DEFER to 500 validated users** | Validate PMF first. |
+| **Google Play via PWABuilder** | **DEFER to post-1K** | $25, no code. Amplify proven demand. |
+| **Amazon gear links** | **SHIP week 2, bundle with venues.json** | Right direction, low-effort. Still correct. |
+| **Dark mode** | **CUT permanently** | No user signal. |
+| **Score algorithm changes** | **CUT** | Algorithm freeze in effect since April PM report. No changes until post-Reddit. |
 
 ---
 
-## Success Criteria & 90-Day Projection
+## Success Criteria
 
-**What defines success:**
-- 100 users in first 48 hours post-Reddit = minimum viable signal (Reddit spike was ~4 days ago — check Plausible)
-- Alert set-rate >5% of sessions = core value prop lands
-- Flight click-rate >8% of sessions = monetization funnel working
-- 30-day retention >20% = habit-forming
+| Metric | 5K users (base case) | 8K users (upside case) |
+|--------|---------------------|----------------------|
+| TP_MARKER | Set this week | Already earning commissions |
+| Venue data quality | Dedup shipped | + No credibility complaints on Reddit |
+| Mobile load | 2.0 MB (5-10s) | <0.7 MB via venues.json extraction |
+| Email list | 0 captured | 150+ in Loops.so |
+| Proxy security | Open to abuse | Rate limited |
 
-**5K vs 8K at 90 days — updated:**
-
-| Lever | 5K scenario | 8K scenario |
-|-------|-------------|-------------|
-| TP_MARKER | Never set. $0 flight commissions. Can't validate monetization. | Set Day 1. First commission data informs pricing/volume thesis. |
-| Mobile load time | 2.0 MB → 5-10s blank screen → bounce | venues.json async → <2s first paint → users see value |
-| Email list | 0 contacts because no backend POST | 50-200 emails → re-engagement loop when conditions align |
-| Surf scoring | venue.facing bug → wrong scores → r/surfing users don't trust it | Bug deleted → scores credible → NPS climbs in core category |
-| 429 crash | One rate-limit spike kills Explore tab for all concurrent users | Graceful null → degraded but functional |
-
-**Verdict:** Path to 8K requires 3 code fixes (< 20 minutes) and one Jack action (TP_MARKER). Nothing on this list is a new feature. All of it is fixing what's broken.
+**What has to be true for 8K, not 5K:**  
+A second Reddit post — after dedup ships and TP_MARKER is set — in a targeted community (r/surfing or r/skiing) with clean data and working flight commissions. The first post captured organic traffic. A second, better-targeted post is the clearest path to the next traffic event. It requires: venue data clean, TP_MARKER set, no broken surf scores on credible breaks.
 
 ---
 
 ## The Product Risk Nobody Is Talking About
 
-**The email list doesn't exist.**
+**The agent team is doing its job. Jack isn't.**
 
-Every PM report flags TP_MARKER and the 429 crash. Nobody is talking about the email capture. Since Reddit launch, users who liked the app enough to enter their email — the highest-intent users in the funnel — typed into a form that immediately discarded their address. The Plausible `email_capture` event fires, which means we know it's happening. We just don't know how many because the emails were never saved.
+The DevOps agent shipped a fix yesterday. The content agent identified a P0 safety issue. The PM agent has filed 12 consecutive reports naming the same 5-minute action. The pattern is clear: agent-generated insights are accumulating in `reports/` but not converting to shipped code or owner actions.
 
-These are not anonymous visitors. These are people who are willing to give you their contact information. In acquisition economics, that signal is worth 10–20x a page view. The email list is the re-engagement mechanism — it's how you bring users back when a 3-day powder window opens at their target resort, or when Mavericks starts breaking.
+The fix is not a process change. It is two actions:
+1. Jack sets TP_MARKER. Today. 5 minutes.
+2. Jack adds rate limiting to the VPS proxy. Today. 15 minutes.
 
-Without the list, Peakly has no retention lever beyond hoping users remember to come back. With the list, you can fire a "Your window just opened" email in week 6 and get 30-day retention numbers that justify the next funding or growth push.
+Everything else on the list is dev work that can be parallelized. But these two items require Jack specifically — the agent cannot access tp.media or SSH to the VPS. They've been on the list for 17 days. The agent team cannot move them. Only Jack can.
 
-Loops.so is free for 2,500 contacts. This is a 30-minute fix. It has appeared in every report since April 1 and has not shipped.
+**The risk: if these items sit until Day 25, the pattern becomes permanent. The agent team produces reports that don't result in action. That's not a product problem — it's an execution problem.**
 
 ---
 
-*PM agent v22 — 2026-04-05*  
-*Filed for: Jack (jjciluzzi@gmail.com)*
+*PM agent v23 — 2026-04-10*  
+*Filed for: Jack (jjciluzzi@gmail.com)*  
+*Next milestone: TP_MARKER set + proxy rate limited by EOD April 10 (Jack). Venue dedup by April 14 (Dev).*
