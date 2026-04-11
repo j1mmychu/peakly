@@ -121,7 +121,7 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 6. **Travelpayouts token off the client** — always via VPS proxy.
 7. **Mobile-first** — safe area insets matter.
 8. **Test in browser** after changes — check console for Babel parse errors.
-9. **Venue data is hardcoded** — `VENUES` array has ~3,726 entries. Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
+9. **Venue data is hardcoded** — `VENUES` array has **257 entries** (deduped to unique photos on 2026-04-10). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
@@ -129,20 +129,27 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 
 ### What's Broken / Open (Priority Order)
 
-1. **Code freeze** (P0 process) — Last product commit `fd6e4e8` April 4. One unmerged commit `ce730cf` on `main` (April 5). 6 days of effective freeze. ProductHunt April 15.
-2. **TP_MARKER still placeholder** — `app.jsx` has `"YOUR_TP_MARKER"`. **$0 earned on every flight click.** 5-min Jack action.
-3. **REI affiliate IDs missing** — 22 REI links earn $0. Avantlink signup, no LLC required. 30-min Jack action.
-4. **Venue duplicates (P1)** — 242 duplicate venue names; some mis-tagged with dangerous misinformation (e.g., Teahupo'o listed as "Beach Break, All Levels"). Must fix before ProductHunt.
-5. **Expansion venue photo duplication (P1)** — 93% photo reuse across 3,726 venues (only 257 unique). Top photo appears 203x.
-6. **Airport infrastructure gap** — 80–90% of expansion venue airport codes missing from `AIRPORT_CITY` and `BASE_PRICES`. Flight pricing broken for most expansion venues.
-7. **`fetchWeather()` no 429 handling (P1)** — throws on HTTP 429, no retry/backoff.
-8. **`venue.facing ?? 270` swell bug (P1)** — defaults swell direction to 270 when missing; wrong for many venues.
-9. **Email capture has no backend (P1)** — fires `alert()` only, signups are lost.
-10. **Score vote buttons still rendered (P1)** — thumbs up/down still in JSX despite decision to CUT (2026-03-25).
-11. **Emoji still in UI chrome (P1)** — decided CUT March 25. Category pills, VenueDetailSheet sections, Profile CTA still emoji.
-12. **5 categories have zero Amazon links** — skiing, climbing, kayak, MTB, hiking gear all REI-only.
-13. **No onboarding flow** — new users dumped into Explore with no scoring explanation.
-14. **Strike alerts server polling** — needs `/api/alerts` on VPS to fire push when venue hits target.
+1. **TP_MARKER still placeholder** — `app.jsx:5294` has `"YOUR_TP_MARKER"`. Soft-falls back to non-marker aviasales links (no crash), but every flight click earns $0 commission. 5-min Jack action: grab marker from Travelpayouts dashboard.
+2. **`venue.facing ?? 270` swell bug (P1)** — defaults swell direction to 270 when missing; wrong for many venues. Needs data decision on correct default per region.
+3. **Email capture has no backend (P1)** — fires `alert()` only, signups are lost. Needs Formspree/ConvertKit endpoint choice.
+4. **Score vote buttons still rendered (P1)** — thumbs up/down still in JSX despite decision to CUT (2026-03-25). Needs search + remove pass.
+5. **Emoji still in UI chrome (P1)** — decided CUT March 25. CATEGORIES pill emojis, LOCAL_TIPS leading emoji, Profile CTA still emoji. UX decision confirmed but not executed.
+6. **Single-venue categories are UX-bad** — after scale-down, kayak/fishing/paraglide = 1 venue each; mtb = 2; diving/climbing/kite = 3 each. Users who pick these in onboarding get empty/broken feel. Decision: drop from CATEGORIES or keep.
+7. **No onboarding scoring explanation** — new users dumped into Explore without context.
+8. **Strike alerts server polling** — needs background worker that reads `_alerts` Map and fires push when a venue hits target.
+9. **Sitemap hash fragments** — URLs use `#skiing` etc which search engines ignore. SEO routing decision.
+10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break inline styles or script eval).
+
+### Recently Fixed (2026-04-10 cleanup pass)
+
+- ✅ `fetchWeather` now retries on 429/5xx with backoff, returns null instead of throw
+- ✅ Proxy: deduped rate limiter, added IATA regex validation, POST /api/alerts schema validation + cap
+- ✅ Proxy: removed unused express-rate-limit dep
+- ✅ index.html: pinned react/react-dom 18.3.1 (was floating @18)
+- ✅ REI section removed from GEAR_ITEMS (22 dead $0 links)
+- ✅ VENUES scaled 3,726 → 257 (unique-photo dedupe; app.jsx 1.97MB → 0.49MB)
+- ✅ `.archive/` deleted (64K of April 7-9 QA snapshots)
+- ✅ `.gitignore`: added `*.orig`, `*.rej`
 
 ### Open Pre-Launch Items
 
