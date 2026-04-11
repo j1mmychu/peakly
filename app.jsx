@@ -992,196 +992,259 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   switch (venue.category) {
 
     case "skiing": {
-      const sIn = Math.round(snow * 0.394);       // cm → inches fresh
-      const dIn = Math.round(depth * 39.4);        // m → inches base
+      const sIn = Math.round(snow * 0.394);       // cm fresh → inches
+      const dIn = Math.round(depth * 39.4);        // m base → inches
       const baseCm = depth * 100;
 
-      // Fresh snow is king — weighted by amount and snow quality
-      if (snow > 30)      score = 96 + Math.min(3, (snow - 30) * 0.1);
-      else if (snow > 20) score = 91 + (snow - 20) * 0.5;
-      else if (snow > 10) score = 84 + (snow - 10) * 0.7;
-      else if (snow > 5)  score = 76 + (snow - 5) * 1.6;
-      else if (snow > 0)  score = 68 + snow * 1.6;
+      // ─── Fresh snow is king ──────────────────────────────────────────────
+      // 50cm+ (20"+) = historic dump. 25-50cm (10-20") = classic powder day.
+      // 10-25cm = resort-day refresh. <10cm = dusting on existing base.
+      if      (snow >= 50) score = 95 + Math.min(5, (snow - 50) * 0.1);  // cap 100
+      else if (snow >= 30) score = 89 + (snow - 30) * 0.3;
+      else if (snow >= 20) score = 83 + (snow - 20) * 0.6;
+      else if (snow >= 10) score = 75 + (snow - 10) * 0.8;
+      else if (snow >= 5)  score = 68 + (snow - 5) * 1.4;
+      else if (snow > 0)   score = 60 + snow * 1.6;
       else {
-        // No fresh snow: score depends on base depth + grooming potential
-        if      (baseCm > 200) score = 72;
-        else if (baseCm > 150) score = 66;
-        else if (baseCm > 100) score = 58;
-        else if (baseCm > 50)  score = 48;
-        else                   score = 30;
+        // No new snow: base depth decides. 150cm+ is a healthy mid-season base.
+        if      (baseCm >= 200) score = 72;
+        else if (baseCm >= 150) score = 66;
+        else if (baseCm >= 100) score = 58;
+        else if (baseCm >=  50) score = 45;
+        else if (baseCm >=  25) score = 32;
+        else                    score = 20;      // most terrain closed
       }
 
-      // Temperature quality: cold = powder preservation, warm = slush
-      if (tempMax < 28 && snow > 5) score += 4;        // cold dry powder
-      else if (tempMax < 32 && snow > 0) score += 2;   // decent preservation
-      if (tempMax > 38 && tempMax <= 45) score -= 8;    // heavy wet snow / slush
-      if (tempMax > 45) score -= 16;                    // rain-on-snow, terrible
-      if (tempMin > 32 && snow === 0) score -= 6;       // no freeze overnight = icy
+      // ─── Temperature: powder preservation vs slush vs rain ──────────────
+      if (tempMax < 25 && snow > 5)   score += 5;   // cold, dry, preserved powder
+      else if (tempMax < 32 && snow > 0) score += 2;
+      if (tempMax > 38 && tempMax <= 42) score -= 6;   // warm = slushy groomers by noon
+      if (tempMax > 42 && tempMax <= 48) score -= 12;  // heavy wet snow, sticky
+      if (tempMax > 48) score -= 20;                   // rain-on-snow: trip-destroying
+      if (tempMin > 32 && snow === 0) score -= 5;      // no overnight freeze = icy AM
 
-      // Wind: gusts matter more than sustained for lift ops
-      if (gusts > 55) score -= 18;           // lifts closed
-      else if (gusts > 40) score -= 10;      // upper lifts closed, ridge holds
-      else if (wind > 30) score -= 5;        // windy but skiable
-      if (gustFactor > 1.8) score -= 3;      // erratic gusts = worse than steady
+      // ─── Wind: lifts close when it gets bad ──────────────────────────────
+      // Most resorts: upper lifts hold at 40mph sustained/55mph gusts.
+      if (gusts > 55) score -= 20;          // upper mountain closed
+      else if (gusts > 45) score -= 12;     // ridges closed, holds start
+      else if (wind > 30) score -= 6;       // cold + uncomfortable
+      if (gustFactor > 1.8) score -= 3;     // erratic gusts
 
-      // Visibility / weather code penalties
-      if (wCode >= 65) score -= 6;           // heavy snow/rain (low vis)
-      else if (wCode >= 45) score -= 3;      // fog
+      // ─── Wind chill (°F) — affects comfort, not skiability ──────────────
+      // Simplified: chill = tempMax - (wind * 0.7). Deduct if brutal cold.
+      const chill = tempMax - (wind * 0.7);
+      if (chill < -10) score -= 8;          // unsurvivable
+      else if (chill < 0) score -= 4;       // brutal
+      else if (chill < 10) score -= 2;      // cold
 
-      // Precipitation probability for planning confidence
-      if (precipPct > 80 && snow < 5) score -= 4;  // high chance of rain, not snow
+      // ─── Weather codes: distinguish RAIN (bad) from SNOW (great!) ───────
+      // Open-Meteo codes: 51-67 rain/drizzle, 71-77 snow, 80-82 rain showers,
+      // 85-86 snow showers, 95+ thunderstorms, 45-48 fog.
+      const isRain = (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 82);
+      const isSnow = (wCode >= 71 && wCode <= 77) || (wCode >= 85 && wCode <= 86);
+      const isFog  = wCode === 45 || wCode === 48;
+      if (isRain) score -= 14;              // rain on snow, hard no
+      // isSnow: do NOT penalize — that's literally what we want
+      if (isFog) score -= 5;                // low vis on groomers
 
+      // Bad forecast confidence: high rain probability with no fresh snow
+      if (precipPct > 75 && snow < 3 && !isSnow) score -= 5;
+
+      const conditionTag = isRain ? " · RAIN" : isSnow ? " · snowing" : "";
       label = snow > 0
-        ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F`
-        : `${dIn}" base · ${tempMax}°F${gusts > 40 ? " · High wind" : ""}`;
-      period = snow > 25 ? "Powder day — go now"
-             : snow > 12 ? "Fresh overnight — first tracks"
-             : snow > 5  ? "New snow on groomed"
-             : snow > 0  ? "Dusting — mostly groomed"
-             : baseCm > 150 ? `Packed powder${tempMin < 28 ? " · firm AM" : ""}`
-             : baseCm > 50  ? "Thin cover · stick to groomers"
-             : "Limited terrain open";
+        ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F${conditionTag}`
+        : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
+      period = snow >= 25 ? "Powder day — go now"
+             : snow >= 12 ? "Fresh overnight — first tracks"
+             : snow >=  5 ? "New snow on groomed"
+             : snow >   0 ? "Dusting — mostly groomed"
+             : isRain      ? "Rain — wait it out"
+             : baseCm >= 150 ? `Packed powder${tempMin < 28 ? " · firm AM" : ""}`
+             : baseCm >=  50 ? "Thin cover · stick to groomers"
+             : "Limited terrain";
       break;
     }
 
     case "surfing": {
-      const fFt = Math.round(swellH * 3.28 * 1.5);  // swell face height estimate
-      const glassy = wind < 8;
-      const light  = wind < 12;
-      const blown  = wind > 20;
+      // Break facing: compass bearing the break faces out to sea.
+      // Every surfing venue in VENUES has hand-coded facing data. 270 is only a
+      // defensive fallback (data bug) — should never hit in production.
+      const facing = venue.facing ?? 270;
 
-      // Spot facing direction: the compass direction the break faces (waves come FROM)
-      // Default 270° (west-facing) if not specified on venue
-      const spotFacing = venue.facing ?? 270;
-
-      // ─── Swell direction vs spot orientation (fix #3) ───
-      // Angular difference between swell direction and spot facing
-      const swellAngleDiff = Math.abs(((swellDir - spotFacing) + 180) % 360 - 180);
-      const swellEfficiency = swellAngleDiff <= 45  ? 1.0   // direct hit
-                            : swellAngleDiff <= 90  ? 0.7   // oblique — reduce swell contribution 30%
-                            : 0.4;                           // sheltered — reduce 60%
-
-      // Effective swell height after orientation adjustment
+      // ─── Swell hitting the break (orientation efficiency) ──────────────────
+      // Open-Meteo swellDir = direction swell comes FROM. Compare to facing.
+      // Direct hit = swell from exactly the direction the break faces out.
+      const swellAngleDiff = Math.abs(((swellDir - facing) + 540) % 360 - 180);
+      const swellEfficiency = swellAngleDiff <= 30  ? 1.0   // near-direct hit
+                            : swellAngleDiff <= 60  ? 0.85
+                            : swellAngleDiff <= 90  ? 0.65
+                            : swellAngleDiff <= 120 ? 0.4
+                            :                         0.2;  // sheltered
       const effectiveSwellH = swellH * swellEfficiency;
 
-      // ─── Groundswell quality: long period + swell-dominant = clean, powerful waves ───
-      const groundswellQuality = swellPer > 14 ? 1.15
-                                : swellPer > 12 ? 1.08
-                                : swellPer > 10 ? 1.0
-                                : swellPer > 8  ? 0.9
-                                : 0.75;
+      // ─── Period quality: long period = more power, cleaner walls ──────────
+      // Sub-8s = windswell, 10-12s = decent, 14s+ = groundswell
+      const groundswellQuality = swellPer >= 15 ? 1.18
+                                : swellPer >= 13 ? 1.10
+                                : swellPer >= 11 ? 1.02
+                                : swellPer >= 9  ? 0.92
+                                : swellPer >= 7  ? 0.80
+                                :                  0.65;
 
-      // Base from effective swell height (orientation-adjusted)
-      if      (effectiveSwellH > 3.5) score = 88;
-      else if (effectiveSwellH > 2.5) score = 80;
-      else if (effectiveSwellH > 1.8) score = 72;
-      else if (effectiveSwellH > 1.2) score = 63;
-      else if (effectiveSwellH > 0.7) score = 50;
-      else                             score = 30;
-
-      // Period quality multiplier (long period = more power per foot)
+      // ─── Base score from effective height × period quality ────────────────
+      // Face height ≈ swell × 1.6 (rule of thumb for most breaks)
+      const faceM = effectiveSwellH * 1.6;
+      if      (faceM > 4.0) score = 92;      // double-overhead+ — world-class
+      else if (faceM > 3.0) score = 85;      // overhead+
+      else if (faceM > 2.0) score = 76;      // solid shoulder-high+
+      else if (faceM > 1.3) score = 66;      // fun size
+      else if (faceM > 0.8) score = 52;      // small but rideable
+      else if (faceM > 0.4) score = 38;
+      else                   score = 22;     // flat
       score = score * groundswellQuality;
 
-      // ─── SwellRatio: clean groundswell vs wind swell dominance (fix #8) ───
-      if (swellRatio > 0.7) score += 4;      // clean groundswell dominant — bonus
-      else if (swellRatio < 0.4) score -= 6; // mostly wind swell — choppy, penalty
+      // ─── Wind direction: offshore vs onshore (KEY signal) ─────────────────
+      // Open-Meteo windDir = direction wind comes FROM (meteorological).
+      // Offshore = wind from LAND to SEA = wind direction opposite to facing.
+      // If facing = 270 (W), land is to the east, offshore wind blows from 90 (E).
+      // So: |windDir - (facing + 180)| small = offshore ✓
+      const offshoreDir = (facing + 180) % 360;
+      const windOffshoreDiff = Math.abs(((windDir - offshoreDir) + 540) % 360 - 180);
+      const glassy = wind < 6;
+      const blown  = wind > 22;
 
-      // Wind chop penalty: high wind waves relative to swell = messy
-      if (windWaveH > swellH * 0.6) score -= 8;       // wind swell dominant = messy
-      else if (windWaveH > swellH * 0.3) score -= 3;
-
-      // ─── Wind direction: offshore vs onshore (fix #2) ───
-      // Offshore wind (blowing FROM same direction as swell) = ideal; onshore = bad
-      // Angular diff between wind direction and swell direction
-      const windSwellDiff = Math.abs(((windDir - swellDir) + 180) % 360 - 180);
-      if (windSwellDiff < 30) {
-        // Wind is blowing from the same direction as swell = offshore = clean up faces
-        score += 10;
-      } else if (windSwellDiff < 60) {
-        score += 6;  // mostly offshore, slight angle
-      } else if (windSwellDiff > 150) {
-        // Wind blowing the same way waves travel = onshore = messy choppy
-        score -= 12;
-      } else if (windSwellDiff > 120) {
-        score -= 6;  // mostly onshore
+      if (glassy) {
+        // Dead-glass: direction doesn't matter, surface is oil
+        score += 8;
+      } else if (windOffshoreDiff < 30) {
+        // Clean offshore grooming the faces
+        score += wind > 15 ? 8 : 12;         // moderate offshore = best; strong offshore = good but sketchy
+      } else if (windOffshoreDiff < 60) {
+        // Mostly offshore, slight angle
+        score += 6;
+      } else if (windOffshoreDiff < 90) {
+        // Cross-shore: neutral-to-slight-penalty
+        score -= wind > 12 ? 3 : 0;
+      } else if (windOffshoreDiff < 120) {
+        // Cross-onshore
+        score -= wind > 10 ? 6 : 2;
       } else {
-        // Cross-shore: minor penalty
-        score -= 3;
+        // Onshore: wind pushing chop INTO the break = messy
+        score -= blown ? 18 : wind > 12 ? 12 : wind > 8 ? 7 : 3;
       }
-      // Override: if glassy (very light wind), wind direction matters less
-      if (glassy) { score += 6; }  // glass-off overrides direction penalty
-      else if (blown && windSwellDiff > 120) score -= 4; // double penalty: strong + onshore
 
-      // Overhead+ danger for average surfers (>2.5m swell)
-      if (swellH > 4) score -= 5;               // expert only
-      if (swellH > 6) score -= 10;              // XXL / tow-in territory
+      // ─── Wind chop / swell quality ──────────────────────────────────────
+      // windWaveH dominates → the ocean is textured from local wind = messy
+      if (windWaveH > swellH * 0.75) score -= 8;
+      else if (windWaveH > swellH * 0.4) score -= 3;
 
-      // Water temperature comfort (wetsuit requirement = deterrent for most surfers)
+      // ─── Size danger: big waves are unrideable by most users ────────────
+      // Peakly users aren't pro big-wave surfers. Penalize XXL unless it's the
+      // venue's identity (Mavericks, Nazaré, Jaws). We still surface these but
+      // cap the "GO" verdict.
+      const bigWaveBreak = (venue.tags || []).some(t => /big wave|xxl|tow|nazare|pipeline/i.test(t));
+      if (swellH > 5 && !bigWaveBreak) score -= 14;
+      else if (swellH > 4 && !bigWaveBreak) score -= 7;
+      else if (swellH > 6 && bigWaveBreak)  score -= 3;  // even pros at their limit
+
+      // ─── Water temperature: wetsuit requirement ─────────────────────────
       if (waterTemp !== null) {
-        if (waterTemp > 24) score += 4;          // tropical — boardshorts, ideal
-        else if (waterTemp >= 20) score += 2;    // spring suit comfortable
-        else if (waterTemp >= 15) score -= 2;    // 3/2mm wetsuit required — manageable
-        else if (waterTemp >= 10) score -= 5;    // 4/3mm wetsuit — cold, deters many
-        else score -= 10;                        // 5/4mm+ / drysuit — extreme cold, expert only
+        if (waterTemp > 24) score += 3;        // tropical boardshorts
+        else if (waterTemp >= 20) score += 1;  // spring suit
+        else if (waterTemp >= 15) score -= 1;  // 3/2mm
+        else if (waterTemp >= 11) score -= 4;  // 4/3mm — cold
+        else if (waterTemp >= 8)  score -= 8;  // 5/4mm + hood
+        else                      score -= 12; // drysuit territory
       }
 
-      // Rain doesn't ruin surf but low vis + runoff = dirty water
-      if (rain > 15) score -= 4;
+      // ─── Rain: minor penalty (runoff dirties the water) ─────────────────
+      if (rain > 20) score -= 4;
+      else if (rain > 10) score -= 2;
 
-      const windLabel = glassy ? "Glassy" : light ? "Light wind" : blown ? "Choppy" : `${wind.toFixed(0)}mph`;
-      const perLabel = swellPer > 14 ? "long-period" : swellPer > 10 ? "mid-period" : "short-period";
-      label = effectiveSwellH > 0.7
-        ? `${fFt}ft ${perLabel} · ${windLabel}`
+      // Labels
+      const fFt = Math.max(1, Math.round(faceM * 3.28));
+      const windLabel = glassy ? "Glassy" : windOffshoreDiff < 60 ? `${wind.toFixed(0)}mph offshore`
+                      : windOffshoreDiff > 120 ? `${wind.toFixed(0)}mph onshore`
+                      : `${wind.toFixed(0)}mph cross`;
+      const perLabel = swellPer >= 14 ? "long period" : swellPer >= 10 ? "mid period" : "short period";
+      label = faceM > 0.8
+        ? `${fFt}ft · ${perLabel} · ${windLabel}`
         : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
-      period = effectiveSwellH > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : effectiveSwellH > 1.8 ? `Solid swell · ${Math.min(bestDays, 3)}d`
-             : effectiveSwellH > 0.7 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
-             : (tmrwWaveH > 0.7 ? "Swell incoming" : "Flat — check back");
+      period = faceM > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : faceM > 2 ? `Solid · ${Math.min(bestDays, 3)}d window`
+             : faceM > 1 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
+             : (tmrwWaveH > 0.8 ? "Swell incoming" : "Flat — check back");
       break;
     }
 
     case "tanning": {
-      const sunny = wCode < 2;
-      const clear = wCode < 3;
-      const partCloud = wCode < 4;
+      // Weather code bands: 0=clear, 1=mainly clear, 2=partly cloudy, 3=overcast,
+      // 45/48=fog, 51-67=rain/drizzle, 71-77=snow, 80+=showers/storms
+      const sunny     = wCode <= 1;
+      const clear     = wCode <= 2;
+      const partCloud = wCode === 3;
+      const foggy     = wCode === 45 || wCode === 48;
+      const rainy     = (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 82);
+      const stormy    = wCode >= 95;
 
-      // Sunshine hours are the real indicator (not just weather code)
-      const sunPct = sunHrs / 14;  // fraction of max daylight
-      const comfortTemp = tempMax >= 75 && tempMax <= 95;
-      const hotButOk = tempMax > 95 && tempMax <= 105;
+      // Sunshine hours: real-world tanning quality indicator
+      const sunPct       = Math.min(1, sunHrs / 11);       // 0-1 of useful tanning hours
+      const comfortTemp  = tempMax >= 75 && tempMax <= 92;
+      const warmEnough   = tempMax >= 68 && tempMax < 75;
+      const hotButOk     = tempMax > 92 && tempMax <= 102;
 
-      // Core: UV + sunshine hours + temperature comfort
-      if (sunny && sunHrs > 10 && uv >= 8 && comfortTemp) {
-        score = 92 + Math.min(7, (uv - 8) + (sunHrs - 10));
-      } else if (clear && sunHrs > 8 && uv >= 6 && (comfortTemp || hotButOk)) {
-        score = 82 + Math.min(8, (uv - 6) * 1.2 + sunPct * 3);
-      } else if (partCloud && uv >= 5 && tempMax >= 70) {
+      // ─── Core: UV + sun + comfortable air temperature ──────────────────
+      if (sunny && sunHrs >= 10 && uv >= 8 && comfortTemp) {
+        score = 94 + Math.min(4, (uv - 8) * 0.8 + (sunHrs - 10) * 0.5);  // peak beach day
+      } else if (clear && sunHrs >= 8 && uv >= 6 && (comfortTemp || hotButOk)) {
+        score = 84 + Math.min(8, (uv - 6) * 1.3 + sunPct * 4);
+      } else if (partCloud && uv >= 5 && (comfortTemp || warmEnough)) {
         score = 68 + uv * 1.5 + sunPct * 5;
-      } else if (uv >= 3 && tempMax >= 65) {
-        score = 55 + uv * 2;
+      } else if (uv >= 3 && warmEnough) {
+        score = 52 + uv * 2;
+      } else if (warmEnough) {
+        score = 44;                                // warm but grey
       } else {
-        score = 35;
+        score = 28;                                // not a beach day
       }
 
-      // Wind chill on the beach
-      if (wind > 20) score -= 8;       // too windy for comfort
-      else if (wind > 15) score -= 4;
-      if (gusts > 25) score -= 3;      // sand-blasting
+      // ─── Wind: kills beach comfort faster than most score models assume ──
+      if (wind > 25)       score -= 16;             // sand-blast
+      else if (wind > 18)  score -= 9;
+      else if (wind > 13)  score -= 4;              // noticeable
+      else if (wind > 9)   score -= 1;
+      if (gusts > 28) score -= 3;                   // umbrella-flipping
 
-      // Rain kills beach days
-      if (precipPct > 70) score -= 12;
-      else if (precipPct > 50) score -= 6;
-      if (precip > 5) score -= 15;
+      // ─── Rain: even small amounts end a beach day ──────────────────────
+      if (rainy || precip > 2) score -= 22;
+      else if (precipPct > 75) score -= 14;
+      else if (precipPct > 55) score -= 7;
+      else if (precipPct > 35) score -= 3;
+      if (stormy) score -= 25;                      // lightning = leave the beach
+      if (foggy && sunHrs < 4) score -= 10;
 
-      // Extreme heat
-      if (tempMax > 105) score -= 10;
-      else if (tempMax > 100) score -= 4;
+      // ─── Temperature edges ──────────────────────────────────────────────
+      if (tempMax < 65) score -= 12;                // too cold to sunbathe
+      if (tempMax > 100) score -= 6;                // heat stroke territory
+      if (tempMax > 105) score -= 14;
 
-      const sunLabel = sunHrs > 10 ? "Full sun" : sunHrs > 7 ? "Mostly sunny" : sunHrs > 4 ? "Partly cloudy" : "Overcast";
-      label = `UV ${uv} · ${tempMax}°F · ${sunLabel}`;
-      period = sunny && bestDays > 2 ? `${Math.min(bestDays, 7)}-day clear stretch`
-             : sunny ? "Clear today"
-             : precipPct < 30 ? "Mostly dry"
+      // ─── Water temperature (if marine data available) ──────────────────
+      // Cold water = no swimming = bad beach day even on a sunny one
+      if (waterTemp !== null) {
+        if (waterTemp >= 24) score += 4;           // tropical swim
+        else if (waterTemp >= 21) score += 2;      // pleasant
+        else if (waterTemp >= 18) score += 0;      // OK
+        else if (waterTemp >= 15) score -= 3;      // chilly — wade only
+        else score -= 8;                            // cold — no swimming
+      }
+
+      const sunLabel = sunHrs >= 10 ? "Full sun" : sunHrs >= 7 ? "Mostly sunny" : sunHrs >= 4 ? "Partly cloudy" : "Overcast";
+      const weatherTag = stormy ? " · storms" : rainy ? " · rain" : foggy ? " · fog" : "";
+      label = `UV ${uv} · ${tempMax}°F · ${sunLabel}${weatherTag}`;
+      period = (sunny || clear) && bestDays > 2 ? `${Math.min(bestDays, 7)}-day clear stretch`
+             : (sunny || clear) ? "Clear today"
+             : rainy            ? "Wet day — wait it out"
+             : precipPct < 30   ? "Mostly dry"
              : "Scattered clouds";
       break;
     }
@@ -1392,25 +1455,37 @@ const TP_MARKER = "710303";
 // BULLETPROOF: handles all edge cases — empty/null origin defaults to JFK, bad dates fall back gracefully
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
-// Typical round-trip prices by distance tier from US
-const getTypicalPrice = (venue) => {
-  const lat = venue.lat || 0, lng = venue.lng || 0;
-  // Rough distance tiers from central US (39N, 98W)
-  const dLat = Math.abs(lat - 39), dLng = Math.abs(lng + 98);
-  const dist = Math.sqrt(dLat*dLat + dLng*dLng);
-  if (dist < 15) return 250;   // domestic short
-  if (dist < 30) return 400;   // domestic long
-  if (dist < 40) return 450;   // caribbean/mexico
-  if (dist < 60) return 600;   // central america
-  if (dist < 80) return 800;   // south america
-  if (dist < 100) return 900;  // europe
-  if (dist < 140) return 1200; // asia
-  return 1500;                  // oceania
+// Typical round-trip price for a venue from a given home airport.
+// Uses the hand-coded BASE_PRICES matrix first (per-route, highest accuracy),
+// then falls back to continent-pair route estimates, then a flat default.
+// This is the SAME source of truth as getFlightDeal, so "typical" and
+// "estimate" always agree — no more ghost deals from a second formula.
+const getTypicalPrice = (venue, homeAirport = "JFK") => {
+  const ap = venue?.ap;
+  if (!ap) return 800;
+  const exact = BASE_PRICES[ap]?.[homeAirport];
+  if (exact) return exact;
+  const destCont = AP_CONTINENT[ap] || null;
+  const homeCont = AP_CONTINENT[homeAirport] || "na";
+  if (!destCont) return 800;
+  if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
+  const routes = {
+    "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
+    "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
+    "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
+    "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
+    "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
+    "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
+  };
+  return routes[`${homeCont}-${destCont}`] || 800;
 };
 
-const getDealScore = (currentPrice, venue) => {
+// Deal fraction: positive = below typical, negative = above. Only meaningful
+// for LIVE prices (estimates always return 0 since price == typical by construction).
+const getDealScore = (currentPrice, venue, homeAirport = "JFK") => {
   if (!currentPrice || currentPrice <= 0) return 0;
-  const typical = getTypicalPrice(venue);
+  const typical = getTypicalPrice(venue, homeAirport);
+  if (typical <= 0) return 0;
   return (typical - currentPrice) / typical;
 };
 
@@ -1478,31 +1553,20 @@ function shareVenue(listing, onCopied) {
 // Real prices fetched via fetchTravelpayoutsPrice() in the App useEffect.
 // getFlightDeal() is the instant fallback when API hasn't responded yet.
 // ─────────────────────────────────────────────────────────────────────────────
+// Instant price estimate shown BEFORE Travelpayouts responds.
+// Returns the TYPICAL price, not a fake "X% off" number. Users see honest
+// baseline data that the live fetch can then undercut if there's a real deal.
+// No more fabricated 28-75% discounts passed off as real prices.
 function getFlightDeal(ap, homeAirport = "JFK") {
-  // BULLETPROOF: empty string bypasses JS default param — normalize explicitly
   if (!homeAirport || typeof homeAirport !== "string" || homeAirport.trim().length < 3) homeAirport = "JFK";
-  // Smart price estimation: use BASE_PRICES if available, otherwise estimate by region
-  const exact = BASE_PRICES[ap]?.[homeAirport];
-  const base = exact || (() => {
-    const destCont = AP_CONTINENT[ap] || "europe";
-    const homeCont = AP_CONTINENT[homeAirport] || "na";
-    // Region-based price estimates (round-trip from US)
-    if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
-    const routes = {
-      "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
-      "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
-      "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
-      "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
-      "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
-      "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
-    };
-    return routes[`${homeCont}-${destCont}`] || 800;
-  })();
-  // Instant estimate shown while Travelpayouts API loads real prices
-  const seed = (ap + homeAirport).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const pct  = 28 + (seed % 48); // 28–75% off
-  const price = Math.max(49, Math.round(base * (1 - pct / 100) / 5) * 5);
-  return { price, normal: base, pct, from: homeAirport, isEstimate: true };
+  const base = getTypicalPrice({ ap }, homeAirport);
+  return {
+    price: base,        // honest: the typical price
+    normal: base,       // typical == price when no live data
+    pct: 0,             // no claimed discount
+    from: homeAirport,
+    isEstimate: true,
+  };
 }
 
 // ─── Geolocation: nearest airport detection ──────────────────────────────────
@@ -1903,11 +1967,15 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
             {listing.flightsLoading && !listing.flight.live ? (
               <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
-            ) : (
+            ) : listing.flight.live ? (
               <>
                 <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
-                <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+                {listing.flight.pct >= 10 && (
+                  <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+                )}
               </>
+            ) : (
+              <span style={{ fontSize:14, fontWeight:700, color:"#717171", fontFamily:F }}>~${listing.flight.price} typical</span>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
@@ -1957,8 +2025,12 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
         }}>
           {listing.flightsLoading && !listing.flight.live ? (
             <span className="shimmer" style={{ width:60, height:10, borderRadius:5, display:"inline-block" }} />
-          ) : (
+          ) : listing.flight.live && listing.flight.pct >= 10 ? (
             <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
+          ) : listing.flight.live ? (
+            <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ ${listing.flight.price}</span>
+          ) : (
+            <span style={{ color:"rgba(255,255,255,0.85)", fontSize:11, fontWeight:700, fontFamily:F }}>✈️ ~${listing.flight.price}</span>
           )}
           {listing.flight.live && (
             <span style={{
@@ -2883,7 +2955,17 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
       return bVal - aVal;
     };
-    return allScored.filter(l => l.conditionScore >= 80 && (!l.flight?.price || getDealScore(l.flight.price, l) > -0.2)).sort(sortByVal).slice(0, 10);
+    // Only include live-priced venues where price is within 20% of typical or cheaper.
+    // Estimates (isEstimate, !live) always score as "typical" so they don't unfairly
+    // rank above real-pricing venues — just pass through the conditionScore filter.
+    return allScored
+      .filter(l => {
+        if (l.conditionScore < 80) return false;
+        if (!l.flight?.price) return true;
+        if (!l.flight.live) return true;   // estimates don't drive deal filtering
+        return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
+      })
+      .sort(sortByVal).slice(0, 10);
   })();
 
   const filtered = applyFilters(activeListings, activeCat, filters, search);
@@ -3107,10 +3189,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                 <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
                   <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
-                    ${hero.flight.price}
-                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600 }}> est.</span>}
+                    {hero.flight.live ? `$${hero.flight.price}` : `~$${hero.flight.price}`}
+                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600 }}> typical</span>}
                   </div>
-                  <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% off</div>
+                  {hero.flight.live && hero.flight.pct >= 10 && (
+                    <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% below typical</div>
+                  )}
                 </div>
               </div>
               {/* CTA row */}
@@ -4691,9 +4775,9 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                           <span style={{ background:"#f7f7f7", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>
                             {cat?.label}
                           </span>
-                          {l.flight.pct > 10 && (
+                          {l.flight.live && l.flight.pct >= 10 && (
                             <span style={{ background:"#ecfdf5", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#059669", fontFamily:F }}>
-                              -{l.flight.pct}% off
+                              -{l.flight.pct}% below typical
                             </span>
                           )}
                         </div>
@@ -5204,20 +5288,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
 const WX_CODE_MAP = [[99,"⛈️"],[95,"⛈️"],[86,"❄️"],[85,"🌨️"],[82,"⛈️"],[81,"🌧️"],[80,"🌦️"],[77,"❄️"],[75,"❄️"],[73,"🌨️"],[71,"🌨️"],[67,"🌧️"],[65,"🌧️"],[63,"🌧️"],[61,"🌧️"],[57,"🌦️"],[55,"🌧️"],[53,"🌦️"],[51,"🌦️"],[48,"🌫️"],[45,"🌫️"],[3,"🌥️"],[2,"⛅"],[1,"🌤️"],[0,"☀️"]];
 function wxEmoji(code) { for (const [k,v] of WX_CODE_MAP) { if ((code??0) >= k) return v; } return "🌤️"; }
 
-// ─── per-category insider tips ─────────────────────────────────────────────────
-const LOCAL_TIPS = {
-  skiing: ["Book ski rentals online 2+ days ahead — 30% cheaper than on-mountain","Hit the slopes at 8am — first 2 hours have the freshest groomed corduroy","Overcast days = no wind & flat light is actually great for carving","Reapply SPF every 2h — UV reflects off snow and burns fast at altitude"],
-  surfing: ["Dawn patrol has the glassiest water and thinnest crowds of the day","Paddle out via the channel, not through the break — saves 80% of your energy","Check swell reports the night before, not morning — you need lead time","Avoid surfing at dawn/dusk near river mouths — peak shark feeding windows"],
-  tanning: ["Arrive at the beach before 10am to claim the best real estate","Apply SPF 50+ 20 min before sun exposure — it needs time to bind to skin","Stake out near the shoreline for natural cooling sea breezes","The 10am–2pm window has the strongest UV — find shade between those hours"],
-};
-
-
-const PACKING = {
-  skiing: ["Base + mid + shell layers","Goggles (anti-fog)","Ski/snowboard boots","Waterproof gloves","Helmet","SPF 50+ (UV reflects off snow)","Altitude meds if needed"],
-  surfing: ["Surfboard (check bag fees)","Wetsuit (right thickness)","Board wax","Reef booties","SPF 50+ water-resistant","Earplugs","After-surf skin care"],
-  tanning: ["SPF 50+ sunscreen (re-apply!)","UV400 sunglasses","Wide-brim sun hat","Beach towel","After-sun / aloe vera","Flip flops","Electrolyte tablets"],
-};
-
 // ─── affiliate gear items per category ────────────────────────────────────────
 // Amazon tag: "peakly-20" — update after Associates approval. Backcountry: add tag once approved.
 const GEAR_ITEMS = {
@@ -5327,8 +5397,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     wave:  md?.wave_height_max?.[i]   ?? null,
   })) : [];
 
-  const packing    = PACKING[listing.category]      || PACKING.surfing;
-  const localTips  = LOCAL_TIPS[listing.category]   || LOCAL_TIPS.surfing;
   const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
     startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
   });
@@ -5430,7 +5498,12 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>{shareVenueCopied ? "Copied!" : "Copy link"}</span>
               </button>
               <button onClick={() => {
-                const card = `${listing.title}\n${listing.location}\nConditions: ${listing.conditionScore} — ${listing.conditionLabel}\nFlights from $${listing.flight.price} (${listing.flight.pct}% off)\n\nFind your next adventure → j1mmychu.github.io/peakly`;
+                const flightLine = listing.flight.live
+                  ? (listing.flight.pct >= 10
+                      ? `Flights from $${listing.flight.price} (${listing.flight.pct}% below typical)`
+                      : `Flights from $${listing.flight.price}`)
+                  : `Flights typical ~$${listing.flight.price}`;
+                const card = `${listing.title}\n${listing.location}\nConditions: ${listing.conditionScore} — ${listing.conditionLabel}\n${flightLine}\n\nFind your next adventure → j1mmychu.github.io/peakly`;
                 copyShareLink(card);
               }} className="pressable" style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"10px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <span style={{ fontSize:14 }}>📋</span>
@@ -5459,8 +5532,14 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
             <div style={{ flex:1, background:"#f0fff4", borderRadius:14, padding:"12px 14px" }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>Flight from {listing.flight.from}</div>
-              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>from ${listing.flight.price}</div>
-              <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>Was ${listing.flight.normal} · {listing.flight.pct}% off</div>
+              <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>
+                {listing.flight.live ? `from $${listing.flight.price}` : `~$${listing.flight.price}`}
+              </div>
+              <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>
+                {listing.flight.live
+                  ? (listing.flight.pct >= 10 ? `typical $${listing.flight.normal} · ${listing.flight.pct}% below` : "current price")
+                  : "typical — live price loading"}
+              </div>
               {listing.flight.foundAt && <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:1 }}>seen {relTime(listing.flight.foundAt)}</div>}
             </div>
           </div>
@@ -5504,47 +5583,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             {listing.tags.map(t => (
               <span key={t} style={{ background:"#f0f0f0", borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, color:"#555", fontFamily:F }}>{t}</span>
             ))}
-          </div>
-
-          {/* You'd also like — similar venues */}
-          {similarVenues.length > 0 && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>💡 You'd also like</div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
-                {similarVenues.map(sv => (
-                  <button key={sv.id} className="pressable" onClick={() => { scrollRef.current?.scrollTo({top:0,behavior:"auto"}); if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
-                    <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
-                      {sv.photo ? (
-                        <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-                      ) : (
-                        <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
-                      )}
-                      <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
-                        <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
-                      </div>
-                    </div>
-                    <div style={{ padding:"7px 9px 9px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{sv.title}</div>
-                      <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>📍 {sv.location}</div>
-                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>from ${sv.flight.price}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Local insider tips */}
-          <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>🎯 Insider Tips</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-              {localTips.map((tip, i) => (
-                <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:"#f7f7f7", borderRadius:12 }}>
-                  <span style={{ fontSize:18, flexShrink:0, lineHeight:1 }}>{tip.split(" ")[0]}</span>
-                  <span style={{ fontSize:12, color:"#444", fontFamily:F, lineHeight:1.55 }}>{tip.slice(tip.indexOf(" ")+1)}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
@@ -5683,6 +5721,36 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             )}
           </div>
+
+          {/* You'd also like — similar venues (bottom of sheet) */}
+          {similarVenues.length > 0 && (
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>You'd also like</div>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
+                {similarVenues.map(sv => (
+                  <button key={sv.id} className="pressable" onClick={() => { scrollRef.current?.scrollTo({top:0,behavior:"auto"}); if (onOpenDetail) onOpenDetail(sv); else onClose(); }} style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, border:"none", cursor:"pointer", overflow:"hidden", textAlign:"left" }}>
+                    <div style={{ height:62, background:sv.gradient, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"14px 14px 0 0", position:"relative", overflow:"hidden" }}>
+                      {sv.photo ? (
+                        <img src={sv.photo} alt={sv.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(sv.title, sv.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+                      ) : (
+                        <span style={{ fontSize:28, opacity:0.55 }}>{sv.icon}</span>
+                      )}
+                      <div style={{ position:"absolute", top:5, right:7, background: sv.conditionScore>=85?"#ff385c":sv.conditionScore>=70?"#ea580c":"#666", borderRadius:10, padding:"2px 7px" }}>
+                        <span style={{ fontSize:10, fontWeight:800, color:"white", fontFamily:F }}>{sv.conditionScore}</span>
+                      </div>
+                    </div>
+                    <div style={{ padding:"7px 9px 9px" }}>
+                      <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{sv.title}</div>
+                      <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{sv.location}</div>
+                      <div style={{ fontSize:10, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:3 }}>
+                        {sv.flight.live ? `from $${sv.flight.price}` : `~$${sv.flight.price}`}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         </div>{/* end scrollRef */}
         {/* ─── Sticky CTA bar ─────────────────────────────────────── */}
