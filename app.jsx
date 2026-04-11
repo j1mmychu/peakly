@@ -9166,21 +9166,15 @@ const PACKING = {
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
-// Amazon tag: "peakly-20" — update after Associates approval. REI/Backcountry: add tags once approved.
+// Amazon tag: "peakly-20" — update after Associates approval. Backcountry: add tag once approved.
 const GEAR_ITEMS = {
   skiing:   [
-    { emoji:"🎿", name:"Skis",                          store:"REI",         price:"$599+",  commission:"5%",  url:"https://www.rei.com/search?q=skis" },
-    { emoji:"🥽", name:"Ski Goggles",                   store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+goggles" },
-    { emoji:"🧥", name:"Ski Jacket",                    store:"REI",         price:"$299+",  commission:"5%",  url:"https://www.rei.com/search?q=ski+jacket" },
-    { emoji:"🧤", name:"Ski Gloves",                    store:"REI",         price:"$49+",   commission:"5%",  url:"https://www.rei.com/search?q=ski+gloves" },
     { emoji:"🔥", name:"HeatMax Hand Warmers 40-Pack",  store:"Amazon",      price:"$18",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
     { emoji:"🧦", name:"Darn Tough Ski Socks",          store:"Amazon",      price:"$26",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
     { emoji:"🥽", name:"Smith I/O MAG Goggles",         store:"Amazon",      price:"$230",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
     { emoji:"🧦", name:"Smartwool PhD Ski Socks",       store:"Amazon",      price:"$28",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
   ],
   surfing:  [
-    { emoji:"🏄", name:"Surfboard",                     store:"REI",         price:"$349+",  commission:"5%",  url:"https://www.rei.com/search?q=surfboard" },
-    { emoji:"🤿", name:"Wetsuit",                       store:"REI",         price:"$129+",  commission:"5%",  url:"https://www.rei.com/search?q=wetsuit" },
     { emoji:"🧴", name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
     { emoji:"🌞", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
   ],
@@ -9193,24 +9187,15 @@ const GEAR_ITEMS = {
   diving:   [
     { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cressi+big+eyes+evo+mask" },
     { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=scubapro+everflex+wetsuit" },
-    { emoji:"⌚", name:"Garmin Descent Mk3 Dive Watch",  store:"REI",         price:"$1,099",commission:"5%",  url:"https://www.rei.com/search?q=garmin+descent+dive+watch" },
     { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+dive+housing" },
   ],
   climbing: [
-    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+momentum+harness" },
-    { emoji:"👟", name:"La Sportiva Tarantulace Shoes",  store:"REI",         price:"$80",   commission:"5%",  url:"https://www.rei.com/search?q=la+sportiva+tarantulace" },
-    { emoji:"🪖", name:"Black Diamond Half Dome Helmet", store:"REI",         price:"$65",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+half+dome+helmet" },
-    { emoji:"🤲", name:"Black Diamond Loose Chalk 100g", store:"REI",         price:"$12",   commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+loose+chalk" },
     { emoji:"🎒", name:"Black Diamond Chalk Bag",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+chalk+bag" },
     { emoji:"🩹", name:"Mueller Athletic Climbing Tape", store:"Amazon",      price:"$12",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=athletic+climbing+finger+tape" },
     { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"Amazon",     price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+momentum+harness" },
     { emoji:"🪖", name:"Petzl Boreo Climbing Helmet",    store:"Amazon",     price:"$70",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=petzl+boreo+climbing+helmet" },
   ],
   kayak:    [
-    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"REI",         price:"$180",  commission:"5%",  url:"https://www.rei.com/search?q=nrs+chinook+pfd" },
-    { emoji:"🎒", name:"Ortlieb Dry Bag 22L",            store:"REI",         price:"$45",   commission:"5%",  url:"https://www.rei.com/search?q=ortlieb+dry+bag" },
-    { emoji:"🧥", name:"Kokatat Meridian Dry Suit",      store:"REI",         price:"$1,200",commission:"5%",  url:"https://www.rei.com/search?q=kokatat+meridian+dry+suit" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",      store:"REI",         price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
     { emoji:"🏊", name:"NRS HydroSkin 0.5 Water Shoes",  store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+hydroskin+water+shoes" },
     { emoji:"📦", name:"Sea to Summit Ultra-Sil Dry Sack",store:"Amazon",     price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=sea+to+summit+ultra+sil+dry+sack" },
     { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"Amazon",     price:"$140",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+chinook+fishing+pfd" },
@@ -9218,9 +9203,7 @@ const GEAR_ITEMS = {
   ],
   mtb:      [
     { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-designs-a3-mips-helmet" },
-    { emoji:"🧤", name:"Fox Ranger Gel MTB Gloves",      store:"REI",         price:"$40",   commission:"5%",  url:"https://www.rei.com/search?q=fox+ranger+gel+gloves" },
     { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-racing-launch-pro-d3or-knee-guard" },
-    { emoji:"💧", name:"CamelBak M.U.L.E. Hydration Pack",store:"REI",        price:"$120",  commission:"5%",  url:"https://www.rei.com/search?q=camelbak+mule+hydration" },
     { emoji:"🔧", name:"Topeak Hexus X Multi-Tool",      store:"Amazon",      price:"$20",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=topeak+hexus+multi+tool+bike" },
     { emoji:"🩹", name:"Park Tool Tire Boot Repair Kit", store:"Amazon",      price:"$14",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=park+tool+tire+boot+repair+kit" },
     { emoji:"🧤", name:"Fox Racing Ranger Gel Gloves",   store:"Amazon",     price:"$35",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=fox+racing+ranger+gel+gloves" },
@@ -9236,7 +9219,6 @@ const GEAR_ITEMS = {
     { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=ugly+stik+gx2+spinning+combo" },
     { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=costa+del+mar+permit+sunglasses" },
     { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Amazon",      price:"$230",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=simms+g3+guide+wading+boots" },
-    { emoji:"🌡️", name:"Coleman 54qt Steel-Belted Cooler",store:"REI",        price:"$115",  commission:"5%",  url:"https://www.rei.com/search?q=coleman+steel+belted+cooler" },
   ],
   paraglide:[
     { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=supair+pilot+paragliding+helmet" },
@@ -9245,10 +9227,6 @@ const GEAR_ITEMS = {
     { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
   ],
   hiking:   [
-    { emoji:"🥾", name:"Salomon X Ultra 4 GTX Boots",     store:"REI",    price:"$200",  commission:"5%",  url:"https://www.rei.com/search?q=salomon+x+ultra+hiking+boots" },
-    { emoji:"🥢", name:"Black Diamond Trail Trekking Poles",store:"REI",   price:"$140",  commission:"5%",  url:"https://www.rei.com/search?q=black+diamond+trekking+poles" },
-    { emoji:"🎒", name:"Osprey Atmos AG 65L Backpack",     store:"REI",    price:"$300",  commission:"5%",  url:"https://www.rei.com/search?q=osprey+atmos+backpack" },
-    { emoji:"🗺️", name:"Garmin inReach Mini 2 GPS",        store:"REI",    price:"$350",  commission:"5%",  url:"https://www.rei.com/search?q=garmin+inreach+mini" },
     { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon",  price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
     { emoji:"🔦", name:"Black Diamond Spot 400 Headlamp",  store:"Amazon",  price:"$36",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+spot+400+headlamp" },
     { emoji:"🧦", name:"Darn Tough Hiker Micro Crew Socks", store:"Amazon", price:"$26",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+hiker+micro+crew+socks" },
