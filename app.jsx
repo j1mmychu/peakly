@@ -5153,7 +5153,7 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const url = `${FLIGHT_PROXY}/api/flights/latest`
+        const url = `${FLIGHT_PROXY}/api/flights`
           + `?origin=${encodeURIComponent(origin)}`
           + `&destination=${encodeURIComponent(destination)}`;
 
