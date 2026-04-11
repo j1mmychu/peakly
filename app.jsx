@@ -164,18 +164,10 @@ const F = "'Plus Jakarta Sans', sans-serif";
 
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id:"all",     label:"All",        emoji:"✨" },
-  { id:"skiing",  label:"Ski/Board",   emoji:"❄️" },
-  { id:"surfing", label:"Surf",       emoji:"🏄" },
-  { id:"hiking",  label:"Hike",      emoji:"🥾" },
-  { id:"diving",  label:"Dive",      emoji:"🤿" },
-  { id:"climbing",label:"Climb",     emoji:"🧗" },
-  { id:"tanning", label:"Beach",emoji:"🏖️" },
-  { id:"kite",    label:"Kitesurf",  emoji:"🪁" },
-  { id:"kayak",   label:"Kayak",     emoji:"🛶" },
-  { id:"mtb",     label:"MTB",       emoji:"🚵" },
-  { id:"fishing", label:"Fish",      emoji:"🎣" },
-  { id:"paraglide",label:"Paraglide",emoji:"🪂" },
+  { id:"all",     label:"All" },
+  { id:"skiing",  label:"Ski/Board" },
+  { id:"surfing", label:"Surf" },
+  { id:"tanning", label:"Beach" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -318,8 +310,7 @@ const VENUES = [
     lat:21.6645, lon:-158.0453, ap:"HNL",
     icon:"🌊", rating:4.99, reviews:1203,
     gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
-    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.42",
-  },
+    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.42",,facing:330},
   {
     id:"borabora",  category:"tanning",
     title:"Bora Bora Lagoon", location:"French Polynesia",
@@ -329,68 +320,12 @@ const VENUES = [
     accent:"#a5d6a7", tags:["UV 11","Crystal Water"], photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57",
   },
   {
-    id:"gbr",       category:"diving",
-    title:"Great Barrier Reef", location:"Queensland, Australia",
-    lat:-18.2871, lon:147.6992, ap:"CNS",
-    icon:"🐠", rating:4.93, reviews:1756,
-    gradient:"linear-gradient(160deg,#001a3a,#0040c8,#40a0ff)",
-    accent:"#82b1ff", tags:["Visibility 30m","Marine Life"], photo:"https://images.unsplash.com/photo-1559291001-693fb9166cba?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.59",
-  },
-  {
-    id:"yosemite",  category:"climbing",
-    title:"Yosemite Valley", location:"California, USA",
-    lat:37.7459, lon:-119.5332, ap:"SFO",
-    icon:"🧗", rating:4.95, reviews:4201,
-    gradient:"linear-gradient(160deg,#3a1a00,#8d4e00,#d4860a)",
-    accent:"#ffb74d", tags:["El Capitan","All Grades"], photo:"https://images.unsplash.com/photo-1578508461229-31f73a90d69e?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.63",
-  },
-  {
-    id:"tarifa",    category:"kite",
-    title:"Tarifa Wind Coast", location:"Andalusia, Spain",
-    lat:36.0144, lon:-5.6044, ap:"AGP",
-    icon:"🪁", rating:4.91, reviews:892,
-    gradient:"linear-gradient(160deg,#1a0030,#5c0080,#b040f0)",
-    accent:"#ce93d8", tags:["Expert Wind","Warm Water"], photo:"https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop&fp-x=0.43&fp-y=0.63",
-  },
-  {
     id:"chamonix",  category:"skiing",
     title:"Chamonix-Mont-Blanc", location:"Haute-Savoie, France",
     lat:45.9237, lon:6.8694, ap:"GVA",
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
     accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent",
-  },
-  {
-    id:"milford",   category:"kayak",
-    title:"Milford Sound", location:"Fiordland, New Zealand",
-    lat:-44.6413, lon:167.8974, ap:"ZQN",
-    icon:"🛶", rating:4.96, reviews:1102,
-    gradient:"linear-gradient(160deg,#001a10,#006040,#00c07a)",
-    accent:"#69f0ae", tags:["Mirror Water","Dolphins"], photo:"https://images.unsplash.com/photo-1523819088009-c3ecf1e34000?w=800&h=600&fit=crop&fp-x=0.68&fp-y=0.55",
-  },
-  {
-    id:"moab",      category:"mtb",
-    title:"Moab Slickrock Trail", location:"Utah, USA",
-    lat:38.5733, lon:-109.5498, ap:"SLC",
-    icon:"🚵", rating:4.88, reviews:2208,
-    gradient:"linear-gradient(160deg,#3a0a00,#b03000,#ff6030)",
-    accent:"#ff8a65", tags:["Intermediate+","Desert Vibes"], photo:"https://images.unsplash.com/photo-1578001647043-3b4c50869f21?w=800&h=600&fit=crop&fp-x=0.61&fp-y=0.48",
-  },
-  {
-    id:"kenai",     category:"fishing",
-    title:"Kenai River", location:"Alaska, USA",
-    lat:60.5544, lon:-150.7848, ap:"ANC",
-    icon:"🎣", rating:4.92, reviews:744,
-    gradient:"linear-gradient(160deg,#0a1a2a,#1a4060,#2e7aba)",
-    accent:"#81d4fa", tags:["King Salmon","World Record Waters"], photo:"https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop&fp-x=0.37&fp-y=0.54",
-  },
-  {
-    id:"interlaken",category:"paraglide",
-    title:"Interlaken", location:"Bernese Oberland, Switzerland",
-    lat:46.6863, lon:7.8632, ap:"ZRH",
-    icon:"🪂", rating:4.97, reviews:1890,
-    gradient:"linear-gradient(160deg,#1a1a3a,#3a3a8e,#6868d4)",
-    accent:"#b39ddb", tags:["Tandem OK","Alps Views"], photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
   },
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"ikon"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
@@ -427,55 +362,55 @@ const VENUES = [
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"banzai_pipeline", category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"], photo:"https://images.unsplash.com/photo-1509233725247-49e657c25740?w=800&h=600&fit=crop"},
-  {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"], photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop"},
-  {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"], photo:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800&h=600&fit=crop"},
-  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"], photo:"https://images.unsplash.com/photo-1588976071688-c2520b7b51f9?w=800&h=600&fit=crop"},
-  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"], photo:"https://images.unsplash.com/photo-1477204505220-510cd0d57764?w=800&h=600&fit=crop"},
-  {id:"blacks",      category:"surfing",title:"Black's Beach",           location:"San Diego, California",    lat:32.8828,lon:-117.2524,ap:"SAN",icon:"🏄",rating:4.88,reviews:3220,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Powerful Beach Break","La Jolla Gem"], photo:"https://images.unsplash.com/photo-1502680390548-bdbac40e2a78?w=800&h=600&fit=crop"},
-  {id:"rincon_ca",   category:"surfing",title:"Rincon Point",            location:"Santa Barbara, California", lat:34.3726,lon:-119.4745,ap:"LAX",icon:"🏄",rating:4.92,reviews:3640,gradient:"linear-gradient(160deg,#003355,#005580,#007ab3)",accent:"#3399cc",tags:["Queen of the Coast","Long Point Break"], photo:"https://images.unsplash.com/photo-1455729552457-5c322d6024db?w=800&h=600&fit=crop"},
-  {id:"montauk",     category:"surfing",title:"Montauk",                  location:"New York",                 lat:41.0340,lon:-71.9570,ap:"JFK",icon:"🏄",rating:4.75,reviews:1840,gradient:"linear-gradient(160deg,#002244,#004488,#1166bb)",accent:"#3388cc",tags:["East Coast Classic","Hurricane Swells"], photo:"https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.59"},
-  {id:"cape_hatteras",category:"surfing",title:"Cape Hatteras",          location:"North Carolina",           lat:35.2332,lon:-75.5280,ap:"ORF",icon:"🏄",rating:4.82,reviews:2100,gradient:"linear-gradient(160deg,#002040,#004080,#1160a0)",accent:"#2288bb",tags:["Graveyard of the Atlantic","Swell Magnet"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
-  {id:"puerto_escondido",category:"surfing",title:"Puerto Escondido",   location:"Oaxaca, Mexico",           lat:15.8700,lon:-97.0553,ap:"OAX",icon:"🌊",rating:4.96,reviews:4880,gradient:"linear-gradient(160deg,#003355,#005588,#006fcc)",accent:"#1188ee",tags:["Mexican Pipeline","Heaviest Shore Break"], photo:"https://images.unsplash.com/photo-1605009296117-557ee05cb8cc?w=800&h=600&fit=crop"},
-  {id:"sayulita",    category:"surfing",title:"Sayulita",                location:"Nayarit, Mexico",          lat:20.8700,lon:-105.4400,ap:"PVR",icon:"🏄",rating:4.85,reviews:3280,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#22aacc",tags:["Beginner Friendly","Pueblo Mágico"], photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop"},
-  {id:"pavones",     category:"surfing",title:"Pavones",                  location:"Costa Rica",               lat:8.3900,lon:-83.1700,ap:"SJO",icon:"🏄",rating:4.88,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#22aacc",tags:["2nd Longest Left","Jungle Setting"], photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop"},
-  {id:"punta_roca",  category:"surfing",title:"Punta Roca",               location:"El Salvador",              lat:13.4900,lon:-89.2000,ap:"SAL",icon:"🏄",rating:4.89,reviews:2100,gradient:"linear-gradient(160deg,#002244,#004488,#0055aa)",accent:"#1177cc",tags:["Central American Jewel","Long Right Point"], photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"},
-  {id:"rincon_pr",   category:"surfing",title:"Rincón",                   location:"Puerto Rico",              lat:18.3400,lon:-67.2500,ap:"SJU",icon:"🏄",rating:4.87,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Caribbean Surf Capital","Sunny Year-Round"], photo:"https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800&h=600&fit=crop"},
-  {id:"bathsheba",   category:"surfing",title:"Bathsheba",                location:"Barbados",                 lat:13.1900,lon:-59.5300,ap:"BGI",icon:"🌊",rating:4.86,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004480,#0066aa)",accent:"linear-gradient(#1188cc,#00aadd)",tags:["Soup Bowl Left","Atlantic Power"], photo:"https://images.unsplash.com/photo-1544551763-77932c184deb?w=800&h=600&fit=crop"},
-  {id:"chicama",     category:"surfing",title:"Chicama",                  location:"La Libertad, Peru",        lat:-7.8400,lon:-79.4500,ap:"LIM",icon:"🏄",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#003355,#005588,#0066aa)",accent:"#1188cc",tags:["World's Longest Left","2.4km Ride"], photo:"https://images.unsplash.com/photo-1497890312100-1e4488c9e5e5?w=800&h=600&fit=crop"},
-  {id:"punta_hermosa",category:"surfing",title:"Punta Hermosa",          location:"Lima, Peru",               lat:-12.3300,lon:-76.8200,ap:"LIM",icon:"🏄",rating:4.85,reviews:2440,gradient:"linear-gradient(160deg,#002244,#003f7f,#0060b3)",accent:"#1188cc",tags:["Peru Pro Stop","Consistent Beach Break"], photo:"https://images.unsplash.com/photo-1531722569936-825d3dd91b15?w=800&h=600&fit=crop"},
-  {id:"punta_lobos", category:"surfing",title:"Punta de Lobos",          location:"Pichilemu, Chile",         lat:-34.4400,lon:-72.0800,ap:"SCL",icon:"🌊",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#002040,#003878,#0050a8)",accent:"#0f7bcc",tags:["South American Big Wave","ISA World Site"], photo:"https://images.unsplash.com/photo-1496737018672-b1a6be2e949c?w=800&h=600&fit=crop"},
-  {id:"noronha_surf",category:"surfing",title:"Fernando de Noronha",     location:"Pernambuco, Brazil",       lat:-3.8542,lon:-32.4250,ap:"REC",icon:"🏄",rating:4.96,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005577,#00789f)",accent:"#0099cc",tags:["UNESCO World Heritage","Crystal Waters"], photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"},
-  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"], photo:"https://images.unsplash.com/photo-1699883815067-e48996c32217?w=800&h=600&fit=crop"},
-  {id:"mundaka",     category:"surfing",title:"Mundaka",                  location:"Basque Country, Spain",   lat:43.4100,lon:-2.7000,ap:"BIO",icon:"🌊",rating:4.95,reviews:3840,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#0077cc",tags:["Best Left in Europe","River Mouth Barrel"], photo:"https://images.unsplash.com/photo-1654311670729-9426fc4a2a2f?w=800&h=600&fit=crop"},
-  {id:"supertubos",  category:"surfing",title:"Supertubos",               location:"Peniche, Portugal",        lat:39.3600,lon:-9.3700,ap:"LIS",icon:"🌊",rating:4.94,reviews:4100,gradient:"linear-gradient(160deg,#002244,#004480,#0066bb)",accent:"#1188ee",tags:["Portuguese Pipeline","WSL Stop"], photo:"https://images.unsplash.com/photo-1525266558638-6da3a79fbfc3?w=800&h=600&fit=crop"},
-  {id:"ericeira",    category:"surfing",title:"Ericeira",                 location:"Lisbon Coast, Portugal",   lat:38.9600,lon:-9.4200,ap:"LIS",icon:"🏄",rating:4.91,reviews:3600,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["World Surf Reserve","Village Vibes"], photo:"https://images.unsplash.com/photo-1528644355366-0c6a7b2bdf5d?w=800&h=600&fit=crop"},
-  {id:"nazare",      category:"surfing",title:"Nazaré",                   location:"Silver Coast, Portugal",   lat:39.6000,lon:-9.0700,ap:"LIS",icon:"🌊",rating:4.98,reviews:4800,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["World Record Waves","100ft Monsters"], photo:"https://images.unsplash.com/photo-1708356943415-6296d6c25d28?w=800&h=600&fit=crop"},
-  {id:"newquay",     category:"surfing",title:"Newquay",                  location:"Cornwall, England",        lat:50.3700,lon:-5.1000,ap:"NQY",icon:"🏄",rating:4.78,reviews:3200,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["UK Surf Capital","Fistral Beach"], photo:"https://images.unsplash.com/photo-1507680225127-6450260913c0?w=800&h=600&fit=crop"},
-  {id:"thurso_east", category:"surfing",title:"Thurso East",              location:"Caithness, Scotland",      lat:58.5900,lon:-3.5200,ap:"INV",icon:"🌊",rating:4.89,reviews:1640,gradient:"linear-gradient(160deg,#002040,#003878,#0050a0)",accent:"#0f7bcc",tags:["Scotland's Best Right","Arctic Swells"], photo:"https://images.unsplash.com/photo-1527769929977-c341ee9f2e66?w=800&h=600&fit=crop"},
-  {id:"lahinch",     category:"surfing",title:"Lahinch",                  location:"County Clare, Ireland",    lat:52.9300,lon:-9.3400,ap:"SNN",icon:"🏄",rating:4.82,reviews:1820,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["Irish Surf Town","Cliffs of Moher Backdrop"], photo:"https://images.unsplash.com/photo-1508437981923-e88ea3be23de?w=800&h=600&fit=crop"},
-  {id:"la_santa",    category:"surfing",title:"La Santa",                 location:"Lanzarote, Canary Islands",lat:29.0600,lon:-13.6600,ap:"ACE",icon:"🌊",rating:4.90,reviews:2760,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Year-Round Swell","Lava Rock Reef"], photo:"https://images.unsplash.com/photo-1486890598084-3673ba1a7fc4?w=800&h=600&fit=crop"},
-  {id:"fuerteventura_surf",category:"surfing",title:"Fuerteventura",     location:"Canary Islands, Spain",    lat:28.3587,lon:-14.0537,ap:"FUE",icon:"🏄",rating:4.88,reviews:3100,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Windsurf & Surf Mecca","Consistent Atlantic"], photo:"https://images.unsplash.com/photo-1461696114087-397271a7aedc?w=800&h=600&fit=crop"},
-  {id:"anchor_point",category:"surfing",title:"Anchor Point",            location:"Agadir, Morocco",          lat:30.5300,lon:-9.7700,ap:"AGA",icon:"🌊",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Morocco's Best Right","Desert Point Break"], photo:"https://images.unsplash.com/photo-1517699418036-fb2fcd498b89?w=800&h=600&fit=crop"},
-  {id:"taghazout",   category:"surfing",title:"Taghazout",               location:"Agadir, Morocco",          lat:30.5600,lon:-9.7100,ap:"AGA",icon:"🏄",rating:4.88,reviews:4200,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#2299cc",tags:["Surf Village","Hash Point & Killers"], photo:"https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?w=800&h=600&fit=crop"},
-  {id:"jeffreys_bay",category:"surfing",title:"Jeffreys Bay",            location:"Eastern Cape, South Africa",lat:-34.0500,lon:24.9200,ap:"PLZ",icon:"🌊",rating:4.97,reviews:4640,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["J-Bay","WSL Championship Stop"], photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop"},
-  {id:"cape_town_surf",category:"surfing",title:"Cape Town",             location:"Western Cape, South Africa",lat:-33.8900,lon:18.4200,ap:"CPT",icon:"🏄",rating:4.86,reviews:2880,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Table Mountain Backdrop","Cold Water Barrels"], photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop"},
-  {id:"uluwatu",     category:"surfing",title:"Uluwatu",                  location:"Bali, Indonesia",          lat:-8.8291,lon:115.0850,ap:"DPS",icon:"🌊",rating:4.96,reviews:6800,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1188ee",tags:["Cliff Temple","WSL Events"], photo:"https://images.unsplash.com/photo-1585823096440-9fdb837d48ba?w=800&h=600&fit=crop"},
-  {id:"padang_padang",category:"surfing",title:"Padang Padang",          location:"Bali, Indonesia",          lat:-8.8105,lon:115.0938,ap:"DPS",icon:"🌊",rating:4.93,reviews:4320,gradient:"linear-gradient(160deg,#001f40,#003880,#0055bb)",accent:"#2288ff",tags:["Eat Pray Love Beach","Barreling Left"], photo:"https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&h=600&fit=crop"},
-  {id:"keramas",     category:"surfing",title:"Keramas",                  location:"Bali, Indonesia",          lat:-8.5764,lon:115.3190,ap:"DPS",icon:"🏄",rating:4.85,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Night Surfing","OC Pro Contest"], photo:"https://images.unsplash.com/photo-1537519646099-5e064512a1fd?w=800&h=600&fit=crop"},
-  {id:"mentawais",   category:"surfing",title:"Mentawai Islands",        location:"West Sumatra, Indonesia",  lat:-2.3500,lon:99.8500,ap:"PDG",icon:"🌊",rating:4.98,reviews:3200,gradient:"linear-gradient(160deg,#001a40,#003080,#0050cc)",accent:"#2277ff",tags:["Perfect Waves","HT's & Lance's Right"], photo:"https://images.unsplash.com/photo-1654137065487-cce388f2c58f?w=800&h=600&fit=crop"},
-  {id:"cloud9",      category:"surfing",title:"Cloud 9",                  location:"Siargao, Philippines",     lat:9.8600,lon:126.0600,ap:"CEB",icon:"🌊",rating:4.95,reviews:3640,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Asia's Best Wave","Hollow Reef Right"], photo:"https://images.unsplash.com/photo-1520443240718-fce5930fbb38?w=800&h=600&fit=crop"},
-  {id:"cloudbreak",  category:"surfing",title:"Cloudbreak",              location:"Tavarua, Fiji",            lat:-17.7748,lon:177.2362,ap:"NAN",icon:"🌊",rating:4.97,reviews:2980,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["South Pacific Power","Boat-Access Only"], photo:"https://images.unsplash.com/photo-1580402403932-f828854cb123?w=800&h=600&fit=crop"},
-  {id:"restaurants_fiji",category:"surfing",title:"Restaurants",        location:"Tavarua, Fiji",            lat:-17.7800,lon:177.2400,ap:"NAN",icon:"🏄",rating:4.89,reviews:1840,gradient:"linear-gradient(160deg,#003355,#005588,#007fbb)",accent:"#33aadd",tags:["Tavarua Left","Super Consistent"], photo:"https://images.unsplash.com/photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop"},
-  {id:"teahupoo",    category:"surfing",title:"Teahupo'o",               location:"Tahiti, French Polynesia", lat:-17.8672,lon:-149.2594,ap:"PPT",icon:"🌊",rating:4.99,reviews:3840,gradient:"linear-gradient(160deg,#001530,#003070,#0050bb)",accent:"#1166ee",tags:["Scariest Wave on Earth","2024 Olympics"], photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop"},
-  {id:"pasta_point", category:"surfing",title:"Pasta Point",             location:"Maldives",                 lat:4.7500,lon:72.9700,ap:"MLE",icon:"🏄",rating:4.94,reviews:2120,gradient:"linear-gradient(160deg,#003344,#005577,#007fa0)",accent:"#00bbdd",tags:["Indian Ocean Luxury","Resort Access"], photo:"https://images.unsplash.com/photo-1543039625-14cbd3802e7d?w=800&h=600&fit=crop"},
-  {id:"jailbreaks",  category:"surfing",title:"Jailbreaks",              location:"South Malé Atoll, Maldives",lat:3.5000,lon:73.0000,ap:"MLE",icon:"🌊",rating:4.88,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004488,#006faa)",accent:"#1199cc",tags:["Dhow Boat Sessions","Crystal Water"], photo:"https://images.unsplash.com/photo-1545251142-f32339076e6d?w=800&h=600&fit=crop"},
-  {id:"snapper_rocks",category:"surfing",title:"Snapper Rocks",         location:"Gold Coast, Queensland",   lat:-28.1640,lon:153.5546,ap:"OOL",icon:"🌊",rating:4.94,reviews:5400,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Superbank","WSL Opener"], photo:"https://images.unsplash.com/photo-1583105103934-32c7a64ba012?w=800&h=600&fit=crop"},
-  {id:"bells_beach",  category:"surfing",title:"Bells Beach",           location:"Torquay, Victoria",        lat:-38.3700,lon:144.2800,ap:"MEL",icon:"🌊",rating:4.91,reviews:3680,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Rip Curl Pro","Australia's Most Famous"], photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop"},
-  {id:"margaret_river_surf",category:"surfing",title:"Margaret River",  location:"Western Australia",        lat:-34.0500,lon:115.0900,ap:"PER",icon:"🌊",rating:4.89,reviews:2840,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Wine & Waves","Championship Reef"], photo:"https://images.unsplash.com/photo-1581059089599-0b7e13b9d952?w=800&h=600&fit=crop"},
-  {id:"the_pass",    category:"surfing",title:"The Pass",               location:"Byron Bay, NSW",           lat:-28.6500,lon:153.5800,ap:"OOL",icon:"🏄",rating:4.87,reviews:4100,gradient:"linear-gradient(160deg,#003355,#005580,#007faa)",accent:"#2299cc",tags:["Byron Bay Icon","Long Mellow Rights"], photo:"https://images.unsplash.com/photo-1484804959655-1074f38e5394?w=800&h=600&fit=crop"},
-  {id:"raglan",      category:"surfing",title:"Raglan",                  location:"Waikato, New Zealand",     lat:-37.8000,lon:174.8700,ap:"AKL",icon:"🌊",rating:4.88,reviews:2420,gradient:"linear-gradient(160deg,#002244,#004488,#0066bb)",accent:"#1188dd",tags:["Southern Hemisphere Left","Endless Rides"], photo:"https://images.unsplash.com/photo-1461730278450-19cc1863601c?w=800&h=600&fit=crop"},
-  {id:"chiba_surf",  category:"surfing",title:"Chiba Coast",             location:"Chiba Prefecture, Japan",  lat:35.3200,lon:140.3800,ap:"NRT",icon:"🏄",rating:4.78,reviews:2100,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#0099bb",tags:["Tokyo's Backyard","Beach Break Frenzy"], photo:"https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=800&h=600&fit=crop"},
+  {id:"banzai_pipeline", category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"], photo:"https://images.unsplash.com/photo-1509233725247-49e657c25740?w=800&h=600&fit=crop",facing:330},
+  {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"], photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop",facing:315},
+  {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"], photo:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800&h=600&fit=crop",facing:350},
+  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"], photo:"https://images.unsplash.com/photo-1588976071688-c2520b7b51f9?w=800&h=600&fit=crop",facing:220},
+  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"], photo:"https://images.unsplash.com/photo-1477204505220-510cd0d57764?w=800&h=600&fit=crop",facing:285},
+  {id:"blacks",      category:"surfing",title:"Black's Beach",           location:"San Diego, California",    lat:32.8828,lon:-117.2524,ap:"SAN",icon:"🏄",rating:4.88,reviews:3220,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Powerful Beach Break","La Jolla Gem"], photo:"https://images.unsplash.com/photo-1502680390548-bdbac40e2a78?w=800&h=600&fit=crop",facing:265},
+  {id:"rincon_ca",   category:"surfing",title:"Rincon Point",            location:"Santa Barbara, California", lat:34.3726,lon:-119.4745,ap:"LAX",icon:"🏄",rating:4.92,reviews:3640,gradient:"linear-gradient(160deg,#003355,#005580,#007ab3)",accent:"#3399cc",tags:["Queen of the Coast","Long Point Break"], photo:"https://images.unsplash.com/photo-1455729552457-5c322d6024db?w=800&h=600&fit=crop",facing:225},
+  {id:"montauk",     category:"surfing",title:"Montauk",                  location:"New York",                 lat:41.0340,lon:-71.9570,ap:"JFK",icon:"🏄",rating:4.75,reviews:1840,gradient:"linear-gradient(160deg,#002244,#004488,#1166bb)",accent:"#3388cc",tags:["East Coast Classic","Hurricane Swells"], photo:"https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.59",facing:165},
+  {id:"cape_hatteras",category:"surfing",title:"Cape Hatteras",          location:"North Carolina",           lat:35.2332,lon:-75.5280,ap:"ORF",icon:"🏄",rating:4.82,reviews:2100,gradient:"linear-gradient(160deg,#002040,#004080,#1160a0)",accent:"#2288bb",tags:["Graveyard of the Atlantic","Swell Magnet"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",facing:115},
+  {id:"puerto_escondido",category:"surfing",title:"Puerto Escondido",   location:"Oaxaca, Mexico",           lat:15.8700,lon:-97.0553,ap:"OAX",icon:"🌊",rating:4.96,reviews:4880,gradient:"linear-gradient(160deg,#003355,#005588,#006fcc)",accent:"#1188ee",tags:["Mexican Pipeline","Heaviest Shore Break"], photo:"https://images.unsplash.com/photo-1605009296117-557ee05cb8cc?w=800&h=600&fit=crop",facing:200},
+  {id:"sayulita",    category:"surfing",title:"Sayulita",                location:"Nayarit, Mexico",          lat:20.8700,lon:-105.4400,ap:"PVR",icon:"🏄",rating:4.85,reviews:3280,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#22aacc",tags:["Beginner Friendly","Pueblo Mágico"], photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop",facing:260},
+  {id:"pavones",     category:"surfing",title:"Pavones",                  location:"Costa Rica",               lat:8.3900,lon:-83.1700,ap:"SJO",icon:"🏄",rating:4.88,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#22aacc",tags:["2nd Longest Left","Jungle Setting"], photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop",facing:220},
+  {id:"punta_roca",  category:"surfing",title:"Punta Roca",               location:"El Salvador",              lat:13.4900,lon:-89.2000,ap:"SAL",icon:"🏄",rating:4.89,reviews:2100,gradient:"linear-gradient(160deg,#002244,#004488,#0055aa)",accent:"#1177cc",tags:["Central American Jewel","Long Right Point"], photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop",facing:215},
+  {id:"rincon_pr",   category:"surfing",title:"Rincón",                   location:"Puerto Rico",              lat:18.3400,lon:-67.2500,ap:"SJU",icon:"🏄",rating:4.87,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Caribbean Surf Capital","Sunny Year-Round"], photo:"https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800&h=600&fit=crop",facing:290},
+  {id:"bathsheba",   category:"surfing",title:"Bathsheba",                location:"Barbados",                 lat:13.1900,lon:-59.5300,ap:"BGI",icon:"🌊",rating:4.86,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004480,#0066aa)",accent:"linear-gradient(#1188cc,#00aadd)",tags:["Soup Bowl Left","Atlantic Power"], photo:"https://images.unsplash.com/photo-1544551763-77932c184deb?w=800&h=600&fit=crop",facing:80},
+  {id:"chicama",     category:"surfing",title:"Chicama",                  location:"La Libertad, Peru",        lat:-7.8400,lon:-79.4500,ap:"LIM",icon:"🏄",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#003355,#005588,#0066aa)",accent:"#1188cc",tags:["World's Longest Left","2.4km Ride"], photo:"https://images.unsplash.com/photo-1497890312100-1e4488c9e5e5?w=800&h=600&fit=crop",facing:225},
+  {id:"punta_hermosa",category:"surfing",title:"Punta Hermosa",          location:"Lima, Peru",               lat:-12.3300,lon:-76.8200,ap:"LIM",icon:"🏄",rating:4.85,reviews:2440,gradient:"linear-gradient(160deg,#002244,#003f7f,#0060b3)",accent:"#1188cc",tags:["Peru Pro Stop","Consistent Beach Break"], photo:"https://images.unsplash.com/photo-1531722569936-825d3dd91b15?w=800&h=600&fit=crop",facing:225},
+  {id:"punta_lobos", category:"surfing",title:"Punta de Lobos",          location:"Pichilemu, Chile",         lat:-34.4400,lon:-72.0800,ap:"SCL",icon:"🌊",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#002040,#003878,#0050a8)",accent:"#0f7bcc",tags:["South American Big Wave","ISA World Site"], photo:"https://images.unsplash.com/photo-1496737018672-b1a6be2e949c?w=800&h=600&fit=crop",facing:225},
+  {id:"noronha_surf",category:"surfing",title:"Fernando de Noronha",     location:"Pernambuco, Brazil",       lat:-3.8542,lon:-32.4250,ap:"REC",icon:"🏄",rating:4.96,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005577,#00789f)",accent:"#0099cc",tags:["UNESCO World Heritage","Crystal Waters"], photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop",facing:0},
+  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"], photo:"https://images.unsplash.com/photo-1699883815067-e48996c32217?w=800&h=600&fit=crop",facing:290},
+  {id:"mundaka",     category:"surfing",title:"Mundaka",                  location:"Basque Country, Spain",   lat:43.4100,lon:-2.7000,ap:"BIO",icon:"🌊",rating:4.95,reviews:3840,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#0077cc",tags:["Best Left in Europe","River Mouth Barrel"], photo:"https://images.unsplash.com/photo-1654311670729-9426fc4a2a2f?w=800&h=600&fit=crop",facing:290},
+  {id:"supertubos",  category:"surfing",title:"Supertubos",               location:"Peniche, Portugal",        lat:39.3600,lon:-9.3700,ap:"LIS",icon:"🌊",rating:4.94,reviews:4100,gradient:"linear-gradient(160deg,#002244,#004480,#0066bb)",accent:"#1188ee",tags:["Portuguese Pipeline","WSL Stop"], photo:"https://images.unsplash.com/photo-1525266558638-6da3a79fbfc3?w=800&h=600&fit=crop",facing:260},
+  {id:"ericeira",    category:"surfing",title:"Ericeira",                 location:"Lisbon Coast, Portugal",   lat:38.9600,lon:-9.4200,ap:"LIS",icon:"🏄",rating:4.91,reviews:3600,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["World Surf Reserve","Village Vibes"], photo:"https://images.unsplash.com/photo-1528644355366-0c6a7b2bdf5d?w=800&h=600&fit=crop",facing:280},
+  {id:"nazare",      category:"surfing",title:"Nazaré",                   location:"Silver Coast, Portugal",   lat:39.6000,lon:-9.0700,ap:"LIS",icon:"🌊",rating:4.98,reviews:4800,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["World Record Waves","100ft Monsters"], photo:"https://images.unsplash.com/photo-1708356943415-6296d6c25d28?w=800&h=600&fit=crop",facing:270},
+  {id:"newquay",     category:"surfing",title:"Newquay",                  location:"Cornwall, England",        lat:50.3700,lon:-5.1000,ap:"NQY",icon:"🏄",rating:4.78,reviews:3200,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["UK Surf Capital","Fistral Beach"], photo:"https://images.unsplash.com/photo-1507680225127-6450260913c0?w=800&h=600&fit=crop",facing:290},
+  {id:"thurso_east", category:"surfing",title:"Thurso East",              location:"Caithness, Scotland",      lat:58.5900,lon:-3.5200,ap:"INV",icon:"🌊",rating:4.89,reviews:1640,gradient:"linear-gradient(160deg,#002040,#003878,#0050a0)",accent:"#0f7bcc",tags:["Scotland's Best Right","Arctic Swells"], photo:"https://images.unsplash.com/photo-1527769929977-c341ee9f2e66?w=800&h=600&fit=crop",facing:350},
+  {id:"lahinch",     category:"surfing",title:"Lahinch",                  location:"County Clare, Ireland",    lat:52.9300,lon:-9.3400,ap:"SNN",icon:"🏄",rating:4.82,reviews:1820,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["Irish Surf Town","Cliffs of Moher Backdrop"], photo:"https://images.unsplash.com/photo-1508437981923-e88ea3be23de?w=800&h=600&fit=crop",facing:260},
+  {id:"la_santa",    category:"surfing",title:"La Santa",                 location:"Lanzarote, Canary Islands",lat:29.0600,lon:-13.6600,ap:"ACE",icon:"🌊",rating:4.90,reviews:2760,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Year-Round Swell","Lava Rock Reef"], photo:"https://images.unsplash.com/photo-1486890598084-3673ba1a7fc4?w=800&h=600&fit=crop",facing:310},
+  {id:"fuerteventura_surf",category:"surfing",title:"Fuerteventura",     location:"Canary Islands, Spain",    lat:28.3587,lon:-14.0537,ap:"FUE",icon:"🏄",rating:4.88,reviews:3100,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Windsurf & Surf Mecca","Consistent Atlantic"], photo:"https://images.unsplash.com/photo-1461696114087-397271a7aedc?w=800&h=600&fit=crop",facing:290},
+  {id:"anchor_point",category:"surfing",title:"Anchor Point",            location:"Agadir, Morocco",          lat:30.5300,lon:-9.7700,ap:"AGA",icon:"🌊",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Morocco's Best Right","Desert Point Break"], photo:"https://images.unsplash.com/photo-1517699418036-fb2fcd498b89?w=800&h=600&fit=crop",facing:260},
+  {id:"taghazout",   category:"surfing",title:"Taghazout",               location:"Agadir, Morocco",          lat:30.5600,lon:-9.7100,ap:"AGA",icon:"🏄",rating:4.88,reviews:4200,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#2299cc",tags:["Surf Village","Hash Point & Killers"], photo:"https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?w=800&h=600&fit=crop",facing:260},
+  {id:"jeffreys_bay",category:"surfing",title:"Jeffreys Bay",            location:"Eastern Cape, South Africa",lat:-34.0500,lon:24.9200,ap:"PLZ",icon:"🌊",rating:4.97,reviews:4640,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["J-Bay","WSL Championship Stop"], photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop",facing:200},
+  {id:"cape_town_surf",category:"surfing",title:"Cape Town",             location:"Western Cape, South Africa",lat:-33.8900,lon:18.4200,ap:"CPT",icon:"🏄",rating:4.86,reviews:2880,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Table Mountain Backdrop","Cold Water Barrels"], photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop",facing:220},
+  {id:"uluwatu",     category:"surfing",title:"Uluwatu",                  location:"Bali, Indonesia",          lat:-8.8291,lon:115.0850,ap:"DPS",icon:"🌊",rating:4.96,reviews:6800,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1188ee",tags:["Cliff Temple","WSL Events"], photo:"https://images.unsplash.com/photo-1585823096440-9fdb837d48ba?w=800&h=600&fit=crop",facing:210},
+  {id:"padang_padang",category:"surfing",title:"Padang Padang",          location:"Bali, Indonesia",          lat:-8.8105,lon:115.0938,ap:"DPS",icon:"🌊",rating:4.93,reviews:4320,gradient:"linear-gradient(160deg,#001f40,#003880,#0055bb)",accent:"#2288ff",tags:["Eat Pray Love Beach","Barreling Left"], photo:"https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&h=600&fit=crop",facing:220},
+  {id:"keramas",     category:"surfing",title:"Keramas",                  location:"Bali, Indonesia",          lat:-8.5764,lon:115.3190,ap:"DPS",icon:"🏄",rating:4.85,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Night Surfing","OC Pro Contest"], photo:"https://images.unsplash.com/photo-1537519646099-5e064512a1fd?w=800&h=600&fit=crop",facing:110},
+  {id:"mentawais",   category:"surfing",title:"Mentawai Islands",        location:"West Sumatra, Indonesia",  lat:-2.3500,lon:99.8500,ap:"PDG",icon:"🌊",rating:4.98,reviews:3200,gradient:"linear-gradient(160deg,#001a40,#003080,#0050cc)",accent:"#2277ff",tags:["Perfect Waves","HT's & Lance's Right"], photo:"https://images.unsplash.com/photo-1654137065487-cce388f2c58f?w=800&h=600&fit=crop",facing:245},
+  {id:"cloud9",      category:"surfing",title:"Cloud 9",                  location:"Siargao, Philippines",     lat:9.8600,lon:126.0600,ap:"CEB",icon:"🌊",rating:4.95,reviews:3640,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Asia's Best Wave","Hollow Reef Right"], photo:"https://images.unsplash.com/photo-1520443240718-fce5930fbb38?w=800&h=600&fit=crop",facing:90},
+  {id:"cloudbreak",  category:"surfing",title:"Cloudbreak",              location:"Tavarua, Fiji",            lat:-17.7748,lon:177.2362,ap:"NAN",icon:"🌊",rating:4.97,reviews:2980,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["South Pacific Power","Boat-Access Only"], photo:"https://images.unsplash.com/photo-1580402403932-f828854cb123?w=800&h=600&fit=crop",facing:225},
+  {id:"restaurants_fiji",category:"surfing",title:"Restaurants",        location:"Tavarua, Fiji",            lat:-17.7800,lon:177.2400,ap:"NAN",icon:"🏄",rating:4.89,reviews:1840,gradient:"linear-gradient(160deg,#003355,#005588,#007fbb)",accent:"#33aadd",tags:["Tavarua Left","Super Consistent"], photo:"https://images.unsplash.com/photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop",facing:210},
+  {id:"teahupoo",    category:"surfing",title:"Teahupo'o",               location:"Tahiti, French Polynesia", lat:-17.8672,lon:-149.2594,ap:"PPT",icon:"🌊",rating:4.99,reviews:3840,gradient:"linear-gradient(160deg,#001530,#003070,#0050bb)",accent:"#1166ee",tags:["Scariest Wave on Earth","2024 Olympics"], photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop",facing:200},
+  {id:"pasta_point", category:"surfing",title:"Pasta Point",             location:"Maldives",                 lat:4.7500,lon:72.9700,ap:"MLE",icon:"🏄",rating:4.94,reviews:2120,gradient:"linear-gradient(160deg,#003344,#005577,#007fa0)",accent:"#00bbdd",tags:["Indian Ocean Luxury","Resort Access"], photo:"https://images.unsplash.com/photo-1543039625-14cbd3802e7d?w=800&h=600&fit=crop",facing:260},
+  {id:"jailbreaks",  category:"surfing",title:"Jailbreaks",              location:"South Malé Atoll, Maldives",lat:3.5000,lon:73.0000,ap:"MLE",icon:"🌊",rating:4.88,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004488,#006faa)",accent:"#1199cc",tags:["Dhow Boat Sessions","Crystal Water"], photo:"https://images.unsplash.com/photo-1545251142-f32339076e6d?w=800&h=600&fit=crop",facing:250},
+  {id:"snapper_rocks",category:"surfing",title:"Snapper Rocks",         location:"Gold Coast, Queensland",   lat:-28.1640,lon:153.5546,ap:"OOL",icon:"🌊",rating:4.94,reviews:5400,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Superbank","WSL Opener"], photo:"https://images.unsplash.com/photo-1583105103934-32c7a64ba012?w=800&h=600&fit=crop",facing:100},
+  {id:"bells_beach",  category:"surfing",title:"Bells Beach",           location:"Torquay, Victoria",        lat:-38.3700,lon:144.2800,ap:"MEL",icon:"🌊",rating:4.91,reviews:3680,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Rip Curl Pro","Australia's Most Famous"], photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop",facing:220},
+  {id:"margaret_river_surf",category:"surfing",title:"Margaret River",  location:"Western Australia",        lat:-34.0500,lon:115.0900,ap:"PER",icon:"🌊",rating:4.89,reviews:2840,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Wine & Waves","Championship Reef"], photo:"https://images.unsplash.com/photo-1581059089599-0b7e13b9d952?w=800&h=600&fit=crop",facing:230},
+  {id:"the_pass",    category:"surfing",title:"The Pass",               location:"Byron Bay, NSW",           lat:-28.6500,lon:153.5800,ap:"OOL",icon:"🏄",rating:4.87,reviews:4100,gradient:"linear-gradient(160deg,#003355,#005580,#007faa)",accent:"#2299cc",tags:["Byron Bay Icon","Long Mellow Rights"], photo:"https://images.unsplash.com/photo-1484804959655-1074f38e5394?w=800&h=600&fit=crop",facing:80},
+  {id:"raglan",      category:"surfing",title:"Raglan",                  location:"Waikato, New Zealand",     lat:-37.8000,lon:174.8700,ap:"AKL",icon:"🌊",rating:4.88,reviews:2420,gradient:"linear-gradient(160deg,#002244,#004488,#0066bb)",accent:"#1188dd",tags:["Southern Hemisphere Left","Endless Rides"], photo:"https://images.unsplash.com/photo-1461730278450-19cc1863601c?w=800&h=600&fit=crop",facing:260},
+  {id:"chiba_surf",  category:"surfing",title:"Chiba Coast",             location:"Chiba Prefecture, Japan",  lat:35.3200,lon:140.3800,ap:"NRT",icon:"🏄",rating:4.78,reviews:2100,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#0099bb",tags:["Tokyo's Backyard","Beach Break Frenzy"], photo:"https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=800&h=600&fit=crop",facing:125},
   {id:"beach_gcm",      category:"tanning",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
   {id:"beach_grace",    category:"tanning",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
   {id:"beach_shoal",    category:"tanning",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
@@ -534,55 +469,36 @@ const VENUES = [
   {id:"beach_whitehaven",category:"tanning",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
   {id:"beach_cable",    category:"tanning",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"},
   {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
-  {id:"torres",       category:"hiking",title:"Torres del Paine W Trek",location:"Patagonia, Chile",lat:-51.0000,lon:-73.0000,ap:"PUQ",icon:"🥾",rating:4.98,reviews:8900,gradient:"linear-gradient(160deg,#1a2a3a,#2a5a7a,#4a9aba)",accent:"#6abada",tags:["5-Day W Trek","Glaciers & Granite"], photo:"https://images.unsplash.com/photo-1598859409659-b88fc15bbc2f?w=800&h=600&fit=crop"},
-  {id:"inca_trail",   category:"hiking",title:"Inca Trail to Machu Picchu",location:"Cusco, Peru",lat:-13.1631,lon:-72.5450,ap:"CUZ",icon:"🥾",rating:4.97,reviews:12400,gradient:"linear-gradient(160deg,#2a1a00,#6a4a1a,#aa8a3a)",accent:"#ccaa55",tags:["4-Day Classic","Sun Gate Finish"], photo:"https://images.unsplash.com/photo-1520816761512-09d14f676877?w=800&h=600&fit=crop"},
-  {id:"kilimanjaro",  category:"hiking",title:"Mount Kilimanjaro",location:"Kilimanjaro, Tanzania",lat:-3.0674,lon:37.3556,ap:"JRO",icon:"🥾",rating:4.96,reviews:7600,gradient:"linear-gradient(160deg,#1a3a1a,#2a6a2a,#5aaa5a)",accent:"#7aca7a",tags:["Roof of Africa","7 Routes"], photo:"https://images.unsplash.com/photo-1598647578562-535093a700af?w=800&h=600&fit=crop"},
-  {id:"gr20",         category:"hiking",title:"GR20 Corsica",location:"Corsica, France",lat:42.1750,lon:9.0833,ap:"AJA",icon:"🥾",rating:4.94,reviews:4200,gradient:"linear-gradient(160deg,#2a1a2a,#5a3a5a,#8a6a8a)",accent:"#aa8aaa",tags:["Europe's Toughest","16 Stages"], photo:"https://images.unsplash.com/photo-1482961667792-d164d3e7ab3d?w=800&h=600&fit=crop"},
-  {id:"appalachian",  category:"hiking",title:"Appalachian Trail (Smokies)",location:"North Carolina, USA",lat:35.5634,lon:-83.4984,ap:"TYS",icon:"🥾",rating:4.93,reviews:15200,gradient:"linear-gradient(160deg,#1a2a1a,#3a5a3a,#6a8a6a)",accent:"#8aaa8a",tags:["Thru-Hike Section","Great Smoky Mtns"], photo:"https://images.unsplash.com/photo-1551176808-bb328dac763a?w=800&h=600&fit=crop"},
-  {id:"annapurna",    category:"hiking",title:"Annapurna Circuit",location:"Gandaki, Nepal",lat:28.5960,lon:83.8200,ap:"PKR",icon:"🥾",rating:4.97,reviews:6800,gradient:"linear-gradient(160deg,#0a1a3a,#1a4a7a,#3a8aba)",accent:"#5aaada",tags:["Thorong La Pass","Tea Houses"], photo:"https://images.unsplash.com/photo-1528846328457-87c98b48ef37?w=800&h=600&fit=crop"},
-  {id:"milford_track",category:"hiking",title:"Milford Track",location:"Fiordland, New Zealand",lat:-44.8937,lon:167.9188,ap:"ZQN",icon:"🥾",rating:4.96,reviews:5400,gradient:"linear-gradient(160deg,#0a2a1a,#1a5a3a,#3a8a6a)",accent:"#5aaa8a",tags:["Finest Walk","Sutherland Falls"], photo:"https://images.unsplash.com/photo-1496975351654-5236530c59c5?w=800&h=600&fit=crop"},
-  {id:"camino",       category:"hiking",title:"Camino de Santiago",location:"Galicia, Spain",lat:42.8782,lon:-8.5448,ap:"SCQ",icon:"🥾",rating:4.95,reviews:18600,gradient:"linear-gradient(160deg,#3a2a0a,#7a5a1a,#baa03a)",accent:"#ddc055",tags:["French Way","800km Pilgrimage"], photo:"https://images.unsplash.com/photo-1543076659-9380cdf10613?w=800&h=600&fit=crop"},
-  {id:"everest_bc",   category:"hiking",title:"Everest Base Camp Trek",location:"Khumbu, Nepal",lat:28.0025,lon:86.8528,ap:"LUA",icon:"🥾",rating:4.98,reviews:9200,gradient:"linear-gradient(160deg,#0a0a2a,#1a2a5a,#3a5a9a)",accent:"#5a7aba",tags:["5,364m Base Camp","Sherpa Culture"], photo:"https://images.unsplash.com/photo-1522774607452-dac2ecc66330?w=800&h=600&fit=crop"},
-  {id:"haute_route",  category:"hiking",title:"Haute Route",location:"Valais, Switzerland",lat:45.9700,lon:7.3100,ap:"GVA",icon:"🥾",rating:4.95,reviews:3800,gradient:"linear-gradient(160deg,#1a1a3a,#3a3a6a,#6a6a9a)",accent:"#8a8aba",tags:["Chamonix to Zermatt","Alpine Classic"], photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop"},
-  {id:"overland",     category:"hiking",title:"Overland Track",location:"Tasmania, Australia",lat:-41.6395,lon:145.9606,ap:"LST",icon:"🥾",rating:4.93,reviews:4100,gradient:"linear-gradient(160deg,#1a3a2a,#2a6a4a,#4a9a7a)",accent:"#6aba9a",tags:["Cradle Mountain","6-Day Traverse"], photo:"https://images.unsplash.com/photo-1534853878021-7fb609562749?w=800&h=600&fit=crop"},
-  {id:"laugavegur",   category:"hiking",title:"Laugavegur Trail",location:"Highlands, Iceland",lat:63.8600,lon:-19.1800,ap:"KEF",icon:"🥾",rating:4.94,reviews:3600,gradient:"linear-gradient(160deg,#0a1a2a,#1a3a5a,#3a6a9a)",accent:"#5a8aba",tags:["Rainbow Mountains","Hot Springs"], photo:"https://images.unsplash.com/photo-1621286675775-7f9dc67237b0?w=800&h=600&fit=crop"},
-  {id:"rajaampat",    category:"diving",title:"Raja Ampat",             location:"West Papua, Indonesia",     lat:-0.2348,lon:130.5167,ap:"DPS",icon:"🤿",rating:4.98,reviews:1420,gradient:"linear-gradient(160deg,#001a3a,#003878,#0070c0)",accent:"#4da6ff",tags:["Manta Rays","1500+ Fish Species","Pristine Coral","Liveaboard","Remote"], photo:"https://images.unsplash.com/photo-1544551763-77932f2f4648?w=800&h=600&fit=crop&fp-x=0.68&fp-y=0.32"},
-  {id:"railay_climb", category:"climbing",title:"Railay Beach",          location:"Krabi, Thailand",           lat:8.0117,lon:98.8386,ap:"KBV",icon:"🧗",rating:4.95,reviews:1680,gradient:"linear-gradient(160deg,#3a1a00,#7a4000,#c87020)",accent:"#f0a050",tags:["Limestone Karst","Deep Water Solo","Beach Crag","All Levels","Tropical"], photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"},
-  {id:"kalymnos",     category:"climbing",title:"Kalymnos Island",       location:"Dodecanese, Greece",        lat:36.9513,lon:26.9847,ap:"JMK",icon:"🧗",rating:4.96,reviews:1340,gradient:"linear-gradient(160deg,#2a1400,#6a3800,#b06820)",accent:"#e09848",tags:["Sport Climbing","Tufa Paradise","3500+ Routes","Mediterranean","Autumn Season"], photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop"},
-  {id:"dakhla",       category:"kite",title:"Dakhla Lagoon",             location:"Western Sahara, Morocco",   lat:23.7175,lon:-15.9369,ap:"AGA",icon:"🪁",rating:4.95,reviews:760,gradient:"linear-gradient(160deg,#1a0030,#500070,#a038d8)",accent:"#c888f0",tags:["Flat Water Lagoon","300+ Wind Days","Desert Backdrop","Progression","Remote"], photo:"https://images.unsplash.com/photo-1621288546818-f1dd7e07f8e0?w=800&h=600&fit=crop"},
-  {id:"muine",        category:"kite",title:"Mui Ne",                    location:"Binh Thuan, Vietnam",       lat:10.9333,lon:108.2833,ap:"HKT",icon:"🪁",rating:4.90,reviews:1120,gradient:"linear-gradient(160deg,#1a0028,#480060,#9030c8)",accent:"#b870e0",tags:["Budget Kite Mecca","Nov-Apr Season","Sand Dunes","Warm Water","Schools"], photo:"https://images.unsplash.com/photo-1643004869571-72c648e999a2?w=800&h=600&fit=crop&fp-x=0.31&fp-y=0.39"},
   {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1557692493-0a42e50efc26?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.52",skiPass:"independent"},
   {id:"schweitzer-mtn",category:"skiing",title:"Schweitzer Mountain",location:"Idaho, USA",lat:48.3583,lon:-116.6272,ap:"GEG",icon:"🎿",rating:4.87,reviews:1567,gradient:"linear-gradient(160deg,#0e3b68,#1b68b5,#87bbea)",accent:"#1b68b5",tags:["Lake Pend Oreille Views","Expert","Uncrowded","Idaho Gem"],photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",skiPass:"ikon"},
-  {id:"kuta-beach",category:"surfing",title:"Kuta Beach",location:"Bali, Indonesia",lat:-8.7190,lon:115.1689,ap:"DPS",icon:"🌊",rating:4.83,reviews:3210,gradient:"linear-gradient(160deg,#06b6d4,#0891b2,#0284c7)",accent:"#06b6d4",tags:["Beach Break","Beginner","Surf Schools","Year-Round","Warm Water"],photo:"https://images.unsplash.com/photo-1474402656496-6641a08dab21?w=800&h=600&fit=crop&fp-x=0.37&fp-y=0.50"},
+  {id:"kuta-beach",category:"surfing",title:"Kuta Beach",location:"Bali, Indonesia",lat:-8.7190,lon:115.1689,ap:"DPS",icon:"🌊",rating:4.83,reviews:3210,gradient:"linear-gradient(160deg,#06b6d4,#0891b2,#0284c7)",accent:"#06b6d4",tags:["Beach Break","Beginner","Surf Schools","Year-Round","Warm Water"],photo:"https://images.unsplash.com/photo-1474402656496-6641a08dab21?w=800&h=600&fit=crop&fp-x=0.37&fp-y=0.50",facing:245},
   {id:"beach_spain_mallorca_es",category:"tanning",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
-  {id:"sipadan-turtle-point",category:"diving",title:"Turtle Point, Sipadan",location:"Sabah, Malaysia",lat:4.1150,lon:118.6280,ap:"TWU",icon:"🤿",rating:4.98,reviews:2841,gradient:"linear-gradient(160deg,#0c4a6e,#075985,#0369a1)",accent:"#0ea5e9",tags:["World Class","Turtles","Barracuda Tornado","Advanced","60ft Wall","Oceanic"],photo:"https://images.unsplash.com/photo-1600426901780-cac7371a5bb0?w=800&h=600&fit=crop&fp-x=0.67&fp-y=0.44"},
-  {id:"whistler-bike-park",category:"mtb",title:"Whistler Mountain Bike Park",location:"Whistler, BC, Canada",lat:50.1163,lon:-122.9574,ap:"YVR",icon:"🚵",rating:4.99,reviews:2987,gradient:"linear-gradient(160deg,#2d5a27,#4a7c3f,#6b9e5e)",accent:"#4a7c3f",tags:["World Class","Lift-Served","Flow Trails","Technical","Crank It Up","Whistler Bowl"],photo:"https://images.unsplash.com/photo-1512541405516-020b57532e46?w=800&h=600&fit=crop&fp-x=0.42&fp-y=0.44"},
-  {id:"popoyo-s0",category:"surfing",title:"Popoyo",location:"Managua, Nicaragua",lat:11.3167,lon:-86.2833,ap:"MGA",icon:"🌊",rating:4.62,reviews:4747,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"angourie-point-s3",category:"surfing",title:"Angourie Point",location:"New South Wales, Australia",lat:-29.47,lon:153.3742,ap:"BNK",icon:"🌊",rating:4.98,reviews:4463,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"sagres-s6",category:"surfing",title:"Sagres",location:"Algarve, Portugal",lat:37.0099,lon:-8.9327,ap:"FAO",icon:"🌊",rating:4.58,reviews:4422,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"baler-s7",category:"surfing",title:"Baler",location:"Aurora, Philippines",lat:15.7594,lon:121.5611,ap:"MNL",icon:"🌊",rating:4.93,reviews:3566,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"arrifana-s8",category:"surfing",title:"Arrifana",location:"Algarve, Portugal",lat:37.2966,lon:-8.8584,ap:"FAO",icon:"🌊",rating:4.97,reviews:4517,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"ocean-beach-pier-s9",category:"surfing",title:"Ocean Beach Pier",location:"San Diego, California",lat:32.749,lon:-117.2548,ap:"SAN",icon:"🌊",rating:4.87,reviews:1747,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"taghazout-s10",category:"surfing",title:"Taghazout",location:"Agadir, Morocco",lat:30.5361,lon:-9.7089,ap:"AGA",icon:"🌊",rating:4.85,reviews:3368,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tamarack-beach-s11",category:"surfing",title:"Tamarack Beach",location:"Carlsbad, California",lat:33.1435,lon:-117.3569,ap:"SAN",icon:"🌊",rating:4.99,reviews:3159,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"punta-roca-s12",category:"surfing",title:"Punta Roca",location:"La Libertad, El Salvador",lat:13.5167,lon:-89.3167,ap:"SAL",icon:"🌊",rating:4.71,reviews:4339,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"haleiwa-alii-s13",category:"surfing",title:"Haleiwa Alii",location:"Oahu, Hawaii",lat:21.5978,lon:-158.1044,ap:"HNL",icon:"🌊",rating:4.72,reviews:2130,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"piha-beach-s14",category:"surfing",title:"Piha Beach",location:"Auckland, New Zealand",lat:-36.9603,lon:174.4631,ap:"AKL",icon:"🌊",rating:4.61,reviews:2869,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"mount-maunganui-s15",category:"surfing",title:"Mount Maunganui",location:"Bay of Plenty, New Zealand",lat:-37.6333,lon:176.1833,ap:"TRG",icon:"🌊",rating:4.51,reviews:4637,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"catanduanes-s16",category:"surfing",title:"Catanduanes",location:"Bicol, Philippines",lat:13.6997,lon:124.2451,ap:"VRC",icon:"🌊",rating:4.61,reviews:1904,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"matanzas-s17",category:"surfing",title:"Matanzas",location:"Valparaiso, Chile",lat:-33.95,lon:-71.8833,ap:"SCL",icon:"🌊",rating:4.5,reviews:582,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"supertubos-peniche-s18",category:"surfing",title:"Supertubos Peniche",location:"Leiria, Portugal",lat:39.3583,lon:-9.3828,ap:"LIS",icon:"🌊",rating:4.61,reviews:357,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"anchor-point-s19",category:"surfing",title:"Anchor Point",location:"Agadir, Morocco",lat:30.5478,lon:-9.7208,ap:"AGA",icon:"🌊",rating:4.92,reviews:680,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"fernando-de-noronha-s20",category:"surfing",title:"Fernando de Noronha",location:"Pernambuco, Brazil",lat:-3.8569,lon:-32.4263,ap:"FEN",icon:"🌊",rating:4.75,reviews:2381,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"cloudbreak-fiji-s21",category:"surfing",title:"Cloudbreak Fiji",location:"Tavarua, Fiji",lat:-17.85,lon:177.1833,ap:"NAN",icon:"🌊",rating:4.83,reviews:1855,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"indicator-s22",category:"surfing",title:"Indicator",location:"Santa Barbara, California",lat:34.4048,lon:-119.6864,ap:"SBA",icon:"🌊",rating:4.76,reviews:4777,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tsurigasaki-s23",category:"surfing",title:"Tsurigasaki",location:"Chiba, Japan",lat:35.4167,lon:140.45,ap:"NRT",icon:"🌊",rating:4.78,reviews:2090,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"pasta-point-s24",category:"surfing",title:"Pasta Point",location:"North Male Atoll, Maldives",lat:4.5167,lon:73.3333,ap:"MLE",icon:"🌊",rating:4.88,reviews:3434,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"pichilemu-s25",category:"surfing",title:"Pichilemu",location:"O'Higgins, Chile",lat:-34.3887,lon:-71.9985,ap:"SSC",icon:"🌊",rating:4.59,reviews:894,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"snappers-gold-coast-s26",category:"surfing",title:"Snappers Gold Coast",location:"Gold Coast, Australia",lat:-28.1667,lon:153.55,ap:"OOL",icon:"🌊",rating:4.82,reviews:3002,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"capbreton-s27",category:"surfing",title:"Capbreton",location:"Landes, France",lat:43.644,lon:-1.4381,ap:"BIQ",icon:"🌊",rating:4.71,reviews:3925,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"fanore-s28",category:"surfing",title:"Fanore",location:"Clare, Ireland",lat:53.1219,lon:-9.2972,ap:"SNN",icon:"🌊",rating:4.92,reviews:543,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"croyde-bay-s29",category:"surfing",title:"Croyde Bay",location:"Devon, England",lat:51.1333,lon:-4.2333,ap:"EXT",icon:"🌊",rating:4.83,reviews:906,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"popoyo-s0",category:"surfing",title:"Popoyo",location:"Managua, Nicaragua",lat:11.3167,lon:-86.2833,ap:"MGA",icon:"🌊",rating:4.62,reviews:4747,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:220},
+  {id:"angourie-point-s3",category:"surfing",title:"Angourie Point",location:"New South Wales, Australia",lat:-29.47,lon:153.3742,ap:"BNK",icon:"🌊",rating:4.98,reviews:4463,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:120},
+  {id:"sagres-s6",category:"surfing",title:"Sagres",location:"Algarve, Portugal",lat:37.0099,lon:-8.9327,ap:"FAO",icon:"🌊",rating:4.58,reviews:4422,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:220},
+  {id:"baler-s7",category:"surfing",title:"Baler",location:"Aurora, Philippines",lat:15.7594,lon:121.5611,ap:"MNL",icon:"🌊",rating:4.93,reviews:3566,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:90},
+  {id:"arrifana-s8",category:"surfing",title:"Arrifana",location:"Algarve, Portugal",lat:37.2966,lon:-8.8584,ap:"FAO",icon:"🌊",rating:4.97,reviews:4517,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"ocean-beach-pier-s9",category:"surfing",title:"Ocean Beach Pier",location:"San Diego, California",lat:32.749,lon:-117.2548,ap:"SAN",icon:"🌊",rating:4.87,reviews:1747,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
+  {id:"taghazout-s10",category:"surfing",title:"Taghazout",location:"Agadir, Morocco",lat:30.5361,lon:-9.7089,ap:"AGA",icon:"🌊",rating:4.85,reviews:3368,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"tamarack-beach-s11",category:"surfing",title:"Tamarack Beach",location:"Carlsbad, California",lat:33.1435,lon:-117.3569,ap:"SAN",icon:"🌊",rating:4.99,reviews:3159,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
+  {id:"punta-roca-s12",category:"surfing",title:"Punta Roca",location:"La Libertad, El Salvador",lat:13.5167,lon:-89.3167,ap:"SAL",icon:"🌊",rating:4.71,reviews:4339,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1504681869696-d5e0081c9804?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:215},
+  {id:"haleiwa-alii-s13",category:"surfing",title:"Haleiwa Alii",location:"Oahu, Hawaii",lat:21.5978,lon:-158.1044,ap:"HNL",icon:"🌊",rating:4.72,reviews:2130,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:330},
+  {id:"piha-beach-s14",category:"surfing",title:"Piha Beach",location:"Auckland, New Zealand",lat:-36.9603,lon:174.4631,ap:"AKL",icon:"🌊",rating:4.61,reviews:2869,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
+  {id:"mount-maunganui-s15",category:"surfing",title:"Mount Maunganui",location:"Bay of Plenty, New Zealand",lat:-37.6333,lon:176.1833,ap:"TRG",icon:"🌊",rating:4.51,reviews:4637,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:45},
+  {id:"catanduanes-s16",category:"surfing",title:"Catanduanes",location:"Bicol, Philippines",lat:13.6997,lon:124.2451,ap:"VRC",icon:"🌊",rating:4.61,reviews:1904,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:90},
+  {id:"matanzas-s17",category:"surfing",title:"Matanzas",location:"Valparaiso, Chile",lat:-33.95,lon:-71.8833,ap:"SCL",icon:"🌊",rating:4.5,reviews:582,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:245},
+  {id:"supertubos-peniche-s18",category:"surfing",title:"Supertubos Peniche",location:"Leiria, Portugal",lat:39.3583,lon:-9.3828,ap:"LIS",icon:"🌊",rating:4.61,reviews:357,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"anchor-point-s19",category:"surfing",title:"Anchor Point",location:"Agadir, Morocco",lat:30.5478,lon:-9.7208,ap:"AGA",icon:"🌊",rating:4.92,reviews:680,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1534447677568-f21010ee07e0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"fernando-de-noronha-s20",category:"surfing",title:"Fernando de Noronha",location:"Pernambuco, Brazil",lat:-3.8569,lon:-32.4263,ap:"FEN",icon:"🌊",rating:4.75,reviews:2381,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:0},
+  {id:"cloudbreak-fiji-s21",category:"surfing",title:"Cloudbreak Fiji",location:"Tavarua, Fiji",lat:-17.85,lon:177.1833,ap:"NAN",icon:"🌊",rating:4.83,reviews:1855,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1586942076095-7fad14e4afdc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:225},
+  {id:"indicator-s22",category:"surfing",title:"Indicator",location:"Santa Barbara, California",lat:34.4048,lon:-119.6864,ap:"SBA",icon:"🌊",rating:4.76,reviews:4777,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:225},
+  {id:"tsurigasaki-s23",category:"surfing",title:"Tsurigasaki",location:"Chiba, Japan",lat:35.4167,lon:140.45,ap:"NRT",icon:"🌊",rating:4.78,reviews:2090,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:125},
+  {id:"pasta-point-s24",category:"surfing",title:"Pasta Point",location:"North Male Atoll, Maldives",lat:4.5167,lon:73.3333,ap:"MLE",icon:"🌊",rating:4.88,reviews:3434,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1472457897821-70d3a4effd41?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"pichilemu-s25",category:"surfing",title:"Pichilemu",location:"O'Higgins, Chile",lat:-34.3887,lon:-71.9985,ap:"SSC",icon:"🌊",rating:4.59,reviews:894,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:230},
+  {id:"snappers-gold-coast-s26",category:"surfing",title:"Snappers Gold Coast",location:"Gold Coast, Australia",lat:-28.1667,lon:153.55,ap:"OOL",icon:"🌊",rating:4.82,reviews:3002,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:100},
+  {id:"capbreton-s27",category:"surfing",title:"Capbreton",location:"Landes, France",lat:43.644,lon:-1.4381,ap:"BIQ",icon:"🌊",rating:4.71,reviews:3925,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:290},
+  {id:"fanore-s28",category:"surfing",title:"Fanore",location:"Clare, Ireland",lat:53.1219,lon:-9.2972,ap:"SNN",icon:"🌊",rating:4.92,reviews:543,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
+  {id:"croyde-bay-s29",category:"surfing",title:"Croyde Bay",location:"Devon, England",lat:51.1333,lon:-4.2333,ap:"EXT",icon:"🌊",rating:4.83,reviews:906,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:290},
   {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"AXT",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -1269,306 +1185,6 @@ function scoreVenue(venue, wx, marine, dayIndex) {
              : "Scattered clouds";
       break;
     }
-
-    case "diving": {
-      const calm = waveH < 0.5;
-      const moderate = waveH < 1.0;
-      const warm = tempMax > 75;
-      // Vis estimate from wave action + precip (runoff = murky)
-      const visEst = calm && rain < 2 ? 30 : calm ? 20 : moderate && rain < 5 ? 12 : 5;
-
-      score = calm && rain < 2 && warm ? 92 + Math.min(6, (0.5 - waveH) * 20)
-            : calm && rain < 5 ? 80 + (warm ? 4 : 0)
-            : moderate && rain < 5 ? 68 + (warm ? 3 : 0)
-            : moderate ? 55
-            : 38;
-
-      // Wind as current proxy — sustained wind drives surface current; most dive ops cancel >20kts (~23mph)
-      if (wind > 25) score -= 12;      // strong current — entry/exit dangerous, most ops cancel
-      else if (wind > 20) score -= 7;  // moderate current — challenging, experienced divers only
-      else if (wind > 15) score -= 3;  // light current — manageable with planning
-      if (gusts > 30) score -= 5;      // gusty = unpredictable surge at entry points
-      if (precipPct > 70) score -= 5;  // probable rain = runoff kills visibility
-      if (bestDays > 2) score += 3;    // multi-day calm = settled vis, negligible current
-
-      // Water temperature affects comfort, exposure limits, and marine life
-      if (waterTemp !== null) {
-        if (waterTemp > 24) score += 6;        // tropical — boardshorts, long dives, rich marine life
-        else if (waterTemp >= 18) score += 2;  // temperate — comfortable with 3mm wetsuit
-        else if (waterTemp < 15) score -= 4;   // cold water — drysuit recommended, shorter dives
-      }
-
-      const currentNote = wind > 25 ? " · Strong current" : wind > 20 ? " · Current risk" : "";
-      label = `Vis ~${visEst}m · ${calm ? "Calm" : moderate ? "Light chop" : "Rough"}${currentNote} · ${tempMax}°F`;
-      period = calm && bestDays > 2 ? `${bestDays}-day dive window`
-             : calm ? "Good today — conditions shifting"
-             : "Wait for calmer seas";
-      break;
-    }
-
-    case "climbing": {
-      const dry = precip < 1 && precipPct < 30;
-      const dryish = precip < 3;
-      const goodTemp = tempMax > 45 && tempMax < 88;
-      const friction = tempMax < 75;  // cooler = better grip
-
-      score = dry && goodTemp && wind < 12 ? 86 + Math.min(10, bestDays * 2.5)
-            : dry && goodTemp && wind < 20 ? 78 + bestDays
-            : dryish && goodTemp ? 66
-            : dryish ? 55
-            : 32;
-
-      if (friction && dry) score += 3;        // optimal friction temps
-      if (gusts > 25) score -= 6;             // dangerous at height
-      else if (gustFactor > 1.7) score -= 3;  // unpredictable gusts
-      if (precipPct > 60) score -= 8;         // don't start a multi-pitch
-      if (tempMax > 95) score -= 6;           // heat exhaustion risk
-
-      // Humidity affects rock friction — damp rock, sweaty hands, greasy holds
-      if (humidity !== null) {
-        if (humidity > 85) score -= 7;        // severely slippery — limestone weeps, granite glass-slick
-        else if (humidity > 70) score -= 4;   // noticeably reduced friction on most rock types
-        else if (humidity < 35) score += 4;   // desert-dry — exceptional friction
-        else if (humidity < 50) score += 2;   // dry air — good friction
-      }
-
-      const windNote = gusts > 25 ? " · Gusty" : wind > 15 ? " · Breezy" : "";
-      label = dry ? `Dry rock · ${tempMax}°F${windNote}` : `Wet rock — ${precipPct}% rain chance`;
-      period = dry && bestDays > 3 ? `${bestDays}-day dry window`
-             : dry && bestDays > 1 ? "Dry through tomorrow"
-             : dry ? "Dry today only"
-             : `Drying out — ${tmrwPrecip < 1 ? "better tomorrow" : "wait"}`;
-      break;
-    }
-
-    case "kite": {
-      const sweet = wind >= 20 && wind <= 30;  // ideal kite range
-      const rideable = wind >= 15 && wind <= 38;
-      const gusty = gustFactor > 1.6;
-
-      score = sweet && !gusty ? 92 + Math.min(6, (5 - Math.abs(wind - 25)))
-            : sweet ? 84
-            : rideable && wind >= 18 ? 75 + (wind - 18) * 0.8
-            : rideable ? 62
-            : wind > 38 ? 28
-            : wind >= 10 ? 45
-            : 25;
-
-      if (gusty) score -= 6;               // lulls + gusts = dangerous
-      if (rain > 5) score -= 4;            // vis + comfort
-      if (waveH > 1.5 && sweet) score += 3; // waves for jumping!
-      if (waveH > 3) score -= 4;           // too rough for most
-
-      const wLabel = wind < 12 ? "Too light" : wind > 38 ? "Storm" : `${wind.toFixed(0)}mph${gusty ? " gusty" : " steady"}`;
-      label = `${wLabel} · ${tempMax}°F${waveH > 1 ? " · " + Math.round(waveH * 3.28) + "ft chop" : ""}`;
-      period = sweet ? `Prime ${Math.min(bestDays, 3)}d window`
-             : rideable ? "Rideable — session it"
-             : wind < 15 ? (tmrwWind > 18 ? "Building — tomorrow looks better" : "Light winds")
-             : "Too strong — wait";
-      break;
-    }
-
-    case "kayak": {
-      const calm = waveH < 0.6;
-      const lightW = wind < 12;
-      // Milford Sound special: post-rain = epic waterfalls
-      if (venue.id === "milford" && precip > 8) { score = 87; label = "Post-rain waterfalls active · Calm"; period = "Ideal after recent rain"; break; }
-
-      score = calm && lightW && precip < 3 ? 82 + Math.min(12, bestDays * 2.5)
-            : calm && lightW ? 74
-            : calm && wind < 18 ? 64
-            : waveH < 1.2 && wind < 15 ? 56
-            : 40;
-
-      if (sunHrs > 8) score += 3;           // scenic + safe
-      if (tempMax < 50) score -= 6;          // cold paddling
-      if (gusts > 20) score -= 5;            // control issues
-      if (precipPct > 60) score -= 4;
-
-      // Cold water safety — hypothermia is the #1 killer in kayaking incidents
-      if (waterTemp !== null) {
-        // 120°F rule: air°C + water°C < 49 = serious immersion risk (dress for the water, not the air)
-        const airC = (tempMax - 32) * 5 / 9;
-        if (airC + waterTemp < 49) {
-          score -= 15;
-          period = "Cold Water Risk — dress for immersion";
-        }
-        // Standalone water temp thresholds (hypothermia risk even if combined rule passes)
-        if (waterTemp < 10) score -= 12;          // <10°C: incapacitation within minutes of immersion
-        else if (waterTemp < 15) score -= 8;      // 10-15°C: hypothermia in 30-60 min — serious risk
-        else if (waterTemp >= 18 && waterTemp <= 24) score += 3; // ideal range — comfortable, safe
-      }
-
-      label = `${wind.toFixed(0)}mph · ${calm ? "Flat water" : "Light chop"} · ${tempMax}°F`;
-      period = calm && bestDays > 2 ? `${Math.min(bestDays, 5)} calm days`
-             : calm ? "Calm today"
-             : "Calmer conditions coming";
-      break;
-    }
-
-    case "mtb": {
-      const dry = precip < 1 && rain < 1;
-      const dryish = precip < 3;
-      const goodTemp = tempMax > 50 && tempMax < 92;
-      // Yesterday's rain matters — wet trails erode. Check previous day if available.
-      const prevRain = d.precipitation_sum?.[Math.max(0, di-1)] ?? 0;
-      const trailsDry = dry && prevRain < 3;
-
-      score = trailsDry && goodTemp && wind < 18 ? 86 + Math.min(10, bestDays * 1.5)
-            : dry && goodTemp ? 78
-            : dryish && goodTemp ? 65
-            : dryish ? 52
-            : 38;
-
-      if (tempMax > 95) score -= 6;          // heat risk
-      if (gusts > 25) score -= 5;            // tree fall risk, dangerous crosswinds on exposed trail
-      if (prevRain > 10) score -= 8;         // muddy no matter what
-      if (sunHrs > 8 && dry) score += 2;     // packed dry trail
-
-      const trailStatus = trailsDry ? "Dry packed" : dry ? "Mostly dry" : dryish ? "Damp" : "Muddy";
-      label = `${trailStatus} · ${tempMax}°F · ${wind.toFixed(0)}mph`;
-      period = trailsDry && bestDays > 2 ? `${bestDays} hero days`
-             : dry ? "Good today"
-             : `Drying out${tmrwPrecip < 1 ? " — rideable tomorrow" : ""}`;
-      break;
-    }
-
-    case "fishing": {
-      const calm = wind < 15 && waveH < 1;
-      const lightW = wind < 12;
-      const mo = new Date().getMonth() + 1; // 1-12
-      const peak = venue.id === "kenai" && (mo === 6 || mo === 7);
-
-      // ─── Seasonal / species bonuses (fix #4) ───
-      // peakMonths on venue: array of peak month numbers, e.g. [3,4,5,9,10]
-      const venuePeakMonths = venue.peakMonths ?? null;
-      const inPeakSeason = venuePeakMonths ? venuePeakMonths.includes(mo) : false;
-
-      // Tropical / reef fishing: bonus during calmer (non-monsoon) months
-      const isTropical = venue.subtype === "reef" || venue.subtype === "tropical";
-      const tropicalCalm = isTropical && (mo <= 4 || mo >= 11); // Nov–Apr calm season
-
-      // River / fly fishing: bonus during hatch seasons (Mar–May, Sep–Oct)
-      const isFly = venue.subtype === "fly" || venue.subtype === "river";
-      const hatchSeason = isFly && (mo >= 3 && mo <= 5 || mo >= 9 && mo <= 10);
-
-      // Barometric pressure proxy: falling pressure = fish feeding actively
-      // Proxy: rain probability 40–75% with light precip = frontal approach = active feeding
-      const feedWindow = precipPct > 40 && precipPct < 75 && precip < 5;
-      // Hard rain / storm kills bite
-      const stormFront = precipPct > 85 || rain > 15;
-
-      score = peak && calm ? 96
-            : peak ? 85
-            : inPeakSeason && calm && feedWindow ? 88 + bestDays
-            : inPeakSeason && calm ? 82 + bestDays
-            : tropicalCalm && calm ? 84 + bestDays
-            : hatchSeason && calm ? 82 + bestDays
-            : calm && feedWindow ? 80 + bestDays
-            : calm ? 72 + bestDays
-            : lightW ? 62
-            : 48;
-
-      if (inPeakSeason && !peak) score += 4;  // peak season bonus
-      if (hatchSeason) score += 4;            // hatch season = surface action
-      if (feedWindow) score += 3;             // actively feeding due to pressure drop
-      if (stormFront) score -= 10;            // post-front lockjaw
-      if (gusts > 25) score -= 6;
-      if (tempMax < 35) score -= 4;           // ice/danger
-      if (sunHrs < 3 && !feedWindow) score -= 3;
-
-      const biteLabel = stormFront ? "Storm — poor bite" : feedWindow ? "Active bite" : inPeakSeason || hatchSeason ? "Peak season" : calm ? "Good conditions" : "Choppy";
-      label = peak ? `King Salmon run · ${biteLabel}` : `${tempMax}°F · ${biteLabel} · ${wind.toFixed(0)}mph`;
-      period = peak ? "Peak run this week"
-             : hatchSeason ? `Hatch season — dry fly action${feedWindow ? " · feeding" : ""}`
-             : inPeakSeason ? `Peak season${calm ? " · " + Math.min(bestDays, 5) + " fishable days" : ""}`
-             : feedWindow ? `Front moving in — fish feeding${bestDays > 1 ? " · " + bestDays + "d" : ""}`
-             : calm ? `${Math.min(bestDays, 5)} fishable days`
-             : "Wait for calmer water";
-      break;
-    }
-
-    case "paraglide": {
-      const thermalWind = wind >= 6 && wind <= 18;
-      const clearSky = wCode < 3;
-      const strongThermals = sunHrs > 8 && tempMax > 70 && clearSky;
-      const gustSafe = gustFactor < 1.5;
-
-      score = thermalWind && strongThermals && gustSafe ? 92 + Math.min(6, bestDays)
-            : thermalWind && clearSky && gustSafe ? 82 + (sunHrs > 6 ? 4 : 0)
-            : thermalWind && gustSafe ? 70
-            : thermalWind ? 58                    // gusty thermals = sketchy
-            : wind > 22 ? 28                      // grounded
-            : 45;
-
-      if (gusts > 25) score -= 12;            // dangerous
-      else if (gustFactor > 1.7) score -= 6;  // unpredictable
-      if (precipPct > 50) score -= 8;         // no launch in rain
-      if (tempSpread > 25) score += 3;        // big spread = strong thermals
-
-      const thermalLabel = strongThermals ? "Strong thermals" : clearSky ? "Moderate thermals" : "Weak lift";
-      label = `${thermalLabel} · ${wind.toFixed(0)}mph${gustSafe ? " steady" : " gusty"} · ${tempMax}°F`;
-      period = strongThermals && bestDays > 1 ? `High pressure · ${Math.min(bestDays, 5)}d`
-             : clearSky ? "Good window today"
-             : "Marginal — check winds at launch";
-      break;
-    }
-
-    case "hiking": {
-      const dry = precip < 2 && precipPct < 40;
-      const dryish = precip < 5;
-
-      // ─── Elevation awareness (fix #5) ───
-      // venue.elevation in metres if available; otherwise estimate from lat (rough proxy)
-      const elevM = venue.elevation ?? 0;
-      // Temperature lapse rate: -6.5°C per 1000m above sea level
-      const tempLapseC = (elevM / 1000) * 6.5;
-      const tempLapseF = tempLapseC * 9 / 5;
-      // Effective summit temp estimate
-      const summitTempMax = tempMax - tempLapseF;
-      // Alpine zone: above 2000m
-      const isAlpine = elevM > 2000;
-      const aboveTreeline = elevM > 3000;
-      // Shoulder season snow risk (Mar–May, Sep–Nov above treeline)
-      const shoulderMo = [3,4,5,9,10,11].includes(new Date().getMonth() + 1);
-      const snowRisk = aboveTreeline && shoulderMo;
-
-      const idealTemp = summitTempMax > 45 && summitTempMax < 85;
-      const hotHike = summitTempMax >= 85 && summitTempMax < 100;
-
-      score = dry && idealTemp && wind < 15 ? 86 + Math.min(10, bestDays * 2)
-            : dry && idealTemp ? 78
-            : dry && hotHike ? 70             // hot but doable (early start)
-            : dryish && idealTemp ? 65
-            : dryish ? 52
-            : 35;
-
-      if (sunHrs > 8 && idealTemp) score += 3;  // scenic day
-      if (summitTempMax > 100) score -= 10;      // heat danger
-      if (gusts > 30) score -= 6;                // exposed ridge danger
-      else if (wind > 20) score -= 3;
-      if (precipPct > 70) score -= 8;            // lightning risk
-
-      // Altitude UV: UV increases ~10% per 1000m
-      const altitudeUV = uv * (1 + elevM / 10000);
-      if (altitudeUV > 11) score -= 3;           // extreme UV at altitude
-      else if (altitudeUV > 9) score -= 1;
-
-      // Alpine-specific hazards
-      if (isAlpine && wind > 25) score -= 5;     // exposed above treeline = dangerous
-      if (snowRisk) score -= 6;                  // shoulder-season snow above treeline
-      if (isAlpine && summitTempMax < 32) score -= 8; // freezing summit = technical gear required
-
-      const elevNote = isAlpine ? ` · Summit ~${Math.round(summitTempMax)}°F` : "";
-      const trailNote = wind > 20 ? " · Windy ridges" : altitudeUV > 9 ? " · High UV" : snowRisk ? " · Snow risk above treeline" : "";
-      label = dry ? `Clear · ${tempMax}°F · ${sunHrs.toFixed(0)}h sun${elevNote}${trailNote}` : `${precipPct}% rain · ${tempMax}°F${elevNote}`;
-      period = dry && bestDays > 3 ? `${bestDays}-day hiking window`
-             : dry && bestDays > 1 ? "Clear through tomorrow"
-             : dry ? "Good today — rain coming"
-             : `Clearing${tmrwPrecip < 2 ? " tomorrow" : ` in ${bestDays}d`}`;
-      break;
-    }
-
     default:
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
@@ -1769,7 +1385,7 @@ function getFlightDate(whenId = "anytime") {
   }
 }
 // Travelpayouts affiliate marker — replace with your marker from tp.media dashboard
-const TP_MARKER = "YOUR_TP_MARKER";
+const TP_MARKER = "710303";
 
 // Build an Aviasales/Travelpayouts deep-link URL with pre-filled origin, destination, and dates
 // Earns commission on flight bookings via Travelpayouts (Google Flights earns $0)
@@ -2062,15 +1678,6 @@ function getVenuePhoto(name, category) {
     surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
     tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
     beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
-    diving: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-    climbing: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop",
-    kitesurfing: "https://images.unsplash.com/photo-1559288804-29a8e7e43108?w=800&h=600&fit=crop",
-    hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
-    kayak: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
-    kayaking: "https://images.unsplash.com/photo-1544966503-7cc5e49f8f01?w=800&h=600&fit=crop",
-    mtb: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&h=600&fit=crop",
-    fishing: "https://images.unsplash.com/photo-1529961482160-d7916734da85?w=800&h=600&fit=crop",
-    paragliding: "https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
   };
   return photos[cat] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
 }
@@ -3031,8 +2638,6 @@ function scoreVibeMatch(listings, text) {
     // activities
     ski:       /\b(ski|snowboard|powder|piste|mogul|lodge|après|apres|backcountry|off.piste|gondola)\b/.test(t),
     surf:      /\b(surf|wave|barrel|swell|board|break|set|reef|point.break|hang.ten)\b/.test(t),
-    dive:      /\b(dive|diving|snorkel|underwater|reef|coral|fish|visibility|marine|scuba)\b/.test(t),
-    kayak:     /\b(kayak|paddle|sea kayak|coastal|flat.water)\b/.test(t),
     beach:     /\b(beach|sand|tan|lounge|shore|coast|turquoise|crystal|clear water|sunbathe)\b/.test(t),
     // regions
     asia:      /\b(japan|bali|indonesia|asia|pacific|zen|exotic|east|southeast.asia|thai|balinese)\b/.test(t),
@@ -3041,7 +2646,6 @@ function scoreVibeMatch(listings, text) {
     hawaii:    /\b(hawaii|aloha|maui|oahu|kauai|big island|polynesian)\b/.test(t),
     americas:  /\b(colorado|california|rockies|usa|canada|appalachian|west coast|pacific northwest)\b/.test(t),
     nature:    /\b(nature|wilderness|wild|pristine|untouched|forest|jungle|raw|remote|off.the.beaten)\b/.test(t),
-    underwater:/\b(underwater|ocean|sea|marine|reef|fish|blue water|visibility)\b/.test(t),
   };
 
   // ── region airport lists ────────────────────────────────────────────────────
@@ -3057,24 +2661,20 @@ function scoreVibeMatch(listings, text) {
     // ── category match (strongest signal) ──────────────────────────────────
     if (f.ski   && l.category === "skiing")  s += 44;
     if (f.surf  && l.category === "surfing") s += 44;
-    if (f.dive  && l.category === "diving")  s += 44;
-    if (f.kayak && l.category === "kayak")   s += 44;
     if (f.beach && l.category === "tanning") s += 44;
-    if (f.underwater && ["diving","kayak","surfing"].includes(l.category)) s += 20;
 
     // ── temperature/climate match ───────────────────────────────────────────
     const isCold = l.category === "skiing";
-    const isWarm = ["tanning","surfing","diving","kayak"].includes(l.category);
+    const isWarm = l.category === "tanning" || l.category === "surfing";
     if (f.cold && isCold)  s += 28;
     if (f.hot  && isWarm)  s += 28;
     if (f.cold && isWarm)  s -= 14;
     if (f.hot  && isCold)  s -= 14;
 
     // ── intensity / vibe ────────────────────────────────────────────────────
-    const isAdrenalineCat = ["skiing","surfing","kayak"].includes(l.category);
+    const isAdrenalineCat = l.category === "skiing" || l.category === "surfing";
     if (f.adrenaline && isAdrenalineCat) s += 16;
     if (f.relax && l.category === "tanning") s += 18;
-    if (f.relax && l.category === "diving")  s += 10;
     if (f.adrenaline && l.category === "tanning") s -= 8;
 
     // ── social / crowd preference ───────────────────────────────────────────
@@ -3113,8 +2713,6 @@ function scoreVibeMatch(listings, text) {
   const themes = [
     f.ski         && "powder days on the mountain",
     f.surf        && "firing surf sessions",
-    f.hike        && "epic trail adventures",
-    f.dive        && "underwater exploration",
     f.beach       && "beachside bliss",
     f.cold        && "cold-weather thrills",
     f.hot         && "warm-weather vibes",
@@ -3667,10 +3265,38 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
         <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
           <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
           <div style={{ fontSize:11, color:"#0369a1", fontFamily:F, marginBottom:10 }}>We'll alert you when your saved spots hit 90+</div>
-          <form onSubmit={e => { e.preventDefault(); const email = e.target.email.value; if (email && email.includes("@")) { window.plausible && window.plausible("email_capture", {props:{source:"explore_banner"}}); e.target.email.value = ""; alert("You're on the list! 🎉"); }}} style={{ display:"flex", gap:8 }}>
+          <form onSubmit={async e => {
+            e.preventDefault();
+            const form = e.target;
+            const email = form.email.value.trim();
+            const btn = form.querySelector('button[type="submit"]');
+            const status = form.parentElement.querySelector('.waitlist-status');
+            if (!email || !email.includes("@")) { if (status) { status.textContent = "Enter a valid email"; status.style.color = "#b91c1c"; } return; }
+            btn.disabled = true; btn.textContent = "…";
+            try {
+              const r = await fetch(`${FLIGHT_PROXY}/api/waitlist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, source: "explore_banner" })
+              });
+              if (r.ok) {
+                window.plausible && window.plausible("email_capture", { props: { source: "explore_banner" } });
+                form.email.value = "";
+                btn.textContent = "On the list";
+                if (status) { status.textContent = "You're in. We'll ping when conditions pop."; status.style.color = "#0c4a6e"; }
+              } else {
+                btn.disabled = false; btn.textContent = "Try again";
+                if (status) { status.textContent = "Save failed — retry in a sec"; status.style.color = "#b91c1c"; }
+              }
+            } catch {
+              btn.disabled = false; btn.textContent = "Try again";
+              if (status) { status.textContent = "Network hiccup — retry"; status.style.color = "#b91c1c"; }
+            }
+          }} style={{ display:"flex", gap:8 }}>
             <input name="email" type="email" placeholder="your@email.com" aria-label="Email address for condition alerts" style={{ flex:1, padding:"9px 12px", borderRadius:10, border:"1.5px solid #bae6fd", fontSize:12, fontFamily:F, background:"white", outline:"none", color:"#222" }} />
             <button type="submit" className="pressable" style={{ padding:"9px 14px", background:"#0284c7", border:"none", borderRadius:10, fontSize:12, fontWeight:800, color:"white", fontFamily:F, cursor:"pointer", whiteSpace:"nowrap" }}>Notify me</button>
           </form>
+          <div className="waitlist-status" style={{ fontSize:11, marginTop:8, fontFamily:F, minHeight:14 }}></div>
         </div>
         <div style={{ height:24 }} />
       </div>
@@ -3787,7 +3413,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
                   </div>
                   {previewListings.length > 0 && (
                     <div style={{ display:"flex", gap:4, flexShrink:0 }}>
-                      {previewListings.map(v => <span key={v.id} style={{ fontSize:16 }}>{CATEGORIES.find(c=>c.id===v.category)?.emoji||"📍"}</span>)}
+                      {previewListings.map(v => <span key={v.id} style={{ fontSize:11, fontWeight:700, color:"#888", fontFamily:F, textTransform:"uppercase" }}>{(CATEGORIES.find(c=>c.id===v.category)?.label || "").slice(0,3)}</span>)}
                     </div>
                   )}
                   <span style={{ color:"#ccc", fontSize:16 }}>›</span>
@@ -4333,9 +3959,8 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                     padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:5,
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
-                    <span style={{ fontSize:13 }}>{cat?.emoji}</span>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {skillLevels[s] || "Intermediate"}
+                      {cat?.label} · {skillLevels[s] || "Intermediate"}
                     </span>
                   </div>
                 );
@@ -4538,7 +4163,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                       borderColor: sel ? "#222" : "#e8e8e8",
                       display:"flex", alignItems:"center", gap:10, cursor:"pointer",
                     }}>
-                      <span style={{ fontSize:17 }}>{cat.emoji}</span>
                       <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color: sel ? "#fff" : "#222", fontFamily:F }}>{cat.label}</span>
                       {sel && <span style={{ fontSize:11, color:"rgba(255,255,255,0.6)", fontFamily:F }}>{skillLevels[cat.id] || "Intermediate"}</span>}
                       <span style={{ color: sel ? "#0284c7" : "#ccc", fontWeight:900, fontSize:16 }}>{sel ? "✓" : "+"}</span>
@@ -5515,7 +5139,6 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                     display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                     boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
                   }}>
-                    <span style={{ fontSize:26 }}>{cat.emoji}</span>
                     {cat.label}
                     {sel && <span style={{ fontSize:13 }}>✓</span>}
                   </button>
@@ -5583,152 +5206,56 @@ function wxEmoji(code) { for (const [k,v] of WX_CODE_MAP) { if ((code??0) >= k) 
 
 // ─── per-category insider tips ─────────────────────────────────────────────────
 const LOCAL_TIPS = {
-  skiing:   ["🎿 Book ski rentals online 2+ days ahead — 30% cheaper than on-mountain","⏰ Hit the slopes at 8am — first 2 hours have the freshest groomed corduroy","🌤️ Overcast days = no wind & flat light is actually great for carving","🧴 Reapply SPF every 2h — UV reflects off snow and burns fast at altitude"],
-  surfing:  ["🌅 Dawn patrol has the glassiest water and thinnest crowds of the day","🏄 Paddle out via the channel, not through the break — saves 80% of your energy","📱 Check swell reports the night before, not morning — you need lead time","🦈 Avoid surfing at dawn/dusk near river mouths — peak shark feeding windows"],
-  tanning:  ["🌅 Arrive at the beach before 10am to claim the best real estate","🧴 Apply SPF 50+ 20 min before sun exposure — it needs time to bind to skin","🌊 Stake out near the shoreline for natural cooling sea breezes","🕐 The 10am–2pm window has the strongest UV — find shade between those hours"],
-  diving:   ["🐠 Early morning dives have the clearest visibility before particles stir","🌡️ Bring a wetsuit even in warm water — decompression chills are real","📸 Shoot with the sun behind you and fish in frame — colors pop instantly","🎓 Book a local guide — they know the secret macro critters and wall overhangs"],
-  climbing: ["🕐 Arrive at the crag early — popular routes have queues on weekends","🤲 Tape fingers before the first route, not after pain starts","🌡️ Rock temps below 15°C (59°F) give noticeably better friction","☁️ Cloudy days are often better — direct sun makes granite and sandstone slick"],
-  kayak:    ["🌊 Always paddle with the tide — tidal flow can run 4+ knots against you","🌬️ Wind builds by noon — plan the return leg for the morning calm window","🦦 Wildlife is most active in the first 2 hours after sunrise","📱 File a float plan with someone onshore before any open-water crossing"],
-  mtb:      ["⛽ Check tire pressure the evening before — saves time on the trail","🌧️ Wait 24h after rain — wet trail riding causes deep rut damage","👀 Look 3 bike-lengths ahead, not at the ground right in front of you","🔒 Lock out suspension climbing fire roads, open it up for technical descents"],
-  kite:     ["🌬️ Never kite in offshore wind — if you crash you'll drift straight out to sea","📊 18–25 knots is the sweet spot for dynamic, playful sessions","🕐 Sea breeze builds around 11am and dies around 5pm on most coasts","🔪 Your hook knife lives on the harness, not in the bag — not optional"],
-  fishing:  ["🌅 Fish feed most aggressively at dawn and in the hour before dusk","🌡️ Water temp 60–70°F (15–21°C) is the sweet spot for most sport species","🪱 Match the hatch — use lures that mimic what fish are already eating today","🤫 Move slow, stay low, and keep shadows off the water — fish spook easily"],
-  paraglide:["🌅 Thermal windows open 2–3 hours after sunrise once the ground heats","⛅ Cumulus clouds mark active thermals — fly toward their bases","🌬️ Never launch in gusty conditions — steady laminar flow is everything","📟 Check your reserve handle position on every single pre-flight inspection"],
+  skiing: ["Book ski rentals online 2+ days ahead — 30% cheaper than on-mountain","Hit the slopes at 8am — first 2 hours have the freshest groomed corduroy","Overcast days = no wind & flat light is actually great for carving","Reapply SPF every 2h — UV reflects off snow and burns fast at altitude"],
+  surfing: ["Dawn patrol has the glassiest water and thinnest crowds of the day","Paddle out via the channel, not through the break — saves 80% of your energy","Check swell reports the night before, not morning — you need lead time","Avoid surfing at dawn/dusk near river mouths — peak shark feeding windows"],
+  tanning: ["Arrive at the beach before 10am to claim the best real estate","Apply SPF 50+ 20 min before sun exposure — it needs time to bind to skin","Stake out near the shoreline for natural cooling sea breezes","The 10am–2pm window has the strongest UV — find shade between those hours"],
 };
 
 
 const PACKING = {
-  skiing:   ["🧥 Base + mid + shell layers","🥽 Goggles (anti-fog)","⛷️ Ski/snowboard boots","🧤 Waterproof gloves","🪖 Helmet","🧴 SPF 50+ (UV reflects off snow)","💊 Altitude meds if needed"],
-  surfing:  ["🏄 Surfboard (check bag fees)","🤿 Wetsuit (right thickness)","🧴 Board wax","👟 Reef booties","🌞 SPF 50+ water-resistant","🔌 Earplugs","🧴 After-surf skin care"],
-  tanning:  ["🧴 SPF 50+ sunscreen (re-apply!)","🕶️ UV400 sunglasses","👒 Wide-brim sun hat","🏖️ Beach towel","💆 After-sun / aloe vera","👟 Flip flops","💊 Electrolyte tablets"],
-  diving:   ["🤿 Mask, fins & snorkel","🧥 Wetsuit (correct temp rating)","🦺 BCD + regulator","⌚ Dive computer","📜 Certification card","💊 Seasickness meds","🩹 First aid kit"],
-  climbing: ["🪢 Harness + belay device","👟 Rock shoes","🤲 Chalk bag","🪖 Climbing helmet","🪢 60m dynamic rope","⚡ 12× quickdraws","🩹 Finger tape"],
-  kayak:    ["🦺 PFD life jacket","🛶 Paddle leash","🎒 Dry bag (30L+)","🧥 Wetsuit or dry suit","🗺️ Waterproof navigation","🩹 First aid kit","☀️ SPF 50+ lip balm"],
-  mtb:      ["🪖 Full-face or trail helmet","🧤 Gloves","🦵 Knee + elbow pads","⛽ Pump + CO₂ cartridge","🔧 Multi-tool","💧 Hydration pack (2L+)","🩹 Wound closure strips"],
-  kite:     ["🪁 Kite + bar","🏄 Twin-tip or directional","👊 Spreader bar harness","🧥 Wetsuit","🔗 Safety leash","🔪 Hook knife (mandatory)","☀️ Waterproof SPF 50+"],
-  fishing:  ["🎣 Rod, reel + spare line","📦 Tackle box / lures","🧲 Polarized sunglasses","📜 Fishing license","🥾 Neoprene waders","🧤 Landing gloves","🌡️ Insulated cooler"],
-  paraglide:["🪂 Wing + speed bar","👊 Paragliding harness","⚡ Reserve parachute","🪖 Open-face helmet","📟 Variometer / GPS","🌡️ Anemometer","💊 Anti-nausea tabs"],
+  skiing: ["Base + mid + shell layers","Goggles (anti-fog)","Ski/snowboard boots","Waterproof gloves","Helmet","SPF 50+ (UV reflects off snow)","Altitude meds if needed"],
+  surfing: ["Surfboard (check bag fees)","Wetsuit (right thickness)","Board wax","Reef booties","SPF 50+ water-resistant","Earplugs","After-surf skin care"],
+  tanning: ["SPF 50+ sunscreen (re-apply!)","UV400 sunglasses","Wide-brim sun hat","Beach towel","After-sun / aloe vera","Flip flops","Electrolyte tablets"],
 };
 
 // ─── affiliate gear items per category ────────────────────────────────────────
 // Amazon tag: "peakly-20" — update after Associates approval. Backcountry: add tag once approved.
 const GEAR_ITEMS = {
-  skiing:   [
-    { emoji:"🔥", name:"HeatMax Hand Warmers 40-Pack",  store:"Amazon",      price:"$18",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
-    { emoji:"🧦", name:"Darn Tough Ski Socks",          store:"Amazon",      price:"$26",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
-    { emoji:"🥽", name:"Smith I/O MAG Goggles",         store:"Amazon",      price:"$230",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
-    { emoji:"🧦", name:"Smartwool PhD Ski Socks",       store:"Amazon",      price:"$28",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
+  skiing: [
+    { name:"HeatMax Hand Warmers 40-Pack",  store:"Amazon",      price:"$18",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
+    { name:"Darn Tough Ski Socks",          store:"Amazon",      price:"$26",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
+    { name:"Smith I/O MAG Goggles",         store:"Amazon",      price:"$230",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
+    { name:"Smartwool PhD Ski Socks",       store:"Amazon",      price:"$28",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
   ],
-  surfing:  [
-    { emoji:"🧴", name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
-    { emoji:"🌞", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
+  surfing: [
+    { name:"Surf Wax",                      store:"Amazon",      price:"$9+",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
+    { name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
   ],
-  tanning:  [
-    { emoji:"🧴", name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
-    { emoji:"🕶️", name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
-    { emoji:"🏖️", name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=beach+towel" },
-    { emoji:"💊", name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+drink+mix" },
-  ],
-  diving:   [
-    { emoji:"🤿", name:"Cressi Big Eyes Evo Mask",       store:"Amazon",      price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cressi+big+eyes+evo+mask" },
-    { emoji:"🧥", name:"Scubapro Everflex 5/4 Wetsuit",  store:"Amazon",      price:"$299",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=scubapro+everflex+wetsuit" },
-    { emoji:"📸", name:"GoPro HERO 13 + Dive Housing",   store:"Amazon",      price:"$399",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+dive+housing" },
-  ],
-  climbing: [
-    { emoji:"🎒", name:"Black Diamond Chalk Bag",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+chalk+bag" },
-    { emoji:"🩹", name:"Mueller Athletic Climbing Tape", store:"Amazon",      price:"$12",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=athletic+climbing+finger+tape" },
-    { emoji:"🪢", name:"Black Diamond Momentum Harness", store:"Amazon",     price:"$65",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+momentum+harness" },
-    { emoji:"🪖", name:"Petzl Boreo Climbing Helmet",    store:"Amazon",     price:"$70",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=petzl+boreo+climbing+helmet" },
-  ],
-  kayak:    [
-    { emoji:"🏊", name:"NRS HydroSkin 0.5 Water Shoes",  store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+hydroskin+water+shoes" },
-    { emoji:"📦", name:"Sea to Summit Ultra-Sil Dry Sack",store:"Amazon",     price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=sea+to+summit+ultra+sil+dry+sack" },
-    { emoji:"🦺", name:"NRS Chinook Fishing PFD",        store:"Amazon",     price:"$140",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=nrs+chinook+fishing+pfd" },
-    { emoji:"🎒", name:"Earth Pak Waterproof Dry Bag 40L",store:"Amazon",    price:"$27",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=earth+pak+waterproof+dry+bag" },
-  ],
-  mtb:      [
-    { emoji:"🪖", name:"Troy Lee A3 MIPS Helmet",        store:"Backcountry", price:"$220",  commission:"8%",  url:"https://www.backcountry.com/troy-lee-designs-a3-mips-helmet" },
-    { emoji:"🦵", name:"Fox Launch Pro D3OR Knee Pads",  store:"Backcountry", price:"$130",  commission:"8%",  url:"https://www.backcountry.com/fox-racing-launch-pro-d3or-knee-guard" },
-    { emoji:"🔧", name:"Topeak Hexus X Multi-Tool",      store:"Amazon",      price:"$20",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=topeak+hexus+multi+tool+bike" },
-    { emoji:"🩹", name:"Park Tool Tire Boot Repair Kit", store:"Amazon",      price:"$14",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=park+tool+tire+boot+repair+kit" },
-    { emoji:"🧤", name:"Fox Racing Ranger Gel Gloves",   store:"Amazon",     price:"$35",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=fox+racing+ranger+gel+gloves" },
-    { emoji:"💧", name:"CamelBak M.U.L.E. 12 Hydration Pack",store:"Amazon", price:"$110",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=camelbak+mule+12+hydration+pack+mtb" },
-  ],
-  kite:     [
-    { emoji:"🪁", name:"Cabrinha Moto 12m Kite",         store:"Amazon",      price:"$1,299",commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=cabrinha+moto+kite" },
-    { emoji:"🧥", name:"Ion Element 4/3 Wetsuit",        store:"Amazon",      price:"$280",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=ion+element+wetsuit" },
-    { emoji:"🔪", name:"Dakine Kite Line Cutter",        store:"Amazon",      price:"$22",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+kite+line+cutter" },
-    { emoji:"🌞", name:"Thinksport SPF 50+ Sunscreen",   store:"Amazon",      price:"$18",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=thinksport+spf+50+sunscreen" },
-  ],
-  fishing:  [
-    { emoji:"🎣", name:"Ugly Stik GX2 Spinning Combo",   store:"Amazon",      price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=ugly+stik+gx2+spinning+combo" },
-    { emoji:"🧲", name:"Costa Del Mar Permit Polarized", store:"Amazon",      price:"$189",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=costa+del+mar+permit+sunglasses" },
-    { emoji:"🥾", name:"Simms G3 Guide Wading Boots",    store:"Amazon",      price:"$230",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=simms+g3+guide+wading+boots" },
-  ],
-  paraglide:[
-    { emoji:"🪖", name:"Sup'Air Pilot Helmet",           store:"Amazon",      price:"$180",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=supair+pilot+paragliding+helmet" },
-    { emoji:"📟", name:"Skytraxx 5 Vario GPS",           store:"Amazon",      price:"$590",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=skytraxx+vario+gps+paragliding" },
-    { emoji:"💊", name:"Bonine Motion Sickness Tabs",    store:"Amazon",      price:"$9",    commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=bonine+motion+sickness" },
-    { emoji:"📸", name:"GoPro HERO 13 Chest Mount Kit",  store:"Amazon",      price:"$449",  commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+chest+mount+kit" },
-  ],
-  hiking:   [
-    { emoji:"💧", name:"Osprey Hydraulics 3L Reservoir",   store:"Amazon",  price:"$45",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+hydraulics+reservoir" },
-    { emoji:"🔦", name:"Black Diamond Spot 400 Headlamp",  store:"Amazon",  price:"$36",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+spot+400+headlamp" },
-    { emoji:"🧦", name:"Darn Tough Hiker Micro Crew Socks", store:"Amazon", price:"$26",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+hiker+micro+crew+socks" },
+  tanning: [
+    { name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
+    { name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
+    { name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=beach+towel" },
+    { name:"Hydration Drink Mix",           store:"Amazon",      price:"$25+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+drink+mix" },
   ],
 };
 
 // ─── guided experiences per category ──────────────────────────────────────────
 // Links are generated dynamically based on venue location
 const EXPERIENCES = {
-  skiing:   [
-    { emoji:"🎿", name:"Private ski lesson (beginner)",  price:120, duration:"2 hrs" },
-    { emoji:"🏔️", name:"Off-piste powder guide",         price:280, duration:"Full day" },
-    { emoji:"🌅", name:"Sunrise first tracks tour",      price:160, duration:"3 hrs" },
+  skiing: [
+    { name:"Private ski lesson (beginner)",  price:120, duration:"2 hrs" },
+    { name:"Off-piste powder guide",         price:280, duration:"Full day" },
+    { name:"Sunrise first tracks tour",      price:160, duration:"3 hrs" },
   ],
-  surfing:  [
-    { emoji:"🏄", name:"Beginner surf lesson",           price:65,  duration:"2 hrs" },
-    { emoji:"📸", name:"In-water surf photography",      price:120, duration:"2 hrs" },
-    { emoji:"🚤", name:"Dawn patrol boat surf charter",  price:200, duration:"4 hrs" },
+  surfing: [
+    { name:"Beginner surf lesson",           price:65,  duration:"2 hrs" },
+    { name:"In-water surf photography",      price:120, duration:"2 hrs" },
+    { name:"Dawn patrol boat surf charter",  price:200, duration:"4 hrs" },
   ],
-  tanning:  [
-    { emoji:"🚤", name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs" },
-    { emoji:"🧘", name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr" },
-    { emoji:"🪂", name:"Parasailing over the water",     price:89,  duration:"30 min" },
-  ],
-  diving:   [
-    { emoji:"🤿", name:"Discover scuba intro dive",      price:110, duration:"Half day" },
-    { emoji:"🐠", name:"Night dive with marine biologist",price:145,duration:"2 hrs" },
-    { emoji:"🐋", name:"Whale shark snorkel (seasonal)", price:175, duration:"4 hrs" },
-  ],
-  climbing: [
-    { emoji:"🪢", name:"Rock climbing intro lesson",     price:95,  duration:"Half day" },
-    { emoji:"🏔️", name:"Multi-pitch guided climb",       price:340, duration:"Full day" },
-    { emoji:"🧗", name:"Via ferrata (iron road) tour",   price:110, duration:"4 hrs" },
-  ],
-  kayak:    [
-    { emoji:"🛶", name:"Sea kayak guided day tour",      price:85,  duration:"Full day" },
-    { emoji:"🌙", name:"Bioluminescent night kayak",     price:65,  duration:"2 hrs" },
-    { emoji:"🦦", name:"Wildlife wildlife kayak tour",   price:90,  duration:"3 hrs" },
-  ],
-  mtb:      [
-    { emoji:"🚵", name:"Guided enduro trail descent",    price:120, duration:"4 hrs" },
-    { emoji:"🚐", name:"Uplift shuttle + guided flow",   price:85,  duration:"3 hrs" },
-    { emoji:"🔧", name:"Trail skills clinic",            price:75,  duration:"Half day" },
-  ],
-  kite:     [
-    { emoji:"🪁", name:"IKO kitesurf beginner course",   price:220, duration:"3 days" },
-    { emoji:"🏄", name:"Foil kiteboard intro lesson",    price:140, duration:"2 hrs" },
-    { emoji:"🤿", name:"Downwinder + snorkel combo",     price:95,  duration:"4 hrs" },
-  ],
-  fishing:  [
-    { emoji:"🎣", name:"Full-day offshore charter",      price:220, duration:"Full day" },
-    { emoji:"🪄", name:"Fly fishing guided wade trip",   price:180, duration:"Full day" },
-    { emoji:"🌅", name:"Sunrise kayak fishing tour",     price:95,  duration:"4 hrs" },
-  ],
-  paraglide:[
-    { emoji:"🪂", name:"Tandem paraglide flight",        price:175, duration:"30 min" },
-    { emoji:"🎓", name:"P2 paragliding course (5 days)", price:950, duration:"5 days" },
-    { emoji:"📸", name:"Aerial photography flight",      price:220, duration:"1 hr" },
+  tanning: [
+    { name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs" },
+    { name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr" },
+    { name:"Parasailing over the water",     price:89,  duration:"30 min" },
   ],
 };
 
@@ -6627,11 +6154,9 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
 // ─── guides tab ──────────────────────────────────────────────────────────────
 function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
   const guideCategories = [
-    { id: "skiing",   title: "Ski & Snow Guides",   emoji: "\u26F7\uFE0F" },
-    { id: "surfing",  title: "Surf Guides",          emoji: "\uD83C\uDFC4" },
-    { id: "hiking",   title: "Hiking Guides",         emoji: "\uD83E\uDD7E" },
-    { id: "diving",   title: "Diving Guides",         emoji: "\uD83E\uDD3F" },
-    { id: "climbing", title: "Climbing Guides",        emoji: "\uD83E\uDDD7" },
+    { id: "skiing",  title: "Ski & Snow Guides" },
+    { id: "surfing", title: "Surf Guides" },
+    { id: "tanning", title: "Beach Guides" },
   ];
 
   const featured = [...listings].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
@@ -6640,9 +6165,6 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
     skiing: "Snow conditions, resort breakdowns & budget tips",
     surfing: "Swell forecasts, board recs & local secrets",
     tanning: "UV index intel, hidden beaches & sun safety",
-    hiking: "Trail conditions, gear lists & elevation guides",
-    diving: "Visibility reports, marine life & cert advice",
-    climbing: "Route betas, crag access & seasonal windows",
   };
 
   return (
@@ -6665,10 +6187,6 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
           <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.3)" }} />
           <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: F }}>
             {guideCategories.length} categories
-          </span>
-          <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.3)" }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: F }}>
-            45 countries
           </span>
         </div>
       </div>
@@ -6744,7 +6262,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
           <div key={cat.id} style={{ padding: "20px 0 4px" }}>
             <div style={{ padding: "0 24px 12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: "#222", fontFamily: F }}>
-                {cat.emoji} {cat.title}
+                {cat.title}
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#717171", fontFamily: F }}>{venues.length} guides</span>
             </div>
@@ -6998,7 +6516,7 @@ function App() {
 
   const fetchVenueWeather = useCallback(async (venue) => {
     if (wxRef.current[venue.id]) return; // already fetched
-    const needsMarine = ["surfing","diving","kayak"].includes(venue.category);
+    const needsMarine = venue.category === "surfing";
     const [wxR, marR] = await Promise.allSettled([
       fetchWeather(venue.lat, venue.lon),
       needsMarine ? fetchMarine(venue.lat, venue.lon) : Promise.resolve(null),
@@ -7020,7 +6538,7 @@ function App() {
       const batch = initial.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
         batch.map(async v => {
-          const needsMarine = ["surfing","diving","kayak"].includes(v.category);
+          const needsMarine = v.category === "surfing";
           const [wxR, marR] = await Promise.allSettled([
             fetchWeather(v.lat, v.lon),
             needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
