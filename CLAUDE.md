@@ -133,6 +133,18 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 2. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 3. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 
+### Recently Fixed (2026-04-11 accuracy + honesty pass)
+
+- ✅ **Surfing wind direction was INVERTED** — was comparing wind to swell direction; offshore is relative to the break's FACING. Now uses `venue.facing + 180` for offshore bearing. Glassy / offshore / cross / onshore penalties calibrated. This was making clean offshore days score worse than blown-out onshore days.
+- ✅ **Skiing penalized heavy snow as "low visibility"** — `wCode >= 65` hit snow codes 71-77. Now splits rain (penalty) from snow (no penalty). Added wind chill component and tuned snow-depth curve.
+- ✅ **Tanning wind thresholds were too forgiving** — beach is uncomfortable at 13mph, miserable at 18mph. Tightened. Added water temperature bonus/penalty when marine data is fetched.
+- ✅ **Flight pricing was fabricating deals** — `getFlightDeal` returned a pseudo-random 28–75% "discount" off BASE_PRICES when Travelpayouts hadn't responded yet. Users saw "$180 · 60% off" on venues where no real data existed. Now returns the honest typical price, `pct: 0`, `isEstimate: true`.
+- ✅ **`getTypicalPrice` used euclidean degrees** from a hardcoded "central US" point, ignoring home airport entirely. Rewrote to look up `BASE_PRICES[venue.ap]?.[homeAirport]` with region-pair fallback. Single source of truth shared with `getFlightDeal`.
+- ✅ **UI price badges now gated on `flight.live`** — "X% off" and the strikethrough typical only render when data is real AND pct >= 10. When estimate: shows "~$X typical" in muted color.
+- ✅ **Best-right-now filter** now passes homeAirport to `getDealScore` and excludes estimates from the deal threshold.
+- ✅ **Insider Tips section removed** from VenueDetailSheet (LOCAL_TIPS const + PACKING const deleted — both were orphaned after).
+- ✅ **"You'd also like"** moved to bottom of VenueDetailSheet (after Save-to-list).
+
 ### Recently Fixed (2026-04-10 cleanup + launch-scope pass)
 
 - ✅ `TP_MARKER = "710303"` set — flight commission earning
