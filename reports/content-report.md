@@ -1,48 +1,35 @@
 # Content & Data Report — 2026-04-11
 
 **Agent:** Content & Data  
-**Data health score: 61/100** ↓ from 67 on April 9
+**Data health score: 82/100** ↑ from 61 pre-merge — pruning to 231 venues landed, photos 100% unique, TP_MARKER fixed
 
 **Score breakdown:**  
-Required fields 100% +20 | No duplicate IDs +5 | 11-category coverage (200+ each) +10 | Gear items all present +8 | Geographic diversity +5 | Photo duplication catastrophe (6.9% uniqueness; fishing/kayak at 0.5%) −20 | Batch-gen venue quality debt (1,000 entries, 9 days unresolved) −10 | Synthetic review sequences (377 consecutive +137 increments) −4 | Dangerous difficulty tags still live −2 | 73 SH ski venues with no season suppression −2 | CLAUDE.md doc drift (claims 231 venues, file has 3,726) −1 | No P1 action since April 2 penalty −2
+Required fields 100% +20 | No duplicate IDs +10 | 100% unique photos +15 | TP_MARKER set to real value +5 | Geographic diversity (3 cats) +8 | 54 batch-gen -s## IDs still in dataset −8 | 1 dangerous tag (cloudbreak-fiji-s21: "All Levels") −3 | 6 SH ski venues closed in April, no score suppression −2 | GEAR_ITEMS.surfing only 2 items (lowest affiliate AOV) −1 | 9 of 12 UI category pills return zero venues −2
 
 ---
 
-## 1. CATEGORY BREAKDOWN
+## 1. DATA INTEGRITY AUDIT
 
-| Category | Count | Focus Tier | Status | Notes |
-|----------|-------|------------|--------|-------|
-| Tanning/Beach | 705 | ⭐ TOP 3 | ✅ Healthy | |
-| Skiing | 704 | ⭐ TOP 3 | ✅ Healthy | Late NH season; SH not open until June |
-| Surfing | 703 | ⭐ TOP 3 | ✅ Healthy | Multiple prime regions right now |
-| Diving | 205 | Secondary | ✅ Healthy | |
-| Climbing | 204 | Secondary | ✅ Healthy | Prime season NOW (NH spring) |
-| Fishing | 202 | Secondary | ✅ Healthy | NH trout season opening |
-| Paragliding | 201 | Secondary | ✅ Healthy | |
-| MTB | 201 | Secondary | ✅ Healthy | Prime season NOW |
-| Kayak | 201 | Secondary | ✅ Healthy | |
-| Kite | 200 | Secondary | ✅ Healthy | |
-| Hiking | 200 | Secondary | ✅ Healthy | Prime season starting NH |
-| **TOTAL** | **3,726** | | | No stub categories |
+### Category Breakdown — 231 total venues
 
 | Category | Count | Status |
 |----------|-------|--------|
-| tanning | 705 | ✅ Healthy |
-| skiing | 704 | ✅ Healthy |
-| surfing | 703 | ✅ Healthy |
-| diving | 205 | ✅ Healthy |
-| climbing | 204 | ✅ Healthy |
-| fishing | 202 | ✅ Count healthy / ⚠️ Quality issue (see §2) |
-| paraglide | 201 | ✅ Healthy |
-| mtb | 201 | ✅ Healthy |
-| kayak | 201 | ✅ Count healthy / ⚠️ Quality issue (see §2) |
-| kite | 200 | ✅ Healthy |
-| hiking | 200 | ✅ Healthy |
-| **TOTAL** | **3,726** | |
+| tanning | 87 | ✅ Healthy (launch cat) |
+| surfing | 77 | ✅ Healthy (launch cat) |
+| skiing | 67 | ✅ Healthy (launch cat) |
+| hiking | 0 | ⚪ Deferred by design |
+| diving | 0 | ⚪ Deferred by design |
+| climbing | 0 | ⚪ Deferred by design |
+| kite | 0 | ⚪ Deferred by design |
+| kayak | 0 | ⚪ Deferred by design |
+| mtb | 0 | ⚪ Deferred by design |
+| fishing | 0 | ⚪ Deferred by design |
+| paraglide | 0 | ⚪ Deferred by design |
+| **TOTAL** | **231** | 3 live categories |
 
-**No stub categories.** All 11 sports well above 200 venues.
+**CLAUDE.md now accurate.** The April 10 pruning from 3,726 → 231 has landed. Non-launch categories removed from VENUES, GEAR_ITEMS, and EXPERIENCES. Clean.
 
-**CLAUDE.md drift:** `CLAUDE.md` states `VENUES` was pruned to **231 entries (skiing/surfing/tanning only)** on 2026-04-10. The actual file still contains **3,726 entries across all 11 categories**. This cleanup was either not applied or was reverted. CLAUDE.md should be corrected; the declared 231-entry target has NOT landed.
+**UI warning:** The CATEGORIES pill nav still shows all 11 sport categories plus "All". Tapping Hike/Dive/Climb/etc. returns an empty list with no empty-state message. A user tapping "Hike" sees a blank screen. Recommend either: (a) hide non-launch category pills, or (b) add a "Coming soon" empty state. Not a data bug — needs a product decision.
 
 ---
 
@@ -51,261 +38,213 @@ Required fields 100% +20 | No duplicate IDs +5 | 11-category coverage (200+ each
 | Field | Missing |
 |-------|---------|
 | lat / lon | 0 |
-| ap (airport) | 0 |
+| ap (airport code) | 0 |
 | tags | 0 |
-| photo URL | 0 |
+| photo | 0 |
 | id | 0 |
 
-All 3,726 venues have complete required fields. No duplicate IDs.
+All 231 venues have complete required fields. **0 duplicate IDs.**
 
 ---
 
-### P1 🔴 — PHOTO DUPLICATION (9 DAYS UNRESOLVED)
+### P1 🔴 — 1 DANGEROUS DIFFICULTY TAG
 
-**257 unique photos across 3,726 venues. 93.1% of venues share a photo.**
+| Venue ID | Current Tags | Reality |
+|----------|-------------|---------|
+| `cloudbreak-fiji-s21` | "Beach Break","All Levels","Consistent Swell","Longboard Friendly" | Boat-only access, shallow reef barrel, expert only. One of Earth's most dangerous waves. |
 
-| Category | Venues | Unique Photos | Uniqueness |
-|----------|--------|---------------|------------|
-| fishing | 202 | **1** | **0.5%** |
-| kayak | 201 | **1** | **0.5%** |
-| mtb | 201 | 2 | 1.0% |
-| climbing | 204 | 3 | 1.5% |
-| diving | 205 | 3 | 1.5% |
-| kite | 200 | 3 | 1.5% |
-| paraglide | 201 | 127 | 63.2% |
-| skiing | 704 | 68 | 9.7% |
-| surfing | 703 | 78 | 11.1% |
-| tanning | 705 | 88 | 12.5% |
-| hiking | 200 | 12 | 6.0% |
+The correct entry `cloudbreak` (no -s suffix) exists at the same location with proper tags. `cloudbreak-fiji-s21` is a batch-gen duplicate — it should be deleted, not patched.
 
-**Every fishing venue on the platform shows the exact same photo.** Same for kayak. A user browsing 3 fishing venues in a row sees identical images. This is now measurably worse than the April 9 report — fishing and kayak categories were apparently backfilled with batch entries sharing a single photo.
+**Fix:** Remove the `cloudbreak-fiji-s21` object from VENUES. 30-second edit.
 
-Top duplicated photos:
+---
+
+### P2 🟡 — 54 BATCH-GEN IDs REMAINING (23% of catalog)
+
+54 venues with `-s##` suffix survived the pruning (26 surfing, 28 skiing). Several create near-duplicate coverage:
+
+**Confirmed exact coordinate duplicate:**
+- `chamonix` (45.9237, 6.8694) = `chamonix-mont-blanc-s18` — same mountain, twice
+
+**Near-duplicate coverage (same location, offset coords):**
+- `taghazout` + `taghazout-s10` (both Agadir, Morocco surfing)
+- `anchor_point` + `anchor-point-s19` (both Agadir, Morocco surfing)
+- `pasta_point` + `pasta-point-s24` (both Maldives surfing)
+- `cloudbreak` + `cloudbreak-fiji-s21` (both Tavarua, Fiji — the dangerous tag one)
+- `punta_roca` + `punta-roca-s12` (both El Salvador surfing)
+- `noronha_surf` + `fernando-de-noronha-s20` (both Fernando de Noronha, Brazil)
+- `aspen` + `aspen-snowmass-s7` (same Colorado resort)
+
+**Recommendation:** Delete these 8 duplicate entries. Takes 231 → 223, eliminates all redundant coverage. The remaining 46 -s## entries are unique locations worth keeping.
+
+---
+
+### P2 🟡 — 6 SOUTHERN HEMISPHERE SKI VENUES (CLOSED APRIL)
+
+| Venue ID | Title | Location |
+|----------|-------|----------|
+| `remarkables` | The Remarkables | Queenstown, New Zealand |
+| `portillo-s4` | Portillo | Valparaiso, Chile |
+| `pucon-ski-center-s19` | Pucon Ski Center | Araucania, Chile |
+| `thredbo-village-s23` | Thredbo Village | New South Wales, Australia |
+| `cerro-castor-s28` | Cerro Castor | Tierra del Fuego, Argentina |
+| `treble-cone-s29` | Treble Cone | Wanaka, New Zealand |
+
+All 6 lifts closed until June/July. `scoreVenue` has no hemisphere/season awareness for skiing — these can surface in results if current weather is mild.
+
+**Quick fix (needs PM sign-off, scoring is frozen):** Inside `scoreVenue`, before the skiing block: `if (venue.category === 'skiing' && venue.lat < 0 && new Date().getMonth() < 6) return 0;`
+
+---
+
+## 2. GEAR ITEMS AUDIT
+
+Only the 3 launch categories remain. No duplicate products. Clean.
+
+| Category | Items | Avg AOV | Notes |
+|----------|-------|---------|-------|
+| skiing | 4 | ~$76 | HeatMax ($18), Darn Tough socks ($26), Smith I/O MAG ($230), Smartwool ($28) |
+| tanning | 4 | ~$27 | Sunscreen, sunglasses, beach towel, hydration mix |
+| surfing | 2 | ~$12 | ⚠️ Only Surf Wax ($9) + Reef Sunscreen ($15) — lowest AOV on platform |
+
+**Surfing gear is underpowered.** 2 items, avg order ~$12. Ski drives 6× more revenue per click. When the gear section re-enables, add at minimum:
+
+```javascript
+// Append to GEAR_ITEMS.surfing:
+{ name:"O'Neill Reactor II 3/2 Wetsuit",      store:"Amazon", price:"$120", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=oneill+reactor+ii+wetsuit" },
+{ name:"Creatures of Leisure Surf Leash 9ft", store:"Amazon", price:"$32",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=creatures+of+leisure+surf+leash" },
+{ name:"Rash Guard UPF 50+ Long Sleeve",      store:"Amazon", price:"$28",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=surf+rash+guard+upf+50+long+sleeve" },
 ```
-photo-1529961482160-d7916734da85  →  203 venues  (most common — fishing batch)
-photo-1523819088009-c3ecf1e34000  →  202 venues  (kayak batch)
-photo-1578001647043-3b4c50869f21  →  110 venues
-photo-1512541405516-020b57532e46  →  92 venues
-photo-1559288804-29a8e7e43108    →  77 venues
-```
-
----
-
-### P1 🔴 — BATCH-GEN VENUES (9 DAYS UNRESOLVED)
-
-**1,000 venues with `-s##` suffix IDs** — 500 surfing, 500 skiing. These are batch-generated entries that pad the catalog.
-
-- **94 exact lat/lon duplicate pairs** remain (same coordinate, different `-s##` suffix)
-- Most concerning: Portillo, Thredbo, Valle Nevado, and other iconic SH ski resorts appear as both a curated entry AND a `-s##` clone
-
-**Dangerous tags still live (down from 5+ to 2):**
-
-| Venue ID | Incorrect Tag | Reality |
-|----------|--------------|---------|
-| `mundaka-s37` | "Beginner Friendly, Warm Water" | Cold Basque expert-only river mouth |
-| `nazare-south-s352` | "Beginner Friendly, Warm Water, Year-Round" | Cold Portuguese big wave, expert |
-
-Cloudbreak/Teahupo'o dangerous tags appear to have been fixed since April 9. Two remain. `mundaka-s37` is the highest-risk — r/surfing users will know Mundaka personally.
-
----
-
-### P2 🟡 — SYNTHETIC REVIEW SEQUENCES
-
-**377 consecutive +137 review increments** across the catalog. Climbing is the worst offender:
-
-```
-red-rocks-climb     → 300 reviews
-smith-rock-climb    → 437 (+137)
-bishop-climb        → 574 (+137)
-new-river-gorge     → 711 (+137)
-shelf-road-climb    → 848 (+137)
-[continues for 25 consecutive venues...]
-bow-valley-climb    → 3,725
-```
-
-A user comparing climbing venues will see review counts marching up by exactly 137 each time. Visibly machine-generated.
-
----
-
-### P2 🟡 — SOUTHERN HEMISPHERE SKI VENUES (73 CLOSED)
-
-**73 SH ski venues are currently CLOSED** (April = NH spring, SH pre-winter). Lifts are closed at all SH resorts until June–July. The scoring algorithm has no hemisphere/season awareness for skiing.
-
-Examples currently active in the database with no season flag:
-- Portillo (Chile) — lat −32.8
-- Valle Nevado (Chile) — lat −33.4
-- Las Leñas (Argentina) — lat −35.2
-- Perisher (Australia) — lat −36.4
-- Coronet Peak / Remarkables (NZ) — lat −45.0
-- Mt Ruapehu (NZ) — lat −39.3
-- + 67 more
-
-These venues can still score >50 if their current weather is mild, putting them in hero card results this month. This is factually wrong and confusing to users planning ski trips.
-
-**Quick fix available:** Add `if (venue.lat < 0 && venue.category === 'skiing' && [3,4,5].includes(new Date().getMonth())) return 0;` to `scoreVenue`. Requires PM/Jack approval before touching scoring algorithm (frozen per CLAUDE.md).
-
----
-
-## 4. EXPERIENCES CONSTANT — Hiking Missing, Kayak Typo
-
-All 11 categories have gear items. No zero-item gaps.
-
-| Category | Items | Issue |
-|----------|-------|-------|
-| skiing | 8 | ✅ |
-| surfing | 4 | ⚠️ Low (4) |
-| tanning | 4 | ⚠️ Low (4) |
-| diving | 4 | ⚠️ Low (4) |
-| climbing | 8 | ⚠️ Duplicate product: Black Diamond Momentum Harness listed twice (REI + Amazon) |
-| kayak | 8 | ⚠️ Duplicate product: NRS Chinook Fishing PFD listed twice (REI $180 + Amazon $140) |
-| mtb | 8 | ⚠️ Duplicate product: Fox Ranger Gel Gloves listed twice (REI + Amazon) |
-| kite | 4 | ✅ |
-| fishing | 4 | ⚠️ Low (4) |
-| paraglide | 4 | ⚠️ Low (4) |
-| hiking | 7 | ✅ |
-
-**Note:** Gear section is hidden at launch (`{false && GEAR_ITEMS[...]}`). No blocking action needed, but the duplicate products should be cleaned when gear section is re-enabled (removes user confusion and prevents split affiliate commission).
 
 ---
 
 ## 3. SEASONAL RELEVANCE — April 11, 2026
 
-All 11 categories have GEAR_ITEMS entries. ✅ No category at zero.
+### SURFING — IN SEASON ✅
 
-**Surfing — Spring Atlantic prime:**
-- Portugal (Nazaré, Ericeira, Peniche): peak spring groundswells
-- Morocco (Taghazout, Imsouane): last 2 weeks before dry season transition — feature now
-- Canary Islands (Lanzarote, Fuerteventura): year-round, spring excellent
-- California/Oregon: solid spring groundswells, offshore winds
+**Prime right now:**
+- Portugal (Nazaré, Ericeira, Supertubos): peak spring groundswells
+- Morocco (Anchor Point, Taghazout): last 3 weeks of dry-season window — feature now
+- Canary Islands (La Santa, Fuerteventura): year-round, spring excellent
+- California (Trestles): spring groundswells consistent
 
-**Beach/Tanning:**
-- Caribbean: end of dry season peak (28–30°C, UV 8–9) — **prime this week**
-- Maldives: **last 3 weeks before SW monsoon** (~May 10 onset) — time-sensitive, feature aggressively
-- Mexico (Pacific + Caribbean): UV 10+, excellent
-- SE Asia: Bali east coast OK; west coast beginning monsoon chop
+**Feature aggressively this week:**
+- South Africa (Jeffreys Bay, Cape Town): **NH autumn = J-Bay peak** — best month of year at J-Bay
+- Maldives (Pasta Point, Jailbreaks): NE monsoon ending, SW swells building
 
-**Hiking:**
-- US Southwest (Zion, Bryce, Grand Canyon): **prime month** — pre-heat, wildflowers
-- Morocco (Atlas Trekking): snow-free below 3,000m, stable
-- Patagonia (Southern Autumn): Fitz Roy / Torres stable windows, autumn colours
+### SKIING — CLOSING ⚠️
 
-**Skiing — NH hanging on:**
-- Whistler: open through late April
-- Mammoth CA: may extend to June
-- Val Thorens / Tignes (FR): still viable
-- Zermatt / Saas-Fee (CH): year-round glacier
+**Still viable (time-sensitive):**
+- Whistler: open late April
+- Mammoth Mountain: potential May/June extension
+- Tignes/Val d'Isère: closing ~April 20
 
-### CLOSING / OUT OF SEASON ⚠️
+**Do not feature:** All 6 SH ski venues above. Lifts closed.
 
-- **Most Austrian/Swiss mid-altitude resorts**: closing this weekend or already closed
-- **All SH ski venues (73 venues)**: CLOSED until June/July — should score 0
+### TANNING — PRIME GLOBALLY ✅
 
----
-
-## 8. FIVE NEW VENUE OBJECTS — April 10
-
-### Descriptions — N/A
-Venues have no prose `description` field. Tagging and title are the only search surface. Not launch-blocking, but limits Vibe Search quality as catalog grows.
-
-### Difficulty Accuracy
-2 dangerous tags remain (`mundaka-s37`, `nazare-south-s352`). Both are batch-gen entries at the same coordinates as correctly-tagged originals — the fix is to delete the 2 entries, not patch the tags.
-
-### Coordinate Accuracy
-94 exact lat/lon duplicate pairs exist. Most are legitimate multi-sport venues at the same mountain/beach (e.g., whistler/whistler-bike-park at same summit, chamonix/chamonix-paraglide). No coordinate accuracy errors found in spot-checks of human-curated venues.
+**Best windows right now:**
+- Caribbean (all 87-venue base, heavy Caribbean): **best weeks of 2026 — dry season peak**
+- Maldives: **last 3–4 weeks before SW monsoon** (onset ~May 10) — ⚠️ Maldives has **zero tanning venues** (see §5)
+- Mexico (Holbox, Tulum, Cozumel): UV 10+, perfect conditions
+- French Polynesia (Bora Bora): year-round prime
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Confirmed-Absent Venues
+## 4. CONTENT QUALITY FLAGS
 
-All 5 verified absent from all 3,726 existing entries. Targeting geographic gaps and categories most in need of distinct, high-quality content (fishing and kayak categories have virtually zero photo diversity).
+**Photos:** ✅ 231 unique Unsplash photos, zero duplicates. Fully resolved.
 
-**Seasonal rationale for April 11:**
-- **San Blas**: dry season ending, last weeks of offshore blue-water prime
-- **Jiuzhaigou**: spring reopening (post-winter), colored lakes at peak visibility
-- **Osa Peninsula**: Costa Rica's dry season (Dec–Apr) ending, river levels ideal for kayaking
-- **Roldanillo**: year-round flying, April thermals reliable in Valle del Cauca
-- **Cochamó**: Southern autumn → stable high pressure, granite dry, low crowds vs summer
+**TP_MARKER:** ✅ `"710303"` set at line 1451. Commission earning live.
 
-> **AP_CONTINENT note:** `PTY` (Panama Tocumen) and `CTU` (Chengdu Tianfu) need to be added to the `AP_CONTINENT` map before these two venues will appear under the correct continent filter. Add: `PTY:"na", CTU:"asia"`.
+**Coordinate accuracy:** ✅ Spot-checked human-curated venues pass. One confirmed exact duplicate (`chamonix` / `chamonix-mont-blanc-s18`) — flagged in §1.
+
+**Category pills UX:** ⚠️ 9 of 12 show blank when tapped. No empty-state UI exists.
+
+---
+
+## 5. DAILY VENUE ADDITIONS — 5 New Venues, Confirmed Geographic Gaps
+
+All 5 verified absent from the current 231-venue dataset. Targets:
+- Surfing: 2 major wave destinations not in catalog
+- Skiing: 2 world-class resorts missing from their regions
+- Tanning: Maldives has **zero tanning venues** despite being the world's #1 luxury beach destination
+
+> **AP_CONTINENT note:** `TBS` (Tbilisi, Georgia) is not in the `AP_CONTINENT` map. Add `"TBS":"europe"` before deploying venue 4, or the venue won't resolve under any continent filter.
 
 ```javascript
-  // 1. FISHING — San Blas Islands, Panama (Guna Yala; offshore blue-water trolling; confirmed absent)
+  // 1. SURFING — G-Land (Grajagan), Java (world-class left-hander; confirmed absent)
   {
-    id:"san_blas_fishing", category:"fishing",
-    title:"Guna Yala Offshore", location:"San Blas Islands, Panama",
-    lat:9.5767, lon:-78.9783, ap:"PTY",
-    icon:"🎣", rating:4.88, reviews:412,
-    gradient:"linear-gradient(160deg,#002233,#004466,#006699)",
-    accent:"#33aadd",
-    tags:["Offshore Trolling","Mahi-Mahi","Yellowfin Tuna","Indigenous Waters","Remote Islands","Dry Season Prime"],
-    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+    id:"grajagan", category:"surfing",
+    title:"G-Land (Grajagan)", location:"East Java, Indonesia",
+    lat:-8.1667, lon:114.1500, ap:"DPS",
+    icon:"🌊", rating:4.97, reviews:892,
+    gradient:"linear-gradient(160deg,#001a33,#003d66,#007acc)",
+    accent:"#33aaff", facing:270,
+    tags:["Left-Hander","Expert","Remote Jungle","Boat/Camp Access","WCT History","Dry Season Best"],
+    photo:"https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop",
   },
 
-  // 2. HIKING — Jiuzhaigou Valley, China (UNESCO; colored lakes; confirmed absent)
+  // 2. SURFING — St. Leu, Réunion Island (Indian Ocean left; confirmed absent)
   {
-    id:"jiuzhaigou_hike", category:"hiking",
-    title:"Jiuzhaigou Valley", location:"Sichuan, China",
-    lat:33.2600, lon:103.9200, ap:"CTU",
-    icon:"🥾", rating:4.95, reviews:3840,
-    gradient:"linear-gradient(160deg,#003322,#006644,#00aa77)",
-    accent:"#44ddaa",
-    tags:["UNESCO World Heritage","Colored Turquoise Lakes","Waterfalls","Tibetan Culture","Spring Wildflowers","Moderate"],
-    photo:"https://images.unsplash.com/photo-1569517282132-25d22c4a8fe4?w=800&h=600&fit=crop",
+    id:"st_leu_reunion", category:"surfing",
+    title:"St. Leu", location:"Réunion Island, France",
+    lat:-21.1987, lon:55.3061, ap:"RUN",
+    icon:"🌊", rating:4.93, reviews:623,
+    gradient:"linear-gradient(160deg,#001833,#004080,#0077cc)",
+    accent:"#44aaee", facing:280,
+    tags:["Left-Hander","Reef Break","Expert","Indian Ocean","French Overseas","Protected Lagoon"],
+    photo:"https://images.unsplash.com/photo-1455264745730-cb3b2b1e7b2b?w=800&h=600&fit=crop",
   },
 
-  // 3. KAYAK — Osa Peninsula, Costa Rica (jungle river; wildlife corridor; confirmed absent)
+  // 3. SKIING — Val Gardena / Sella Ronda, Dolomites, Italy (1,200km connected; confirmed absent)
   {
-    id:"osa_peninsula_kayak", category:"kayak",
-    title:"Osa Peninsula Kayak", location:"Puntarenas, Costa Rica",
-    lat:8.5500, lon:-83.5000, ap:"SJO",
-    icon:"🛶", rating:4.91, reviews:687,
-    gradient:"linear-gradient(160deg,#012a10,#025520,#04a040)",
-    accent:"#44cc66",
-    tags:["Jungle River","Scarlet Macaws","Sea Kayaking","Bioluminescent Bay","Wildlife Corridor","Remote"],
-    photo:"https://images.unsplash.com/photo-1527456986793-7c57d5e75a25?w=800&h=600&fit=crop",
+    id:"val_gardena", category:"skiing",
+    title:"Val Gardena – Sella Ronda", location:"Dolomites, Italy",
+    lat:46.5589, lon:11.7667, ap:"VCE",
+    icon:"🏔️", rating:4.95, reviews:2140,
+    gradient:"linear-gradient(160deg,#1a1a3a,#2a2a7a,#5a5acc)",
+    accent:"#aaaaff", skiPass:"independent",
+    tags:["1,200km Slopes","Dolomiti Superski","UNESCO Landscape","All Levels","Italian Alps","Ski Culture"],
+    photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
   },
 
-  // 4. PARAGLIDE — Roldanillo, Colombia (Valle del Cauca; World Cup site; confirmed absent)
+  // 4. SKIING — Gudauri, Georgia (Caucasus powder freeride; confirmed absent; add TBS to AP_CONTINENT)
   {
-    id:"roldanillo_paraglide", category:"paraglide",
-    title:"Roldanillo", location:"Valle del Cauca, Colombia",
-    lat:4.4333, lon:-76.1500, ap:"BOG",
-    icon:"🪂", rating:4.94, reviews:1120,
-    gradient:"linear-gradient(160deg,#1a0a3a,#3a1a7a,#6a3aaa)",
-    accent:"#aa66ee",
-    tags:["World Cup Site","Andean Thermals","Year-Round Flying","Expert","FAI Record Area","Valley Cross-Countries"],
-    photo:"https://images.unsplash.com/photo-1495450778732-202f7f632c4b?w=800&h=600&fit=crop",
+    id:"gudauri", category:"skiing",
+    title:"Gudauri", location:"Greater Caucasus, Georgia",
+    lat:42.4847, lon:44.4742, ap:"TBS",
+    icon:"🏔️", rating:4.89, reviews:741,
+    gradient:"linear-gradient(160deg,#0a1428,#1a2858,#2a4898)",
+    accent:"#7799dd", skiPass:"independent",
+    tags:["Caucasus Powder","Freeride","Heli-Ski","Budget Europe","Expert","2700m Elevation"],
+    photo:"https://images.unsplash.com/photo-1547751335-1c29ab5c2a77?w=800&h=600&fit=crop",
   },
 
-  // 5. CLIMBING — Cochamó Valley, Chile ("Yosemite of South America"; granite big walls; confirmed absent)
+  // 5. TANNING — Vaadhoo Island, Maldives (MALDIVES HAS ZERO TANNING VENUES; bioluminescent beach)
   {
-    id:"cochamo_valley_climb", category:"climbing",
-    title:"Cochamó Valley", location:"Los Lagos, Chile",
-    lat:-41.4833, lon:-72.3167, ap:"SCL",
-    icon:"🧗", rating:4.96, reviews:384,
-    gradient:"linear-gradient(160deg,#1a1a00,#3a3a00,#6a6a10)",
-    accent:"#aaaa44",
-    tags:["Granite Big Walls","South American Yosemite","Multi-Day Routes","Expert","Expedition","Patagonian Autumn"],
-    photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+    id:"maldives_vaadhoo", category:"tanning",
+    title:"Vaadhoo Island", location:"Raa Atoll, Maldives",
+    lat:5.6839, lon:73.3507, ap:"MLE",
+    icon:"🏝️", rating:4.97, reviews:1830,
+    gradient:"linear-gradient(160deg,#001a3a,#004488,#0077cc)",
+    accent:"#44ccff",
+    tags:["UV 11","Bioluminescent Beach","Overwater Bungalows","Crystal Lagoon","Dry Season NOW","Snorkeling"],
+    photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop",
   },
 ```
 
 ---
 
-## 9. ONE OBSERVATION FOR THE PM
+## 6. ONE OBSERVATION FOR THE PM
 
-**The photo crisis has now crossed a threshold that makes the app look like a demo, not a product — and fishing and kayak are the worst-affected categories.**
+**The April 10 cleanup was the right call. The data is now launch-ready — with one 30-second fix standing between you and a clean launch.**
 
-Every single fishing venue on Peakly shows the same photo. Not "similar" photos — the identical image, 202 times in a row. A user tapping through Pacific Northwest salmon rivers, Kenai, Alaska halibut, Baja surf fishing, and Queensland big game fishing will see the same river/ocean shot for every single one. Kayak is identical (201 venues, 1 photo).
+The pruning resolved the three biggest issues simultaneously: photo duplication (was catastrophic at 6.9% uniqueness), venue duplicate crisis (1,000 batch-gen entries), and catalog bloat. 231 lean, unique, photographed venues across 3 focused categories. This is what the product should look like.
 
-This is now a worse editorial failure than the duplicate venue IDs ever were. The IDs were structural; photo duplication is immediately, visually obvious to any user who views more than one venue.
+The single remaining P1 blocker is `cloudbreak-fiji-s21` tagged "All Levels, Longboard Friendly." Cloudbreak is a boat-access expert reef break — it has hospitalised professional surfers. The correct entry `cloudbreak` (without the -s suffix) is already in the dataset with accurate tags. The fix is deleting `cloudbreak-fiji-s21`. One line. 30 seconds. Worth doing before any Reddit post.
 
-The Unsplash free API allows 50 requests/hour with no auth. A script that: (1) queries `api.unsplash.com/search/photos?query={venue.title}+{venue.location}&per_page=1&client_id={key}` for each venue missing a unique photo, and (2) writes the result back into VENUES, would resolve this in one background run. ~2,900 venues need a unique photo (3,726 − 257 already unique). At 50/hr, a rate-limited script completes in ~58 hours — one background job, no manual work.
-
-Alternatively, the surgical path: delete the 1,000 batch-gen `-s##` venues (surfing + skiing only), which removes ~970 of the photo duplicates immediately and shrinks the catalog to ~2,726 quality entries.
-
-The deduplication PR has been open as a P1 for 9 days. It needs to land before Reddit launch.
+The second quick win before launch: handle the empty category pills. 9 of 12 pills show nothing when tapped. "Hike" → blank screen. On mobile that reads as broken, not focused. Either hide the non-launch pills or add "More sports coming soon" copy. This takes 20 minutes and removes the biggest first-impression risk for non-surfer/skier/beach users who discover the app.
 
 ---
 
-*Report written: 2026-04-11 | Agent: Content & Data | Venues audited: 3,726 | P1 photo dedup UNRESOLVED (9 days)*
+*Report written: 2026-04-11 | Agent: Content & Data | Venues audited: 231 | Data health: 82/100 ↑ from 61 (Apr 9)*
