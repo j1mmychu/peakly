@@ -125,7 +125,7 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-04-10)
+## Current State (2026-04-11)
 
 ### What's Broken / Open (Priority Order)
 

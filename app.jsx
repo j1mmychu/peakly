@@ -310,7 +310,7 @@ const VENUES = [
     lat:21.6645, lon:-158.0453, ap:"HNL",
     icon:"🌊", rating:4.99, reviews:1203,
     gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
-    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.42",,facing:330},
+    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.42",facing:330},
   {
     id:"borabora",  category:"tanning",
     title:"Bora Bora Lagoon", location:"French Polynesia",
@@ -975,11 +975,19 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   const gustFactor = gusts / Math.max(wind, 1);  // >1.6 = gusty/turbulent
   const swellRatio = swellH / Math.max(waveH, 0.1); // >0.7 = clean groundswell dominant
 
-  // Consecutive good-weather days from selected day
+  // Consecutive good-weather days from selected day (category-aware)
   let bestDays = 1;
   for (let i = di + 1; i < (d.precipitation_sum?.length ?? 0); i++) {
-    if ((d.precipitation_sum[i] ?? 99) < 3 && (d.wind_speed_10m_max[i] ?? 99) < 25) bestDays++;
-    else break;
+    const dayPrecip = d.precipitation_sum[i] ?? 99;
+    const dayWind = d.wind_speed_10m_max[i] ?? 99;
+    const daySnow = d.snowfall_sum?.[i] ?? 0;
+    if (venue.category === "skiing") {
+      if ((daySnow > 0 || dayPrecip < 3) && dayWind < 35) bestDays++;
+      else break;
+    } else {
+      if (dayPrecip < 3 && dayWind < 25) bestDays++;
+      else break;
+    }
   }
 
   // Trend: is tomorrow better or worse? (for "building" / "fading" labels)
@@ -996,32 +1004,52 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       const dIn = Math.round(depth * 39.4);        // m base → inches
       const baseCm = depth * 100;
 
+      // ─── Season check: is this resort even open? ────────────────────────
+      // Northern hemisphere ski season: Nov–Apr. Southern: May–Oct.
+      const mo = new Date().getMonth() + 1;       // 1-12
+      const isNorth = (venue.lat || 0) >= 0;
+      const inSeason = isNorth ? (mo >= 11 || mo <= 4) : (mo >= 5 && mo <= 10);
+      // Shoulder months (Oct/May for N, Apr/Nov for S): open but marginal
+      const isShoulder = isNorth ? (mo === 10 || mo === 5) : (mo === 4 || mo === 11);
+
+      if (!inSeason && !isShoulder) {
+        score = 8; label = "Off-season — resort closed"; period = "Opens " + (isNorth ? "November" : "May");
+        break;
+      }
+
       // ─── Fresh snow is king ──────────────────────────────────────────────
-      // 50cm+ (20"+) = historic dump. 25-50cm (10-20") = classic powder day.
-      // 10-25cm = resort-day refresh. <10cm = dusting on existing base.
-      if      (snow >= 50) score = 95 + Math.min(5, (snow - 50) * 0.1);  // cap 100
+      if      (snow >= 50) score = 95 + Math.min(5, (snow - 50) * 0.1);
       else if (snow >= 30) score = 89 + (snow - 30) * 0.3;
       else if (snow >= 20) score = 83 + (snow - 20) * 0.6;
       else if (snow >= 10) score = 75 + (snow - 10) * 0.8;
       else if (snow >= 5)  score = 68 + (snow - 5) * 1.4;
       else if (snow > 0)   score = 60 + snow * 1.6;
       else {
-        // No new snow: base depth decides. 150cm+ is a healthy mid-season base.
         if      (baseCm >= 200) score = 72;
         else if (baseCm >= 150) score = 66;
         else if (baseCm >= 100) score = 58;
         else if (baseCm >=  50) score = 45;
         else if (baseCm >=  25) score = 32;
-        else                    score = 20;      // most terrain closed
+        else                    score = inSeason ? 35 : 15;  // snowmaking floor during season
       }
 
-      // ─── Temperature: powder preservation vs slush vs rain ──────────────
-      if (tempMax < 25 && snow > 5)   score += 5;   // cold, dry, preserved powder
+      // Shoulder months: cap scores lower unless there's real snow
+      if (isShoulder && snow < 5 && baseCm < 50) score = Math.min(score, 35);
+
+      // ─── Temperature: powder preservation vs spring corn vs rain ────────
+      if (tempMax < 25 && snow > 5)   score += 5;
       else if (tempMax < 32 && snow > 0) score += 2;
-      if (tempMax > 38 && tempMax <= 42) score -= 6;   // warm = slushy groomers by noon
-      if (tempMax > 42 && tempMax <= 48) score -= 12;  // heavy wet snow, sticky
-      if (tempMax > 48) score -= 20;                   // rain-on-snow: trip-destroying
-      if (tempMin > 32 && snow === 0) score -= 5;      // no overnight freeze = icy AM
+      // Warm-temp penalty: only when base is thin. Deep base + warm = corn skiing (great)
+      if (tempMax > 38 && baseCm < 100) {
+        if (tempMax <= 42) score -= 6;
+        else if (tempMax <= 48) score -= 12;
+        else score -= 20;                          // rain-on-snow
+      } else if (tempMax > 48 && baseCm >= 100) {
+        score -= 4;                                 // spring slush but deep base = still skiable
+      } else if (tempMax > 48) {
+        score -= 20;
+      }
+      if (tempMin > 32 && snow === 0 && baseCm < 100) score -= 5;
 
       // ─── Wind: lifts close when it gets bad ──────────────────────────────
       // Most resorts: upper lifts hold at 40mph sustained/55mph gusts.
@@ -1066,9 +1094,14 @@ function scoreVenue(venue, wx, marine, dayIndex) {
     }
 
     case "surfing": {
-      // Break facing: compass bearing the break faces out to sea.
-      // Every surfing venue in VENUES has hand-coded facing data. 270 is only a
-      // defensive fallback (data bug) — should never hit in production.
+      // If no marine data at all, we can't score surf conditions — be honest
+      if (!md?.daily) {
+        score = 50;
+        label = "Swell data unavailable";
+        period = "Check back shortly";
+        break;
+      }
+
       const facing = venue.facing ?? 270;
 
       // ─── Swell hitting the break (orientation efficiency) ──────────────────
@@ -1224,9 +1257,16 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       if (foggy && sunHrs < 4) score -= 10;
 
       // ─── Temperature edges ──────────────────────────────────────────────
-      if (tempMax < 65) score -= 12;                // too cold to sunbathe
-      if (tempMax > 100) score -= 6;                // heat stroke territory
+      if (tempMax < 65) score -= 12;
+      if (tempMax > 100) score -= 6;
       if (tempMax > 105) score -= 14;
+
+      // ─── Heat index: humidity + heat = misery ─────────────────────────
+      if (humidity !== null && tempMax >= 85) {
+        if (humidity > 85 && tempMax >= 95) score -= 12;      // dangerous
+        else if (humidity > 75 && tempMax >= 90) score -= 7;  // oppressive
+        else if (humidity > 65 && tempMax >= 88) score -= 3;  // sticky
+      }
 
       // ─── Water temperature (if marine data available) ──────────────────
       // Cold water = no swimming = bad beach day even on a sunny one
@@ -6584,7 +6624,7 @@ function App() {
 
   const fetchVenueWeather = useCallback(async (venue) => {
     if (wxRef.current[venue.id]) return; // already fetched
-    const needsMarine = venue.category === "surfing";
+    const needsMarine = venue.category === "surfing" || venue.category === "tanning";
     const [wxR, marR] = await Promise.allSettled([
       fetchWeather(venue.lat, venue.lon),
       needsMarine ? fetchMarine(venue.lat, venue.lon) : Promise.resolve(null),
