@@ -1,190 +1,293 @@
-# SEO & Analytics Report — Peakly
+# Peakly SEO & Analytics Report
 
-**Date:** 2026-03-29
-**SEO Score:** 95% (holding from 2026-03-28 bump — preconnect, enhanced JSON-LD, sitemap, viewport fix all verified)
-**Previous Scores:** 93% (03-28) | 91% (03-27) | 91% (03-26) | 91% (03-25) | 91% (03-24) | 81% (03-23) | 62% (03-22 baseline)
-
----
-
-## Status Summary
-
-| # | Check | Status | Notes |
-|---|-------|--------|-------|
-| 1 | Title tag | PASS | 62 chars, keyword-rich |
-| 2 | Meta description | PASS | 88 chars, includes primary keywords |
-| 3 | Canonical URL | PASS | `https://j1mmychu.github.io/peakly/` |
-| 4 | robots.txt | PASS | Allows all, references sitemap |
-| 5 | sitemap.xml | PASS | 12 URLs (root + 11 categories), lastmod 2026-03-27 |
-| 6 | Open Graph tags | PASS | title, description, image, type, url, site_name |
-| 7 | Twitter Card | PASS | summary_large_image complete |
-| 8 | JSON-LD structured data | PASS | WebSite + SearchAction + WebApplication + Organization + ItemList + TouristDestination |
-| 9 | Static h1 fallback | PASS | Keyword-rich h1 inside #root, visible before React mounts |
-| 10 | Plausible analytics | PASS | `script.hash.js` (SPA hash-based tracking) |
-| 11 | Plausible custom events | PARTIAL | 7 events live, 2 critical funnel events STILL MISSING |
-| 12 | PWA manifest | PASS | manifest.json + SW + apple-mobile-web-app meta |
-| 13 | lang attribute | PASS | `<html lang="en">` |
-| 14 | Favicon | PASS | SVG data URI |
-| 15 | Preconnect hints | PASS | 5 preconnects + 2 dns-prefetch |
-| 16 | Viewport | PASS | `user-scalable=yes` (accessibility-compliant) |
-| 17 | Custom domain | FAIL | Still on github.io subdomain (LLC approved — domain registration pending) |
-
-**Remaining gaps (5% deduction):**
-- No custom domain (github.io subdomain limits brand trust + cookie control)
-- OG image is generic Unsplash mountain (not branded app screenshot)
-- Plausible event naming inconsistency (mixed PascalCase and snake_case)
-- Missing Venue Click and Flight Search funnel events
-- Hash-based routing limits Google to indexing 1 page (SPA limitation)
-- Sentry script still synchronous (blocks parser ~100-200ms)
+**Date:** 2026-04-10
+**Agent:** SEO & Analytics
+**Current SEO score:** ~95% (stable). Prior runs: 90% (04-09), 92% (04-08), 95% (04-07), 91% (03-27), 81% (03-23).
+**Context:** Day 6 of zero commits. ProductHunt 5 days out (April 15). Every item below is paste-ready.
 
 ---
 
-## 1. JSON-LD Structured Data — VERIFIED COMPLETE (No Changes)
+## Executive Summary
 
-All 5 schema types present in `@graph`: WebSite + SearchAction, WebApplication, Organization, ItemList (11 categories), TouristDestination. No changes needed.
+Peakly's on-page SEO fundamentals are in place — title, canonical, meta description, OG/Twitter, robots.txt, sitemap, JSON-LD graph, Plausible on `script.hash.js`, static h1 fallback in `#root`. The single biggest organic-growth lever remaining is **not another meta tag** — it's **per-venue indexable landing pages**. GitHub Pages is a static host; hash-routed SPA venues aren't crawled as distinct URLs. A `/v/{slug}.html` static shell per venue would unlock thousands of long-tail queries and capture Reddit-referral traffic that currently hits the homepage and dies.
 
----
-
-## 2. Static H1 Fallback — VERIFIED CORRECT (No Changes)
-
-`<h1>Peakly — Surf, Ski & Adventure Spots with Live Conditions & Cheap Flights</h1>` renders inside `#root` before JS loads. Verified present at line 272 of index.html.
+Two items from the agent brief are stale: `script.hash.js` upgrade is already shipped (line 32 of index.html), and a static h1 already renders pre-hydration (lines 337–339). This report re-prioritizes accordingly.
 
 ---
 
-## 3. Plausible Event Tracking Audit
+## 1. What's Already Shipped (Verified in index.html, 2026-04-10)
 
-### Currently Implemented Events (7 found in app.jsx):
+- `<title>` keyword-rich phrasing (line 23)
+- `<link rel="canonical">` (line 24)
+- Meta description, OG tags (title/description/image/url/site_name), Twitter summary_large_image
+- JSON-LD `@graph` with WebSite, WebApplication, Organization (lines 35–64)
+- robots.txt + sitemap.xml present in repo root
+- Plausible **already on script.hash.js** (line 32) — agent brief is stale on this
+- Static h1 fallback inside `#root` (line 337) — agent brief is stale on this too
+- PWA manifest, theme-color, apple-touch-icon
+- Preconnect to Google Fonts (lines 27–28)
+- Sentry loader for error monitoring
 
-| Event | Naming | Location | Status |
-|-------|--------|----------|--------|
-| Tab Switch | PascalCase | BottomNav callback (~line 9027) | LIVE |
-| Onboarding Complete | PascalCase | Onboarding flow (~line 7051) | LIVE |
-| Wishlist Add | PascalCase | Heart toggle (~line 8847) | LIVE |
-| Score Validation | PascalCase | Score validation (~line 7487) | LIVE |
-| book_click | snake_case | ListingCard book button (~line 4247) | LIVE |
-| email_capture | snake_case | Explore banner form (~line 5604) | LIVE |
-| install_pwa | snake_case | beforeinstallprompt listener (~line 4059) | LIVE |
+---
 
-### P1 MISSING: Two Critical Funnel Events (5th consecutive run)
+## 2. Stale Content to Fix (5-minute change)
 
-**Venue Click** — No `Venue Click` or `venue_open` event anywhere in app.jsx. Grep confirms zero matches. **Without this, the Explore -> Detail conversion rate is invisible.**
+Venue count is now 3,726 but the page still advertises old numbers:
 
-**Flight Search** — No `Flight Search` or `flight_click` event anywhere in app.jsx. Grep confirms zero matches. **Without this, revenue attribution from Aviasales links is impossible.**
+- **Line 11** — OG description says "180+ venues worldwide". Should read "3,700+ venues worldwide".
+- **Line 340** — Static `<p>` says "170+ adventure destinations worldwide". Should read "3,700+ adventure destinations worldwide".
+- **Line 54** — JSON-LD featureList says "180+ adventure venues". Should read "3,700+ adventure venues".
 
-**This has been flagged as P1 for 5 consecutive runs with no implementation.** These are the two most important analytics events for measuring the core funnel before Reddit launch on March 31.
+These are pre-render crawler-visible strings. Updating them takes five minutes and the count is already 20x the advertised number.
 
-### Paste-Ready Fix
+---
 
-**Venue Click** — add wherever `setSelectedVenue(venue)` is called:
-```js
-logEvent('Venue Click', {venue: venue.title, category: venue.category});
+## 3. Expanded JSON-LD (Paste-Ready)
+
+Current graph has WebSite + WebApplication + Organization. Missing: **SearchAction** on WebSite and **ItemList** for categories. Replace the existing JSON-LD block (lines 35–64) with this:
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://j1mmychu.github.io/peakly/#website",
+      "url": "https://j1mmychu.github.io/peakly/",
+      "name": "Peakly",
+      "description": "Find surf, ski and adventure spots when conditions and cheap flights align.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://j1mmychu.github.io/peakly/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://j1mmychu.github.io/peakly/#app",
+      "name": "Peakly",
+      "url": "https://j1mmychu.github.io/peakly/",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": "Real-time condition scoring, Flight price tracking, 3700+ adventure venues, Vibe-based search, Trip planning, Condition alerts"
+    },
+    {
+      "@type": "ItemList",
+      "@id": "https://j1mmychu.github.io/peakly/#categories",
+      "name": "Peakly Adventure Categories",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Surfing",   "url": "https://j1mmychu.github.io/peakly/#surfing"  },
+        { "@type": "ListItem", "position": 2, "name": "Ski/Board", "url": "https://j1mmychu.github.io/peakly/#skiing"   },
+        { "@type": "ListItem", "position": 3, "name": "Beach",     "url": "https://j1mmychu.github.io/peakly/#beach"    },
+        { "@type": "ListItem", "position": 4, "name": "Climbing",  "url": "https://j1mmychu.github.io/peakly/#climbing" },
+        { "@type": "ListItem", "position": 5, "name": "Hiking",    "url": "https://j1mmychu.github.io/peakly/#hiking"   },
+        { "@type": "ListItem", "position": 6, "name": "Diving",    "url": "https://j1mmychu.github.io/peakly/#diving"   }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://j1mmychu.github.io/peakly/#org",
+      "name": "Peakly",
+      "url": "https://j1mmychu.github.io/peakly/",
+      "slogan": "Know when to go"
+    }
+  ]
+}
+</script>
 ```
 
-**Flight Search** — add wherever the Aviasales deep link opens:
-```js
-logEvent('Flight Search', {venue: venue.title, origin: homeAirport});
+**Do not add `aggregateRating`** unless there's a real review mechanism — Google penalizes fabricated ratings.
+
+**Do not embed 3,726 TouristAttraction objects** in this head block. TouristAttraction schema only helps when each venue has its own indexable URL. That's the job of Section 7.
+
+---
+
+## 4. Plausible Custom Events (Paste-Ready)
+
+Current script tag (line 32) is already on `script.hash.js`:
+
+```html
+<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
 ```
 
-Using `logEvent()` (line 4046) ensures both Plausible + localStorage backup.
+For custom events + outbound links, upgrade to the combined variant:
 
-### Naming Inconsistency (Still Open)
+```html
+<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.outbound-links.tagged-events.js"></script>
+<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+```
 
-PascalCase: Tab Switch, Wishlist Add, Onboarding Complete, Score Validation
-snake_case: book_click, email_capture, install_pwa
+### 5 event wire-ups in app.jsx
 
-Recommend standardizing all to PascalCase to match Plausible convention.
+All five are one-liners wrapped in `window.plausible && ...` so they no-op if Plausible is blocked:
 
----
+```js
+// 1) Tab Switch — in BottomNav onClick handler
+const handleTabClick = (tabName) => {
+  setActiveTab(tabName);
+  window.plausible && window.plausible('Tab Switch', { props: { tab: tabName } });
+};
 
-## 4. Core Web Vitals Estimate
+// 2) Venue Click — in ListingCard / CompactCard / FeaturedCard onClick
+const handleVenueClick = (venue) => {
+  setSelectedVenue(venue);
+  window.plausible && window.plausible('Venue Click', {
+    props: { venue: venue.name, category: venue.category }
+  });
+};
 
-| Metric | Estimate | Google Target | Status |
-|--------|----------|---------------|--------|
-| **LCP** | 3.5-5.0s | < 2.5s | POOR |
-| **INP** | 100-200ms | < 200ms | BORDERLINE |
-| **CLS** | 0.02-0.05 | < 0.1 | GOOD |
+// 3) Flight Search — in VenueDetailSheet "Find Flights" button onClick
+const handleFlightClick = (venue, origin) => {
+  window.plausible && window.plausible('Flight Search', {
+    props: { venue: venue.name, origin: origin || 'JFK' }
+  });
+  window.open(buildFlightUrl(origin, venue.airport, /* dates */), '_blank');
+};
 
-### LCP Bottleneck
+// 4) Wishlist Add — in heart button onClick
+const handleHeartClick = (venue) => {
+  toggleWishlist(venue.id);
+  window.plausible && window.plausible('Wishlist Add', { props: { venue: venue.name } });
+};
 
-Loading chain: HTML -> Fonts -> Sentry (synchronous, blocks parser) -> React UMD -> Babel Standalone (690KB) -> app.jsx -> transpile -> React mounts -> splash dismisses.
+// 5) Onboarding Complete — in OnboardingSheet submit handler
+const handleOnboardingSubmit = (profile) => {
+  saveProfile(profile);
+  window.plausible && window.plausible('Onboarding Complete', {
+    props: { airport: profile.homeAirport || 'unknown' }
+  });
+};
+```
 
-**Quick win still open:** Add `defer` to Sentry script tag (line 111 of index.html). Estimated ~100-200ms LCP improvement.
-
-**Long-term:** Pre-transpile JSX at deploy time to eliminate Babel Standalone from runtime. Would drop LCP by 2-3s. Conflicts with no-build-step architecture — defer until post-launch.
-
----
-
-## 5. Competitor SEO Gap Analysis
-
-### Keywords Peakly Can Own
-
-| Keyword Cluster | Est. Monthly Volume | Competition | Peakly Advantage |
-|----------------|---------------------|-------------|-----------------|
-| "cheap flights to [adventure spot]" | 2K-5K/dest | LOW | KAYAK is conditions-blind |
-| "best time to [activity] in [location]" | 5K-15K/dest | MEDIUM (stale blogs) | Real-time scoring = freshness |
-| "[sport] conditions + flights" | <500 | NONE | Category creator |
-| "surf trip deals this week" | 1K-3K seasonal | LOW | Time-sensitive + conditions |
-| "when to go [destination] for [activity]" | 5K-15K/dest | MEDIUM | Dynamic scores beat static content |
-| "best ski conditions right now" | 1K-3K | MEDIUM | Live scoring differentiator |
-| "adventure travel conditions" | <1K | NONE | Multi-sport aggregation uncontested |
-
-### Reddit Launch Content Angle (March 31)
-
-The "when to go" angle is the strongest differentiator for Reddit posts. Focus r/solotravel and r/surfing posts on the timing intelligence Peakly provides — it's the hook no competitor can match. Example: "I built an app that tells you when conditions AND cheap flights align for adventure trips."
-
----
-
-## 6. Blog Post Opportunities (Post-Launch)
-
-Static HTML in `/blog/` directory on GitHub Pages. No infra changes needed.
-
-1. **"Best Time to Surf Bali: Month-by-Month Conditions Guide"** — auto-generatable from venue data, long-tail organic
-2. **"Cheapest Flights to Ski Resorts from [City] This Season"** — time-sensitive, refreshable
-3. **"10 Underrated Dive Spots with $200 Flights"** — listicle + flight data, Reddit-shareable
-4. **"The Adventure Traveler's Guide to Shoulder Season"** — positions Peakly as timing authority
-5. **"Why Your Surf Trip is 40% Cheaper If You Go When Conditions Peak"** — Reddit-viral potential
+**Plausible dashboard:** create goals named exactly "Tab Switch", "Venue Click", "Flight Search", "Wishlist Add", "Onboarding Complete". Verify the existing `flight_click` event (CLAUDE.md notes it live) is firing — if so, rename to the new capitalized name for consistency.
 
 ---
 
-## 7. Highest-Impact Single Change for Reddit Launch
+## 5. Static h1 — Already Live
 
-**Implement Venue Click + Flight Search Plausible events before March 31.**
-
-Without these, Reddit launch traffic will flow through the app with zero visibility into conversion. You won't know which venues or categories resonate with Reddit users, making it impossible to optimize the post-launch content and distribution strategy.
-
-**Secondary:** Replace the generic Unsplash mountain OG image with a branded app screenshot showing venue cards, condition scores, and flight prices. Every Reddit share currently shows an anonymous mountain photo — a branded preview would significantly improve click-through from Reddit post link previews.
+Lines 337–339 of index.html already render a keyword-rich h1 inside `#root` before React hydrates. Crawlers see it. **This item in the agent brief is done.** The only fix is the stale venue count in the accompanying `<p>` (Section 2).
 
 ---
 
-## Action Items (Priority Order)
+## 6. Competitor SEO Gap Analysis
 
-| # | Item | Carry Count | Effort | Impact | Status |
-|---|------|-------------|--------|--------|--------|
-| 1 | **Add Venue Click + Flight Search events** | **5 runs** | 30 min | Core funnel visibility | OPEN — P1, CRITICAL before 3/31 |
-| 2 | Add `defer` to Sentry script tag | **5 runs** | 1 min | ~100-200ms LCP | OPEN |
-| 3 | Standardize event names to PascalCase | **7 runs** | 15 min | Clean analytics | OPEN |
-| 4 | Create branded OG image (app screenshot) | **7 runs** | 30 min | Social CTR | OPEN |
-| 5 | Update sitemap.xml lastmod date | **2 runs** | 1 min | Crawl freshness | OPEN |
-| 6 | Add Gear Click + Alert Create events | **5 runs** | 10 min | Revenue attribution | OPEN |
-| 7 | Venue-specific OG via Cloudflare Worker | **2 runs** | 2-4 hrs | Reddit viral sharing | Phase 2 |
-| 8 | Create first 3 SEO blog posts | **3 runs** | 2-3 hrs each | Long-tail organic | Phase 2 |
-| 9 | Pre-transpile JSX | DEFERRED | 1 hr | ~2s LCP improvement | Phase 2 |
+Based on competitor positioning documented in CLAUDE.md and public knowledge at cutoff. Live SERP scraping is outside tool scope for this run.
 
-**ESCALATION:** Items 1-3 have been open 5-7 consecutive runs. Item 1 (missing funnel events) is the single highest-priority analytics fix before Reddit launch on March 31. Recommend auto-implementation via Claude Code agent — combined effort for items 1-3 is under 45 minutes.
+| Query pattern | Who owns it | Peakly's angle |
+|---|---|---|
+| `"best surf spots [region]"` | Surfline, Magicseaweed, Stormrider | Surfline is forecast-dense, not trip-oriented. Peakly owns **"best surf spots with cheap flights from [US city]"** — pure long-tail, zero competition |
+| `"ski conditions [resort]"` | OnTheSnow, OpenSnow, resort .coms | Conditions-only. Peakly owns **"when to ski [resort] on a budget"** + **"cheapest time to fly to [resort]"** |
+| `"when to visit [destination]"` | TripAdvisor, Lonely Planet, travel blogs | Generic seasonality, no live data. Peakly owns **"when are conditions best at [venue]"** with dynamic answers |
+| `"powder alerts [resort]"` | OpenSnow Pro ($99/yr) | Peakly owns **free multi-sport strike alerts** |
+| `"[sport] window this week from [airport]"` | Nobody | This is the literal Window Score positioning — zero SERP competition |
+
+### Keyword gaps Peakly can own (zero direct competition)
+
+1. `cheap flights to [ski resort] this weekend`
+2. `surf forecast + flights [destination]`
+3. `when to go [destination] for [activity]` — matches the "Know when to go" tagline
+4. `[sport] window this week from [home airport]`
+5. `adventure calendar from [home airport]`
+
+All five are multi-word, low-volume individually, but the long tail is large and the semantic intent lines up with what Peakly uniquely provides.
 
 ---
 
-## Week-over-Week SEO Score Tracking
+## 7. Core Web Vitals Estimate
 
-| Date | Score | Changes |
-|------|-------|---------|
-| 2026-03-22 | 62% | Baseline |
-| 2026-03-23 | 81% | Title, canonical, robots.txt, sitemap, Plausible, OG tags |
-| 2026-03-24 | 91% | JSON-LD, static h1, script.hash.js, PWA manifest |
-| 2026-03-25 | 91% | No SEO changes |
-| 2026-03-26 | 91% | No SEO changes |
-| 2026-03-27 | 91% | No SEO changes |
-| 2026-03-28 | 93% | Preconnect hints, SearchAction + ItemList + TouristDestination JSON-LD, sitemap 12 URLs, viewport fix |
-| 2026-03-29 | 95% | CLAUDE.md updated score to 95% reflecting cumulative 03-28 improvements; all items verified |
-| Target | 97%+ | Needs: defer Sentry, branded OG image, custom domain, event standardization |
+| Metric | Estimate (mobile 4G) | Biggest contributor |
+|---|---|---|
+| **LCP** | 3.5–5.5s (poor) | Babel Standalone parses ~10.5K-line app.jsx **in the browser** before first meaningful paint |
+| **FID / INP** | <100ms (good) | React interactions are light |
+| **CLS** | ~0.05 (good) | Splash screen + fixed layout prevents shift |
 
-*Next run: 2026-03-30*
+**The single biggest Core Web Vitals issue is LCP. The cause is Babel Standalone. The fix is precompilation.**
+
+### LCP fix, ranked by ROI
+
+1. **Pre-compile JSX at build time via GitHub Actions.** Add a workflow step that runs `npx babel app.jsx -o app.js --presets=@babel/preset-react` on push and change the script tag to `<script src="./app.js?v=...">`. Removes Babel Standalone (~500KB parse) and eliminates in-browser JSX transform. Expected LCP improvement: **1.5–2.5s**. CLAUDE.md says "no build step" — but a single GH Action transpile doesn't touch Jack's dev workflow. `app.jsx` stays as source of truth. **This is the highest-ROI SEO change available to Peakly.**
+
+2. **Lazy-load the VENUES array.** 3,726 entries with photos is ~1.5MB of JS blocking first paint. Move to `venues.json` fetched after mount, render a loading state for the list. Expected LCP improvement: **800ms–1.2s**.
+
+3. **Self-host React + Babel** on GitHub Pages instead of unpkg. Unpkg has variable latency. Expected improvement: **200–300ms**.
+
+4. **Preload critical CDN scripts** with `<link rel="preload" as="script">`. Marginal: **~150ms**.
+
+---
+
+## 8. The One Change with the Biggest Reddit-Launch Impact
+
+**Static per-venue HTML shells at `/v/{slug}.html` — before ProductHunt April 15.**
+
+When Peakly hits Reddit and ProductHunt, people will share specific venue links ("check out Teahupo'o on Peakly"). Those links currently go to a query-param or hash route that Google sees as the same homepage. **Zero organic capture** from the traffic spike. Every referred visitor who doesn't convert on arrival is lost for SEO.
+
+### The fix
+
+1. Write a one-shot script (`scripts/build-venue-pages.js`) that reads the VENUES array and generates 3,726 static HTML files under `/v/{venue-slug}.html`.
+2. Each file is a minimal shell with:
+   - `<title>` = `"{Venue} {Category} Conditions & Flights — Peakly"`
+   - Meta description with venue location + best season
+   - OG image pointing at the venue's Unsplash URL
+   - **Per-venue TouristAttraction JSON-LD** (this is where that schema type belongs)
+   - Same `<script src="/peakly/app.jsx?v=...">` that hydrates the full SPA
+3. Add all 3,726 URLs to `sitemap.xml`.
+4. Configure the SPA to deep-link into the venue detail sheet based on the URL path on mount.
+
+**Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teahupo'o Surf Conditions &amp; Flights from JFK — Peakly</title>
+  <meta name="description" content="Live surf conditions, wave forecast, and flights to Teahupo'o, Tahiti. Know when to go with Peakly's real-time window score." />
+  <link rel="canonical" href="https://j1mmychu.github.io/peakly/v/teahupoo.html" />
+  <meta property="og:title" content="Teahupo'o — Conditions &amp; Flights | Peakly" />
+  <meta property="og:image" content="{venue.photo}" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    "name": "Teahupo'o",
+    "description": "Heavy reef break on Tahiti's south coast, home of WSL Championship Tour events.",
+    "geo": { "@type": "GeoCoordinates", "latitude": -17.85, "longitude": -149.27 },
+    "touristType": ["Surfing"],
+    "isAccessibleForFree": true
+  }
+  </script>
+</head>
+<body>
+  <h1>Teahupo'o — Live Conditions &amp; Flights</h1>
+  <p>Heavy reef break on Tahiti's south coast. Best season: May–September. Flights from JFK from $850.</p>
+  <script type="text/babel" src="/peakly/app.jsx?v=20260410" data-presets="react"></script>
+</body>
+</html>
+```
+
+**Effort:** 2–3 hours for one developer. **Impact:** converts every Reddit/PH venue-specific link into an indexable landing page and opens thousands of long-tail queries. **Timing:** ship before April 15.
+
+---
+
+## 9. Priority Action List
+
+| # | Action | Effort | Owner | ROI |
+|---|---|---|---|---|
+| 1 | Bump stale venue counts (180+ → 3,700+) in lines 11, 54, 340 of index.html | 5 min | dev | Low but trivial |
+| 2 | Expand JSON-LD with SearchAction + ItemList (Section 3) | 10 min | dev | Medium |
+| 3 | Wire 5 Plausible events in app.jsx + create dashboard goals (Section 4) | 30 min | dev | Medium |
+| 4 | **Static per-venue HTML shells for ProductHunt April 15** (Section 8) | 2–3 hrs | dev | **Highest** |
+| 5 | GitHub Actions precompile Babel → app.js (Section 7) | 1 hr | dev | **Highest** |
+| 6 | Bump cache buster (current `v=20260331a` is 10 days stale) | 30 sec | dev | Critical for any of the above to take effect |
+
+---
+
+## Bottom Line
+
+On-page SEO is 95% done. The next 10x move is two things: **give every venue its own crawlable URL before Reddit traffic hits**, and **kill Babel Standalone so LCP drops below 2.5s**. Everything else in this report is polish. But the six-day code freeze means none of these ship until Jack or Claude Code picks them up — Section 8 is the one to prioritize if only one lands before April 15.
