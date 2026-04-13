@@ -808,8 +808,8 @@ const ALL_AIRPORTS = [
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
 const METEO  = "https://api.open-meteo.com/v1";
 const MARINE = "https://marine-api.open-meteo.com/v1";
-const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours in ms
-const WX_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
+const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours — re-fetch threshold
+const WX_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours — hard eviction (catches abandoned tabs)
 
 function _wxCacheKey(prefix, lat, lon) {
   return `peakly_${prefix}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
@@ -890,6 +890,8 @@ async function fetchWeather(lat, lon) {
   const cacheKey = _wxCacheKey("weather", lat, lon);
   const cached = _wxCacheGet(cacheKey);
   if (cached) return cached;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
   const url =
     `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
@@ -899,38 +901,48 @@ async function fetchWeather(lat, lon) {
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const r = await fetch(url);
+      const r = await fetch(url, { signal: controller.signal });
       if (r.status === 429 || r.status >= 500) {
         if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
-        return null;
+        clearTimeout(timer); return null;
       }
-      if (!r.ok) return null;
+      if (!r.ok) { clearTimeout(timer); return null; }
       const data = await r.json();
+      clearTimeout(timer);
       _wxCacheSet(cacheKey, data);
       return data;
     } catch (err) {
+      if (err.name === "AbortError") { return null; }
       if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
-      return null;
+      clearTimeout(timer); return null;
     }
   }
-  return null;
+  clearTimeout(timer); return null;
 }
 
 async function fetchMarine(lat, lon) {
   const cacheKey = _wxCacheKey("marine", lat, lon);
   const cached = _wxCacheGet(cacheKey);
   if (cached) return cached;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
     `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
     `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
-  const r = await fetch(url);
-  if (!r.ok) return null;
-  const data = await r.json();
-  _wxCacheSet(cacheKey, data);
-  return data;
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    const data = await r.json();
+    _wxCacheSet(cacheKey, data);
+    return data;
+  } catch {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
