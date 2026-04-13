@@ -1,168 +1,186 @@
-# Peakly Code Quality & Ops Report — 2026-03-29
+# Peakly Code Quality & Ops Report — 2026-04-10
 
-**Overall Health Score: 82/100**
+**Overall Health Score: 72 / 100** (YELLOW)
 
-Status: YELLOW — No showstoppers, but git drift is worse than yesterday and needs fixing before Reddit launch (March 31).
-
----
-
-## 1. Syntax Audit (app.jsx — 9,036 lines)
-
-**Status: SAME AS YESTERDAY — 1 known cosmetic bug persists**
-
-| Check | Result |
-|-------|--------|
-| Braces `{}` | Balanced (6,594 / 6,594) |
-| Brackets `[]` | Balanced (2,681 / 2,681) |
-| Parentheses `()` | Off by 1 (4,832 / 4,831) — Guam gradient bug from yesterday's report |
-| Template literals | Balanced (216 total, even) |
-| Double commas | None found |
-| Self-closing tags | All valid (91 self-closing img/input/br + color picker buttons) |
-
-**Persisting bug — Line ~2400:** Guam Offshore fishing venue unclosed parenthesis in gradient CSS string. Flagged yesterday, still unfixed. Cosmetic only — doesn't break Babel or React.
+Bones are solid — app.jsx parses clean, venue data integrity is strong, CDN deps all live.
+Score gets docked hard for drift: 10-day stale cache buster, SW name mismatch with docs,
+two real syntax fixes sitting uncommitted on disk, 6-day shipping freeze, TP_MARKER still
+a placeholder on day 17. The code is fine. The operations are not.
 
 ---
 
-## 2. Venue Data Integrity (2,226 venues)
+## 1. Syntax Scan — app.jsx (10,993 lines)
 
-**Status: PASS — 100% data integrity**
+**Babel parse: CLEAN.** Parsed with `@babel/parser` + `jsx` plugin. Zero errors.
 
-Sampled first 5, middle 5, and last 5 venues. All have required fields:
+**BUT — two real syntax bugs are already fixed and staged uncommitted** (`git diff app.jsx`):
 
-| Field | Coverage |
-|-------|----------|
-| id, category, title, location | 100% |
-| lat, lon | 100% (valid coordinate ranges) |
-| ap (airport code) | 100% |
-| rating, reviews | 100% |
-| photo (Unsplash URL) | 100% |
+| Line | Bug | Status |
+|------|-----|--------|
+| 2399 | Guam Offshore: `gradient:"linear-gradient(160deg,#007aac,#00aacc,#00daec"` — missing closing paren on the CSS value, truncating the gradient | Fixed locally, NOT committed |
+| 2693 | Glacier National Park paraglide: trailing `},,` — double comma in VENUES array | Fixed locally, NOT committed |
 
-All 11 categories represented. 0% photo duplication confirmed.
+Both would break JSX in older Babel versions or once anything picks up the string. They were patched but never committed. They are sitting in your working tree right now.
 
-**Note:** Yesterday's report said ~2,215 venues; today's `id:` grep yields 2,226 consistent with CLAUDE.md. Discrepancy was likely yesterday's grep methodology.
+**Recommendation:** Commit and push these before ProductHunt. `push "fix: 2 venue syntax bugs"`.
 
----
-
-## 3. CLAUDE.md vs Actual Code — Drift Check
-
-| Claim in CLAUDE.md | Actual State | Match? |
-|---------------------|-------------|--------|
-| app.jsx ~5,413 lines | **9,036 lines** | OUTDATED — same as yesterday |
-| 2,226 venues | 2,226 confirmed | MATCH |
-| 3-tab BottomNav (Explore, Alerts, Profile) | 3 tabs confirmed (line 8539-8543) | MATCH |
-| "Guides tab wired into BottomNav (4th tab)" (Shipped section) | GuidesTab exists (line 8374) but NOT in BottomNav | FALSE — still contradictory |
-| Cache buster v=20260328a | Confirmed in index.html | MATCH |
-| Service worker peakly-v12 | Confirmed in sw.js | MATCH |
-| Travelpayouts via HTTPS proxy | peakly-api.duckdns.org confirmed | MATCH |
-| Sentry live | Loader script + Sentry.init() present | MATCH |
-| Plausible analytics | script.hash.js in index.html | MATCH |
-
-**Same 3 discrepancies as yesterday — none fixed:**
-1. Line count stale (5,413 vs 9,036)
-2. GuidesTab falsely claimed as wired into BottomNav
-3. Undocumented localStorage keys
+**Other notes:**
+- Brace/paren/template-literal balance: balanced.
+- No unclosed template literals detected.
+- Standard React destructure at line 1: `const { useState, useEffect, useRef, useCallback } = React;` — matches CLAUDE.md pattern.
+- ReactDOM.createRoot on line 10992 — proper React 18.
 
 ---
 
-## 4. Git Status — DEGRADED FROM YESTERDAY
+## 2. Venue Data Validation — VENUES array (3,726 entries)
 
-**Status: RED — Local branch is 6 commits behind origin/master**
+**Schema consistency: 100%.** Every venue has: `id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo`. The 204 ski venues correctly carry the optional `skiPass` field.
 
-Yesterday: "up to date with origin/master, 4 uncommitted files"
-Today: **6 commits behind + 16 uncommitted/untracked files**
+**Field validation:**
+- Required fields missing: 0
+- Invalid lat/lon (out of -90..90 / -180..180): 0
+- Duplicate ids: 0
+- Invalid numeric types: 0
 
-### Modified (unstaged): 7 files
-- CLAUDE.md
-- reports/code-quality-report.md
-- reports/community-report.md
-- reports/daily-briefing.md
-- reports/data-enrichment-report.md
-- reports/qa-report.md
-- reports/seo-analytics-report.md
+**One stray field found:**
+- `id:"beach_japan_ishigaki"` ("Kabira Bay, Ishigaki Island"), **line 1077** — has `revision:null` key that doesn't belong. Harmless at runtime, but it means some enrichment script left a marker behind. Worth cleaning up.
 
-### Untracked: 9 files
-- reports/content-2026-03-28.md
-- reports/content-2026-03-29.md
-- reports/devops-2026-03-28-r2.md
-- reports/devops-2026-03-29.md
-- reports/growth-2026-03-28.md
-- reports/pm-2026-03-28-v2.md
-- reports/qa-audit-2026-03-29.txt
-- reports/revenue-2026-03-28.md
-- reports/ux-2026-03-28.md
+**Category distribution:**
 
-**Risk:** Agents are writing reports to a local copy that's 6 commits behind. Merge conflicts are increasingly likely. If the machine resets, 2 days of agent reports are lost.
+```
+skiing      704    Top 3 focus
+surfing     703    Top 3 focus
+tanning     705    Top 3 focus (Beach)
+diving      205
+climbing    204
+kite        200
+kayak       201
+mtb         201
+fishing     202
+paraglide   201
+hiking      200
+```
 
-**Required action:** Jack needs to run `git pull && push "sync agent reports"` before any more code changes land.
+Top 3 launch focus (surf / ski / beach) is evenly loaded at ~700 each. Balanced.
 
----
+**Duplicate titles (P1 bug #12 confirmed):**
+- 242 unique titles are reused across 265 duplicate entries.
+- Top offenders: Diani Beach (5x), Clearwater Beach (4x), Raja Ampat (4x), Mui Ne (4x), Jericoacoara (4x), Arapahoe Basin (3x), Alpe d'Huez (3x), Sayulita (3x), Punta de Lobos (3x), Fernando de Noronha (3x).
+- Still unresolved. Ship a dedupe before PH launch (April 15).
 
-## 5. CDN Dependencies (index.html)
+**Photo reuse (P1 bug #13 — CLAUDE.md numbers are STALE):**
+- Unique photo URLs: **2,261** out of 3,726 venues (61% unique)
+- Max reuse of any single photo: **17x**
+- Photos reused 5+ times: 90
+- CLAUDE.md says "only 257 unique images, top photo 203x" — that figure is **not accurate as of today**. The real state is much better. Update CLAUDE.md.
+- Still a real issue (39% of venues share a photo with another venue), but severity is lower than documented.
 
-**Status: All healthy — no changes since yesterday**
-
-| Dependency | Version | CDN | Status |
-|------------|---------|-----|--------|
-| React | 18 (latest UMD) | unpkg.com | Active |
-| ReactDOM | 18 (latest UMD) | unpkg.com | Active |
-| Babel Standalone | 7.24.7 (pinned) | unpkg.com | Active — 7.26.x available, not urgent |
-| Sentry Loader | Latest | js.sentry-cdn.com | Active |
-| Plausible | Latest (script.hash.js) | plausible.io | Active |
-| Plus Jakarta Sans | Variable weights | fonts.googleapis.com | Active |
-
-All HTTPS. No mixed content. 9 CDN references total. Preconnect hints in place for all major origins.
-
----
-
-## 6. Security Check
-
-| Item | Status |
-|------|--------|
-| No secrets in client code | Clean |
-| Travelpayouts token server-side only | Confirmed |
-| Sentry DSN public (by design) | OK |
-| Service worker registered with catch fallback | OK |
+**Airport coverage (P1 bug #14 confirmed):**
+- Unique airport codes referenced by VENUES: **813**
+- `AIRPORT_CITY` lookup entries: **179**
+- `BASE_PRICES` lookup entries: **76**
+- `AP_CONTINENT` lookup entries: **234**
+- **634 of 813 venue airport codes are missing from `AIRPORT_CITY`** (78% gap — matches the "80-90%" claim). Flight city names and price fallbacks broken for most expansion venues.
 
 ---
 
-## Delta from Yesterday (2026-03-28)
+## 3. CLAUDE.md vs Code Drift
 
-| Metric | Yesterday | Today | Trend |
-|--------|-----------|-------|-------|
-| Health Score | 88/100 | 82/100 | DOWN 6 |
-| Syntax bugs | 1 (Guam gradient) | 1 (same, unfixed) | FLAT |
-| Git commits behind | 0 | 6 | WORSE |
-| Uncommitted files | 4 | 16 | WORSE |
-| CLAUDE.md discrepancies | 3 | 3 (same, unfixed) | FLAT |
-| Venue integrity | 100% | 100% | STABLE |
-| CDN health | 100% | 100% | STABLE |
-
-**Score dropped because git drift worsened.** Everything else is stable.
-
----
-
-## Action Items (Priority Order)
-
-| Priority | Item | Owner | Effort |
-|----------|------|-------|--------|
-| **P1** | Pull origin/master + push local reports | Jack | 2 min — `git pull && push "sync agent reports"` |
-| P2 | Fix Guam gradient missing `)` (~line 2400) | Any agent | 1 min |
-| P3 | Update CLAUDE.md: line count 5,413 → 9,036 | Any agent | 1 min |
-| P3 | Correct CLAUDE.md: GuidesTab NOT in BottomNav | Any agent | 1 min |
-| P3 | Document missing localStorage keys in CLAUDE.md | Any agent | 5 min |
-| P4 | Consider Babel bump 7.24.7 → 7.26.x | Dev | Low priority |
+| Claim in CLAUDE.md | Actual code state | Drift? |
+|---|---|---|
+| Service worker at `peakly-v14` | `sw.js` line 2: `CACHE_NAME = "peakly-20260330"` | YES — naming convention changed, not documented |
+| Cache buster `v=20260329v1` / `v=20260331a` | `index.html` line 346: `v=20260331a` | STALE — 10 days old as of today (2026-04-10) |
+| `TP_MARKER` is placeholder — P0 bug | `app.jsx` line 5316: `const TP_MARKER = "YOUR_TP_MARKER";` | CONFIRMED — Day 17. Still earning $0 per flight click. |
+| 3,726 venues | Confirmed: 3,726 | OK |
+| VENUES schema | Confirmed | OK |
+| Gear section hidden with `{false && ...}` | Confirmed in VenueDetailSheet | OK |
+| Photo duplication: "93% reuse, 257 unique" | Actual: **61% unique, 2,261 unique photos** | CLAUDE.md is wrong — update it |
+| Score vote buttons still rendered (P1) | Confirmed present | OK (still broken) |
+| Email capture fires `alert()` only (P1) | Confirmed | OK (still broken) |
+| Emoji in UI chrome still present (P1) | Confirmed (venue icons) | OK (still broken) |
+| CDN deps (React 18, Babel 7.24.7) | Confirmed in index.html | OK |
+| Sentry loader script | Confirmed (line 77) | OK |
+| Plausible analytics | Confirmed (line 32) | OK |
 
 ---
 
-## Score Breakdown
+## 4. Git Status
 
-| Category | Score | Weight | Weighted |
-|----------|-------|--------|----------|
-| Syntax | 9/10 | 25% | 22.5 |
-| Data Integrity | 10/10 | 25% | 25.0 |
-| Documentation Accuracy | 7/10 | 20% | 14.0 |
-| Git Hygiene | 5/10 | 15% | 7.5 |
-| Infrastructure | 10/10 | 15% | 15.0 |
-| **Total** | | | **84.0 → 82/100** |
+**Working tree is dirty.** 9 modified files + 40+ untracked report files.
 
-**Overall: 82/100 — GOOD but slipping.** Git drift is the #1 issue. Codebase itself is production-ready for Reddit launch. Fix the sync before March 31.
+**Modified & uncommitted:**
+- `CLAUDE.md` (+46 / -3 lines)
+- `app.jsx` (+2 / -2 — the two syntax fixes above)
+- `reports/code-quality-report.md`, `community-report.md`, `competitor-watch-report.md`, `daily-briefing.md`, `data-enrichment-report.md`, `qa-report.md`, `seo-analytics-report.md`
+
+**Last product commit:** `fd6e4e8` — "feat: consistent scores, 2hr weather cache, deal-based flight scoring" — **April 4**.
+**Days since last feature/fix ship: 6.**
+**ProductHunt launch: April 15.**
+
+Every commit since April 4 has been agent report chore commits. **Zero product code has reached main in 144+ hours.** CLAUDE.md already flags this as P0 process bug #21. This report confirms it is still unresolved.
+
+Untracked files include `AUDIT_REPORT_2026-04-07.md`, `QA_REPORT_2026-04-09.md`, `SYNTAX_AUDIT_2026-04-09.txt`, and several `.js` probe scripts (`check_syntax.js`, `detailed_check.js`, `final_check.js`, `final_validation.js`, `spot_check.js`) left in the repo root. Clean these up or move to `reports/`.
+
+---
+
+## 5. CDN Dependencies — index.html
+
+All CDN script/link tags present and pinned:
+
+| Dep | URL | Pinned? |
+|---|---|---|
+| React 18 | `unpkg.com/react@18/umd/react.production.min.js` | Major only |
+| ReactDOM 18 | `unpkg.com/react-dom@18/umd/react-dom.production.min.js` | Major only |
+| Babel Standalone | `unpkg.com/@babel/standalone@7.24.7/babel.min.js` | Fully pinned |
+| Sentry Loader | `js.sentry-cdn.com/9416...eb7.min.js` | Loader script (auto-updates) |
+| Plausible | `plausible.io/js/script.hash.js` | Auto-updates |
+| Google Fonts | `fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:...` | OK |
+
+**Risk:** React/ReactDOM are loosely pinned to major version only. Unpkg can serve a different patch without warning. Low-prob but worth knowing for launch week.
+
+**No local `node_modules` needed** — single-file / no-build architecture is intact.
+
+---
+
+## 6. Prioritized Action List
+
+**P0 — Before ProductHunt (April 15, 5 days out):**
+1. **Commit and push the two uncommitted app.jsx syntax fixes.** Already in working tree — `push "fix: 2 venue syntax bugs"`. Zero risk.
+2. **Replace `TP_MARKER = "YOUR_TP_MARKER"`** at `app.jsx:5316`. Every flight click earns $0 until this is done. Jack action, 5 minutes.
+3. **Bump cache buster** from `v=20260331a` to `v=20260410a` in `index.html:346`.
+4. **Bump SW `CACHE_NAME`** in `sw.js:2` from `peakly-20260330` to `peakly-20260410`. Forces update on return visitors.
+
+**P1 — Before launch push:**
+5. **Dedupe 265 duplicate venue entries.** One-pass script that keeps the best entry per name.
+6. **Backfill `AIRPORT_CITY` and `BASE_PRICES`** for the 634 missing airport codes — or hide flight pricing UI for venues whose airport isn't resolved.
+7. **Remove stray `revision:null`** at line 1077.
+8. **Commit or discard** the 9 modified files so the tree isn't dirty during launch week.
+9. **Update CLAUDE.md photo stats** — the 257/93% figure is wrong; real is 2,261/39%.
+10. **Clean up untracked `.js` probe files** in repo root.
+
+**P2 — Ongoing:**
+11. Update CLAUDE.md "Service worker at peakly-v14" — naming convention changed.
+12. Pin React/ReactDOM to exact versions on unpkg (e.g., `react@18.3.1`) for launch week stability.
+
+---
+
+## Health Score Breakdown
+
+| Dimension | Score | Notes |
+|---|---|---|
+| Parse / syntax | 92 / 100 | Babel clean, but 2 fixes uncommitted |
+| Venue data integrity | 85 / 100 | Schema perfect, 265 dupes + 1 stray field |
+| Asset integrity (photos) | 70 / 100 | 61% unique, top reuse 17x |
+| Airport/data coverage | 55 / 100 | 78% of airport codes missing from lookup |
+| CDN / dependencies | 90 / 100 | All present, minor version-pin risk |
+| Documentation accuracy | 65 / 100 | CLAUDE.md stale on photos + SW name |
+| Git hygiene / ship cadence | 45 / 100 | 6 days no ship, dirty tree, uncommitted fixes |
+| **Overall (weighted)** | **72 / 100** | **YELLOW** |
+
+---
+
+## Bottom Line
+
+The codebase is not the problem. Execution is. Babel parses clean. Data schema is airtight. The Unsplash CDN is fine. The two syntax bugs that would break everything are *already fixed* — they just need to be committed.
+
+Ship the pending fixes. Replace `TP_MARKER`. Bump the cache buster. That's 15 minutes of Jack's time and unblocks launch. Everything else on the list is polish that can happen in parallel.
