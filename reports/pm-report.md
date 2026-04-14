@@ -78,7 +78,7 @@ This is a documentation drift problem: the agent team records what was claimed t
 
 ---
 
-## This Week's Top 3 Priorities
+## This Week's Top 3 Priorities Only
 
 ### 1. JACK: TP_MARKER. Day 21. No more context needed.
 
