@@ -1,159 +1,167 @@
-# Peakly PM Report — 2026-04-08 (v23)
+# Peakly PM Report — 2026-04-14
 
 **Filed by:** Product Manager agent  
-**Status:** Dead week continues. Zero commits since April 2. TP_MARKER Day 15. Every P0/P1 from v22 still open.
-
-Full report: [pm-2026-04-08.md](./pm-2026-04-08.md)
+**Status:** 5 days of silence after 6 days of silence. TP_MARKER Day 21. Email capture still `alert()`. VENUES bloat mystery.
 
 ---
 
-## Shipped Since Last Report (2026-04-02 → 2026-04-06)
+## Overnight Activity — April 9 → April 14
 
-| Commit | What | Right call? |
-|--------|------|-------------|
-| — | **Nothing shipped in 4 days** | ❌ This is the biggest risk in the codebase right now |
+**Commits since last PM report (April 8): 3 commits, all April 9**
 
-**Four days of inactivity after Reddit launch is a dead window.** Any Reddit visitors who bookmarked the app and returned are getting the same experience they left. No improvement. No follow-up. No urgency.
+| Hash | What | Assessment |
+|------|------|-----------|
+| `1db7079` | fix: push notification icons, SW cache bump, inter-batch delay, cache buster | ✅ Right call. Push icon was broken (pointed to manifest.json, not SVG). Inter-batch delay prevents Open-Meteo rate limits. Good. |
+| `f79ff26` | Daily Content report | Neutral. Filed, no actions taken. |
+| `3129564` | Daily Content report | Neutral. Filed, no actions taken. |
 
-The last commit (2026-04-02) was a PM report file. The last code commit (2026-04-01) was a flight URL patch — the fourth patch in a week on fragile code that needed a clean rewrite.
+**Zero code commits since April 9.** Five more days of silence after the six-day gap flagged in the last report.
 
 ---
 
-## Bug Triage — April 6
+## Bug Triage — April 14
 
 | Bug | Severity | Status | Days Open |
 |-----|----------|--------|-----------|
-| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | ❌ STILL UNSET | **Day 13** |
-| **app.jsx = 1.99 MB / 10,976 lines (Babel parse 5-10s mobile)** | **P1** | ❌ Getting worse with every venue add | Day 4 |
-| **fetchWeather() throws on 429 — line 4541** | **P1** | ❌ fetchMarine() returns null on !ok. fetchWeather() throws. Crashes the tab on rate limit. | Day 14+ |
-| **venue.facing ?? 270 swell scoring bug** | **P1** | ❌ Line 4683. Wrong surf scores for majority of breaks. | Day 11 |
-| **Email capture — no backend** | **P1** | ❌ Emails going to localStorage void | Day 13+ |
-| **React CDN unpinned — react@18** | **P2** | ❌ index.html:80–81. One CDN breaking change = all users dead. | Day 11 |
-| **Photo duplication at 3,726 venues** | **P2** | ❌ Unsplash photo IDs reused across many venues | Day 14+ |
+| **TP_MARKER = "YOUR_TP_MARKER"** (`app.jsx:5316`) | **P0** | ❌ STILL UNSET | **Day 21** |
+| **app.jsx = 2.0 MB, 11,000 lines** | **P1** | ❌ Unfixed | Day 12+ |
+| **fetchWeather() throws on 429** (`app.jsx:4541`) | **P1** | ❌ `if (!r.ok) throw` — no 429 guard, crashes Explore tab | Day 21 |
+| **Email capture banner uses `alert()`** (`app.jsx:7214`) | **P1** | ❌ No backend POST. Emails lost to void. | Day 21 |
+| **Cache buster stale** (`?v=20260409a`, 5 days old) | **P3** | ⚠️ Bumped April 9, now stale again | Day 5 |
 
-**New P1 confirmed: fetchWeather() throws on 429.**
-`fetchMarine()` returns `null` on any error (`if (!r.ok) return null`). `fetchWeather()` throws (`if (!r.ok) throw new Error(...)`). When Open-Meteo rate-limits, the weather fetch crashes instead of gracefully degrading. The Explore tab breaks for all users simultaneously. This is a 5-line fix (line 4541: change throw to return null) that has been sitting unfixed for 2+ weeks while lower-priority work shipped.
+**Resolved since April 8:**
+
+| Bug | Status | Notes |
+|-----|--------|-------|
+| React CDN unpinned | ✅ FIXED | Pinned to 18.3.1 at `index.html:80-81` |
+| Sentry DSN empty | ✅ NOT A BUG | DSN confirmed set at `app.jsx:8`. Concern was stale. Closed. |
+
+---
+
+## Specific Issue Audits (from brief)
+
+**"Peakly Pro price showing $9/mo — should be $79/yr"**  
+NOT FOUND anywhere in `app.jsx`. Searched for "$9/mo", "per month", "subscription", "upgrade", "Pro plan", and all pricing language. There is no Pro pricing displayed in the app. The Profile tab shows "Open Beta" at `app.jsx:8331`. The Pro product exists only as a CLAUDE.md concept ($79/yr target). No $9/mo string exists in the current codebase.  
+**Ruling: Ghost issue. Does not exist. Close it.**
+
+**"Sentry DSN empty — flying blind on production errors"**  
+DSN is live at `app.jsx:8`: `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304...`. Error monitoring is active.  
+**Ruling: Closed. Not a current problem.**
+
+**"Cache buster stale"**  
+Bumped to `?v=20260409a` on April 9. Now 5 days stale. Low severity — only matters when new code ships and old browsers need to bypass their cache. Until next commit, this isn't blocking anyone.  
+**Ruling: P3. Bundle bump with next code ship.**
 
 ---
 
 ## Known Blockers
 
-| Blocker | Owner | Status |
-|---------|-------|--------|
-| **TP_MARKER placeholder** | Jack — tp.media → Markers → copy ID → app.jsx:5316 → push | **P0. Day 13. Every flight click since March 24 = $0.** |
-| **app.jsx 1.99 MB** | Dev — extract VENUES to venues.json, fetch async on init | P1. Mobile bounce on cold load. Getting worse with each venue expansion. |
-| **fetchWeather() 429 crash** | Dev — line 4541, change `throw` to `return null` | P1. Explore tab crashes on rate limit. 5-line fix. |
-| **venue.facing swell bug** | Dev — delete lines 4683–4691 | P1. Wrong surf scores. Credibility risk on r/surfing. |
-| **Email capture no backend** | Dev — Loops.so POST on onboarding complete | P1. Every Reddit visitor email is already lost. |
-| **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
-| **VPS /api/flights/latest status** | Jack — `curl https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN` | Still unconfirmed. Proxy may be 404ing since March 29. |
+| Blocker | Owner | Days Blocked |
+|---------|-------|-------------|
+| **TP_MARKER** | Jack (tp.media login — not a code problem) | 21 |
+| **fetchWeather 429** | Dev (1 line at `app.jsx:4541`) | 21 |
+| **Email capture POST** | Dev (1 form handler at `app.jsx:7214`) | 21 |
+| **app.jsx VENUES bloat** | Dev (audit + purge, then extraction) | 12+ |
+| **LLC** | External — unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide | Unknown |
+
+---
+
+## Silent Problem Nobody Is Talking About
+
+**CLAUDE.md says VENUES was trimmed to 231 entries (skiing/surfing/tanning only) on April 10. The code disagrees.**
+
+The April 10 cleanup log states: "VENUES scaled 3,726 → 257 → 231 (launch cats only: skiing/surfing/tanning)." Current `app.jsx` is 11,000 lines / 2.0 MB and contains venue entries for `kite`, `climbing`, `mtb`, `paraglide`, `diving`, `fishing`, and `hiking` — clearly well above 231. Their scoring cases were deleted from `scoreVenue()`. These venues either score incorrectly or return the "Checking conditions…" fallback.
+
+This is a documentation drift problem: the agent team records what was claimed to ship, not what the code actually contains. The written state of CLAUDE.md and the actual state of `app.jsx` have diverged. Every venue outside the three launch categories is dead weight that Babel parses on mobile load, burning performance budget without contributing to the product.
+
+**Action: VENUES audit before venues.json extraction. Purge non-launch categories. Confirm actual count.**
 
 ---
 
 ## This Week's Top 3 Priorities
 
-### 1. JACK: TP_MARKER. Day 13. This is the only P0 in the codebase.
+### 1. JACK: TP_MARKER. Day 21. No more context needed.
 
-`tp.media` → Markers → copy your marker ID → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push.
+`tp.media` → Markers → copy marker ID → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push. Five minutes. This has appeared in 12 consecutive PM reports. The fix has not changed. The opportunity cost is now 21 days of untracked flight affiliate clicks.
 
-Every flight affiliate click since March 24 has been unattributed and unmonetized. If Reddit brought 300 visitors and 8% clicked a flight link, that's 24+ lost conversions. The fix is 5 minutes. It has appeared in every PM report since v13.
+**Decision: SHIP. Jack. Today. No further analysis required.**
 
-**Decision: SHIP. Jack. Today. Not this week. Today.**
+### 2. DEV: 2 surgical fixes + cache bump, 30 minutes, zero design decisions
 
-### 2. DEV: Ship the 3 unblocked P1 fixes (45 minutes total)
+**a) fetchWeather 429 (`app.jsx:4541`)** — Change 1 line:
+```js
+// Before: if (!r.ok) throw new Error("weather fetch failed");
+// After:  if (r.status === 429 || !r.ok) return null;
+```
+`fetchMarine()` already returns null on failure (`app.jsx:4558`). Weather should match. A thrown error propagates through the batch loader and can silently break the Explore tab for all users when Open-Meteo rate limits.
 
-All three are surgical, confirmed bugs, no design decisions required:
+**b) Email capture POST (`app.jsx:7214`)** — Replace `alert("You're on the list! 🎉")` with a real POST to `https://peakly-api.duckdns.org/api/waitlist`. CLAUDE.md claims this was fixed in the April 10 cleanup pass. The code says `alert()` is still live. Every email submitted via the Explore banner was discarded.
 
-**a) fetchWeather() 429 fix — 5 minutes.** `app.jsx:4541`: change `throw new Error("weather fetch failed")` to `return null`. fetchMarine() already does this correctly. This prevents the Explore tab from crashing when Open-Meteo rate-limits.
+**c) Cache buster** — Bump `?v=20260409a` → `?v=20260414a` in `index.html:346`.
 
-**b) venue.facing swell bug — 10 minutes.** Delete lines 4683–4691 (the `spotFacing`/`swellAlignment`/`swellAngleDiff` block). The `venue.facing ?? 270` default applies west-facing swell to all surf venues without explicit `facing` data, which is most of them. East-coast breaks, J-Bay, Brazilian northeast coast — all penalized incorrectly.
+**Decision: SHIP all 3 as a single commit. Bundle with TP_MARKER push.**
 
-**c) React CDN pin — 2 minutes.** `index.html:80–81`: change `react@18` → `react@18.3.1` and `react-dom@18` → `react-dom@18.3.1`. One minor breaking change from the CDN kills all users simultaneously with zero warning.
+### 3. DEV: VENUES audit + non-launch category purge
 
-**Decision: SHIP all three this week. Combine into one commit. No new features until these are done.**
+Before touching the venues.json extraction (the 3-4 hr engineering task), confirm what's actually in the VENUES array. Count entries by category. Delete all venues where `category` is not `"skiing"`, `"surfing"`, or `"tanning"`. CLAUDE.md target is 231. If the code is at 800+, the purge could cut `app.jsx` by 25-35% without any infra work.
 
-### 3. DEV: Email capture backend — 30 minutes
+This is a prerequisite to accurate reporting, accurate file sizing, and valid CLAUDE.md.
 
-Every email typed into the onboarding form since launch is permanently lost. Loops.so is free up to 2,500 contacts, requires no LLC, no Stripe, no backend deploy.
+**Decision: SHIP this week as standalone commit. Prior to any venues.json work.**
 
-On onboarding complete, `fetch()` POST to Loops.so free-tier webhook with `{email, name}`. This is the entire implementation. Without it, Peakly has no list to reactivate after the Reddit spike fades.
+---
 
-**Decision: SHIP this week. The list we should have been building since March 24 is gone. Don't lose the next batch.**
+## Explicit Product Decisions
+
+**DECISION 1: VENUES purge before venues.json extraction.**  
+The April 8 PM report recommended venues.json extraction (3-4 hrs). That's premature if the file still has 600+ dead-category venues in it. Purge first (30 min). Reassess size. Then decide if async loading is still necessary.
+
+**DECISION 2: JSON-LD structured data — SHIP this week.**  
+SEO score is 81%. `schema.org/SportsActivityLocation` JSON-LD on the Explore page is a direct path to rich results for "surf conditions [city]" and "ski conditions forecast" queries. Static markup, no API dependencies, no design decisions. Estimated effort: 2-3 hours. Estimated SEO gain: +5-10% organic reach. This is a SHIP.
+
+**DECISION 3: Static h1 fallback — SHIP alongside JSON-LD.**  
+Googlebot sees a blank h1 on first crawl because Babel parses after the DOM. A static `<h1 id="seo-h1">Find surf, ski & beach spots when conditions and flights align</h1>` in `index.html`, hidden visually but indexable, costs 10 minutes. Bundle with JSON-LD commit.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Decision | Reasoning |
-|---------|----------|-----------|
-| **More venue expansion** | **CUT until app.jsx extracted** | app.jsx is already 1.99 MB. Adding venues makes mobile load worse. Every venue added now is costing conversion. No more venues until VENUES is extracted to venues.json. |
-| **Trips + Wishlists tabs exposed** | **DEFER** | Core flow first. Reddit visitors are top-of-funnel. More tabs = confusion. Post-1K users. |
-| **Strike alerts server polling** | **DEFER** | Infrastructure half-built. Demand not validated. Phase 2. |
-| **Google Play Store via PWABuilder** | **DEFER to after email backend** | $25, correct direction. Irrelevant if we can't re-engage users we already have. |
-| **Amazon gear links (5 zero-revenue categories)** | **DEFER to week 2** | +$1.50–2.00 RPM potential. Not the constraint right now. |
-| **Scoring algorithm changes** | **CUT** | Freeze holds. Per v16 decision. Stability over perfection until post-Reddit data shows specific gaps. |
-| **Dark mode** | **CUT permanently** | Repeated decision. Not in next 6 months. |
+| Feature | Decision | Reason |
+|---------|----------|--------|
+| **venues.json extraction (before VENUES audit)** | **DEFER** | Premature. Audit dead categories first — purge may make it unnecessary. |
+| **Trips + Wishlists tabs exposed** | **DEFER to 1K users** | Standing decision. 3-tab nav for launch. |
+| **iOS App Store** | **DEFER to 500 validated users** | $99 + 4-week review cycle. Validate PMF first. |
+| **Google Play via PWABuilder** | **DEFER to 500 users** | $25 and no code, but amplify proven demand — not speculative. |
+| **Strike alerts server polling** | **DEFER to 100 subscribers** | Build audience before the push worker. |
+| **Pro subscription UI** | **DEFER indefinitely** | Not in code. No user demand. No LLC. Not in 6 months. |
+| **Dark mode** | **CUT** | Repeated decision. Won't revisit. |
 
 ---
 
 ## Success Criteria
 
-| Metric | 5K users (base case) | 8K users (upside case) |
-|--------|---------------------|----------------------|
-| TP_MARKER set | Before next post | Before next post (identical requirement) |
-| Email re-engagement | 50+ emails, re-engage at day 7 | 150+ emails, automated day-7 follow-up → 20% return |
-| VPS proxy confirmed live | Confirmed before next post | Confirmed before next post |
-| Second Reddit post | Not posted | r/skiing or r/solotravel cross-post within 7 days of first |
-| Week-2 retention | 5% of Reddit visitors return | 15% return via email + UX improvement on load time |
-| Mobile load time | Still 5-10s on Android | < 2s via venues.json extraction |
+| Metric | 5K users (base) | 8K users (upside) |
+|--------|-----------------|-------------------|
+| TP_MARKER set | No (Day 21) | Yes — set before next traffic spike |
+| Email capture working | No (`alert()` live) | Yes — POST to `/api/waitlist` |
+| Mobile load time | 5-10s Babel parse | <3s (post VENUES purge) |
+| SEO score | 81% | 88%+ (post JSON-LD) |
+| Flight pricing | Estimates only (TP unattributed) | Live on top venues + commission tracking |
 
-**The 8K path requires two things: (1) a second Reddit post this week, and (2) email re-engagement to pull back week-1 visitors. Both require the email backend to be live first.**
+**What has to be true for 8K, not 5K:**  
+TP_MARKER set. Email capture working. VENUES purged. JSON-LD live. Every item is identified, scoped, and small. The gap between 5K and 8K is an execution gap, not a product gap.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 4-day shipping gap is the symptom of a prioritization failure, not a resourcing failure.**
+**CLAUDE.md is the product's shared brain. It is currently wrong about venue count, email capture status, and the surfing scoring fix.**
 
-Between April 2 and April 6, no code shipped. During that same window:
-- TP_MARKER remained a placeholder (Day 13 of $0 affiliate attribution)
-- fetchWeather() continued to throw on rate limits instead of returning null
-- The email capture form continued collecting emails into localhost void
-- The React CDN continued running unpinned
+The April 11 entry says email capture is fixed ("real POST to /api/waitlist, no more alert()"). The code says `alert()` is live. The April 10 entry says VENUES trimmed to 231. The code disagrees. The April 11 entry says surfing wind direction was fixed to use `venue.facing + 180`. The code at lines 4721-4734 still compares `windDir - swellDir`, not `windDir - (venue.facing + 180)`.
 
-These are not hard problems. The fetchWeather() fix is one line. The React pin is two lines. TP_MARKER is a copy-paste from a dashboard. Together they take 20 minutes.
-
-The risk is that Peakly has entered a pattern where agent reports correctly identify P0/P1 issues and they remain unfixed across multiple reporting cycles, while lower-priority work (flight URL patches, splash screen animations, GitHub Actions) continues to ship. Reports are not a substitute for shipping.
-
-**The 4-day gap cost more than any bug in the codebase. Every day TP_MARKER is unset after a Reddit spike is a day the affiliate relationship generates $0 instead of data.**
+When CLAUDE.md drifts from code reality, every new session starts with a false picture of the world. Agents document claims, not state. The fix: before closing any bug in CLAUDE.md, verify the relevant lines in `app.jsx`. Three of the "✅ Recently Fixed" items on the April 11 list are not fixed in the current code.
 
 ---
 
-## Decisions Made This Report
-
-| Date | Decision |
-|------|----------|
-| 2026-04-06 | **TP_MARKER: P0. Day 13. Jack ships before end of day.** |
-| 2026-04-06 | **fetchWeather() 429: SHIP. app.jsx:4541. One-line fix. This week.** |
-| 2026-04-06 | **venue.facing swell bug: SHIP. app.jsx:4683–4691. Delete block. This week.** |
-| 2026-04-06 | **React CDN pin: SHIP. index.html:80–81. Two lines. This week.** |
-| 2026-04-06 | **Email backend: SHIP. Loops.so POST. 30 min. This week.** |
-| 2026-04-06 | **No more venue expansions until app.jsx VENUES extracted to venues.json. Performance is now the constraint.** |
-| 2026-04-06 | **Second Reddit post: EXECUTE this week. r/skiing or r/solotravel. TP_MARKER must be set first.** |
-
----
-
-## 4-Bug Fix Checklist (Execute In Order, ~45 Minutes Total)
-
-- [ ] **Jack:** Copy TP_MARKER from tp.media → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push (5 min)
-- [ ] **Jack:** `curl "https://peakly-api.duckdns.org/api/flights/latest?origin=JFK&destination=BCN"` — confirm 200 or 404 (2 min)
-- [ ] **Dev:** `app.jsx:4541` — change `throw new Error("weather fetch failed")` → `return null` (5 min)
-- [ ] **Dev:** `app.jsx:4683–4691` — delete venue.facing/swellAlignment block (10 min)
-- [ ] **Dev:** `index.html:80–81` — pin `react@18` → `react@18.3.1`, `react-dom@18` → `react-dom@18.3.1` (2 min)
-- [ ] **Dev:** Add Loops.so POST to onboarding email capture (30 min)
-- [ ] **Dev:** Bump cache buster in index.html script tag
-- [ ] **Jack:** Second Reddit post — r/skiing or r/solotravel (after above ships)
-
----
-
-*Next report: 2026-04-07 | Filed by PM agent (v22)*
+*PM agent — 2026-04-14*  
+*Milestone: TP_MARKER + 2 surgical fixes in git by April 15. VENUES audit by April 16. No more loops.*
