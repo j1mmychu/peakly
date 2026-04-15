@@ -914,7 +914,9 @@ async function fetchWeather(lat, lon) {
     } catch (err) {
       if (err.name === "AbortError") { return null; }
       if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
-      clearTimeout(timer); return null;
+      clearTimeout(timer);
+      console.warn("[Peakly] Weather API error:", err.name, err.message);
+      return null;
     }
   }
   clearTimeout(timer); return null;
@@ -939,8 +941,9 @@ async function fetchMarine(lat, lon) {
     const data = await r.json();
     _wxCacheSet(cacheKey, data);
     return data;
-  } catch {
+  } catch (err) {
     clearTimeout(timer);
+    console.warn("[Peakly] Marine API error:", err.name, err.message);
     return null;
   }
 }
