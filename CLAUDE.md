@@ -16,12 +16,12 @@ Peakly is a **single-file React SPA** for discovering surf, ski, and beach spots
 ```
 peakly/
 ├── index.html               # Entry point — React 18, ReactDOM, Babel via CDN
-├── app.jsx                  # Entire application (~11K lines of JSX)
+├── app.jsx                  # Entire application (~7K lines of JSX)
 ├── CLAUDE.md                # THIS FILE — shared brain
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-v14, push + caching)
+├── sw.js                    # Service worker (peakly-20260412a, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -53,7 +53,7 @@ peakly/
 
 1. Error monitoring & crash detection (~lines 1–66)
 2. CSS injection (~lines 68–136)
-3. Constants & data (~lines 138–950): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (3,726), `LOCAL_TIPS`, `PACKING`, `GEAR_ITEMS`, `AVATAR_COLORS`, weather code maps
+3. Constants & data (~lines 138–950): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (231), `AVATAR_COLORS`, weather code maps
 4. Utility functions (~lines 950–1100): `useLocalStorage`, `fetchWeather`, `fetchMarine`, `fetchTravelpayoutsPrice`, `scoreVenue`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
 5. UI components (~lines 1100–4900)
 6. App root + `ErrorBoundary` (~lines 4900–end)
@@ -125,13 +125,24 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-04-11)
+## Current State (2026-04-14)
 
 ### What's Broken / Open (Priority Order)
 
 1. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
 2. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 3. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-04-12 — 7 algorithm holes)
+
+- ✅ **Marine data missing → surfing scored "flat" dishonestly** — was asserting score 22 when marine data simply wasn't available. Now returns score 50 "Swell data unavailable" instead of lying about conditions.
+- ✅ **Beach marine data was NEVER FETCHED** — `needsMarine` only checked surfing category. Water temp scoring was dead code for beaches. Now fetches marine for both surfing and tanning.
+- ✅ **Skiing had no season awareness** — a resort in July with residual snowpack scored 72. Now checks month vs hemisphere: off-season → score 8 "Off-season — resort closed." Shoulder months capped unless real snow.
+- ✅ **Spring skiing penalty was wrong** — 42°F with 200cm base scored as "slush" when it's excellent corn skiing. Warm-temp penalty now gated on base depth.
+- ✅ **bestDays counter treated snow as BAD for skiing** — precip > 3mm = "bad day" hit powder days. A 4-day storm showed bestDays = 1. Now category-aware: snow days count as good for skiing.
+- ✅ **Heat index ignored for beach** — 90°F at 90% humidity vs 40% scored the same. Added humidity penalty (dangerous: -12, oppressive: -7, sticky: -3).
+- ✅ **Snowmaking floor added** — during ski season, resorts with 0 natural snowpack get score 35 (not 20) since most resorts make snow.
+- ✅ Cache bump 20260411a → 20260412a.
 
 ### Recently Fixed (2026-04-11 accuracy + honesty pass)
 
@@ -200,7 +211,7 @@ Reports → `reports/`. Anything older than 7 days → `reports/archive/`.
 | Amazon Associates (`peakly-20`) | LIVE | $4.48 |
 | Booking.com (`aid=2311236`) | LIVE | $6.90 |
 | SafetyWing (`referenceID=peakly`) | LIVE | $0.54 |
-| Travelpayouts (HTTPS proxy) | LIVE — needs TP_MARKER | $0.14 |
+| Travelpayouts (HTTPS proxy, TP_MARKER=710303) | LIVE | $0.14 |
 | REI (Avantlink signup pending) | $0 | +$6.16 |
 | Backcountry / GetYourGuide | $0 | +$1.84 |
 | Peakly Pro $79/yr | EMAIL WAITLIST | +$13.17 |
