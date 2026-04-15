@@ -229,8 +229,6 @@ app.get('/api/flights/latest', async (req, res) => {
 // Appends email to server/data/waitlist.jsonl
 // Body: { email }
 // Response: { success, message }
-const fs = require('fs');
-const path = require('path');
 const WAITLIST_FILE = path.join(__dirname, 'data', 'waitlist.jsonl');
 
 app.post('/api/waitlist', (req, res) => {
