@@ -1,55 +1,56 @@
-# Peakly PM Report — 2026-04-12 (v24)
+# Peakly PM Report — 2026-04-14
 
 **Filed by:** Product Manager agent  
-**Date:** 2026-04-12  
-**Status:** RED. TP_MARKER is on day 19. Three P1s confirmed unfixed despite CLAUDE.md claiming they were resolved. The document is lying to us.
-
-Full report: [pm-2026-04-12.md](./pm-2026-04-12.md)
+**Status:** 5 days of silence after 6 days of silence. TP_MARKER Day 21. Email capture still `alert()`. VENUES bloat mystery.
 
 ---
 
-## Shipped Since Last Report (2026-04-09 → 2026-04-12)
+## Overnight Activity — April 9 → April 14
 
-| Commit | What | Right call? |
-|--------|------|-------------|
-| `1db7079` (Apr 9) | Push notification icon fix (was pointing to JSON, now SVG data URI) | ✅ Correct fix, should have been caught in testing before launch |
-| `1db7079` (Apr 9) | CACHE_NAME bumped to `peakly-20260409`, cache buster to `?v=20260409a` | ✅ Necessary housekeeping |
-| `1db7079` (Apr 9) | 1s inter-batch delay in `fetchInitialWeather` | ✅ Correct — prevents Open-Meteo rate limits |
-| `3129564` (Apr 9, merge) | app.jsx 98-line change (scoring adjustments, report files) | Unclear — scope not captured in commit message |
+**Commits since last PM report (April 8): 3 commits, all April 9**
 
-**Three days of zero code output since.** April 9 was the last commit touching product code.
+| Hash | What | Assessment |
+|------|------|-----------|
+| `1db7079` | fix: push notification icons, SW cache bump, inter-batch delay, cache buster | ✅ Right call. Push icon was broken (pointed to manifest.json, not SVG). Inter-batch delay prevents Open-Meteo rate limits. Good. |
+| `f79ff26` | Daily Content report | Neutral. Filed, no actions taken. |
+| `3129564` | Daily Content report | Neutral. Filed, no actions taken. |
 
----
-
-## CRITICAL: CLAUDE.md Accuracy Failure
-
-CLAUDE.md claims "Recently Fixed (2026-04-11)" for 7+ bugs. **Code audit shows at least 3 of these are still broken in production today:**
-
-| Claimed Fix | Actual Code State |
-|-------------|-------------------|
-| "Flight pricing was fabricating deals — now returns `pct: 0`, `isEstimate: true`" | ❌ `app.jsx:5430–5432` still runs `pct = 28 + (seed % 48)`. Pseudo-random 28–75% discounts still generating. |
-| "Email capture: real POST to `/api/waitlist`, no more `alert()`" | ❌ `app.jsx:7214` still calls `alert("You're on the list! 🎉")`. No API call. Emails going to void. |
-| "UI price badges now gated on `flight.live`" | ❌ `app.jsx:8614` gates on `l.flight.pct > 10` only. No `flight.live` check. |
-
-CLAUDE.md cannot be trusted as a source of truth until these are reconciled. Any agent reading it will operate on false assumptions.
+**Zero code commits since April 9.** Five more days of silence after the six-day gap flagged in the last report.
 
 ---
 
-## Bug Triage — April 12
+## Bug Triage — April 14
 
-| Bug | Severity | Line | Days Open | Status |
-|-----|----------|------|-----------|--------|
-| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | 5316 | **Day 19** | ❌ UNSET |
-| **`getFlightDeal()` fabricates pct** | **P1** | 5430–5432 | Day 4+ | ❌ UNSET (CLAUDE.md lied) |
-| **Email capture uses `alert()`** | **P1** | 7214 | Day 20+ | ❌ UNSET (CLAUDE.md lied) |
-| **`fetchWeather()` throws on 429** | **P1** | 4541 | Day 20+ | ❌ UNSET |
-| **app.jsx = 2.0 MB / 11,000 lines** | **P1** | N/A | Growing | ❌ Getting worse |
-| **Peakly Pro "$9/mo"** | Unknown | N/A | N/A | Cannot reproduce — not found in codebase |
+| Bug | Severity | Status | Days Open |
+|-----|----------|--------|-----------|
+| **TP_MARKER = "YOUR_TP_MARKER"** (`app.jsx:5316`) | **P0** | ❌ STILL UNSET | **Day 21** |
+| **app.jsx = 2.0 MB, 11,000 lines** | **P1** | ❌ Unfixed | Day 12+ |
+| **fetchWeather() throws on 429** (`app.jsx:4541`) | **P1** | ❌ `if (!r.ok) throw` — no 429 guard, crashes Explore tab | Day 21 |
+| **Email capture banner uses `alert()`** (`app.jsx:7214`) | **P1** | ❌ No backend POST. Emails lost to void. | Day 21 |
+| **Cache buster stale** (`?v=20260409a`, 5 days old) | **P3** | ⚠️ Bumped April 9, now stale again | Day 5 |
 
-**Resolved since last report:**
-- ✅ Sentry DSN is set (real DSN at `app.jsx:8`) — no longer flying blind
-- ✅ React CDN pinned to 18.3.1 (`index.html:80-81`)
-- ✅ Cache buster current (`?v=20260409a`)
+**Resolved since April 8:**
+
+| Bug | Status | Notes |
+|-----|--------|-------|
+| React CDN unpinned | ✅ FIXED | Pinned to 18.3.1 at `index.html:80-81` |
+| Sentry DSN empty | ✅ NOT A BUG | DSN confirmed set at `app.jsx:8`. Concern was stale. Closed. |
+
+---
+
+## Specific Issue Audits (from brief)
+
+**"Peakly Pro price showing $9/mo — should be $79/yr"**  
+NOT FOUND anywhere in `app.jsx`. Searched for "$9/mo", "per month", "subscription", "upgrade", "Pro plan", and all pricing language. There is no Pro pricing displayed in the app. The Profile tab shows "Open Beta" at `app.jsx:8331`. The Pro product exists only as a CLAUDE.md concept ($79/yr target). No $9/mo string exists in the current codebase.  
+**Ruling: Ghost issue. Does not exist. Close it.**
+
+**"Sentry DSN empty — flying blind on production errors"**  
+DSN is live at `app.jsx:8`: `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304...`. Error monitoring is active.  
+**Ruling: Closed. Not a current problem.**
+
+**"Cache buster stale"**  
+Bumped to `?v=20260409a` on April 9. Now 5 days stale. Low severity — only matters when new code ships and old browsers need to bypass their cache. Until next commit, this isn't blocking anyone.  
+**Ruling: P3. Bundle bump with next code ship.**
 
 ---
 
@@ -57,81 +58,110 @@ CLAUDE.md cannot be trusted as a source of truth until these are reconciled. Any
 
 | Blocker | Owner | Days Blocked |
 |---------|-------|-------------|
-| **TP_MARKER** | Jack — tp.media → Markers → copy ID → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push | 19 |
-| **Email capture backend** | Dev — `app.jsx:7214`: replace `alert()` with fetch POST to `peakly-api.duckdns.org/api/waitlist` | 20+ |
-| **`getFlightDeal()` honesty** | Dev — `app.jsx:5430-5432`: change `pct = 28 + (seed % 48)` to `pct = 0` | 4+ |
-| **`fetchWeather()` throw** | Dev — `app.jsx:4541`: change `throw new Error(...)` to `return null` | 20+ |
-| **LLC approval** | External | Unblocks REI, Backcountry, GetYourGuide |
+| **TP_MARKER** | Jack (tp.media login — not a code problem) | 21 |
+| **fetchWeather 429** | Dev (1 line at `app.jsx:4541`) | 21 |
+| **Email capture POST** | Dev (1 form handler at `app.jsx:7214`) | 21 |
+| **app.jsx VENUES bloat** | Dev (audit + purge, then extraction) | 12+ |
+| **LLC** | External — unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide | Unknown |
 
 ---
 
-## This Week's Top 3 Priorities
+## Silent Problem Nobody Is Talking About
 
-### 1. JACK: TP_MARKER. Day 19. This is the only P0.
+**CLAUDE.md says VENUES was trimmed to 231 entries (skiing/surfing/tanning only) on April 10. The code disagrees.**
 
-`tp.media` → Markers → copy your marker ID → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push.
+The April 10 cleanup log states: "VENUES scaled 3,726 → 257 → 231 (launch cats only: skiing/surfing/tanning)." Current `app.jsx` is 11,000 lines / 2.0 MB and contains venue entries for `kite`, `climbing`, `mtb`, `paraglide`, `diving`, `fishing`, and `hiking` — clearly well above 231. Their scoring cases were deleted from `scoreVenue()`. These venues either score incorrectly or return the "Checking conditions…" fallback.
 
-Every flight click since March 24 = $0 commission. This is the easiest money on the table. The fix is 30 seconds. It has now appeared in 9 consecutive PM reports.
+This is a documentation drift problem: the agent team records what was claimed to ship, not what the code actually contains. The written state of CLAUDE.md and the actual state of `app.jsx` have diverged. Every venue outside the three launch categories is dead weight that Babel parses on mobile load, burning performance budget without contributing to the product.
 
-**Decision: SHIP. Jack. Today.**
+**Action: VENUES audit before venues.json extraction. Purge non-launch categories. Confirm actual count.**
 
-### 2. DEV: Ship the 3 confirmed P1 fixes (45 minutes total)
+---
 
-**a) fetchWeather() 429 crash — 5 minutes.**  
-`app.jsx:4541`: Change `throw new Error("weather fetch failed")` → `return null`. Already done correctly in `fetchMarine()`. Match the pattern. Prevents Explore tab from crashing on rate limit.
+## This Week's Top 3 Priorities Only
 
-**b) getFlightDeal() honesty — 10 minutes.**  
-`app.jsx:5430-5432`: Change `pct = 28 + (seed % 48)` → `pct = 0`. Users see `~$X typical` instead of fabricated "60% off" on stale estimates. The UI gate at `app.jsx:8614` (`l.flight.pct > 10`) already handles the display correctly — just make the source data honest.
+### 1. JACK: TP_MARKER. Day 21. No more context needed.
 
-**c) Email capture real POST — 20 minutes.**  
-`app.jsx:7214`: Replace `alert("You're on the list!")` with a fetch POST to `https://peakly-api.duckdns.org/api/waitlist` with `{email}`, then show inline success copy in the form. The server endpoint was added in the April 9 merge. The client side just needs to call it.
+`tp.media` → Markers → copy marker ID → replace `"YOUR_TP_MARKER"` at `app.jsx:5316` → push. Five minutes. This has appeared in 12 consecutive PM reports. The fix has not changed. The opportunity cost is now 21 days of untracked flight affiliate clicks.
 
-**Decision: SHIP all three this week. One commit. No new features until these are done.**
+**Decision: SHIP. Jack. Today. No further analysis required.**
 
-### 3. DEV: Update CLAUDE.md to reflect actual code state
+### 2. DEV: 2 surgical fixes + cache bump, 30 minutes, zero design decisions
 
-The "Recently Fixed (2026-04-11)" section is partially false. At minimum:
-- Remove the flight pricing and email capture claims from "fixed" — they're not fixed in the client
-- Add both back to the open P1 list
+**a) fetchWeather 429 (`app.jsx:4541`)** — Change 1 line:
+```js
+// Before: if (!r.ok) throw new Error("weather fetch failed");
+// After:  if (r.status === 429 || !r.ok) return null;
+```
+`fetchMarine()` already returns null on failure (`app.jsx:4558`). Weather should match. A thrown error propagates through the batch loader and can silently break the Explore tab for all users when Open-Meteo rate limits.
 
-Every AI session reading the file will think these are closed. They're not. The document is actively misleading future work.
+**b) Email capture POST (`app.jsx:7214`)** — Replace `alert("You're on the list! 🎉")` with a real POST to `https://peakly-api.duckdns.org/api/waitlist`. CLAUDE.md claims this was fixed in the April 10 cleanup pass. The code says `alert()` is still live. Every email submitted via the Explore banner was discarded.
 
-**Decision: SHIP immediately after fixes land. Takes 5 minutes.**
+**c) Cache buster** — Bump `?v=20260409a` → `?v=20260414a` in `index.html:346`.
+
+**Decision: SHIP all 3 as a single commit. Bundle with TP_MARKER push.**
+
+### 3. DEV: VENUES audit + non-launch category purge
+
+Before touching the venues.json extraction (the 3-4 hr engineering task), confirm what's actually in the VENUES array. Count entries by category. Delete all venues where `category` is not `"skiing"`, `"surfing"`, or `"tanning"`. CLAUDE.md target is 231. If the code is at 800+, the purge could cut `app.jsx` by 25-35% without any infra work.
+
+This is a prerequisite to accurate reporting, accurate file sizing, and valid CLAUDE.md.
+
+**Decision: SHIP this week as standalone commit. Prior to any venues.json work.**
+
+---
+
+## Explicit Product Decisions
+
+**DECISION 1: VENUES purge before venues.json extraction.**  
+The April 8 PM report recommended venues.json extraction (3-4 hrs). That's premature if the file still has 600+ dead-category venues in it. Purge first (30 min). Reassess size. Then decide if async loading is still necessary.
+
+**DECISION 2: JSON-LD structured data — SHIP this week.**  
+SEO score is 81%. `schema.org/SportsActivityLocation` JSON-LD on the Explore page is a direct path to rich results for "surf conditions [city]" and "ski conditions forecast" queries. Static markup, no API dependencies, no design decisions. Estimated effort: 2-3 hours. Estimated SEO gain: +5-10% organic reach. This is a SHIP.
+
+**DECISION 3: Static h1 fallback — SHIP alongside JSON-LD.**  
+Googlebot sees a blank h1 on first crawl because Babel parses after the DOM. A static `<h1 id="seo-h1">Find surf, ski & beach spots when conditions and flights align</h1>` in `index.html`, hidden visually but indexable, costs 10 minutes. Bundle with JSON-LD commit.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Decision | Reasoning |
-|---------|----------|-----------|
-| **JSON-LD structured data** | **DEFER to week 2** | SEO gap is real (+4% estimated CTR), but zero organic traffic right now. Fix the product for existing users first. |
-| **Static H1 fallback** | **DEFER to week 2** | Same reasoning. Bot traffic irrelevant until human funnel is fixed. |
-| **More venue expansion** | **CUT until app.jsx extracted** | 2.0 MB. Every venue add degrades cold load. Already at the limit. |
-| **Trips + Wishlists tabs exposed** | **DEFER to 1K users** | Confirmed hold. Decision unchanged from v22. |
-| **Strike alerts server polling** | **DEFER** | Half-built, demand unvalidated. Post-launch. |
-| **iOS App Store** | **DEFER** | LLC blocking Stripe + Apple entity requirement. Sequence correctly: LLC → Stripe → App Store. |
-| **Dark mode** | **CUT permanently** | Not revisiting. |
+| Feature | Decision | Reason |
+|---------|----------|--------|
+| **venues.json extraction (before VENUES audit)** | **DEFER** | Premature. Audit dead categories first — purge may make it unnecessary. |
+| **Trips + Wishlists tabs exposed** | **DEFER to 1K users** | Standing decision. 3-tab nav for launch. |
+| **iOS App Store** | **DEFER to 500 validated users** | $99 + 4-week review cycle. Validate PMF first. |
+| **Google Play via PWABuilder** | **DEFER to 500 users** | $25 and no code, but amplify proven demand — not speculative. |
+| **Strike alerts server polling** | **DEFER to 100 subscribers** | Build audience before the push worker. |
+| **Pro subscription UI** | **DEFER indefinitely** | Not in code. No user demand. No LLC. Not in 6 months. |
+| **Dark mode** | **CUT** | Repeated decision. Won't revisit. |
 
 ---
 
 ## Success Criteria
 
-**90-day projection: 5K–8K users.** For 8K not 5K:
+| Metric | 5K users (base) | 8K users (upside) |
+|--------|-----------------|-------------------|
+| TP_MARKER set | No (Day 21) | Yes — set before next traffic spike |
+| Email capture working | No (`alert()` live) | Yes — POST to `/api/waitlist` |
+| Mobile load time | 5-10s Babel parse | <3s (post VENUES purge) |
+| SEO score | 81% | 88%+ (post JSON-LD) |
+| Flight pricing | Estimates only (TP unattributed) | Live on top venues + commission tracking |
 
-1. **TP_MARKER set this week.** You have zero flight conversion data. You need it.
-2. **Email list is real.** One Reddit spike, one shot at re-activation. The capture is currently broken. Fix it or the spike is already gone.
-3. **Scores are honest.** Fabricated "60% off" badges drive one-time visits, not retention. Trust = return visits.
-
-**Current path: 5K.** Fix those three: 8K is achievable.
+**What has to be true for 8K, not 5K:**  
+TP_MARKER set. Email capture working. VENUES purged. JSON-LD live. Every item is identified, scoped, and small. The gap between 5K and 8K is an execution gap, not a product gap.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The document is the product, and it's wrong.**
+**CLAUDE.md is the product's shared brain. It is currently wrong about venue count, email capture status, and the surfing scoring fix.**
 
-CLAUDE.md is the operating brain for every agent and every session. It now says the flight pricing fabrication was fixed. It wasn't. It says email capture posts to the API. It doesn't. Every future agent session will build on false premises, skip "already fixed" bugs, and move to new work while the live product keeps deceiving users.
+The April 11 entry says email capture is fixed ("real POST to /api/waitlist, no more alert()"). The code says `alert()` is live. The April 10 entry says VENUES trimmed to 231. The code disagrees. The April 11 entry says surfing wind direction was fixed to use `venue.facing + 180`. The code at lines 4721-4734 still compares `windDir - swellDir`, not `windDir - (venue.facing + 180)`.
 
-This is worse than no documentation. Wrong documentation is actively harmful — and the pattern compounds every sprint. A session claims something is fixed, CLAUDE.md is updated, nobody verifies, the next session skips it.
+When CLAUDE.md drifts from code reality, every new session starts with a false picture of the world. Agents document claims, not state. The fix: before closing any bug in CLAUDE.md, verify the relevant lines in `app.jsx`. Three of the "✅ Recently Fixed" items on the April 11 list are not fixed in the current code.
 
-**Fix:** Code grep before any bug gets marked fixed in CLAUDE.md. No exceptions.
+---
+
+*PM agent — 2026-04-14*  
+*Milestone: TP_MARKER + 2 surgical fixes in git by April 15. VENUES audit by April 16. No more loops.*
