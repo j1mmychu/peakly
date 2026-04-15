@@ -895,7 +895,7 @@ async function fetchWeather(lat, lon) {
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
     `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,` +
     `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,` +
-    `rain_sum,showers_sum,relative_humidity_2m_max` +
+    `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max` +
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -945,35 +945,46 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   const md = marine?.daily;
 
   // ─── Extract all available weather data ───
-  const tempMax   = d.temperature_2m_max?.[di]  ?? d.temperature_2m_max?.[0] ?? 65;
-  const tempMin   = d.temperature_2m_min?.[di]  ?? d.temperature_2m_min?.[0] ?? 45;
-  const precip    = d.precipitation_sum?.[di]    ?? d.precipitation_sum?.[0] ?? 0;
-  const rain      = d.rain_sum?.[di]             ?? d.rain_sum?.[0] ?? precip;
-  const snow      = d.snowfall_sum?.[di]         ?? d.snowfall_sum?.[0] ?? 0;
-  const depth     = d.snow_depth_max?.[di]       ?? d.snow_depth_max?.[0] ?? 0;
-  const wind      = d.wind_speed_10m_max?.[di]   ?? d.wind_speed_10m_max?.[0] ?? 10;
-  const gusts     = d.wind_gusts_10m_max?.[di]   ?? d.wind_gusts_10m_max?.[0] ?? wind * 1.4;
-  const windDir   = d.wind_direction_10m_dominant?.[di] ?? d.wind_direction_10m_dominant?.[0] ?? 0;
-  const uv        = d.uv_index_max?.[di]         ?? d.uv_index_max?.[0] ?? 5;
-  const wCode     = d.weather_code?.[di]         ?? d.weather_code?.[0] ?? 0;
-  const precipPct = d.precipitation_probability_max?.[di] ?? d.precipitation_probability_max?.[0] ?? 50;
-  const sunHrs    = (d.sunshine_duration?.[di]   ?? d.sunshine_duration?.[0] ?? 28800) / 3600; // seconds → hours
+  // Strict day-index lookup: NO fallback to day 0. If a field is missing for the
+  // requested day, return null and let scoring skip that signal — never silently
+  // substitute today's data when the user asked about day 5.
+  const at = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
+  const tempMax   = at(d.temperature_2m_max)  ?? 65;
+  const tempMin   = at(d.temperature_2m_min)  ?? 45;
+  const precip    = at(d.precipitation_sum)   ?? 0;
+  const rain      = at(d.rain_sum)            ?? precip;
+  const snow      = at(d.snowfall_sum)        ?? 0;
+  const depth     = at(d.snow_depth_max)      ?? 0;
+  const wind      = at(d.wind_speed_10m_max)  ?? 10;
+  const gusts     = at(d.wind_gusts_10m_max)  ?? wind * 1.4;
+  const windDir   = at(d.wind_direction_10m_dominant) ?? 0;
+  const uv        = at(d.uv_index_max)        ?? 5;
+  const wCode     = at(d.weather_code)        ?? 0;
+  const cloudPct  = at(d.cloud_cover_max);    // null if not provided
+  const precipPct = at(d.precipitation_probability_max) ?? 50;
+  const sunHrs    = (at(d.sunshine_duration) ?? 28800) / 3600;
+  const humidity  = at(d.relative_humidity_2m_max);
 
-  // ─── Marine data (richer) ───
-  const waveH     = md?.wave_height_max?.[di]               ?? md?.wave_height_max?.[0] ?? 0;
-  const wavePer   = md?.wave_period_max?.[di]               ?? md?.wave_period_max?.[0] ?? 10;
-  const waveDir   = md?.wave_direction_dominant?.[di]        ?? md?.wave_direction_dominant?.[0] ?? 0;
-  const swellH    = md?.swell_wave_height_max?.[di]          ?? md?.swell_wave_height_max?.[0] ?? waveH;
-  const swellPer  = md?.swell_wave_period_max?.[di]          ?? md?.swell_wave_period_max?.[0] ?? wavePer;
-  const swellDir  = md?.swell_wave_direction_dominant?.[di]  ?? md?.swell_wave_direction_dominant?.[0] ?? waveDir;
-  const windWaveH = md?.wind_wave_height_max?.[di]           ?? md?.wind_wave_height_max?.[0] ?? 0;
-  const waterTemp = md?.ocean_temperature_max?.[di]          ?? md?.ocean_temperature_max?.[0] ?? null; // °C, null if unavailable
-  const humidity  = d.relative_humidity_2m_max?.[di]         ?? d.relative_humidity_2m_max?.[0] ?? null; // %, null if unavailable
+  // ─── Marine data ───────────────────────────────────────────────────────
+  const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
+  const waveH     = atM(md?.wave_height_max)            ?? 0;
+  const wavePer   = atM(md?.wave_period_max)            ?? 10;
+  const waveDir   = atM(md?.wave_direction_dominant)    ?? 0;
+  const swellH    = atM(md?.swell_wave_height_max)      ?? waveH;
+  const swellPer  = atM(md?.swell_wave_period_max)      ?? wavePer;
+  const swellDir  = atM(md?.swell_wave_direction_dominant) ?? waveDir;
+  const windWaveH = atM(md?.wind_wave_height_max)       ?? 0;
+  const waterTemp = atM(md?.ocean_temperature_max);     // null if no marine
+  // Yesterday's wave height — only meaningful when we have day-1 data
+  const yWaveH    = (di > 0 && Array.isArray(md?.wave_height_max) && md.wave_height_max[di-1] != null)
+                    ? md.wave_height_max[di-1] : null;
+  const ySnow     = (di > 0 && Array.isArray(d?.snowfall_sum)  && d.snowfall_sum[di-1] != null)
+                    ? d.snowfall_sum[di-1] : 0;
 
   // ─── Derived metrics ───
-  const tempSpread = tempMax - tempMin;
-  const gustFactor = gusts / Math.max(wind, 1);  // >1.6 = gusty/turbulent
-  const swellRatio = swellH / Math.max(waveH, 0.1); // >0.7 = clean groundswell dominant
+  // Gust factor only meaningful when there's actual wind. Below 8mph, the
+  // "factor" is noise — calm air with 5mph gusts isn't gusty conditions.
+  const gustFactor = wind >= 8 ? gusts / wind : 1.0;
 
   // Consecutive good-weather days from selected day (category-aware)
   let bestDays = 1;
@@ -1017,13 +1028,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         break;
       }
 
-      // ─── Fresh snow is king ──────────────────────────────────────────────
-      if      (snow >= 50) score = 95 + Math.min(5, (snow - 50) * 0.1);
-      else if (snow >= 30) score = 89 + (snow - 30) * 0.3;
-      else if (snow >= 20) score = 83 + (snow - 20) * 0.6;
-      else if (snow >= 10) score = 75 + (snow - 10) * 0.8;
-      else if (snow >= 5)  score = 68 + (snow - 5) * 1.4;
-      else if (snow > 0)   score = 60 + snow * 1.6;
+      // ─── Fresh snow is king (but only if it's actually SNOW, not sleet) ─
+      // If accumulation comes with tempMax > 36°F, it's wet/heavy snow or sleet
+      // hitting warm ground — not the powder a user expects from "30cm fresh".
+      // Cap the bonus so we don't promise a powder day that's actually slop.
+      const wetSnow = snow > 0 && tempMax > 36;
+      const wetCap = wetSnow ? 75 : 100;
+      if      (snow >= 50) score = Math.min(wetCap, 95 + Math.min(5, (snow - 50) * 0.1));
+      else if (snow >= 30) score = Math.min(wetCap, 89 + (snow - 30) * 0.3);
+      else if (snow >= 20) score = Math.min(wetCap, 83 + (snow - 20) * 0.6);
+      else if (snow >= 10) score = Math.min(wetCap, 75 + (snow - 10) * 0.8);
+      else if (snow >= 5)  score = Math.min(wetCap, 68 + (snow - 5) * 1.4);
+      else if (snow > 0)   score = Math.min(wetCap, 60 + snow * 1.6);
       else {
         if      (baseCm >= 200) score = 72;
         else if (baseCm >= 150) score = 66;
@@ -1078,14 +1094,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Bad forecast confidence: high rain probability with no fresh snow
       if (precipPct > 75 && snow < 3 && !isSnow) score -= 5;
 
-      const conditionTag = isRain ? " · RAIN" : isSnow ? " · snowing" : "";
+      const conditionTag = wetSnow ? " · wet/heavy" : isRain ? " · RAIN" : isSnow ? " · snowing" : "";
       label = snow > 0
         ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F${conditionTag}`
         : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
-      period = snow >= 25 ? "Powder day — go now"
+      // "Fading" if yesterday had way more snow than today (storm passing)
+      const stormFading = ySnow > snow + 8 && snow < 10;
+      period = wetSnow && snow >= 10 ? "Wet snow — heavy & sticky"
+             : snow >= 25 ? "Powder day — go now"
              : snow >= 12 ? "Fresh overnight — first tracks"
              : snow >=  5 ? "New snow on groomed"
              : snow >   0 ? "Dusting — mostly groomed"
+             : stormFading ? `Storm fading · ${Math.round(ySnow * 0.394)}" fell yesterday`
              : isRain      ? "Rain — wait it out"
              : baseCm >= 150 ? `Packed powder${tempMin < 28 ? " · firm AM" : ""}`
              : baseCm >=  50 ? "Thin cover · stick to groomers"
@@ -1167,18 +1187,25 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       }
 
       // ─── Wind chop / swell quality ──────────────────────────────────────
-      // windWaveH dominates → the ocean is textured from local wind = messy
-      if (windWaveH > swellH * 0.75) score -= 8;
-      else if (windWaveH > swellH * 0.4) score -= 3;
+      // When local wind chop dominates, the surf is a textured mess regardless
+      // of underlying swell. Hard-cap the score so we don't promise good waves.
+      if (swellH > 0.1 && windWaveH > swellH * 1.5) {
+        score = Math.min(score, 38);                   // pure windswell mess
+      } else if (swellH > 0.1 && windWaveH > swellH * 0.9) {
+        score = Math.min(score, 55);                   // mostly windswell
+        score -= 4;
+      } else if (windWaveH > swellH * 0.4) {
+        score -= 3;
+      }
 
       // ─── Size danger: big waves are unrideable by most users ────────────
-      // Peakly users aren't pro big-wave surfers. Penalize XXL unless it's the
-      // venue's identity (Mavericks, Nazaré, Jaws). We still surface these but
-      // cap the "GO" verdict.
-      const bigWaveBreak = (venue.tags || []).some(t => /big wave|xxl|tow|nazare|pipeline/i.test(t));
+      // Check title/id/tags so iconic big-wave breaks don't get the size penalty.
+      // Tags alone missed Pipeline (tags = ["Expert","Offshore Winds"]).
+      const bigWaveSig = `${venue.id || ""} ${venue.title || ""} ${(venue.tags || []).join(" ")}`.toLowerCase();
+      const bigWaveBreak = /big wave|xxl|tow|nazar|pipeline|mavericks|jaws|cortes|teahupo|peahi/i.test(bigWaveSig);
       if (swellH > 5 && !bigWaveBreak) score -= 14;
       else if (swellH > 4 && !bigWaveBreak) score -= 7;
-      else if (swellH > 6 && bigWaveBreak)  score -= 3;  // even pros at their limit
+      else if (swellH > 6 && bigWaveBreak)  score -= 3;
 
       // ─── Water temperature: wetsuit requirement ─────────────────────────
       if (waterTemp !== null) {
@@ -1200,13 +1227,17 @@ function scoreVenue(venue, wx, marine, dayIndex) {
                       : windOffshoreDiff > 120 ? `${wind.toFixed(0)}mph onshore`
                       : `${wind.toFixed(0)}mph cross`;
       const perLabel = swellPer >= 14 ? "long period" : swellPer >= 10 ? "mid period" : "short period";
+      // Trend awareness: yesterday > today + tomorrow lower → swell is fading
+      const fading = yWaveH != null && yWaveH > waveH * 1.25 && tmrwWaveH < waveH;
+      const building = tmrwWaveH > waveH * 1.25;
       label = faceM > 0.8
-        ? `${fFt}ft · ${perLabel} · ${windLabel}`
-        : `Small · ${tmrwWaveH > waveH ? "building" : "flat"}`;
-      period = faceM > 3 ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : faceM > 2 ? `Solid · ${Math.min(bestDays, 3)}d window`
-             : faceM > 1 ? (tmrwWaveH > swellH ? "Building — better tomorrow" : "Fun size")
-             : (tmrwWaveH > 0.8 ? "Swell incoming" : "Flat — check back");
+        ? `${fFt}ft · ${perLabel} · ${windLabel}${fading ? " · fading" : ""}`
+        : `Small · ${building ? "building" : "flat"}`;
+      period = faceM > 3 && !fading ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+             : faceM > 3 && fading ? "Firing but fading — go AM"
+             : faceM > 2 ? (fading ? "Solid but dropping" : `Solid · ${Math.min(bestDays, 3)}d window`)
+             : faceM > 1 ? (building ? "Building — better tomorrow" : fading ? "Tail end — last shot" : "Fun size")
+             : (building ? "Swell incoming" : "Flat — check back");
       break;
     }
 
@@ -1263,9 +1294,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
       // ─── Heat index: humidity + heat = misery ─────────────────────────
       if (humidity !== null && tempMax >= 85) {
-        if (humidity > 85 && tempMax >= 95) score -= 12;      // dangerous
-        else if (humidity > 75 && tempMax >= 90) score -= 7;  // oppressive
-        else if (humidity > 65 && tempMax >= 88) score -= 3;  // sticky
+        if (humidity > 85 && tempMax >= 95) score -= 12;
+        else if (humidity > 75 && tempMax >= 90) score -= 7;
+        else if (humidity > 65 && tempMax >= 88) score -= 3;
+      }
+
+      // ─── Cloud cover: finer-grained than weather code categories ──────
+      // Open-Meteo gives 0-100% max cloud cover. Pulls down inflated scores
+      // when wCode says "mainly clear" but it's actually 60% cloudy all day.
+      if (cloudPct !== null) {
+        if (cloudPct >= 80) score -= 6;       // mostly grey, weak tan
+        else if (cloudPct >= 60) score -= 3;
+        else if (cloudPct <= 15 && uv >= 6) score += 2;  // bluebird bonus
       }
 
       // ─── Water temperature (if marine data available) ──────────────────
