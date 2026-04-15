@@ -969,13 +969,27 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   const depth     = at(d.snow_depth_max)      ?? 0;
   const wind      = at(d.wind_speed_10m_max)  ?? 10;
   const gusts     = at(d.wind_gusts_10m_max)  ?? wind * 1.4;
-  const windDir   = at(d.wind_direction_10m_dominant) ?? 0;
+  const windDirRaw= at(d.wind_direction_10m_dominant); // null if missing — DO NOT default to 0 (would falsely imply north wind)
+  const windDir   = windDirRaw ?? 0;          // numeric default for math; consumers must check windDirRaw for validity
   const uv        = at(d.uv_index_max)        ?? 5;
   const wCode     = at(d.weather_code)        ?? 0;
   const cloudPct  = at(d.cloud_cover_max);    // null if not provided
   const precipPct = at(d.precipitation_probability_max) ?? 50;
   const sunHrs    = (at(d.sunshine_duration) ?? 28800) / 3600;
   const humidity  = at(d.relative_humidity_2m_max);
+
+  // ─── Precip confidence: high probability + 0mm accumulation = scattered showers ─
+  // Open-Meteo can report 0mm daily total with 90% probability when the model
+  // expects showers but can't pin them spatially. Treat as "likely some rain".
+  const likelyRain = precip < 1 && precipPct > 70;
+
+  // ─── Severe weather codes ───────────────────────────────────────────────────
+  // 51-65=rain/drizzle, 66-67=FREEZING rain (catastrophic), 71-77=snow,
+  // 80-82=rain showers, 85-86=snow showers, 95=thunderstorm,
+  // 96/99=thunderstorm with hail. NWS-aligned definitions.
+  const isFreezingRain = wCode === 66 || wCode === 67;
+  const isThunder      = wCode >= 95 && wCode <= 99;
+  const isHail         = wCode === 96 || wCode === 99;
 
   // ─── Marine data ───────────────────────────────────────────────────────
   const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
@@ -1058,11 +1072,13 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         else if (baseCm >= 100) score = 58;
         else if (baseCm >=  50) score = 45;
         else if (baseCm >=  25) score = 32;
-        else                    score = inSeason ? 35 : 15;  // snowmaking floor during season
+        else if (inSeason && !isShoulder) score = 35;  // snowmaking floor — peak season
+        else if (isShoulder)              score = 25;  // less terrain open in shoulder
+        else                              score = 15;  // off-season
       }
 
       // Shoulder months: cap scores lower unless there's real snow
-      if (isShoulder && snow < 5 && baseCm < 50) score = Math.min(score, 35);
+      if (isShoulder && snow < 5 && baseCm < 50) score = Math.min(score, 32);
 
       // ─── Temperature: powder preservation vs spring corn vs rain ────────
       if (tempMax < 25 && snow > 5)   score += 5;
@@ -1086,33 +1102,53 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       else if (wind > 30) score -= 6;       // cold + uncomfortable
       if (gustFactor > 1.8) score -= 3;     // erratic gusts
 
-      // ─── Wind chill (°F) — affects comfort, not skiability ──────────────
-      // Simplified: chill = tempMax - (wind * 0.7). Deduct if brutal cold.
-      const chill = tempMax - (wind * 0.7);
-      if (chill < -10) score -= 8;          // unsurvivable
-      else if (chill < 0) score -= 4;       // brutal
-      else if (chill < 10) score -= 2;      // cold
+      // ─── Wind chill (°F) — NWS formula. Only valid for V>=3, T<=50 ──────
+      const chill = (wind >= 3 && tempMax <= 50)
+        ? 35.74 + 0.6215 * tempMax - 35.75 * Math.pow(wind, 0.16) + 0.4275 * tempMax * Math.pow(wind, 0.16)
+        : tempMax;
+      if (chill < -20) score -= 12;          // dangerous frostbite zone
+      else if (chill < -10) score -= 8;
+      else if (chill < 0) score -= 4;
+      else if (chill < 10) score -= 2;
 
-      // ─── Weather codes: distinguish RAIN (bad) from SNOW (great!) ───────
-      // Open-Meteo codes: 51-67 rain/drizzle, 71-77 snow, 80-82 rain showers,
-      // 85-86 snow showers, 95+ thunderstorms, 45-48 fog.
-      const isRain = (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 82);
+      // ─── Weather codes: rain vs snow vs freezing rain vs lightning ──────
+      // 51-65=rain, 66-67=FREEZING rain (worst), 71-77=snow, 80-82=rain showers,
+      // 85-86=snow showers, 95-99=thunderstorm, 45-48=fog.
+      const isRain = ((wCode >= 51 && wCode <= 65) || (wCode >= 80 && wCode <= 82)) && !isFreezingRain;
       const isSnow = (wCode >= 71 && wCode <= 77) || (wCode >= 85 && wCode <= 86);
+      const isHeavySnow = wCode === 75 || wCode === 86;  // dumping = flat light, low vis
       const isFog  = wCode === 45 || wCode === 48;
-      if (isRain) score -= 14;              // rain on snow, hard no
+
+      if (isFreezingRain) score -= 28;       // ice rink everywhere — trip-destroying
+      else if (isRain)    score -= 14;       // rain-on-snow ruins everything
       // isSnow: do NOT penalize — that's literally what we want
-      if (isFog) score -= 5;                // low vis on groomers
+      if (isFog) score -= 5;
+      if (isThunder) score -= 22;            // lifts evacuated, lightning at altitude is fatal
+      if (isHail)    score -= 6;             // additional hail penalty (rare but ugly)
+
+      // ─── Bluebird powder bonus — sunny + fresh + cold = the dream ─────
+      if (snow >= 8 && tempMax < 32 && wCode <= 1 && !isThunder) score += 6;
+      else if (snow >= 5 && wCode <= 2 && tempMax < 36) score += 3;
 
       // Bad forecast confidence: high rain probability with no fresh snow
-      if (precipPct > 75 && snow < 3 && !isSnow) score -= 5;
+      if ((likelyRain || precipPct > 75) && snow < 3 && !isSnow) score -= 5;
 
-      const conditionTag = wetSnow ? " · wet/heavy" : isRain ? " · RAIN" : isSnow ? " · snowing" : "";
+      const conditionTag = isFreezingRain ? " · FREEZING RAIN"
+                         : isThunder ? " · ⚡ thunder"
+                         : wetSnow ? " · wet/heavy"
+                         : isHeavySnow ? " · heavy snow · flat light"
+                         : isRain ? " · RAIN"
+                         : isSnow ? " · snowing"
+                         : "";
       label = snow > 0
         ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F${conditionTag}`
         : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
-      // "Fading" if yesterday had way more snow than today (storm passing)
       const stormFading = ySnow > snow + 8 && snow < 10;
-      period = wetSnow && snow >= 10 ? "Wet snow — heavy & sticky"
+      const bluebird = snow >= 8 && tempMax < 32 && wCode <= 1;
+      period = isFreezingRain ? "Freezing rain — DO NOT ski"
+             : isThunder ? "Thunderstorm — lifts will close"
+             : wetSnow && snow >= 10 ? "Wet snow — heavy & sticky"
+             : bluebird ? "Bluebird powder — perfect day"
              : snow >= 25 ? "Powder day — go now"
              : snow >= 12 ? "Fresh overnight — first tracks"
              : snow >=  5 ? "New snow on groomed"
@@ -1173,30 +1209,34 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Offshore = wind from LAND to SEA = wind direction opposite to facing.
       // If facing = 270 (W), land is to the east, offshore wind blows from 90 (E).
       // So: |windDir - (facing + 180)| small = offshore ✓
-      const offshoreDir = (facing + 180) % 360;
-      const windOffshoreDiff = Math.abs(((windDir - offshoreDir) + 540) % 360 - 180);
       const glassy = wind < 6;
       const blown  = wind > 22;
 
       if (glassy) {
         // Dead-glass: direction doesn't matter, surface is oil
         score += 8;
-      } else if (windOffshoreDiff < 30) {
-        // Clean offshore grooming the faces
-        score += wind > 15 ? 8 : 12;         // moderate offshore = best; strong offshore = good but sketchy
-      } else if (windOffshoreDiff < 60) {
-        // Mostly offshore, slight angle
-        score += 6;
-      } else if (windOffshoreDiff < 90) {
-        // Cross-shore: neutral-to-slight-penalty
-        score -= wind > 12 ? 3 : 0;
-      } else if (windOffshoreDiff < 120) {
-        // Cross-onshore
-        score -= wind > 10 ? 6 : 2;
+      } else if (windDirRaw == null) {
+        // No wind direction signal — penalize/reward by speed only, no direction guess
+        if (wind > 18) score -= 6;
+        else if (wind > 12) score -= 2;
       } else {
-        // Onshore: wind pushing chop INTO the break = messy
-        score -= blown ? 18 : wind > 12 ? 12 : wind > 8 ? 7 : 3;
+        const offshoreDir = (facing + 180) % 360;
+        const windOffshoreDiff = Math.abs(((windDir - offshoreDir) + 540) % 360 - 180);
+        if (windOffshoreDiff < 30) {
+          score += wind > 15 ? 8 : 12;
+        } else if (windOffshoreDiff < 60) {
+          score += 6;
+        } else if (windOffshoreDiff < 90) {
+          score -= wind > 12 ? 3 : 0;
+        } else if (windOffshoreDiff < 120) {
+          score -= wind > 10 ? 6 : 2;
+        } else {
+          score -= blown ? 18 : wind > 12 ? 12 : wind > 8 ? 7 : 3;
+        }
       }
+
+      // ─── Severe weather: thunderstorm = leave the water immediately ─────
+      if (isThunder) score -= 30;
 
       // ─── Wind chop / swell quality ──────────────────────────────────────
       // When local wind chop dominates, the surf is a textured mess regardless
@@ -1242,10 +1282,15 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Trend awareness: yesterday > today + tomorrow lower → swell is fading
       const fading = yWaveH != null && yWaveH > waveH * 1.25 && tmrwWaveH < waveH;
       const building = tmrwWaveH > waveH * 1.25;
-      label = faceM > 0.8
-        ? `${fFt}ft · ${perLabel} · ${windLabel}${fading ? " · fading" : ""}`
-        : `Small · ${building ? "building" : "flat"}`;
-      period = faceM > 3 && !fading ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
+      // Fading swell drops the score — actionable info: "today is OK but
+      // tomorrow's nothing." User should know to plan AM session, not PM.
+      if (fading && !glassy) score -= 5;
+      label = isThunder ? `⚡ Lightning — out of the water`
+            : faceM > 0.8
+              ? `${fFt}ft · ${perLabel} · ${windLabel}${fading ? " · fading" : ""}`
+              : `Small · ${building ? "building" : "flat"}`;
+      period = isThunder ? "Thunderstorm — leave the water"
+             : faceM > 3 && !fading ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
              : faceM > 3 && fading ? "Firing but fading — go AM"
              : faceM > 2 ? (fading ? "Solid but dropping" : `Solid · ${Math.min(bestDays, 3)}d window`)
              : faceM > 1 ? (building ? "Building — better tomorrow" : fading ? "Tail end — last shot" : "Fun size")
@@ -1286,17 +1331,19 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
       // ─── Wind: kills beach comfort faster than most score models assume ──
       if (wind > 25)       score -= 16;             // sand-blast
+      else if (wind > 22)  score -= 12;             // umbrella-flipping zone
       else if (wind > 18)  score -= 9;
       else if (wind > 13)  score -= 4;              // noticeable
       else if (wind > 9)   score -= 1;
-      if (gusts > 28) score -= 3;                   // umbrella-flipping
+      if (gusts > 28) score -= 3;
 
       // ─── Rain: even small amounts end a beach day ──────────────────────
       if (rainy || precip > 2) score -= 22;
+      else if (likelyRain) score -= 16;             // model says showers but couldn't pin them
       else if (precipPct > 75) score -= 14;
       else if (precipPct > 55) score -= 7;
       else if (precipPct > 35) score -= 3;
-      if (stormy) score -= 25;                      // lightning = leave the beach
+      if (stormy) score -= 25;
       if (foggy && sunHrs < 4) score -= 10;
 
       // ─── Temperature edges ──────────────────────────────────────────────
