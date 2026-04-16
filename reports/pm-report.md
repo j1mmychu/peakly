@@ -1,8 +1,10 @@
-# Peakly PM Report — 2026-04-15 (v24)
+# Peakly PM Report — 2026-04-16 (v24)
 
-**Filed by:** Product Manager agent
-**Date:** 2026-04-15
-**Status:** ORANGE. 6-day code freeze. P0 on day 22. CLAUDE.md has drifted from reality.
+**Filed by:** Product Manager agent  
+**Date:** 2026-04-16
+**Status:** 7-day code freeze. TP_MARKER Day 23. Two briefing claims corrected (Sentry DSN was set, no Pro pricing UI exists).
+
+Full report: [pm-2026-04-16.md](./pm-2026-04-16.md)
 
 ---
 
