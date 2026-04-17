@@ -1,10 +1,10 @@
-# Peakly PM Report — 2026-04-16 (v24)
+# Peakly PM Report — 2026-04-17 (v24)
 
 **Filed by:** Product Manager agent  
-**Date:** 2026-04-16
-**Status:** 7-day code freeze. TP_MARKER Day 23. Two briefing claims corrected (Sentry DSN was set, no Pro pricing UI exists).
+**Date:** 2026-04-17  
+**Status:** TP_MARKER + email capture confirmed FIXED (were false alarms in prior reports). New P1: Cloudbreak Fiji and Punta Roca have wrong difficulty tags. Batch venue audit needed before Reddit launch.
 
-Full report: [pm-2026-04-16.md](./pm-2026-04-16.md)
+Full report: [pm-2026-04-17.md](./pm-2026-04-17.md)
 
 ---
 
