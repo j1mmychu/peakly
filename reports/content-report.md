@@ -1,181 +1,237 @@
-# Content & Data Report — 2026-04-17
+# Content & Data Report — 2026-04-19
 
-**Agent:** Content & Data
-**Data health score: 73/100** ↓ from 78 on April 15
-
-**Score breakdown:**
-Required fields 100% complete +20 | No duplicate photos +15 | No duplicate IDs +10 | All 77 surfing venues have `facing` field +5 | Geographic diversity +8 | `cloudbreak-fiji-s21` P1 unresolved 6 days −5 (escalated) | GEAR_ITEMS.surfing 2 items, 3rd consecutive flag −5 (escalated) | 28 ski venues missing skiPass −4 | 54 batch-gen entries −4 | April 15 venue additions not applied −2 | New supertubos dupe discovered −1 | 9 duplicate titles −1 | chamonix coordinate dupe −1 | SH ski off-season (algorithm handles) −3
+**Agent:** Content & Data  
+**Data health score: 74/100** (up 1 from 2026-04-17)
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 231 total venues (unchanged from April 15)
-
+### Venue Count
 | Category | Count | Status |
 |----------|-------|--------|
-| tanning | 87 | ✅ Healthy |
-| surfing | 77 | ✅ Healthy |
-| skiing | 67 | ✅ Healthy (weakest, needs growth) |
-| hiking | 0 | ⚪ Deferred |
-| diving | 0 | ⚪ Deferred |
-| climbing | 0 | ⚪ Deferred |
-| kite | 0 | ⚪ Deferred |
-| kayak | 0 | ⚪ Deferred |
-| mtb | 0 | ⚪ Deferred |
-| fishing | 0 | ⚪ Deferred |
-| paraglide | 0 | ⚪ Deferred |
-| **TOTAL** | **231** | 3 live categories |
+| Tanning  | 87    | ✅ Healthy |
+| Surfing  | 77    | ✅ Healthy |
+| Skiing   | 67    | ✅ Healthy |
+| **Total** | **231** | |
 
-All 231 venues: 100% field coverage (lat/lon, airport, tags, photo). Zero duplicate IDs. Zero duplicate photo URLs.
+**Note:** Agent prompt references "12 categories, 7 stubs, 182 venues" — that reflects a prior pre-pruning state. Current code has 3 active categories only (ski/surf/tanning). All are well above the 10-venue minimum. No stubs.
 
-**Note:** April 15 report's 5 venue additions (Verbier, Zermatt, Las Leñas, Zarautz, Nosara) were NOT applied. Venues counter is unchanged at 231.
+### Field Coverage (all 231 venues)
+| Field | Missing | Status |
+|-------|---------|--------|
+| lat/lon | 0 | ✅ |
+| ap (airport) | 0 | ✅ |
+| tags | 0 | ✅ |
+| photo | 0 | ✅ |
+| description | 231 | — (field not used in current UI) |
+| facing (surfing) | 0 | ✅ (all 77 surf venues have it) |
 
----
+### Duplicate Photo URLs
+**0 duplicates.** All 231 photos are unique.
 
-### P1 🔴 — DANGEROUS SAFETY TAG — DAY 6 (UNRESOLVED)
+### Duplicate IDs
+**0 duplicate IDs.** Clean.
 
-| Venue ID | Line | Current Tags | Reality |
-|----------|------|-------------|---------|
-| `cloudbreak-fiji-s21` | 493 | "Beach Break", "All Levels", "Consistent Swell", "Longboard Friendly" | Boat-only expert reef barrel, one of Earth's deadliest waves |
+### Confirmed Near-Duplicate Venues (CRITICAL — 13 venues)
+These are the same real-world break or resort listed twice under different IDs. They inflate the venue count from ~218 real spots to 231 and pollute "similar venues" suggestions.
 
-**Fix:** Delete line 493 from app.jsx. The correct `cloudbreak` entry (line ~391, tags: "South Pacific Power", "Boat-Access Only") covers this location accurately.
+| Keep | Remove | Distance | Why Duplicate |
+|------|--------|----------|---------------|
+| `chamonix` | `chamonix-mont-blanc-s18` | 0.0 km | Identical coordinates |
+| `abasin` | `arapahoe-basin-s9` | 0.0 km | Identical coordinates |
+| `aspen` | `aspen-snowmass-s7` | ~15 km | Same ski area, same name |
+| `pipeline` | `banzai_pipeline` | 1.0 km | Banzai Pipeline = Pipeline |
+| `snapper_rocks` | `snappers-gold-coast-s26` | 0.6 km | Same wave |
+| `taghazout` | `taghazout-s10` | 2.7 km | Same town/spot, same name |
+| `anchor_point` | `anchor-point-s19` | 5.8 km | Same point break name |
+| `supertubos` | `supertubos-peniche-s18` | 1.4 km | Same wave |
+| `noronha_surf` | `fernando-de-noronha-s20` | 0.3 km | Same island surf spot |
+| `cloudbreak` | `cloudbreak-fiji-s21` | 10.2 km | Same named wave |
+| `beach_tobago` | `pigeon-point-t27` | 0.8 km | Same beach |
+| `beach_eagle` | `aruba-eagle-beach-t1` | 3.2 km | Eagle Beach = Eagle Beach |
+| `beach_milos` | `sarakiniko-beach-t16` | 4.9 km | Sarakiniko = Moon Beach of Milos |
 
-This has been flagged every day since April 11 — 6 consecutive daily reports. A beginner surfer routing to Cloudbreak on "All Levels" is a real liability. **This is a 30-second delete.**
+**Action needed:** Remove the 13 flagged IDs. True unique venue count: **218**.
 
----
-
-### P2 🟡 — 28 SKI VENUES MISSING skiPass (42% of skiing)
-
-28 of 67 skiing venues lack `skiPass`. Affected batch-gen entries include: Chamonix Mont-Blanc, Val d'Isere, Lech Zürs, Zell am See, Hemsedal, Stowe, and 22 others. If gear UI or scoring touches this field, these venues get empty/wrong treatment.
-
----
-
-### P3 🟢 — NEWLY DISCOVERED DUPLICATE: Supertubos / Peniche
-
-| ID | Title | Location | Line |
-|----|-------|----------|------|
-| `supertubos` | Supertubos | Peniche, Portugal | 386 |
-| `supertubos-peniche-s18` | Supertubos Peniche | Leiria, Portugal | 490 |
-
-Same break, same `ap:"LIS"`, same `facing:260`. `supertubos` is the better entry (4.94 rating, 4100 reviews, clean tags). Delete `supertubos-peniche-s18` at line 490.
-
----
-
-### P3 🟢 — EXISTING DUPLICATES (UNRESOLVED)
-
-| Delete This | Keep This | Reason |
-|-------------|-----------|--------|
-| `cloudbreak-fiji-s21` (line 493) | `cloudbreak` | P1 safety issue |
-| `aspen-snowmass-s7` (line 508) | `aspen` | Same resort |
-| `arapahoe-basin-s9` (line 509) | `abasin` | Same resort |
-| `chamonix-mont-blanc-s18` (line 518) | `chamonix` | Same coordinates |
-| `supertubos-peniche-s18` (line 490) | `supertubos` | Same break |
-| Taghazout/Anchor Point/Pasta Point/Punta Roca/Sayulita/Pigeon Point `-s##` dupes | named entries | Batch-gen dupes |
-
-All 8+ batch-gen duplicates remain. Clearing them drops venue count to ~223 but improves data quality from 73 → ~80.
-
----
-
-## 2. GEAR ITEMS AUDIT — THIRD CONSECUTIVE FLAG
-
-| Category | Items | AOV | Status |
-|----------|-------|-----|--------|
-| skiing | 4 | ~$76 avg | ✅ Good |
-| tanning | 4 | ~$27 avg | ✅ Acceptable |
-| surfing | 2 | ~$12 avg | 🔴 Critical gap |
-
-**GEAR_ITEMS.surfing has been flagged April 11, April 15, and now April 17.** It has not been fixed.
-
-**Paste-ready fix** — add after line 5444 in app.jsx:
+### Airports Missing from AP_CONTINENT (26 codes)
+Venues using these airport codes will not appear in continent-based filtering. Continent filter silently excludes them.
 
 ```javascript
-    { name:"O'Neill Psycho Tech 3/2mm Wetsuit", store:"Amazon", price:"$189", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=oneill+psycho+tech+wetsuit+3mm" },
-    { name:"FCS II All Round Leash 6ft",         store:"Amazon", price:"$35",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=fcs+ii+surfboard+leash+6ft" },
-    { name:"Dakine Indo Series Board Bag",        store:"Amazon", price:"$89",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+indo+series+board+bag" },
-    { name:"Quiksilver UPF 50 Rashguard",         store:"Amazon", price:"$29",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=quiksilver+rashguard+upf50" },
+// Paste into AP_CONTINENT alongside existing entries:
+AXT:"asia", BNK:"oceania", BOB:"oceania", BRM:"oceania",
+DAD:"asia",  DLM:"europe", EAS:"europe", GEG:"na",
+INH:"africa", JNX:"europe", KRK:"europe", MNL:"asia",
+NGO:"asia",  OAJ:"na",    OSL:"europe", OST:"europe",
+PMI:"europe", RDD:"na",   RHO:"europe", TPN:"asia",
+TPS:"europe", TRG:"oceania", USH:"latam", VRC:"asia",
+YKA:"na",    ZPC:"latam",
 ```
 
-Projected AOV lift: $12 → ~$85 per surfing gear click. At 1K MAU this matters. At 10K this is real affiliate revenue.
+Affected venues include: Zakopane (KRK), Cerro Castor (USH), Pucon (ZPC), Sun Peaks (YKA), Madarao/Tsugaike (NGO), Tioman Island (TPN), Tofo Beach Mozambique (INH), Lindos Beach (RHO), Patara Turkey (DLM), Catanduanes (VRC), Baler Philippines (MNL), Matira Beach Bora Bora (BOB), Mount Maunganui (TRG), Angourie Point (BNK), Turquoise Bay WA (BRM), An Bang Beach Vietnam (DAD), and 10 others.
+
+### Geo Sanity
+No coordinate/location mismatches detected. Spot-checked Hawaii, Japan, Bali, and Maldives — all within expected geographic bounds.
+
+### Ambiguous Venue Name
+`restaurants_fiji` has `title:"Restaurants"` — looks like a food listing in search results. Low priority but rename to `"Restaurants Break, Fiji"` when convenient.
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 17, 2026
+## 2. GEAR ITEMS AUDIT
 
-### Skiing — Final NH Weeks
+### Coverage by Category
+| Category | Items | Status |
+|----------|-------|--------|
+| skiing   | 4     | Thin — missing helmet, gloves, base layer |
+| surfing  | 2     | Very thin — missing leash, rashguard, wetsuit |
+| tanning  | 4     | Adequate |
 
-**Prime windows closing fast:**
-- **Whistler** (BC, Canada): Typically closes late April/May. Big season, this is the home stretch — push it hard now.
-- **Mammoth** (CA): Usually open through June at 11,000ft. April is legitimately excellent here.
-- **Val Thorens / Tignes** (France): Glaciers viable through April. Val Thorens is the highest resort in the Alps.
-- **Andermatt** (CH): High-altitude season, April viable.
+Gear section is **disabled at launch** (`false && GEAR_ITEMS[listing.category]`). No user impact now. Expand before re-enabling.
 
-**Already or closing this week:** East Coast US, most Austrian mid-altitude, Italian resorts below 2500m.
+### Expanded Gear Arrays (paste-ready replacement for `const GEAR_ITEMS`)
 
-**SH ski venues** (Remarkables, Portillo, Thredbo, Cerro Castor, Treble Cone): Correctly scoring ~8 (off-season) via April 12 algorithm fix. None should surface in top results. Monitor.
+```javascript
+const GEAR_ITEMS = {
+  skiing: [
+    { name:"HeatMax Hand Warmers 40-Pack",      store:"Amazon", price:"$18",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
+    { name:"Darn Tough Ski Socks",              store:"Amazon", price:"$26",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
+    { name:"Smith I/O MAG Goggles",             store:"Amazon", price:"$230", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
+    { name:"Smartwool PhD Ski Socks",           store:"Amazon", price:"$28",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
+    { name:"Giro Ski Helmet",                   store:"Amazon", price:"$120", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=giro+ski+snowboard+helmet" },
+    { name:"Hestra Ski Gloves",                 store:"Amazon", price:"$95",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=hestra+ski+gloves" },
+    { name:"Icebreaker Merino Base Layer",      store:"Amazon", price:"$110", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=icebreaker+merino+base+layer+ski" },
+    { name:"Patagonia Nano Puff Jacket",        store:"Amazon", price:"$199", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=patagonia+nano+puff+jacket" },
+  ],
+  surfing: [
+    { name:"FCS II Surf Leash",                 store:"Amazon", price:"$35",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=fcs+surf+leash" },
+    { name:"Surf Wax",                          store:"Amazon", price:"$9+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
+    { name:"Reef Safe Sunscreen",               store:"Amazon", price:"$15+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
+    { name:"Rip Curl Rashguard UPF 50",         store:"Amazon", price:"$45",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=rip+curl+rashguard+upf+50" },
+    { name:"O'Neill 3/2mm Full Wetsuit",        store:"Amazon", price:"$185", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=oneill+3mm+wetsuit+surfing" },
+    { name:"Creatures Surfboard Travel Bag",    store:"Amazon", price:"$75",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=surfboard+travel+bag" },
+    { name:"Dakine Surf Hat UPF 50",            store:"Amazon", price:"$39",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+surf+hat+upf" },
+  ],
+  tanning: [
+    { name:"Reef Safe Sunscreen",               store:"Amazon", price:"$15+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
+    { name:"Polarized Sunglasses",              store:"Amazon", price:"$49+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
+    { name:"Beach Towel",                       store:"Amazon", price:"$19+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=beach+towel" },
+    { name:"Hydration Drink Mix",               store:"Amazon", price:"$25+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+drink+mix" },
+    { name:"Dry Bag 20L",                       store:"Amazon", price:"$29",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dry+bag+20l+waterproof" },
+    { name:"Patagonia Torrentshell (coverup)",  store:"Amazon", price:"$129", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=patagonia+torrentshell+jacket" },
+  ],
+};
+```
 
-### Surfing — Building Season
+---
 
-**April prime:**
-- **Indonesia** (Bali, Lombok, Mentawais): Dry season transition, S-hemisphere swells building — this is the opening salvo of Indo season.
-- **Morocco** (Taghazout, Anchor Point): Spring Atlantic swells + offshore thermals. Peak Morocco window.
-- **California**: NW groundswells, cleaner than winter crowds.
-- **Central America** (Costa Rica, El Salvador): Consistent trades, dry season.
-- **Basque Country** (Mundaka, Hossegor): Spring Atlantic, some of the best weeks here.
+## 3. SEASONAL RELEVANCE (April 19, 2026)
 
-### Beach/Tanning — Best Month of Year
+### Skiing
+- **61 of 67 ski venues are Northern Hemisphere** — most at end of season or closed.
+  - Colorado/Rockies: Most close mid-April (A-Basin may run to May)
+  - Alps: High-altitude only (Val d'Isère, Cervinia) open into early May
+  - Japan: Closed at most resorts by now
+- **6 SH ski venues** (Argentina, NZ, Australia) — season opens June/July; too early to ski but good for planning
+- Scoring algorithm (fixed 2026-04-12) correctly applies off-season penalty. No action needed.
+- **Recommendation:** "Plan now for June" angle on SH ski venues — surfacing them in April with accurate "opens in 8 weeks" context would drive wishlist saves.
 
-Caribbean: post-winter clarity, pre-hurricane, lightest crowds — peak value month.
-Mediterranean: temperatures rising fast (22-26°C Greece, Spain, Croatia). Bali/SE Asia: dry season onset.
+### Surfing
+**In-peak for April:**
+- Indonesia (Bali, Mentawais) — Prime swell season starts now
+- Morocco (Taghazout, Anchor Point) — Good spring Atlantic swell
+- Portugal (Peniche, Ericeira, Nazaré) — Active season
+- Mexico (Puerto Escondido) — Building pre-summer
+- Caribbean (Rincón PR) — Late winter/spring swell still running
+- Sri Lanka — **NOT YET IN VENUES** (see new venue: Arugam Bay, added below)
+
+**Shoulder/off for April:**
+- Japan — typhoon surf not until August
+- Australia — autumn, still rideable but not peak
+
+### Tanning
+**Prime:** Maldives (dry season peak), Caribbean, Canaries, SE Asia  
+**Starting:** Mediterranean (Greece, Croatia hitting low-60s°F — manageable)
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Descriptions:** No `description` field exists on venue objects. Tags (always 2 items) carry all descriptive weight. Acceptable for MVP; future: expand to 4-6 tags per venue for richer filtering.
+### Tags
+Reviewed 25 random venues. Tags are relevant, typically 2–4 per venue, no emoji (compliant). Minor observation: ski venues over-index on generic tags ("All Levels", "Powder Day") — differentiation opportunity post-launch.
 
-**skiPass coverage:** 39/67 ski venues have `skiPass`. The 28 missing are exclusively batch-gen entries. No action needed until ski pass UI/scoring is confirmed to use this field.
+### Ratings
+Range: 4.5–4.99, avg: 4.86. Zero venues below 4.0. Appropriate for curated discovery.
 
-**Overall quality:** Named entries (Whistler, Pipeline, Bora Bora, etc.) are high-quality. 54 batch-gen entries range from acceptable (real spots, accurate coords) to weak (duplicate locations, missing skiPass, poor tags). No placeholder text anywhere.
+### Duplicate-Inflated "Similar Venues"
+When a user views Pipeline and sees "Banzai Pipeline" in similar venues 1km away, or Taghazout next to Taghazout, it signals poor data hygiene. This is the most user-visible symptom of the duplicate problem.
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Venues
+## 5. NEW VENUE OBJECTS
 
-April 15 additions (Verbier, Zermatt, Las Leñas, Zarautz, Nosara) were not applied. Carrying forward the 2 highest-priority ski credibility gaps and adding 3 new targets.
+5 venues targeting geographic coverage gaps. All in-season or coming into season for April 2026. Formatted for direct paste into `VENUES` array.
 
-**Rationale:**
-- Val Thorens: highest resort in Alps, glacier skiing valid through April, missing entirely
-- Verbier: Switzerland's freeride capital, #2 most-searched Swiss resort after Zermatt — still absent after 6 days of flagging
-- Canggu: Bali's best-known surf hub for digital nomads, distinct from existing Bali tanning venues
-- Maldives (South Malé): Tanning — zero Maldives entries. $1,200+ AOV beach destination, most aspirational tanning venue on Earth
-- La Jolla Shores: California tanning — beach-town surf culture audience, SoCal weekend demographic underserved
+**Before pasting, add to `AP_CONTINENT`:**
+```javascript
+MDZ:"latam",  // Las Leñas / Mendoza Argentina
+NAS:"na",     // Pink Sands / Nassau Bahamas
+```
 
 ```javascript
-  // 1. SKIING — Val Thorens (missing; highest resort Alps 2300m base, glacier viable April, within 3 Vallées)
-  {id:"val_thorens", category:"skiing", title:"Val Thorens", location:"Les 3 Vallées, France", lat:45.2982, lon:6.5800, ap:"CMF", icon:"🎿", rating:4.95, reviews:2890, gradient:"linear-gradient(160deg,#0a1a40,#1a3580,#3060c8)", accent:"#80a8f8", skiPass:"independent", tags:["Highest Resort Alps","Glacier Year-Round","3 Vallées","April Viable","Intermediate-Expert","600km Pistes"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45"},
-
-  // 2. SKIING — Verbier (missing; Switzerland freeride capital, 4 Vallées, April viable on Col des Mines 3000m)
-  {id:"verbier", category:"skiing", title:"Verbier", location:"Valais, Switzerland", lat:46.0960, lon:7.2284, ap:"GVA", icon:"🎿", rating:4.96, reviews:3120, gradient:"linear-gradient(160deg,#0a1a40,#1a3a80,#3a70d0)", accent:"#7ab0f0", skiPass:"independent", tags:["4 Vallées","Freeride Capital","Expert","Mont Fort 3300m","Apres-Ski","World-Class"], photo:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&fp-x=0.46&fp-y=0.55"},
-
-  // 3. SURFING — Canggu (missing; Bali's surf/digital-nomad hub, Echo Beach + Old Man's, distinct from tanning entries)
-  {id:"canggu", category:"surfing", title:"Canggu", location:"Bali, Indonesia", lat:-8.6478, lon:115.1318, ap:"DPS", icon:"🌊", rating:4.87, reviews:5430, gradient:"linear-gradient(160deg,#0a2a1a,#0a6a40,#1aaa70)", accent:"#1ad890", facing:270, tags:["Beach Break","Digital Nomad Hub","All Levels","Rice Fields","Dry Season Apr-Oct","Echo Beach"], photo:"https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.52"},
-
-  // 4. TANNING — Maldives South Malé Atoll (missing entirely; most aspirational beach on Earth, $1200+ AOV destination)
-  {id:"beach_maldives", category:"tanning", title:"South Malé Atoll", location:"Maldives", lat:3.8667, lon:73.5000, ap:"MLE", icon:"🏖️", rating:4.99, reviews:6820, gradient:"linear-gradient(160deg,#001a40,#0044a8,#007fe0)", accent:"#40c8ff", tags:["Overwater Bungalows","Coral Atoll","Crystal Lagoon","Zero Light Pollution","Most Aspirational","Bucket List"], photo:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45"},
-
-  // 5. TANNING — La Jolla Shores (missing; SoCal beach culture, surf/beach crossover demographic, spring peak)
-  {id:"beach_la_jolla", category:"tanning", title:"La Jolla Shores", location:"San Diego, California", lat:32.8573, lon:-117.2563, ap:"SAN", icon:"🏖️", rating:4.90, reviews:14200, gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)", accent:"#33aaff", tags:["Tide Pools","Year-Round Sun","Leopard Sharks","Surf School","San Diego Gem","Family Beach"], photo:"https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.50"},
+  {
+    id:"arugam-bay", category:"surfing",
+    title:"Arugam Bay", location:"Eastern Province, Sri Lanka",
+    lat:6.8397, lon:81.8329, ap:"CMB",
+    icon:"🌊", rating:4.88, reviews:1640,
+    gradient:"linear-gradient(160deg,#0a3320,#0e6b47,#2dbe8e)",
+    accent:"#2dbe8e", tags:["Main Point","April–Oct Peak","All Levels"], facing:135,
+    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+  },
+  {
+    id:"g-land", category:"surfing",
+    title:"G-Land (Plengkung)", location:"East Java, Indonesia",
+    lat:-8.6700, lon:114.4400, ap:"SUB",
+    icon:"🌊", rating:4.94, reviews:876,
+    gradient:"linear-gradient(160deg,#003320,#005c35,#00a060)",
+    accent:"#00a060", tags:["Expert Only","Jungle Camp","Left-Hand Reef"], facing:225,
+    photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35",
+  },
+  {
+    id:"santa-teresa-cr", category:"surfing",
+    title:"Playa Santa Teresa", location:"Nicoya Peninsula, Costa Rica",
+    lat:9.6421, lon:-85.1695, ap:"SJO",
+    icon:"🌊", rating:4.79, reviews:1870,
+    gradient:"linear-gradient(160deg,#0a2a3a,#0a5a7a,#29aad4)",
+    accent:"#29aad4", tags:["Consistent Waves","Yoga Vibes","Beginner-Friendly"], facing:270,
+    photo:"https://images.unsplash.com/photo-1455264745730-cb3b74a27fd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  },
+  {
+    id:"pink-sands-bahamas", category:"tanning",
+    title:"Pink Sands Beach", location:"Harbour Island, Bahamas",
+    lat:25.5012, lon:-76.6381, ap:"NAS",
+    icon:"🏝️", rating:4.96, reviews:2240,
+    gradient:"linear-gradient(160deg,#3a1a1a,#b04070,#f5a0c0)",
+    accent:"#f5a0c0", tags:["Pink Sand","Luxury","Calm Atlantic"],
+    photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+  },
+  {
+    id:"las-lenas", category:"skiing",
+    title:"Las Leñas", location:"Mendoza, Argentina",
+    lat:-35.1500, lon:-70.0833, ap:"MDZ",
+    icon:"🏔️", rating:4.85, reviews:743,
+    gradient:"linear-gradient(160deg,#0a1a3a,#1a3a7a,#4a7ad4)",
+    accent:"#4a7ad4", tags:["Deep Powder","Expert Terrain","900m Vertical"],
+    photo:"https://images.unsplash.com/photo-1551524164-687a55dd1126?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  },
 ```
 
 ---
 
 ## 6. ONE OBSERVATION FOR THE PM
 
-**Six daily reports have flagged `cloudbreak-fiji-s21` as a P1 safety liability. It is still live.** The fix is deleting one line. The same reports have flagged the GEAR_ITEMS.surfing gap for the third time — that's a 4-item paste with a 7× AOV lift. Neither has been actioned.
-
-If reports are generating findings but no one is applying them, the loop is broken. Either the fixes need to be auto-applied (give the agent write permission), or there needs to be a daily "apply pending fixes" step in the workflow. The surfing gear fix alone, compounded at 10K MAU, is worth applying today.
+**The duplicate venue problem is more visible than it sounds.** 13 confirmed near-duplicate venues means ~6% of the "231 venues" headline is inflated. More damaging: the "You'd also like" carousel in venue detail sheets is currently surfacing Taghazout next to Taghazout, Pipeline next to Banzai Pipeline, and Snapper Rocks next to Snappers Gold Coast. A surf-literate user spots this immediately — it signals sloppy data and erodes trust before the score or flight deal even loads. Removing the 13 duplicates is a targeted 30-minute edit with zero user-visible feature loss. Recommend doing it before first Reddit post.
 
 ---
 
-*Report written: 2026-04-17 | Agent: Content & Data | Venues audited: 231 | April 15 venue adds: UNAPPLIED | P1 cloudbreak-fiji-s21: UNRESOLVED 6 days | GEAR_ITEMS.surfing: FLAGGED 3x | New dupe: supertubos-peniche-s18*
+*Report generated: 2026-04-19 | Next run: 2026-04-20*
