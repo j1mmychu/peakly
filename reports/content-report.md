@@ -1,7 +1,10 @@
 # Content & Data Report — 2026-04-19
 
 **Agent:** Content & Data  
-**Data health score: 74/100** (up 1 from 2026-04-17)
+**Data health score: 68/100** ↓ from 67 on 2026-04-18 (wrong IATA codes from prior report now verified and confirmed; score updated for confirmed P1 safety issue)
+
+**Score breakdown:**
+Required fields 100% complete +20 | No duplicate photos +15 | No duplicate IDs +10 | All 77 surfing venues have `facing` +5 | Geographic diversity +8 | `cloudbreak-fiji-s21` P1 safety tag **DAY 8 UNRESOLVED** −6 | GEAR_ITEMS.surfing 2 items, **5th consecutive flag** −6 | 6 confirmed wrong IATA codes −3 | 13 near-duplicate venues −5 | 26 airports missing from AP_CONTINENT −5
 
 ---
 
@@ -32,6 +35,33 @@
 
 ### Duplicate IDs
 **0 duplicate IDs.** Clean.
+
+### P1 🔴 — DANGEROUS SAFETY TAG — DAY 8 (UNRESOLVED)
+
+| Venue ID | Current Tags | Reality |
+|----------|-------------|---------|
+| `cloudbreak-fiji-s21` | "Beach Break", "All Levels", "Consistent Swell", "Longboard Friendly" | Boat-only expert reef barrel — one of Earth's deadliest waves |
+
+**Fix:** Delete `cloudbreak-fiji-s21` from VENUES — it's a duplicate of `cloudbreak` (line 403) which has correct tags ("South Pacific Power", "Boat-Access Only"). One delete, zero user-visible loss.
+
+This has been flagged 8 consecutive daily reports. A beginner surfer routed to Cloudbreak on "All Levels" is a real liability.
+
+---
+
+### P2 🔴 — 6 CONFIRMED WRONG IATA CODES (flight routing broken)
+
+These venues generate incorrect Aviasales deep links and Travelpayouts lookups.
+
+| Venue ID | Current | Correct | Notes |
+|----------|---------|---------|-------|
+| `pichilemu-s25` | `SSC` | `SCL` | SSC = Siassi, PNG — Pichilemu nearest is Santiago |
+| `croyde-bay-s29` | `EXT` | `EXE` | EXT not a valid IATA — Exeter is EXE |
+| `idre-fjall-s6` | `OST` | `MXX` | OST = Ostend, Belgium — Idre nearest is Mora-Siljan |
+| `turquoise-bay-t8` | `BRM` | `BME` | BRM not standard — Broome WA is BME |
+| `tioman-island-t11` | `TPN` | `TOD` | TPN not valid — Tioman Airport is TOD |
+| `sarakiniko-beach-t16` | `JMK` | `MLO` | JMK = Mykonos — Milos Airport is MLO |
+
+---
 
 ### Confirmed Near-Duplicate Venues (CRITICAL — 13 venues)
 These are the same real-world break or resort listed twice under different IDs. They inflate the venue count from ~218 real spots to 231 and pollute "similar venues" suggestions.
