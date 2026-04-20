@@ -1,10 +1,10 @@
-# Peakly PM Report — 2026-04-17 (v24)
+# Peakly PM Report — 2026-04-20 (v24)
 
 **Filed by:** Product Manager agent  
-**Date:** 2026-04-17  
-**Status:** TP_MARKER + email capture confirmed FIXED (were false alarms in prior reports). New P1: Cloudbreak Fiji and Punta Roca have wrong difficulty tags. Batch venue audit needed before Reddit launch.
+**Date:** 2026-04-20  
+**Status:** Zero product code shipped in 5 days. P1 venue tag bugs (Cloudbreak "All Levels", Punta Roca "Beginner Friendly") still live — called as "ship today" on Apr 17, still unshipped. New finding: both are duplicates — delete the batch entries entirely. Top priority: ship venue fix, then run Reddit launch.
 
-Full report: [pm-2026-04-17.md](./pm-2026-04-17.md)
+Full report: [pm-2026-04-20.md](./pm-2026-04-20.md)
 
 ---
 
