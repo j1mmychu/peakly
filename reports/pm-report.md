@@ -1,8 +1,10 @@
-# Peakly PM Report — 2026-04-19 (v24)
+# Peakly PM Report — 2026-04-20 (v24)
 
 **Filed by:** Product Manager agent  
-**Date:** 2026-04-19  
-**Status:** Zero product code shipped in 4 days. P1 venue tag bugs from April 17 report sat unactioned for 2 days. Fixed this session.
+**Date:** 2026-04-20  
+**Status:** 9 venue tag credibility bugs fixed (Apr 19), needsMarine regression patched (Apr 20). Remaining: duplicate Cloudbreak + Punta Roca entries still live. Delete them, then launch Reddit.
+
+Full report: [pm-2026-04-20.md](./pm-2026-04-20.md)
 
 ---
 
