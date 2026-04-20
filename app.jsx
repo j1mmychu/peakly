@@ -6748,7 +6748,7 @@ function App() {
       const batch = initial.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
         batch.map(async v => {
-          const needsMarine = v.category === "surfing";
+          const needsMarine = v.category === "surfing" || v.category === "tanning";
           const [wxR, marR] = await Promise.allSettled([
             fetchWeather(v.lat, v.lon),
             needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
