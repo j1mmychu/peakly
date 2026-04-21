@@ -2,7 +2,7 @@
 
 **Filed by:** Product Manager agent  
 **Date:** 2026-04-21  
-**Status:** 6 days since last product code. 5 confirmed P1 surfing venue tags live on production. Pro pricing / Sentry / TP_MARKER briefing items all confirmed CLOSED (false alarms).
+**Status:** All P1 venue bugs cleared (Apr 19). needsMarine fixed (Apr 20). Cache current. Two P2s remain before Reddit: delete duplicate venues + remove fabricated review counts. No remaining technical gate on launch.
 
 Full report: [pm-2026-04-21.md](./pm-2026-04-21.md)
 
@@ -10,15 +10,19 @@ Full report: [pm-2026-04-21.md](./pm-2026-04-21.md)
 
 ## Shipped Since Last Report (2026-04-17 → 2026-04-21)
 
-Zero product code. One report commit only.
+| Commit | What |
+|--------|------|
+| `390918c` (Apr 19) | 9 venue tag credibility fixes |
+| `387f0be` (Apr 20) | needsMarine batch regression fix (tanning venues) |
+| `5decd31` (Apr 21) | Cache bust v=20260421a + SW peakly-20260421 |
 
 ---
 
 ## Top 3 This Week
 
-1. **Fix 5 surfing venue tags** — cloudbreak-fiji-s21, punta-roca-s12 (delete duplicate), snappers-gold-coast-s26, matanzas-s17, capbreton-s27. 1 hour. Must ship before Reddit.
-2. **Fix 3 ski batch venue tags** — lech-zurs-s27, aspen-snowmass-s7, kicking-horse-s10. 1 hour. Same deadline.
-3. **Jack: LLC status check** — REI approval is +$6.16 RPM. What's blocking and when does it close?
+1. **Delete `cloudbreak-fiji-s21` + `punta-roca-s12` duplicates** — 15 min. Last pre-launch venue cleanup.
+2. **Remove fabricated review counts from VenueCard display** — 30 min. Conditions score is real; review counts are theater.
+3. **Jack: Name the Reddit launch date.** No tech excuse remains.
 
 ---
 
@@ -26,21 +30,23 @@ Zero product code. One report commit only.
 
 | Item | Decision |
 |------|----------|
-| Fix surfing credibility tags | **SHIP. TODAY.** |
-| Delete punta-roca-s12 duplicate | **SHIP. TODAY.** |
-| Strike alerts background worker | **DEFER** — 0 users, 2-3 days VPS work |
-| Onboarding/scoring explainer | **DEFER** — Reddit reveals real confusions |
-| JSON-LD / SEO hardening | **DEFER** — 81% is launch-acceptable |
-| iOS App Store | **DEFER** — no retention data yet |
+| Delete duplicate venue entries | **SHIP. TODAY.** |
+| Remove review count display from VenueCards | **SHIP. TODAY.** |
+| Strike alerts background worker | **DEFER** — 0 users, build on demand |
+| Onboarding / scoring explainer | **DEFER** — Reddit surfaces real confusion |
+| Window Score / Forecast Horizon | **DEFER** — build post-traction |
+| iOS App Store | **DEFER** — no retention data |
+| JSON-LD / SRI / CSP | **DEFER** — 81% SEO is fine for launch |
+| Additional venue tag audits | **CUT** — 9 fixes shipped, diminishing returns |
 
 ---
 
-## Open P1 Bugs
+## All Confirmed Closed
 
-- `cloudbreak-fiji-s21` — "Beach Break, All Levels" on a wave that kills professional surfers
-- `punta-roca-s12` — "Beginner Friendly" on El Salvador's heaviest break + duplicate card in Explore
-- `snappers-gold-coast-s26` — "Beach Break, All Levels" on the Superbank (WSL CT stop)
-- `matanzas-s17` — "Beginner Friendly, Warm Water" — cold Chilean left (~14°C)
-- `capbreton-s27` — "Beginner Friendly, Warm Water" — cold Atlantic France
-
-All other previously flagged issues (TP_MARKER, Sentry DSN, email capture, Pro pricing) confirmed CLOSED.
+- TP_MARKER = "710303" ✅
+- Sentry DSN configured ✅
+- Email capture → real fetch() to /api/waitlist ✅
+- Pro pricing $9/mo discrepancy ✅ (false alarm, no such UI)
+- Cache buster stale ✅ (v=20260421a current)
+- 9 venue credibility bugs ✅ (fixed Apr 19)
+- needsMarine beach regression ✅ (fixed Apr 20)
