@@ -59,6 +59,11 @@ This fix has been recommended 7 days in a row. It hasn't shipped. It needs to sh
 const _wxCache = new Map(); // key: "lat,lon,type" → { data, ts }
 const WX_TTL = 30 * 60 * 1000;
 
+function evictWeatherCache() {
+  const cutoff = Date.now() - WEATHER_TTL * 2;
+  for (const [k, v] of weatherCache) if (v.ts < cutoff) weatherCache.delete(k);
+}
+
 app.get('/api/weather', async (req, res) => {
   const { lat, lon, type, params } = req.query;
   const flat = parseFloat(lat), flon = parseFloat(lon);
