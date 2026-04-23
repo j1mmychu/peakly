@@ -1,8 +1,14 @@
-# Peakly PM Report — 2026-04-22 (v24)
+# Peakly PM Report — 2026-04-23 (v24)
 
-**Filed by:** Product Manager agent  
-**Date:** 2026-04-22  
-**Status:** 5 days of zero product code since Apr 17. Two P1 bugs finally shipped this session. Several persistent false alarms in previous reports permanently closed below.
+**Filed by:** Product Manager agent
+**Date:** 2026-04-23
+**Status:** Active shipping week. Critical venue mislabelings resolved. Cache needs bump after today's venue adds. Two ski tags still wrong. Reddit launch has no date — that's the only real blocker now.
+
+Full report: [pm-2026-04-23.md](./pm-2026-04-23.md)
+
+---
+
+*(Previous report: 2026-04-22)*
 
 ---
 
