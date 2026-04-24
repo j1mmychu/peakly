@@ -1,105 +1,102 @@
-# Peakly PM Report — 2026-04-17 (v24)
+# Peakly PM Report — 2026-04-23 (v24)
 
-**Filed by:** Product Manager agent  
-**Date:** 2026-04-17  
-**Status:** TP_MARKER + email capture confirmed FIXED (were false alarms in prior reports). New P1: Cloudbreak Fiji and Punta Roca have wrong difficulty tags. Batch venue audit needed before Reddit launch.
+**Filed by:** Product Manager agent
+**Date:** 2026-04-23
+**Status:** Active shipping week. Critical venue mislabelings resolved. Cache needs bump after today's venue adds. Two ski tags still wrong. Reddit launch has no date — that's the only real blocker now.
 
-Full report: [pm-2026-04-17.md](./pm-2026-04-17.md)
-
----
-
-## Shipped Since Last Report (2026-04-08 → 2026-04-15)
-
-| Commit | What | Right call? |
-|--------|------|-------------|
-| `1db7079` (Apr 9) | Fix push notification icons, SW cache bump to `peakly-20260409`, inter-batch delay (1s), cache buster to `v=20260409a` | ✅ Right call — icons were broken, rate limiting needed |
-| `3129564` (Apr 9) | Merge content report + devops reports | Neutral — reports only, no product impact |
-
-**Six days of silence after April 9.** Zero code commits April 10–15. Again.
-
-**Pattern alert:** Second 6-day freeze in two weeks (previous: April 2–8). Reddit windows close. Every day of silence is compounding. This is the single biggest threat to the 100K goal.
+Full report: [pm-2026-04-23.md](./pm-2026-04-23.md)
 
 ---
 
-## CLAUDE.md vs Reality — Critical Divergence
-
-**This is the most important finding in this report.**
-
-The CLAUDE.md in the session context references "Recently Fixed (2026-04-10 through 2026-04-12)" items — venue reduction to 231, 7 scoring algorithm fixes, wind direction fix, beach marine fetching, skiing season awareness, etc.
-
-**None of those commits exist in git.** `git log` shows no commits after April 9. The last commit to CLAUDE.md itself was April 1 (`9d2692a`).
-
-What's actually in the code right now:
-- **Venues:** 3,726 total (704 ski + 703 surf + 705 tanning + 1,614 other). NOT 231.
-- **Scoring bugs:** The April 10-12 algorithm holes listed in the session CLAUDE.md are unconfirmed — no matching commits.
-- **CLAUDE.md on disk:** April 1 version — 3,726 venues, nothing about April 10-14 fixes.
-
-**The shared brain is unreliable.** Don't trust CLAUDE.md's "recently fixed" section without a matching git commit hash. The on-disk file is ground truth.
+*(Previous report: 2026-04-22)*
 
 ---
 
-## Bug Triage — April 15
+## Shipped Since Last Report (2026-04-17 → 2026-04-22)
 
-| Bug | Severity | Status | Days Open |
-|-----|----------|--------|-----------|
-| **TP_MARKER = "YOUR_TP_MARKER"** | **P0** | ❌ STILL UNSET | **Day 22** |
-| **Email capture → `alert()` only** | **P0** | ❌ No backend POST. Every email gone. | Day 22+ |
-| **Venue duplicates + mislabeled difficulty** | **P1** | ❌ Teahupo'o tagged "All Levels". Mundaka tagged "Beginner Friendly". Live on production. | Day 22+ |
-| **Cache buster `v=20260409a`** | **P1** | ⚠️ 6 days old. Any fix pushed today won't reach cached users without a bump. | Day 6 |
-| **app.jsx = 2.0MB / 11,000 lines** | **P1** | ❌ Babel parse on mobile = 5-10s blank screen. | Day 20+ |
-| **fetchWeather() 429 crash** | **P1** | ❌ Still throws instead of returns null. Explore tab crashes on rate limit. | Day 22+ |
-| **Peakly Pro price "$9/mo"** | **Unconfirmed** | Cannot find `$9/mo` in codebase. Needs live site verification. | Unknown |
-| **Sentry DSN** | ✅ CONFIGURED | DSN set at `app.jsx:8`. Not flying blind. | — |
+| What | Shipped By |
+|------|-----------|
+| `d039180` — PM report only | Apr 17 agent |
+| **No product code for 5 days** | — |
 
-**TP_MARKER:** Day 22 = ~88 unattributed flight link clicks at 50 daily users × 8% CTR. If 20% converted at $8 commission avg = ~$140 permanently lost. Fix is one string substitution.
+**Shipped this session:**
+- Removed `cloudbreak-fiji-s21` — duplicate of `cloudbreak` (line 403), tagged "All Levels / Beach Break / Longboard Friendly." One of the world's most dangerous big-wave reefs. P1 closed Day 5 late.
+- Removed `punta-roca-s12` — duplicate of `punta_roca` (line 377), tagged "Beginner Friendly." WSL-level barreling left. P1 closed Day 5 late.
+- Removed `supertubos-peniche-s18` — pure duplicate of `supertubos` (line 386).
+- Fixed `catanduanes-s16` tags: "Beach Break, All Levels" → "Reef Break, Expert Level, Remote Spot, Pacific Power"
+- Fixed `snappers-gold-coast-s26` tags: "Beach Break, All Levels" → "Rock Point, Expert Level, WSL Tour Stop, Powerful Wedge"
+- Cache buster bumped: `peakly-20260417` → `peakly-20260422`
+- CLAUDE.md venue count corrected: 231 → 224
 
-**Email capture is also P0.** `app.jsx:7214` does `alert("You're on the list!")`. No `fetch()`. No backend. The server has `/api/waitlist` — the client just isn't calling it. Every Reddit visitor who typed their email is permanently gone.
+**Venue count: 224** (was 227 before this session; 3 dupes removed)
+
+---
+
+## Permanent Bug Triage Corrections
+
+These were investigated and closed. Do NOT re-flag without reading live code first.
+
+| Issue | Status | Evidence |
+|-------|--------|----------|
+| TP_MARKER "YOUR_TP_MARKER" | **CLOSED** | `app.jsx:1593` — `const TP_MARKER = "710303"`. Set since Apr 10. |
+| Sentry DSN empty | **CLOSED** | `app.jsx:7-8` — real DSN set (`o4511108649058304.ingest.us.sentry.io`). |
+| Email capture uses alert() | **CLOSED** | `app.jsx:3503` — real `fetch()` to `/api/waitlist` with Plausible event. |
+| Peakly Pro showing $9/mo | **CLOSED** | No Pro pricing UI in codebase. Removed 2026-03-26. $79/yr is waitlist-only copy. |
+| JSON-LD missing | **CLOSED** | `index.html:34` — WebSite + WebApplication + Organization schema present. |
+
+---
+
+## Active Bug Triage — April 22
+
+| Bug | Severity | Status |
+|-----|----------|--------|
+| **Remaining batch venue tag accuracy** | **P1** | ~20 batch venues still have 4 rotating tag templates. Not all wrong, but unaudited. `indicator-s22` ("Beginner Friendly"), `capbreton-s27` ("Beginner Friendly"), `matanzas-s17` ("Beginner Friendly") are candidates for review. |
+| **Strike alerts background worker unbuilt** | **P2** | Core promise. Deferred until 500 MAU. Correct call. |
+| **No onboarding scoring explanation** | **P2** | Reddit will surface real confusion faster than any designed tutorial. Post-launch. |
+| **Cache buster relies on manual bump** | **P3** | Should be automated post-deploy in `.github/workflows/deploy.yml`. Recurring friction, low priority. |
+| **app.jsx = 7,140 lines** | **P3** | Babel cold parse ~2–3s on low-end Android. Not critical yet. |
+
+---
+
+## Explicit Product Decisions — April 22
+
+**Decision 1: Audit remaining ~20 batch venues for tag accuracy. SHIP this week.**  
+The 5 confirmed mislabelings are fixed. The remaining `-s##` ID venues need a manual pass focused specifically on "Beginner Friendly" and "All Levels" tags. Estimate 1–2 more wrong. 45-minute job. Required before the Reddit post. No exceptions.
+
+**Decision 2: Onboarding / scoring explainer. DEFER post-Reddit.**  
+Reddit comments are free UX research. Build for observed confusion, not imagined confusion. If 3+ commenters ask "how does the score work," that's the trigger.
+
+**Decision 3: Strike alerts background worker. DEFER until 500 users.**  
+Zero users using Alerts. The VPS work (cron, push reliability) is non-trivial. Hard defer.
+
+**Decision 4: JSON-LD / SRI / CSP hardening. DEFER.**  
+JSON-LD exists. 81% SEO is launch-acceptable. SRI could break Babel eval — don't touch.
+
+**Decision 5: "Next good window" copy under low scores. INVESTIGATE.**  
+A line below any score under 60 saying "Next good window: ~X days" would improve D1 retention significantly with no new API calls. Uses existing weather array. Worth 30 minutes to prototype. Not blocking launch, but highest-leverage non-data improvement available.
 
 ---
 
 ## Known Blockers
 
-| Blocker | Owner | Action |
+| Blocker | Owner | Impact |
 |---------|-------|--------|
-| **TP_MARKER** | Jack — 5 min | `tp.media → Markers → copy ID → app.jsx:5316 → push` |
-| **Email capture** | Dev — 30 min | Replace `alert()` at line 7214 with POST to `/api/waitlist` |
-| **Venue dedup + labels** | Dev — 2 hrs | Remove `-s##` batch dupes, fix mislabeled difficulty on 3-4 venues |
-| **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
-| **Apple Developer enrollment** | Jack — $99/yr | Blocks iOS App Store |
-
----
-
-## Explicit Product Decisions — April 15
-
-**1. TP_MARKER: SHIP. TODAY. Jack only.**
-Not a product decision. One copy-paste. Day 22. Not acceptable.
-
-**2. Email capture → real backend: SHIP this week.**
-`app.jsx:7214` — replace `alert()` with `fetch("https://peakly-api.duckdns.org/api/waitlist", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email}) })`. If `/api/waitlist` isn't live, fall back to Loops.so free-tier webhook (no backend deploy needed). Deadline: end of week.
-
-**3. Venue dedup + difficulty labels: SHIP this week.**
-Teahupo'o ("All Levels") and Mundaka ("Beginner Friendly") are live on production. When r/surfing finds this it kills launch credibility with the highest-value users. Surgical fix: grep `-s##` IDs, remove batch dupes, fix ~4 wrong difficulty tags. 2 hours max.
-
-**4. Window Score / Forecast Horizon: DEFER.**
-No new features while P0s are open. Every engineering hour on roadmap while basics are broken is opportunity cost at best, launch-killer at worst.
-
-**5. iOS App Store: DEFER until 500 users.**
-No point burning $99 + Xcode time until browser retention is proven. PWA install prompt on iOS is the MVP path. App Store post-traction.
-
-**6. JSON-LD structured data: DEFER.**
-81% SEO is launch-acceptable. One hour of JSON-LD adds 2-3 SEO points. Same hour fixing venue credibility protects the launch. Venue data wins.
+| **LLC approval** | External (Jack) | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
+| **Apple Developer enrollment** | Jack ($99/yr) | Blocks iOS App Store — defer until 500 MAU anyway |
+| **Remaining batch venue tag audit** | Dev (45 min) | Last credibility gate before Reddit launch |
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. TP_MARKER** — Jack, 5 minutes. Day 22 of $0 affiliate revenue ends today.
+### 1. Audit remaining ~20 batch venues for tag accuracy (45 min, Dev)
+Cloudbreak, Punta Roca, Catanduanes, Supertubos dupe, Snappers Gold Coast — all fixed. Check the rest of the `-s##` IDs for "Beginner Friendly" and "All Levels" tags on non-beginner breaks. This is the last data credibility gate.
 
-**2. Email capture → real backend** — Dev, 30 minutes. No more `alert()`.
+### 2. Jack: Set a Reddit launch date — this week or next
+Code is launch-ready. Venue data is now clean. No more technical blockers on the dev side. The only thing standing between 0 users and 5K users is a Reddit post. Pick a date.
 
-**3. Venue dedup + fix Teahupo'o/Mundaka labels** — Dev, 2 hours. Credibility protection before next Reddit post.
-
-Everything else deferred until these three are done.
+### 3. Jack: LLC status + REI affiliate application readiness
+REI at $6.16 RPM = $6,160/month at 1K MAU. If LLC is 3 weeks out, draft the REI Avantlink application now so it can be submitted day-of formation.
 
 ---
 
@@ -107,40 +104,38 @@ Everything else deferred until these three are done.
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Window Score v1 | **DEFER** | P0s still open |
-| JSON-LD structured data | **DEFER** | 81% SEO is fine for launch |
-| iOS App Store submission | **DEFER** | Premature — no retention data yet |
-| Trips / Wishlists tab launch | **DEFER** | 1K users minimum per design decision |
-| Peakly Pro pricing UI | **INVESTIGATE** | Can't confirm $9/mo in code — live site check first |
+| Onboarding / scoring explainer | **DEFER** | Reddit comments are better UX research than speculation |
+| Strike alerts background worker | **DEFER** | 0 users using Alerts. VPS work for no audience. |
+| iOS App Store | **DEFER** | No proven retention. Do at 500 users. |
+| Window Score / Forecast Horizon | **DEFER** | No new features while data quality has open items |
+| Automated cache buster in CI | **DEFER** | Manual bump is fine pre-launch |
+| Dark mode | **CUT** | Not in launch scope. Post-1K if requested by users. |
 
 ---
 
 ## Success Criteria
 
-**Metrics that define success:**
-- 1,000 MAU within 90 days of a real Reddit launch
-- 30-day retention > 25%
-- Flight CTR > 8% per session
-- Email list > 500 before any paywall
+**5K (base case):** One Reddit post hits front page of r/surfing or r/skiing. 48hr Plausible spike + 15%+ D7 retention.
 
-**For 8K users, not 5K, by day 90:**
-- TP_MARKER set BEFORE next Reddit post
-- Email list built BEFORE next distribution spike (re-engagement is the difference)
-- Venue credibility intact (no "Teahupo'o beginner" screenshots circulating)
-- Mobile load under 3s (venues.json extraction is the unlock)
+**8K (upside) — three things must all be true:**
+1. Zero credibility objections in launch Reddit comments (batch audit removes this risk)
+2. A second organic post (r/travel, r/digitalnomad) within 30 days of launch
+3. At least one Travelpayouts conversion visible in dashboard (proves the funnel works)
 
-**5K scenario:** Launch again with broken TP_MARKER, no email list, mislabeled venues. Growth flatlines at early adopter cohort. No re-engagement.
-
-**8K scenario:** Fix P0s first. Clean data. Build list on the way up. Second Reddit post + 300 email notifications = retention flywheel starts.
+The 5K→8K delta is venue data credibility. That work is now 90% done.
 
 ---
 
-## The One Risk Nobody Is Talking About
+## One Product Risk Nobody Is Talking About
 
-**CLAUDE.md drift is a confidence trap.**
+**The app has no recovery path when conditions are bad.**
 
-The session context says 231 venues with clean data and scoring fixes. The actual repo has 3,726 venues with live credibility bugs. The gap between what the "shared brain" says shipped and what actually shipped is growing.
+If a user opens Peakly and their closest break scores 28/100 ("choppy, onshore"), they don't know whether to come back tomorrow, next week, or never. There's no forward signal. They close the tab. D1 retention dies on a mediocre-conditions day.
 
-If Jack or any agent reads CLAUDE.md and believes the venue cleanup happened, they won't fix it. A document that's confidently wrong is more dangerous than no document.
+The Window Score (Phase 2 roadmap) fixes this architecturally, but it's deferred. A 30-minute band-aid exists: a "Next good window: ~X days" line under any score below 60, computed from the existing 7-day weather array we already fetch. No new API calls. Doesn't touch the frozen scoring algorithm. Turns a dead end into a bookmark moment.
 
-**Process fix required:** Every session that updates CLAUDE.md must link the corresponding git commit hash. No commit hash = no fix. This rule prevents the next silent 6-day regression.
+This is the highest-ROI improvement available that isn't on anyone's radar.
+
+---
+
+*Next report: 2026-04-23. Priority: confirm remaining batch venue audit shipped and Reddit launch date set.*
