@@ -121,7 +121,7 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 6. **Travelpayouts token off the client** — always via VPS proxy.
 7. **Mobile-first** — safe area insets matter.
 8. **Test in browser** after changes — check console for Babel parse errors.
-9. **Venue data is hardcoded** — `VENUES` array has **231 entries** (3 launch categories only: skiing, surfing, tanning). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
+9. **Venue data is hardcoded** — `VENUES` array has **229 entries** (3 launch categories only: skiing, surfing, tanning). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
