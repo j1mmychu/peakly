@@ -250,23 +250,34 @@ const wx_cache = new Map(); // { key: { data, ts } }
 const WX_TTL = 2 * 60 * 60 * 1000; // 2hr
 
 app.get('/api/weather', async (req, res) => {
-  const { lat, lon, days = 7 } = req.query;
+  const { lat, lon, type, params } = req.query;
   if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
-  const key = `${parseFloat(lat).toFixed(2)},${parseFloat(lon).toFixed(2)}`;
+  const flat = parseFloat(lat), flon = parseFloat(lon);
+  const key = `${flat.toFixed(3)},${flon.toFixed(3)},${type || 'wx'}`;
   const cached = wx_cache.get(key);
-  if (cached && Date.now() - cached.ts < WX_TTL) return res.json(cached.data);
-
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant`
-    + `&forecast_days=${days}&timezone=auto`;
+  if (cached && Date.now() - cached.ts < WX_TTL) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.json(cached.data);
+  }
+  const base = type === 'marine'
+    ? 'https://marine-api.open-meteo.com/v1/marine'
+    : 'https://api.open-meteo.com/v1/forecast';
+  const url = `${base}?latitude=${flat}&longitude=${flon}${params ? '&' + params : ''}`;
   try {
-    const { json } = await fetchJson(url);
+    const { status, json } = await fetchJson(url);
+    if (status !== 200) return res.status(status).json(json);
     wx_cache.set(key, { data: json, ts: Date.now() });
-    res.json(json);
-  } catch (e) {
-    res.status(502).json({ error: e.message });
+    res.setHeader('X-Cache', 'MISS');
+    return res.json(json);
+  } catch (err) {
+    return res.status(502).json({ error: err.message });
   }
 });
+
+setInterval(() => {
+  const cutoff = Date.now() - WX_TTL;
+  for (const [k, v] of wx_cache) if (v.ts < cutoff) wx_cache.delete(k);
+}, WX_TTL);
 ```
 
 This collapses 5K individual browser requests to Open-Meteo into 229 cached proxy requests. Zero additional cost. Estimated implementation: 4 hours.
