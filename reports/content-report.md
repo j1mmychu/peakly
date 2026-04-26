@@ -1,20 +1,10 @@
-# Content & Data Report — 2026-04-23
+# Content & Data Report — 2026-04-26
 
-**Agent:** Content & Data  
-**Data health score: 80/100** ↑ from 77 (April 22). Tioman airport fixed, 4 new venues added.
+**Agent:** Content & Data
+**Data health score: 76/100** ↓ from 80 (Apr 23). Score drop due to newly discovered AP_CONTINENT gap — 31 venues (13%) have airports not mapped, breaking continent filtering for those cards. No fixes applied since Apr 23.
 
-**Score breakdown:**  
-Required fields 100% complete +20 | No duplicate IDs +10 | No duplicate photos +15 | All surfing venues have `facing` field +5 | Geographic diversity +8 | cloudbreak P1 resolved last run | GEAR_ITEMS.surfing 6 items (fixed last run) | Tioman TPN→TOD fixed this run +2 | 6 remaining same-category duplicate pairs −3 | 28 ski venues missing `skiPass` −4 | EXT (Exeter) confirmed valid IATA — false alarm corrected +1 | SH ski pre-season (algorithm handles) 0
-
----
-
-## FIXES APPLIED THIS RUN
-
-| Fix | Detail |
-|-----|--------|
-| ✅ **tioman-island-t11 airport fixed** | ap:"TPN" (invalid IATA) → ap:"TOD" (Tioman Airport, Pahang, Malaysia) |
-| ✅ **EXT confirmed valid** | Exeter Airport IATA = EXT is correct. April 22 flag was erroneous. |
-| ✅ **4 new venues added** | Zermatt (CH), Las Leñas (AR), G-Land (ID), Siargao (PH) |
+**Score breakdown:**
+Required fields 100% complete +20 | No venue-ID duplicates +10 | All surfing venues have `facing` field +5 | Geographic diversity +8 | 3 duplicate photo base URLs −3 | 6 same-category duplicate pairs unresolved (flagged Apr 22–23) −3 | 28 ski venues missing `skiPass` (38%) −4 | **NEW: 31 airports missing from AP_CONTINENT → continent filter silent failure** −5 | Tag errors on flagged-for-deletion dupes −2
 
 ---
 
@@ -22,20 +12,50 @@ Required fields 100% complete +20 | No duplicate IDs +10 | No duplicate photos +
 
 ### Category Breakdown — 237 venues
 
-| Category | Count | Delta | Status |
-|----------|-------|-------|--------|
-| tanning | 88 | — | ✅ Healthy |
-| surfing | 77 | +2 (G-Land, Siargao) | ✅ Healthy |
-| skiing | 72 | +2 (Zermatt, Las Leñas) | ✅ Healthy |
-| **TOTAL** | **237** | **+4** | 3 live categories |
+| Category | Count | Status |
+|----------|-------|--------|
+| tanning  | 88    | ✅ Healthy |
+| surfing  | 77    | ✅ Healthy |
+| skiing   | 72    | ✅ Healthy |
+| **TOTAL**| **237** | 3 live categories |
 
-All 237 venues: 100% field coverage. Zero duplicate IDs. Zero duplicate photos. All surfing venues have `facing` bearing.
+Only 4 CATEGORIES constants: `all`, `skiing`, `surfing`, `tanning`. No stub categories. All 237 venues have 100% field coverage (id, category, lat, lon, ap, tags, photo, title, location).
 
 ---
 
-### P1 🟡 — 6 REMAINING SAME-CATEGORY DUPLICATE PAIRS
+### P0 🔴 — NEW: 31 AIRPORTS MISSING FROM AP_CONTINENT (continent filter broken)
 
-Cloudbreak duplicate resolved April 22. 6 same-category dupes remain. The `-s##` / `-t##` batch-gen entries are lower-quality than the hand-curated originals.
+The continent filter uses `AP_CONTINENT[venue.ap]` to assign each venue a region. **31 venues have airport codes not in the map**, meaning they silently disappear when any continent filter is applied. This affects ~13% of the catalogue.
+
+**Fix: add these entries to `AP_CONTINENT` (paste-ready):**
+
+```javascript
+// Add to AP_CONTINENT — missing entries (31 airports)
+// North America
+OAJ:"na", SBA:"na", MGA:"na", RDD:"na",
+// Europe
+EAS:"europe", JNX:"europe", PMI:"europe", RHO:"europe", TPS:"europe",
+DLM:"europe", OSL:"europe", MXX:"europe", GEG:"na",
+// Asia
+AXT:"asia", NGO:"asia", GMP:"asia", MNL:"asia", VRC:"asia",
+DAD:"asia", PQC:"asia", IAO:"asia",
+// Oceania
+BNK:"oceania", TRG:"oceania", LEA:"oceania",
+// Africa
+INH:"africa", TOD:"asia",
+// S. America
+MDZ:"latam", ZPC:"latam", USH:"latam",
+// Pacific
+BOB:"oceania",
+// Additional
+YKA:"na", KRK:"europe",
+```
+
+Affected venues (31): `appi-kogen-s2` (AXT), `angourie-point-s3` (BNK), `matira-beach-t6` (BOB), `an-bang-beach-t29` (DAD), `patara-beach-t18` (DLM), `playa-de-la-concha-t3` (EAS), `schweitzer-mtn` (GEG), `yongpyong` (GMP), `siargao` (IAO), `tofo-beach-t10` (INH), `agios-prokopios-t2` (JNX), `zakopane` (KRK), `turquoise-bay-t8` (LEA), `las-lenas` (MDZ), `baler-s7` (MNL), `idre-fjall-s6` (MXX), `madarao-mountain-s22`/`tsugaike-kogen-s25` (NGO), `outer-banks-nags-head-t7` (OAJ), `hemsedal-s3` (OSL), `beach_spain_mallorca_es` (PMI), `beach_phuquoc` (PQC), `mount-shasta-ski-s26` (RDD), `lindos-beach-t23` (RHO), `indicator-s22` (SBA), `tioman-island-t11` (TOD), `san-vito-lo-capo-t21` (TPS), `mount-maunganui-s15` (TRG), `cerro-castor-s28` (USH), `catanduanes-s16` (VRC), `sun-peaks-resort-s17` (YKA), `pucon-ski-center-s19` (ZPC).
+
+---
+
+### P1 🟡 — 6 SAME-CATEGORY DUPLICATE PAIRS (unresolved since Apr 22)
 
 | Delete (batch-gen) | Keep (original) | Category |
 |--------------------|-----------------|----------|
@@ -46,102 +66,166 @@ Cloudbreak duplicate resolved April 22. 6 same-category dupes remain. The `-s##`
 | `pasta-point-s24` | `pasta_point` | surfing |
 | `pigeon-point-t27` | `beach_tobago` | tanning |
 
-Deleting these 6 lines → 237 → 231 venues, health score +3, Explore cleaner pre-Reddit.
+Removing these 6 → 237 → 231 venues, cleaner Explore grid, health score +3.
 
 ---
 
-### P2 🟡 — 28 SKI VENUES MISSING `skiPass` (39% of skiing)
+### P2 🟡 — 28 SKI VENUES MISSING `skiPass` (38%)
 
-**Flagged as Ikon-affiliated (verify before patching):** `kicking-horse-s10`, `big-white-ski-s5`, `sun-peaks-resort-s17`, `stowe-mountain-s14`
-
-**Safe to patch as "independent":** remaining 24.
-
-Full list: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big-white-ski-s5`, `idre-fjall-s6`, `aspen-snowmass-s7`, `arapahoe-basin-s9`, `kicking-horse-s10`, `kiroro-snow-world-s11`, `morzine-s12`, `sainte-foy-tarentaise-s13`, `stowe-mountain-s14`, `champoluc-monterosa-s15`, `val-d-isere-s16`, `sun-peaks-resort-s17`, `chamonix-mont-blanc-s18`, `pucon-ski-center-s19`, `les-arcs-s20`, `powder-mountain-s21`, `madarao-mountain-s22`, `thredbo-village-s23`, `nevis-range-s24`, `tsugaike-kogen-s25`, `mount-shasta-ski-s26`, `lech-zurs-s27`, `cerro-castor-s28`, `treble-cone-s29`
+**Ikon-affiliated (verify before patching):** `kicking-horse-s10`, `big-white-ski-s5`, `sun-peaks-resort-s17`, `stowe-mountain-s14`
+**Safe to patch as `"independent"`:** remaining 24 (full list in Apr 23 report).
 
 ---
 
-### P3 🟢 — TAG ACCURACY (minor, batch-gen entries slated for deletion)
+### P3 🟡 — 3 DUPLICATE PHOTO BASE URLs
 
-- `pasta-point-s24`: Tags include "Right-Hander" — Pasta Point Maldives is a LEFT-hander only.
-- `anchor-point-s19`: Tags include "Left-Hander" — Anchor Point Morocco is a RIGHT-hand point break.
+| Photo ID | Venue A | Venue B | Category |
+|----------|---------|---------|----------|
+| `photo-1540202404-a2f29016b523` | `beach_praslin` (Anse Lazio) | `beach_phuquoc` (Long Beach Phu Quoc) | tanning |
+| `photo-1507525428034-b723cf961d3e` | `angourie-point-s3` (Angourie Point) | `arugam_bay` (Arugam Bay) | surfing |
+| `photo-1520175462-89499834c4c1` | `portillo-s4` (Portillo) | `perisher` (Perisher Blue) | skiing |
+
+Same image for different venues undermines credibility. Each needs a unique Unsplash URL.
+
+---
+
+### P4 🟢 — TAG ERRORS (on duplicate pairs flagged for deletion)
+
+- `pasta-point-s24`: has `"Right-Hander"` tag — Pasta Point Maldives is left-hand only.
+- `anchor-point-s19`: has `"Left-Hander"` tag — Anchor Point Morocco is a right-hand point break.
+
+Moot once P1 duplicate pairs are deleted.
 
 ---
 
 ## 2. GEAR ITEMS AUDIT
 
-| Category | Items | Est. AOV | Status |
-|----------|-------|---------|--------|
-| skiing | 4 | ~$75 | ⚠️ Add skis + pack to nearly 10x AOV |
-| surfing | 6 | ~$67 | ✅ Fixed April 22 |
-| tanning | 4 | ~$27 | ✅ Adequate |
+| Category | Items | AOV Est. | Status |
+|----------|-------|----------|--------|
+| skiing   | 4     | ~$75     | ⚠️ Low AOV — missing high-ticket items |
+| surfing  | 6     | ~$67     | ✅ Adequate |
+| tanning  | 4     | ~$27     | ✅ Adequate |
 
-**Paste-ready skiing expansion (replaces current 4-item block):**
+All items use `tag=peakly-20` (Amazon 4%). No dead links detected.
+
+**Skiing gear expansion — replaces current 4-item block with 8 items (~3x AOV):**
 
 ```javascript
-  skiing: [
-    { name:"HeatMax Hand Warmers 40-Pack",      store:"Amazon", price:"$18",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
-    { name:"Darn Tough Ski Socks",              store:"Amazon", price:"$26",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
-    { name:"Smith I/O MAG Goggles",             store:"Amazon", price:"$230",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
-    { name:"Smartwool PhD Ski Socks",           store:"Amazon", price:"$28",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
-    { name:"Atomic Bent 100 All-Mountain Skis", store:"Amazon", price:"$599+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=atomic+bent+100+all-mountain+skis" },
-    { name:"Osprey Kamber 22L Ski Pack",        store:"Amazon", price:"$130",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+kamber+22+ski+backpack" },
-  ],
+skiing: [
+  { name:"Salomon QST Blank 112 Skis",     store:"Amazon", price:"$549+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=salomon+qst+blank+112+powder+skis" },
+  { name:"Black Diamond JetForce 35L Pack", store:"Amazon", price:"$399+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=black+diamond+jetforce+avalanche+airbag+pack" },
+  { name:"Smith I/O MAG Goggles",           store:"Amazon", price:"$230",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
+  { name:"Backcountry Access Tracker 4",    store:"Amazon", price:"$349+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=bca+tracker+4+avalanche+beacon" },
+  { name:"Patagonia Insulated Snowshot Bib",store:"Amazon", price:"$299+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=patagonia+snowshot+bib+pants" },
+  { name:"Darn Tough Ski Socks",            store:"Amazon", price:"$26",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
+  { name:"HeatMax Hand Warmers 40-Pack",    store:"Amazon", price:"$18",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
+  { name:"Smartwool PhD Ski Socks",         store:"Amazon", price:"$28",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
+],
 ```
+
+Estimated AOV jump: ~$75 → ~$237. Amazon 4% on a $550 ski purchase = $22 vs $3 on hand warmers.
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 23
+## 3. SEASONAL RELEVANCE (April 26)
 
 ### Skiing
-- **NH (60 venues):** End of season. Algorithm returns score 8 "Off-season" correctly. ✅
-- **SH ski — pre-season (opens June/July):** Remarkables, Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone, Las Leñas (new). Algorithm handles. ✅
-- **Zermatt:** NH glacier skiing runs year-round on Klein Matterhorn. Algorithm will score from live snowpack data.
 
-### Surfing — Prime April windows
+- **Northern hemisphere (64 venues):** Late-season / shoulder. Most North American resorts closed or closing. European Alps wrapping up. Hokkaido typically closed. Algorithm's off-season scoring (score 8 "Off-season — resort closed") handles this correctly. ✅
+- **Southern hemisphere (8 venues):** Pre-season. NZ/AU/Andes open June–October. Scoring correctly deprioritizes now. ✅
+  - Cerro Castor, The Remarkables, Treble Cone, Pucon, Thredbo, Perisher, Las Leñas, Portillo
 
-| Venue | Condition | Notes |
-|-------|-----------|-------|
-| G-Land, Java (new) | **Peak** | SE trade season begins April. Best May–Oct. |
-| Siargao, Philippines (new) | **Good** | Dry season, consistent cross-swells |
-| Morocco (Taghazout, Anchor Point) | **Peak** | NW Atlantic swell season |
-| Bali (Uluwatu, Padang Padang) | **Prime** | Dry season, offshore trades |
-| Arugam Bay, Sri Lanka | **Pre-season** | Season opens May |
+### Surfing
+
+All-year sport — no seasonal suppression needed. North Pacific swells fading (Hawaii shoulder); Southern Ocean building for NZ/AU/SA.
 
 ### Tanning
-SE Asia, Caribbean, East Africa: all peak dry-season. ✅
+
+- **Tropical/Caribbean/Mediterranean:** April is prime — pre-peak crowds, warm water. High scores expected. ✅
+- No Northern European beach venues flagged as being promoted above their current quality.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Coordinate spot-check on new venues:**
-- Zermatt `46.0207, 7.7491` ✅ (base village)
-- Las Leñas `−35.150, −70.083` ✅ (ski base, Mendoza Province)
-- G-Land `−8.6694, 114.2822` ✅ (Grajagan Bay, East Java)
-- Siargao `9.8500, 126.0500` ✅ (Cloud 9 area, Surigao del Norte)
-
-**IATA spot-check on new venues:**
-- GVA (Geneva): valid, pre-existing for CH/FR Alps ✅
-- MDZ (Mendoza Gabrielli Intl): valid ✅
-- DPS (Bali Ngurah Rai): valid, pre-existing ✅
-- IAO (Sayak Airport, Siargao): valid ✅
-- TOD (Tioman Airport, Pahang): valid — replaces invalid TPN ✅
+- **Descriptions:** Venues use `title` + `location` only (no separate `desc:` field). By design — no short-description issues.
+- **Tags:** 2 accuracy errors (P4, moot on P1 deletion).
+- **Ratings:** 4.74–4.99 spread. Realistic.
+- **Photos:** 237 Unsplash URLs at `?w=800&h=600&fit=crop`. 3 base-URL duplicates (P3).
+- **Facing field:** 100% coverage on all 77 surfing venues. ✅
 
 ---
 
-## 5. NEW VENUES ADDED (applied this run)
+## 5. FIVE NEW VENUE OBJECTS
 
-_(Already applied to app.jsx — paste shown for reference only.)_
+Geographic gaps targeted: Arctic surfing (Scandinavia), Japan powder (beyond Hokkaido), East Africa beach, Mexico point break, Pyrenean ski.
 
 ```javascript
-  {id:"zermatt",  category:"skiing",  title:"Zermatt",           location:"Valais, Switzerland",           lat:46.0207,lon:7.7491,  ap:"GVA",icon:"🎿",rating:4.97,reviews:3650,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",skiPass:"independent",tags:["Matterhorn Views","Glacier Year-Round","Car-Free Village","3883m Vertical"],photo:"https://images.unsplash.com/photo-1578836537282-3171d77f8632?w=800&h=600&fit=crop"},
-  {id:"las-lenas",category:"skiing",  title:"Las Leñas",         location:"Mendoza, Argentina",            lat:-35.1500,lon:-70.0833,ap:"MDZ",icon:"🎿",rating:4.91,reviews:1820,gradient:"linear-gradient(160deg,#0a1828,#1e3a6e,#3a6abd)",accent:"#82b0e8",skiPass:"independent",tags:["Best SH Powder","Andes Backcountry","400cm Annual Snowfall","Jun–Sep Season"],photo:"https://images.unsplash.com/photo-1543975660-71c80f7f6a6f?w=800&h=600&fit=crop"},
-  {id:"g-land",   category:"surfing", title:"G-Land (Grajagan)", location:"East Java, Indonesia",          lat:-8.6694,lon:114.2822, ap:"DPS",icon:"🌊",rating:4.96,reviews:1480,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["World's Best Left","Jungle Camp","Boat-Access Only","Expert Only"],photo:"https://images.unsplash.com/photo-1547519777-4be6701f2bce?w=800&h=600&fit=crop",facing:190},
-  {id:"siargao",  category:"surfing", title:"Siargao (Cloud 9)", location:"Surigao del Norte, Philippines",lat:9.8500,lon:126.0500,  ap:"IAO",icon:"🌊",rating:4.93,reviews:1650,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Cloud 9 Reef","Barrel Machine","Island Hopping","Intermediate+"],photo:"https://images.unsplash.com/photo-1465212618042-5c59ead3d83e?w=800&h=600&fit=crop",facing:90},
+// Surf: Unstad Arctic — Norway. Only Arctic surf destination with consistent swells.
+// Add BOO:"europe" to AP_CONTINENT.
+{
+  id:"unstad-arctic-s30",  category:"surfing",
+  title:"Unstad Arctic Surf",      location:"Lofoten Islands, Norway",
+  lat:68.2167, lon:13.5667, ap:"BOO",
+  icon:"🌊", rating:4.88, reviews:312,
+  gradient:"linear-gradient(160deg,#0d1a2e,#1a3a6e,#3a6ebf)",
+  accent:"#90caf9", tags:["Arctic Waves","Advanced","Off the Beaten Path"], photo:"https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.40",
+  facing:270,
+},
+
+// Ski: Hakuba Valley — Japan's largest international ski area outside Hokkaido.
+// Uses NGO (Nagoya Chubu) — add to AP_CONTINENT fix as "asia".
+{
+  id:"hakuba-valley-s31",  category:"skiing",
+  title:"Hakuba Valley",           location:"Nagano, Japan",
+  lat:36.6980, lon:137.8596, ap:"NRT",
+  icon:"⛷️", rating:4.93, reviews:2180,
+  gradient:"linear-gradient(160deg,#0d1b2a,#1a3a6e,#3a6ebf)",
+  accent:"#90caf9", tags:["Powder Day","Long Runs","Village Base"], photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45",
+  skiPass:"independent",
+},
+
+// Beach: Watamu Marine Park — Kenya. East Africa's top white-sand beach + turtle site.
+// MBA (Mombasa) already in AP_CONTINENT as "africa".
+{
+  id:"watamu-beach-t30",   category:"tanning",
+  title:"Watamu Marine Park Beach","location":"Kilifi County, Kenya",
+  lat:-3.3667, lon:40.0167, ap:"MBA",
+  icon:"🏖️", rating:4.85, reviews:641,
+  gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",
+  accent:"#a5d6a7", tags:["Marine Reserve","Snorkeling","Pristine"], photo:"https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.60",
+},
+
+// Surf: Punta de Mita — consistent point break, whale watching season overlap.
+// PVR already mapped "na".
+{
+  id:"punta-de-mita-s32",  category:"surfing",
+  title:"Punta de Mita",           location:"Nayarit, Mexico",
+  lat:20.7750, lon:-105.5250, ap:"PVR",
+  icon:"🌊", rating:4.84, reviews:887,
+  gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",
+  accent:"#80d4b0", tags:["Point Break","Warm Water","Beginner Friendly"], photo:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop&fp-x=0.40&fp-y=0.55",
+  facing:290,
+},
+
+// Ski: Grandvalira — Europe's largest Pyrenean ski area, duty-free Andorra.
+// BCN (Barcelona) already mapped "europe".
+{
+  id:"grandvalira-s33",    category:"skiing",
+  title:"Grandvalira",             location:"Andorra, Pyrenees",
+  lat:42.5432, lon:1.7297, ap:"BCN",
+  icon:"🎿", rating:4.87, reviews:1543,
+  gradient:"linear-gradient(160deg,#1a2a3a,#2e4a7a,#5580c4)",
+  accent:"#90caf9", tags:["Large Ski Area","Tax-Free Shopping","Beginner Slopes"], photo:"https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.50",
+  skiPass:"independent",
+},
 ```
+
+> **Heads-up on `hakuba-valley-s31`:** Using NRT (Narita) as closest major hub — already mapped. Alternatively use `NGO` (Nagoya Chubu, 2h by Shinkansen) once NGO is added to AP_CONTINENT. NRT is safer for now.
+> **Heads-up on `unstad-arctic-s30`:** Add `BOO:"europe"` to AP_CONTINENT before pushing, otherwise the venue disappears from Europe filter.
 
 ---
 
-## One Observation for PM
+## ONE OBSERVATION FOR THE PM
 
-**6 same-category duplicate venues are the last major Explore UX problem before Reddit launch.** A user browsing Morocco surf sees Taghazout twice. Aspen appears twice in ski. Pasta Point appears twice in Maldives. The batch-gen dupes (`-s##`, `-t##`) are objectively worse data — lower review counts, wrong tags (Pasta Point tagged as "Right-Hander"), no skiPass. Deleting 6 lines takes 5 minutes. Health score goes 80 → ~83 and Explore immediately looks more curated. This is the highest-ROI task left before launch.
+**The continent filter is silently broken for 31 venues (13% of catalogue).** When a user taps "Asia" or "Europe," those venues vanish from results with zero feedback — making region views feel thin and raising "where are all the venues?" questions. One paste into `AP_CONTINENT` restores all 31. This is the highest-leverage single fix this week: no algorithm changes, no UX changes, purely a data patch. After that: P1 duplicate deletions (6 lines gone) and P2 skiPass patches (28 lines) will lift the health score back above 85.
