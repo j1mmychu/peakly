@@ -1,19 +1,18 @@
-# Peakly PM Report — 2026-04-26 (v26)
+# Peakly PM Report — 2026-04-27 (v27)
 
-**Filed by:** Product Manager agent  
-**Date:** 2026-04-26  
-**Status:** YELLOW — 4-day code freeze while the single biggest launch blocker sits unresolved. Weather proxy is the only thing that matters right now.
+**Filed by:** Product Manager agent
+**Date:** 2026-04-27
+**Status:** YELLOW. Two items shipped today (DevOps). The weather proxy is still the only thing blocking Reddit launch — day 10.
 
 ---
 
-## Shipped Since Last Report (2026-04-25 → 2026-04-26)
+## Shipped Since Last Report (2026-04-26 → 2026-04-27)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `d500728` (Apr 26) | DevOps report | Neutral — no code |
-| `c909e9d` (Apr 26) | Content report | Neutral — no code |
+| `91e7231` (Apr 27) | Cache bust 20260422a → 20260427a + proxy response body timeout fix | ✅ Both were outstanding P1/P2 items. Right call. |
 
-**Summary:** Zero app.jsx changes since April 22 — now 4 days of code freeze. Two reports filed, zero features shipped, zero blockers resolved. The Open-Meteo rate limit has been P1/P0 for 9 consecutive days and counting.
+**Summary:** One productive DevOps commit. Cache buster was 5 days stale; users on cached service workers were seeing the April 22 build. Proxy body timeout closed a hanging-connection risk. Both fixes were overdue. Open-Meteo rate limit and duplicate venues remain open.
 
 ---
 
@@ -23,52 +22,48 @@ Do NOT re-flag without reading live code first.
 
 | Issue | Status | Evidence |
 |-------|--------|----------|
-| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. `$79/yr` is waitlist copy only. Prompt is stale. |
+| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. $79/yr is waitlist copy only. Prompt is stale. |
 | Sentry DSN empty | **CLOSED** | `app.jsx:6-15` — real DSN, initialized. |
-| TP_MARKER unset | **CLOSED** | `app.jsx:1593` → `"710303"` |
+| TP_MARKER unset | **CLOSED** | `app.jsx:1593` = "710303" |
 | JSON-LD missing | **CLOSED** | `index.html:34` — WebSite + WebApplication + Organization schema. |
-| fetchJson missing timeout | **CLOSED** | `AbortController` present in all three fetch sites (lines 899, 935, 1436). |
-| "Next good window" not showing | **CLOSED** | `bestWindow` built, rendered at listing card lines 2099 and 2290. Shows day + score when a better window exists in the 7-day forecast. |
+| fetchJson response body timeout | **CLOSED** | Fixed Apr 27 — res.setTimeout(8000) in server/proxy.js |
+| Cache buster stale | **CLOSED** | Bumped Apr 27 → v=20260427a / peakly-20260427 |
+| "Next good window" not showing | **CLOSED** | bestWindow built, rendered at listing card lines 2099 and 2290. Live since March 27. |
 
 ---
 
-## Active Bug Triage — April 26
+## Active Bug Triage — April 27
 
 | Bug | Severity | Status | Days Open |
 |-----|----------|--------|-----------|
-| **Open-Meteo rate limit — no server-side cache** | **P1** | ❌ Unresolved | **Day 9** |
-| **6 confirmed duplicate venue pairs** | P1 | ❌ Still in codebase | Day 3 |
-| **28 ski venues missing `skiPass` field** | P2 | ❌ Unresolved | Day 3 |
-| **Cache buster `v=20260422a` / sw `peakly-20260422`** | P2 | ⚠️ 4 days since last deploy — bump on next push | Day 4 |
+| **Open-Meteo rate limit — no server-side cache** | **P1 LAUNCH BLOCKER** | ❌ Unresolved. ~28 cold sessions burns 10K/day free quota. | **Day 10** |
+| **6 confirmed duplicate venue pairs** | P1 | ❌ Still in codebase | Day 4 |
+| **28 ski venues missing skiPass field** | P2 | ❌ Badge doesn't render, not scoring-critical | Day 4 |
 | **Strike alerts: no background polling worker** | P2 | ❌ UI registers, never fires | Day 30+ |
-| **No scoring explanation in onboarding** | P3 | ❌ OnboardingSheet collects prefs, doesn't explain scores | Day 30+ |
+| **No scoring explanation in onboarding** | P3 | ❌ Defer — no evidence users are confused yet | Day 30+ |
 
 ---
 
-### P1 Detail: Open-Meteo Rate Limit (Day 9 — Recurring)
+### P1 Detail: Open-Meteo Rate Limit (Day 10 — Still Not Deployed)
 
-The math: 237 venues × ~1.5 calls = ~356 calls/cold session. Free tier: 10,000/day. Hard ceiling: **~28 cold sessions** before daily quota is gone. One decent Reddit post sends 100+ concurrent users. The app's entire value prop — live condition scores — disappears for the rest of the day. No alerting fires because the failure is client-side and silent (spinners forever).
+**Math:** 237 venues x ~1.5 calls = ~356 calls/cold session. Free tier: 10,000/day. Hard ceiling: ~28 concurrent cold sessions. One r/surfing post sending 50+ simultaneous new users → quota gone before lunchtime → every subsequent visitor sees blank condition scores for the rest of the day.
 
-Fix spec has been written in devops-report.md for 9 days. It's a 4-hour VPS deploy. Nothing else is blocking Reddit launch more than this.
+**This is not a code problem.** The spec has been written and re-written across 10 consecutive DevOps reports. It is a deployment action: SSH to VPS, add /api/weather and /api/marine endpoints with 30-min in-memory cache, restart the proxy. Estimated time: 20 minutes.
 
-**This has been flagged P1 in every report since April 17. It needs a deploy session with Jack. It will not file itself.**
+**Reddit launch must not happen before this is live.**
 
----
-
-### P1 Detail: 6 Duplicate Venue Pairs (Day 3)
-
-Content report (Apr 23) confirmed these batch-gen duplicates should be deleted:
+### P1 Detail: 6 Confirmed Duplicate Venue Pairs (Day 4)
 
 | Delete | Keep | Category |
 |--------|------|----------|
-| `aspen-snowmass-s7` | `aspen` | skiing |
-| `arapahoe-basin-s9` | `abasin` | skiing |
-| `anchor-point-s19` | `anchor_point` | surfing |
-| `taghazout-s10` | `taghazout` | surfing |
-| `pasta-point-s24` | `pasta_point` | surfing |
-| `pigeon-point-t27` | `beach_tobago` | tanning |
+| aspen-snowmass-s7 | aspen | skiing |
+| arapahoe-basin-s9 | abasin | skiing |
+| anchor-point-s19 | anchor_point | surfing |
+| taghazout-s10 | taghazout | surfing |
+| pasta-point-s24 | pasta_point | surfing |
+| pigeon-point-t27 | beach_tobago | tanning |
 
-237 → 231 venues. 30-minute cleanup. Cleaner Explore pre-Reddit. Bundle with cache bump.
+237 → 231 venues. 30-minute app.jsx edit. Bundle with the next code commit.
 
 ---
 
@@ -76,9 +71,9 @@ Content report (Apr 23) confirmed these batch-gen duplicates should be deleted:
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| **Open-Meteo server-side weather proxy** | DevOps + Jack (VPS session) | Before any Reddit post |
+| **Open-Meteo server-side weather proxy** | Jack (VPS SSH) | Before any Reddit post |
 | **6 duplicate venue deletions** | Dev — 30 min | Before Reddit |
-| **Reddit launch date** | Jack — needs to name a date | Everything else is gated on this |
+| **Reddit launch date** | Jack — no date named | Entire roadmap is gated on this |
 | **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
 | **Apple Developer enrollment** | Jack — $99/yr | Blocks iOS App Store |
 
@@ -86,69 +81,67 @@ Content report (Apr 23) confirmed these batch-gen duplicates should be deleted:
 
 ## This Week's Top 3 Priorities Only
 
-**1. Deploy server-side Open-Meteo weather proxy to VPS**  
-This is the only thing that decides whether a successful Reddit post = a good day or a broken one. Spec is written. Needs a Jack + dev VPS session. If this doesn't ship this week, there is no Reddit post this week. Full stop.
+**1. Deploy server-side Open-Meteo weather proxy to VPS**
+This is the only hard gate on Reddit launch. Spec is written (devops-report.md). Needs one SSH session with Jack. If this doesn't ship this week, there is no Reddit post this week.
 
-**2. Delete the 6 confirmed duplicate venue pairs**  
-30 minutes in app.jsx. Brings venue count to 231. Cleaner Explore, no duplicate cards. Bundle with the cache bump (sw.js + index.html in same commit).
+**2. Delete the 6 confirmed duplicate venue pairs**
+30 minutes in app.jsx. 237 → 231 venues. Cleaner Explore, no duplicate cards. Bundle with any other code change.
 
-**3. Name the Reddit launch date**  
-Every priority has been gated on "before Reddit" for two weeks. Without a hard date, everything stays in perpetual pre-launch purgatory. Jack picks a day, work backwards. Infrastructure must be ready 48 hours before.
+**3. Name the Reddit launch date**
+The app has been "almost ready" since April 17. Without a date, priorities float indefinitely. Pick a day. Work backwards from it. Everything gates on this.
 
 ---
 
-## Explicit Product Decisions — April 26
+## Explicit Product Decisions — April 27
 
-**1. Open-Meteo proxy: SHIP this week or there is no Reddit launch this week.**  
-9 days since spec was written. Not a planning item anymore.
+**1. Open-Meteo proxy: SHIP this week or rename it "deferred."**
+Day 10. It will not deploy itself. Jack needs to SSH in. Everything else is secondary.
 
-**2. 6 duplicate venue deletions: SHIP this week.**  
-Zero risk. 30 minutes. Bundle with cache bump so it's one commit.
+**2. 6 duplicate venue deletions: SHIP in next code commit.**
+Zero risk. 30 minutes. Overdue.
 
-**3. 28 ski venues missing `skiPass`: DEFER to post-Reddit.**  
-Missing field doesn't break scoring or display — the badge just doesn't render. Not launch-critical.
+**3. 28 ski venues missing skiPass: DEFER to post-Reddit.**
+Missing badge, not missing scoring. Not launch-critical.
 
-**4. Strike alerts background worker: DEFER to post-1K users.**  
-Alerts tab UX is intact. Server-side polling is a multi-hour build with zero users to serve today.
+**4. Strike alerts background worker: CUT to post-1K users.**
+Hard cut. No users, no reason to build the polling loop.
 
-**5. Onboarding scoring explanation: DEFER to post-Reddit.**  
-Score is intuitive (higher = better conditions). P3 now.
+**5. Onboarding scoring explanation: DEFER to post-Reddit.**
+P3. Wait for Reddit comments to validate whether users are actually confused.
 
-**6. SRI hashes + CSP meta tag: DEFER — stop re-flagging daily.**  
-Known deferred item. CSP breaks Babel inline eval. Dedicated hardening sprint post-100 users.
+**6. SRI hashes + CSP meta tag: DEFER — stop re-flagging.**
+Known item. CSP blocks Babel inline eval. Post-launch hardening sprint. Do not re-surface before 100 users.
 
 ---
 
 ## Features Rejected This Week
 
-| Feature | Reason |
-|---------|---------|
-| Gear affiliate section re-enable | REI blocked on LLC approval. Wrong sprint. |
-| Push notification polling worker | 4–8 hour build, no users to serve. Post-1K. |
-| iOS App Store build | Blocked on $99 Apple enrollment. External. |
-| Wishlists / Trips tab reveal | Locked at 1K users by design. Do not revisit. |
-| Additional venue batch | At 237 pre-cleanup. Depth > breadth at launch. |
+| Feature | Decision | Reason |
+|---------|----------|--------|
+| Push notification polling worker | **CUT until 1K MAU** | No users. Non-trivial build. |
+| iOS App Store build | **DEFER** | Blocked on $99 Apple enrollment. External. |
+| Wishlists / Trips tab reveal | **DEFER** | Locked at 1K users by design. Do not revisit. |
+| Additional venue batch | **DEFER** | At 237 pre-cleanup. Fix existing before adding. |
+| Gear affiliate section | **DEFER** | LLC blocking REI. Wrong sprint. |
 
 ---
 
 ## Success Criteria
 
-**5K MAU** = base case (organic SEO + 1 Reddit post that doesn't break)  
-**8K MAU** = requires all four of the following:
+**5K MAU** = base case (organic SEO + 1 Reddit post that doesn't break)
+**8K MAU** = requires all four:
 
-1. **Weather proxy live on launch day.** Without it, viral traffic = broken app = no word of mouth. Binary gate.
-2. **D7 retention > 20%.** `bestWindow` feature helps. Working push alerts are the biggest D7 lever — but they're deferred, so D7 ceiling is lower until they ship.
-3. **SEO compound by day 90.** JSON-LD is live. Sitemap submitted. Need Google to index venue depth. Monitor Search Console weekly — if impressions aren't growing by week 4, something is structurally wrong.
-4. **Two distributions, not one.** r/surfing AND r/skiing posts in the same week doubles the addressable audience. Write category-specific copy for both. Same app, different angle.
+1. **Weather proxy live on launch day.** Binary gate. Without it, viral traffic = broken app = dead thread.
+2. **D7 retention > 20%.** bestWindow already helps. Working push alerts are the biggest D7 lever — deferred until 1K MAU, so D7 ceiling is lower until they ship.
+3. **SEO compound by day 90.** JSON-LD live. Sitemap submitted. Monitor Search Console weekly — if impressions not growing by week 4, investigate.
+4. **Two distributions.** r/surfing AND r/skiing posts in the same week. Same app, category-specific copy. Doubles addressable audience at launch.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**There is no launch date.**
+**The app has been "almost ready" for 10 days — and there's no launch date.**
 
-Every report since April 10 says "before Reddit." There is no date on the calendar. Without a hard ship date, the weather proxy stays "almost done," the dupe cleanup stays "soon," and the Reddit post stays "when it's ready." The app is good enough to post today if the proxy ships. Waiting for perfect is how you wait forever. Jack needs to name the date — then work backwards from it.
+Every report since April 17 says "before Reddit." The proxy spec has been written. The dupes are identified. The bugs are fixed. The delay is not technical — it's a decision to not launch yet. That's fine if it's intentional. But if it's just inertia, the cost is compounding: every day without Reddit traffic is a day of zero organic discovery, zero email captures, and zero feedback to improve on.
 
----
-
-*Next report: 2026-04-27*
+The app is good enough to post today if the proxy ships tomorrow. Waiting for perfect is a decision to never ship. Jack names the date. Everything else falls into place.
