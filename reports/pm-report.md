@@ -1,64 +1,56 @@
-# Peakly PM Report — 2026-04-24 (v24)
+# Peakly PM Report — 2026-04-27 (v25)
 
 **Filed by:** Product Manager agent
-**Date:** 2026-04-24
-**Status:** GREEN shipping week. Critical safety fixes landed. Remaining work: batch venue tag audit + weather rate-limit fix before Reddit launch.
+**Date:** 2026-04-27
+**Status:** YELLOW. Zero code shipped in 4 days. Three known P1s unresolved. Reddit launch is blocked on one infrastructure decision that only Jack can make.
 
 ---
 
-## Shipped Since Last Report (2026-04-17 → 2026-04-24)
+## Shipped Since Last Report (2026-04-24 → 2026-04-27)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `22b671c` (Apr 22) | Cache bust 20260422a + tanning marine fetch fix | ✅ Marine data was dead for beaches |
-| `d45d83b` (Apr 22) | Remove cloudbreak-fiji-s21 + 2 dupes, fix mislabeled tags | ✅ P1 safety liability closed |
-| `faf12ef` (Apr 22) | Remove punta-roca-s12 + supertubos-peniche-s18, fix catanduanes/snappers tags | ✅ 5 safety/credibility fixes total |
-| `34a0dc4` (Apr 22) | Content data fixes | ✅ |
-| `4d7baf1` (Apr 23) | DevOps report | Neutral |
-| `969e24a` (Apr 23) | 4 new venues + Tioman airport fix | ✅ Good data depth |
-| `feb9fb3` (Apr 23) | PM report | Neutral |
-| `60c686c` (Apr 24) | DevOps report | Neutral |
-| `adeb5b2` (Apr 24) | DevOps report + app.jsx fixes + fetchJson timeout fix | ✅ |
+| `1889d27` (Apr 25) | DevOps report only — no code | ❌ Wasted a day filing about what needs to ship |
+| `f760036` (Apr 25) | Merge + DevOps report — no code | ❌ Same |
 
-**Summary:** After a 5-day freeze post-April 17, April 22-23 shipped the most important cleanup since April 12. Five mislabeled/duplicate venues removed. Cache bumped. Venue count now ~228.
+**Summary: 4 days of zero code.** Last code commit was April 23. Last PM report (Apr 24) had three explicit top priorities. None of them shipped. The report loop is real: the team is writing about what to build instead of building it.
 
 ---
 
 ## Permanent Bug Triage Corrections
 
-Confirmed closed. Do NOT re-flag without reading live code first.
-
 | Issue | Status | Evidence |
 |-------|--------|----------|
-| TP_MARKER unset | **CLOSED** | `app.jsx:1593` → `"710303"`. Live since Apr 10. |
-| Sentry DSN empty | **CLOSED** | `app.jsx:7-8` — real DSN. |
-| Email capture uses alert() | **CLOSED** | `app.jsx:3503` — real `fetch()` to `/api/waitlist`. |
-| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. Removed 2026-03-26. $79/yr is waitlist-only copy. |
-| JSON-LD missing | **CLOSED** | `index.html:34` — WebSite + WebApplication + Organization schema. |
-| cloudbreak-fiji-s21 "All Levels" | **CLOSED** | Removed Apr 22. |
-| supertubos-peniche-s18 dupe | **CLOSED** | Removed Apr 22. |
-| punta-roca-s12 "Beginner Friendly" | **CLOSED** | Removed Apr 22. |
+| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. Removed 2026-03-26. Waitlist-only copy at $79/yr. |
+| Sentry DSN empty | **CLOSED** | `app.jsx:8` — real DSN live. |
+| Cache buster stale | **P3 (conditional)** | `v=20260422a` / `peakly-20260422` — 5 days old but matches last deploy. Bump on next push. |
+| TP_MARKER unset | **CLOSED** | `app.jsx:1593` → `"710303"` |
+| JSON-LD missing | **CLOSED** | `index.html:34` — WebSite + WebApplication + Organization schema |
 
 ---
 
-## Active Bug Triage — April 24
+## Active Bug Triage — April 27
 
 | Bug | Severity | Status | Days Open |
 |-----|----------|--------|-----------|
-| **Batch venue tag accuracy (~10 remaining)** | **P1** | ❌ `indicator-s22`, `capbreton-s27`, `matanzas-s17` tagged "Beginner Friendly" — unaudited | Day 1 |
-| **Open-Meteo rate limit** | **P1** | ❌ ~228 venues × 1.5 calls = ~342/cold session. ~29 sessions burns free daily quota | Day 18 |
-| **Cache buster `v=20260417a` / sw `peakly-20260417`** | P2 | ⚠️ 7 days old but matches last deploy. Must bump on next push. | Day 7 |
+| **Open-Meteo rate limit** | **P1 LAUNCH BLOCKER** | ❌ No server-side cache. ~29 concurrent cold sessions burns 10K/day free quota | Day 10 |
+| **fetchJson response body timeout** | **P1** | ❌ Only request timeout exists. Response body can hang indefinitely. Fix is 5 lines, written in devops-report.md. Not deployed. | Day 3 |
+| **capbreton-s27 "All Levels" tag** | P2 | ❌ Capbreton is intermediate-only. Batch tag audit was declared done but this one slipped. | Day 5 |
+| **"Next good window" copy** | P2 | ❌ Has been Priority #3 for 3 consecutive PM reports. Not shipped. | Day 14 |
 | **Strike alerts: no background worker** | P2 | ❌ Alerts tab registers but never fires | Day 30+ |
-| **No scoring explanation in onboarding** | P2 | ❌ OnboardingSheet collects prefs, doesn't explain what scores mean | Day 30+ |
-| **fetchJson() response body timeout** | P2 | ❌ Slow-drip proxy can hang indefinitely. Fix spec in devops-report.md | Day 1 |
+| **No scoring explanation in onboarding** | P3 | ❌ Defer until Reddit comments prove users are confused | Day 30+ |
 
-### P1 Detail: Batch Venue Tags
+### P1 Detail: Open-Meteo Rate Limit (Day 10 — Unresolved)
 
-April 22 fixed 5 confirmed safety issues. But ~10-20 batch-gen venues (`-s##` IDs) remain unaudited. Flagged candidates: `indicator-s22`, `capbreton-s27`, `matanzas-s17` — all tagged "Beginner Friendly." These are real surf breaks. Audit must complete before Reddit launch. 45-minute job. Estimate 2–3 more wrong tags remain.
+Free tier: 10,000 calls/day. Cold session: ~235 venues × ~1.5 calls = ~353 calls/user. Hard ceiling: **~28 cold sessions before daily quota is gone.** One r/surfing post → 50 concurrent users → quota burns before lunchtime → every new visitor for the rest of the day sees zero scores.
 
-### P1 Detail: Open-Meteo Rate Limit
+**This is not a code problem. It's a deployment problem.** The spec has been written in two consecutive DevOps reports. It needs Jack to SSH into the VPS and deploy the `/api/weather` and `/api/marine` endpoints with 30-min in-memory cache. Estimated deployment time: 20 minutes.
 
-~228 venues × ~1.5 calls = ~342 API calls per cold session. Open-Meteo free tier: 10,000/day. Ceiling: ~29 cold sessions before quota burns for the day. One r/surfing post → 100 visitors → quota gone → scoring breaks → the app's entire value prop disappears on the day it matters most. Fix spec written in devops-report.md (server-side weather proxy, 30-min in-memory cache). Requires VPS deploy.
+**Reddit launch must not happen before this is deployed.**
+
+### P1 Detail: fetchJson Body Timeout (Day 3 — One VPS Deploy)
+
+Exact fix already written in `reports/devops-report.md`. Add `res.setTimeout(8000, ...)` to the response stream in `server/proxy.js`. Same deploy session as the weather proxy — stack them.
 
 ---
 
@@ -66,8 +58,8 @@ April 22 fixed 5 confirmed safety issues. But ~10-20 batch-gen venues (`-s##` ID
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| **Batch venue tag audit** | Dev — 45 min | Before Reddit |
-| **Open-Meteo server-side weather proxy** | DevOps + Jack | Before Reddit |
+| **Open-Meteo weather proxy deploy** | Jack (VPS SSH) | Blocks Reddit launch |
+| **fetchJson body timeout** | Jack (VPS SSH) | Ships in same deploy session |
 | **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
 | **Apple Developer enrollment** | Jack — $99/yr | Blocks iOS App Store |
 
@@ -75,36 +67,39 @@ April 22 fixed 5 confirmed safety issues. But ~10-20 batch-gen venues (`-s##` ID
 
 ## This Week's Top 3 Priorities Only
 
-**1. Finish batch venue tag audit**
-45 minutes. Check every `-s##` surfing venue for "Beginner Friendly" / "All Levels" accuracy. Last credibility gap before Reddit. Non-negotiable.
+**1. Deploy server-side weather proxy + fetchJson fix to VPS**
+One SSH session. 20 minutes. Spec is already written. This is the only thing between Peakly and a Reddit launch. Every other priority is secondary until this is live.
 
-**2. Ship server-side weather proxy to VPS**
-Launch killer if unresolved. Spec is written. Needs a VPS deploy session. Without it, a successful Reddit post = broken app within hours.
+**2. Ship "Next good window" copy**
+This has been Priority #3 for three consecutive reports. Either ship it this sprint or formally cut it — perpetual deferral is a decision to not build it. 30-minute change in `ListingCard`. The 7-day weather array is already in memory. Logic: find first day in `venue.weather.daily` where score would be >65, show "Next good window: ~X days." No new API calls.
 
-**3. "Next good window" copy below low scores**
-One line under any score < 60: "Next good window: ~X days away" using the existing 7-day weather array. No new API calls. Directly addresses D1 bounce ("conditions suck, when should I come back?"). 30-minute build. Highest-leverage non-infrastructure feature available.
+**3. Fix capbreton-s27 tag**
+Change `"All Levels"` → `"Intermediate"` in `app.jsx:496`. Five-second edit. The batch venue audit was declared complete in the April 24 report but this one wasn't caught.
 
 ---
 
-## Explicit Product Decisions — April 24
+## Explicit Product Decisions — April 27
 
-**1. Batch venue tag audit: SHIP this week.**
-April 22 closed 5 confirmed issues. ~10–20 more `-s##` venues are unaudited. Close the list before the Reddit post.
+**1. Open-Meteo weather proxy: SHIP BEFORE REDDIT — non-negotiable.**
+Ten days of reports agreeing it's a launch blocker. The spec is written. The only remaining action is a VPS deploy. Do it this week or set a hard date.
 
-**2. Weather proxy: SHIP before any Reddit post.**
-Non-negotiable. Single highest-risk unresolved infrastructure item. Secondary to nothing.
+**2. "Next good window" copy: SHIP THIS SPRINT or formally CUT.**
+Three consecutive reports. Being "deferred" for 14 days is not a defer — it's a quiet cut. Name the decision.
 
-**3. "Next good window" line: SHIP this sprint.**
-Low effort, high retention impact. 30-minute code change in listing card UI. Has been "worth investigating" for two report cycles. Ship it.
+**3. Strike alerts background worker: CUT until 500 MAU.**
+Zero users using Alerts. VPS cron is non-trivial work. Not worth the build until there are users to fire alerts to. Hard cut.
 
-**4. Onboarding scoring explanation: DEFER post-Reddit.**
-Reddit comments are free UX research. Build for observed confusion, not imagined. Trigger: 3+ commenters ask "how does scoring work."
+**4. Onboarding scoring explanation: DEFER — trigger is 3+ Reddit comments.**
+Don't build for imagined confusion. Build for observed confusion. Reddit launch is the research event.
 
-**5. Strike alerts background worker: DEFER until 500 users.**
-Zero users using Alerts. VPS cron work is non-trivial. Hard defer.
+**5. iOS App Store: DEFER until 500 MAU.**
+PWA install is sufficient for launch. Native wrapper is polish, not acquisition.
 
-**6. iOS App Store: DEFER until 500 users.**
-PWA install on iOS is the day-0 path. Native after traction is proven.
+**6. SRI / CSP hardening: CUT pre-launch.**
+Could break Babel inline eval. Zero user-facing benefit before launch. Medium security risk that's acceptable given zero current users.
+
+**7. Batch venue tag audit: CLOSED — one line remains.**
+capbreton-s27 is the only confirmed outstanding issue. Fix in next code commit.
 
 ---
 
@@ -112,11 +107,12 @@ PWA install on iOS is the day-0 path. Native after traction is proven.
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Window Score v1 | **DEFER** | Weather proxy is harder and more important |
+| Window Score v1 | **DEFER** | Infrastructure first. Weather proxy is the prerequisite. |
 | Forecast Horizon | **DEFER** | Requires Window Score first |
-| Trips / Wishlists tab | **DEFER** | 1K users minimum, standing decision |
-| More venue additions | **DEFER this sprint** | Finish tag audit on existing 228 first |
-| SRI / CSP hardening | **DEFER** | Could break Babel inline eval. Zero user benefit pre-launch. |
+| Trips / Wishlists tabs | **DEFER** | 1K users minimum. Standing decision. |
+| More venue additions | **DEFER this sprint** | 235 venues is enough for launch |
+| Push notification worker | **CUT until 500 MAU** | Standing decision formalized |
+| Competitive feature research | **CUT** | Analysis is not shipping |
 
 ---
 
@@ -130,20 +126,20 @@ PWA install on iOS is the day-0 path. Native after traction is proven.
 
 **For 8K, not 5K, by day 90:**
 
-5K scenario: Reddit post with weather quota gap. 100 visitors drain the Open-Meteo daily quota. Hours 2–24 of the post: every new user sees zero scores. Thread dies. No re-engagement loop.
+The difference is compounding. 5K scenario: weather proxy not live on launch day, quota burns, Day 1 thread dies. No email capture, no return hook. Flat growth.
 
-8K scenario: Weather proxy live. 500+ visitors, scoring works for all of them. "Next good window" copy converts visitors who see bad conditions but want to know when to return. Email list of 300+ means a second notification push compounds the first wave.
+8K scenario: weather proxy live → 500 visitors all see valid scores → "Next good window" copy captures the bounce → email list grows to 300+ in week 1 → second-wave notification push compounds the Reddit wave → SEO traffic starts at week 4 from longtail venue searches.
 
-**The single most important lever:** Weather proxy before Reddit. Everything else is secondary.
+**The single most important lever this week:** Deploy the weather proxy. Not code it. Deploy it. The code is written.
 
 ---
 
 ## The One Risk Nobody Is Talking About
 
-**The app has no answer to "when should I come back?"**
+**The team is shipping reports, not product.**
 
-Peakly's core loop is: see scores → book flights → go. But for every user who arrives and sees mediocre conditions today, there is no hook. They bounce. They don't return.
+Since April 23, four days have passed with zero code changes. The DevOps report correctly identified the weather proxy as a P1 launch blocker on April 17. It's now April 27. The spec has been written twice across two DevOps reports. Three PM reports have called it non-negotiable. The deploy hasn't happened.
 
-The "Next good window" line is a 30-minute fix. The 7-day weather array is already in memory. It's the difference between sending users away empty-handed and earning a save, a return, and eventually a booking.
+This is an execution gap, not a prioritization gap. The priorities are clear. The spec is clear. The risk is clear. The missing ingredient is a 20-minute VPS SSH session that only Jack can initiate.
 
-This feature has been flagged in two consecutive PM reports as "worth investigating." It has not shipped. The cost of shipping it is less than the cost of writing about not shipping it.
+Every day without the weather proxy is a day the Reddit launch can't happen. That's the actual risk.
