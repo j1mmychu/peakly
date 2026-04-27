@@ -70,6 +70,7 @@ app.use((req, res, next) => {
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, (res) => {
+      res.setTimeout(8000, () => { req.destroy(); reject(new Error('Response body timeout')); });
       let body = '';
       res.on('data', chunk => { body += chunk; });
       res.on('end', () => {
