@@ -16,7 +16,7 @@ None. Report-only run.
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 237 venues
+### Category Breakdown — 235 venues
 
 | Category | Count | Status |
 |----------|-------|--------|
