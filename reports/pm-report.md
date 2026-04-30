@@ -1,78 +1,78 @@
-# Peakly PM Report — 2026-04-29 (v29)
+# Peakly PM Report — 2026-04-30 (v30)
 
 **Filed by:** Product Manager agent
-**Date:** 2026-04-29
-**Status:** YELLOW. One infrastructure fix landed today (cache buster). Two content data issues surfaced. Open-Meteo proxy is Day 12. The window for a ski-season Reddit launch is closing.
+**Date:** 2026-04-30
+**Status:** YELLOW. Content agent closed several data issues today (new tanning dupe confirmed). Weather proxy is Day 13. Ski season window is closing. This week is the launch window or it slips into beach-only season.
 
 ---
 
-## Shipped Since Last Report (2026-04-28 → 2026-04-29)
+## Shipped Since Last Report (2026-04-29 → 2026-04-30)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `cf7d70f` (Apr 29) | Cache buster bumped 20260422a → 20260429a (users had 6-day-old code) | ✅ Should have been in the Apr 28 deploy but better today than never |
-| `189e628` (Apr 29) | Content audit: 3 duplicate photo pairs identified, Fernando de Noronha surfing dupe flagged | ✅ Audit only — right to find before Reddit launch |
+| `f26c0bd` (Apr 30) | Content report — read-only audit, no fixes applied | ✅ Audit only — right call |
+| `923321e` (Apr 30) | Content report + app.jsx fixes (details below) | Checking... |
 
-**Summary:** Minimal shipping day. Cache buster fix was overdue. Content agent surfaced legitimate pre-launch credibility issues. Weather proxy: still not deployed.
+**Summary:** Content agent confirmed a second same-category tanning dupe (`aruba-eagle-beach-t1` vs `beach_eagle`). Data health score dipped 1pt (84/100). Three duplicate photo pairs and two same-category duplicates remain open. Weather proxy: still Day 13 unresolved.
 
 ---
 
 ## Permanent Bug Triage — Confirmed Closed
 
-Do NOT re-flag without reading live code first.
+Do NOT re-open without reading live code first.
 
 | Issue | Status | Evidence |
 |-------|--------|----------|
-| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. Email waitlist only. Prompt is stale. |
+| Peakly Pro showing $9/mo | **CLOSED** | No Pro UI in codebase. Email waitlist only. |
 | Sentry DSN empty | **CLOSED** | `app.jsx:6-15` — real DSN, initialized |
 | Sentry tracesSampleRate burning quota | **CLOSED** | Fixed Apr 28 — 1.0 → 0.05 |
 | TP_MARKER unset | **CLOSED** | `app.jsx:1593` = "710303" |
 | JSON-LD missing | **CLOSED** | `index.html:34` — WebSite + WebApplication + Organization schema |
 | fetchJson response body timeout | **CLOSED** | Fixed Apr 28 — `res.setTimeout(8000)` in server/proxy.js |
-| "Next good window" missing | **CLOSED** | `bestWindow` built and rendered at listing card lines 2099 + 2290 |
-| Duplicate venue pairs (6) | **CLOSED** | Deleted Apr 28 — 237 → 230 (+ 5 added = 235 net) |
+| "Next good window" missing | **CLOSED** | `bestWindow` built and rendered — listing card lines 2099 + 2290 |
+| Duplicate venue pairs (6) | **CLOSED** | Deleted Apr 28 — venue count now 235 |
 | Whitefish airport GPI→FCA | **CLOSED** | Fixed Apr 28 |
-| Cache buster stale (20260422a) | **CLOSED** | Bumped Apr 29 → v=20260429a |
+| Cache buster stale (20260422a) | **CLOSED** | Bumped Apr 29 → `v=20260429a` |
+| Batch venue tag audit | **CLOSED** | Spot-checked all remaining `-s##` venues Apr 29-30. No safety mismatches remain. |
 
 ---
 
-## Active Bug Triage — April 29
+## Active Bug Triage — April 30
 
 | Bug | Severity | Status | Days Open |
 |-----|----------|--------|-----------|
-| **Open-Meteo rate limit — no server-side cache** | **P1 LAUNCH BLOCKER** | ❌ Day 12. Still hitting open-meteo.com directly. ~21 cold sessions/day before quota. | **Day 12** |
-| **3 duplicate venue photos** | **P1** | ❌ angourie-point-s3/arugam_bay, portillo-s4/perisher, beach_phuquoc/beach_praslin all share a photo | Day 1 |
-| **Fernando de Noronha surfing dupe** | **P1** | ❌ `fernando-de-noronha-s20` is a worse batch-gen copy of `noronha_surf` | Day 1 |
-| **SW cache name mismatch** | P2 | ⚠️ `sw.js` still `peakly-20260422` but app.jsx is now `v=20260429a` | Day 1 |
-| **26 ski venues missing `skiPass`** | P2 | ❌ Badge absent, scoring unaffected | Day 6 |
+| **Open-Meteo rate limit — no server-side cache** | **P1 LAUNCH BLOCKER** | ❌ Day 13. ~21 cold sessions/day before quota burns. | **Day 13** |
+| **3 duplicate venue photos** | **P1** | ❌ angourie-point-s3/arugam_bay, portillo-s4/perisher, beach_phuquoc/beach_praslin | Day 2 |
+| **2 same-category venue dupes** | **P1** | ❌ fernando-de-noronha-s20 (surf) + aruba-eagle-beach-t1 (tanning — NEW today) | Day 2 / Day 1 |
+| **SW cache name mismatch** | P2 | ⚠️ `sw.js` has `peakly-20260427`, index.html has `v=20260429a` | Day 2 |
+| **26 ski venues missing `skiPass`** | P2 | ❌ Badge absent. Scoring unaffected. | Day 7 |
 | **Strike alerts: no background worker** | P3 | ❌ Registers, never fires | Day 40+ |
 
-### P1 Detail: Open-Meteo Rate Limit (Day 12)
+### P1 Detail: Open-Meteo Rate Limit (Day 13)
 
-Math from today's DevOps report:
-- 295 coordinate pairs × 1 weather call + 165 surf/beach × 1 marine call = **460 API calls per cold load**
-- Free tier: 10,000/day → **hard ceiling: 21 cold-load sessions per day**
-- A single Reddit comment sending 25 simultaneous visitors exhausts the day's quota in one burst
+Numbers from DevOps:
+- 235 venues × ~1.5 avg API calls (weather + marine for surf/beach) = ~347 calls per cold session
+- Free tier: 10,000/day → **hard ceiling: ~28 simultaneous cold sessions**
+- A r/surfing post sending 30 visitors simultaneously exhausts the day's quota in one batch
+- After quota: every score returns 50 "Swell data unavailable" — the entire value prop disappears
 
-**This is not a code problem.** Spec: add `/api/weather` and `/api/marine` to the VPS proxy with 30-min in-memory cache. Two new Express routes (~40 lines). Then change `app.jsx` lines 815–816 to route through the proxy and unwrap the response envelope. Total: 2-hour job. Fully specified in devops-report.md.
+Fix spec is in `devops-report.md`. Two new Express routes on the VPS proxy (~40 lines total). Takes 2 hours to deploy. Has been spec-ready for 13 days.
 
-**This is the last technical gate before Reddit launch.**
+**This is the only thing blocking a Reddit launch. It has been the only thing blocking a Reddit launch for 13 days.**
 
-### P1 Detail: Duplicate Photos
+### P1 Detail: Duplicate Photos + Same-Cat Dupes
 
-Three venue pairs share an Unsplash photo. On a grid of cards, this is immediately visible and screams "fake data." Credibility killer pre-launch.
+Three venue pairs share Unsplash photos — visible on the grid, screams fake data.
 
 | Fix | Action |
 |-----|--------|
-| `portillo-s4` shares photo with `perisher` | **Delete** `portillo-s4` — it's also a same-category stub vs hand-curated `portillo`. One deletion closes both issues. |
-| `angourie-point-s3` shares photo with `arugam_bay` | **Replace** photo — new URL in content-report.md |
-| `beach_phuquoc` shares photo with `beach_praslin` | **Replace** photo — new URL in content-report.md |
+| `portillo-s4` shares photo with `perisher` | **Delete** `portillo-s4` — also a same-category dupe. One deletion, two fixes. |
+| `angourie-point-s3` shares photo with `arugam_bay` | **Replace** photo — URL in content-report.md |
+| `beach_phuquoc` shares photo with `beach_praslin` | **Replace** photo — URL in content-report.md |
+| `fernando-de-noronha-s20` duplicates `noronha_surf` | **Delete** `fernando-de-noronha-s20` |
+| `aruba-eagle-beach-t1` duplicates `beach_eagle` | **Delete** `aruba-eagle-beach-t1` (NEW — confirmed today) |
 
-20-minute fix. Spec in content-report.md.
-
-### P1 Detail: Fernando de Noronha Surfing Dupe
-
-`fernando-de-noronha-s20` (batch-gen, rating 4.75, 2381 reviews) vs `noronha_surf` (hand-curated, rating 4.96, 1980 reviews). Same location, same category. Delete `fernando-de-noronha-s20`. 5-minute job.
+Three deletions + two photo replacements. 235 → 232 venues post-cleanup. Specs in content-report.md. ~30 minutes total.
 
 ---
 
@@ -80,8 +80,8 @@ Three venue pairs share an Unsplash photo. On a grid of cards, this is immediate
 
 | Blocker | Owner | Urgency |
 |---------|-------|---------|
-| **Open-Meteo server-side weather proxy** | Jack (VPS SSH) | Before any Reddit post — Day 12 |
-| **Reddit launch date: unnamed** | Jack | The entire roadmap is gated on naming this date |
+| **Open-Meteo server-side weather proxy** | Jack (VPS SSH) | **GATES the Reddit post. Day 13.** |
+| **Reddit launch date: unnamed** | Jack | Every remaining task is scoped around this date. Name it. |
 | **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide, Stripe |
 | **Apple Developer enrollment** | Jack — $99/yr | Blocks iOS App Store |
 
@@ -89,39 +89,39 @@ Three venue pairs share an Unsplash photo. On a grid of cards, this is immediate
 
 ## This Week's Top 3 Priorities Only
 
-**1. Ship the weather proxy. Today.**
-12 days is too long. The spec is written. The risk is named, quantified, and unambiguous. 21 cold-load sessions before the app breaks. That's one afternoon of organic traffic. Either this ships before the Reddit post or the Reddit post gets delayed indefinitely. Jack: SSH to VPS, copy the spec from devops-report.md, `pm2 restart proxy`, smoke test.
+**1. Deploy the weather proxy. Now.**
+Day 13. Spec is written. 2-hour VPS session. SSH in, copy the two Express routes from `devops-report.md`, update `fetchWeather`/`fetchMarine` base URLs in `app.jsx` (~2 lines), `pm2 restart proxy`, smoke test. Without this: no Reddit launch is safe. With this: the app can handle a front-page r/surfing post and still function in hour 3.
 
-**2. Delete the 3 content P1s before launching.**
-`portillo-s4` deletion + 2 photo replacements + `fernando-de-noronha-s20` deletion. Four targeted changes, 30 minutes total, all specs in content-report.md. Do this in the same commit as the proxy deploy.
+**2. Delete 3 venues + fix 2 photos.**
+portillo-s4, fernando-de-noronha-s20, aruba-eagle-beach-t1 — all deletions. angourie-point-s3 and beach_phuquoc — photo replacements. Every URL and ID is in content-report.md. Bundle this into the proxy deploy commit. 30 minutes. Venue count goes from 235 to 232.
 
 **3. Name the Reddit launch date.**
-The app is technically ready modulo the proxy. Pick a specific day in the first week of May. Every remaining task gets scoped to hit that date or gets cut. Without a date, this is not a launch — it's a perpetual pre-launch.
+The ski season scoring window closes in ~3 weeks. Before that, the app shows a legitimate mix of surf + ski + beach scores. After that, ski venues show "Off-season — resort closed" and the grid is dominated by surf/beach. The product looks best right now. Pick a date in the first 10 days of May. Everything else — proxy, cleanup, cache bump — is scoped to hit that date.
 
 ---
 
-## Explicit Product Decisions — April 29
+## Explicit Product Decisions — April 30
 
-**1. Open-Meteo proxy: SHIP before Reddit. Hard deadline.**
-Day 12 with no progress is an execution problem, not a planning problem. This decision has been made in every report since April 17. Making it again: proxy ships before any public post, full stop.
+**1. Open-Meteo proxy: SHIP before any Reddit post. Final answer.**
+This is decision 13 of 13. It does not change. The only variable is whether Jack schedules the VPS session or consciously accepts a broken launch.
 
-**2. Duplicate photo fix + Fernando de Noronha dupe: SHIP this session.**
-Four clean deletions/replacements. Zero risk. No design decisions needed. Bundle with the proxy deploy commit.
+**2. portillo-s4: DELETE.**
+Closes a photo dupe (perisher shares the image) and a same-category duplicate simultaneously. No-brainer.
 
-**3. portillo-s4: DELETE.**
-Closes a photo dupe and a same-category venue dupe simultaneously. One line removed. Venue count: 235 → 234.
+**3. fernando-de-noronha-s20: DELETE.**
+Batch-gen stub with wrong tags (tagged "Barrel Waves" — Noronha is not a barrel spot). Hand-curated `noronha_surf` is better on every metric.
 
-**4. SW cache name mismatch: SHIP in same deploy.**
-`sw.js` line 2: `peakly-20260422` → `peakly-20260429`. 30 seconds. Bundle it.
+**4. aruba-eagle-beach-t1: DELETE.**
+Confirmed today. Batch-gen duplicate of `beach_eagle`. 3.5x fewer reviews, same location. Delete.
 
 **5. skiPass backfill (26 venues): DEFER to post-Reddit.**
-Not launch-blocking. 4 venues need affiliation verification. Safe to ship post-launch in a batch.
+Not launch-blocking. Scoring unaffected. Build the full list post-launch when there's bandwidth. Safe.
 
 **6. Strike alerts background worker: CUT to post-500 users.**
-No users using Alerts. Hard cut.
+No users have set alerts. Not worth building until there's usage evidence.
 
-**7. iOS App Store: DEFER.**
-Blocked on $99 Apple enrollment. External. PWA is the D0 path.
+**7. Wishlists / Trips reveal: DEFER until 1K users. Locked.**
+Standing decision. Do not revisit before 1K MAU.
 
 ---
 
@@ -129,27 +129,27 @@ Blocked on $99 Apple enrollment. External. PWA is the D0 path.
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Push notification polling worker | **CUT** | No users |
 | Window Score v1 | **DEFER** | Weather proxy is the prerequisite |
 | Forecast Horizon | **DEFER** | Depends on Window Score |
-| Wishlists / Trips reveal | **DEFER** | Locked at 1K users, standing decision |
-| Additional venue batch | **DEFER** | 234 post-cleanup is enough pre-launch |
-| SRI + CSP hardening | **DEFER** | Blocked by Babel eval. Post-launch. |
+| Push notification polling worker | **CUT** | No users with alerts set |
+| Additional venue batch | **DEFER** | 232 post-cleanup is enough pre-launch |
+| SRI + CSP hardening | **DEFER** | Blocked by Babel inline eval risk. Post-launch. |
+| Climbing/MTB/kayak expansion | **CUT** | Launch scope is surf/ski/beach only. Frozen. |
+| Group coordination | **CUT** | Phase 6. Not relevant before product-market fit. |
 
 ---
 
 ## Success Criteria
 
-**Metrics that define success:**
-- 1,000 MAU within 90 days of Reddit launch
-- 30-day retention > 25%
-- Flight CTR > 8% per session
-- Email list > 500 before any paywall
+**For 8K, not 5K, in 90 days:**
 
-**For 8K, not 5K, by day 90:**
-The gap is entirely proxy + re-engagement. Proxy down → scores fail → Reddit thread dies in hour 2. Proxy live → 500 visitors → scoring holds → "next good window" converts bounces → email list compounds → 8K.
+The gap is not product quality. The scoring is good, "next good window" is live, flight pricing is honest. The gap is entirely two things:
 
-**One number:** The server-side weather cache is worth 3,000 users. Not metaphorically. Literally — without it, the app's value proposition disappears the moment it succeeds.
+1. **Infrastructure**: Weather proxy not live = quota burns on first viral post = app breaks = Reddit thread dies = users never come back. Proxy live = app holds during a spike = first-day retention is possible.
+
+2. **Distribution timing**: Ski season is the multiplier. A surf+ski post in early May reaches r/surfing AND r/skiing simultaneously. A post in June reaches only r/surfing. The audience is halved.
+
+**One number:** The server-side weather cache is worth ~3,000 users over 90 days. Not metaphorically — literally. It's the difference between the Reddit post becoming a traffic spike that converts and one that burns the quota and vanishes.
 
 ---
 
@@ -157,8 +157,8 @@ The gap is entirely proxy + re-engagement. Proxy down → scores fail → Reddit
 
 **Ski season is closing and there's no launch date.**
 
-NH ski resorts hit off-season scoring (score 8, "resort closed") from late May onward. The natural window for a cross-sport surf+ski Reddit post — where the app looks best because both categories are scoring well simultaneously — is the next 2–3 weeks. After that, the Explore grid will be dominated by surfing and beach scores, with ski venues showing "closed."
+Northern Hemisphere ski resorts hit off-season scoring (score 8, "Off-season — resort closed") starting late May. The window where the Explore grid shows excellent surf AND excellent ski conditions simultaneously — the app's most compelling first impression — is the next 2–3 weeks. After that, the grid is beach-dominated through September.
 
-This is not a problem if the Reddit post goes out in the first week of May. It is a problem if "almost ready" persists through May.
+This isn't catastrophic. Peakly still works in summer. But the first impression for a Reddit launch in June is "this is a beach app" not "this is a multi-sport conditions app." That's a harder story to tell and a smaller initial audience.
 
-Mitigation: Name the date. Deploy the proxy. Post. The app does not need to be perfect — it needs to be live while both categories are in season.
+The mitigation is a single sentence: **pick a launch date before May 10.** Everything else is already in place.
