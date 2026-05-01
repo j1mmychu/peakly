@@ -294,7 +294,7 @@ const AP_CONTINENT = {
   "VLI":"oceania",
   // ── patch: airports added after initial map build ──────────────────────────
   // North America
-  OAJ:"na", RDD:"na", GEG:"na", YKA:"na", ALB:"na",
+  OAJ:"na", RDD:"na", GEG:"na", YKA:"na", ALB:"na", FCA:"na",
   // Caribbean / Bahamas
   GGT:"na",
   // Europe
@@ -575,6 +575,11 @@ const VENUES = [
   {id:"val-thorens", category:"skiing", title:"Val Thorens", location:"Les 3 Vallées, Savoie, France", lat:45.2983,lon:6.5833, ap:"CMF",icon:"🎿", rating:4.95,reviews:3180,gradient:"linear-gradient(160deg,#0a1828,#1e3a6e,#3a6abd)",accent:"#82b0e8",skiPass:"independent",tags:["Highest Resort Europe 2300m","600km Pistes","Snowsure Nov–May","Les 3 Vallées"], photo:"https://images.unsplash.com/photo-1562184552-997c461e4e13?w=800&h=600&fit=crop"},
   {id:"punta-mita", category:"surfing", title:"Punta Mita", location:"Nayarit, Mexico", lat:20.7667,lon:-105.5333, ap:"PVR",icon:"🌊", rating:4.88,reviews:2180,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#22aacc",tags:["World Surf Reserve","The Cove Right-Hander","Warm Water Year-Round","Intermediate+"], photo:"https://images.unsplash.com/photo-1455264745730-cb3b76250a18?w=800&h=600&fit=crop",facing:290},
   {id:"exuma-cays", category:"tanning", title:"Exuma Cays", location:"Great Exuma, Bahamas", lat:23.5167,lon:-75.8333, ap:"GGT",icon:"🏝️", rating:4.94,reviews:6800,gradient:"linear-gradient(160deg,#001428,#00386e,#005fa0)",accent:"#00ccee",tags:["Swimming Pigs Beach","Bahamas Blue Holes","Crystal Sandbars","Island Hopping"], photo:"https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=800&h=600&fit=crop"},
+  {id:"whakapapa",  category:"skiing",  title:"Whakapapa",      location:"Mt Ruapehu, New Zealand",    lat:-39.2318,lon:175.5473, ap:"AKL",icon:"🎿", rating:4.87,reviews:2140,gradient:"linear-gradient(160deg,#0c1e38,#1a3f70,#306ab4)",accent:"#6aaad8",skiPass:"independent",tags:["NZ Largest Resort","Volcanic Crater Views","Jul–Sep Season","All Levels"],       photo:"https://images.unsplash.com/photo-1612802388559-a01e6ccba3ff?w=800&h=600&fit=crop"},
+  {id:"hakuba",     category:"skiing",  title:"Hakuba Valley",  location:"Nagano, Japan",              lat:36.6983,lon:137.8637,  ap:"NRT",icon:"🎿", rating:4.93,reviews:3280,gradient:"linear-gradient(160deg,#0d1e35,#1a3c70,#2e67b8)",accent:"#72a8dc",skiPass:"independent",tags:["1998 Olympics Venue","Deep Japan Powder","11 Linked Resorts","Jan–Mar Season"],  photo:"https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop"},
+  {id:"tofino",     category:"surfing", title:"Tofino",         location:"British Columbia, Canada",   lat:49.1533,lon:-125.9069, ap:"YVR",icon:"🌊", rating:4.81,reviews:1620,gradient:"linear-gradient(160deg,#001228,#003060,#006090)",accent:"#3090c0",tags:["Canada's Surf Capital","Old-Growth Rainforest","Cold Water Barrels","Chesterman Beach"],photo:"https://images.unsplash.com/photo-1590466809584-4f8f80c46af3?w=800&h=600&fit=crop",facing:270},
+  {id:"tamarindo",  category:"surfing", title:"Tamarindo",      location:"Guanacaste, Costa Rica",     lat:10.2994,lon:-85.8365,  ap:"LIR",icon:"🌊", rating:4.79,reviews:2870,gradient:"linear-gradient(160deg,#001630,#003870,#0070b0)",accent:"#38a8e8",tags:["Central America's Surf Hub","Year-Round Breaks","Beginner to Advanced","Sunset Beach Walk"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",facing:260},
+  {id:"ao-nang",    category:"tanning", title:"Ao Nang Beach",  location:"Krabi, Thailand",            lat:8.0328,lon:98.8306,    ap:"KBV",icon:"🏖️", rating:4.84,reviews:3140,gradient:"linear-gradient(160deg,#001430,#003878,#0068b8)",accent:"#50b0e8",tags:["Limestone Karst Cliffs","Longtail Boat Access","Nov–Apr Dry Season","Snorkeling"],          photo:"https://images.unsplash.com/photo-1504214208698-ea1916a2195a?w=800&h=600&fit=crop"},
 ];
 
 const US_AIRPORTS = [
