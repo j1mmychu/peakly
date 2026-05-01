@@ -7,7 +7,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
   Sentry.init({
     dsn: "https://9416b032a46681d74645b056fcb08eb7@o4511108649058304.ingest.us.sentry.io/4511108673765376",
     tracesSampleRate: 0.05,
-    replaysSessionSampleRate: 0.1,
+    replaysSessionSampleRate: 0.05,
     replaysOnErrorSampleRate: 1.0,
   });
 }
