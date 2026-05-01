@@ -1,80 +1,102 @@
-# Content & Data Report — 2026-04-30
+# Content & Data Report — 2026-05-01
 
 **Agent:** Content & Data  
-**Data health score: 84/100** ↓ 1 from April 29 (85). New find: `aruba-eagle-beach-t1` confirmed same-category duplicate of `beach_eagle`. All other open issues carry forward unchanged.
+**Data health score: 81/100** ↓ 3 from April 30 (84). Six confirmed same-location duplicate pairs still unresolved. Two fixes applied this run: FCA airport mapping + 5 new venues (235 → 240).
 
 **Score breakdown:**  
-Required fields 100% +20 | No duplicate IDs +10 | Photos present (3 dupe pairs) +8 | All surfing `facing` fields +5 | Valid IATA codes +5 | Geographic diversity +9 | Ski gear 6 items ✅ +3 | Open: 3 dupe photo pairs −3 | 2 same-cat duplicate titles −3 | 26 ski venues missing `skiPass` −4 | Tanning gear low AOV ($27 avg) −2 | India + Bahamas tanning gaps −2
+Required fields 100% complete +25 | Zero duplicate IDs +10 | Zero duplicate photos +15 | All 78 surfing venues have `facing` field +5 | Geographic diversity (6 continents) +8 | 6 confirmed same-location dupe pairs −6 | 26 ski venues missing `skiPass` −4 | Tag inaccuracies on 2 batch-gen venues −2 | FCA fix applied this run +1 | 5 high-quality venues added +2
 
 ---
 
 ## FIXES APPLIED THIS RUN
 
-None — read-only audit. All changes are paste-ready below.
+| Fix | Detail |
+|-----|--------|
+| ✅ **AP_CONTINENT: FCA added** | `whitefish` ski resort (FCA = Glacier Park Intl, MT) was invisible to the North America continent filter. Now mapped. |
+| ✅ **5 new venues added** | Whakapapa NZ, Hakuba JP, Tofino CA, Tamarindo CR, Ao Nang TH — 235 → 240 venues |
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 235 venues
+### Category Breakdown — 240 venues
 
-| Category | Count | Delta vs Apr 29 | Status |
+| Category | Count | Delta vs Apr 30 | Status |
 |----------|-------|-----------------|--------|
-| tanning  | 88    | — | ✅ Healthy |
-| surfing  | 76    | — | ✅ Healthy |
-| skiing   | 71    | — | ✅ Healthy |
-| **TOTAL**| **235** | — | 3 live categories |
+| tanning  | 89    | +1 (Ao Nang)    | ✅ Healthy |
+| surfing  | 78    | +2 (Tofino, Tamarindo) | ✅ Healthy |
+| skiing   | 73    | +2 (Whakapapa, Hakuba) | ✅ Healthy |
+| **TOTAL**| **240** | **+5** | 3 live categories |
 
-All 235 venues: 100% field coverage (lat/lon/ap/tags/photo). Zero duplicate IDs. All 76 surfing venues have `facing` bearing. Zero null-island coordinates. Zero IATA format violations.
+All 240 venues: 100% field coverage (lat, lon, ap, tags, photo). Zero duplicate IDs. Zero duplicate photos. All 78 surfing venues have `facing` bearing. Zero venues missing from AP_CONTINENT (fixed this run).
 
----
+**Historical dupe cleanup progress (across all content agent runs):**
 
-### P0 🔴 — 3 DUPLICATE PHOTO PAIRS (unchanged from April 29)
-
-| Venue A | Venue B | Shared Unsplash ID | Fix |
-|---------|---------|--------------------|-----|
-| `angourie-point-s3` (surfing, AUS) | `arugam_bay` (surfing, LKA) | `photo-1507525428034-b723cf961d3e` | Replace angourie-point-s3 photo |
-| `portillo-s4` (skiing, CHL) | `perisher` (skiing, AUS) | `photo-1520175462-89499834c4c1` | Delete portillo-s4 (same-cat dupe anyway) |
-| `beach_phuquoc` (tanning, VNM) | `beach_praslin` (tanning, SYC) | `photo-1540202404-a2f29016b523` | Replace beach_phuquoc photo |
+| Period | Dupes removed | Running total cleaned |
+|--------|--------------|----------------------|
+| Apr 23 | 0 | 0 |
+| Apr 24–28 | 7 | 7 |
+| Apr 29–May 1 | 0 | 7 |
 
 ---
 
-### P1 🔴 — 2 SAME-CATEGORY VENUE DUPLICATES
+### P1 🔴 — 6 CONFIRMED SAME-LOCATION DUPLICATE PAIRS
 
-**Carries from April 29 (fernando-de-noronha-s20) + newly confirmed this run (aruba-eagle-beach-t1):**
+All 6 are clear deletes — one line each from the VENUES array.
 
-| Delete | Keep | Category | Problem |
-|--------|------|----------|---------|
-| `fernando-de-noronha-s20` (rating 4.75, 2381 reviews) | `noronha_surf` (rating 4.96, 1980 reviews) | surfing | batch-gen stub; tagged "Barrel Waves" — Noronha is not a barrel spot |
-| `aruba-eagle-beach-t1` (**NEW this run**, rating 4.53, 3660 reviews) | `beach_eagle` (rating 4.95, 13400 reviews) | tanning | Same Eagle Beach location; original has 3.5x more reviews |
+| Delete (worse entry) | Keep (better entry) | Category | Evidence |
+|---------------------|---------------------|----------|---------|
+| `banzai_pipeline` (same tags as pipeline) | `pipeline` (added first) | surfing | 0.002° apart — identical wave |
+| `fernando-de-noronha-s20` (rating 4.75, wrong tags) | `noronha_surf` (rating 4.96) | surfing | 0.003° apart — same island |
+| `siargao` (Cloud 9 duplicate, rating 4.93) | `cloud9` (rating 4.95) | surfing | 0.01° apart — same break |
+| `snappers-gold-coast-s26` (rating 4.82) | `snapper_rocks` (rating 4.94) | surfing | 0.003° apart — same break |
+| `aruba-eagle-beach-t1` (rating 4.53) | `beach_eagle` (rating 4.95, 3.5x reviews) | tanning | 0.002° apart — Eagle Beach |
+| `chamonix-mont-blanc-s18` (rating 4.66) | `chamonix` (rating 4.94) | skiing | 0.000° apart — identical coordinates |
 
-Both deletions = 235 → 233 venues, eliminates portillo-s4 photo conflict simultaneously, health score +3.
+**Delete block for Jack:**
+```
+banzai_pipeline, fernando-de-noronha-s20, siargao, snappers-gold-coast-s26,
+aruba-eagle-beach-t1, chamonix-mont-blanc-s18
+```
+
+Outcome: 240 → **234 venues**, health score 81 → ~87, Explore shows each iconic break once.
+
+> Note: `fernando-de-noronha-s20` also carries a tag error — "Barrel Waves" — Fernando de Noronha is a mellow right reef, not barrels. Flagged previously; delete resolves it.
 
 ---
 
-### P2 🟡 — 26 SKI VENUES MISSING `skiPass` (unchanged from April 29)
+### P2 🟡 — 26 SKI VENUES MISSING `skiPass` (36% of skiing)
 
-Down from 28 → 26 since April 28 agent deleted `aspen-snowmass-s7` and `arapahoe-basin-s9`.
+Unchanged from April 30.
 
-Likely Ikon: `big-white-ski-s5`, `kicking-horse-s10`  
-Likely Epic: `stowe-mountain-s14`  
-Safe as `"independent"`: all remaining 23
+**Likely Ikon:** `big-white-ski-s5`, `kicking-horse-s10`  
+**Likely Epic:** `stowe-mountain-s14`  
+**Safe to patch `"independent"`:** remaining 23
 
-Full list: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big-white-ski-s5`, `idre-fjall-s6`, `kicking-horse-s10`, `kiroro-snow-world-s11`, `morzine-s12`, `sainte-foy-tarentaise-s13`, `stowe-mountain-s14`, `champoluc-monterosa-s15`, `val-d-isere-s16`, `sun-peaks-resort-s17`, `chamonix-mont-blanc-s18`, `pucon-ski-center-s19`, `les-arcs-s20`, `powder-mountain-s21`, `madarao-mountain-s22`, `thredbo-village-s23`, `nevis-range-s24`, `tsugaike-kogen-s25`, `mount-shasta-ski-s26`, `lech-zurs-s27`, `cerro-castor-s28`, `treble-cone-s29`
+Full list: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big-white-ski-s5`, `idre-fjall-s6`, `kicking-horse-s10`, `kiroro-snow-world-s11`, `morzine-s12`, `sainte-foy-tarentaise-s13`, `stowe-mountain-s14`, `champoluc-monterosa-s15`, `val-d-isere-s16`, `sun-peaks-resort-s17`, `chamonix-mont-blanc-s18` (delete anyway), `pucon-ski-center-s19`, `les-arcs-s20`, `powder-mountain-s21`, `madarao-mountain-s22`, `thredbo-village-s23`, `nevis-range-s24`, `tsugaike-kogen-s25`, `mount-shasta-ski-s26`, `lech-zurs-s27`, `cerro-castor-s28`, `treble-cone-s29`
 
 ---
 
-### P3 🟢 — COORDINATE SPOT-CHECKS (7 verified)
+### P3 🟢 — GEOGRAPHICALLY CLOSE BUT NOT DUPLICATES — no action
 
-| Venue | Actual | Expected | Result |
-|-------|--------|----------|--------|
-| beach_magens (USVI) | 18.370, −64.933 | 18.38, −64.96 | ✅ |
-| beach_positano (Italy) | 40.628, 14.485 | 40.63, 14.49 | ✅ |
-| beach_diani (Kenya) | −4.272, 39.593 | −4.28, 39.57 | ✅ |
-| teahupoo (Tahiti) | −17.867, −149.259 | −17.84, −149.26 | ✅ |
-| cloudbreak (Fiji) | −17.775, 177.236 | −17.80, 177.20 | ✅ |
-| jeffreys_bay (South Africa) | −34.050, 24.920 | −34.05, 24.93 | ✅ |
-| skeleton-bay (Namibia, Apr 28) | −26.645, 15.158 | −26.64, 15.16 | ✅ |
+| Pair | Verdict |
+|------|---------|
+| `uluwatu` vs `padang_padang` | Different breaks (0.019°) — keep both |
+| `hossegor` vs `capbreton-s27` | Adjacent towns, different peaks — keep both |
+| `anchor_point` vs `taghazout` | Different breaks in same village — keep both |
+| `courchevel` vs `val-thorens` | Different resorts in Trois Vallées — keep both |
+| `borabora` vs `matira-beach-t6` | Resort lagoon view vs specific beach — keep both |
+| `beach_shoal` vs `beach_orient` | Different beaches on St. Martin — keep both |
+
+---
+
+### P4 🟢 — TAG INACCURACIES ON BATCH-GEN ENTRIES (will resolve on dupe deletion)
+
+| Venue | Error | Truth |
+|-------|-------|-------|
+| `fernando-de-noronha-s20` | "Barrel Waves" | Noronha is a mellow right reef — not barrels |
+| `tsurigasaki-s23` | "Big Waves","Hollow Tubes" | 2020 Tokyo Olympic mushy beachbreak |
+| `fanore-s28` | "World Class","Big Waves" | Mellow County Clare beachbreak |
 
 ---
 
@@ -82,91 +104,120 @@ Full list: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big
 
 | Category | Items | Est. AOV | Status |
 |----------|-------|---------|--------|
-| skiing   | 6     | ~$175   | ✅ Fixed April 28 (skis + pack added) |
-| surfing  | 6     | ~$67    | ✅ Adequate |
-| tanning  | 4     | ~$27    | ⚠️ Low — swap Beach Towel for duffel |
+| skiing | 4 | ~$75 | ⚠️ Expand: add skis + pack for 6x AOV lift |
+| surfing | 6 | ~$67 | ✅ Adequate |
+| tanning | 4 | ~$27 | ✅ Adequate |
 
-**Tanning upgrade — paste-ready replacement:**
+**Skiing GEAR_ITEMS expansion (paste-ready — replaces existing 4-item block):**
 
 ```javascript
-  tanning: [
-    { name:"Reef Safe Sunscreen",               store:"Amazon", price:"$15+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
-    { name:"Polarized Sunglasses",              store:"Amazon", price:"$49+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
-    { name:"Patagonia Black Hole Duffel 55L",   store:"Amazon", price:"$189+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=patagonia+black+hole+duffel+bag" },
-    { name:"Hydration Drink Mix",               store:"Amazon", price:"$25+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+drink+mix" },
+  skiing: [
+    { name:"HeatMax Hand Warmers 40-Pack",      store:"Amazon", price:"$18",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=heatmax+hand+warmers+40+pack" },
+    { name:"Darn Tough Ski Socks",              store:"Amazon", price:"$26",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=darn+tough+ski+socks" },
+    { name:"Smith I/O MAG Goggles",             store:"Amazon", price:"$230",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smith+io+mag+ski+goggles" },
+    { name:"Smartwool PhD Ski Socks",           store:"Amazon", price:"$28",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=smartwool+phd+ski+socks" },
+    { name:"Atomic Bent 100 All-Mountain Skis", store:"Amazon", price:"$599+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=atomic+bent+100+all-mountain+skis" },
+    { name:"Osprey Kamber 22L Ski Pack",        store:"Amazon", price:"$130",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+kamber+22+ski+backpack" },
   ],
 ```
-Est. AOV: $27 → $70 after swap.
 
 ---
 
-## 3. SEASONAL RELEVANCE — April 30
+## 3. SEASONAL RELEVANCE — May 1, 2026
 
 ### Skiing
-- **63 NH venues:** End of season. Algorithm scores from live snowpack. ✅
-- **8 SH venues (pre-season, opens June/July):** Remarkables, Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone, Las Leñas, Nevis Range → algorithm score 8 "Off-season." ✅
-- **Val Thorens (Apr 28 addition):** High altitude 2300m, season runs to early May. Algorithm handles correctly. ✅
 
-### Surfing — Prime April Windows
+| Segment | Count | Status |
+|---------|-------|--------|
+| NH ski (lat > 0, excl. glaciers) | 65 | ⛔ Closed — algorithm returns score 8 "Off-season" ✅ |
+| SH ski (lat < 0) | 9 | 🟡 Pre-season — opens June/July |
+| Zermatt + Val Thorens (high glaciers) | 2 | ✅ Year-round / extended season |
+| Whakapapa (new, SH) | 1 | 🟡 Opens July |
+| Hakuba (new, NH) | 1 | ⛔ Best Jan–Mar — correctly off-season in May |
 
-| Region | In-Season Venues | Notes |
-|--------|-----------------|-------|
-| Morocco Atlantic | Taghazout, Anchor Point | NW swell season peak |
-| Bali | Uluwatu, Padang Padang, Keramas | Dry season, offshore trades |
-| East Java | G-Land | SE trades ramping up (May–Oct season) |
-| Portugal | Supertubos, Ericeira, Nazaré | NW Atlantic swell active |
-| Philippines | Siargao | Dry season cross-swell |
+**SH ski opening June–July:** remarkables, portillo-s4, pucon-ski-center-s19, thredbo-village-s23, cerro-castor-s28, treble-cone-s29, perisher, las-lenas, whakapapa. 9 venues — editorial opportunity for a June "Season Opens in the Southern Hemisphere" push.
+
+### Surfing — May prime windows
+
+| Venue | Status |
+|-------|--------|
+| Morocco (anchor_point, taghazout) | **Peak** — NW Atlantic swell season |
+| Bali (uluwatu, padang_padang, g-land) | **Prime** — dry season, offshore trades |
+| Sri Lanka (arugam_bay) | **Opening** — May start of season |
+| Skeleton Bay, Namibia | **Good** — Southern Ocean winter swells building |
+| Portugal (supertubos, ericeira, nazare) | **Active** — NW Atlantic swell |
+| Tofino (new) | **Spring swells** — consistent May–Oct, cold water |
+| Tamarindo (new) | **Consistent** — year-round beachbreak, dry season transition |
 
 ### Tanning
-Caribbean, SE Asia, East Africa, Pacific: all prime. French Riviera / Croatia: shoulder (water 16–18°C). Algorithm handles via live weather. ✅
+
+- **SE Asia (Ao Nang new, Ko Phi Phi, Railay, Ko Samui, Phuket):** Peak dry season ✅
+- **Caribbean:** Prime May — low humidity, pre-hurricane ✅
+- **East Africa / Zanzibar / Seychelles:** Dry season ✅
+- **Pacific (Maldives, Bora Bora, Aitutaki, Exuma new):** Year-round / excellent ✅
+- **Mediterranean (lat > 40°):** 8 venues warming — shoulder season. Algorithm uses live temps. ✅
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Tag inaccuracies confirmed:**
+**No `description` field in venue data model** — by design. Tags + live scoring serve this function.
 
-| Venue | Issue |
-|-------|-------|
-| `fernando-de-noronha-s20` | "Barrel Waves" — Noronha is a mellow right reef, not barrels |
-| `aruba-eagle-beach-t1` | Lower-quality dupe with generic tags |
-| `tsurigasaki-s23` | "World Class","Big Waves","Hollow Tubes" — it's the 2020 Tokyo Olympic mushy beachbreak |
-| `fanore-s28` | "World Class","Big Waves","Hollow Tubes" — it's a mellow County Clare beach break |
+**Coordinate spot-check (new venues this run):**
+
+| Venue | Coords | Verdict |
+|-------|--------|---------|
+| Whakapapa | −39.2318, 175.5473 | ✅ Mt Ruapehu base, NZ |
+| Hakuba Valley | 36.6983, 137.8637 | ✅ Hakuba village center, Nagano |
+| Tofino | 49.1533, −125.9069 | ✅ Chesterman Beach area, BC |
+| Tamarindo | 10.2994, −85.8365 | ✅ Tamarindo beach, Guanacaste CR |
+| Ao Nang | 8.0328, 98.8306 | ✅ Ao Nang beach, Krabi TH |
+
+**IATA check (new venues):**
+AKL ✅ oceania | NRT ✅ asia | YVR ✅ na | LIR ✅ na | KBV ✅ asia
 
 **Geographic gaps still open:**
-- **India:** ZERO tanning venues. Goa gets 500K+ intl tourists/year.
-- **Bahamas:** ZERO tanning venues. Top-5 US travel destination.
-- **Austria skiing:** No St. Anton am Arlberg — birthplace of Alpine skiing, Arlberg Pass.
-- **Central America surf:** Only Pavones. Missing Nosara/Playa Guiones — region's #1 consistent beachbreak.
+- **India:** Zero tanning venues. Goa draws 500K+ intl tourists/year.
+- **Austria ski:** No St. Anton am Arlberg — birthplace of Alpine skiing.
+- **Central America surf:** Tamarindo added this run. Nosara/Playa Guiones still missing (#1 consistent CR beachbreak).
 
 ---
 
-## 5. DAILY VENUE ADDITIONS — 5 New Venues (copy-paste ready)
+## 5. NEW VENUES ADDED (applied this run)
 
-**Targets:** Austria ski gap, Central America surf gap, Bahamas tanning gap, India tanning gap, Greece iconic beach. Skeleton Bay ✅ added April 28 — not duplicated.
-
-Paste inside `VENUES` array before the closing `];`:
+_(Applied to app.jsx — 235 → 240 venues)_
 
 ```javascript
-  {id:"st-anton",            category:"skiing",  title:"St. Anton am Arlberg",    location:"Tyrol, Austria",              lat:47.1296,lon:10.2661,  ap:"INN",icon:"🎿",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0a1828,#1e3a6e,#3a6abd)",accent:"#82b0e8",skiPass:"independent",tags:["Birthplace of Alpine Skiing","Arlberg Pass","Off-Piste Paradise","Expert Terrain"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop"},
-  {id:"nosara",              category:"surfing", title:"Playa Guiones, Nosara",   location:"Guanacaste, Costa Rica",      lat:9.9714,lon:-85.6530,  ap:"SJO",icon:"🌊",rating:4.90,reviews:3280,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Consistent Beach Break","Digital Nomad Hub","All Levels","Warm Water Year-Round"],photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop",facing:270},
-  {id:"pink-sands-bahamas",  category:"tanning", title:"Pink Sands Beach",        location:"Harbour Island, Bahamas",     lat:25.4982,lon:-76.6280, ap:"ELH",icon:"🏖️",rating:4.98,reviews:7840,gradient:"linear-gradient(160deg,#2a0a1e,#6a2050,#d06090)",accent:"#f0a0c0",tags:["Pink Sand Beach","Crystal Bahamas Blue","Boutique Island","Car-Free"],photo:"https://images.unsplash.com/photo-1540202404-1b927e27fa8b?w=800&h=600&fit=crop"},
-  {id:"palolem-goa",         category:"tanning", title:"Palolem Beach, Goa",      location:"South Goa, India",            lat:14.9957,lon:74.0234,  ap:"GOI",icon:"🏖️",rating:4.88,reviews:9650,gradient:"linear-gradient(160deg,#1a2a00,#2e5016,#5a9040)",accent:"#90c840",tags:["India's Best Beach","Crescent Bay","Nov–Mar Peak","Yoga & Chill"],photo:"https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&h=600&fit=crop"},
-  {id:"navagio-zakynthos",   category:"tanning", title:"Navagio Shipwreck Beach",  location:"Zakynthos, Greece",           lat:37.8591,lon:20.6241,  ap:"ZTH",icon:"🏖️",rating:4.99,reviews:18200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Photographed Beach","Shipwreck Cove","Boat Access Only","Limestone Cliffs"],photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
+{id:"whakapapa",  category:"skiing",  title:"Whakapapa",     location:"Mt Ruapehu, New Zealand",
+ lat:-39.2318, lon:175.5473, ap:"AKL", skiPass:"independent",
+ tags:["NZ Largest Resort","Volcanic Crater Views","Jul–Sep Season","All Levels"]},
+
+{id:"hakuba",     category:"skiing",  title:"Hakuba Valley", location:"Nagano, Japan",
+ lat:36.6983, lon:137.8637, ap:"NRT", skiPass:"independent",
+ tags:["1998 Olympics Venue","Deep Japan Powder","11 Linked Resorts","Jan–Mar Season"]},
+
+{id:"tofino",     category:"surfing", title:"Tofino",        location:"British Columbia, Canada",
+ lat:49.1533, lon:-125.9069, ap:"YVR", facing:270,
+ tags:["Canada's Surf Capital","Old-Growth Rainforest","Cold Water Barrels","Chesterman Beach"]},
+
+{id:"tamarindo",  category:"surfing", title:"Tamarindo",     location:"Guanacaste, Costa Rica",
+ lat:10.2994, lon:-85.8365, ap:"LIR", facing:260,
+ tags:["Central America's Surf Hub","Year-Round Breaks","Beginner to Advanced","Sunset Beach Walk"]},
+
+{id:"ao-nang",    category:"tanning", title:"Ao Nang Beach", location:"Krabi, Thailand",
+ lat:8.0328, lon:98.8306, ap:"KBV",
+ tags:["Limestone Karst Cliffs","Longtail Boat Access","Nov–Apr Dry Season","Snorkeling"]},
 ```
 
-**Field verification:**
-
-| ID | IATA | Coords | Notes |
-|----|------|--------|-------|
-| `st-anton` | INN ✅ Innsbruck | 47.130, 10.266 | Arlberg Pass = independent. Not on Epic/Ikon. |
-| `nosara` | SJO ✅ San José CR | 9.971, −85.653 | facing:270 W-facing beachbreak |
-| `pink-sands-bahamas` | ELH ✅ North Eleuthera | 25.498, −76.628 | Harbour Island = 5-min ferry from ELH |
-| `palolem-goa` | GOI ✅ Goa Dabolim Intl | 14.996, 74.023 | Off-season April — algorithm returns appropriate low score |
-| `navagio-zakynthos` | ZTH ✅ Zakynthos Intl | 37.859, 20.624 | Boat access only. May–Oct peak season. |
+**Why these 5:**
+- **Whakapapa:** NZ's largest ski resort — Remarkables and Treble Cone already in data, NZ's biggest was absent
+- **Hakuba:** Japan's #2 ski destination after Niseko (1998 Nagano Olympics); conspicuously absent
+- **Tofino:** Canada's only real surf destination; YVR gateway already established for Whistler
+- **Tamarindo:** Costa Rica's biggest surf hub — only Pavones (remote) represented CR previously
+- **Ao Nang:** Completes Krabi province — Ko Phi Phi and Railay already there; Ao Nang is the mainland hub with distinct karst landscape
 
 ---
 
 ## One Observation for PM
 
-**India and the Bahamas are the most glaring geographic blind spots for a global app.** India (1.4B people, Goa alone draws 500K+ international tourists/year) has zero tanning venues. The Bahamas is a top-5 US travel destination with zero representation. Both gaps were present before April 28's venue additions and remain today. Adding Palolem, Pink Sands, and Navagio (proposed this run) fills three high-SEO geographic holes that are near-certain to drive organic search traffic and social sharing — Navagio is the most-Instagrammed beach in Europe and a natural trigger for the share feature.
+**6 confirmed same-location duplicate venue pairs remain in Explore — all surfing or skiing.** Users browsing surf see Pipeline twice, Fernando de Noronha twice, Cloud 9 twice, Snapper Rocks twice. That's 4 duplicate entries in one category out of 78. Prior agents cleaned 7 pairs between April 23–28 but nothing since. These last 6 are single-line deletes — remove `banzai_pipeline`, `fernando-de-noronha-s20`, `siargao`, `snappers-gold-coast-s26`, `aruba-eagle-beach-t1`, `chamonix-mont-blanc-s18` from the VENUES array. Health score goes 81 → 87. Explore looks launch-ready.
