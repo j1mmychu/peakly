@@ -1,290 +1,255 @@
-# Peakly DevOps Report — 2026-04-25
+# Peakly DevOps Report — 2026-05-02
 
-**Overall Status: YELLOW**
-
-No P0s. One recurring P1 (Open-Meteo rate limit time bomb) is now 8 days unresolved across consecutive reports — it's been flagged every day since April 17 and still hasn't shipped. That's a launch blocker for any viral traffic event. The rest of the posture is clean: proxy is HTTPS with proper timeout/retry, no secrets in client code, images are lazy-loaded, Sentry is live, .gitignore is solid.
-
----
-
-## Audit Results
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Live site health | GREEN | app.jsx 7,140 lines / 463KB, all deps pinned |
-| CDN dependencies | GREEN | React 18.3.1, ReactDOM 18.3.1, Babel 7.24.7 — all pinned |
-| Plausible analytics | GREEN | Present and uncommented in index.html |
-| Cache buster | YELLOW | `v=20260417a` / `peakly-20260417` — 8 days since last deploy, bump on next change |
-| Flight proxy (HTTPS) | GREEN | `https://peakly-api.duckdns.org`, 5s timeout, 3-attempt retry, semaphore(3) |
-| Travelpayouts token | GREEN | Server-side only, not present in any client file |
-| Open-Meteo usage | RED | 10K/day free tier, no server-side cache — ~66 cold sessions burns the quota |
-| Exposed secrets | GREEN | None. TP_MARKER=710303 is a public affiliate ID, not a secret |
-| Sentry DSN | GREEN | Live in index.html + initialized in app.jsx lines 6-15 |
-| .gitignore | GREEN | Covers .env, *.key, *.pem, *.p8, node_modules/, .claude/ |
-| SRI on CDN scripts | RED | React, ReactDOM, Babel loaded with no integrity= attribute |
-| CSP meta tag | YELLOW | Missing — XSS mitigation is zero |
-| Image lazy loading | GREEN | loading="lazy" on every img tag in app.jsx |
-| Performance (cold load) | RED | ~3.8MB raw JS (Babel Standalone = 2.25MB of that) |
-| Last deploy | YELLOW | April 17 — 8 days with no push to main |
-| CORS (proxy) | GREEN | Allowlist covers j1mmychu.github.io, peakly.app, localhost |
-| Rate limiting (proxy) | GREEN | 60 req/min/IP in-memory with 5-min cleanup |
+**Overall Status: 🟡 YELLOW**
+No P0s. Three issues carried from the April 24 report remain unaddressed (SRI, CSP, alert persistence). Three quick wins applied this run: cache bust, Sentry sample rate, proxy response body timeout. Ship posture is acceptable but the alert infrastructure is dead weight that erodes user trust at launch.
 
 ---
 
-## P0 — Critical (Fix Today)
+## Fixes Applied This Run
 
-**None.**
-
----
-
-## P1 — High (Fix This Week)
-
-### 1. Open-Meteo Rate Limit: Will Explode on First Viral Post (Recurring — Unresolved Since 2026-04-17)
-
-**Numbers:**
-- Free tier: 10,000 API calls/day
-- Cold session: up to 231 venues × ~1.5 calls (weather + marine) = ~347 calls/session
-- First 50 venues load immediately, rest background — ~75 calls in first 2 seconds per user
-- **Hard ceiling: ~28–66 simultaneous cold sessions** before the daily quota is gone
-- A r/surfing or r/skiing post sending 50 concurrent users burns the quota in one batch
-- After quota: every user for the rest of the day gets empty condition scores — the app's core value proposition disappears
-
-**Fix — add `/api/weather` and `/api/marine` endpoints to the VPS proxy with 30-min server-side cache.**
-
-```javascript
-// Add to server/proxy.js — after the rate limiter section
-
-// ─── Server-side weather cache (30-min TTL) ────────────────────────────────
-const WX_CACHE = new Map();
-const WX_CACHE_TTL = 30 * 60 * 1000;
-
-function wxCacheGet(key) {
-  const entry = WX_CACHE.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.ts > WX_CACHE_TTL) { WX_CACHE.delete(key); return null; }
-  return entry.data;
-}
-function wxCacheSet(key, data) {
-  WX_CACHE.set(key, { ts: Date.now(), data });
-}
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of WX_CACHE) if (now - v.ts > WX_CACHE_TTL) WX_CACHE.delete(k);
-}, 10 * 60 * 1000);
-
-// ─── GET /api/weather?lat=X&lon=Y&daily=...&timezone=... ───────────────────
-app.get('/api/weather', async (req, res) => {
-  const { lat, lon, daily, hourly, timezone, forecast_days } = req.query;
-  if (!lat || !lon) return res.status(400).json({ success: false, error: 'lat and lon required' });
-
-  const cacheKey = `weather|${parseFloat(lat).toFixed(3)}|${parseFloat(lon).toFixed(3)}`;
-  const cached = wxCacheGet(cacheKey);
-  if (cached) return res.json(cached);
-
-  try {
-    const params = new URLSearchParams({ lat, lon, timezone: timezone || 'auto', forecast_days: forecast_days || '7' });
-    if (daily)  params.set('daily',  daily);
-    if (hourly) params.set('hourly', hourly);
-    const upstream = `https://api.open-meteo.com/v1/forecast?${params}`;
-    const { status, json } = await fetchJson(upstream);
-    if (status !== 200) return res.status(502).json({ success: false, error: 'upstream weather error' });
-    const payload = { success: true, data: json };
-    wxCacheSet(cacheKey, payload);
-    res.json(payload);
-  } catch (e) {
-    res.status(502).json({ success: false, error: e.message });
-  }
-});
-
-// ─── GET /api/marine?lat=X&lon=Y&daily=...&timezone=... ───────────────────
-app.get('/api/marine', async (req, res) => {
-  const { lat, lon, daily, hourly, timezone } = req.query;
-  if (!lat || !lon) return res.status(400).json({ success: false, error: 'lat and lon required' });
-
-  const cacheKey = `marine|${parseFloat(lat).toFixed(3)}|${parseFloat(lon).toFixed(3)}`;
-  const cached = wxCacheGet(cacheKey);
-  if (cached) return res.json(cached);
-
-  try {
-    const params = new URLSearchParams({ lat, lon, timezone: timezone || 'auto' });
-    if (daily)  params.set('daily',  daily);
-    if (hourly) params.set('hourly', hourly);
-    const upstream = `https://marine-api.open-meteo.com/v1/marine?${params}`;
-    const { status, json } = await fetchJson(upstream);
-    if (status !== 200) return res.status(502).json({ success: false, error: 'upstream marine error' });
-    const payload = { success: true, data: json };
-    wxCacheSet(cacheKey, payload);
-    res.json(payload);
-  } catch (e) {
-    res.status(502).json({ success: false, error: e.message });
-  }
-});
-```
-
-Then in `app.jsx` update the base URL constants at lines 809-810:
-```javascript
-const METEO  = "https://peakly-api.duckdns.org/api/weather";
-const MARINE = "https://peakly-api.duckdns.org/api/marine";
-```
-
-Then update `fetchWeather()` and `fetchMarine()` to unwrap the proxy response envelope:
-```javascript
-// In fetchWeather() (around line 890), after const r = await fetch(...):
-const envelope = await r.json();
-const data = envelope.data ?? envelope; // proxy wraps in {success, data}; Open-Meteo is bare
-
-// In fetchMarine() (around line 926), same pattern:
-const envelope = await r.json();
-const data = envelope.data ?? envelope;
-```
-
-**Impact:** Reduces Open-Meteo load from O(users × venues) to O(unique_lat_lon_pairs × 2 per 30 min). With 231 venues sharing cached responses, 1,000 daily active users costs ~462 upstream calls every 30 minutes instead of 150,000/day. Quota never touched.
-
-**Time to fix: 2 hours** (proxy code + app.jsx update + VPS `pm2 restart proxy` + smoke test)
+| Fix | File | Impact |
+|---|---|---|
+| Cache buster bumped `20260422a` → `20260502a` | `index.html`, `sw.js` | P1 resolved — app.jsx changed Apr 23 (4 venues + Tioman fix), users were served 10-day-old cached code |
+| `tracesSampleRate: 1.0` → `0.05`, `replaysSessionSampleRate: 0.1` → `0.05` | `app.jsx` | P2 resolved — was burning Sentry free tier at ~667 MAU |
+| Added `res.setTimeout(8000)` to `fetchJson()` | `server/proxy.js` | P2 resolved — slow-drip Travelpayouts response could hang connection indefinitely |
 
 ---
 
-### 2. No SRI on CDN Scripts — Supply Chain Attack Vector
+## 1. Live Site Health
 
-React, ReactDOM, and Babel are loaded from unpkg.com with no `integrity=` attribute. If unpkg is compromised or MITM'd, arbitrary JavaScript executes in every user's browser with full localStorage access (wishlists, alerts, profile data).
+| Check | Result |
+|---|---|
+| `app.jsx` size | 7,150 lines / 467 KB (+10 lines / +4 KB vs Apr 24) |
+| CDN scripts | All HTTPS ✅ |
+| Plausible analytics | Present, uncommented, correct domain (`j1mmychu.github.io`) ✅ |
+| Cache-buster before this run | `v=20260422a` — STALE (app.jsx changed Apr 23) ❌ |
+| Cache-buster after this run | `v=20260502a` ✅ |
+| Service worker cache before | `peakly-20260422` — STALE ❌ |
+| Service worker cache after | `peakly-20260502` ✅ |
 
-Generate correct SHA-384 hashes before deploying:
+**Cache staleness was real.** Commit `969e24a` (Apr 23) added 4 venues and fixed Tioman airport after the last cache bust on Apr 22. Any returning user never saw those changes. Fixed.
+
+---
+
+## 2. Flight Proxy Status
+
+| Check | Result |
+|---|---|
+| Proxy URL in app.jsx | `https://peakly-api.duckdns.org` — HTTPS ✅ |
+| Old HTTP IP (`104.131.82.242`) in client code | Not present ✅ |
+| Token in client code | No — `process.env.TRAVELPAYOUTS_TOKEN` server-only ✅ |
+| TP_MARKER in client | `"710303"` — public affiliate marker, not a secret ✅ |
+| Client timeout | 5s AbortController + 3 retries at 1.2s/2.4s backoff ✅ |
+| Proxy request timeout | `req.setTimeout(8000)` ✅ |
+| Proxy response body timeout | Added `res.setTimeout(8000)` this run ✅ |
+| Concurrency cap | Semaphore: max 3 concurrent flight requests ✅ |
+| CORS allowlist | `j1mmychu.github.io`, `peakly.app`, `www.peakly.app`, localhost ✅ |
+| Rate limiter | 60 req/min/IP, in-memory Map with 5-min GC ✅ |
+
+Proxy posture is solid. No fires.
+
+---
+
+## 3. Weather & External APIs
+
+| Check | Result |
+|---|---|
+| Open-Meteo endpoints | `api.open-meteo.com/v1`, `marine-api.open-meteo.com/v1` ✅ |
+| Batch size / throttle | 50 venues/batch, 2s between batches ✅ |
+| Weather cache TTL | 2hr re-fetch, 6hr hard eviction ✅ |
+| Flight cache TTL | 15min re-fetch, 2hr cleanup ✅ |
+| Free tier risk (10K calls/day) | 229 venues × 2 API types = 458 max calls per cold user |
+
+At current near-zero MAU: no issue. At 1K simultaneous cold-cache users: 458K calls. Open-Meteo free tier is 10K/day. **One viral tweet = instant account suspension.** Mitigation is the server-side weather proxy documented below. Not yet built — still the highest-leverage pre-launch infrastructure work.
+
+---
+
+## 4. Security Audit
+
+### Passing
+
+- No API tokens, secrets, or credentials in `app.jsx` or `index.html`
+- Travelpayouts token strictly server-side via `process.env.TRAVELPAYOUTS_TOKEN`
+- Sentry DSN in client code — intentional, DSNs are designed to be public
+- `.gitignore` covers `.env`, `.env.*`, `*.env`, `*.pem`, `*.key`, `*.p12`, `*.p8`, `*.mobileprovision`
+- Last 15 commits reviewed — no secrets introduced
+- TP_MARKER `"710303"` is a public affiliate marker, not a credential
+
+### P1 — No SRI on CDN Scripts (open 8 days)
+
+Three CDN scripts load without `integrity` attributes. A compromised unpkg push silently injects arbitrary JS into every Peakly session. This is a real supply-chain attack vector.
+
 ```bash
-# Run from any machine with curl + openssl
+# Generate SRI hashes (run from any machine with curl + openssl):
 curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
-  | openssl dgst -sha384 -binary | base64
+  | openssl dgst -sha384 -binary | openssl base64 -A
 
 curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
-  | openssl dgst -sha384 -binary | base64
+  | openssl dgst -sha384 -binary | openssl base64 -A
 
 curl -s https://unpkg.com/@babel/standalone@7.24.7/babel.min.js \
-  | openssl dgst -sha384 -binary | base64
+  | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-Then replace the script tags in `index.html`:
+Replace the three CDN `<script>` tags in `index.html`:
 ```html
-<script crossorigin
-  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-<HASH_FROM_ABOVE>"></script>
-
-<script crossorigin
-  src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
-  integrity="sha384-<HASH_FROM_ABOVE>"></script>
-
-<script
-  src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"
-  integrity="sha384-<HASH_FROM_ABOVE>"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
+  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"
+  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
 ```
 
-**Caveat:** Babel uses `eval()` internally. A strict `script-src` CSP would need `'unsafe-eval'` alongside SRI, which limits CSP's XSS protection. But SRI still defends the supply chain (file integrity) — it's a meaningful partial win even without a strict CSP.
+**Time to fix: 15 minutes.**
 
-**Time to fix: 30 minutes** (generate 3 hashes, update index.html, verify app loads)
+### P2 — No CSP Meta Tag (open 8 days)
 
----
+No `Content-Security-Policy`. GitHub Pages doesn't support custom HTTP headers so a meta tag is the only option. Babel Standalone requires `'unsafe-eval'` which limits effectiveness, but blocking unknown script origins is still worth doing.
 
-## P2 — Medium (Fix This Sprint)
-
-### 3. No CSP Meta Tag
-
-No `Content-Security-Policy` header or meta tag. XSS has zero browser-enforced mitigation. Best achievable CSP given the Babel architecture (`unsafe-eval` required):
-
+Add to `index.html` `<head>` before CDN scripts:
 ```html
-<!-- Add to <head> in index.html after the viewport meta -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline'
-    https://unpkg.com
-    https://js.sentry-cdn.com
-    https://plausible.io;
+  script-src 'self' 'unsafe-eval' https://unpkg.com https://js.sentry-cdn.com https://plausible.io;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
-  img-src 'self' data: blob: https://images.unsplash.com;
-  connect-src 'self'
-    https://peakly-api.duckdns.org
-    https://api.open-meteo.com
-    https://marine-api.open-meteo.com
-    https://o4511108649058304.ingest.us.sentry.io
-    https://plausible.io;
+  img-src 'self' https://images.unsplash.com data: blob:;
+  connect-src 'self' https://peakly-api.duckdns.org https://api.open-meteo.com https://marine-api.open-meteo.com https://plausible.io https://o4511108649058304.ingest.us.sentry.io;
   frame-ancestors 'none';
 ">
 ```
 
-This blocks data exfiltration to unlisted domains even with `unsafe-eval` present.
+**Time to fix: 20 minutes.**
 
-**Time to fix: 20 minutes**
+---
 
-### 4. Cache Buster Pattern — Bump on Every Deploy
+## 5. Performance Analysis
 
-`?v=20260417a` in index.html and `CACHE_NAME = "peakly-20260417"` in sw.js are from April 17 — 8 days ago. Not dangerous since no deploys have happened since, but it needs to be a mechanical habit: **bump both on every commit to main or browsers serve stale app.jsx for up to 24 hours.**
+| Metric | Value |
+|---|---|
+| `app.jsx` | 467 KB (~141 KB gzipped est.) |
+| Babel Standalone 7.24.7 | ~1.5 MB (~550 KB gzipped) |
+| React 18.3.1 + ReactDOM | ~175 KB (~55 KB gzipped) |
+| **Total JS payload** | **~2.1 MB uncompressed / ~746 KB gzipped est.** |
+| All `<img>` tags lazy-loaded | Yes — 9 confirmed instances ✅ |
+| React CDN version | 18.3.1 — current ✅ |
+| Babel CDN version | 7.24.7 — 7.26.x available, minor delta, not urgent |
 
+**Largest bottleneck: Babel Standalone.** 1.5 MB JS compiler executing 7,150 lines of JSX on the main thread on every cold load. Mid-range Android over 4G: 600–900ms of blocked rendering before any app pixel appears. No fix without a build step. Accepted architectural debt.
+
+**Second bottleneck: 229-venue weather fetch.** Cold cache = up to 458 HTTP requests batched at 50/2s. Full score population takes ~20 seconds. Tolerable today, painful above 1K MAU.
+
+---
+
+## 6. Alerts Infrastructure: Still Dead (P1)
+
+`proxy.js` stores alert registrations in a JavaScript `Map` in process memory. A droplet reboot, crash, or `pm2 restart` wipes every registered alert with zero user notification. No polling worker exists. Alerts are registered and forgotten.
+
+```js
+const _alerts = new Map(); // erased on every restart
 ```
-index.html line 346:  ?v=20260425a
-sw.js line 1:         const CACHE_NAME = "peakly-20260425";
+
+**Minimum viable persistence fix — add to `server/proxy.js`:**
+
+```js
+const ALERTS_FILE = process.env.ALERTS_PATH
+  || path.join(__dirname, 'data', 'alerts.json');
+
+function _loadAlerts() {
+  try {
+    const entries = JSON.parse(fs.readFileSync(ALERTS_FILE, 'utf8'));
+    for (const [k, v] of entries) _alerts.set(k, v);
+    console.log(`[alerts] loaded ${_alerts.size} alerts from disk`);
+  } catch {}
+}
+
+function _saveAlerts() {
+  try {
+    fs.mkdirSync(path.dirname(ALERTS_FILE), { recursive: true });
+    fs.writeFileSync(ALERTS_FILE, JSON.stringify([..._alerts.entries()]));
+  } catch (e) { console.error('[alerts] save failed:', e.message); }
+}
+
+_loadAlerts(); // call once at bottom of file, before app.listen
 ```
 
-**Time to fix: 5 minutes per deploy** (add to git commit checklist)
+Then add `_saveAlerts()` after every `_alerts.set()` and `_alerts.delete()` call.
 
-### 5. Babel Standalone Version Check
+**Persistence fix: 30 minutes. Polling worker (actually firing alerts): 4–8 hours.**
 
-7.24.7 is from early 2024 — over 2 years old. Newer versions improve parse performance, which directly reduces in-browser transpile time (the single largest latency source). Check current version before the next deploy:
+---
 
-```bash
-curl -s "https://unpkg.com/@babel/standalone/package.json" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])"
+## 7. Cost Projection
+
+| Scale | Open-Meteo | VPS (DigitalOcean) | GitHub Pages | Monthly Total |
+|---|---|---|---|---|
+| Today (~0 MAU) | Free | $6 | Free | **$6** |
+| 1K MAU | Free* | $6 | Free | **$6** |
+| 10K MAU | Free* | $12 (upgrade to 2GB) | Free | **$12** |
+| 100K MAU | $200+ | $48 (2× $24 + LB) | Free | **$250+** |
+
+*Free tier survives only if localStorage cache absorbs repeat visits. One viral day with 5K simultaneous cold-cache users = 2.3M Open-Meteo calls. Instant suspension.
+
+**Current burn: $6/month. No optimization available at this scale.**
+
+---
+
+## 8. What Breaks First at Scale
+
+**The client-side Open-Meteo fetch model is the structural failure.** A viral surge sends thousands of cold-cache users through GitHub Pages CDN edge nodes (shared IPs). Open-Meteo rate-limits the shared IP. Venue scores stop loading app-wide, silently, with no alerting and no fallback. Users see spinners indefinitely. There is no circuit breaker.
+
+**Prevention — server-side weather proxy in `server/proxy.js` before 5K MAU:**
+
+```js
+const _wxCache = new Map();
+const WX_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+app.get('/api/weather', async (req, res) => {
+  const { lat, lon, type, params } = req.query;
+  if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
+  const key = `${parseFloat(lat).toFixed(3)},${parseFloat(lon).toFixed(3)},${type || 'wx'}`;
+  const hit = _wxCache.get(key);
+  if (hit && Date.now() - hit.ts < WX_TTL_MS) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.json(hit.data);
+  }
+  const base = type === 'marine'
+    ? 'https://marine-api.open-meteo.com/v1/marine'
+    : 'https://api.open-meteo.com/v1/forecast';
+  const url = `${base}?latitude=${parseFloat(lat)}&longitude=${parseFloat(lon)}${params ? '&' + params : ''}`;
+  try {
+    const { status, json } = await fetchJson(url);
+    if (status !== 200) return res.status(status).json(json);
+    _wxCache.set(key, { data: json, ts: Date.now() });
+    res.setHeader('X-Cache', 'MISS');
+    return res.json(json);
+  } catch (err) {
+    return res.status(502).json({ error: err.message });
+  }
+});
+
+setInterval(() => {
+  const cutoff = Date.now() - WX_TTL_MS;
+  for (const [k, v] of _wxCache) if (v.ts < cutoff) _wxCache.delete(k);
+}, WX_TTL_MS);
 ```
 
-If 7.25.x or higher is available, update, regenerate the SRI hash, and test.
+This collapses 5K browser-direct Open-Meteo calls into 229 proxy-cached requests per 2-hour window. Zero additional cost. Keeps Open-Meteo free tier alive through ~100K MAU. Update `fetchWeather`/`fetchMarine` in `app.jsx` to point at `${FLIGHT_PROXY}/api/weather`. Estimated implementation: 4 hours.
 
-**Time to fix: 15 minutes**
-
----
-
-## Performance Analysis
-
-**Raw JS payload on cold load:**
-
-| Asset | Raw Size | Gzipped (est.) |
-|-------|----------|----------------|
-| Babel Standalone 7.24.7 | ~2,250 KB | ~263 KB |
-| ReactDOM 18.3.1 prod | ~1,100 KB | ~130 KB |
-| app.jsx | 463 KB | ~100 KB |
-| React 18.3.1 prod | ~42 KB | ~6 KB |
-| **Total** | **~3,855 KB** | **~499 KB transfer** |
-
-**Transfer is fine (~500KB gzipped). Parse + execute on device is not.**
-
-**Single largest bottleneck: Babel Standalone transpiling 463KB of JSX on the main thread on every cold load.**
-
-On a Moto G Power (median Android, 1 CPU available for JS): Babel parse + transform takes 1,500–3,000ms before React renders anything. The splash screen masks it visually, but Lighthouse will tank LCP and TTI scores. This is structural — the only permanent fix is a pre-compilation step (violates the no-build-step constraint). The pragmatic mitigation is the service worker, which already caches Babel and app.jsx, so repeat visits pay 0ms transpile cost. Ensure the SW cache is being hit correctly by verifying `CACHE_NAME` is bumped on each deploy (P2 #4 above).
-
-**Images:** `loading="lazy"` on all img tags — correct.
+**Second failure: 1GB droplet OOM under load.** Rate-limit Map + alert Map + weather cache Map + Node.js heap approach the ceiling under concurrent sessions. Watch `pm2 monit` daily. Upgrade to $12/2GB before you see OOM kills in logs.
 
 ---
 
-## Cost Estimate
+## Open Action List
 
-| Scale | Infrastructure | Monthly Cost |
-|-------|---------------|-------------|
-| Today | DO $6 Basic (1GB/1vCPU) + GitHub Pages free | **$6/mo** |
-| 1K MAU | Same | **$6/mo** |
-| 10K MAU | Upgrade proxy to DO $18 Basic (2GB/2vCPU) + server-side weather cache (required) | **~$18/mo** |
-| 100K MAU | 2× $18 droplets + $12 DO load balancer + DO Managed Redis $15 (replace in-memory cache) | **~$63/mo** |
-
-**Cost optimization opportunity:** The server-side weather cache (P1 #1) doubles as the cost optimization. With it, the $6 droplet handles 10K MAU without an upgrade. Without it, a single traffic spike requires emergency vertical scaling.
-
----
-
-## What Breaks First at Scale
-
-**Open-Meteo is the cliff.** At 10K MAU with a conservative 10% daily active rate: 1,000 sessions/day × 150 API calls = 150,000 calls/day against a 10,000 call/day hard cap. That's 15× the limit. The failure mode isn't gradual degradation — it's a hard cutoff. Session 67 of the day sees an app with no condition scores. Core feature dead until midnight UTC. A Reddit post sending 100 users in an hour triggers this before 10K MAU. The proxy-side weather cache (P1 #1) is a 2-hour fix that permanently closes this risk. It is the only fix that matters before any marketing push.
-
----
-
-## Actions Taken This Run
-
-- No code changes — audit only
-- 8-day deploy gap confirmed (last commit `d039180`, 2026-04-17)
-- All P1s from prior reports (Open-Meteo cache, SRI) remain open
-
----
-
-*Report generated: 2026-04-25 | Next audit: 2026-04-26*
+| Priority | Issue | Est. Time | Status |
+|---|---|---|---|
+| **P1** | Cache buster stale (10 days, app.jsx changed) | 2 min | **FIXED this run** |
+| **P1** | Alert registrations lost on server restart | 30 min | Open |
+| **P1** | No SRI on React/Babel CDN scripts | 15 min | Open — 8 days |
+| **P2** | Sentry `tracesSampleRate: 1.0` hits free tier at 667 MAU | 2 min | **FIXED this run** |
+| **P2** | `fetchJson()` missing response body timeout | 5 min | **FIXED this run** |
+| **P2** | No CSP meta tag | 20 min | Open — 8 days |
+| **Pre-5K MAU** | Server-side Open-Meteo weather cache proxy | 4 hrs | Not started |
+| **Pre-10K MAU** | Upgrade DO droplet to 2GB ($12/mo) | 5 min | Not started |
