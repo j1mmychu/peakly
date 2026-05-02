@@ -1,5 +1,5 @@
 // Peakly Service Worker — lightweight cache-first for static assets + web push handler
-const CACHE_NAME = "peakly-20260501";
+const CACHE_NAME = "peakly-20260502";
 const PRECACHE = [];
 
 self.addEventListener("install", (e) => {
