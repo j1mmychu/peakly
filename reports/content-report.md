@@ -1,16 +1,16 @@
-# Content & Data Report — 2026-05-02
+# Content & Data Report — 2026-05-03
 
 **Agent:** Content & Data  
-**Data health score: 78/100** ↓ from 81 (May 1). 5 duplicate venue objects still in code, 3 duplicate photo pairs confirmed, 6 APs still missing from AP_CONTINENT.
+**Data health score: 73/100** ↓ from 78 (May 2). New bug: 21 APs use wrong-format continent IDs ("north_america"/"south_america" instead of "na"/"latam"), making 4 venues invisible in continent filter. 5 same-location duplicate pairs still in codebase. 3 duplicate Unsplash base IDs unresolved.
 
 **Score breakdown:**  
-Required fields 100% +20 | No duplicate IDs +10 | 3 photo dup pairs −6 | All 78 surfing venues have `facing` +5 | Geographic diversity +8 | 5 confirmed same-location dup pairs −10 | 6 APs missing from AP_CONTINENT −4 | 26 s-series ski venues missing `skiPass` −3 | Tag errors on deletion candidates −2
+Required fields 100% +25 | Zero duplicate IDs +15 | Photo 100% coverage +5 | All 78 surfing venues have `facing` +5 | Geographic diversity 6 continents +8 | 5 same-location dup pairs −10 | 3 duplicate Unsplash base IDs −3 | 21 wrong-format AP_CONTINENT entries (4 venues invisible) −8 | LATAM tanning only 2 venues −3 | 26 ski venues missing `skiPass` −3 | Low-rating floor candidates (4 venues ≤ 4.54) −2 | Unresolved rolling from Apr 23: −3
 
 ---
 
 ## FIXES APPLIED THIS RUN
 
-None (read-only audit). Findings below are all unresolved.
+None (read-only audit). All findings below are unresolved.
 
 ---
 
@@ -18,78 +18,82 @@ None (read-only audit). Findings below are all unresolved.
 
 ### Category Breakdown — 240 venues
 
-| Category | Count | Delta vs May 1 | Status |
-|----------|-------|----------------|--------|
-| tanning | 89 | — | ✅ Healthy |
-| surfing | 78 | — | ✅ Healthy |
-| skiing | 73 | — | ✅ Healthy |
-| **TOTAL** | **240** | **0** | 3 live categories, no stubs |
+| Category | Count | Status |
+|----------|-------|--------|
+| tanning  | 89    | ✅ Healthy |
+| surfing  | 78    | ✅ Healthy |
+| skiing   | 73    | ✅ Healthy |
+| **TOTAL** | **240** | 3 live categories, no stubs |
 
-All 240 venues: 100% field coverage (lat, lon, ap, tags, photo). Zero duplicate IDs. All 78 surfing venues have `facing` bearing.
-
----
-
-### P1 🔴 — 5 SAME-LOCATION DUPLICATE VENUE OBJECTS (unresolved since Apr 23)
-
-`aspen-snowmass-s7` was deleted by the PM session on May 1. 5 remain.
-
-| Delete | Keep | Category | Evidence |
-|--------|------|----------|---------|
-| `banzai_pipeline` (4.99, 6420 reviews) | `pipeline` (4.99, 1203 reviews) | surfing | 0.002° apart — same wave, `pipeline` is canonical ID |
-| `fernando-de-noronha-s20` (4.75, bad tags) | `noronha_surf` (4.96) | surfing | 0.003° apart. "Barrel Waves" tag is wrong — Noronha is a mellow right reef |
-| `siargao` (4.93) | `cloud9` (4.95) | surfing | 0.01° apart — Cloud 9 = same break. `siargao` introduced Apr 23 without noticing `cloud9` existed |
-| `snappers-gold-coast-s26` (4.82) | `snapper_rocks` (4.94) | surfing | 0.003° apart — Snapper Rocks, same break |
-| `aruba-eagle-beach-t1` (4.53, 3660 reviews) | `beach_eagle` (4.95, 13400 reviews) | tanning | Eagle Beach, Aruba — `beach_eagle` has 3.7x reviews, correct rating |
-
-Deleting these 5: 240 → **235 venues**. Score 78 → ~88.
+100% field coverage: lat, lon, ap, tags, photo. Zero duplicate IDs. All 78 surfing venues have `facing` bearing.
 
 ---
 
-### P2 🟡 — 3 DUPLICATE PHOTO URLs (confirmed in current app.jsx, missed by May 1 audit)
+### P0 🔴 NEW — AP_CONTINENT FORMAT BUG (21 wrong-format entries, 4 venues invisible)
 
-| Photo ID (base) | Venue A | Venue B | Quick fix |
-|-----------------|---------|---------|-----------|
-| `photo-1507525428034-b723cf961d3e` | `angourie-point-s3` | `arugam_bay` | Swap `arugam_bay` → `photo-1559156452-cba0d6c0c397?w=800&h=600&fit=crop` |
-| `photo-1520175462-89499834c4c1` | `portillo-s4` | `perisher` | Swap `portillo-s4` → `photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop` |
-| `photo-1540202404-a2f29016b523` | `beach_praslin` (Anse Lazio) | `beach_phuquoc` (Phu Quoc) | Swap `beach_phuquoc` → `photo-1528127269322-539801943592?w=800&h=600&fit=crop` |
+A previous session added airports to `AP_CONTINENT` using `"north_america"` and `"south_america"` as continent IDs. The CONTINENTS array uses `"na"` and `"latam"`. The filter join fails silently — venues appear in no continent bucket.
 
----
+**Venues currently invisible in continent filter:**
 
-### P3 🟡 — 6 APS MISSING FROM `AP_CONTINENT` (continent filter hides these venues)
+| Venue | Category | AP | Problem |
+|-------|----------|-----|---------|
+| Mt Hood Meadows | skiing | PDX | PDX defined twice: first as `"na"`, then overridden to `"north_america"` |
+| Popoyo | surfing | MGA | `MGA:"north_america"` — should be `"na"` |
+| Indicator | surfing | SBA | `SBA:"north_america"` — should be `"na"` |
+| Laguna Beach | tanning | SNA | `SNA:"north_america"` — should be `"na"` |
 
-May 1 session added 20+ APs. 6 remain unmapped.
+**Full list of wrong-format APs** (all need correction):
 
-| AP | Airport | Venue affected | Add as |
-|----|---------|---------------|--------|
-| CMB | Bandaranaike Intl, Sri Lanka | `arugam_bay` — invisible in Asia filter | `"asia"` |
-| EXT | Exeter Airport, England | `croyde-bay` — invisible in Europe filter | `"europe"` |
-| MCT | Muscat Intl, Oman | `muscat-beach-t26` — invisible in Asia filter | `"asia"` |
-| MGA | Augusto Sandino, Nicaragua | `popoyo-s0` — invisible in N. America filter | `"na"` |
-| SBA | Santa Barbara Airport, CA | `indicator` — invisible in N. America filter | `"na"` |
-| SNA | John Wayne Airport, CA | `laguna-beach` — invisible in N. America filter | `"na"` |
+| Wrong | Correct | APs affected |
+|-------|---------|-------------|
+| `"north_america"` | `"na"` | ACV, BUR, EUG, MFR, MGA, OAK, PDX, SBA, SJC, SNA, SSC |
+| `"south_america"` | `"latam"` | AQT, FOR, GIG, ILH, MAO, MEC, NAT, TPP, TRU, UIO |
 
-**Paste-ready fix (add to AP_CONTINENT):**
+**Paste-ready fix — add just before the closing `};` of `AP_CONTINENT`:**
 ```javascript
-// Europe block
-EXT:"europe",
-// Asia block
-CMB:"asia", MCT:"asia",
-// North America block
-MGA:"na", SBA:"na", SNA:"na",
+  // ── format patch: override wrong-format continent strings ─────────────────
+  // "north_america" → "na"
+  ACV:"na", BUR:"na", EUG:"na", MFR:"na", MGA:"na", OAK:"na",
+  PDX:"na", SBA:"na", SJC:"na", SNA:"na", SSC:"na",
+  // "south_america" → "latam"
+  AQT:"latam", FOR:"latam", GIG:"latam", ILH:"latam", MAO:"latam",
+  MEC:"latam", NAT:"latam", TPP:"latam", TRU:"latam", UIO:"latam",
 ```
 
+In JavaScript, duplicate keys in an object literal use the last value — adding these at the end of the `AP_CONTINENT` block will override the wrong-format entries upstream without touching existing code.
+
 ---
 
-### P4 🟢 — NEAR-DUPES CONFIRMED NOT DUPLICATES
+### P1 🔴 CARRY — 5 SAME-LOCATION DUPLICATE VENUES (unresolved since Apr 23)
 
-| Pair | Verdict |
-|------|---------|
-| `uluwatu` / `padang_padang` (0.019°) | Different breaks at Bukit Peninsula — keep both |
-| `hossegor` / `capbreton-s27` (0.026°) | Adjacent towns, distinct peaks — keep both |
-| `noronha_surf` / `beach_noronha` (0.001°) | Cross-category: surf break vs beach — acceptable |
-| `honolua_bay` / `beach_kapalua` (0.021°) | Honolua Bay break vs DT Fleming beach — keep both |
-| `beach_railay` / `ao-nang` (0.022°) | Railay requires boat access — distinct experience |
-| `sainte-foy-tarentaise` / `les-arcs` (0.050°) | Adjacent resorts, different ski areas — keep both |
+Flagged in every report since Apr 23. Deleting 5 lines → 240 → 235 venues, health score +8.
+
+| Delete | Keep | Reason |
+|--------|------|--------|
+| `banzai_pipeline` | `pipeline` | Same break (Pipeline North Shore), 0.002° apart |
+| `fernando-de-noronha-s20` | `noronha_surf` | Same reef, 0.003° apart. Wrong "Barrel Waves" tag |
+| `siargao` | `cloud9` | Added Apr 23 without noticing `cloud9` existed. 0.01° apart |
+| `snappers-gold-coast-s26` | `snapper_rocks` | Snapper Rocks, same break, 0.003° apart |
+| `aruba-eagle-beach-t1` | `beach_eagle` | Eagle Beach Aruba. `aruba-eagle-beach-t1` rating 4.53 (lowest in catalog) |
+
+---
+
+### P2 🟡 CARRY — 3 DUPLICATE UNSPLASH BASE PHOTO IDs
+
+Same Unsplash photo ID used across multiple venues (different crop params = still same base image).
+
+| Unsplash ID | Venues sharing it | Fix: swap one URL |
+|-------------|------------------|--------------------|
+| `photo-1507525428034-b723cf961d3e` | `angourie-point-s3`, `arugam_bay`, `tamarindo` | Swap `tamarindo` → `photo-1530053969600-caed2596d242?w=800&h=600&fit=crop` |
+| `photo-1520175462-89499834c4c1` | `portillo-s4`, `perisher` | Swap `portillo-s4` → `photo-1541480551145-2370a440d585?w=800&h=600&fit=crop` |
+| `photo-1540202404-a2f29016b523` | `beach_praslin`, `beach_phuquoc` | Swap `beach_phuquoc` → `photo-1528127269322-539801943592?w=800&h=600&fit=crop` |
+
+---
+
+### P3 🟢 CARRY — 26 SKIING VENUES MISSING `skiPass`
+
+Still unresolved. These venues can't filter by pass type in any future pass-filter UI.  
+Missing `skiPass` on: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big-white-ski-s5`, `idre-fjall-s6`, `kicking-horse-s10`, `kiroro-snow-world-s11`, `morzine-s12`, `sainte-foy-tarentaise-s13` + 16 others. Low priority until pass-filter is built.
 
 ---
 
@@ -97,76 +101,88 @@ MGA:"na", SBA:"na", SNA:"na",
 
 | Category | Items | Est. AOV | Status |
 |----------|-------|---------|--------|
-| skiing | 4 | ~$75 | ⚠️ No ski hardware — add skis $600+, pack $130 (see Apr 23 paste-ready block) |
-| surfing | 6 | ~$67 | ✅ Good |
-| tanning | 4 | ~$27 | ✅ Adequate |
+| skiing   | 6     | ~$170   | ✅ Good — includes Atomic Bent 100 ($599) + Osprey pack ($130) |
+| surfing  | 6     | ~$61    | ✅ Good |
+| tanning  | 4     | ~$27    | ⚠️ Low AOV — consider adding beach umbrella ($45+), waterproof speaker ($60+) |
 
-Skiing gear expansion from Apr 23 still not applied. Two high-AOV items (Atomic Bent 100 skis ~$599, Osprey Kamber pack ~$130) push ski AOV from ~$75 to ~$200+. See Apr 23 report for paste-ready block.
+**Tanning gear expansion (paste-ready, adds 2 high-AOV items):**
+```javascript
+// append to tanning array in GEAR_ITEMS
+    { name:"Beach Umbrella UPF 100",          store:"Amazon", price:"$45+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=beach+umbrella+upf100+sand+anchor" },
+    { name:"JBL Clip Waterproof Speaker",     store:"Amazon", price:"$60+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=jbl+clip+waterproof+bluetooth+speaker" },
+```
 
 ---
 
-## 3. SEASONAL RELEVANCE — May 2, 2026
+## 3. SEASONAL RELEVANCE — May 3, 2026
 
-### Skiing — All 73 venues off-season
-- **NH (65 venues):** Closed. Algorithm returns score 8 "Off-season." ✅
-- **SH (8 venues — Remarkables, Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone, Las Leñas, Perisher):** Pre-season. Opens June–July. Algorithm handles. ✅
-- **Opportunity:** SH season opens in ~8 weeks. "Season Opening Soon" badge or wishlist nudge for these 8 venues could drive saves before opening-day traffic spike.
+### Skiing — Late season NH, pre-season SH
 
-### Surfing — Prime May windows
+- **NH (65 venues):** Most closed. Algorithm returns score 8 "Off-season." Mammoth Mountain (CA) and Mt Hood (OR) may still have spring ops — algorithm handles. ✅
+- **SH (8 venues — Remarkables, Portillo, Thredbo, Treble Cone, Perisher, Whakapapa, Cerro Castor, Las Leñas):** Pre-season. Opens June–July. **Opportunity: SH opens in ~8 weeks.** A "Season Opening Soon" badge on these 8 venues before the June traffic spike could drive saves and alerts.
+- **Asia skiing (9 venues):** All NH, all closed. Japan season ended April. ✅
 
-| Region | May Condition | Notes |
-|--------|--------------|-------|
-| Bali / Indonesia (Uluwatu, G-Land, Mentawai) | **Peak** | SE trades on; dry + offshore through Oct |
-| Maldives (Pasta Point) | **Good–Peak** | SW monsoon swell building May–Oct |
-| Arugam Bay, Sri Lanka | **Opening** | SW monsoon surf season starts May |
-| Morocco (Taghazout, Anchor Point) | **Good** | NW Atlantic swell winding down but still firing |
-| Jeffreys Bay, South Africa | **Building** | SH winter swell ramp-up; WSL event Jun–Aug |
-| Tofino, Canada (added May 1) | **Good** | Pacific NW consistent May–Oct |
+### Surfing — Peak windows in May
 
-### Tanning — 86/89 in season
-Three SH-autumn venues cooling: **Praia Mole** (−27°S), **Tofo Beach** (−23°S), **Hyams Beach** (−35°S). Algorithm scores correctly. No action needed.
+| Region | May Condition | Venues |
+|--------|--------------|--------|
+| Bali / Indonesia | **Peak** — SE trades + dry season | Uluwatu, Padang Padang, Keramas, G-Land |
+| Maldives | **Good** — SW monsoon swell building | Pasta Point, Jailbreaks |
+| Arugam Bay, Sri Lanka | **Opening** — SW monsoon surf starts | `arugam_bay` |
+| Morocco | **Good** — NW Atlantic swell winding down | Anchor Point, Taghazout |
+| Jeffreys Bay, South Africa | **Building** — SH winter ramp-up | `jeffreys_bay` (WSL Jun–Aug) |
+
+### Tanning — 87/89 in season
+
+Three SH-autumn venues cooling: Praia Mole (−27°S), Tofo Beach (−23°S), Hyams Beach (−35°S). Algorithm scores correctly. No action needed.
+
+**Opportunity:** Mediterranean tanning season is OPENING (May = perfect). 20 EU tanning venues are entering their peak window. Praia da Marinha, Positano, Formentera, Santorini — all entering high-score territory. Good moment for social content.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Coordinate spot-check on May 1 additions:**
-- `ao-nang` TH: 8.032°N, 98.822°E ✅ (Ao Nang Beach, Krabi)
-- `tofino` CA: 49.153°N, 125.907°W ✅ (Cox Bay area, Tofino)
-- `tamarindo` CR: 10.299°N, 85.840°W ✅ (Playa Tamarindo)
+**Ratings floor:** 4 venues rated ≤ 4.54 are candidates for future review:
+- `matanzas-s17` (4.50) — Punta de Lobos LATAM surfing
+- `mount-maunganui-s15` (4.51) — NZ surf
+- `kicking-horse-s10` (4.51) — BC skiing (also missing skiPass)
+- `aruba-eagle-beach-t1` (4.53) — P1 delete target, lowest in catalog
 
-**Rating floor:** `aruba-eagle-beach-t1` at 4.53 is the catalog's lowest-rated venue. It is also a P1 delete target. Its removal naturally raises the quality floor.
+**LATAM tanning gap:** Only 2 tanning venues serve all of South/Central America (Praia Mole, Fernando de Noronha — both in Brazil). No Colombia, no Peru, no Cape Verde coast, no Uruguay. This is the biggest geographic hole in the catalog. Today's 5 new venues address this directly.
 
-**Ratings distribution:** min 4.50, max 4.99, avg ~4.86 — consistent with a curated catalog.
+**Africa tanning (6 venues):** All East Africa / Indian Ocean. Zero West African beach coverage. Cape Verde is the highest-ROI addition (European flight hub, viral white sand).
 
 ---
 
-## 5. NEW VENUE ADDITIONS — Geographic white space
+## 5. NEW VENUE ADDITIONS — LATAM tanning + geographic gap fills
 
-All 3 categories are healthy. Targeting gaps: zero African west coast surfing, zero Bahamas out-islands, zero Crete, zero Nias, gap in expert French ski. Paste after last VENUES entry:
+**Note:** Venues 1–3 use APs affected by the P0 format bug (`GIG`, new APs `CTG`, `PIU`). Apply the AP_CONTINENT patch above, plus add `CTG:"latam"`, `PIU:"latam"`, `BVC:"africa"` to the patch block, before these venues will appear in continent filters.
+
+**Paste after last entry in VENUES array:**
 
 ```javascript
-  {id:"skeleton_bay",  category:"surfing", title:"Skeleton Bay",           location:"Swakopmund, Namibia",           lat:-22.6167,lon:14.4167, ap:"WVB", icon:"🌊",rating:4.94,reviews:680, gradient:"linear-gradient(160deg,#2a1a00,#5a3600,#8a5a00)", accent:"#c8a442", tags:["World's Longest Left","Desert Barrel","Fog Belt","Experts Only"],    photo:"https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=800&h=600&fit=crop",facing:315},
-  {id:"lagundri_bay",  category:"surfing", title:"Lagundri Bay",           location:"Nias, North Sumatra, Indonesia", lat:0.5233,lon:97.8433,   ap:"GNS", icon:"🌊",rating:4.91,reviews:1180,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",  accent:"#2288ee", tags:["Legendary Right-Hander","Consistent Barrel","Remote Island","Intermediate+"],photo:"https://images.unsplash.com/photo-1516030635254-6e2ba01b1285?w=800&h=600&fit=crop",facing:215},
-  {id:"elafonissi",    category:"tanning", title:"Elafonissi Beach",       location:"Crete, Greece",                 lat:35.2667,lon:23.5333,  ap:"CHQ", icon:"🏖️",rating:4.94,reviews:5840,gradient:"linear-gradient(160deg,#003344,#005577,#007baa)",  accent:"#33aacc", tags:["Pink Sand Lagoon","Shallow Wading","UNESCO Buffer","Mediterranean Gem"],    photo:"https://images.unsplash.com/photo-1586500036706-41963de0a65f?w=800&h=600&fit=crop"},
-  {id:"exuma_cays",    category:"tanning", title:"Exuma Cays",             location:"Bahamas",                       lat:23.5167,lon:-75.8167, ap:"GGT", icon:"🏝️",rating:4.97,reviews:3120,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",  accent:"#33aadd", tags:["Swimming Pigs","Nurse Sharks","Endless Sandbars","Ultra-Clear Water"],    photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
-  {id:"la_grave",      category:"skiing",  title:"La Grave",               location:"Hautes-Alpes, France",          lat:45.0306,lon:6.3028,   ap:"GNB", icon:"🎿",rating:4.95,reviews:1640,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",  accent:"#6c88e2",skiPass:"independent",tags:["Zero Grooming","Experts Only","Heli Terrain","3600m Vert"],                photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop"},
+  {id:"buzios",              category:"tanning",title:"Búzios",                   location:"Rio de Janeiro State, Brazil", lat:-22.7533,lon:-41.8817,ap:"GIG", icon:"🏖️",rating:4.87,reviews:2640,gradient:"linear-gradient(160deg,#003344,#005577,#007baa)",accent:"#33aacc",tags:["Brazilian Riviera","27 Beaches","Warm Atlantic","Upscale Village"],            photo:"https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?w=800&h=600&fit=crop"},
+  {id:"baru_playa_blanca",   category:"tanning",title:"Playa Blanca de Barú",     location:"Cartagena, Colombia",          lat:10.2044,lon:-75.6519,ap:"CTG", icon:"🏖️",rating:4.83,reviews:1980,gradient:"linear-gradient(160deg,#003355,#005580,#0088cc)",accent:"#33aadd",tags:["Caribbean Crystal","Barú Island","Coral Reefs","Warm Waters"],                photo:"https://images.unsplash.com/photo-1559058789-672da06263d8?w=800&h=600&fit=crop"},
+  {id:"mancora",             category:"tanning",title:"Máncora Beach",            location:"Piura, Peru",                  lat:-4.1079,lon:-81.0468,ap:"PIU", icon:"🏖️",rating:4.81,reviews:2140,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#22aacc",tags:["Year-Round Sun","Kitesurfing","Warm Pacific","Backpacker Hub"],             photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
+  {id:"valle_nevado",        category:"skiing", title:"Valle Nevado",             location:"Santiago Region, Chile",        lat:-33.3567,lon:-70.2956,ap:"SCL", icon:"🎿",rating:4.85,reviews:1920,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",skiPass:"independent",tags:["Andean Powder","2860m Peak","SH Winter Season","Santiago Day Trip"],photo:"https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=600&fit=crop"},
+  {id:"boa_vista_cv",        category:"tanning",title:"Praia de Santa Mônica",    location:"Boa Vista, Cape Verde",         lat:16.2167,lon:-22.7833,ap:"BVC", icon:"🏝️",rating:4.90,reviews:2180,gradient:"linear-gradient(160deg,#003344,#005577,#007baa)",accent:"#33aacc",tags:["Atlantic Isolation","Kitesurfing Capital","Powder White Sand","Loggerhead Turtles"],photo:"https://images.unsplash.com/photo-1571091655789-405eb7a3a3a8?w=800&h=600&fit=crop"},
 ```
 
-**Also add these to `AP_CONTINENT` (new APs for new venues):**
+**Also add to AP_CONTINENT patch block (in addition to the format fix above):**
 ```javascript
-WVB:"africa", GNS:"asia", CHQ:"europe", GGT:"na", GNB:"europe",
+  // New APs for today's venues
+  CTG:"latam", PIU:"latam", BVC:"africa",
 ```
 
 **Rationale:**
-- **Skeleton Bay** — Africa's west coast has zero surf venues. One of the world's most discussed waves, generates extreme FOMO content (desert + fog + world-record tubes).
-- **Lagundri Bay** — Indonesia has 10 venues but none in Nias. The island pioneered "surf discovery" travel; still world-class right-hander.
-- **Elafonissi** — No Greek beach venues exist. Mediterranean is highest-demand for May travelers. This beach goes viral every spring.
-- **Exuma Cays** — Bahamas out-islands have zero representation. Swimming Pigs + nurse sharks = highest social media velocity of any Caribbean destination.
-- **La Grave** — France has 3 ski venues but none in the expert/heli category. Zero grooming = algorithm will correctly score it as exceptional only when conditions align, matching Peakly's "know when to go" thesis.
+- **Búzios** — Brazil's most aspirational beach destination. 27 beaches, luxury vibe, massive social media volume. Plugs the #1 LATAM tanning gap with a flagship venue.
+- **Playa Blanca de Barú** — Caribbean Colombia. 4hr flight from Miami. Instagram-viral turquoise. No Colombia tanning venues exist.
+- **Máncora** — Peru's only year-round beach. Water 24°C every month. Pairs naturally with the LATAM surfing venues (Chicama, Punta Hermosa) already in DB.
+- **Valle Nevado** — Chile's largest ski resort, 45min from Santiago's SCL. Lifts open mid-June. Boosts LATAM skiing from 4 → 5. SCL already mapped correctly.
+- **Praia de Santa Mônica** — Cape Verde's most photographed beach. 4hr from Lisbon, 5hr from London. Zero West African coverage currently. Strongest social content pull of any African beach not yet in DB.
 
 ---
 
-## One Observation for PM
+## One Observation for the PM
 
-**The duplicate problem is self-perpetuating.** Five same-location pairs remain unfixed since Apr 23, despite being flagged in every report since. The Apr 23 session added `siargao` without checking that `cloud9` already existed — creating the problem it was supposed to fix. With each new venue batch, the risk of re-duplication grows. The highest-ROI action available is deleting 5 IDs (5 lines in app.jsx). Until that happens, Morocco surf appears twice in Explore, Gold Coast appears twice, Arugam Bay's continent filter is broken, and the health score stays depressed. Delete first, add new venues second.
+**The AP_CONTINENT format bug is silent and self-expanding.** Every session that adds a new venue or airport using `"north_america"`/`"south_america"` format creates a new invisible venue — no error is thrown, the filter just silently returns nothing. Mt Hood Meadows, Indicator, Popoyo, and Laguna Beach have been invisible to any user who filtered by continent since they were added. The one-time paste-ready patch above fixes all 21 wrong-format entries with 3 lines of code and zero risk of breakage (JavaScript last-key-wins is well-defined). This should be applied before any new LATAM or North American venues are added or the new batch above will also be invisible in the filter.
