@@ -21,7 +21,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260412a, push + caching)
+├── sw.js                    # Service worker (peakly-20260414b, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -125,13 +125,50 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-04-14)
+## Current State (2026-05-03)
 
 ### What's Broken / Open (Priority Order)
 
-1. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
-2. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
-3. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+1. **Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped. Cleared 2026-05-03.
+2. **Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).
+3. **Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.
+4. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
+5. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
+6. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-03 — repo cleanup)
+
+- ✅ **18 days of working-tree drift cleared** — committed proxy.js dedupe (removed dead duplicate `/api/waitlist` handler at HEAD line 335; canonical handler is line ~312) + 5 untracked agent reports (devops/pm/revenue/ux 5/3, devops 5/1).
+- ✅ **Reports archived** — 73 files older than 7 days moved to `reports/archive/` per the >7d rule. `reports/` now contains only the active recent files.
+
+### Recently Fixed (2026-04-15 — proxy cleanup)
+
+- ✅ **Duplicate `require()` in proxy.js** — `fs` and `path` were required twice (lines 5-6 and 232-233). Removed duplicates. No runtime impact.
+
+### Recently Fixed (2026-04-14 — 18 algorithm holes)
+
+**7 holes (commit 4475f3a):**
+- ✅ **Day-index fallback silently used today's data for future days** — `d.X?.[0]` fallback returned Tuesday's weather when asking about Saturday. Replaced with strict `at(arr)` helper returning null when out of range.
+- ✅ **gustFactor false-triggered on calm days** — wind=2 + gusts=5 = ratio 2.5 triggered "erratic gusts" penalty. Now only computes gust factor when wind >= 8mph.
+- ✅ **Windswell-dominant surf scored too high** — windWaveH > 1.5x swellH now hard-caps score at 38; > 0.9x caps at 55.
+- ✅ **bigWaveBreak detection only checked tags** — Pipeline, Jaws, Mavericks missed. Now scans id + title + tags. Added more iconic breaks to regex.
+- ✅ **Wet-snow false powder bonus** — snow > 0 + tempMax > 36°F was slush, not powder. Capped at 75, added "wet/heavy" label.
+- ✅ **Trend awareness added** — fading swell (yesterday > today + tomorrow lower) → "Tail end — last shot" / "Firing but fading — go AM" labels. Ski storm fading also labeled.
+- ✅ **Tanning cloud_cover_max added to fetchWeather** — was never requested. 80%+ cloud → -6, 60%+ → -3, ≤15% bluebird → +2. Fixes inflated scores on grey days with "mainly clear" wCode.
+- ✅ Cache bump 20260412a → 20260414a.
+
+**11 holes (commit 4cd0f6c):**
+- ✅ **Freezing rain (wCode 66/67) treated as regular rain** — now -28 ski penalty + "FREEZING RAIN — DO NOT ski" label.
+- ✅ **Thunderstorms ignored for skiing + surfing** — now: ski -22 (lifts evacuated), surf -30 ("Lightning — out of the water"). Hail gets additional -6 ski penalty.
+- ✅ **Surfing wind direction defaulted to 0 (north) when missing** — computed phantom offshore/onshore against ghost data. Now falls back to speed-only scoring.
+- ✅ **Bluebird powder bonus added** — snow >= 8cm + tempMax < 32°F + sunny (wCode ≤ 1) → +6 "Bluebird powder — perfect day." Was scoring same as overcast powder.
+- ✅ **Fading swell now drops score 5pts** — yesterday 8ft + today 4ft + tomorrow 2ft was getting same score as steady 4ft.
+- ✅ **Snowmaking floor differentiated by season** — peak → 35, shoulder → 25, off-season → 15. Was 35 flat.
+- ✅ **NWS official wind chill formula** — replaces rough `tempMax - wind*0.7`. Old formula overestimated chill and triggered false penalties.
+- ✅ **Tighter beach wind band** — 22mph "umbrella-flipping zone" added between 18 and 25mph thresholds.
+- ✅ **likelyRain detection for beach** — precip < 1mm + precipPct > 70% now penalizes -16. Fixes 0mm/90%-probability scattered showers scored as clear.
+- ✅ **Heavy snow labels visibility warning** — wCode 75/86 surfaces "heavy snow · flat light" label. Score stays high (powder!) but user warned.
+- ✅ Cache bump 20260414a → 20260414b.
 
 ### Recently Fixed (2026-04-12 — 7 algorithm holes)
 
@@ -195,7 +232,7 @@ Reduced from 14 → 4 active agents on 2026-04-10. Reports were filing into the 
 | UX Designer | `tasks/agents/ux-designer.md` | 11am daily |
 | Revenue | `tasks/agents/revenue.md` | 12pm daily |
 
-Paused: growth-lead, content-data, executive-briefing, qa-agent, data-enrichment, seo-analytics, competitor-watch, community-agent, code-quality. Re-enable post-launch when there's bandwidth to act on findings.
+Paused: growth-lead, content-data, executive-briefing, qa-agent, data-enrichment, seo-analytics, competitor-watch, community-agent, code-quality, scale-guardian. Re-enable post-launch when there's bandwidth to act on findings.
 
 **Run any agent on demand:**
 ```bash

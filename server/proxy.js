@@ -225,29 +225,6 @@ app.get('/api/flights/latest', async (req, res) => {
   }
 });
 
-// ─── POST /api/waitlist ───────────────────────────────────────────────────────
-// Appends email to server/data/waitlist.jsonl
-// Body: { email }
-// Response: { success, message }
-const WAITLIST_FILE = path.join(__dirname, 'data', 'waitlist.jsonl');
-
-app.post('/api/waitlist', (req, res) => {
-  const { email } = req.body || {};
-  if (!email || !email.includes('@') || email.length > 254) {
-    return res.status(400).json({ success: false, error: 'Valid email required' });
-  }
-  try {
-    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-    const entry = JSON.stringify({ email: email.trim().toLowerCase(), joinedAt: new Date().toISOString() });
-    fs.appendFileSync(WAITLIST_FILE, entry + '\n', 'utf8');
-    console.log(`[/api/waitlist] +1 signup: ${email}`);
-    return res.status(201).json({ success: true, message: "You're on the list!" });
-  } catch (err) {
-    console.error('[/api/waitlist] write error:', err.message);
-    return res.status(500).json({ success: false, error: 'Server error' });
-  }
-});
-
 // ─── POST /api/alerts ─────────────────────────────────────────────────────────
 // Register a push notification alert (future: APNs / FCM / Web Push)
 // Body: { alertId, userId, venueId, sport, region, targetScore, maxPrice,
