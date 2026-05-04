@@ -28,8 +28,13 @@ peakly/
 ├── .github/workflows/deploy.yml  # Pages auto-deploy on push to main+master
 ├── server/                  # Node.js VPS proxy source (Travelpayouts + alerts)
 ├── peakly-native/           # Capacitor native project files
-├── tasks/agents/            # Agent prompts (4 active, 10 paused)
-└── reports/                 # Daily agent reports (older >7d in reports/archive/)
+├── tasks/agents/            # 5 input agents + daily-briefing (canonical prompts)
+└── reports/
+    ├── briefings/           # ONE file/day from daily-briefing agent — read this first
+    ├── inputs/              # Raw daily reports from the 5 input agents (5 files/day)
+    ├── ready-to-ship/       # Sub-15-min diffs the agents prepared for paste
+    ├── known-skipped.md     # Findings the agents agreed to stop reporting
+    └── archive/             # >7-day-old reports
 ```
 
 **No build step.** Babel Standalone transpiles JSX in the browser at runtime. No webpack, no Vite, no bundler, no ES module imports.
@@ -221,25 +226,69 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 - Google Play Store via PWABuilder/TWA ($25)
 - ListingCard "Book" button Plausible event
 
-## Agent Team (Slim Roster)
+## Agent Team (5 + briefing + token watch)
 
-Reduced from 14 → 4 active agents on 2026-04-10. Reports were filing into the void.
+Streamlined 2026-05-03: 14 local prompts → 5 input agents + 1 briefing.
+24 remote scheduled stubs → 5 live routines (4 daily + briefing + weekly token check).
 
-| Agent | File | Schedule |
-|-------|------|----------|
-| Product Manager | `tasks/agents/product-manager.md` | 9am daily |
-| DevOps | `tasks/agents/devops.md` | 7am daily |
-| UX Designer | `tasks/agents/ux-designer.md` | 11am daily |
-| Revenue | `tasks/agents/revenue.md` | 12pm daily |
+### Daily roster (UTC)
 
-Paused: growth-lead, content-data, executive-briefing, qa-agent, data-enrichment, seo-analytics, competitor-watch, community-agent, code-quality, scale-guardian. Re-enable post-launch when there's bandwidth to act on findings.
+| Slot | Agent | Local prompt | Remote routine |
+|------|-------|--------------|----------------|
+| 14:00 | DevOps | `tasks/agents/devops.md` | `peakly-devops` ✅ live |
+| 15:00 | Content & Data | `tasks/agents/content-data.md` | `peakly-content-data` ✅ live |
+| 16:00 | Product Manager | `tasks/agents/product-manager.md` | `peakly-product-manager` ✅ live |
+| 16:30 | Revenue | `tasks/agents/revenue.md` | (local-only — schedule on demand) |
+| 17:00 | UX Designer | `tasks/agents/ux-designer.md` | (local-only — schedule on demand) |
+| 17:30 | Daily Briefing | `tasks/agents/daily-briefing.md` | `peakly-daily-briefing` ⏳ needs scheduling |
 
-**Run any agent on demand:**
+Plus `peakly-token-renewal` weekly (Mondays) — watches the GitHub PAT
+expiring 2026-06-15 and alerts when <14 days remain.
+
+### Source of truth
+
+The local `tasks/agents/<role>.md` file is canonical. Each remote routine's
+`SKILL.md` is a thin shim that `curl`s the canonical prompt from
+`raw.githubusercontent.com/j1mmychu/peakly` so edits to the local prompt
+flow to the next remote run automatically. Don't edit remote SKILL.md
+directly — edit the repo file.
+
+### Output flow
+
+- Input agents write to `reports/inputs/<role>-YYYY-MM-DD.md`
+- Daily briefing reads all of today's inputs + yesterday's briefing,
+  emits one ~50-line digest to `reports/briefings/YYYY-MM-DD.md`
+- Sub-15-min one-line fixes (gear-gate flips, color swaps, etc.) get
+  written as unified diffs to `reports/ready-to-ship/<name>-YYYY-MM-DD.diff`
+  for Jack to `git apply` and commit
+- Findings flagged 3 days running with no action move to
+  `reports/known-skipped.md` and stop being reported (two-strikes rule)
+
+### Run any agent on demand
+
 ```bash
 cd ~/peakly && claude "$(cat tasks/agents/product-manager.md)"
 ```
 
-Reports → `reports/`. Anything older than 7 days → `reports/archive/`.
+Or run the whole daily team locally:
+
+```bash
+bash tasks/agents/run-all.sh
+```
+
+Files older than 7 days in `reports/` → archived to `reports/archive/`.
+
+### What got cut on 2026-05-03
+
+Remote stubs archived to `~/Documents/Claude/Scheduled/_archive_2026-05-03/`
+(19 dirs, none had fired since March): app-health, backup, ci-deploy,
+code-quality, community-agent, competitor-watch, data-enrichment,
+executive-briefing, firewall-vpn, growth-lead, qa-agent, revenue,
+security-audit, seo-analytics, site-uptime, ux-designer, vps-health,
+vps-selfheal, vuln-scan.
+
+Local prompts deleted (8): code-quality, community-agent, competitor-watch,
+data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 
 ## Revenue Model
 
@@ -251,9 +300,9 @@ Reports → `reports/`. Anything older than 7 days → `reports/archive/`.
 | Travelpayouts (HTTPS proxy, TP_MARKER=710303) | LIVE | $0.14 |
 | REI (Avantlink signup pending) | $0 | +$6.16 |
 | Backcountry / GetYourGuide | $0 | +$1.84 |
-| Peakly Pro $79/yr | EMAIL WAITLIST | +$13.17 |
+| Peakly Pro | UI REMOVED 2026-04-16 — decision pending (kill or ship) | TBD |
 
-**Live RPM:** ~$12/month per 1K MAU. **Post-LLC RPM:** ~$33.
+**Live RPM:** ~$7.50/1K MAU (3 of 6 streams earning). **With gear gate flipped + GYG partner_id:** ~$13.66 (+82%).
 
 ## Competitive Edge
 
