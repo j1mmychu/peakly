@@ -4,12 +4,13 @@
 
 ## Project Overview
 
-Peakly is a **single-file React SPA** for discovering surf, ski, and beach spots when conditions and cheap flights align. It runs entirely in the browser with no build step — React and Babel are loaded via CDN and JSX is transpiled client-side.
+Peakly is a **single-file React SPA** for finding the best ski or beach spot to fly to **this weekend**. It runs entirely in the browser with no build step — React and Babel are loaded via CDN and JSX is transpiled client-side.
 
 - **Live:** https://j1mmychu.github.io/peakly/
 - **Goal:** 100K+ downloads. Steve Jobs-level quality.
 - **Owner:** Jack (jjciluzzi@gmail.com)
-- **Top 3 categories at launch:** Surfing, Ski/Board, Beach. Other categories (climbing, MTB, hiking, kayak, dive, yoga, wellness) still scored but deprioritized.
+- **Categories at launch (post-2026-05-03 pivot):** Skiing and Beach only. Surfing was retired; other categories (climbing, MTB, hiking, kayak, dive, yoga, wellness) were never re-enabled.
+- **Front page:** Locks to a Fri–Mon weekend window — `scoreWeekend` returns best-2-of-4 with confidence flag. Per-day `scoreVenue` powers the detail-sheet 7-day view.
 
 ## Architecture
 
@@ -58,9 +59,9 @@ peakly/
 
 1. Error monitoring & crash detection (~lines 1–66)
 2. CSS injection (~lines 68–136)
-3. Constants & data (~lines 138–950): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (231), `AVATAR_COLORS`, weather code maps
-4. Utility functions (~lines 950–1100): `useLocalStorage`, `fetchWeather`, `fetchMarine`, `fetchTravelpayoutsPrice`, `scoreVenue`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
-5. UI components (~lines 1100–4900)
+3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (~154), `AVATAR_COLORS`, weather code maps
+4. Utility functions (~lines 860–1260): `useLocalStorage` (with tanning→beach migration), `fetchWeather`, `fetchMarine` (beach water-temp only), `fetchTravelpayoutsPrice`, `scoreVenue` (per-day), `scoreWeekend` (Fri–Mon window — front page), `weekendDayIndices`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
+5. UI components (~lines 1260–4900)
 6. App root + `ErrorBoundary` (~lines 4900–end)
 
 ### Tabs (3 visible, 5 built)
@@ -114,7 +115,14 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 
 ### Scoring
 
-`scoreVenue(venue, weather, marine, dayIndex)` returns a real-time score per category. Frozen until post-Reddit launch (PM v16, 2026-03-27). Do not modify the scoring algorithm without explicit approval.
+Two entry points:
+
+- **`scoreWeekend(venue, wx, marine, todayDate)`** — front-page entry. Computes best 2 consecutive days within the Fri–Mon weekend window. Returns `{score, label, period, days, confidence}`. `confidence` is `high` (window all within day 0–4 forecast), `medium` (max day 5), or `low` (max day 6+ — front page filters this out so the product doesn't sell uncertain weekends as GO).
+- **`scoreVenue(venue, weather, marine, dayIndex)`** — per-day engine, used by the detail sheet's 7-day view and called internally by `scoreWeekend`.
+
+Scoring is no longer frozen — the 2026-05-03 pivot unlocked it. Do not modify scoring without an algorithm critique (see `~/.claude/plans/effervescent-jumping-hopper.md` for the most recent six-hole audit).
+
+Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in VENUES (Whistler, Tignes, Mammoth, Chamonix, etc.) bypass the off-season binary cap when `snow_depth_max >= 0.5m`. Beach venues marked `poolPrimary: true` skip the water-temp <18°C hard cap.
 
 ## Important Notes for AI Assistants
 
@@ -126,7 +134,7 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 6. **Travelpayouts token off the client** — always via VPS proxy.
 7. **Mobile-first** — safe area insets matter.
 8. **Test in browser** after changes — check console for Babel parse errors.
-9. **Venue data is hardcoded** — `VENUES` array has **231 entries** (3 launch categories only: skiing, surfing, tanning). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
+9. **Venue data is hardcoded** — `VENUES` array has **~154 entries** (2 launch categories: skiing and beach; surfing retired 2026-05-03). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL. Marine API only fetched for beach venues (water temp only).
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
@@ -134,7 +142,7 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 
 ### What's Broken / Open (Priority Order)
 
-1. **Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped. Cleared 2026-05-03.
+1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
 2. **Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).
 3. **Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.
 4. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
@@ -308,35 +316,36 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 
 | Competitor | Gap |
 |-----------|-----|
-| Surfline | Single sport, no flights |
-| OnTheSnow / OpenSnow | Single sport, no flights |
+| OnTheSnow / OpenSnow | Single sport, no flights, no weekend framing |
 | AllTrails | No conditions, no flights |
 | KAYAK | Conditions-blind |
-| Stormrider Surf | No real-time scoring, no flights, offline-static |
+| Hopper | Flights only, no conditions, no spontaneity framing |
+| Skyscanner | Flights only, no conditions |
 
-**Peakly's angle:** First app combining live conditions + real-time flights + AI vibe search across all adventure sports.
+**Peakly's angle (post-2026-05-03):** The go-to app for a spontaneous **ski or beach weekend** — only product combining live Fri–Mon weather + cheap flights + a confidence flag that admits when the forecast is too uncertain to recommend.
 
 See `CHANGELOG.md` for full competitive intel.
 
 ## Vision (Short)
 
-**"Know when to go."** Surfline tells you the conditions. Peakly tells you when the timing is right.
+**"Where to go this weekend."** OpenSnow tells you the snow. KAYAK tells you the flights. Peakly tells you which weekend window is actually worth booking — and is honest when the forecast can't promise.
 
 **Phased roadmap:**
 1. Ship quality (NOW) — photos, polish, PWA, analytics, 1K users
-2. The Window Score — proprietary single number combining conditions + flights + crowd + trend
-3. Forecast Horizon — best 3-day window across next 60 days for any venue
-4. Strike Missions — rare, opt-in, exceptional alignments
-5. Multi-sport trip optimization
+2. The Weekend Score — proprietary best-2-of-4 score across Fri–Mon with confidence badge (DONE 2026-05-03)
+3. Distance-aware filter — `Within 4hr flight` toggle so spontaneous trips stay actually spontaneous (NEXT)
+4. Live weekend pricing — query Travelpayouts with actual Fri–Mon dates instead of "from $X" historical avg
+5. Strike Missions — rare, opt-in, exceptional alignments push notifications
 6. Group coordination
 7. Crowd intelligence
 
 **Strategic principles:**
-- Niche down before expanding (win surf + ski before broadening)
+- **Niche down before expanding.** Skiing + beach only — surfing retired 2026-05-03 to focus the algorithm and brand.
+- **Don't sell certainty you don't have.** Forecast confidence is a first-class signal — `low` confidence weekends never reach the front page.
 - FOMO-first content ("the window most people missed")
 - Photos before features
 - PWA + SEO first, native later
-- The Window Score is the moat
+- The Weekend Score is the moat
 
 ## Interaction Rules
 
@@ -353,9 +362,10 @@ See `CHANGELOG.md` for full competitive intel.
 - Do NOT split `app.jsx` into multiple files
 - Do NOT add a build step or bundler
 - Do NOT use ES module imports
-- Do NOT change localStorage key names
+- Do NOT change localStorage key names (the `tanning → beach` rename includes a one-shot useLocalStorage migration; don't add more renames without a migration)
 - Do NOT remove existing functionality
-- Do NOT change the scoring algorithm (frozen until post-Reddit)
+- Do NOT modify scoring without an algorithm critique (the freeze was lifted 2026-05-03 — but lifting it doesn't mean "wing it")
+- Do NOT add a category back without explicit launch-scope decision (surfing was retired with deliberation; resurrecting needs a real product call)
 - Do NOT modify weather/flight API call structure
 - Do NOT add npm dependencies
 - Do NOT over-engineer — every fix is surgical
