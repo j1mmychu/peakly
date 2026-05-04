@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504a";
+const PEAKLY_BUILD = "20260504b";
 
 // Auto-reload once when a new service worker takes control. Without this, the
 // first visit after a deploy serves OLD content from the OLD SW (classic SW
@@ -1869,13 +1869,49 @@ function logEvent(name, props) {
   } catch {}
 }
 
-// Install PWA prompt listener
+// Install PWA prompt — capture the deferred event so React can trigger it
+// later (after positive engagement) instead of relying on the browser's
+// silent default banner that most users miss.
+let _peaklyInstallPrompt = null;
 (function() {
   try {
-    window.addEventListener("beforeinstallprompt", () => { logEvent("install_pwa"); });
-    window.addEventListener("appinstalled", () => { logEvent("install_pwa", { result: "installed" }); });
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();                                // suppress browser's auto-banner
+      _peaklyInstallPrompt = e;                          // stash for our nudge
+      window.dispatchEvent(new Event("peakly-install-ready"));
+      logEvent("install_pwa", { stage: "captured" });
+    });
+    window.addEventListener("appinstalled", () => {
+      _peaklyInstallPrompt = null;
+      try { localStorage.setItem("peakly_pwa_installed", "1"); } catch {}
+      logEvent("install_pwa", { stage: "installed" });
+    });
   } catch {}
 })();
+
+// React hook: returns whether install can be triggered + a callback to do it
+function useInstallPrompt() {
+  const [canInstall, setCanInstall] = useState(!!_peaklyInstallPrompt);
+  useEffect(() => {
+    const onReady = () => setCanInstall(true);
+    window.addEventListener("peakly-install-ready", onReady);
+    return () => window.removeEventListener("peakly-install-ready", onReady);
+  }, []);
+  const trigger = useCallback(async () => {
+    if (!_peaklyInstallPrompt) return false;
+    try {
+      _peaklyInstallPrompt.prompt();
+      const choice = await _peaklyInstallPrompt.userChoice;
+      logEvent("install_pwa", { stage: "user_choice", outcome: choice.outcome });
+      _peaklyInstallPrompt = null;
+      setCanInstall(false);
+      return choice.outcome === "accepted";
+    } catch {
+      return false;
+    }
+  }, []);
+  return { canInstall, trigger };
+}
 
 // ─── go/no-go verdict ────────────────────────────────────────────────────────
 function getGoVerdict(score) {
@@ -2000,7 +2036,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               <span className="shimmer" style={{ width:52, height:10, borderRadius:5, display:"inline-block" }} />
             ) : (
               <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                from ${listing.flight.price}
+                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
               </span>
             )}
           </div>
@@ -2155,7 +2191,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
               <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
             ) : (
               <>
-                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
                 <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
               </>
             )}
@@ -2245,7 +2281,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           ) : (
             <>
               <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-                from ${listing.flight.price}
+                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
               </span>
               {listing.flight.live ? (
                 <span style={{
@@ -3013,6 +3049,49 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
   return out;
 }
 
+// One-time install nudge above the Explore carousel. Shows ONLY when:
+//   - the browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet — not iOS Safari)
+//   - user has saved >=2 wishlist items (positive engagement signal)
+//   - user has not previously dismissed the nudge
+// iOS users get the explicit "Install" button in Profile instead.
+function InstallNudge({ wishlistCount }) {
+  const { canInstall, trigger } = useInstallPrompt();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem("peakly_install_dismissed") === "1"; } catch { return false; }
+  });
+  const visible = canInstall && !dismissed && wishlistCount >= 2;
+  if (!visible) return null;
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
+    logEvent("install_pwa", { stage: "nudge_dismissed" });
+  };
+  const install = async () => {
+    const ok = await trigger();
+    if (!ok) dismiss(); // user declined or prompt errored — don't keep nudging
+  };
+  return (
+    <div style={{
+      margin:"12px 14px 0", padding:"12px 14px", borderRadius:14,
+      background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
+      display:"flex", alignItems:"center", gap:12, boxShadow:"0 2px 12px rgba(2,132,199,0.25)",
+    }}>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:13, fontWeight:800, fontFamily:F }}>Install Peakly</div>
+        <div style={{ fontSize:11, fontWeight:600, opacity:0.9, fontFamily:F, marginTop:2 }}>One tap to add to your home screen — no app store.</div>
+      </div>
+      <button onClick={install} className="pressable" style={{
+        background:"#fff", color:"#0284c7", border:"none", borderRadius:10,
+        padding:"7px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
+      }}>Install</button>
+      <button onClick={dismiss} aria-label="Dismiss" style={{
+        background:"none", border:"none", color:"rgba(255,255,255,0.85)",
+        fontSize:18, fontWeight:600, padding:"0 4px", cursor:"pointer", lineHeight:1,
+      }}>×</button>
+    </div>
+  );
+}
+
 function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
@@ -3096,9 +3175,31 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       .sort(sortByVal).slice(0, 10);
   })();
 
+  // Fallback carousel — same shape but softer floor (weekendScore >= 65,
+  // allow low-confidence). Used when the primary "Firing this weekend" set
+  // doesn't meet the >=3 threshold, so the front page never goes blank.
+  // Late-week views (Fri/Sat afternoon) — when this-weekend is half-over and
+  // next-weekend is too far for high confidence — would otherwise show no
+  // carousel at all.
+  const bestRightNowFallback = (() => {
+    const allScored = [...bestPool].filter(l => l.weekendLabel && l.weekendLabel !== "Loading…");
+    const sortByVal = (a, b) => {
+      const aVal = a.weekendScore - Math.round(a.flight.price / 20);
+      const bVal = b.weekendScore - Math.round(b.flight.price / 20);
+      return bVal - aVal;
+    };
+    return allScored
+      .filter(l => l.weekendScore >= 65)
+      .sort(sortByVal).slice(0, 8);
+  })();
+  // Which carousel + header to render
+  const carouselUseFallback = bestRightNow.length < 3 && bestRightNowFallback.length >= 3;
+  const carouselVenues = carouselUseFallback ? bestRightNowFallback : bestRightNow;
+  const carouselReady = carouselVenues.length >= 3;
+
   const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
-  // Exclude hero + Best Right Now venues from the grid to avoid duplicates
-  const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
+  // Exclude hero + carousel venues from the grid to avoid duplicates
+  const heroAndBestIds = new Set([heroPick?.id, ...carouselVenues.map(l => l.id)].filter(Boolean));
   const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
@@ -3238,7 +3339,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ padding:"6px 8px" }}>
                     <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>${l.flight.price}</div>
+                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
                   </div>
                 </div>
               ))}
@@ -3359,15 +3460,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── "Firing this weekend" carousel — Fri–Mon weekend window scoring ── */}
-        {!loading && bestRightNow.length >= 3 && (
+        {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
+        <InstallNudge wishlistCount={wishlists.length} />
+
+        {/* ── Front-page carousel — primary or fallback, never blank ── */}
+        {!loading && carouselReady && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
                 <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
-                  Firing this weekend
+                  {carouselUseFallback ? "Looking ahead" : "Firing this weekend"}
                 </div>
-                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Best Fri–Mon windows · spontaneous trips, bookable now</div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
+                  {carouselUseFallback
+                    ? "Forecast still firming up — early picks for the next weekend"
+                    : "Best Fri–Mon windows · spontaneous trips, bookable now"}
+                </div>
               </div>
             </div>
             <div style={{
@@ -3375,7 +3483,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
               touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
-              {bestRightNow.map(l => {
+              {carouselVenues.map(l => {
                 const v = getGoVerdict(l.conditionScore);
                 return (
                   <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
@@ -3400,8 +3508,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
                         <span style={{ display:"flex", alignItems:"baseline", gap:2 }}>
-                          <span style={{ fontSize:12, fontWeight:900, color:"#222", fontFamily:F }}>${l.flight.price}</span>
-                          <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>rt</span>
+                          <span style={{ fontSize:12, fontWeight:900, color:"#222", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</span>
+                          <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>{l.flight.live ? 'rt' : 'est'}</span>
                         </span>
                         <span style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:700 }}>{l.weekendDays || ""}</span>
                       </div>
@@ -3999,7 +4107,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <span style={{ color:"white", fontSize:13, fontWeight:700, fontFamily:F }}>{l.title}</span>
                   <span style={{ color:"rgba(255,255,255,0.75)", fontSize:12, fontFamily:F }}> · Score {l.conditionScore}</span>
                 </div>
-                <span style={{ color:"white", fontSize:13, fontWeight:800, fontFamily:F }}>${l.flight.price}</span>
+                <span style={{ color:"white", fontSize:13, fontWeight:800, fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</span>
               </div>
             ))}
           </div>
@@ -4096,6 +4204,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
   const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
+  const { canInstall: canInstallPwa, trigger: triggerInstallPwa } = useInstallPrompt();
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
   const toggleSport = id => setProfile(p => ({
@@ -4538,7 +4647,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                   </div>
                   <div style={{ padding:"7px 8px" }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>${l.flight.price} · {l.conditionLabel}</div>
+                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
                   </div>
                 </div>
               ))}
@@ -4613,6 +4722,18 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           </div>
           <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
         </div>
+
+        {/* ── Install Peakly (only when prompt is captured) ── */}
+        {canInstallPwa && (
+          <button className="pressable" onClick={triggerInstallPwa} style={{
+            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
+            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
+            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          }}>
+            <span>📲</span> Install Peakly to home screen
+          </button>
+        )}
 
         {/* ── Sign Out ── */}
         {hasAccount && !signOutConfirm && (
@@ -4894,7 +5015,7 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                             fontFamily:F,
                           }}>{l.conditionScore}</span>
                           <span style={{ background:"#f0fff4", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800, color:"#16a34a", fontFamily:F }}>
-                            ${l.flight.price}
+                            {l.flight.live ? '$' : '~$'}{l.flight.price}
                           </span>
                           <span style={{ background:"#f7f7f7", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>
                             {cat?.label}
