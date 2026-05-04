@@ -1610,6 +1610,26 @@ const AIRPORT_COORDS = {
   ALB:{lat:42.7483,lon:-73.8019},  SYR:{lat:43.1112,lon:-76.1063},  BDL:{lat:41.9389,lon:-72.6832},
 };
 
+// ─── Great-circle flight time estimate ────────────────────────────────────────
+// Used by the "Within Xhr flight" Explore filter. Avg cruise = 500 mph,
+// add 0.5h for taxi+climb+descend buffer. Returns null if either airport
+// has no coords on file (e.g. tiny regional in our coord table — let it
+// pass the filter rather than hide it). Same-airport returns 0.
+function flightHours(originAp, destAp) {
+  if (!originAp || !destAp) return null;
+  if (originAp === destAp) return 0;
+  const a = AIRPORT_COORDS[originAp];
+  const b = AIRPORT_COORDS[destAp];
+  if (!a || !b) return null;
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8; // Earth radius in miles
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const sa = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
+  const dist = 2 * R * Math.asin(Math.sqrt(sa));
+  return (dist / 500) + 0.5;
+}
+
 function findNearestAirport(userLat, userLon) {
   let nearest = "JFK", minDist = Infinity;
   const toRad = d => d * Math.PI / 180;
@@ -2218,6 +2238,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
     maxPrice: filters?.maxPrice ?? 1000,
+    maxFlightHrs: filters?.maxFlightHrs ?? null,
     startDate: filters?.startDate || "",
     endDate: filters?.endDate || "",
   });
@@ -2273,7 +2294,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   const apply = () => {
     const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
-    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
+    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
     onClose();
   };
@@ -2305,7 +2326,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -2583,6 +2604,33 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
+        {/* ── Max flight time (spontaneous-trip filter) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Max flight time</SectionLabel>
+          <div style={{ display:"flex", gap:6 }}>
+            {[
+              { id:null, label:"Any" },
+              { id:4,    label:"≤ 4hr" },
+              { id:6,    label:"≤ 6hr" },
+              { id:8,    label:"≤ 8hr" },
+            ].map(opt => {
+              const sel = local.maxFlightHrs === opt.id;
+              return (
+                <button key={String(opt.id)} onClick={() => setLocal(l => ({...l, maxFlightHrs: opt.id}))} style={{
+                  flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
+                  background: sel ? "#222" : "#f5f5f5",
+                  color: sel ? "#fff" : "#555",
+                  border:"none",
+                  fontSize:11, fontWeight:700, fontFamily:F, textAlign:"center",
+                }}>{opt.label}</button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize:10, color:"#999", fontFamily:F, marginTop:6, lineHeight:1.4 }}>
+            For spontaneous weekend trips. Exceptional venues (weekend score ≥ 95) override and still show.
+          </div>
+        </div>
+
         {/* ── Sort ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Sort by</SectionLabel>
@@ -2850,7 +2898,7 @@ function FilterChip({ label, onRemove }) {
 }
 
 // ─── explore tab ──────────────────────────────────────────────────────────────
-function applyFilters(listings, activeCat, filters, search = {}) {
+function applyFilters(listings, activeCat, filters, search = {}, homeAirport = null) {
   // Category: activeCat pill OR multi-select activities from search
   const acts = search.activities || [];
   let out;
@@ -2876,6 +2924,17 @@ function applyFilters(listings, activeCat, filters, search = {}) {
     out = out.filter(l => l.skiPass === search.skiPass);
   }
   if (filters.maxPrice  < 2000) out = out.filter(l => l.flight.price   <= filters.maxPrice);
+  // Within-N-hours flight filter (spontaneous weekend mode). Exceptional
+  // venues (weekendScore >= 95) override the cutoff so a perfect powder
+  // day a continent away can still surface. Venues with no coord lookup
+  // pass through (flightHours returns null) — better to show than hide.
+  if (filters.maxFlightHrs && homeAirport) {
+    out = out.filter(l => {
+      const hrs = flightHours(homeAirport, l.ap);
+      if (hrs == null) return true;
+      return hrs <= filters.maxFlightHrs || (l.weekendScore || 0) >= 95;
+    });
+  }
   // Date range filter
   if (filters.startDate) {
     const start = new Date(filters.startDate);
@@ -2984,7 +3043,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       .sort(sortByVal).slice(0, 10);
   })();
 
-  const filtered = applyFilters(activeListings, activeCat, filters, search);
+  const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
   // Exclude hero + Best Right Now venues from the grid to avoid duplicates
   const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
   const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
@@ -2992,7 +3051,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
-  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || search.skiPass;
+  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || filters.maxFlightHrs || search.skiPass;
 
   // Last checked timestamp
   const timeAgo = wxLastUpdated ? (() => {
@@ -3074,13 +3133,16 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {filters.maxPrice < 2000 && (
             <FilterChip label={`Max $${filters.maxPrice}`} onRemove={() => setFilters(f => ({...f, maxPrice:2000}))} />
           )}
+          {filters.maxFlightHrs && (
+            <FilterChip label={`≤ ${filters.maxFlightHrs}hr flight`} onRemove={() => setFilters(f => ({...f, maxFlightHrs:null}))} />
+          )}
           {(filters.startDate || filters.endDate) && (
             <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
           )}
           {search.skiPass && (
             <FilterChip label={search.skiPass.charAt(0).toUpperCase() + search.skiPass.slice(1) + " Pass"} onRemove={() => setSearch(s => ({...s, skiPass:""}))} />
           )}
-          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
@@ -6456,7 +6518,7 @@ function App() {
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
   const [flightsLoading, setFlightsLoading] = useState(true);
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
