@@ -12,6 +12,23 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
   });
 }
 
+// Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
+// Rendered in Profile footer so "what version am I on?" takes 1 second.
+const PEAKLY_BUILD = "20260503c";
+
+// Auto-reload once when a new service worker takes control. Without this, the
+// first visit after a deploy serves OLD content from the OLD SW (classic SW
+// gotcha — skipWaiting + clients.claim help, but the page is already committed
+// before activation completes). One reload here = no manual hard-refresh.
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+  let _peaklyReloadGuard = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (_peaklyReloadGuard) return;
+    _peaklyReloadGuard = true;
+    window.location.reload();
+  });
+}
+
 (() => {
   // localStorage fallback logger (kept alongside Sentry)
   const errorLog = [];
@@ -165,7 +182,7 @@ const F = "'Plus Jakarta Sans', sans-serif";
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",     label:"All" },
-  { id:"skiing",  label:"Ski/Board" },
+  { id:"skiing",  label:"Skiing" },
   { id:"beach", label:"Beach" },
 ];
 
@@ -1786,9 +1803,24 @@ function useLocalStorage(key, initial) {
   const [val, setVal] = useState(() => {
     try {
       let s = localStorage.getItem(key);
-      if (s && s.includes('"tanning"')) {
-        s = s.replace(/"tanning"/g, '"beach"');
-        localStorage.setItem(key, s);
+      if (s) {
+        let mutated = false;
+        // 2026-05-03 pivot: tanning → beach
+        if (s.includes('"tanning"')) {
+          s = s.replace(/"tanning"/g, '"beach"');
+          mutated = true;
+        }
+        // 2026-05-03 pivot: surfing retired. Strip from any stored state so
+        // ghost badges / orphan alerts don't render. Drop from arrays first
+        // (profile.sports), then rewrite remaining property values
+        // (alert.sport, etc) to "skiing" so they stay editable.
+        if (s.includes('"surfing"')) {
+          s = s.replace(/"surfing"\s*,\s*/g, '');
+          s = s.replace(/,\s*"surfing"/g, '');
+          s = s.replace(/"surfing"/g, '"skiing"');
+          mutated = true;
+        }
+        if (mutated) localStorage.setItem(key, s);
       }
       return s ? JSON.parse(s) : initial;
     }
@@ -3064,7 +3096,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Only expose 2 active categories: Ski/Board, Beach (surfing retired 2026-05-03)
+  // Only expose 2 active categories: Skiing, Beach (surfing retired 2026-05-03)
   const VISIBLE_CAT_IDS = ["all", "skiing", "beach"];
   const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
     .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
@@ -3968,7 +4000,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         </div>
       ) : (
         <div style={{ padding:"0 24px" }}>
-          {userAlerts.map(a => {
+          {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
             const cat    = CATEGORIES.find(c => c.id === a.sport);
             const active = firing.some(l => {
               const sportMatch = a.sport === "all" || a.sport === l.category;
@@ -4097,10 +4129,11 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             </div>
           </div>
 
-          {/* Sport skill badges */}
-          {sports.length > 0 && (
+          {/* Sport skill badges — defensive filter: skip any sport id no longer
+              in CATEGORIES (e.g. legacy "surfing" survived migration somehow) */}
+          {sports.filter(s => CATEGORIES.find(c => c.id === s)).length > 0 && (
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:16 }}>
-              {sports.map(s => {
+              {sports.filter(s => CATEGORIES.find(c => c.id === s)).map(s => {
                 const cat = CATEGORIES.find(c => c.id === s);
                 return (
                   <div key={s} style={{
@@ -4109,7 +4142,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {cat?.label} · {skillLevels[s] || "Intermediate"}
+                      {cat.label} · {skillLevels[s] || "Intermediate"}
                     </span>
                   </div>
                 );
@@ -4597,6 +4630,11 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           </div>
         )}
         {!hasAccount && <div style={{ height:32 }} />}
+
+        {/* Build stamp — useful for "did the deploy land?" debugging */}
+        <div style={{ textAlign:"center", padding:"0 0 24px", fontSize:9, color:"#ccc", fontFamily:F, letterSpacing:"0.05em" }}>
+          Build {PEAKLY_BUILD}
+        </div>
       </div>
     </div>
   );
@@ -6066,7 +6104,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { id:"skiing", label:"Ski/Board" },
+                { id:"skiing", label:"Skiing" },
                 { id:"beach", label:"Beach" }
               ].map(s => (
                 <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
