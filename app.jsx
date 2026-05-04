@@ -5700,8 +5700,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
-          {false && GEAR_ITEMS[listing.category] && (
+          {/* 🛍️ Gear — affiliate */}
+          {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
