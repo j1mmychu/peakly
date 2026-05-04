@@ -368,12 +368,12 @@ const VENUES = [
   {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
   {id:"beach_cozumel",  category:"beach",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"},
   {id:"beach_rivmaya",  category:"beach",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
-  {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Surf Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
+  {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Beach Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
   {id:"beach_loscabos",category:"beach",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
   {id:"beach_manuelant",category:"beach",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"},
   {id:"beach_bocas",    category:"beach",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"},
   {id:"beach_noronha",  category:"beach",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
-  {id:"beach_floripa",  category:"beach",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Surf + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
+  {id:"beach_floripa",  category:"beach",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Beach + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
   {id:"beach_ob",       category:"beach",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
   {id:"beach_siestakey",category:"beach",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
   {id:"beach_clearwater",category:"beach",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
@@ -842,11 +842,12 @@ async function fetchMarine(lat, lon) {
   if (cached) return cached;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
+  // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
+  // is consumed by scoreVenue (water-temp gate). Wave/swell fields removed
+  // to trim Open-Meteo payload.
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
-    `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
-    `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
+    `&daily=ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   try {
     const r = await fetch(url, { signal: controller.signal });
@@ -2986,7 +2987,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Only expose 3 active categories: Ski/Board, Surfing, Beach
+  // Only expose 2 active categories: Ski/Board, Beach (surfing retired 2026-05-03)
   const VISIBLE_CAT_IDS = ["all", "skiing", "beach"];
   const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
     .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
@@ -3396,7 +3397,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
   const [newListEmoji, setNewListEmoji] = useState("🗺️");
 
   const savedAll  = listings.filter(l => wishlists.includes(l.id));
-  const EMOJIS    = ["🗺️","🎿","🏄","☀️","🌊","🏝️","⛷️","🛫","🎒"];
+  const EMOJIS    = ["🗺️","🎿","☀️","🏝️","⛷️","🛫","🎒","🏔️","🏖️"];
 
   const createList = () => {
     if (!newListName.trim()) return;
@@ -3543,12 +3544,11 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       case "good": return 70;
       case "custom": return draft.customScore || 85;
       case "powder": return 93;
-      case "swell": return 92;
       default: return 85;
     }
   };
 
-  // Helper to check if a listing matches a powder/swell condition
+  // Helper to check if a listing matches a powder condition
   const matchesSpecialCondition = (listing, condition) => {
     if (condition === "powder" && listing.category === "skiing") {
       return listing.tags?.includes("Powder Day") || listing.conditionScore >= 93;
@@ -3572,7 +3572,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       }
 
       let scoreMatch = false;
-      if (a.condition === "powder" || a.condition === "swell") {
+      if (a.condition === "powder") {
         scoreMatch = matchesSpecialCondition(l, a.condition);
       } else {
         const threshold = getScoreThreshold(a.condition);
@@ -3895,7 +3895,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
               const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
               const priceMatch = l.flight.price <= a.priceMax;
               let scoreMatch = false;
-              if (a.condition === "powder" || a.condition === "swell") {
+              if (a.condition === "powder") {
                 scoreMatch = matchesSpecialCondition(l, a.condition);
               } else {
                 const threshold = getScoreThreshold(a.condition);
@@ -3909,7 +3909,6 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
               "great": "Great (≥85)",
               "good": "Good (≥70)",
               "powder": "Powder Day",
-              "swell": "Perfect Swell",
               "custom": `Custom (≥${a.customScore})`
             };
 
@@ -5098,7 +5097,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                 bg:"#f0f9ff", color:"#0284c7",
                 icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z" fill="currentColor"/></svg>,
                 title:"Live condition scores",
-                desc:"Surf, snow, beach, and more — scored 0–100 in real time so you know exactly when it's firing.",
+                desc:"Ski and beach venues scored 0–100 against the Fri–Mon weekend window — so you know which spot is actually firing this weekend.",
               },
               {
                 bg:"#f0fdf4", color:"#16a34a",
@@ -5371,7 +5370,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     precip:d.precipitation_sum?.[i]   ?? 0,
     wind:  d.wind_speed_10m_max?.[i]  ?? 0,
     code:  d.weather_code?.[i]        ?? 0,
-    wave:  md?.wave_height_max?.[i]   ?? null,
   })) : [];
 
   const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
@@ -5540,7 +5538,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                   <div key={i} style={{ flexShrink:0, background:"#f7f7f7", borderRadius:12, padding:"9px 8px", minWidth:62, textAlign:"center", border: i===0 ? "2px solid #0284c7" : "2px solid transparent" }}>
                     <div style={{ fontSize:9, fontWeight:700, color: i===0?"#0284c7":"#aaa", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{fmtDate(f.date, i)}</div>
                     <div style={{ fontSize:21 }}>{wxEmoji(f.code)}</div>
-                    {f.wave != null && <div style={{ fontSize:9, color:"#0ea5e9", fontWeight:700, fontFamily:F, marginTop:1 }}>{(f.wave*3.28).toFixed(1)}ft</div>}
                     <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, marginTop:3 }}>{Math.round(f.hi)}°</div>
                     <div style={{ fontSize:10, color:"#bbb", fontFamily:F }}>{Math.round(f.lo)}°</div>
                     {f.precip > 1 && <div style={{ fontSize:9, color:"#3b82f6", fontWeight:600, fontFamily:F, marginTop:1 }}>💧{Math.round(f.precip)}"</div>}
