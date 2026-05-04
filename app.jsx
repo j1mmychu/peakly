@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260503c";
+const PEAKLY_BUILD = "20260503d";
 
 // Auto-reload once when a new service worker takes control. Without this, the
 // first visit after a deploy serves OLD content from the OLD SW (classic SW
@@ -1645,6 +1645,27 @@ function flightHours(originAp, destAp) {
   const sa = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
   const dist = 2 * R * Math.asin(Math.sqrt(sa));
   return (dist / 500) + 0.5;
+}
+
+// ─── Seasonal default category ────────────────────────────────────────────────
+// Open the app on the right pill for the right season, based on the user's
+// hemisphere (derived from their home airport's lat). N. summer May-Aug → beach,
+// N. winter Nov-Apr → skiing, shoulder months → all. S. hemisphere = inverse.
+// User can still tap any pill — this only affects the initial render of
+// each fresh session (not persisted).
+function seasonalDefaultCat(homeAirport) {
+  const ap = AIRPORT_COORDS[homeAirport];
+  const isNorth = ap ? ap.lat >= 0 : true;
+  const m = new Date().getMonth() + 1; // 1-12
+  if (isNorth) {
+    if (m >= 5 && m <= 8)  return "beach";
+    if (m >= 11 || m <= 4) return "skiing";
+    return "all";
+  } else {
+    if (m >= 11 || m <= 2) return "beach";
+    if (m >= 5 && m <= 8)  return "skiing";
+    return "all";
+  }
 }
 
 function findNearestAirport(userLat, userLon) {
@@ -6550,7 +6571,7 @@ function App() {
   }, []);
 
   const [activeTab,    setActiveTab]    = useState("explore");
-  const [activeCat,    setActiveCat]    = useState("all");
+  const [activeCat,    setActiveCat]    = useState(() => seasonalDefaultCat(profile?.homeAirport));
   const [wxData,       setWxData]       = useState({});
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
