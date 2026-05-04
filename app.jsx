@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260503d";
+const PEAKLY_BUILD = "20260504a";
 
 // Auto-reload once when a new service worker takes control. Without this, the
 // first visit after a deploy serves OLD content from the OLD SW (classic SW
