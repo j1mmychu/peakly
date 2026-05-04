@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260503c";
+const PEAKLY_BUILD = "20260504a";
 
 // Auto-reload once when a new service worker takes control. Without this, the
 // first visit after a deploy serves OLD content from the OLD SW (classic SW
@@ -5679,8 +5679,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
-          {false && GEAR_ITEMS[listing.category] && (
+          {/* 🛍️ Gear — affiliate */}
+          {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
