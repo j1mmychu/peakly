@@ -237,7 +237,7 @@ const ALERTS_MAX = 10000;
 
 app.post('/api/alerts', (req, res) => {
   const body = req.body || {};
-  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform } = body;
+  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform, lat, lon } = body;
 
   if (typeof alertId !== 'string' || alertId.length === 0 || alertId.length > 128) {
     return res.status(400).json({ success: false, error: 'alertId must be a string of 1-128 chars' });
@@ -251,6 +251,12 @@ app.post('/api/alerts', (req, res) => {
   if (maxPrice !== undefined && (typeof maxPrice !== 'number' || maxPrice < 0 || maxPrice > 100000)) {
     return res.status(400).json({ success: false, error: 'maxPrice must be a number 0-100000' });
   }
+  if (lat !== undefined && (typeof lat !== 'number' || lat < -90 || lat > 90)) {
+    return res.status(400).json({ success: false, error: 'lat must be a number between -90 and 90' });
+  }
+  if (lon !== undefined && (typeof lon !== 'number' || lon < -180 || lon > 180)) {
+    return res.status(400).json({ success: false, error: 'lon must be a number between -180 and 180' });
+  }
   if (_alerts.size >= ALERTS_MAX && !_alerts.has(alertId)) {
     return res.status(503).json({ success: false, error: 'Alert capacity reached' });
   }
@@ -261,11 +267,16 @@ app.post('/api/alerts', (req, res) => {
     sport: typeof sport === 'string' ? sport.slice(0, 32) : null,
     targetScore: targetScore ?? null,
     maxPrice: maxPrice ?? null,
+    lat: typeof lat === 'number' ? lat : null,
+    lon: typeof lon === 'number' ? lon : null,
     pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
     pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
     registeredAt: new Date().toISOString(),
     lastChecked: null,
+    lastScore: null,
+    lastFiredAt: null,
     fired: false,
+    enabled: true,
   };
   _alerts.set(alertId, record);
 
@@ -340,8 +351,138 @@ app.post('/api/waitlist', (req, res) => {
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), alerts: _alerts.size });
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    alerts: _alerts.size,
+    lastPollAt: _lastPollAt,
+  });
 });
+
+// ─── Alert polling worker ─────────────────────────────────────────────────────
+// Walks _alerts every 30 minutes, fetches Open-Meteo for each registered
+// venue's coordinates, scores the next Fri–Mon weekend, and dispatches a push
+// when score >= targetScore. Cooldown prevents re-firing within 24h.
+//
+// Scoring here is intentionally simpler than the in-app scoreWeekend: the goal
+// is a triggering signal, not the full UX surface. Once a push lands, the user
+// opens the app and sees the canonical score + confidence flag.
+
+const POLL_INTERVAL_MS = 30 * 60 * 1000;
+const FIRE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+let _lastPollAt = null;
+
+/** Score a single forecast day (0-100). Category-aware: skiing or beach. */
+function scoreDay(daily, idx, category) {
+  const tMax = daily.temperature_2m_max?.[idx];
+  const precip = daily.precipitation_sum?.[idx] ?? 0;
+  const wind = daily.wind_speed_10m_max?.[idx] ?? 0;
+  const snow = daily.snowfall_sum?.[idx] ?? 0;
+  if (typeof tMax !== 'number') return null;
+
+  if (category === 'skiing') {
+    let s = 60;
+    if (snow >= 5) s += 30;
+    else if (snow >= 1) s += 12;
+    if (precip > 5 && snow < 1) s -= 15; // rain on snow
+    if (wind > 25) s -= 10;
+    if (tMax > 5) s -= 8; // celsius — warm days melt snow
+    return Math.max(0, Math.min(100, s));
+  }
+  // beach (default)
+  let s = 40;
+  if (tMax >= 28) s += 30;
+  else if (tMax >= 24) s += 22;
+  else if (tMax >= 20) s += 10;
+  if (precip > 5) s -= 25;
+  else if (precip > 1) s -= 10;
+  if (wind > 25) s -= 15;
+  else if (wind > 18) s -= 8;
+  return Math.max(0, Math.min(100, s));
+}
+
+/** Score the next Fri–Mon window: best 2 consecutive days, capped at the smaller of the pair. */
+function scoreWeekendDays(daily, category) {
+  if (!daily?.time?.length) return null;
+  const today = new Date();
+  const dow = today.getUTCDay(); // 0=Sun..6=Sat
+  const daysToFri = (5 - dow + 7) % 7;
+  if (daysToFri + 3 >= daily.time.length) return null;
+  const window = [];
+  for (let i = 0; i < 4; i++) {
+    const day = scoreDay(daily, daysToFri + i, category);
+    if (day === null) return null;
+    window.push(day);
+  }
+  let best = 0;
+  for (let i = 0; i < 3; i++) best = Math.max(best, Math.min(window[i], window[i + 1]));
+  return best;
+}
+
+/**
+ * Pluggable push dispatch. Real APNs (iOS via Capacitor token), FCM (Android),
+ * and web-push (VAPID) wiring lives here per platform. Until credentials are
+ * provisioned, this logs the firing decision so deploys can verify the loop.
+ */
+async function dispatchPush(record, score) {
+  console.log(
+    `[push] FIRE alert=${record.alertId} venue=${record.venueId || '(any)'} ` +
+    `sport=${record.sport} score=${score} target=${record.targetScore} ` +
+    `platform=${record.pushPlatform || 'web'}`
+  );
+  // Future: switch on record.pushPlatform → call APNs / FCM / web-push libs.
+  // The push token in record.pushToken is the per-device address.
+}
+
+async function pollAlertsOnce() {
+  _lastPollAt = new Date().toISOString();
+  if (_alerts.size === 0) return;
+  const now = Date.now();
+  let polled = 0;
+  let fired = 0;
+  for (const record of _alerts.values()) {
+    if (record.enabled === false) continue;
+    if (typeof record.lat !== 'number' || typeof record.lon !== 'number') continue;
+    polled++;
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast`
+        + `?latitude=${record.lat}&longitude=${record.lon}`
+        + `&daily=temperature_2m_max,precipitation_sum,wind_speed_10m_max,snowfall_sum`
+        + `&timezone=auto&forecast_days=10`
+        + `&temperature_unit=celsius&wind_speed_unit=mph`;
+      const { status, json } = await fetchJson(url);
+      if (status !== 200 || !json?.daily) continue;
+
+      const score = scoreWeekendDays(json.daily, record.sport);
+      record.lastChecked = new Date().toISOString();
+      record.lastScore = score;
+      if (score === null) continue;
+
+      const target = typeof record.targetScore === 'number' ? record.targetScore : 85;
+      const sinceFired = record.lastFiredAt
+        ? now - new Date(record.lastFiredAt).getTime()
+        : Infinity;
+
+      if (score >= target && sinceFired > FIRE_COOLDOWN_MS) {
+        record.fired = true;
+        record.lastFiredAt = new Date().toISOString();
+        fired++;
+        await dispatchPush(record, score);
+      }
+    } catch (err) {
+      console.warn(`[poll] alert ${record.alertId} fetch failed:`, err.message);
+    }
+  }
+  if (polled) console.log(`[poll] checked ${polled} alerts, fired ${fired}`);
+}
+
+setInterval(() => {
+  pollAlertsOnce().catch(err => console.error('[poll] uncaught:', err.message));
+}, POLL_INTERVAL_MS);
+// First poll 60s after startup so a fresh deploy doesn't wait a full window.
+setTimeout(() => {
+  pollAlertsOnce().catch(err => console.error('[poll] startup uncaught:', err.message));
+}, 60 * 1000);
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, '127.0.0.1', () => {
