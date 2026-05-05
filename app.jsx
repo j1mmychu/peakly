@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504h";
+const PEAKLY_BUILD = "20260505a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -879,19 +879,21 @@ _wxCacheCleanup();
 const FLIGHT_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const FLIGHT_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
 
-function _flightCacheGet(origin, dest) {
+function _flightCacheGet(origin, dest, scope = "") {
+  const k = `peakly_flights_${origin}_${dest}${scope ? `_${scope}` : ""}`;
   try {
-    const raw = localStorage.getItem(`peakly_flights_${origin}_${dest}`);
+    const raw = localStorage.getItem(k);
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(`peakly_flights_${origin}_${dest}`); return null; }
+    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(k); return null; }
     return data;
   } catch { return null; }
 }
 
-function _flightCacheSet(origin, dest, data) {
+function _flightCacheSet(origin, dest, data, scope = "") {
+  const k = `peakly_flights_${origin}_${dest}${scope ? `_${scope}` : ""}`;
   try {
-    localStorage.setItem(`peakly_flights_${origin}_${dest}`, JSON.stringify({ data, ts: Date.now() }));
+    localStorage.setItem(k, JSON.stringify({ data, ts: Date.now() }));
   } catch {} // ignore QuotaExceededError
 }
 
@@ -1428,11 +1430,22 @@ function _flightRelease() {
   else { _flightSem.count = Math.max(0, _flightSem.count - 1); }
 }
 
-// Returns price number or null — caller falls back to BASE_PRICES estimate
-// Includes retry with exponential backoff (up to 2 retries)
-// Checks localStorage cache (15-min TTL) before hitting the API
-async function fetchTravelpayoutsPrice(origin, destination) {
-  const cached = _flightCacheGet(origin, destination);
+// Returns { price, foundAt, matched } or null — caller falls back to BASE_PRICES estimate.
+// `matched` is true only when the response contained a price for the exact
+// requested depart date (and return date if specified). When false, the price
+// is the cheapest day in the month — useful as context but not a weekend fare,
+// so callers should treat it as an estimate (no "deal" claim).
+//
+// opts.departDate / opts.returnDate (YYYY-MM-DD) request a specific weekend.
+// Without them, behaves like the old call: cheapest day in the current month.
+//
+// Includes retry with exponential backoff (up to 2 retries).
+// Cache scoped per departDate so different weekend lookups don't collide.
+async function fetchTravelpayoutsPrice(origin, destination, opts = {}) {
+  const { departDate = null, returnDate = null } = opts;
+  const scope = departDate ? `${departDate}${returnDate ? `_${returnDate}` : ""}` : "";
+
+  const cached = _flightCacheGet(origin, destination, scope);
   if (cached !== null) return cached;
 
   await _flightAcquire();
@@ -1444,7 +1457,9 @@ async function fetchTravelpayoutsPrice(origin, destination) {
 
         const url = `${FLIGHT_PROXY}/api/flights`
           + `?origin=${encodeURIComponent(origin)}`
-          + `&destination=${encodeURIComponent(destination)}`;
+          + `&destination=${encodeURIComponent(destination)}`
+          + (departDate ? `&depart_date=${encodeURIComponent(departDate)}` : "")
+          + (returnDate ? `&return_date=${encodeURIComponent(returnDate)}` : "");
 
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
@@ -1466,13 +1481,30 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const destData = json.data?.[destination];
         if (!destData) return null;
 
-        const entries = Object.values(destData)
-          .filter(d => typeof d.price === "number" && d.price > 0);
+        // Prefer an exact depart-date match when caller asked for one.
+        // (Server keys daily; old server keys monthly — exact lookup just
+        // misses on old servers, which falls through to cheapest.)
+        let chosen = null;
+        let matched = false;
+        if (departDate && destData[departDate] && typeof destData[departDate].price === "number") {
+          chosen = destData[departDate];
+          // Match only counts when return also lines up (or wasn't requested).
+          matched = !returnDate || chosen.return_date === returnDate;
+        }
+        if (!chosen) {
+          const entries = Object.values(destData)
+            .filter(d => typeof d.price === "number" && d.price > 0);
+          if (entries.length === 0) return null;
+          chosen = entries.reduce((a, b) => a.price <= b.price ? a : b);
+          matched = false;
+        }
 
-        if (entries.length === 0) return null;
-        const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
-        const result = { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
-        _flightCacheSet(origin, destination, result);
+        const result = {
+          price: Math.round(chosen.price),
+          foundAt: chosen.found_at || new Date().toISOString(),
+          matched,
+        };
+        _flightCacheSet(origin, destination, result, scope);
         return result;
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
@@ -7456,6 +7488,23 @@ function App() {
     let alive = true;
     setFlightsLoading(true);
     (async () => {
+      // Compute Fri–Mon weekend dates ONCE so every airport fetch asks for the
+      // same window. Without this we'd be pricing month-cheapest random
+      // Tuesday red-eyes against a typical-pair baseline — exactly the bug
+      // CLAUDE.md flagged as P0 #6.
+      const today = new Date();
+      const wkIdx = weekendDayIndices(today);
+      const fmtLocal = (offset) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() + offset);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      };
+      const departDate = wkIdx.length ? fmtLocal(Math.min(...wkIdx)) : null;
+      const returnDate = wkIdx.length ? fmtLocal(Math.max(...wkIdx)) : null;
+
       // 1. Build a map of unique airport codes → venue IDs that use them
       const apToVenues = {};
       VENUES.forEach(v => {
@@ -7491,7 +7540,7 @@ function App() {
           const results = await Promise.allSettled(
             batch.flatMap(ap =>
               origins.map(async origin => {
-                const result = await fetchTravelpayoutsPrice(origin, ap);
+                const result = await fetchTravelpayoutsPrice(origin, ap, { departDate, returnDate });
                 return { ap, result };
               })
             )
@@ -7543,13 +7592,20 @@ function App() {
     const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
     const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const duffelData = duffelPrices[v.id];
+    // Only flag `live: true` when the API returned a price for the actual
+    // Fri–Mon weekend (matched === true). Month-cheapest fallbacks render as
+    // estimates so deal labels don't get to claim a Tuesday red-eye is a
+    // weekend deal. matched === undefined => old-server response shape, fall
+    // back to legacy "any TP price counts as live" behavior so revenue keeps
+    // flowing while the proxy is being deployed.
+    const liveFlight = duffelData != null && (duffelData.matched === true || duffelData.matched === undefined);
     const flight     = duffelData != null
       ? {
           price:   duffelData.price,
           normal:  estimate.normal,
-          pct:     Math.max(0, Math.round((1 - duffelData.price / estimate.normal) * 100)),
+          pct:     liveFlight ? Math.max(0, Math.round((1 - duffelData.price / estimate.normal) * 100)) : 0,
           from:    profile.homeAirport || "JFK",
-          live:    true,
+          live:    liveFlight,
           foundAt: duffelData.foundAt || null,
           depDate: filters.startDate || null,
           retDate: filters.endDate   || null,
