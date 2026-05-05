@@ -14,7 +14,29 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504b";
+const PEAKLY_BUILD = "20260504c";
+
+// ─── Cloud sync (Supabase) ────────────────────────────────────────────────────
+// Keep these constants empty until Jack creates the Supabase project and
+// shares the URL + anon public key. Cloud-sync UI auto-hides when SUPABASE_URL
+// is empty — existing users see no change. To activate: paste real values.
+// Anon key is public-safe — Row-Level Security on the user_data table is the
+// gate. See ~/.claude/plans/effervescent-jumping-hopper.md for setup runbook.
+const SUPABASE_URL      = ""; // e.g. "https://xxxxxxx.supabase.co"
+const SUPABASE_ANON_KEY = ""; // e.g. "eyJhbGciOi..." (anon public key)
+const CLOUD_SYNC_ENABLED = !!(SUPABASE_URL && SUPABASE_ANON_KEY && typeof supabase !== "undefined" && supabase.createClient);
+const _supabase = CLOUD_SYNC_ENABLED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    detectSessionInUrl: true,    // auto-parse access_token from magic-link fragment
+    flowType: "implicit",         // simpler for no-build SPAs
+    persistSession: true,         // keeps user signed in across visits via localStorage
+    autoRefreshToken: true,       // refresh JWT before it expires
+  },
+}) : null;
+
+// User-valuable localStorage keys that cloud-sync mirrors. Caches, error logs,
+// device-specific UI flags stay local.
+const SYNCED_KEYS = ["peakly_wishlists", "peakly_named_lists", "peakly_alerts", "peakly_trips", "peakly_profile"];
 
 // Auto-reload once when a new service worker takes control. Without this, the
 // first visit after a deploy serves OLD content from the OLD SW (classic SW
@@ -1851,10 +1873,188 @@ function useLocalStorage(key, initial) {
     setVal(prev => {
       const next = typeof v === "function" ? v(prev) : v;
       try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+      // Notify cloud-sync hook (if any) that a synced key changed. Caches +
+      // device-specific keys are not in SYNCED_KEYS so they don't trigger.
+      if (SYNCED_KEYS.includes(key)) {
+        try { window.dispatchEvent(new CustomEvent("peakly-sync-dirty", { detail: { key } })); } catch {}
+      }
       return next;
     });
   }, [key]);
   return [val, save];
+}
+
+// ─── useCloudSync — magic-link auth + debounced background sync ───────────────
+// Returns: { enabled, status, user, signIn(email), signOut(), syncNow() }
+//   status: "disabled" | "offline" | "signed_out" | "checking_email"
+//         | "syncing" | "synced" | "error"
+// When enabled and signed-in: pushes the SYNCED_KEYS subset of localStorage
+// to user_data.data on any write (500ms debounce). On sign-in / app open,
+// pulls server state if newer than local lastSync. Last-writer-wins.
+function useCloudSync() {
+  const [user, setUser]         = useState(null);
+  const [status, setStatus]     = useState(CLOUD_SYNC_ENABLED ? "signed_out" : "disabled");
+  const dirtyRef                = useRef(false);
+  const debounceRef             = useRef(null);
+  const inFlightRef             = useRef(false);
+
+  // Read current local snapshot of SYNCED_KEYS as { key: parsed-value }
+  const readLocal = useCallback(() => {
+    const out = {};
+    for (const k of SYNCED_KEYS) {
+      try { const raw = localStorage.getItem(k); if (raw) out[k] = JSON.parse(raw); } catch {}
+    }
+    return out;
+  }, []);
+
+  // Overwrite local storage with a server snapshot, then fire storage events
+  // so React useLocalStorage hooks pick up the new values on next mount/render.
+  // (Note: existing components don't auto-react to localStorage changes from
+  // outside; the cleanest signal is to reload, but we avoid that for UX.)
+  const writeLocal = useCallback((blob) => {
+    if (!blob || typeof blob !== "object") return;
+    for (const k of SYNCED_KEYS) {
+      if (blob[k] !== undefined) {
+        try { localStorage.setItem(k, JSON.stringify(blob[k])); } catch {}
+      }
+    }
+    try { localStorage.setItem("peakly_last_sync", String(Date.now())); } catch {}
+    // Hint to the rest of the app that synced state changed (any tab with a
+    // useLocalStorage on these keys can re-read on storage event)
+    try { window.dispatchEvent(new Event("peakly-sync-pulled")); } catch {}
+  }, []);
+
+  const pushNow = useCallback(async () => {
+    if (!CLOUD_SYNC_ENABLED || !user || inFlightRef.current) return;
+    inFlightRef.current = true;
+    setStatus("syncing");
+    const data = readLocal();
+    try {
+      const { error } = await _supabase
+        .from("user_data")
+        .upsert({ user_id: user.id, email: user.email, data, updated_at: new Date().toISOString() });
+      if (error) throw error;
+      try { localStorage.setItem("peakly_last_sync", String(Date.now())); } catch {}
+      dirtyRef.current = false;
+      setStatus("synced");
+    } catch (e) {
+      logEvent("cloud_sync_error", { stage: "push", message: String(e?.message || e) });
+      setStatus("error");
+    } finally {
+      inFlightRef.current = false;
+    }
+  }, [user, readLocal]);
+
+  const pullNow = useCallback(async () => {
+    if (!CLOUD_SYNC_ENABLED || !user) return;
+    setStatus("syncing");
+    try {
+      const { data: row, error } = await _supabase
+        .from("user_data")
+        .select("data, updated_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (row && row.data) {
+        const lastSync = parseInt(localStorage.getItem("peakly_last_sync") || "0", 10);
+        const serverTs = new Date(row.updated_at).getTime();
+        if (serverTs > lastSync) {
+          writeLocal(row.data);
+        }
+      } else {
+        // No server row yet — first-time signed-in. Push local up.
+        await pushNow();
+        return;
+      }
+      setStatus("synced");
+    } catch (e) {
+      logEvent("cloud_sync_error", { stage: "pull", message: String(e?.message || e) });
+      setStatus("error");
+    }
+  }, [user, writeLocal, pushNow]);
+
+  // Listen for synced-key writes; debounce push by 500ms.
+  useEffect(() => {
+    if (!CLOUD_SYNC_ENABLED) return;
+    const onDirty = () => {
+      dirtyRef.current = true;
+      if (!user) return;                 // queued for after sign-in
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => { pushNow(); }, 500);
+    };
+    window.addEventListener("peakly-sync-dirty", onDirty);
+    return () => {
+      window.removeEventListener("peakly-sync-dirty", onDirty);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [user, pushNow]);
+
+  // On mount: restore any existing session, then on auth changes, set user.
+  useEffect(() => {
+    if (!CLOUD_SYNC_ENABLED) return;
+    let unsub = null;
+    (async () => {
+      try {
+        const { data } = await _supabase.auth.getSession();
+        if (data?.session?.user) setUser(data.session.user);
+      } catch {}
+      const { data: sub } = _supabase.auth.onAuthStateChange((_evt, session) => {
+        setUser(session?.user || null);
+        if (!session) setStatus("signed_out");
+      });
+      unsub = sub?.subscription?.unsubscribe;
+    })();
+    return () => { try { unsub && unsub(); } catch {} };
+  }, []);
+
+  // When user changes (sign-in / sign-out), pull on sign-in; reset on sign-out.
+  useEffect(() => {
+    if (!CLOUD_SYNC_ENABLED) return;
+    if (!user) return;
+    pullNow();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Online/offline status
+  useEffect(() => {
+    if (!CLOUD_SYNC_ENABLED) return;
+    const onOff = () => setStatus("offline");
+    const onOn  = () => { if (user) pushNow(); };
+    window.addEventListener("offline", onOff);
+    window.addEventListener("online", onOn);
+    return () => {
+      window.removeEventListener("offline", onOff);
+      window.removeEventListener("online", onOn);
+    };
+  }, [user, pushNow]);
+
+  const signIn = useCallback(async (email) => {
+    if (!CLOUD_SYNC_ENABLED) return { ok: false, error: "Cloud sync disabled" };
+    if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid email" };
+    setStatus("syncing");
+    try {
+      const { error } = await _supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + "/peakly/" },
+      });
+      if (error) throw error;
+      setStatus("checking_email");
+      logEvent("cloud_sync", { stage: "magic_link_sent" });
+      return { ok: true };
+    } catch (e) {
+      setStatus("error");
+      logEvent("cloud_sync_error", { stage: "sign_in", message: String(e?.message || e) });
+      return { ok: false, error: String(e?.message || e) };
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    if (!CLOUD_SYNC_ENABLED) return;
+    try { await _supabase.auth.signOut(); } catch {}
+    setUser(null);
+    setStatus("signed_out");
+  }, []);
+
+  return { enabled: CLOUD_SYNC_ENABLED, status, user, signIn, signOut, syncNow: pushNow };
 }
 
 // ─── Analytics helper ─────────────────────────────────────────────────────────
@@ -3092,7 +3292,96 @@ function InstallNudge({ wishlistCount }) {
   );
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh }) {
+// Tiny pill showing cloud-sync status. Hidden when sync is disabled
+// (placeholder constants) so existing users see no change.
+function SyncStatusPill({ cloudSync }) {
+  if (!cloudSync || !cloudSync.enabled) return null;
+  const map = {
+    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not synced" },
+    checking_email: { color:"#a16207",  bg:"#fef3c7", label:"Check email" },
+    syncing:        { color:"#0284c7",  bg:"#e0f2fe", label:"Syncing…" },
+    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Synced ✓" },
+    offline:        { color:"#888",     bg:"#f5f5f5", label:"Offline" },
+    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sync error" },
+  };
+  const m = map[cloudSync.status] || map.signed_out;
+  return (
+    <span style={{ fontSize:9, color:m.color, fontFamily:F, background:m.bg, padding:"2px 6px", borderRadius:4, fontWeight:700 }}>
+      {m.label}
+    </span>
+  );
+}
+
+// "Sync your data" section in Profile — sign-in (magic link) + sign-out + status.
+// Auto-hides when cloud sync is disabled at config time.
+function ProfileSyncSection({ cloudSync, profile }) {
+  if (!cloudSync || !cloudSync.enabled) return null;
+  const [email, setEmail]       = useState(profile?.email || "");
+  const [feedback, setFeedback] = useState("");
+  const [busy, setBusy]         = useState(false);
+  useEffect(() => {
+    if (cloudSync.status === "checking_email") setFeedback("Check your email — we sent a magic link to sign in.");
+    else if (cloudSync.status === "synced")    setFeedback("");
+    else if (cloudSync.status === "error")     setFeedback("Something went wrong. Try again or check your email.");
+  }, [cloudSync.status]);
+  const send = async () => {
+    setBusy(true); setFeedback("");
+    const r = await cloudSync.signIn(email.trim());
+    setBusy(false);
+    if (!r.ok) setFeedback(r.error || "Sign-in failed.");
+  };
+  const out = async () => { await cloudSync.signOut(); setFeedback(""); };
+
+  return (
+    <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+        <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase" }}>
+          Sync your data
+        </div>
+        <SyncStatusPill cloudSync={cloudSync} />
+      </div>
+      {cloudSync.user ? (
+        <>
+          <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10 }}>
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Wishlists, alerts, trips and profile sync automatically.
+          </div>
+          <button className="pressable" onClick={out} style={{
+            background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
+            padding:"9px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer",
+          }}>Sign out (data stays on this device)</button>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10, lineHeight:1.45 }}>
+            Sign in with email to sync your wishlists across devices and recover them if you clear your browser. We send a one-tap link — no password.
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <input
+              type="email" value={email} placeholder="you@email.com"
+              onChange={e => setEmail(e.target.value)} disabled={busy}
+              style={{
+                flex:1, padding:"10px 12px", borderRadius:10,
+                border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222",
+              }}
+            />
+            <button className="pressable" onClick={send} disabled={busy || !email.includes("@")} style={{
+              background:"#222", color:"#fff", border:"none", borderRadius:10,
+              padding:"10px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
+              opacity: (busy || !email.includes("@")) ? 0.5 : 1,
+            }}>{busy ? "Sending…" : "Send link"}</button>
+          </div>
+        </>
+      )}
+      {feedback && (
+        <div style={{ marginTop:10, fontSize:11, color: cloudSync.status === "error" ? "#ef4444" : "#0284c7", fontFamily:F }}>
+          {feedback}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
@@ -3450,9 +3739,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           );
         })()}
 
-        {/* ── Last updated + data freshness ── */}
+        {/* ── Last updated + data freshness + cloud-sync status ── */}
         {timeAgo && !loading && (
           <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end", gap:8, alignItems:"center" }}>
+            <SyncStatusPill cloudSync={cloudSync} />
             {getFlightApiStatus() === "down" && (
               <span style={{ fontSize:9, color:"#f59e0b", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices — live API offline</span>
             )}
@@ -4196,7 +4486,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
+function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle, cloudSync }) {
   const [airportQuery,      setAirportQuery]      = useState("");
   const [airportFocused,    setAirportFocused]    = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -4722,6 +5012,9 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           </div>
           <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
         </div>
+
+        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
+        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
 
         {/* ── Install Peakly (only when prompt is captured) ── */}
         {canInstallPwa && (
@@ -6674,6 +6967,9 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
+  // Cloud sync — single instance lifted to App so Profile + Explore share state
+  const cloudSync = useCloudSync();
+
   // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
@@ -7130,6 +7426,7 @@ function App() {
               namedLists={namedLists} setNamedLists={setNamedLists}
               wxLastUpdated={wxLastUpdated} profile={profile}
               onRefresh={() => fetchAllWeather(false)}
+              cloudSync={cloudSync}
             />
           )}
           {activeTab === "alerts" && (
@@ -7150,6 +7447,7 @@ function App() {
               listings={listings} onOpenDetail={openDetail}
               namedLists={namedLists} setNamedLists={setNamedLists}
               onToggle={toggleWishlist}
+              cloudSync={cloudSync}
             />
           )}
         </div>
