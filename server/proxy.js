@@ -98,21 +98,34 @@ function currentMonthParam() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
-// ─── IATA validation ──────────────────────────────────────────────────────────
+// ─── IATA / date validation ───────────────────────────────────────────────────
 const IATA_RE = /^[A-Z]{3}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
 // Calls Travelpayouts v2/prices/month-matrix
-// Query params: origin (IATA), destination (IATA)
-// Response: { success, data: { [destination]: { [YYYY-MM]: { price } } }, found_at }
+// Query params:
+//   origin (IATA), destination (IATA),
+//   depart_date? (YYYY-MM-DD) — picks the month to query upstream
+//   return_date? (YYYY-MM-DD) — preferred return when multiple options exist
+// Response: { success, data: { [destination]: { [YYYY-MM-DD]: { price, return_date, found_at } } }, found_at }
+// Daily granularity preserved so the client can look up a specific Fri–Mon
+// weekend pair instead of getting month-cheapest masquerading as a weekend price.
 app.get('/api/flights', async (req, res) => {
-  const { origin, destination } = req.query;
+  const { origin, destination, depart_date, return_date } = req.query;
 
   if (!IATA_RE.test(origin || '') || !IATA_RE.test(destination || '')) {
     return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter IATA codes' });
   }
+  if (depart_date && !DATE_RE.test(depart_date)) {
+    return res.status(400).json({ success: false, error: 'depart_date must be YYYY-MM-DD' });
+  }
+  if (return_date && !DATE_RE.test(return_date)) {
+    return res.status(400).json({ success: false, error: 'return_date must be YYYY-MM-DD' });
+  }
 
-  const month = currentMonthParam();
+  // When depart_date is given, query that month upstream so daily prices line up.
+  const month = depart_date ? `${depart_date.slice(0, 7)}-01` : currentMonthParam();
   const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
     + `?origin=${encodeURIComponent(origin)}`
     + `&destination=${encodeURIComponent(destination)}`
@@ -134,21 +147,33 @@ app.get('/api/flights', async (req, res) => {
       return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
     }
 
-    // Reshape: array of day prices → { [destination]: { [YYYY-MM]: { price } } }
+    // Reshape: keep daily granularity. Per (depart_date), keep one entry —
+    // prefer one whose return_date matches the requested return, else cheapest.
     const prices = Array.isArray(json.data) ? json.data : [];
-    const byMonth = {};
+    const byDate = {};
     for (const entry of prices) {
       if (typeof entry.price !== 'number' || entry.price <= 0) continue;
-      const dateKey = (entry.depart_date || entry.found_at || '').slice(0, 7); // YYYY-MM
-      if (!dateKey) continue;
-      if (!byMonth[dateKey] || entry.price < byMonth[dateKey].price) {
-        byMonth[dateKey] = { price: entry.price, depart_date: entry.depart_date };
+      const key = entry.depart_date;
+      if (!key || !DATE_RE.test(key)) continue;
+      const existing = byDate[key];
+      const wantedRetMatch = return_date && entry.return_date === return_date;
+      const existingRetMatch = return_date && existing?.return_date === return_date;
+      const better =
+        !existing
+        || (wantedRetMatch && !existingRetMatch)
+        || (wantedRetMatch === existingRetMatch && entry.price < existing.price);
+      if (better) {
+        byDate[key] = {
+          price: entry.price,
+          return_date: entry.return_date || null,
+          found_at: entry.found_at || null,
+        };
       }
     }
 
     return res.json({
       success: true,
-      data: { [destination]: byMonth },
+      data: { [destination]: byDate },
       found_at: new Date().toISOString(),
     });
   } catch (err) {

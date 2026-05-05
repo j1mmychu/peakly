@@ -138,7 +138,7 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-05-04)
+## Current State (2026-05-05)
 
 ### What's Broken / Open (Priority Order)
 
@@ -147,11 +147,21 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
 4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04** — Cervinia + Val d'Isere s16 carry the flag (app.jsx:412, :486). Note: 7 of the venues called out in PM report (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
 5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
-6. **Travelpayouts weekend-specific dates not wired** (NEW P0, vision phase 4) — `fetchTravelpayoutsPrice` returns month-cheapest, not Fri–Mon weekend price. Server `proxy.js` doesn't accept `depart_date`/`return_date`. Needs server change + VPS redeploy on 198.199.80.21. Without this, "deal" labels compare a fare for some random Tuesday red-eye to a typical-pair baseline.
-7. **Open-Meteo weather cache still unbuilt** (P0 pre-spike) — blocks Reddit launch (May 10/15 deadline called out).
+6. ~~**Travelpayouts weekend-specific dates not wired** (NEW P0, vision phase 4)~~ **DONE 2026-05-05 (client + proxy code)** — `fetchTravelpayoutsPrice(origin, dest, {departDate, returnDate})` now passes Fri–Mon dates; proxy preserves daily granularity and accepts `depart_date`/`return_date` query params. App-level effect computes weekend window once via `weekendDayIndices` and threads dates into every airport fetch. Result carries `matched: true` only on exact-date hits; UI renders non-matches as `~$X` estimates so deal labels can't claim a Tuesday red-eye as a weekend deal. **Still pending: VPS redeploy** of `server/proxy.js` on 198.199.80.21 — until then old proxy returns month-keyed shape, client falls back to legacy "any TP price counts" behavior so revenue keeps flowing during the deploy window.
+7. ~~**Open-Meteo weather cache still unbuilt** (P0 pre-spike)~~ **STALE FINDING (2026-05-05)** — actually wired. `fetchWeather` and `fetchMarine` (app.jsx:915, :951) check `_wxCacheGet` first and `_wxCacheSet` on success; `_wxCacheCleanup()` runs at module load. 2hr TTL, 6hr hard eviction. CLAUDE.md was carrying an outdated finding from before the cache landed.
 8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
 9. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-05 — weekend-specific Travelpayouts pricing)
+
+- ✅ **`fetchTravelpayoutsPrice` accepts `{departDate, returnDate}`** (app.jsx:1434) — caller asks for an exact Fri–Mon weekend; result carries `matched: true` only when API returned a price for that depart date (and return date if specified). Cache scoped per departDate (`peakly_flights_<o>_<d>_<YYYY-MM-DD>`) so different weekend lookups don't collide. Backwards compatible: opts-less callers get legacy month-cheapest behavior.
+- ✅ **Proxy `/api/flights` preserves daily granularity** (server/proxy.js:104) — was bucketing month-matrix entries to one-cheapest-per-month, throwing away `return_date` and date-level prices. Now keys response by `depart_date` (YYYY-MM-DD) and prefers entries whose `return_date` matches the requested return when specified. Accepts optional `depart_date` query param to pick the right upstream month. Old clients still work — they iterate `Object.values` for cheapest, which now reduces over daily entries (same outcome).
+- ✅ **App effect threads weekend dates into every fetch** (app.jsx:7493) — computes Fri–Mon dates once via `weekendDayIndices(today)` + local-tz formatter (avoids `toISOString` UTC drift at day boundaries), passes them into every `fetchTravelpayoutsPrice` call.
+- ✅ **`flight.live` honesty gate** (app.jsx:7560) — `live: true` only when `duffelData.matched === true`. Non-matches render as `~$X` estimates so `scoreWeekendDeal`'s deal-label gates don't fire on a non-weekend price. `matched === undefined` (old proxy response shape) falls back to legacy live=true so revenue keeps flowing during the deploy window.
+- ⏳ **Server deploy still pending** — VPS redeploy on 198.199.80.21 needed for the daily-keyed response. Until then, client always misses the exact-date lookup → falls through to cheapest, marks `live: false` only when the new key shape is detected. Net effect today: same as before; net effect after deploy: real Fri–Mon prices.
+- ✅ Stale CLAUDE.md finding cleared: weather cache was already wired (app.jsx:915 `_wxCacheGet`/`_wxCacheSet`); P0 #7 demoted to "stale finding."
+- ✅ Cache key + build stamp 20260504h → 20260505a.
 
 ### Recently Fixed (2026-05-04 PM — deal-algorithm honesty pass)
 
