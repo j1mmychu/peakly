@@ -22,7 +22,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260414b, push + caching)
+├── sw.js                    # Service worker (peakly-20260504b, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -138,21 +138,39 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-05-03)
+## Current State (2026-05-04)
 
 ### What's Broken / Open (Priority Order)
 
 1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
-2. **Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).
-3. **Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.
-4. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
-5. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
-6. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+2. ~~**Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).~~ **DONE 2026-05-04** — Revenue agent flipped to `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704; merged via a9aacf5. Day-25 finding finally closed.
+3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
+4. **`lateSeason: true` flag never wired up on any ski venue** (NEW P1, 2026-05-04 PM report) — Mammoth/Whistler/Tignes/Chamonix/Zermatt scoring 8 off-season despite being open. Flag exists in scoreVenue, no venue carries it.
+5. **Active venue duplicates** (P1, 2026-05-04 PM report) — siargao, snappers-gold-coast-s26, banzai_pipeline, fernando-de-noronha-s20, aruba-eagle-beach-t1.
+6. **Open-Meteo weather cache still unbuilt** (P0 pre-spike) — blocks Reddit launch (May 10/15 deadline called out).
+7. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
+8. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
+9. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 
-### Recently Fixed (2026-05-03 — repo cleanup)
+### Recently Fixed (2026-05-04 — top-3 audit fixes + gear gate + seasonal default)
 
-- ✅ **18 days of working-tree drift cleared** — committed proxy.js dedupe (removed dead duplicate `/api/waitlist` handler at HEAD line 335; canonical handler is line ~312) + 5 untracked agent reports (devops/pm/revenue/ux 5/3, devops 5/1).
-- ✅ **Reports archived** — 73 files older than 7 days moved to `reports/archive/` per the >7d rule. `reports/` now contains only the active recent files.
+- ✅ **B.1 Estimate prices labeled with `~`** (commit 3bbe88e) — 8 card-render sites updated. When `flight.live === false`, price renders as `~$X` instead of `$X`. Trust signal so users don't think estimates are real fares.
+- ✅ **B.2 Front-page carousel never goes blank** (commit 3bbe88e) — `bestRightNowFallback` softer floor (weekendScore >= 65, allows low confidence). When primary set has <3 venues, falls back automatically with "Looking ahead" header.
+- ✅ **B.3 PWA install nudge after positive engagement** (commit 3bbe88e) — captured `beforeinstallprompt`, exposed via `useInstallPrompt()` hook. `<InstallNudge>` banner on Explore (shows when ≥2 wishlists saved) + "📲 Install Peakly" button on Profile. iOS Safari auto-hides. Plausible logging: `install_pwa` event.
+- ✅ **Amazon gear gate FLIPPED** (commit a9aacf5) — `{false && GEAR_ITEMS...}` → `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704 (was 5682 in flat code). Day-25 finding from Revenue agent. ~$11/mo/1K MAU unlocked (Amazon Associates `peakly-20`). The findings-to-fix loop officially worked.
+- ✅ **Seasonal-default category** (commit 84f5e30) — new `seasonalDefaultCat(homeAirport)` helper at app.jsx:1652. N. hemisphere: May–Aug → Beach, Nov–Apr → Skiing, Sep–Oct → All. S. hemisphere inverse. App opens to the right pill instead of "All" in peak beach season. Not persisted (always re-applies).
+- ✅ **DevOps 5/4 cache busts + cleanup** (commit 47f12e1) — cache-buster bumped 20260502a → 20260504a (index.html). SW CACHE_NAME bumped peakly-20260503c → peakly-20260504. PRECACHE regression cleared `["/peakly/app.jsx"]` → `[]` (sw.js). PEAKLY_BUILD bumped to 20260504a. 8 stale reports archived.
+- ✅ Cache key + build stamp now at peakly-20260504b / 20260504b after 3bbe88e.
+
+### Recently Fixed (2026-05-03 — pivot + distance filter + surf-leak defense)
+
+- ✅ **Pivot to weekend-spontaneity** (commit bb56aaf) — killed all 77 surfing venues, renamed tanning → beach (102+ sites + 8 unquoted keys), one-shot useLocalStorage migration for existing users with `category: "tanning"`. Marked 5 known late-season ski venues with `lateSeason: true`. Added optional `poolPrimary: true` field. Deleted 136-line surfing case + all surf-specific marine extraction. Beach water-temp HARD CAP at 18°C. Off-season ski binary RELAXED for `lateSeason` venues. NEW `scoreWeekend(venue, wx, marine, today)` front-page entry + `weekendDayIndices(today)` Fri–Mon window helper. Carousel title "Best Right Now" → "Firing this weekend"; floor weekendScore >= 75 AND confidence !== "low". `app.jsx` 7137 → 6984 lines.
+- ✅ **Block C — Within-Nhr-flight distance filter** (commit dc92123) — new `flightHours(originAp, destAp)` helper (haversine + 500mph cruise + 0.5h buffer) using AIRPORT_COORDS. SearchSheet UI adds "Max flight time" chips (Any / ≤4hr / ≤6hr / ≤8hr). Conditions score stays pure 0-100, distance is a filter — exception: `weekendScore >= 95` overrides the cap (perfect powder a continent away still surfaces). Active-filter chip + Clear All updated.
+- ✅ **Surf-leak defense in depth** (commit ce8e1db) — (A) SW auto-reload via `controllerchange` listener so users get fresh code without manual hard-refresh after deploys. (B) `useLocalStorage` migration extended: strips legacy `"surfing"` from arrays + rewrites standalone surfing values to `"skiing"`. (C) "Ski/Board" → "Skiing" in CATEGORIES + onboarding (the "Board" was reading as surfboard). (D) build stamp + cache key bump. Belt + suspenders: Profile sport-badge map + Alert row map both `.filter()` against CATEGORIES.
+- ✅ **Surf-removal stragglers** (commit 9d26e84) — onboarding copy, EMOJIS, swell condition labels, wave fields, marine API checks all cleaned up post-pivot.
+- ✅ **18 days of working-tree drift cleared** (commit 6e964e9) — committed proxy.js dedupe (removed dead duplicate `/api/waitlist` handler) + 5 untracked agent reports.
+- ✅ **Reports archived** (commit 6e964e9) — 73 files older than 7 days moved to `reports/archive/` per the >7d rule.
+- ✅ **Agent channels streamlined** (commit 35e60c2) — 24 remote stubs → 5 live; 14 local prompts → 6. New daily-briefing pipeline. Findings-to-fix loop appended to all 5 input prompts (sub-15-min fixes go to `reports/ready-to-ship/`; two-strikes rule → `reports/known-skipped.md`).
 
 ### Recently Fixed (2026-04-15 — proxy cleanup)
 
@@ -310,7 +328,7 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 | Backcountry / GetYourGuide | $0 | +$1.84 |
 | Peakly Pro | UI REMOVED 2026-04-16 — decision pending (kill or ship) | TBD |
 
-**Live RPM:** ~$7.50/1K MAU (3 of 6 streams earning). **With gear gate flipped + GYG partner_id:** ~$13.66 (+82%).
+**Live RPM:** ~$11.98/1K MAU (4 of 6 streams earning — gear gate flipped 2026-05-04, Amazon now active). **With GYG partner_id added:** ~$13.66 (+14%).
 
 ## Competitive Edge
 
@@ -333,7 +351,7 @@ See `CHANGELOG.md` for full competitive intel.
 **Phased roadmap:**
 1. Ship quality (NOW) — photos, polish, PWA, analytics, 1K users
 2. The Weekend Score — proprietary best-2-of-4 score across Fri–Mon with confidence badge (DONE 2026-05-03)
-3. Distance-aware filter — `Within 4hr flight` toggle so spontaneous trips stay actually spontaneous (NEXT)
+3. Distance-aware filter — `Within Nhr flight` toggle so spontaneous trips stay actually spontaneous (DONE 2026-05-03 — Block C, commit dc92123; ≥95 weekendScore overrides the cap)
 4. Live weekend pricing — query Travelpayouts with actual Fri–Mon dates instead of "from $X" historical avg
 5. Strike Missions — rare, opt-in, exceptional alignments push notifications
 6. Group coordination

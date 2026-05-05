@@ -14,25 +14,62 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504c";
+const PEAKLY_BUILD = "20260504f";
 
-// ─── Cloud sync (Supabase) ────────────────────────────────────────────────────
-// Keep these constants empty until Jack creates the Supabase project and
-// shares the URL + anon public key. Cloud-sync UI auto-hides when SUPABASE_URL
-// is empty — existing users see no change. To activate: paste real values.
-// Anon key is public-safe — Row-Level Security on the user_data table is the
-// gate. See ~/.claude/plans/effervescent-jumping-hopper.md for setup runbook.
-const SUPABASE_URL      = ""; // e.g. "https://xxxxxxx.supabase.co"
-const SUPABASE_ANON_KEY = ""; // e.g. "eyJhbGciOi..." (anon public key)
-const CLOUD_SYNC_ENABLED = !!(SUPABASE_URL && SUPABASE_ANON_KEY && typeof supabase !== "undefined" && supabase.createClient);
-const _supabase = CLOUD_SYNC_ENABLED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    detectSessionInUrl: true,    // auto-parse access_token from magic-link fragment
-    flowType: "implicit",         // simpler for no-build SPAs
-    persistSession: true,         // keeps user signed in across visits via localStorage
-    autoRefreshToken: true,       // refresh JWT before it expires
-  },
-}) : null;
+// ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
+// Sync is "configured" when both URL + anon key are set. The Supabase JS lib
+// itself loads LAZILY (not at first paint) — only when a returning user has a
+// saved session, a magic-link redirect needs handling, or the user taps "Sign
+// in" in Profile. Saves anonymous-visitor first-paint payload (~80KB).
+// Anon key is public-safe; Row-Level Security on user_data is the gate.
+const SUPABASE_URL      = "https://wsoqcfwkvvemtlddcgfc.supabase.co";
+const SUPABASE_ANON_KEY = ""; // PASTE the anon public key from Project Settings → API
+const CLOUD_SYNC_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+// Project ref → Supabase's localStorage session key. Used to detect existing
+// signed-in state without loading the full library.
+const _SUPABASE_PROJECT_REF = SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || "";
+const _SUPABASE_SESSION_KEY = _SUPABASE_PROJECT_REF ? `sb-${_SUPABASE_PROJECT_REF}-auth-token` : "";
+function _hasExistingSupabaseSession() {
+  if (!_SUPABASE_SESSION_KEY) return false;
+  try {
+    const v = localStorage.getItem(_SUPABASE_SESSION_KEY);
+    return !!v && v.includes("access_token");
+  } catch { return false; }
+}
+function _hasMagicLinkCallbackInUrl() {
+  return typeof window !== "undefined" && window.location.hash && window.location.hash.includes("access_token=");
+}
+
+// Lazy-load the Supabase JS UMD bundle. Returns a Promise that resolves to
+// the configured client (or null if not configured).
+let _supabase = null;
+let _supabaseLoadPromise = null;
+function ensureSupabase() {
+  if (!CLOUD_SYNC_CONFIGURED) return Promise.resolve(null);
+  if (_supabase) return Promise.resolve(_supabase);
+  if (_supabaseLoadPromise) return _supabaseLoadPromise;
+  _supabaseLoadPromise = new Promise((resolve, reject) => {
+    if (typeof supabase !== "undefined" && supabase.createClient) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load Supabase JS"));
+    document.head.appendChild(s);
+  }).then(() => {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        detectSessionInUrl: true,    // auto-parse access_token from magic-link fragment
+        flowType: "implicit",         // simpler for no-build SPAs
+        persistSession: true,         // keeps user signed in across visits
+        autoRefreshToken: true,       // refresh JWT before expiry
+      },
+    });
+    return _supabase;
+  });
+  return _supabaseLoadPromise;
+}
 
 // User-valuable localStorage keys that cloud-sync mirrors. Caches, error logs,
 // device-specific UI flags stay local.
@@ -409,7 +446,7 @@ const VENUES = [
   {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
   {id:"beach_gcm",      category:"beach",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
   {id:"beach_grace",    category:"beach",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
   {id:"beach_shoal",    category:"beach",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
@@ -483,7 +520,7 @@ const VENUES = [
   {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", lateSeason:true},
   {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"chamonix-mont-blanc-s18",category:"skiing",title:"Chamonix Mont-Blanc",location:"Haute-Savoie, France",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🏔️",rating:4.66,reviews:1477,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", lateSeason:true},
   {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZPC",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -497,7 +534,6 @@ const VENUES = [
   {id:"lech-zurs-s27",category:"skiing",title:"Lech Zürs",location:"Vorarlberg, Austria",lat:47.2083,lon:10.1444,ap:"INN",icon:"🏔️",rating:4.73,reviews:4718,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Expert Terrain","Off-Piste Powder","Arlberg Region","Luxury"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"cerro-castor-s28",category:"skiing",title:"Cerro Castor",location:"Tierra del Fuego, Argentina",lat:-54.7833,lon:-68.1167,ap:"USH",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"aruba-eagle-beach-t1",category:"beach",title:"Aruba Eagle Beach",location:"Aruba",lat:12.5617,lon:-70.0564,ap:"AUA",icon:"🏝️",rating:4.53,reviews:3660,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"agios-prokopios-t2",category:"beach",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"playa-de-la-concha-t3",category:"beach",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -525,6 +561,26 @@ const VENUES = [
   {id:"rendezvous-bay-t28",category:"beach",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"an-bang-beach-t29",category:"beach",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"}
 ];
+
+// Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
+// (id collisions in localStorage), break React keys in the grid, and double-
+// count in price/weather batches. Fail loudly so any agent or human editing
+// VENUES sees it immediately in the console — not days later via a P1 report.
+(() => {
+  const seen = new Set();
+  const dups = [];
+  for (const v of VENUES) {
+    if (!v?.id) { dups.push("(missing id)"); continue; }
+    if (seen.has(v.id)) dups.push(v.id);
+    else seen.add(v.id);
+  }
+  if (dups.length) {
+    console.warn(
+      `[Peakly] VENUES has ${dups.length} duplicate id${dups.length > 1 ? "s" : ""} — fix before shipping:`,
+      dups
+    );
+  }
+})();
 
 const US_AIRPORTS = [
   { code:"JFK", label:"New York",      flag:"🗽" },
@@ -1310,6 +1366,35 @@ function scoreWeekend(venue, wx, marine, todayDate) {
   return { score: Math.round(bestPairAvg), label, period, days: days_str, confidence };
 }
 
+// Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
+// prices only — estimates surface an "estimate" badge instead of a deal claim,
+// and "low" forecast confidence never produces a unified score (don't sell
+// certainty we don't have). Returns {score, conditions, priceRatio, isEstimate, label}.
+function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
+  const conditions = scoreWeekend(venue, wx, marine, today);
+  const isEstimate = !flight || flight.live !== true;
+  if (isEstimate || !flight?.price) {
+    return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
+  }
+  const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK");
+  const priceRatio = typicalPrice > 0 ? flight.price / typicalPrice : null;
+  if (conditions.confidence === "low" || priceRatio == null) {
+    return { score: null, conditions, priceRatio, isEstimate: false, label: null };
+  }
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const base = conditions.score * 0.65;
+  const priceBonus = clamp((1 - priceRatio) * 100, -15, 35) * 0.35;
+  let final = clamp(base + priceBonus, 0, 100);
+  if (conditions.confidence === "medium") final *= 0.92;
+  final = Math.round(final);
+  let label = null;
+  if      (final >= 88 && priceRatio <= 0.7)  label = "Rare alignment";
+  else if (final >= 78 && priceRatio <= 0.85) label = "Strong deal";
+  else if (final >= 70)                       label = "Solid weekend";
+  else if (final >= 60)                       label = "Worth a look";
+  return { score: final, conditions, priceRatio, isEstimate: false, label };
+}
+
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
 // API token lives server-side on the VPS — never exposed in client code
 const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
@@ -1893,12 +1978,11 @@ function useLocalStorage(key, initial) {
 // pulls server state if newer than local lastSync. Last-writer-wins.
 function useCloudSync() {
   const [user, setUser]         = useState(null);
-  const [status, setStatus]     = useState(CLOUD_SYNC_ENABLED ? "signed_out" : "disabled");
+  const [status, setStatus]     = useState(CLOUD_SYNC_CONFIGURED ? "signed_out" : "disabled");
   const dirtyRef                = useRef(false);
   const debounceRef             = useRef(null);
   const inFlightRef             = useRef(false);
 
-  // Read current local snapshot of SYNCED_KEYS as { key: parsed-value }
   const readLocal = useCallback(() => {
     const out = {};
     for (const k of SYNCED_KEYS) {
@@ -1907,10 +1991,6 @@ function useCloudSync() {
     return out;
   }, []);
 
-  // Overwrite local storage with a server snapshot, then fire storage events
-  // so React useLocalStorage hooks pick up the new values on next mount/render.
-  // (Note: existing components don't auto-react to localStorage changes from
-  // outside; the cleanest signal is to reload, but we avoid that for UX.)
   const writeLocal = useCallback((blob) => {
     if (!blob || typeof blob !== "object") return;
     for (const k of SYNCED_KEYS) {
@@ -1919,18 +1999,18 @@ function useCloudSync() {
       }
     }
     try { localStorage.setItem("peakly_last_sync", String(Date.now())); } catch {}
-    // Hint to the rest of the app that synced state changed (any tab with a
-    // useLocalStorage on these keys can re-read on storage event)
     try { window.dispatchEvent(new Event("peakly-sync-pulled")); } catch {}
   }, []);
 
   const pushNow = useCallback(async () => {
-    if (!CLOUD_SYNC_ENABLED || !user || inFlightRef.current) return;
+    if (!CLOUD_SYNC_CONFIGURED || !user || inFlightRef.current) return;
     inFlightRef.current = true;
     setStatus("syncing");
     const data = readLocal();
     try {
-      const { error } = await _supabase
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase not configured");
+      const { error } = await client
         .from("user_data")
         .upsert({ user_id: user.id, email: user.email, data, updated_at: new Date().toISOString() });
       if (error) throw error;
@@ -1946,10 +2026,12 @@ function useCloudSync() {
   }, [user, readLocal]);
 
   const pullNow = useCallback(async () => {
-    if (!CLOUD_SYNC_ENABLED || !user) return;
+    if (!CLOUD_SYNC_CONFIGURED || !user) return;
     setStatus("syncing");
     try {
-      const { data: row, error } = await _supabase
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase not configured");
+      const { data: row, error } = await client
         .from("user_data")
         .select("data, updated_at")
         .eq("user_id", user.id)
@@ -1958,11 +2040,8 @@ function useCloudSync() {
       if (row && row.data) {
         const lastSync = parseInt(localStorage.getItem("peakly_last_sync") || "0", 10);
         const serverTs = new Date(row.updated_at).getTime();
-        if (serverTs > lastSync) {
-          writeLocal(row.data);
-        }
+        if (serverTs > lastSync) writeLocal(row.data);
       } else {
-        // No server row yet — first-time signed-in. Push local up.
         await pushNow();
         return;
       }
@@ -1973,12 +2052,13 @@ function useCloudSync() {
     }
   }, [user, writeLocal, pushNow]);
 
-  // Listen for synced-key writes; debounce push by 500ms.
+  // Listen for synced-key writes; debounce push by 500ms (only meaningful
+  // once user is signed in; before that we just mark dirty for later push).
   useEffect(() => {
-    if (!CLOUD_SYNC_ENABLED) return;
+    if (!CLOUD_SYNC_CONFIGURED) return;
     const onDirty = () => {
       dirtyRef.current = true;
-      if (!user) return;                 // queued for after sign-in
+      if (!user) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => { pushNow(); }, 500);
     };
@@ -1989,34 +2069,40 @@ function useCloudSync() {
     };
   }, [user, pushNow]);
 
-  // On mount: restore any existing session, then on auth changes, set user.
+  // On mount: ONLY load Supabase if there's an existing session in localStorage
+  // OR a magic-link callback in the URL. Anonymous first-time visitors don't
+  // pay the bundle cost. ProfileSyncSection triggers ensureSupabase() on first
+  // user interaction (sign-in tap) for everyone else.
   useEffect(() => {
-    if (!CLOUD_SYNC_ENABLED) return;
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    if (!_hasExistingSupabaseSession() && !_hasMagicLinkCallbackInUrl()) return;
     let unsub = null;
     (async () => {
       try {
-        const { data } = await _supabase.auth.getSession();
+        const client = await ensureSupabase();
+        if (!client) return;
+        const { data } = await client.auth.getSession();
         if (data?.session?.user) setUser(data.session.user);
-      } catch {}
-      const { data: sub } = _supabase.auth.onAuthStateChange((_evt, session) => {
-        setUser(session?.user || null);
-        if (!session) setStatus("signed_out");
-      });
-      unsub = sub?.subscription?.unsubscribe;
+        const { data: sub } = client.auth.onAuthStateChange((_evt, session) => {
+          setUser(session?.user || null);
+          if (!session) setStatus("signed_out");
+        });
+        unsub = sub?.subscription?.unsubscribe;
+      } catch (e) {
+        logEvent("cloud_sync_error", { stage: "init", message: String(e?.message || e) });
+      }
     })();
     return () => { try { unsub && unsub(); } catch {} };
   }, []);
 
-  // When user changes (sign-in / sign-out), pull on sign-in; reset on sign-out.
   useEffect(() => {
-    if (!CLOUD_SYNC_ENABLED) return;
+    if (!CLOUD_SYNC_CONFIGURED) return;
     if (!user) return;
     pullNow();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Online/offline status
   useEffect(() => {
-    if (!CLOUD_SYNC_ENABLED) return;
+    if (!CLOUD_SYNC_CONFIGURED) return;
     const onOff = () => setStatus("offline");
     const onOn  = () => { if (user) pushNow(); };
     window.addEventListener("offline", onOff);
@@ -2028,11 +2114,24 @@ function useCloudSync() {
   }, [user, pushNow]);
 
   const signIn = useCallback(async (email) => {
-    if (!CLOUD_SYNC_ENABLED) return { ok: false, error: "Cloud sync disabled" };
+    if (!CLOUD_SYNC_CONFIGURED) return { ok: false, error: "Cloud sync disabled" };
     if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid email" };
     setStatus("syncing");
     try {
-      const { error } = await _supabase.auth.signInWithOtp({
+      // First sign-in attempt triggers the Supabase library load. After that
+      // the auth listener stays mounted for the rest of the session.
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase failed to load");
+      // If we hadn't attached onAuthStateChange yet (cold-start), do it now
+      // so the magic-link callback flips the user state.
+      if (!useCloudSync._authListenerAttached) {
+        client.auth.onAuthStateChange((_evt, session) => {
+          setUser(session?.user || null);
+          if (!session) setStatus("signed_out");
+        });
+        useCloudSync._authListenerAttached = true;
+      }
+      const { error } = await client.auth.signInWithOtp({
         email,
         options: { emailRedirectTo: window.location.origin + "/peakly/" },
       });
@@ -2048,13 +2147,16 @@ function useCloudSync() {
   }, []);
 
   const signOut = useCallback(async () => {
-    if (!CLOUD_SYNC_ENABLED) return;
-    try { await _supabase.auth.signOut(); } catch {}
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    try {
+      const client = await ensureSupabase();
+      if (client) await client.auth.signOut();
+    } catch {}
     setUser(null);
     setStatus("signed_out");
   }, []);
 
-  return { enabled: CLOUD_SYNC_ENABLED, status, user, signIn, signOut, syncNow: pushNow };
+  return { enabled: CLOUD_SYNC_CONFIGURED, status, user, signIn, signOut, syncNow: pushNow };
 }
 
 // ─── Analytics helper ─────────────────────────────────────────────────────────
@@ -3039,6 +3141,7 @@ const SORT_OPTIONS = [
   { id:"score",  label:"Best conditions" },
   { id:"price",  label:"Cheapest flights" },
   { id:"value",  label:"Best value" },
+  { id:"deal",   label:"Best Deal" },
 ];
 
 // ─── vibe search engine ────────────────────────────────────────────────────────
@@ -3245,6 +3348,15 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
     const valA = a.conditionScore / (a.flight.price || 1);
     const valB = b.conditionScore / (b.flight.price || 1);
     return valB - valA;
+  });
+  // "Best Deal" — gated on flight.live (estimates / no-deal-score venues sink
+  // to the bottom rather than disappearing, so the list still feels populated
+  // when only some prices are live).
+  if (filters.sort === "deal") out = [...out].sort((a, b) => {
+    const aLive = a.flight?.live === true && a.dealScore != null;
+    const bLive = b.flight?.live === true && b.dealScore != null;
+    if (aLive !== bLive) return aLive ? -1 : 1;
+    return (b.dealScore || 0) - (a.dealScore || 0);
   });
   return out;
 }
@@ -3486,9 +3598,31 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   const carouselVenues = carouselUseFallback ? bestRightNowFallback : bestRightNow;
   const carouselReady = carouselVenues.length >= 3;
 
+  // "Cheap flight + firing weather" — the unified-deal carousel. Strict gates:
+  // dealScore >= 78, priceRatio <= 0.85, confidence === "high", live flights
+  // only (scoreWeekendDeal already returns null score for estimate / low conf).
+  const dealCarousel = (() => {
+    return [...bestPool]
+      .filter(l =>
+        l.dealScore != null &&
+        l.dealScore >= 78 &&
+        l.dealPriceRatio != null &&
+        l.dealPriceRatio <= 0.85 &&
+        l.weekendConfidence === "high" &&
+        l.flight?.live === true
+      )
+      .sort((a, b) => b.dealScore - a.dealScore)
+      .slice(0, 10);
+  })();
+  const dealCarouselReady = dealCarousel.length >= 3;
+
   const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
   // Exclude hero + carousel venues from the grid to avoid duplicates
-  const heroAndBestIds = new Set([heroPick?.id, ...carouselVenues.map(l => l.id)].filter(Boolean));
+  const heroAndBestIds = new Set([
+    heroPick?.id,
+    ...carouselVenues.map(l => l.id),
+    ...dealCarousel.map(l => l.id),
+  ].filter(Boolean));
   const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
@@ -3806,6 +3940,64 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       {l.weekendConfidence === "medium" && (
                         <div style={{ fontSize:9, color:"#a16207", fontFamily:F, marginTop:3 }}>· forecast firming up</div>
                       )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── "Cheap flight + firing weather" — unified deal carousel ── */}
+        {!loading && dealCarouselReady && (
+          <div style={{ marginTop:4, marginBottom:16 }}>
+            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
+                  Cheap flight + firing weather
+                </div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
+                  Live prices below typical · forecast locked in
+                </div>
+              </div>
+            </div>
+            <div style={{
+              display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
+              WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              touchAction:"pan-x", overscrollBehavior:"contain",
+            }}>
+              {dealCarousel.map(l => {
+                const pctOff = Math.max(0, Math.round((1 - l.dealPriceRatio) * 100));
+                return (
+                  <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
+                    style={{
+                      minWidth:180, maxWidth:180, scrollSnapAlign:"start",
+                      background:"#fff", borderRadius:14, overflow:"hidden",
+                      border:"1.5px solid #bbf7d0",
+                      boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
+                    }}>
+                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(l.title, l.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
+                      <div style={{ position:"absolute", top:6, left:6, background:"#16a34a", color:"#fff", borderRadius:8, padding:"3px 7px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:0.2 }}>
+                        {l.dealLabel || `Deal ${l.dealScore}`}
+                      </div>
+                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                        position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:14,
+                        width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+                        filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+                      }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
+                    </div>
+                    <div style={{ padding:"8px 10px" }}>
+                      <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
+                        <span style={{ display:"flex", alignItems:"baseline", gap:3 }}>
+                          <span style={{ fontSize:12, fontWeight:900, color:"#222", fontFamily:F }}>${l.flight.price}</span>
+                          <span style={{ fontSize:9, color:"#16a34a", fontFamily:F, fontWeight:800 }}>{pctOff > 0 ? `−${pctOff}%` : "rt"}</span>
+                        </span>
+                        <span style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:700 }}>{l.weekendDays || ""}</span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -7296,7 +7488,10 @@ function App() {
 
     // Front-page weekend window score (Fri–Mon, best 2 consecutive days).
     // conditionScore stays for the detail-sheet 7-day view.
-    const wknd = scoreWeekend(v, vWx, vMar, new Date());
+    // scoreWeekendDeal fuses weekend conditions + flight pricing into one
+    // 0–100 deal score (live flights only; null when estimate or low confidence).
+    const deal = scoreWeekendDeal(v, vWx, vMar, new Date(), profile.homeAirport || "JFK", flight);
+    const wknd = deal.conditions;
 
     return {
       ...v,
@@ -7306,6 +7501,10 @@ function App() {
       weekendPeriod: wknd.period,
       weekendDays: wknd.days,
       weekendConfidence: wknd.confidence,
+      dealScore:      deal.score,
+      dealLabel:      deal.label,
+      dealPriceRatio: deal.priceRatio,
+      dealIsEstimate: deal.isEstimate,
     };
   });
 
