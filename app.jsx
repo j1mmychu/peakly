@@ -4397,13 +4397,10 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
-    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
-    // venueId: specific venue to watch (null = any matching sport/region)
-    // targetScore: minimum condition score to fire (derived from condition preset)
-    // maxPrice: maximum flight price to fire (from draft.priceMax)
-    // enabled: allows user to pause/resume without deleting
-    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
-    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
+    // Push notification fields — consumed by the polling worker in server/proxy.js,
+    // which scores each alert's venue every 30 min and dispatches push when the
+    // weekend score meets targetScore (24h fire cooldown). Platform-specific
+    // delivery (APNs / FCM / web push) is wired in dispatchPush() server-side.
     alertData.venueId = draft.venueId || null;
     alertData.targetScore = getScoreThreshold(draft.condition);
     alertData.maxPrice = draft.priceMax || 500;
