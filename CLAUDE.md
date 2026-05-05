@@ -22,7 +22,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260504h, push + caching)
+├── sw.js                    # Service worker (peakly-20260504j, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -147,11 +147,18 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
 4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04** — Cervinia + Val d'Isere s16 carry the flag (app.jsx:412, :486). Note: 7 of the venues called out in PM report (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
 5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
-6. **Travelpayouts weekend-specific dates not wired** (NEW P0, vision phase 4) — `fetchTravelpayoutsPrice` returns month-cheapest, not Fri–Mon weekend price. Server `proxy.js` doesn't accept `depart_date`/`return_date`. Needs server change + VPS redeploy on 198.199.80.21. Without this, "deal" labels compare a fare for some random Tuesday red-eye to a typical-pair baseline.
-7. **Open-Meteo weather cache still unbuilt** (P0 pre-spike) — blocks Reddit launch (May 10/15 deadline called out).
+6. ~~**Travelpayouts weekend-specific dates not wired**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — `proxy.js` now accepts `depart_date`/`return_date`; client `fetchTravelpayoutsPrice` passes upcoming Fri date via `upcomingFridayISO()`. Backward-compatible (no-args → legacy month-cheapest). Jack must SSH to 198.199.80.21, `cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` (or `npm install` if deps changed — they didn't this round).
+7. ~~**Open-Meteo weather cache still unbuilt**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — proxy now exposes `/api/weather` + `/api/marine` with shared in-memory 2hr cache + in-flight dedupe. Client `fetchWeather`/`fetchMarine` try proxy first, fall back to direct Open-Meteo. Reddit-spike protection: N simultaneous users hitting the same (lat,lon) trigger 1 upstream call. Same redeploy path as #6.
 8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
 9. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-04 evening — weekend-pricing wire-up + weather proxy + 50/50 deal weight)
+
+- ✅ **Travelpayouts weekend-specific dates** (proxy.js + client) — `proxy.js` `/api/flights` accepts optional `depart_date`/`return_date` (YYYY-MM-DD), filters month-matrix to exact-date matches, returns single weekend-specific price. Client `fetchTravelpayoutsPrice(origin, dest, departDate, returnDate?)` + new `upcomingFridayISO(today)` helper threads upcoming Fri through the App-level price-fetch effect. Cache key includes departDate so different weekends don't collide. Backward-compatible: omitted args → legacy month-cheapest. **Awaiting VPS redeploy on 198.199.80.21.**
+- ✅ **Open-Meteo proxy with shared cache** (proxy.js + client) — new `/api/weather` and `/api/marine` endpoints proxy Open-Meteo with shared in-memory 2hr cache (4000-entry LRU) + in-flight dedupe (1000 simultaneous users hitting the same uncached coord = 1 upstream call). Coords rounded to 2 decimals (~1.1km grid) so neighbouring venues share entries. Client `fetchWeather`/`fetchMarine` try proxy first via `_tryProxyWx()` (4s timeout), fall back to direct Open-Meteo if proxy is down or returns non-success. P0 Reddit-spike protection.  **Awaiting VPS redeploy.**
+- ✅ **scoreWeekendDeal weight rebalanced 50/50** — was conditions × 0.65 + clamp(priceBonus, -15..35) × 0.35 → max price impact ~12pts. Now both signals normalized 0-100 (priceNorm linear: ratio 1.0 = 50, 0.5 = 100, 1.5 = 0), `final = conditionsNorm × 0.5 + priceNorm × 0.5`. Price now actually moves the needle. `DEAL_WEIGHT = 0.5` constant — future profile slider can wire to it.
+- ✅ Cache key 20260504h → 20260504j across sw.js + app.jsx + index.html (i was a partial bump). PRECACHE remains [].
 
 ### Recently Fixed (2026-05-04 PM — deal-algorithm honesty pass)
 

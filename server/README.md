@@ -7,19 +7,25 @@ Caddy terminates TLS and reverse-proxies `peakly-api.duckdns.org` → `localhost
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/flights` | Travelpayouts v2 month-matrix (cheapest price per month) |
+| GET | `/api/flights` | Travelpayouts v2 month-matrix (cheapest per month, or specific weekend) |
 | GET | `/api/flights/latest` | Travelpayouts v1 latest prices (most recently found fares) |
+| GET | `/api/weather` | Open-Meteo forecast proxy (shared 2hr in-memory cache) |
+| GET | `/api/marine` | Open-Meteo marine proxy (water temp, shared 2hr cache) |
 | POST | `/api/alerts` | Register a push notification alert |
 | GET | `/api/alerts/:alertId` | Check alert registration status |
 | DELETE | `/api/alerts/:alertId` | Remove an alert |
-| GET | `/health` | Health check + uptime |
+| GET | `/health` | Health check + uptime + wx cache size |
 
 ### GET /api/flights
 
-Calls `v2/prices/month-matrix`. Good for "cheapest flight this month" display.
+Calls `v2/prices/month-matrix`. Without `depart_date`: cheapest fare per month.
+With `depart_date` (YYYY-MM-DD), filters to entries on that exact depart and
+returns the cheapest match — used for weekend-specific pricing. Add
+`return_date` to also constrain the round-trip return.
 
 ```
 GET /api/flights?origin=JFK&destination=BCN
+GET /api/flights?origin=JFK&destination=BCN&depart_date=2026-05-15&return_date=2026-05-18
 ```
 
 Response:
@@ -50,6 +56,22 @@ Parameters:
 - `one_way` — `true` or `false` (default: `true`)
 
 Response shape is identical to `/api/flights`.
+
+### GET /api/weather and /api/marine
+
+Open-Meteo passthrough with shared in-memory cache (2hr TTL, coords rounded to
+2 decimals so neighbouring venues share entries). In-flight dedupe means N
+simultaneous users hitting the same uncached coord = 1 upstream call. Reddit
+spike protection — without this, every cold-start user fetches ~150 venues
+direct against Open-Meteo.
+
+```
+GET /api/weather?lat=46.55&lon=-121.74
+GET /api/marine?lat=21.27&lon=-157.83
+```
+
+Response: `{ success, data, cached: true|false }`. `data` is the raw
+Open-Meteo payload. Header `X-Peakly-Cache: hit|miss` for debugging.
 
 ### POST /api/alerts
 

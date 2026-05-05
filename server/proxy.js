@@ -100,19 +100,37 @@ function currentMonthParam() {
 
 // ─── IATA validation ──────────────────────────────────────────────────────────
 const IATA_RE = /^[A-Z]{3}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
 // Calls Travelpayouts v2/prices/month-matrix
-// Query params: origin (IATA), destination (IATA)
-// Response: { success, data: { [destination]: { [YYYY-MM]: { price } } }, found_at }
+// Query params: origin (IATA), destination (IATA),
+//   optional depart_date (YYYY-MM-DD), optional return_date (YYYY-MM-DD)
+//
+// Without dates: cheapest fare per month (legacy behavior).
+// With depart_date: filter month-matrix to entries on that exact depart date.
+//   When return_date also given, filter to that round-trip too. Picks cheapest
+//   matching entry. Used for weekend-specific pricing — answers "what does
+//   THIS Fri-Mon trip actually cost" instead of "what's the cheapest fare
+//   anyone found in this month."
+//
+// Response: { success, data: { [destination]: { [YYYY-MM]: { price, ... } } } }
 app.get('/api/flights', async (req, res) => {
-  const { origin, destination } = req.query;
+  const { origin, destination, depart_date, return_date } = req.query;
 
   if (!IATA_RE.test(origin || '') || !IATA_RE.test(destination || '')) {
     return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter IATA codes' });
   }
+  if (depart_date && !DATE_RE.test(depart_date)) {
+    return res.status(400).json({ success: false, error: 'depart_date must be YYYY-MM-DD' });
+  }
+  if (return_date && !DATE_RE.test(return_date)) {
+    return res.status(400).json({ success: false, error: 'return_date must be YYYY-MM-DD' });
+  }
 
-  const month = currentMonthParam();
+  // When depart_date is specified, query the month containing that date.
+  // Otherwise default to current/next month.
+  const month = depart_date ? `${depart_date.slice(0, 7)}-01` : currentMonthParam();
   const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
     + `?origin=${encodeURIComponent(origin)}`
     + `&destination=${encodeURIComponent(destination)}`
@@ -134,8 +152,40 @@ app.get('/api/flights', async (req, res) => {
       return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
     }
 
-    // Reshape: array of day prices → { [destination]: { [YYYY-MM]: { price } } }
     const prices = Array.isArray(json.data) ? json.data : [];
+
+    // Specific-date branch: filter to the requested depart (and optionally return)
+    if (depart_date) {
+      const matches = prices.filter(e =>
+        typeof e.price === 'number' && e.price > 0 &&
+        e.depart_date === depart_date &&
+        (!return_date || e.return_date === return_date)
+      );
+      if (matches.length === 0) {
+        return res.json({
+          success: true,
+          data: { [destination]: {} },
+          found_at: new Date().toISOString(),
+          mode: 'specific',
+          requested: { depart_date, return_date: return_date || null },
+        });
+      }
+      const cheapest = matches.reduce((a, b) => a.price <= b.price ? a : b);
+      const dateKey = depart_date.slice(0, 7); // keep month-keyed shape for client compat
+      return res.json({
+        success: true,
+        data: { [destination]: { [dateKey]: {
+          price: cheapest.price,
+          depart_date: cheapest.depart_date,
+          return_date: cheapest.return_date || null,
+          found_at: cheapest.found_at || null,
+        }}},
+        found_at: new Date().toISOString(),
+        mode: 'specific',
+      });
+    }
+
+    // Legacy month-cheapest branch
     const byMonth = {};
     for (const entry of prices) {
       if (typeof entry.price !== 'number' || entry.price <= 0) continue;
@@ -225,6 +275,98 @@ app.get('/api/flights/latest', async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ─── Open-Meteo proxy with shared cache ──────────────────────────────────────
+// Without this, every cold-start user fetches ~150 venues × 2 calls (weather +
+// marine for beach) directly against Open-Meteo. A Reddit spike means N×300
+// fetches with no cross-user reuse. Shared in-memory cache here means the
+// hot fetch happens once per (lat,lon) per 2hr window — N users → 1 upstream.
+//
+// Coords are rounded to 2 decimals (~1.1km grid) to share cache across nearby
+// venues without losing meaningful resolution. TTL 2 hours matches client.
+// Cache evicts oldest entry on overflow; cap is generous for 150-venue catalog.
+const WX_TTL_MS = 2 * 60 * 60 * 1000;
+const WX_CACHE_MAX = 4000;
+const _wxCache = new Map(); // key → { data, ts }
+
+const COORD_RE = /^-?\d{1,3}(\.\d+)?$/;
+
+function _wxCacheGet(key) {
+  const entry = _wxCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > WX_TTL_MS) { _wxCache.delete(key); return null; }
+  return entry.data;
+}
+function _wxCacheSet(key, data) {
+  if (_wxCache.size >= WX_CACHE_MAX) {
+    // Evict oldest entry (Map preserves insertion order)
+    const firstKey = _wxCache.keys().next().value;
+    if (firstKey) _wxCache.delete(firstKey);
+  }
+  _wxCache.set(key, { data, ts: Date.now() });
+}
+
+// In-flight request dedupe: 1000 simultaneous users hitting the same uncached
+// (lat,lon) shouldn't trigger 1000 upstream calls. Coalesce to one.
+const _wxInflight = new Map(); // key → Promise
+
+function _round2(s) {
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  return n.toFixed(2);
+}
+
+async function _proxyWeather(req, res, kind) {
+  const { lat, lon } = req.query;
+  if (!COORD_RE.test(lat || '') || !COORD_RE.test(lon || '')) {
+    return res.status(400).json({ success: false, error: 'lat and lon required, decimal degrees' });
+  }
+  const latR = _round2(lat), lonR = _round2(lon);
+  if (latR == null || lonR == null) {
+    return res.status(400).json({ success: false, error: 'lat/lon must parse as numbers' });
+  }
+  const cacheKey = `${kind}_${latR}_${lonR}`;
+  const cached = _wxCacheGet(cacheKey);
+  if (cached) {
+    res.setHeader('X-Peakly-Cache', 'hit');
+    return res.json({ success: true, data: cached, cached: true });
+  }
+
+  // Coalesce in-flight fetches for the same (lat,lon)
+  let inflight = _wxInflight.get(cacheKey);
+  if (!inflight) {
+    inflight = (async () => {
+      const url = kind === 'weather'
+        ? `https://api.open-meteo.com/v1/forecast?latitude=${latR}&longitude=${lonR}`
+          + `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,`
+          + `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,`
+          + `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,`
+          + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
+          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`
+        : `https://marine-api.open-meteo.com/v1/marine?latitude=${latR}&longitude=${lonR}`
+          + `&daily=ocean_temperature_max&forecast_days=7&timezone=auto`;
+      const { status, json } = await fetchJson(url);
+      if (status === 429 || status >= 500 || (json && json.error)) {
+        throw new Error(`upstream ${status} ${json?.reason || ''}`);
+      }
+      _wxCacheSet(cacheKey, json);
+      return json;
+    })().finally(() => _wxInflight.delete(cacheKey));
+    _wxInflight.set(cacheKey, inflight);
+  }
+
+  try {
+    const data = await inflight;
+    res.setHeader('X-Peakly-Cache', 'miss');
+    return res.json({ success: true, data, cached: false });
+  } catch (err) {
+    console.error(`[/api/${kind}] error:`, err.message);
+    return res.status(502).json({ success: false, error: err.message });
+  }
+}
+
+app.get('/api/weather', (req, res) => _proxyWeather(req, res, 'weather'));
+app.get('/api/marine',  (req, res) => _proxyWeather(req, res, 'marine'));
 
 // ─── POST /api/alerts ─────────────────────────────────────────────────────────
 // Register a push notification alert (future: APNs / FCM / Web Push)
@@ -340,7 +482,13 @@ app.post('/api/waitlist', (req, res) => {
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), alerts: _alerts.size });
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    alerts: _alerts.size,
+    wx_cache_size: _wxCache.size,
+    wx_inflight: _wxInflight.size,
+  });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
