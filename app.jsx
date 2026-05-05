@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504g";
+const PEAKLY_BUILD = "20260504h";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1372,11 +1372,16 @@ function scoreWeekend(venue, wx, marine, todayDate) {
 // certainty we don't have). Returns {score, conditions, priceRatio, isEstimate, label}.
 function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const conditions = scoreWeekend(venue, wx, marine, today);
-  const isEstimate = !flight || flight.live !== true;
+  // Staleness gate: a "live" fare last seen >14 days ago is a different
+  // animal than one scraped this morning. Demote to estimate so we don't
+  // claim a deal off month-old data the carrier has since repriced.
+  const ageMs = flight?.foundAt ? Date.now() - new Date(flight.foundAt).getTime() : 0;
+  const isStale = flight?.foundAt && ageMs > 14 * 24 * 3600 * 1000;
+  const isEstimate = !flight || flight.live !== true || isStale;
   if (isEstimate || !flight?.price) {
     return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
   }
-  const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK");
+  const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK", today);
   const priceRatio = typicalPrice > 0 ? flight.price / typicalPrice : null;
   if (conditions.confidence === "low" || priceRatio == null) {
     return { score: null, conditions, priceRatio, isEstimate: false, label: null };
@@ -1391,11 +1396,16 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   // deeper discount before "Strong deal" is honest — otherwise a normal cheap-
   // origin fare gets dressed up as a deal. Stable routes keep the 0.85 floor.
   const strongDealRatio = getPriceVolatility(venue, homeAirport) === "volatile" ? 0.65 : 0.85;
+  // Absolute-savings floor: 30% off an $80 fare is $24 — not a "deal" in any
+  // meaningful sense. Require ≥$60 absolute savings before claiming Strong
+  // deal or Rare alignment, scaled by typical price (cheap routes need less).
+  const absSavings = typicalPrice - flight.price;
+  const minSavings = Math.max(60, typicalPrice * 0.08);
   let label = null;
-  if      (final >= 88 && priceRatio <= 0.7)              label = "Rare alignment";
-  else if (final >= 78 && priceRatio <= strongDealRatio)  label = "Strong deal";
-  else if (final >= 70)                                   label = "Solid weekend";
-  else if (final >= 60)                                   label = "Worth a look";
+  if      (final >= 88 && priceRatio <= 0.7  && absSavings >= minSavings) label = "Rare alignment";
+  else if (final >= 78 && priceRatio <= strongDealRatio && absSavings >= minSavings) label = "Strong deal";
+  else if (final >= 70)                                                   label = "Solid weekend";
+  else if (final >= 60)                                                   label = "Worth a look";
   return { score: final, conditions, priceRatio, isEstimate: false, label };
 }
 
@@ -1599,48 +1609,99 @@ const TP_MARKER = "710303";
 // BULLETPROOF: handles all edge cases — empty/null origin defaults to JFK, bad dates fall back gracefully
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
-// Typical round-trip price for a venue from a given home airport.
-// Uses the hand-coded BASE_PRICES matrix first (per-route, highest accuracy),
-// then falls back to continent-pair route estimates, then a flat default.
-// This is the SAME source of truth as getFlightDeal, so "typical" and
-// "estimate" always agree — no more ghost deals from a second formula.
-const getTypicalPrice = (venue, homeAirport = "JFK") => {
+// Seasonal multiplier on the annual-mean BASE_PRICES matrix. Without this,
+// "deal" compares a live October LAX→PVR fare against a peak-season-blended
+// baseline — off-season normal pricing reads as a deal, real off-season deals
+// look like nothing. Bands are conservative; when in doubt, closer to 1.0 so
+// we don't fabricate "deals" out of seasonal headwinds we can't measure.
+// Real fix is Travelpayouts month-trend data, but this closes the worst hole
+// today. Hemisphere derived from AP_CONTINENT (rough — Caribbean is N hemi
+// but treated as latam-N here since latam includes Mexican beaches; the
+// Caribbean curve is flatter anyway so the noise is small).
+const getSeasonalMultiplier = (venue, today = new Date()) => {
+  if (!venue?.category) return 1.0;
+  const m = today.getMonth(); // 0=Jan
+  // Prefer venue.lat (Brazil beaches are latam/N by continent but S by lat).
+  // Fall back to continent guess when lat isn't available.
+  const cont = AP_CONTINENT[venue.ap];
+  const isSouthern = (typeof venue.lat === "number")
+    ? venue.lat < 0
+    : (cont === "oceania" || cont === "africa");
+  if (venue.category === "skiing") {
+    if (isSouthern) {
+      if ([6, 7, 8].includes(m)) return 1.18;       // Jul–Sep peak (Aus/NZ)
+      if ([5, 9].includes(m))    return 1.00;       // Jun, Oct shoulder
+      return 0.78;
+    }
+    if ([11, 0, 1, 2].includes(m)) return 1.18;    // Dec–Mar peak (N hemi)
+    if ([3, 10].includes(m))       return 1.00;    // Apr, Nov shoulder
+    return 0.78;                                    // May–Oct off
+  }
+  if (venue.category === "beach") {
+    if (isSouthern) {
+      if ([11, 0, 1].includes(m)) return 1.16;     // Dec–Feb peak (Aus/NZ)
+      if ([10, 2].includes(m))    return 1.00;
+      return 0.86;
+    }
+    if ([5, 6, 7].includes(m)) return 1.16;        // Jun–Aug peak (N hemi)
+    if ([4, 8].includes(m))    return 1.00;
+    return 0.86;
+  }
+  return 1.0;
+};
+
+// Typical round-trip price for a venue from a given home airport, adjusted
+// for time-of-year. Without seasonal awareness, "deal" comparisons are
+// against an annual-mean baseline — which means off-season normal pricing
+// reads as a deal and real off-season deals are masked.
+// Same source of truth as getFlightDeal so "typical" and "estimate" agree.
+const getTypicalPrice = (venue, homeAirport = "JFK", today = new Date()) => {
   const ap = venue?.ap;
   if (!ap) return 800;
+  let base;
   const exact = BASE_PRICES[ap]?.[homeAirport];
-  if (exact) return exact;
-  const destCont = AP_CONTINENT[ap] || null;
-  const homeCont = AP_CONTINENT[homeAirport] || "na";
-  if (!destCont) return 800;
-  if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
-  const routes = {
-    "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
-    "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
-    "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
-    "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
-    "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
-    "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
-  };
-  return routes[`${homeCont}-${destCont}`] || 800;
+  if (exact) base = exact;
+  else {
+    const destCont = AP_CONTINENT[ap] || null;
+    const homeCont = AP_CONTINENT[homeAirport] || "na";
+    if (!destCont) base = 800;
+    else if (destCont === homeCont) base = homeCont === "na" ? 350 : 450;
+    else {
+      const routes = {
+        "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
+        "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
+        "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
+        "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
+        "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
+        "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
+      };
+      base = routes[`${homeCont}-${destCont}`] || 800;
+    }
+  }
+  return Math.round(base * getSeasonalMultiplier(venue, today));
 };
 
 // Deal fraction: positive = below typical, negative = above. Only meaningful
 // for LIVE prices (estimates always return 0 since price == typical by construction).
-const getDealScore = (currentPrice, venue, homeAirport = "JFK") => {
+const getDealScore = (currentPrice, venue, homeAirport = "JFK", today = new Date()) => {
   if (!currentPrice || currentPrice <= 0) return 0;
-  const typical = getTypicalPrice(venue, homeAirport);
+  const typical = getTypicalPrice(venue, homeAirport, today);
   if (typical <= 0) return 0;
   return (typical - currentPrice) / typical;
 };
 
-// "Volatile" routes have a wide BASE_PRICES spread across home airports for
-// the same destination — e.g. LAS ranges $80–$340 by origin (CV ~0.35), so a
-// price below the per-pair "typical" is often just the normal floor for some
-// origins, not a real deal. "Stable" routes (long-haul, narrow spread) make
-// `typical` a reliable anchor. scoreWeekendDeal uses this to require a deeper
-// discount on volatile routes before claiming "Strong deal."
-// Threshold: coefficient of variation > 0.30. Conservative default is "stable"
-// when data is missing — don't tighten ratio if we can't measure variance.
+// NB: name is historical — measures CROSS-ORIGIN price spread within
+// BASE_PRICES, not temporal price volatility on the route. Real-world
+// volatility would need Travelpayouts trend data we don't have.
+//
+// What it does: "Volatile" routes have a wide BASE_PRICES spread across home
+// airports for the same destination — e.g. LAS ranges $80–$340 by origin
+// (CV ~0.35). A price below the per-pair "typical" on those routes is often
+// just the normal floor for some origins, not a real deal. "Stable" long-haul
+// routes (narrow spread) make `typical` a reliable anchor. scoreWeekendDeal
+// uses this to require a deeper discount on volatile routes before "Strong
+// deal." Threshold: coefficient of variation > 0.30. Conservative default
+// "stable" when data is missing — don't tighten ratio if we can't measure.
 function getPriceVolatility(venue, homeAirport) {
   const ap = venue?.ap;
   const row = ap && BASE_PRICES[ap];

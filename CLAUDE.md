@@ -22,7 +22,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260504b, push + caching)
+├── sw.js                    # Service worker (peakly-20260504h, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -145,12 +145,21 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
 2. ~~**Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).~~ **DONE 2026-05-04** — Revenue agent flipped to `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704; merged via a9aacf5. Day-25 finding finally closed.
 3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
-4. **`lateSeason: true` flag never wired up on any ski venue** (NEW P1, 2026-05-04 PM report) — Mammoth/Whistler/Tignes/Chamonix/Zermatt scoring 8 off-season despite being open. Flag exists in scoreVenue, no venue carries it.
-5. **Active venue duplicates** (P1, 2026-05-04 PM report) — siargao, snappers-gold-coast-s26, banzai_pipeline, fernando-de-noronha-s20, aruba-eagle-beach-t1.
-6. **Open-Meteo weather cache still unbuilt** (P0 pre-spike) — blocks Reddit launch (May 10/15 deadline called out).
-7. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
-8. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
-9. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04** — Cervinia + Val d'Isere s16 carry the flag (app.jsx:412, :486). Note: 7 of the venues called out in PM report (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
+5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
+6. **Travelpayouts weekend-specific dates not wired** (NEW P0, vision phase 4) — `fetchTravelpayoutsPrice` returns month-cheapest, not Fri–Mon weekend price. Server `proxy.js` doesn't accept `depart_date`/`return_date`. Needs server change + VPS redeploy on 198.199.80.21. Without this, "deal" labels compare a fare for some random Tuesday red-eye to a typical-pair baseline.
+7. **Open-Meteo weather cache still unbuilt** (P0 pre-spike) — blocks Reddit launch (May 10/15 deadline called out).
+8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
+9. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
+10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-04 PM — deal-algorithm honesty pass)
+
+- ✅ **Seasonal-aware typical price** (app.jsx:1602 `getSeasonalMultiplier`, :1640 `getTypicalPrice`) — BASE_PRICES is an annual mean. Without seasonality, off-season normal pricing reads as a deal and real off-season deals are masked. Added per-category month bands (skiing N: Dec–Mar peak 1.18×, May–Oct off 0.78×; beach N: Jun–Aug peak 1.16×, Oct–Apr off 0.86×; hemispheres flipped for S). Threaded `today` through `getTypicalPrice` + `getDealScore`. Conservative bands — when in doubt, closer to 1.0.
+- ✅ **Stale flight.foundAt → estimate** (scoreWeekendDeal) — a "live" fare last seen >14 days ago is no longer treated as a real-time deal signal. Demoted to estimate so we don't claim a deal off month-old data the carrier has since repriced.
+- ✅ **Absolute-savings floor on "Strong deal"** (scoreWeekendDeal) — 30% off an $80 LAS fare is $24, not a deal worth the label. Now requires ≥$60 absolute savings (or 8% of typical, whichever higher) before "Strong deal" or "Rare alignment" labels render. Stops cheap-route micro-discounts from gaming the deal sort.
+- ✅ **getPriceVolatility comment fix** — function name is historical and misleading; it measures cross-origin price spread in the static matrix, not temporal volatility. Comment updated to be honest about that.
+- ✅ Cache key + build stamp 20260504g → 20260504h (sw.js, app.jsx, index.html). PRECACHE = [] (regression cleared again).
 
 ### Recently Fixed (2026-05-04 — top-3 audit fixes + gear gate + seasonal default)
 
