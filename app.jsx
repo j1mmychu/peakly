@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504f";
+const PEAKLY_BUILD = "20260504g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -23,7 +23,7 @@ const PEAKLY_BUILD = "20260504f";
 // in" in Profile. Saves anonymous-visitor first-paint payload (~80KB).
 // Anon key is public-safe; Row-Level Security on user_data is the gate.
 const SUPABASE_URL      = "https://wsoqcfwkvvemtlddcgfc.supabase.co";
-const SUPABASE_ANON_KEY = ""; // PASTE the anon public key from Project Settings → API
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzb3FjZndrdnZlbXRsZGRjZ2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Mjk3ODQsImV4cCI6MjA5MzUwNTc4NH0.cgmOuuuYOTSmvHThPH3V6veSUn3u64kEFphgSrbYlVA";
 const CLOUD_SYNC_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 // Project ref → Supabase's localStorage session key. Used to detect existing
@@ -1387,11 +1387,15 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   let final = clamp(base + priceBonus, 0, 100);
   if (conditions.confidence === "medium") final *= 0.92;
   final = Math.round(final);
+  // Volatile routes (wide per-origin price spread on this destination) need a
+  // deeper discount before "Strong deal" is honest — otherwise a normal cheap-
+  // origin fare gets dressed up as a deal. Stable routes keep the 0.85 floor.
+  const strongDealRatio = getPriceVolatility(venue, homeAirport) === "volatile" ? 0.65 : 0.85;
   let label = null;
-  if      (final >= 88 && priceRatio <= 0.7)  label = "Rare alignment";
-  else if (final >= 78 && priceRatio <= 0.85) label = "Strong deal";
-  else if (final >= 70)                       label = "Solid weekend";
-  else if (final >= 60)                       label = "Worth a look";
+  if      (final >= 88 && priceRatio <= 0.7)              label = "Rare alignment";
+  else if (final >= 78 && priceRatio <= strongDealRatio)  label = "Strong deal";
+  else if (final >= 70)                                   label = "Solid weekend";
+  else if (final >= 60)                                   label = "Worth a look";
   return { score: final, conditions, priceRatio, isEstimate: false, label };
 }
 
@@ -1628,6 +1632,26 @@ const getDealScore = (currentPrice, venue, homeAirport = "JFK") => {
   if (typical <= 0) return 0;
   return (typical - currentPrice) / typical;
 };
+
+// "Volatile" routes have a wide BASE_PRICES spread across home airports for
+// the same destination — e.g. LAS ranges $80–$340 by origin (CV ~0.35), so a
+// price below the per-pair "typical" is often just the normal floor for some
+// origins, not a real deal. "Stable" routes (long-haul, narrow spread) make
+// `typical` a reliable anchor. scoreWeekendDeal uses this to require a deeper
+// discount on volatile routes before claiming "Strong deal."
+// Threshold: coefficient of variation > 0.30. Conservative default is "stable"
+// when data is missing — don't tighten ratio if we can't measure variance.
+function getPriceVolatility(venue, homeAirport) {
+  const ap = venue?.ap;
+  const row = ap && BASE_PRICES[ap];
+  if (!row) return "stable";
+  const prices = Object.values(row).filter(p => typeof p === "number" && p > 0);
+  if (prices.length < 5) return "stable";
+  const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+  if (mean <= 0) return "stable";
+  const stddev = Math.sqrt(prices.reduce((a, p) => a + (p - mean) ** 2, 0) / prices.length);
+  return (stddev / mean) > 0.30 ? "volatile" : "stable";
+}
 
 function buildFlightUrl(from, to, opts) {
   // BULLETPROOF: handles all edge cases for flight URL construction
