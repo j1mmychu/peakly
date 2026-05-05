@@ -4397,22 +4397,31 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
-    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
-    // venueId: specific venue to watch (null = any matching sport/region)
-    // targetScore: minimum condition score to fire (derived from condition preset)
-    // maxPrice: maximum flight price to fire (from draft.priceMax)
-    // enabled: allows user to pause/resume without deleting
-    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
-    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
     alertData.venueId = draft.venueId || null;
     alertData.targetScore = getScoreThreshold(draft.condition);
     alertData.maxPrice = draft.priceMax || 500;
     alertData.enabled = true;
     setUserAlerts(p => [...p, alertData]);
+    // Register with proxy so the future polling worker can fire push when conditions hit.
+    // Local storage stays authoritative — server registration is best-effort.
+    fetch(`${FLIGHT_PROXY}/api/alerts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        alertId: String(alertData.id),
+        venueId: alertData.venueId || undefined,
+        sport: alertData.sport || undefined,
+        targetScore: alertData.targetScore,
+        maxPrice: alertData.maxPrice,
+      }),
+    }).catch(() => {});
     setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
   };
-  const delAlert  = id => setUserAlerts(p => p.filter(a => a.id !== id));
+  const delAlert  = id => {
+    setUserAlerts(p => p.filter(a => a.id !== id));
+    fetch(`${FLIGHT_PROXY}/api/alerts/${encodeURIComponent(String(id))}`, { method: "DELETE" }).catch(() => {});
+  };
 
   // ── add alert sheet ────────────────────────────────────────────────────────
   if (adding) return (
