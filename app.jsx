@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504h";
+const PEAKLY_BUILD = "20260504j";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -879,19 +879,26 @@ _wxCacheCleanup();
 const FLIGHT_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const FLIGHT_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
 
-function _flightCacheGet(origin, dest) {
+function _flightCacheKey(origin, dest, departDate) {
+  return departDate
+    ? `peakly_flights_${origin}_${dest}_${departDate}`
+    : `peakly_flights_${origin}_${dest}`;
+}
+
+function _flightCacheGet(origin, dest, departDate) {
   try {
-    const raw = localStorage.getItem(`peakly_flights_${origin}_${dest}`);
+    const k = _flightCacheKey(origin, dest, departDate);
+    const raw = localStorage.getItem(k);
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(`peakly_flights_${origin}_${dest}`); return null; }
+    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(k); return null; }
     return data;
   } catch { return null; }
 }
 
-function _flightCacheSet(origin, dest, data) {
+function _flightCacheSet(origin, dest, data, departDate) {
   try {
-    localStorage.setItem(`peakly_flights_${origin}_${dest}`, JSON.stringify({ data, ts: Date.now() }));
+    localStorage.setItem(_flightCacheKey(origin, dest, departDate), JSON.stringify({ data, ts: Date.now() }));
   } catch {} // ignore QuotaExceededError
 }
 
@@ -912,10 +919,30 @@ function _flightCacheCleanup() {
 }
 _flightCacheCleanup();
 
+// ─── Open-Meteo proxy with shared cache (Reddit-spike protection) ─────────────
+// Try VPS proxy first — shared in-memory cache means N simultaneous users
+// hitting the same (lat,lon) trigger 1 upstream Open-Meteo call instead of N.
+// Falls back to direct Open-Meteo if proxy is down or returns non-success.
+// 4s timeout — proxy should respond <100ms on cache hit, ~2s on miss.
+async function _tryProxyWx(kind, lat, lon) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    const url = `${FLIGHT_PROXY}/api/${kind}?lat=${lat}&lon=${lon}`;
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    const json = await r.json();
+    return (json && json.success && json.data) ? json.data : null;
+  } catch { return null; }
+}
+
 async function fetchWeather(lat, lon) {
   const cacheKey = _wxCacheKey("weather", lat, lon);
   const cached = _wxCacheGet(cacheKey);
   if (cached) return cached;
+  const fromProxy = await _tryProxyWx("weather", lat, lon);
+  if (fromProxy) { _wxCacheSet(cacheKey, fromProxy); return fromProxy; }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   const url =
@@ -952,6 +979,8 @@ async function fetchMarine(lat, lon) {
   const cacheKey = _wxCacheKey("marine", lat, lon);
   const cached = _wxCacheGet(cacheKey);
   if (cached) return cached;
+  const fromProxy = await _tryProxyWx("marine", lat, lon);
+  if (fromProxy) { _wxCacheSet(cacheKey, fromProxy); return fromProxy; }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
@@ -1294,6 +1323,17 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 // stays for the detail sheet's 7-day view; scoreWeekend wraps it for the
 // front-page "Firing this weekend" carousel.
 
+// Upcoming Friday's YYYY-MM-DD. If today is Fri, returns today. If mid-weekend
+// (Sat/Sun), skips to NEXT Fri — same-day fares aren't a useful pricing
+// signal. Used for weekend-specific Travelpayouts queries.
+function upcomingFridayISO(today) {
+  const d = today.getDay(); // 0=Sun ... 6=Sat
+  const daysToFri = d === 5 ? 0 : (5 - d + 7) % 7;
+  const fri = new Date(today);
+  fri.setDate(fri.getDate() + daysToFri);
+  return fri.toISOString().slice(0, 10);
+}
+
 function weekendDayIndices(today) {
   // Returns dayIndices [Fri, Sat, Sun, Mon] within 0..6 forecast window.
   // If today is Sat/Sun/Mon, the in-progress weekend is partially in the past
@@ -1387,9 +1427,14 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
     return { score: null, conditions, priceRatio, isEstimate: false, label: null };
   }
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-  const base = conditions.score * 0.65;
-  const priceBonus = clamp((1 - priceRatio) * 100, -15, 35) * 0.35;
-  let final = clamp(base + priceBonus, 0, 100);
+  // 50/50 weight: conditions and price each contribute equally to final score.
+  // Both signals normalized 0–100. priceNorm: ratio 1.0 = 50 (par baseline),
+  // 0.5 = 100 (50% off = max), 1.5 = 0 (50% above = min). Linear, clamped.
+  // Future: let users pick the degree (DEAL_WEIGHT slider in profile).
+  const DEAL_WEIGHT = 0.5;
+  const conditionsNorm = conditions.score;
+  const priceNorm = clamp(100 * (1.5 - priceRatio), 0, 100);
+  let final = clamp(conditionsNorm * (1 - DEAL_WEIGHT) + priceNorm * DEAL_WEIGHT, 0, 100);
   if (conditions.confidence === "medium") final *= 0.92;
   final = Math.round(final);
   // Volatile routes (wide per-origin price spread on this destination) need a
@@ -1431,8 +1476,14 @@ function _flightRelease() {
 // Returns price number or null — caller falls back to BASE_PRICES estimate
 // Includes retry with exponential backoff (up to 2 retries)
 // Checks localStorage cache (15-min TTL) before hitting the API
-async function fetchTravelpayoutsPrice(origin, destination) {
-  const cached = _flightCacheGet(origin, destination);
+//
+// When departDate is provided (YYYY-MM-DD), the proxy filters month-matrix to
+// entries on that exact depart and returns a single weekend-specific price —
+// answers "what does THIS Fri-Mon cost" instead of "cheapest fare anyone
+// found in the month." returnDate further constrains the round-trip.
+// Cache key includes departDate so different weekends don't share entries.
+async function fetchTravelpayoutsPrice(origin, destination, departDate, returnDate) {
+  const cached = _flightCacheGet(origin, destination, departDate);
   if (cached !== null) return cached;
 
   await _flightAcquire();
@@ -1442,9 +1493,11 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const url = `${FLIGHT_PROXY}/api/flights`
+        let url = `${FLIGHT_PROXY}/api/flights`
           + `?origin=${encodeURIComponent(origin)}`
           + `&destination=${encodeURIComponent(destination)}`;
+        if (departDate) url += `&depart_date=${encodeURIComponent(departDate)}`;
+        if (returnDate) url += `&return_date=${encodeURIComponent(returnDate)}`;
 
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
@@ -1471,8 +1524,13 @@ async function fetchTravelpayoutsPrice(origin, destination) {
 
         if (entries.length === 0) return null;
         const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
-        const result = { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
-        _flightCacheSet(origin, destination, result);
+        const result = {
+          price: Math.round(cheapest.price),
+          foundAt: cheapest.found_at || new Date().toISOString(),
+          departDate: cheapest.depart_date || departDate || null,
+          returnDate: cheapest.return_date || returnDate || null,
+        };
+        _flightCacheSet(origin, destination, result, departDate);
         return result;
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
@@ -1772,6 +1830,80 @@ function shareVenue(listing, onCopied) {
         .catch(() => onCopied && onCopied());
     } catch { onCopied && onCopied(); }
   }
+}
+
+// ─── Share a named list (viral loop) ──────────────────────────────────────────
+// Snapshots the list to Supabase shared_lists, returns a shareable URL with
+// referrer attribution (?l=<slug>&r=<owner_id>). Falls through to native
+// share / clipboard copy. Requires sign-in (sharer must be a real user_id).
+const _SLUG_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // omit 0/o/1/l/i for readability
+function _generateSlug(len = 8) {
+  const buf = new Uint8Array(len);
+  (window.crypto || window.msCrypto).getRandomValues(buf);
+  let out = "";
+  for (let i = 0; i < len; i++) out += _SLUG_ALPHABET[buf[i] % _SLUG_ALPHABET.length];
+  return out;
+}
+async function shareList(list, cloudSync, onResult) {
+  // onResult({status: "needs_signin" | "shared" | "copied" | "error", url?, error?})
+  if (!list || !list.venueIds || list.venueIds.length === 0) {
+    onResult && onResult({ status: "error", error: "Add some venues first" });
+    return;
+  }
+  if (!cloudSync?.user) {
+    onResult && onResult({ status: "needs_signin" });
+    return;
+  }
+  try {
+    const client = await ensureSupabase();
+    if (!client) throw new Error("Cloud sync unavailable");
+    const slug = _generateSlug(8);
+    const { error } = await client.from("shared_lists").insert({
+      slug,
+      owner_id: list.id === "favorites" ? cloudSync.user.id : cloudSync.user.id,
+      source_list_id: list.id,
+      name: list.name,
+      emoji: list.emoji || "🗺️",
+      venue_ids: list.venueIds,
+    });
+    if (error) throw error;
+    const url = `https://j1mmychu.github.io/peakly/?l=${slug}&r=${cloudSync.user.id}`;
+    const text = `${list.emoji || "🗺️"} ${list.name} on Peakly — ${list.venueIds.length} weekend spots`;
+    logEvent("list_share", { slug, list_id: list.id, venue_count: list.venueIds.length });
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${list.name} on Peakly`, text, url });
+        onResult && onResult({ status: "shared", url });
+        return;
+      } catch { /* user cancelled — fall through to clipboard */ }
+    }
+    try {
+      await navigator.clipboard?.writeText(url);
+      onResult && onResult({ status: "copied", url });
+    } catch {
+      onResult && onResult({ status: "shared", url });
+    }
+  } catch (e) {
+    logEvent("list_share_error", { message: String(e?.message || e) });
+    onResult && onResult({ status: "error", error: String(e?.message || e) });
+  }
+}
+
+// ─── Fetch a shared list snapshot by slug (public read) ───────────────────────
+async function fetchSharedList(slug) {
+  try {
+    const client = await ensureSupabase();
+    if (!client) return null;
+    const { data, error } = await client
+      .from("shared_lists")
+      .select("slug, owner_id, name, emoji, venue_ids, view_count")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !data) return null;
+    // Fire-and-forget view increment (RPC, anon-callable)
+    client.rpc("bump_share_view", { p_slug: slug }).catch(() => {});
+    return data;
+  } catch { return null; }
 }
 
 // ─── Travelpayouts real pricing (LIVE) ────────────────────────────────────────
@@ -3578,6 +3710,73 @@ function ProfileSyncSection({ cloudSync, profile }) {
   );
 }
 
+// "My Lists" — share + manage named lists from Profile. Cloud-sync-gated:
+// the Share action requires the sharer to be signed in (so the snapshot row
+// has a real owner_id for referral attribution).
+function MyListsSection({ namedLists, cloudSync }) {
+  const [statusByList, setStatusByList] = useState({}); // {listId: "sharing" | "copied" | "shared" | "error" | "needs_signin"}
+  const setListStatus = (id, status) => {
+    setStatusByList(s => ({ ...s, [id]: status }));
+    if (status && status !== "sharing") {
+      setTimeout(() => setStatusByList(s => { const n = { ...s }; delete n[id]; return n; }), 2200);
+    }
+  };
+  const onShare = async (list) => {
+    if (!list.venueIds || list.venueIds.length === 0) { setListStatus(list.id, "empty"); return; }
+    setListStatus(list.id, "sharing");
+    await shareList(list, cloudSync, (r) => setListStatus(list.id, r.status));
+  };
+
+  // Hide empty Favorites — clutter, no value to share an empty list
+  const visible = namedLists.filter(l => (l.venueIds || []).length > 0);
+  if (visible.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom:16, padding:"14px 14px 10px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
+      <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase", marginBottom:10 }}>
+        My Lists
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        {visible.map(l => {
+          const status = statusByList[l.id];
+          const shareLabel = status === "sharing" ? "…"
+            : status === "copied" ? "Copied ✓"
+            : status === "shared" ? "Shared ✓"
+            : status === "needs_signin" ? "Sign in"
+            : status === "error" ? "Error"
+            : status === "empty" ? "Add spots"
+            : "Share";
+          const shareColor = status === "copied" || status === "shared" ? "#16a34a"
+            : status === "error" || status === "needs_signin" || status === "empty" ? "#dc2626"
+            : "#0284c7";
+          return (
+            <div key={l.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 4px" }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0284c722,#0ea5e922)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>{l.emoji || "🗺️"}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{l.name}</div>
+                <div style={{ fontSize:11, color:"#aaa", fontFamily:F, marginTop:1 }}>{l.venueIds.length} spot{l.venueIds.length !== 1 ? "s" : ""}</div>
+              </div>
+              <button onClick={() => onShare(l)} disabled={status === "sharing"} className="pressable" style={{
+                background: "#fff", border:"1.5px solid", borderColor: shareColor + "55",
+                color: shareColor, borderRadius:10, padding:"7px 12px",
+                fontSize:11, fontWeight:800, fontFamily:F, cursor: status === "sharing" ? "default" : "pointer",
+                display:"flex", alignItems:"center", gap:5, flexShrink:0,
+              }}>
+                <span>↗</span> {shareLabel}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {!cloudSync?.user && (
+        <div style={{ marginTop:8, fontSize:10, color:"#aaa", fontFamily:F, lineHeight:1.4 }}>
+          Sign in above to share lists with friends.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
@@ -4335,6 +4534,133 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
         )}
       </div>
       <div style={{ height:32 }} />
+    </div>
+  );
+}
+
+// ─── Shared list view (recipient lands here from a ?l=<slug> URL) ─────────────
+// Renders a frozen snapshot of someone's named list with a "Save these to your
+// Peakly" CTA. Recipient signs in (or is already signed in) → import as new
+// namedList, log referred_by attribution, navigate to Explore.
+function SharedListView({ snapshot, listings, cloudSync, onImported, onClose }) {
+  const [email, setEmail]               = useState("");
+  const [showSignIn, setShowSignIn]     = useState(false);
+  const [signInBusy, setSignInBusy]     = useState(false);
+  const [signInMessage, setSignInMsg]   = useState("");
+  const [importing, setImporting]       = useState(false);
+
+  const venueIds = snapshot.venue_ids || [];
+  const listListings = listings.filter(l => venueIds.includes(l.id));
+  const missingCount = venueIds.length - listListings.length;
+
+  const doImport = async () => {
+    setImporting(true);
+    try { onImported(snapshot); } finally { setImporting(false); }
+  };
+
+  const handleSaveCta = () => {
+    if (cloudSync?.user) { doImport(); return; }
+    try {
+      localStorage.setItem("peakly_pending_share_import", JSON.stringify({
+        slug: snapshot.slug,
+        name: snapshot.name,
+        emoji: snapshot.emoji,
+        venueIds: venueIds,
+        referredBy: snapshot.owner_id,
+        ts: Date.now(),
+      }));
+    } catch {}
+    setShowSignIn(true);
+  };
+
+  const sendMagicLink = async () => {
+    if (!email.trim() || !email.includes("@")) { setSignInMsg("Enter a valid email"); return; }
+    setSignInBusy(true);
+    setSignInMsg("");
+    const r = await cloudSync.signIn(email.trim());
+    setSignInBusy(false);
+    if (r.ok) setSignInMsg("Check your email — magic link sent. Tap it to save these spots.");
+    else setSignInMsg(r.error || "Couldn't send magic link. Try again.");
+  };
+
+  return (
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:"#fff", position:"relative" }}>
+      <div style={{ padding:"52px 24px 14px", background:"linear-gradient(160deg,#0d0d0d,#1a1a1a)", color:"#fff", flexShrink:0, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, borderRadius:"50%", background:"#0284c7", opacity:0.15, filter:"blur(40px)", pointerEvents:"none" }} />
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+          <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>peakly</span>
+          <span style={{ fontSize:11, color:"rgba(255,255,255,0.45)", fontFamily:F, marginLeft:"auto" }}>Shared with you</span>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:14, position:"relative" }}>
+          <div style={{ width:56, height:56, borderRadius:14, background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0, border:"1px solid rgba(255,255,255,0.12)" }}>{snapshot.emoji || "🗺️"}</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F, lineHeight:1.15 }}>{snapshot.name}</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontFamily:F, marginTop:4 }}>
+              {venueIds.length} weekend spot{venueIds.length !== 1 ? "s" : ""} · curated by a friend
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"16px 20px 200px" }}>
+        {listListings.length === 0 ? (
+          <div style={{ padding:"48px 0", textAlign:"center" }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>🌫️</div>
+            <div style={{ fontSize:15, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Loading spots…</div>
+            <div style={{ fontSize:13, color:"#aaa", fontFamily:F }}>If this stays blank, the list may have unknown venues.</div>
+          </div>
+        ) : (
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+            {listListings.map(l => <ListingCard key={l.id} listing={l} wishlists={[]} onToggle={() => {}} onOpen={() => {}} />)}
+          </div>
+        )}
+        {missingCount > 0 && (
+          <div style={{ marginTop:14, fontSize:11, color:"#aaa", fontFamily:F, textAlign:"center" }}>
+            {missingCount} spot{missingCount !== 1 ? "s" : ""} couldn't load — your friend may have a newer version
+          </div>
+        )}
+      </div>
+
+      <div style={{
+        position:"absolute", left:0, right:0, bottom:0, background:"#fff",
+        borderTop:"1.5px solid #f0f0f0",
+        padding:"14px 16px",
+        paddingBottom:"max(env(safe-area-inset-bottom,0px),16px)",
+      }}>
+        {!showSignIn ? (
+          <>
+            <button onClick={handleSaveCta} disabled={importing} className="pressable" style={{
+              width:"100%", background: importing ? "#888" : "linear-gradient(135deg,#0284c7,#38bdf8)",
+              border:"none", borderRadius:14, padding:"15px 0",
+              color:"white", fontSize:15, fontWeight:900, fontFamily:F,
+              cursor: importing ? "default" : "pointer",
+              boxShadow:"0 4px 18px rgba(2,132,199,0.35)",
+            }}>{importing ? "Saving…" : "💾 Save these to your Peakly"}</button>
+            <button onClick={onClose} style={{ width:"100%", background:"none", border:"none", padding:"10px 0 0", fontSize:12, color:"#aaa", cursor:"pointer", fontFamily:F }}>Or just browse Peakly →</button>
+          </>
+        ) : (
+          <div className="bounce-in">
+            <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:8 }}>📬 Sign in to save</div>
+            <div style={{ fontSize:11, color:"#888", fontFamily:F, marginBottom:10, lineHeight:1.4 }}>We'll email you a magic link. No password. Tap the link → your spots are saved.</div>
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
+                value={email} onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && sendMagicLink()}
+                style={{ flex:1, padding:"11px 12px", borderRadius:12, border:"1.5px solid #e0e0e0", fontSize:13, fontFamily:F, color:"#222", background:"#fff" }}
+              />
+              <button onClick={sendMagicLink} disabled={signInBusy} style={{
+                background: signInBusy ? "#888" : "#0284c7", border:"none", borderRadius:12,
+                padding:"11px 16px", color:"white", fontSize:13, fontWeight:800, fontFamily:F,
+                cursor: signInBusy ? "default" : "pointer",
+              }}>{signInBusy ? "…" : "Send link"}</button>
+            </div>
+            {signInMessage && (
+              <div style={{ marginTop:9, fontSize:11, color: signInMessage.startsWith("Check") ? "#16a34a" : "#dc2626", fontFamily:F }}>{signInMessage}</div>
+            )}
+            <button onClick={() => setShowSignIn(false)} style={{ marginTop:7, background:"none", border:"none", fontSize:11, color:"#bbb", cursor:"pointer", fontFamily:F, padding:0 }}>Cancel</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -5292,6 +5618,11 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
 
         {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
         <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
+
+        {/* ── My Lists (share + manage) ── */}
+        {namedLists.length > 0 && (
+          <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
+        )}
 
         {/* ── Install Peakly (only when prompt is captured) ── */}
         {canInstallPwa && (
@@ -7279,6 +7610,8 @@ function App() {
   const [showAirportSetup, setShowAirportSetup] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
+  const [sharedListView, setSharedListView] = useState(null); // snapshot from ?l=<slug>
+  const [importToast,    setImportToast]    = useState("");
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
@@ -7480,9 +7813,13 @@ function App() {
       // 3. Fetch prices only for unique airports, batched in groups of 3
       // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
       // If two home airports are set, fetch both and use the cheaper price.
-      const apPrices = {}; // airport code → { price, foundAt }
+      // Pass upcoming Fri's date so proxy filters month-matrix to that exact
+      // depart instead of returning whatever month-cheapest fare it happens
+      // to have (which could be a random Tuesday red-eye 3 weeks out).
+      const apPrices = {}; // airport code → { price, foundAt, departDate, returnDate }
       const origins = [profile.homeAirport || "JFK"];
       if (profile.homeAirport2) origins.push(profile.homeAirport2);
+      const departDate = upcomingFridayISO(new Date());
 
       const fetchBatch = async (airports) => {
         for (let i = 0; i < airports.length; i += 3) {
@@ -7491,7 +7828,7 @@ function App() {
           const results = await Promise.allSettled(
             batch.flatMap(ap =>
               origins.map(async origin => {
-                const result = await fetchTravelpayoutsPrice(origin, ap);
+                const result = await fetchTravelpayoutsPrice(origin, ap, departDate);
                 return { ap, result };
               })
             )
@@ -7664,6 +8001,114 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Handle shared-list deep link (?l=<slug>&r=<owner_id>)
+  // Runs ONCE on mount: fetches snapshot, opens SharedListView, suppresses
+  // onboarding so the recipient lands directly on the curated list.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("l");
+      const ref  = params.get("r");
+      if (slug) {
+        // Suppress the auto-onboarding so recipient sees the list, not the welcome flow
+        setShowOnboarding(false);
+        fetchSharedList(slug).then(snap => {
+          if (snap) {
+            setSharedListView(snap);
+            logEvent("shared_list_open", { slug, has_referrer: !!ref });
+          } else {
+            // Bad/expired slug — strip the params so user gets normal app
+            try { history.replaceState(null, "", window.location.pathname); } catch {}
+          }
+        });
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Import a shared snapshot into the user's namedLists. Called from
+  // SharedListView's CTA when already signed in, or from the post-magic-link
+  // effect below when the recipient signs in for the first time.
+  const importSharedSnapshot = useCallback((snap) => {
+    if (!snap || !snap.venueIds && !snap.venue_ids) return;
+    const venueIds = snap.venueIds || snap.venue_ids || [];
+    const importedName = `From a friend: ${snap.name}`;
+    setNamedLists(ls => {
+      // Idempotent — don't double-import the same slug
+      const slugMatch = snap.slug && ls.find(l => l._sharedFromSlug === snap.slug);
+      if (slugMatch) return ls;
+      return [
+        ...ls,
+        {
+          id: Date.now().toString(),
+          name: importedName,
+          emoji: snap.emoji || "🗺️",
+          venueIds: [...venueIds],
+          _sharedFromSlug: snap.slug || null,
+          _sharedFromOwner: snap.owner_id || null,
+        },
+      ];
+    });
+    // Referral attribution — write to profile, only if not already attributed
+    const referredBy = snap.referredBy || snap.owner_id;
+    if (referredBy) {
+      setProfile(p => p?.referred_by ? p : { ...p, referred_by: referredBy });
+    }
+    // Clear pending + URL params; close shared view; show toast
+    try { localStorage.removeItem("peakly_pending_share_import"); } catch {}
+    try { history.replaceState(null, "", window.location.pathname); } catch {}
+    setSharedListView(null);
+    setImportToast(`Saved "${snap.name}" to your lists ✓`);
+    setTimeout(() => setImportToast(""), 3500);
+    logEvent("shared_list_imported", { slug: snap.slug, venue_count: venueIds.length });
+  }, [setNamedLists, setProfile]);
+
+  // After magic-link auth completes, finish a pending share import.
+  // Triggers when cloudSync.user flips from null to a real user object.
+  useEffect(() => {
+    if (!cloudSync?.user) return;
+    let pending = null;
+    try {
+      const raw = localStorage.getItem("peakly_pending_share_import");
+      if (raw) pending = JSON.parse(raw);
+    } catch {}
+    if (!pending) return;
+    // Apply only if recently stashed (24h max — defensive against stale entries)
+    if (pending.ts && Date.now() - pending.ts > 24 * 60 * 60 * 1000) {
+      try { localStorage.removeItem("peakly_pending_share_import"); } catch {}
+      return;
+    }
+    importSharedSnapshot(pending);
+  }, [cloudSync?.user, importSharedSnapshot]);
+
+  // Shared-list takeover: recipient lands here from a ?l=<slug> link.
+  // Suppresses the normal app shell so the recipient sees ONLY the curated
+  // list and the "Save to your Peakly" CTA — no nav, no tabs, no onboarding.
+  if (sharedListView) {
+    return (
+      <div style={{
+        width:"100%", minHeight:"100vh", background:"#f5f5f5",
+        display:"flex", justifyContent:"center", fontFamily:F,
+      }}>
+        <div style={{
+          width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
+          display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
+        }}>
+          <SharedListView
+            snapshot={sharedListView}
+            listings={listings}
+            cloudSync={cloudSync}
+            onImported={importSharedSnapshot}
+            onClose={() => {
+              try { history.replaceState(null, "", window.location.pathname); } catch {}
+              setSharedListView(null);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       width:"100%", minHeight:"100vh", background:"#f5f5f5",
@@ -7673,6 +8118,15 @@ function App() {
         width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
         display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
       }}>
+        {/* Toast — appears after a friend's list is imported via magic link */}
+        {importToast && (
+          <div className="bounce-in" style={{
+            position:"absolute", top:14, left:"50%", transform:"translateX(-50%)",
+            background:"#222", color:"#fff", padding:"10px 16px", borderRadius:14,
+            fontSize:13, fontWeight:800, fontFamily:F, zIndex:99,
+            boxShadow:"0 4px 22px rgba(0,0,0,0.25)", maxWidth:"calc(100% - 28px)",
+          }}>{importToast}</div>
+        )}
         {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
