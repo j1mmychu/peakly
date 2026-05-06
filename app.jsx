@@ -6400,7 +6400,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate */}
+          {/* 🛍️ Gear — affiliate (Amazon Associates, tag=peakly-20) */}
           {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
