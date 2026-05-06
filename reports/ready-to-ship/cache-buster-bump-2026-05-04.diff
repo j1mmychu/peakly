@@ -1,0 +1,21 @@
+# Why: app.jsx changed in 4 commits since 2026-05-02 (the surf retire pivot,
+# distance filter, surf-leak fix). sw.js CACHE_NAME and PEAKLY_BUILD already
+# bumped to 20260503c, but index.html ?v= was missed and still points at
+# 20260502a. Returning users with a warm browser HTTP cache get served the
+# stale pre-pivot app.jsx (surfing UI, no Fri-Mon lock, no distance filter)
+# until the cached entry naturally expires. Bumping ?v= forces the fetch.
+# Estimated time to apply: 5 seconds
+# Risk: low — change-class is update-string-constant, value already used by
+# sw.js + PEAKLY_BUILD so we're aligning, not introducing a new value.
+
+--- a/index.html
++++ b/index.html
+@@ -345,7 +345,7 @@
+   </div>
+
+   <!-- Load app (Babel transforms JSX on the fly) -->
+-  <script type="text/babel" src="./app.jsx?v=20260502a" data-presets="react"></script>
++  <script type="text/babel" src="./app.jsx?v=20260503c" data-presets="react"></script>
+
+   <!-- Service Worker registration -->
+   <script>

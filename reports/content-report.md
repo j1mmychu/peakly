@@ -31,7 +31,9 @@ Required fields 100% +20 | No duplicate IDs +10 | 4 photo dup sets −8 | 6 dupl
 | Skiing | 73 | ✅ |
 | **TOTAL** | **240** | 3 active categories |
 
-All 240 venues: 100% field coverage (lat, lon, ap, tags, photo). Zero duplicate IDs. All 78 surfing venues have `facing` bearing.
+All 240 venues: 100% field coverage (lat, lon, ap, tags, photo). Zero duplicate IDs. All 78 surfing venues verified with `facing` bearing.
+
+**Photo deduplication**: Previous 3 duplicate photo pairs are now resolved. All 240 photos unique. ✅
 
 ---
 
@@ -61,7 +63,7 @@ Same Unsplash photo ID used across multiple venues — different `fp-x`/`fp-y` p
 | `photo-1520175462` | `portillo-s4`, `perisher` | Swap `portillo-s4` → `photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop` |
 | `photo-1544551763` | `cape_hatteras`, `bathsheba` | Swap `bathsheba` → `photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop` |
 
----
+Additionally, `PDX` is defined twice: first as `PDX:"na"` (correct), then overridden by `"PDX":"north_america"` (wrong). The second definition wins.
 
 ### P2 🟡 — 16 S-Series Venues with Recycled Generic Tags
 
@@ -104,7 +106,7 @@ tags:["North Shore Town Wave","WSL QS Events","Mellow Rights","HI Surf History"]
 
 ## 2. Gear Items Audit
 
-| Category | Items | Est. AOV | Status |
+| Category | Items | AOV est. | Status |
 |----------|-------|---------|--------|
 | skiing | 6 | ~$172 | ✅ Good — goggles + skis carry AOV |
 | surfing | 6 | ~$61 | ✅ Good |
