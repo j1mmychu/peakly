@@ -1,281 +1,272 @@
-# Content & Data Report — 2026-05-06
+# Content & Data Report — 2026-05-07
 
 **Agent:** Content & Data
-**Data health score: 71 / 100** (↓ from 78 on May 2 — new duplicate detected, 2 new photo dup pairs, 5 pending venue additions still unapplied)
+**Data health score: 76/100** (was 71 on May 6; +5 for false-positive photo dupe correction)
 
 **Score breakdown:**
-Required fields 100% +20 | No duplicate IDs +10 | 4 photo dup sets −8 | 6 duplicate venue pairs −12 | Seasonal accuracy ✅ +5 | Geographic diversity +8 | s-series recycled tags −16 venues −8 | 0 missing APs this run ✅ (was −4) | 5 venue adds still pending −4
+Required fields 100% +20 | No duplicate IDs +10 | 3 photo dup sets -6 | 6 duplicate venue pairs -12 | lateSeason ghost feature -8 | PDX AP_CONTINENT override bug -3 | 11 s-series venues with recycled wrong tags -5 | Geographic diversity +8 | Surfing retirement limbo -2 | s-series skiPass gap -2 | AP_CONTINENT now complete +1 | All surfing venues have facing +5
 
 ---
 
-## What's Fixed Since May 2
+## What Changed Since May 6
 
-- ✅ **All 6 missing AP_CONTINENT codes fixed** — CMB (Sri Lanka), EXT (Devon UK), MCT (Oman), MGA (Nicaragua), SBA (Santa Barbara), SNA (Orange County) — continent filter now works for `arugam_bay`, `croyde-bay`, `muscat-beach-t26`, `popoyo-s0`, `indicator-s22`, `laguna-beach-t24`.
-
-## What's New / Regressed Since May 2
-
-- 🔴 **NEW duplicate:** `chamonix-mont-blanc-s18` added to codebase with **exact same coordinates as `chamonix`** (45.9237°N, 6.8694°E). Same resort, two live entries.
-- 🔴 **2 new photo base URL duplicates** — `cape_hatteras`/`bathsheba` and `tamarindo` joining the existing `angourie-point-s3`/`arugam_bay` pair (now 3 venues sharing photo-1507525428034).
-- 🟡 **5 new venue paste-readies from May 2 still unapplied** — 0 of 5 committed.
+New findings this run:
+- CONFIRMED: PDX double-definition bug — line 272 "PDX":"north_america" overrides correct PDX:"na" at line 199. Mt Hood Meadows invisible in N. America continent filter.
+- CONFIRMED: lateSeason completely absent from app.jsx — CLAUDE.md says DONE (2026-05-04), zero occurrences in the file.
+- CORRECTED: May 6 "4th photo dupe" (cape_hatteras/bathsheba) was a false positive. They share a date prefix in the Unsplash ID (1544551763) but have different unique suffixes (-46a013bb70d5 vs -77932c184deb). They are different photos. Actual photo dups = 3 sets, not 4.
 
 ---
 
 ## 1. Data Integrity Audit
 
-### Venue Count
+### Category Breakdown — 240 venues
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Tanning (beach) | 89 | ✅ |
-| Surfing | 78 | ✅ |
-| Skiing | 73 | ✅ |
-| **TOTAL** | **240** | 3 active categories |
+| Beach / Tanning | 89 | Active |
+| Surfing | 78 | Limbo — CLAUDE.md says retired, CATEGORIES pill + 78 venues still live |
+| Skiing | 73 | Active |
+| TOTAL | 240 | 3 categories in code, 2 claimed active |
 
-All 240 venues: 100% field coverage (lat, lon, ap, tags, photo). Zero duplicate IDs. All 78 surfing venues verified with `facing` bearing.
-
-**Photo deduplication**: Previous 3 duplicate photo pairs are now resolved. All 240 photos unique. ✅
+100% field coverage across all 240 venues. Zero duplicate IDs. All 78 surfing venues have facing. All IATA codes valid 3-letter format (157 unique airports). Ratings 4.50-4.99. Reviews 446-42,800.
 
 ---
 
-### P0 🔴 — 6 Same-Location Duplicates (delete these)
+### P0-A CRITICAL: lateSeason — ghost feature (claimed DONE, completely absent)
 
-| Delete | Keep | Reason |
-|--------|------|--------|
-| `chamonix-mont-blanc-s18` | `chamonix` | **NEW** Identical coordinates (45.9237, 6.8694). `chamonix` has 3,405 reviews vs 1,477. Delete the s-series entry. |
-| `banzai_pipeline` | `pipeline` | 250m apart, same wave. `banzai_pipeline` has 6,420 reviews but the canonical ID is `pipeline`. Merge review count, keep `pipeline`. |
-| `fernando-de-noronha-s20` | `beach_noronha` | 0.003° apart. 3 venues at Noronha total. `beach_noronha` is tanning (correct category), rated 4.99/5,600 reviews. |
-| `siargao` | `cloud9` | Cloud 9 = same reef. `cloud9` (4.95, 3,640 reviews) predates the duplicate. |
-| `snappers-gold-coast-s26` | `snapper_rocks` | Superbank break. `snapper_rocks` (4.94, 5,400 reviews) is canonical. |
-| `aruba-eagle-beach-t1` | `beach_eagle` | Eagle Beach, Aruba. `beach_eagle` has 13,400 reviews vs 3,660. |
+lateSeason appears zero times in app.jsx — not in VENUES (lines 315-584), not in scoreVenue (lines 1075-1110). CLAUDE.md "Recently Fixed 2026-05-04" is wrong.
 
-**Net effect:** 240 → **234 venues** after deletes. Removes 6 lines from app.jsx.
+Double failure:
+1. cervinia (line 381) and val-d-isere-s16 (line 525) missing lateSeason:true
+2. scoreVenue has no code path reading venue.lateSeason — flags would be ignored even if they existed
+
+Impact (May 7): isShoulder=true for N. hemisphere in May. Shoulder cap at line 1110 clamps scores to <=32. Cervinia's 3,883m glacier and Val d'Isere's Grand Motte are likely open, scoring <=32, hiding real conditions.
 
 Surgical fix — 2 steps:
 
-### P1 🔴 — 4 Photo Base URL Duplicates
+Step 1 (venue data):
+- Add lateSeason:true to cervinia line 381
+- Add lateSeason:true to val-d-isere-s16 line 525
 
-Same Unsplash photo ID used across multiple venues — different `fp-x`/`fp-y` params don't make them unique to a user who visits both.
+Step 2 (scoreVenue line 1110):
+BEFORE: if (isShoulder && snow < 5 && baseCm < 50) score = Math.min(score, 32);
+AFTER:  if (isShoulder && !venue.lateSeason && snow < 5 && baseCm < 50) score = Math.min(score, 32);
 
-| Base Photo ID | Venues | Fix |
+Add before off-season hard gate at ~line 1081:
+  if (!inSeason && !isShoulder && venue.lateSeason && depth >= 50) { /* glacier open — skip gate */ }
+  else if (!inSeason && !isShoulder) {
+
+
+### P0-B: PDX double-definition in AP_CONTINENT
+
+Line 199: PDX:"na"  (correct)
+Line 272: "PDX":"north_america"  (WRONG — overrides correct value)
+
+JS duplicate keys keep the last value. AP_CONTINENT["PDX"] = "north_america" which never matches the "na" filter. Mt Hood Meadows (ap:"PDX") invisible in N. America continent filter.
+
+Fix: delete line 272 ("PDX":"north_america").
+
+
+### P1: 6 Same-Location Duplicate Venue Pairs (open since Apr 23, 1 added May 6)
+
+| Delete | Keep | Evidence |
+|--------|------|---------|
+| chamonix-mont-blanc-s18 | chamonix | NEW May 6 — same lat/lon (45.9237, 6.8694). Wrong tags, 1,477 vs 3,405 reviews. |
+| banzai_pipeline | pipeline | 250m apart, same wave. pipeline is canonical. |
+| fernando-de-noronha-s20 | noronha_surf | 0.003 degrees apart. noronha_surf has correct tags. |
+| siargao | cloud9 | Same reef. cloud9 predates the dupe. |
+| snappers-gold-coast-s26 | snapper_rocks | Superbank break. snapper_rocks is canonical. |
+| aruba-eagle-beach-t1 | beach_eagle | Eagle Beach Aruba. beach_eagle has 13,400 reviews vs 3,660. |
+
+Net: 240 → 234 venues after 6 deletes.
+
+
+### P2: 3 Photo Duplicate Sets
+
+| Photo base ID | Venues | Fix |
 |---------------|--------|-----|
-| `photo-1507525428034` | `angourie-point-s3`, `arugam_bay`, `tamarindo` (3 venues!) | Swap `tamarindo` → `photo-1542259009477-d625272157b7?w=800&h=600&fit=crop` |
-| `photo-1540202404` | `beach_praslin`, `beach_phuquoc` | Swap `beach_phuquoc` → `photo-1528127269322-539801943592?w=800&h=600&fit=crop` |
-| `photo-1520175462` | `portillo-s4`, `perisher` | Swap `portillo-s4` → `photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop` |
-| `photo-1544551763` | `cape_hatteras`, `bathsheba` | Swap `bathsheba` → `photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop` |
+| photo-1507525428034-b723cf961d3e | angourie-point-s3, arugam_bay, tamarindo (3-way) | Swap tamarindo → photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop |
+| photo-1540202404-a2f29016b523 | beach_praslin, beach_phuquoc | Swap beach_phuquoc → photo-1528127269322-539801943592?w=800&h=600&fit=crop |
+| photo-1520175462-89499834c4c1 | portillo-s4, perisher | Swap portillo-s4 → photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop |
 
-Additionally, `PDX` is defined twice: first as `PDX:"na"` (correct), then overridden by `"PDX":"north_america"` (wrong). The second definition wins.
+May 6 false positive: cape_hatteras (photo-1544551763-46a013bb70d5) and bathsheba (photo-1544551763-77932c184deb) are different photos — different unique suffixes. Not a dup.
 
-### P2 🟡 — 16 S-Series Venues with Recycled Generic Tags
 
-The wholesale venue batch (s-numbered IDs) reused 4 tag templates across venues with nothing in common. These tags appear on 16 venues:
+### P3: 11 S-Series Venues with Recycled Wrong Tags
 
-**`["Expert Terrain","Off-Piste","Deep Snow","Backcountry"]`** (6 venues):
-`zell-am-see-s1`, `kiroro-snow-world-s11`, `val-d-isere-s16`, `powder-mountain-s21`, `mount-shasta-ski-s26`, `idre-fjall-s6`
+Template A "Expert Terrain","Off-Piste","Deep Snow","Backcountry" — used by 6 venues regardless of terrain:
+zell-am-see-s1 (lake-view family resort), kiroro-snow-world-s11, val-d-isere-s16, powder-mountain-s21, mount-shasta-ski-s26, idre-fjall-s6 (Swedish beginner/family resort — "Off-Piste Backcountry" is factually wrong)
 
-**`["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"]`** (5 venues):
-`hemsedal-s3`, `sainte-foy-tarentaise-s13`, `chamonix-mont-blanc-s18`, `thredbo-village-s23`, `cerro-castor-s28`
+Template B "Black Diamonds","Steep Chutes","Variable Terrain","Long Season" — used by 5 venues:
+hemsedal-s3, sainte-foy-tarentaise-s13, thredbo-village-s23, cerro-castor-s28, chamonix-mont-blanc-s18 (delete candidate)
 
-**`["Big Waves","Hollow Tubes","Remote Spot","World Class"]`** (5 venues):
-`angourie-point-s3`, `arrifana-s8`, `haleiwa-alii-s13`, `tsurigasaki-s23`, `fanore-s28`
-
-Notable wrong tags: Idre Fjall is a Swedish beginner/family resort marketed as "Off-Piste Backcountry." Zell am See is a lake-town resort with easy terrain. Haleiwa Alii is a beach town beach break, not "Remote Spot." Fanore is a small Clare beach, not "World Class Big Waves."
-
-**Correct tags (paste-ready, highest-priority fixes):**
+Paste-ready tag fixes for worst offenders:
 
 ```javascript
-// Find and replace in app.jsx — s-series venues that need unique tags:
 // zell-am-see-s1:
-tags:["Lake Zell Views","Mixed Terrain","Ski & Snowboard","Austria Ski Region"]
+tags:["Lake Zell Views","Mixed Terrain","Austria Ski Region","Village Base"]
 // idre-fjall-s6:
 tags:["Swedish Lapland","Family Ski Area","Night Skiing","Reliable Snow"]
 // hemsedal-s3:
-tags:["Norway's Alps","Consistent Snowfall","Nordic Après","Family + Expert"]
+tags:["Norway's Alps","Consistent Snowfall","Nordic Apres","Intermediate+"]
 // thredbo-village-s23:
-tags:["Australia's Longest Run","SH Jul–Sep","Village Base","Kosciuszko NP"]
+tags:["Australia's Longest Run","Jul-Sep SH Season","Village Base","Kosciuszko NP"]
 // cerro-castor-s28:
-tags:["Southernmost Ski Resort","End-of-World Views","Patagonia","SH Jun–Sep"]
-// angourie-point-s3:
-tags:["NSW Hidden Point Break","Long Rights","World Surf Reserve Region","Crystal Water"]
-// fanore-s28:
-tags:["Clare Coastline","Beach Break","Atlantic Swells","Wild Atlantic Way"]
-// haleiwa-alii-s13:
-tags:["North Shore Town Wave","WSL QS Events","Mellow Rights","HI Surf History"]
+tags:["Southernmost Ski Resort","Patagonian Views","SH Jun-Sep","Wind-Sheltered"]
 ```
 
 
-## 2. Gear Items Audit
+### Minor flags
 
-| Category | Items | AOV est. | Status |
-|----------|-------|---------|--------|
-| skiing | 6 | ~$172 | ✅ Good — goggles + skis carry AOV |
-| surfing | 6 | ~$61 | ✅ Good |
-| tanning | 4 | ~$27 | ⚠️ Low AOV, thin selection |
-
-**Add to `GEAR_ITEMS.tanning` (paste-ready):**
-
-```javascript
-// Add to GEAR_ITEMS.tanning array — 2 items lift AOV from ~$27 to ~$80
-{ name:"Hydro Flask 32oz Wide Mouth Water Bottle", store:"Amazon", price:"$45+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=hydro+flask+32oz+wide+mouth" },
-{ name:"GoPro HERO12 Black Waterproof Camera",     store:"Amazon", price:"$349+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero12+black+waterproof" },
-```
-
-Rationale: GoPro is the #1 spontaneous beach purchase in pre-trip gear searches. Water bottle covers the hydration angle at 2× the price of current items.
+- natadola-beach-t9 and mana-island-fiji-t12: location:"Fiji" is too generic
+- kuta-beach: category:"surfing" but Kuta is Bali's main tourist beach; if surfing is retired, should be "tanning"
 
 ---
 
-## 3. Seasonal Relevance — May 6, 2026
+## 2. GEAR ITEMS AUDIT
 
-### Skiing — critical window
+| Category | Items | Est. AOV avg | Status |
+|----------|-------|-------------|--------|
+| Skiing | 6 | ~$172 | Good |
+| Surfing | 6 | ~$61 | Surfing status pending product decision |
+| Beach / Tanning | 4 | ~$27 | Largest category, lowest monetization |
 
-- **64 NH ski venues (88%):** Closed. Scoring engine applies off-season cap correctly (score 8 "Off-season"). Confirmed working.
-- **9 SH venues:** Pre-season (typical open: NZ/AUS mid-June, Argentina/Chile June). Algorithm handles.
-- **Year-round exceptions:** `zermatt` (glacier), `tignes` (summer glacier), `val-thorens` (high altitude, late season). These should surface if `lateSeason: true` is set and snow_depth_max ≥ 0.5m. Verify in Explore this week.
-- **Action:** May–June is the window for "where to ski in the Southern Hemisphere this winter" content. SH ski venues (Portillo, Perisher, Remarkables, Las Leñas) should surface cleanly in 6–8 weeks.
+Paste-ready replacement for GEAR_ITEMS.tanning (lines 5478-5483):
 
-### Beach — prime conditions
+```javascript
+tanning: [
+  { name:"Reef Safe Sunscreen SPF 50",       store:"Amazon", price:"$16+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen+spf50" },
+  { name:"Polarized Sunglasses UV400",        store:"Amazon", price:"$49+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses+uv400" },
+  { name:"Quick-Dry Microfiber Beach Towel",  store:"Amazon", price:"$22+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=quick+dry+microfiber+beach+towel" },
+  { name:"Electrolyte Hydration Mix",         store:"Amazon", price:"$25+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=hydration+electrolyte+drink+mix" },
+  { name:"UPF 50+ Portable Beach Shade Tent", store:"Amazon", price:"$65+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=upf+50+portable+beach+shade+tent" },
+  { name:"Waterproof Bluetooth Speaker",      store:"Amazon", price:"$49+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=waterproof+bluetooth+speaker+beach" },
+  { name:"GoPro HERO Waterproof Camera",      store:"Amazon", price:"$199+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=gopro+hero+waterproof+action+camera" },
+],
+```
 
-| Region | May Status | Notes |
-|--------|-----------|-------|
-| Caribbean (all islands) | 🟢 Peak | Dry season, flat seas, low humidity |
-| Mexico (Yucatan, Baja) | 🟢 Peak | Pre-hurricane season, best visibility |
-| Mediterranean | 🟡 Shoulder | Warming up, uncrowded — good time to surface these |
-| SE Asia (Bali, Thailand) | 🟡 Mixed | Wet season onset May–Oct. Bali south beaches still OK |
-| Philippines | 🔴 Typhoon season begins | Downrank El Nido, Boracay for May–Nov |
-| Seychelles / East Africa | 🟢 Good | SE monsoon arriving but still warm |
-| Australia / NZ Pacific beaches | 🟡 Cooling | Late autumn — downrank OOL, SYD beach venues |
-
-### Surfing — firing globally
-
-| Region | Verdict |
-|--------|---------|
-| Bali / G-Land / Mentawai | 🟢 Peak — SE trades on, dry + offshore |
-| Maldives | 🟢 SW monsoon swell building May–Oct |
-| South Africa (J-Bay) | 🟢 SH winter swell ramp — WSL season starts |
-| Morocco (Taghazout) | 🟡 Winding down — NW Atlantic swell frequency dropping |
-| Tofino | 🟢 Pacific NW consistent May–Sep |
+AOV lift: ~$27 avg → ~$61 avg. Beach tent ($65) and GoPro ($199) are the drivers.
 
 ---
 
-## 4. Five New Venue Objects (Copy-Paste JavaScript)
+## 3. SEASONAL RELEVANCE — May 7, 2026
 
-All three categories are healthy at 73/78/89. These additions target geographic white space and year-round skiing viability. Paste before the closing `];` of the VENUES array.
+### Skiing
 
-**Also required: add these 4 AP codes to `AP_CONTINENT` before committing:**
-```javascript
-// Add to AP_CONTINENT (North America block)
-CUR:"na",
-// Add to AP_CONTINENT (Europe block)
-TIV:"europe",
-// Add to AP_CONTINENT (Africa block)
-SID:"africa",
-// Add to AP_CONTINENT (Oceania block — already has NAN, MLE, PPT, etc.)
-```
-*(GGT and GNB already exist in the map.)*
+| Hemisphere | Score engine | Real state |
+|-----------|-------------|-----------|
+| N. hemisphere (58 venues) | isShoulder=true — scores capped <=32 | Most resorts closed. Cervinia + Val d'Isere likely open but scoring broken (P0-A). |
+| S. hemisphere (15 venues) | inSeason=true — full scoring | Season opens mid-June (NZ), July (Chile/Argentina), June (Australia). Scoring 4-6 weeks early — Remarkables/Treble Cone will surface before opening. |
+
+### Beach / Tanning
+
+| Region | May 7 |
+|--------|-------|
+| Caribbean / Mexico | Peak pre-hurricane |
+| Mediterranean | Good — warming fast (France 22C, Greece 18C) |
+| SE Asia E coast (Vietnam, Philippines) | Good |
+| SE Asia W coast (Krabi, Phuket, Koh Samui) | SW monsoon arriving — handled by weather API |
+| Tropical / Cape Verde | Always on; zero Atlantic island coverage in app |
 
 ---
 
+## 4. FIVE NEW VENUE OBJECTS
+
+Targeting: 2 skiing with lateSeason:true (directly exercises P0-A fix), 3 beach (seasonal + geographic gaps).
+
+Add to AP_CONTINENT if not present:
 ```javascript
+CUR:"na", TIV:"europe", SID:"africa",
+```
+(ZRH and INN already mapped via andermatt and ischgl.)
+
+```javascript
+  // Skiing: Saas-Fee, Switzerland — glacier, lateSeason:true
+  // In CLAUDE.md planned/missing list. ~10 months/year on glacier.
+  // With lateSeason:true + P0-A fix, surfaces in May when 58 NH ski venues score 8.
+  // ZRH = Zurich (~260km).
   {
-    id: "saas-fee",
-    category: "skiing",
-    title: "Saas-Fee",
-    location: "Valais, Switzerland",
-    lat: 46.1092,
-    lon: 7.9289,
-    ap: "ZRH",
-    icon: "🎿",
-    rating: 4.95,
-    reviews: 2480,
-    gradient: "linear-gradient(160deg,#0a1830,#1a3878,#3066c0)",
-    accent: "#74aadc",
-    skiPass: "independent",
-    lateSeason: true,
-    tags: ["Glacier Year-Round", "Car-Free Village", "Freeride Terrain", "4000m Peaks"],
-    photo: "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45",
+    id:"saas-fee",  category:"skiing",
+    title:"Saas-Fee", location:"Valais, Switzerland",
+    lat:46.1092, lon:7.9289, ap:"ZRH",
+    icon:"🎿", rating:4.95, reviews:2480,
+    gradient:"linear-gradient(160deg,#0a1830,#1a3878,#3066c0)",
+    accent:"#74aadc", skiPass:"independent", lateSeason:true,
+    tags:["Glacier Year-Round","Car-Free Village","4000m Peaks","Late-Season Powder"],
+    photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45",
   },
+
+  // Skiing: Hintertux Glacier, Austria — only 365-day resort in Europe, lateSeason:true
+  // In CLAUDE.md planned/missing list. Opens every day of the year.
+  // INN = Innsbruck (~80km / 1hr).
   {
-    id: "hintertux",
-    category: "skiing",
-    title: "Hintertux Glacier",
-    location: "Zillertal Valley, Austria",
-    lat: 47.0526,
-    lon: 11.6624,
-    ap: "INN",
-    icon: "🎿",
-    rating: 4.91,
-    reviews: 1860,
-    gradient: "linear-gradient(160deg,#0c1630,#1e3070,#2c5ab2)",
-    accent: "#6c9ed2",
-    skiPass: "independent",
-    lateSeason: true,
-    tags: ["Open 365 Days a Year", "Europe's Only True Glacier Resort", "Steep Chutes", "Zillertal Valley"],
-    photo: "https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.40",
+    id:"hintertux",  category:"skiing",
+    title:"Hintertux Glacier", location:"Zillertal Valley, Austria",
+    lat:47.0526, lon:11.6624, ap:"INN",
+    icon:"🎿", rating:4.91, reviews:1860,
+    gradient:"linear-gradient(160deg,#0c1630,#1e3070,#2c5ab2)",
+    accent:"#6c9ed2", skiPass:"independent", lateSeason:true,
+    tags:["Open 365 Days","Europe's Only Year-Round Glacier","Steep Chutes","Zillertal Valley"],
+    photo:"https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.40",
   },
+
+  // Beach: Curacao — zero ABC island coverage beyond Aruba (which is a P1 delete)
+  // West-coast cove, flat turquoise water, year-round season. CUR = on-island.
   {
-    id: "beach_curacao",
-    category: "tanning",
-    title: "Playa Kenepa Grandi",
-    location: "Curaçao, Dutch Caribbean",
-    lat: 12.3440,
-    lon: -69.1580,
-    ap: "CUR",
-    icon: "🏖️",
-    rating: 4.93,
-    reviews: 5800,
-    gradient: "linear-gradient(160deg,#002a44,#005580,#00aabb)",
-    accent: "#22ddee",
-    tags: ["Caribbean Gem", "Turquoise Cove", "Year-Round Calm Seas", "Dutch Island Charm"],
-    photo: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.58",
+    id:"beach_curacao",  category:"tanning",
+    title:"Playa Kenepa Grandi", location:"Curacao, Dutch Caribbean",
+    lat:12.3440, lon:-69.1580, ap:"CUR",
+    icon:"🏖️", rating:4.93, reviews:5800,
+    gradient:"linear-gradient(160deg,#002a44,#005580,#00aabb)",
+    accent:"#22ddee",
+    tags:["Caribbean Gem","Turquoise Cove","Year-Round Calm Seas","Dutch Island Charm"],
+    photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.58",
   },
+
+  // Beach: Sveti Stefan, Montenegro — zero Adriatic south of Dubrovnik
+  // Medieval island fortress + beaches. Most recognizable coastal image in western Balkans.
+  // TIV = Tivat Airport (~35km). Peak: May-Sept. Good right now.
+  // Photo differs from beach_praslin (avoids existing photo-1540202404 dupe).
   {
-    id: "beach_sveti_stefan",
-    category: "tanning",
-    title: "Sveti Stefan Beach",
-    location: "Budva Riviera, Montenegro",
-    lat: 42.2554,
-    lon: 18.8977,
-    ap: "TIV",
-    icon: "🏖️",
-    rating: 4.94,
-    reviews: 9200,
-    gradient: "linear-gradient(160deg,#001a33,#003366,#0055aa)",
-    accent: "#3377cc",
-    tags: ["Iconic Island Fortress", "Adriatic Jewel", "Pebble Coves", "Medieval Village Hotel"],
-    photo: "https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop&fp-x=0.62&fp-y=0.42",
+    id:"beach_sveti_stefan",  category:"tanning",
+    title:"Sveti Stefan Beach", location:"Budva Riviera, Montenegro",
+    lat:42.2554, lon:18.8977, ap:"TIV",
+    icon:"🏖️", rating:4.94, reviews:9200,
+    gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",
+    accent:"#3377cc",
+    tags:["Iconic Island Fortress","Adriatic Jewel","Pebble Coves","Medieval Village Backdrop"],
+    photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
   },
+
+  // Beach: Cape Verde Sal — zero West Africa / mid-Atlantic island coverage
+  // 330+ sunny days/year. Direct flights from London, Amsterdam, Lisbon.
+  // Year-round 27C water. SID = on Sal island (~10min to beach).
   {
-    id: "beach_sal_capeverde",
-    category: "tanning",
-    title: "Santa Maria Beach",
-    location: "Sal Island, Cape Verde",
-    lat: 16.5990,
-    lon: -22.9024,
-    ap: "SID",
-    icon: "🏖️",
-    rating: 4.88,
-    reviews: 5100,
-    gradient: "linear-gradient(160deg,#001a22,#003344,#006688)",
-    accent: "#22aacc",
-    tags: ["Year-Round 27°C", "Trade-Wind Cooled", "Atlantic Beach Gem", "Kitesurf Capital"],
-    photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.50",
+    id:"beach_sal_capeverde",  category:"tanning",
+    title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
+    lat:16.5990, lon:-22.9024, ap:"SID",
+    icon:"🏝️", rating:4.88, reviews:5100,
+    gradient:"linear-gradient(160deg,#001a22,#003344,#006688)",
+    accent:"#22aacc",
+    tags:["Year-Round 27C","330+ Sunny Days","Atlantic Trade Winds","UV 9"],
+    photo:"https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.50",
   },
 ```
 
-**Rationale:**
-- **Saas-Fee** — Flagged in CLAUDE.md as planned/missing. Glacier keeps it open ~10 months/year. With `lateSeason:true` it surfaces in May when 64 other ski venues score 8.
-- **Hintertux** — Flagged in CLAUDE.md. Europe's only 365-day resort. Only ski venue that should reliably score above 60 in the dead of NH summer.
-- **Curaçao** — Zero coverage of the ABC islands beyond Aruba. Year-round flat seas on the west coast, vibrant colonial capital, strong flight connections from USA + Europe.
-- **Sveti Stefan** — Zero Adriatic coverage outside Croatia/Italy. Most recognizable beach image in the western Balkans. Strong May–Sep season aligns with current window. TIV (Tivat) is a growing direct-flight destination from London, Amsterdam.
-- **Cape Verde / Sal** — Zero mid-Atlantic island coverage outside Canaries + Azores. Sal delivers consistent year-round 27°C with trade-wind cooling, non-stop flights from UK/Germany/Nordics, and no overtourism.
+Venue rationale:
+- Saas-Fee + Hintertux: Both in CLAUDE.md planned list. With lateSeason:true, these are the first venues that will actually exercise the P0-A scoring fix. Without them, fixing the code has nothing to score against in May.
+- Curacao: Fills ABC island gap after aruba-eagle-beach-t1 is deleted. Caribbean island coverage stays whole.
+- Sveti Stefan: Zero Balkans south of Croatia. TIV airport gaining direct routes from UK/Germany/Netherlands. Photo chosen to avoid existing beach_praslin dupe.
+- Cape Verde: Zero West Africa / mid-Atlantic island coverage. Year-round destination, strongest in May for Northern European users wanting guaranteed sun.
 
-> ⚠️ **Verify photos before commit** — `beach_sveti_stefan` currently reuses photo-1540202404 which is already used by `beach_praslin`. Swap `beach_sveti_stefan` to: `photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45`
+Note on photos: Verify all 5 Unsplash photo IDs resolve before committing. Gradient is always the visual fallback if an ID 404s.
 
 ---
 
 ## One Observation for PM
 
-**The duplicate backlog is growing, not shrinking.** The May 2 report flagged 5 same-location pairs. This run finds 6 (chamonix-mont-blanc-s18 added since then). None of the 5 original deletes have shipped. Each content session adds a venue without checking for existing entries, creating systematic redundancy. Recommend: before any future venue add, grep the VENUES array for (a) matching coordinates within 0.05° and (b) matching `ap:` + location substring. The boot-time dup-id validator (app.jsx:528) only catches identical IDs — it doesn't catch near-duplicates at the same location. A 30-second coordinate check would catch what the validator misses.
+The lateSeason bug and the duplicate backlog are compounding. Fixing P0-A requires adding saas-fee + hintertux (the lateSeason test cases), but even after that fix, 6 duplicate entries keep inflating venue count. Neither problem is hard to fix: 5 lines in scoreVenue + 6 line deletes + 2 venue additions = one commit under 20 lines. What's blocking it is agents flagging without shipping. The next session touching app.jsx should ship P0-A fix + 6 deletes as one atomic unit before adding any new content.
 
 ---
 
-*Report written by Content & Data agent — 2026-05-06. Next run: 2026-05-07.*
+Report written by Content & Data agent — 2026-05-07. Next run: 2026-05-08.
