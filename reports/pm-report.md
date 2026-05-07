@@ -1,21 +1,31 @@
-# Peakly PM Report — 2026-05-06 (v33)
+# Peakly PM Report — 2026-05-07 (v34)
 
 **Filed by:** Product Manager agent
-**Date:** 2026-05-06
-**Status:** YELLOW → moving to RED on Reddit deadline. Two quick-ship P1s still unshipped after 3+ days. Open-Meteo cache Day 18 with no VPS session scheduled. Ski+beach seasonal window closes May 20 — 14 days.
+**Date:** 2026-05-07
+**Status:** RED on launch deadline. Ski+beach window closes May 20 — 13 days. Reddit post is still not live. Weather cache still unbuilt. Two quick-ship P1s (SEO tags, chamonix dupe) have been open for 3–4 days with zero blockers. Supabase cloud sync shipped without PM sign-off and with unverified security posture.
 
 ---
 
-## Shipped Since Last Report (May 5 → May 6)
+## Agent Coordination Problem — Addressed First
+
+**Today's DevOps report incorrectly declared a P0: "May 3–4 sprint work never shipped."** The sprint DID ship. DevOps agent ran against a local copy 15+ commits behind origin/main. The live codebase (post `git pull`) has 0 surfing venues, 86 beach, 65 skiing, `scoreWeekend()`, `seasonalDefaultCat()`, gear gate open, 7 `lateSeason` venues. All confirmed.
+
+**The May 5 and May 6 DevOps agents had the same problem.** The May 5 report said the pivot was fiction. The May 6 report said the gear gate was still `false &&` and "fixed it" — that fix had already shipped in commit a9aacf5. Today's agent bumped the cache from "20260502a" to "20260507a" — the cache was already at "20260506a" from yesterday.
+
+Every agent needs `git pull origin main` as the first step before reading any file. Until that's enforced, treat any report that cites venue counts, line numbers, or commit hashes as potentially invalid. Cross-reference: `wc -l app.jsx` (currently 7,834 lines), venue counts (86 beach, 65 skiing, 0 surfing), `git log --oneline | head -5`.
+
+This is structural. One-line fix to each agent run script. Jack's action before next agent run.
+
+---
+
+## Shipped Since Last PM Report (May 6 → May 7)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `0292537` (May 6, DevOps) | Cache bust → 20260506a, GEAR_ITEMS.tanning→beach fix, gear gate `{false&&}` removed at line 5763 | ✅ Necessary hygiene. Note: gear gate fixed again — see below. |
-| `d62ac69` (May 6, Content) | Read-only audit | Neutral — no fixes applied. |
+| `c15cdeb` (May 7, DevOps) | Cache bust 20260506a → 20260507a, sw.js bump | Functionally harmless. Redundant — cache was already at 20260506a. |
+| `2c2e848`, `038e089`, `9f3fffd`, `7f650ae` (May 7, Content) | Read-only audits against stale codebase | ❌ Invalid. Content agent ran against pre-pivot data (78 surfing venues). Discard all findings. |
 
-**Assessment:** Two agents ran today and shipped one real fix between them (gear category key). The gear gate has now been "fixed" twice in three days (May 4 DevOps + May 6 DevOps). The second fix suggests the May 4 fix either ran against a stale local branch or line-shifted after the Supabase commits. Both fixes are now in origin/main; current state confirmed open at app.jsx:6404 (`GEAR_ITEMS[listing.category] &&`). Not a regression risk going forward.
-
-**Content agent integrity issue (critical):** Today's content report audited 240 venues (78 surfing, 89 tanning, 73 skiing). The live code has 151 venues (86 beach, 65 skiing, 0 surfing). The content agent ran against a local checkout 14 commits behind origin/main. Every finding in today's content report is based on pre-pivot data and is invalid. Do not action any content-report finding until the agent is configured to `git pull origin main` before running.
+**Summary:** One cache bump (redundant), four invalid content reports. Nothing substantive shipped today. The P1s flagged on May 6 are still open.
 
 ---
 
@@ -24,98 +34,104 @@
 | Issue | Evidence |
 |-------|----------|
 | Peakly Pro $9/mo | No Pro UI in codebase. |
-| Sentry DSN empty | Real DSN at app.jsx:7-8. |
+| Sentry DSN empty | Real DSN at app.jsx:7–8. |
 | TP_MARKER unset | app.jsx:1593 = "710303". |
 | JSON-LD missing | index.html:34 — WebSite + WebApplication + Organization schema. |
 | Gear gate closed | app.jsx:6404 `GEAR_ITEMS[listing.category] &&` — open. |
-| Surfing venues | 0 in codebase. Retired May 3. |
+| Surfing venues in code | 0. Confirmed. Stop flagging. |
 | aruba-eagle-beach-t1 dupe | Deleted. |
-| Weather cache 429 retry | fetchWeather has backoff retry on 429/5xx. |
+| Open-Meteo weather cache unbuilt | **False.** `_wxCacheGet`, `_wxCacheSet`, `WX_CACHE_TTL` are live. The P0 is the server-side proxy cache (different thing — prevents quota burns when multiple users share a cold cache simultaneously). |
 
 ---
 
-## Active Bug Triage — May 6
+## Active Bug Triage — May 7
 
-| Bug | Severity | Status | Days Open | Impact |
-|-----|----------|--------|-----------|--------|
-| **Open-Meteo rate limit — no server-side cache** | **P0 PRE-SPIKE** | ❌ Unbuilt | **Day 18** | 151 venues × 1.5 calls = 226/cold session. ~44 concurrent cold users → 10K quota gone → all scores return 50 → app breaks silently. Hard gate before Reddit. |
-| **index.html meta tags still advertise surfing** | **P1** | ❌ Open | **Day 3** | `<title>`, `<meta description>`, `og:description`, `twitter:description`, JSON-LD all say "surf." Google re-crawl will index Peakly as a surf app. Fix is 4 line edits. |
-| **chamonix-mont-blanc-s18 duplicate venue** | **P1** | ❌ Open | **Day 1** | Identical coords (45.9237, 6.8694) + same airport (GVA) as canonical `chamonix`. Lower rating (4.66 vs 4.96), lower reviews (1,477 vs 3,405). One-line deletion. |
-| **Reddit launch: no date set** | **P1 / Product gate** | ❌ Open | **Day 38** | Ski+beach seasonal overlap window closes ~May 20. Every day of delay reduces dual-sport audience reach. |
-| **Supabase RLS unverified** | **P2** | ⚠️ Unknown | Day 2 | Anon key is intentionally public per Supabase design. If Row Level Security isn't configured on the project, any anon key holder can query all auth.users data. Verify before first user signs in. |
-| **Email list fragmentation** | **P2** | ❌ Decision needed | Day 2 | Waitlist signups → VPS `waitlist.jsonl`. Magic-link auth → Supabase `auth.users`. Two separate email lists with no reconciliation. Compounds with every user. Needs a decision now, not after launch. |
-| **PEAKLY_BUILD stamp mismatch** | **P3** | ❌ Minor | Day 2 | app.jsx PEAKLY_BUILD = "20260504h" but sw.js = "peakly-20260506". Sentry error tags will show wrong build version. 2-char fix. |
-| **skiPass field missing on s-series ski venues** | **P3** | ❌ Deferred | Day 16 | Badge absent on ~29 venues. Scoring unaffected. Post-100 users. |
-| **Strike alerts: no background worker** | **P3** | Deferred | Day 40+ | Zero users with active alerts. Post-500 MAU. |
+| Bug | Severity | Status | Days Open | Blocker? |
+|-----|----------|--------|-----------|----------|
+| **Open-Meteo server-side cache** | **P0 PRE-SPIKE** | ❌ Unbuilt | **Day 18** | Hard gate before Reddit. 151 venues × 1.5 calls = 226/cold session. ~44 concurrent cold users → quota gone → all scores return 50 → app breaks silently. |
+| **index.html SEO: title + meta say "surf" + "adventure"** | **P1** | ❌ Open | **Day 4** | No. But Google is indexing Peakly as a surf app right now. |
+| **chamonix-mont-blanc-s18 duplicate** | **P1** | ❌ Open | **Day 2** | No. One-line delete. Same coords as canonical `chamonix` (line 408), lower rating (4.66 vs 4.96), fewer reviews (1,477 vs 3,405). |
+| **Reddit launch: no date set** | **P1 / Product gate** | ❌ Open | **Day 39** | This IS the blocker. Ski+beach window closes May 20. |
+| **Supabase RLS unverified** | **P2** | ⚠️ Unknown | Day 3 | Blocks first user sign-in. Anon key is hardcoded in client and in git history. Supabase design intends this — but only if RLS is configured. If it isn't, any authenticated user can read all `user_data`. |
+| **Email list fragmentation** | **P2** | ❌ Decision needed | Day 3 | waitlist.jsonl (VPS) and Supabase auth.users diverge from user #1. Compounds with every user. Needs a decision now. |
+| **PEAKLY_BUILD mismatch** | **P3** | ❌ Open | Day 3 | app.jsx PEAKLY_BUILD = "20260504h", sw.js = "peakly-20260507". Sentry error tags show wrong version. 1-char fix. |
+| **skiPass field on s-series ski venues** | **P3** | Deferred | Day 16 | Post-100 users. Scoring unaffected. |
+| **Strike alerts: no background worker** | **P3** | Deferred | Day 40+ | Zero alert users. Post-500 MAU. |
 
-### P0 Detail: Open-Meteo Rate Limit (Day 18)
+---
 
-The math hasn't changed. It just got one day worse.
+## Supabase Assessment
 
-- 151 venues × ~1.5 API types = **226 calls per cold-cache user**
-- Open-Meteo free tier: **10,000 calls/day**
-- Break-even: **44 simultaneous cold-cache users**
-- A Reddit post with modest traction sends 50–200 visitors in 30 minutes
-- Result: quota burns, `fetchWeather` returns null, `scoreVenue` can't run, every card shows score 50 or blank, the value prop disappears, the Reddit thread dies
+Cloud sync shipped in commits `ab692d3` → `b92f653` → `011b8dc` (early May). Not in the roadmap. Not PM-approved. What shipped:
 
-This is not a theoretical risk. This is the mechanism by which a successful Reddit launch becomes a failed one. The spec is in devops-report.md. Two Express routes in `server/proxy.js` + 2-line redirect in `app.jsx`. Requires Jack to SSH to 198.199.80.21. Estimated 2–4 hours including smoke test.
+- Magic-link auth via Supabase
+- Cloud sync of wishlists, alerts, trips, profile keys to Supabase `user_data` table
+- Hardcoded anon key in client (`CLOUD_SYNC_CONFIGURED = true` — feature is ACTIVE)
+- Lazy-loaded Supabase JS (~80 KB) to avoid first-paint cost
+- New email list (auth.users) diverging from waitlist.jsonl
 
-**This fix must ship before the Reddit post goes live. No exceptions.**
+**Was this the right product call?** No. The timing is wrong. At 0 MAU, user auth is not a retention lever — it's a complexity tax. Magic-link friction at the top of the funnel will cost trial signups. Worse: the security posture is unverified (RLS) and the feature creates email list debt from user #1.
+
+**What to do:** Keep the code — don't rip it out mid-sprint. But freeze scope at current state. Verify RLS before the Reddit post. Ship Option A for email sync (see below). No new Supabase features until 50 confirmed active users.
 
 ---
 
 ## Known Blockers
 
-| Blocker | Owner | Status |
-|---------|-------|--------|
-| **Weather cache on VPS** | Jack (SSH to 198.199.80.21) | Gates Reddit launch. Schedule this week. |
-| **Reddit launch date** | Jack | 14 days to May 20 seasonal close. Name the date today. |
+| Blocker | Owner | Urgency |
+|---------|-------|---------|
+| **Open-Meteo server-side cache** | Jack (SSH to 198.199.80.21) | Gates Reddit. Schedule this week. |
+| **Reddit launch date** | Jack | 13 days to May 20 window close. Name it today. |
+| **Supabase RLS verification** | Jack (Supabase dashboard) | Before first user signs in. 15 minutes. |
 | **LLC approval** | External | Unblocks REI (+$6.16 RPM), Backcountry, GetYourGuide. Not gating launch. |
-| **Apple Developer $99** | Jack | Deferred post-1K MAU. |
-| **Supabase RLS** | Jack (Supabase dashboard) | Verify before first user signs in. |
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. index.html SEO copy + chamonix-mont-blanc-s18 deletion + PEAKLY_BUILD stamp: one commit, 15 minutes, ship today.**
+**1. Ship the 3-line cleanup: SEO copy + chamonix dupe + PEAKLY_BUILD stamp. One commit. Today.**
 
-`index.html` title tag: "Peakly — Find Surf, Ski & Adventure Spots with Cheap Flights" → "Peakly — Find Ski & Beach Weekends with Cheap Flights." Four meta description lines swap "surf" out. This has been open 3 days with zero blockers. Every day it sits open, Google's crawl index drifts further from reality. Fix it while app.jsx is open for the chamonix deletion.
+index.html title: "Peakly — Find Surf, Ski & Adventure Spots with Cheap Flights" → "Peakly — Find Ski & Beach Weekends with Cheap Flights"
+meta description / og:description / twitter:description / JSON-LD: swap "surf, ski & adventure" → "ski & beach" everywhere (4 edits).
+chamonix-mont-blanc-s18: delete line 525 in app.jsx (canonical `chamonix` at line 408 already has `lateSeason:true`).
+PEAKLY_BUILD: bump "20260504h" → "20260507a" to match sw.js.
 
-`chamonix-mont-blanc-s18`: identical coordinates to `chamonix`, lower reviews, wrong tags. Delete line 525. 30 seconds.
+This has been open 4 days. Zero technical debt. Zero risk. Stop deferring it.
 
-PEAKLY_BUILD stamp: bump "20260504h" → "20260506a" to match the live cache. Keeps Sentry error tags accurate.
+**2. Jack: VPS session this week. Open-Meteo proxy cache. Non-negotiable.**
 
-**2. Jack: Schedule the VPS session this week. Non-negotiable.**
+May 13 is 6 days away. The VPS session is 2–4 hours. Without it, the Reddit post breaks the app on first spike. The spec is in devops-report.md (two Express routes, ~40 lines). SSH to 198.199.80.21. This is the only launch blocker that requires Jack personally. Everything else can ship via agent.
 
-May 10 is 4 days away. May 20 (seasonal window close) is 14 days away. The VPS session takes 2–4 hours. There is no Reddit launch without it. This is the only blocker that requires Jack personally. Everything else can ship via agent. Block it on the calendar.
+**3. Jack: Name the Reddit launch date. Today.**
 
-**3. Jack: Email fragmentation decision before any users sign in.**
+Recommendation: **May 13**. That gives 6 days for the VPS session + any post-prep. May 20 is the hard backstop (ski+beach seasonal overlap closes). Anything after May 20 is a beach-only launch — weaker hook, half the subreddit audience, lower D1 intent.
 
-Two email lists will diverge from day one if this isn't decided now. Options:
-- **Option A (recommended):** On first Supabase sign-in success, also POST to `/api/waitlist` so both lists stay in sync. One Supabase auth `onAuthStateChange` hook, one fetch. ~10 lines.
-- **Option B:** Disable waitlist form, go Supabase-only. Simpler but loses VPS list history.
-- **Option C:** Accept fragmentation, build export script before first email campaign. Kicks can down the road.
-
-Option A is the right call. Low effort, preserves both systems, prevents the lifecycle email nightmare.
+If May 13 is not realistic, say so explicitly and commit to May 20. "We'll see" is not a date.
 
 ---
 
-## Explicit Product Decisions — May 6
+## Explicit Product Decisions — May 7
 
-**1. index.html SEO cleanup: SHIP TODAY.** 3 days open. No technical debt. It's a title tag.
+**1. index.html SEO copy + chamonix-mont-blanc-s18 + PEAKLY_BUILD: SHIP TODAY.**
+Bundled. One commit. 15 minutes. No more deferring.
 
-**2. chamonix-mont-blanc-s18: DELETE TODAY.** Bundle with #1.
+**2. Reddit launch date: MAY 13. Ship date locked.**
+If the VPS session doesn't happen by May 12, slip to May 20 and accept the reduced ski audience. Either date must be picked today. "TBD" is not a date.
 
-**3. Content agent audit findings (May 6): DISCARD.** The agent ran against a pre-pivot local branch. All 240-venue findings are invalid. Do not action venue deletions, photo swaps, or tag changes from today's content report until it re-runs against current origin/main.
+**3. Supabase scope: FROZEN. Zero new features until 50 active users.**
+Cloud sync code stays. No new auth features, no subscription UI, no sync expansion. Verify RLS before the Reddit post goes live. This is not optional — it's the security gate.
 
-**4. New venue proposals (Revelstoke, Maspalomas, Ipanema, Nusa Lembongan): DEFER to post-Reddit.** Catalog stable at 151. Pre-launch freeze. After Reddit: prioritize Ipanema (zero Rio coverage) and Maspalomas (zero Canary Islands coverage).
+**4. Email fragmentation: Option A. Ship with the VPS session.**
+On Supabase auth sign-in success (`onAuthStateChange`), also POST to `/api/waitlist` so both lists stay in sync. ~10 lines in the Profile auth handler. Prevents a split email list from compounding forever. Spec it in the VPS session.
 
-**5. GetYourGuide partner_id: SHIP WEEK OF MAY 12.** One-line change, +$1.68 RPM. Too small to touch during pre-launch sprint but too easy to leave open post-launch. Ship it on Day 2 of Reddit response.
+**5. Content agent: DISCARD all reports until agent pulls origin/main.**
+The May 4 and May 7 content reports are based on a pre-pivot codebase (240 venues, 78 surfing). Do not action venue deletions, photo swaps, or tag changes from those reports. Add `git pull origin main` as step 1 to `tasks/agents/content-data.md` before the next scheduled run.
 
-**6. More Supabase features: CUT THIS PHASE.** Freeze cloud sync scope at current state until 50 confirmed active users. No subscription tiers, no server-side writes, no sync UI expansion.
+**6. New venue proposals (Revelstoke, Maspalomas, Ipanema, Nusa Lembongan): DEFER post-Reddit.**
+Pre-launch catalog freeze. 151 venues is enough. After Reddit: prioritize Ipanema (zero Rio coverage) and Maspalomas (zero Gran Canaria coverage).
 
-**7. Wishlists / Trips reveal: LOCKED at 1K MAU.** Standing decision. Not revisiting.
+**7. GetYourGuide partner_id: SHIP WEEK OF MAY 12.**
+One-line change. +$1.68 RPM. Bundle with any post-VPS commit. Too small to touch now, too easy to leave indefinitely.
 
 ---
 
@@ -123,13 +139,15 @@ Option A is the right call. Low effort, preserves both systems, prevents the lif
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| More Supabase auth features | **CUT this phase** | 0 MAU. Wrong time for auth complexity. |
-| New venue batches | **DEFER post-Reddit** | Pre-launch catalog freeze. |
-| Climbing/MTB/kayak categories | **PERMANENT CUT** | Launch scope is ski + beach. Full product decision required to revisit. |
-| SRI / CSP hardening | **DEFER** | Babel eval incompatibility. Post-launch security pass. |
+| More Supabase auth features | **CUT this phase** | 0 MAU. Wrong time for auth complexity. Freeze at current state. |
+| New venue batches pre-Reddit | **DEFER** | Pre-launch catalog freeze. |
+| Climbing/MTB/kayak categories | **PERMANENT CUT** | Launch scope is ski + beach. Full product call required to revisit. |
+| SRI/CSP hardening | **DEFER** | Babel eval incompatibility. Post-launch security pass. |
 | Venue deep links | **DEFER** | Explicit pre-launch decision. Post-Reddit. |
-| Push notification background worker | **CUT to post-500 MAU** | Zero active alert users. |
+| Push notification worker | **CUT to post-500 MAU** | Zero active alert users. |
+| Weekend Travelpayouts pricing (Phase 4) | **DEFER post-launch** | Roadmap Phase 4. Needs VPS change anyway — bundle with cache session. |
 | skiPass field backfill | **DEFER to post-100 users** | P3. Scoring unaffected. |
+| agent run-script git pull fix | **SHIP IMMEDIATELY** | Structural: one line per agent prompt. Cost: 10 minutes. Value: stops agents from generating invalid reports forever. |
 
 ---
 
@@ -137,19 +155,26 @@ Option A is the right call. Low effort, preserves both systems, prevents the lif
 
 **For 8K, not 5K, at 90 days:**
 
-1. **Weather cache live before Reddit post.** Without it: one spike = broken app = no recovery. This one variable accounts for a 3K MAU swing.
-2. **Reddit post before May 20.** The ski+beach dual-sport angle is the strongest first impression. After May 20, high-altitude venues start hitting off-season scores and the grid loses its skiing story. Missing this window means a beach-only launch in June — weaker hook, half the subreddit audience.
-3. **D1 retention > 40%.** The Weekend Score + distance filter are the two features most likely to drive return visits. We have no D1 telemetry. Plausible doesn't report D1 retention. Supabase return-session tracking is possible but unbuilt. Flag this for next session — instrument it before Reddit so the data exists from day one.
-4. **50 email captures before Reddit.** Check `server/data/waitlist.jsonl` for current count. A launch with 0 pre-existing subscribers = one-time spike. With 50 = second wave on follow-up.
+1. **Weather cache live before Reddit.** The single variable that accounts for a 3K MAU swing. Without it: one spike breaks the app for 20 hours. With it: a front-page r/skiing thread sends 200 visitors who all see accurate scores and some convert.
 
-**90-day math:** Cache + May Reddit + lateSeason ski = 7K–8K. June Reddit + any quota hit = 4K plateau. The delta between 5K and 8K is decided entirely by whether the VPS session and Reddit post both happen before May 20.
+2. **Reddit post before May 20.** The ski+beach angle reaches r/surfing AND r/skiing simultaneously. After May 20, alpine resorts hit off-season and the grid reads as a beach app. That's a ~40% smaller opening audience.
+
+3. **D1 retention > 40%.** We have no telemetry on this. Plausible doesn't report D1. Supabase return-session tracking is possible but unbuilt. Add Plausible `pageview` on second session open before Reddit so the data exists from day one. 10 minutes, high leverage.
+
+4. **50 email captures pre-Reddit.** Check `server/data/waitlist.jsonl` for current count. With 0 pre-existing subscribers, launch is one spike. With 50, there's a second wave on follow-up email.
+
+**90-day math:** Cache + May 13 Reddit + ski window = 7K–8K. June Reddit + any quota hit = 4K plateau, no recovery.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The content agent is generating authoritative-sounding reports against a 14-commit-stale codebase.**
+**The agent pipeline is producing actionable-sounding reports against stale data, and those reports are accumulating in the repo as if they're accurate.**
 
-Today's content report lists 240 venues (78 surfing, 89 tanning) with detailed duplicate and photo audits — all against code that doesn't match production. If Jack reads the report without knowing this, he might delete venues that were already deleted, swap photos that were already swapped, or re-introduce surfing venues that were deliberately retired. The finding-to-fix pipeline is only as good as the data the agents see.
+Today's DevOps report declared a P0 emergency (pivot not shipped). The May 5 and May 6 DevOps reports said the same thing. All three are wrong — the pivot shipped on May 3. But they're sitting in `reports/` with headers that say "P0 — SHIP BLOCKER" and specific fix instructions. If anyone reads those reports without checking the current codebase, they will attempt to re-retire 86 beach venues, re-remove surfing scoring code that's already gone, and double-bump cache busters that are already current.
 
-The fix is one line: add `git fetch origin main && git reset --hard origin/main` (or `git pull origin main`) to the content and DevOps agent scripts before they read app.jsx. Until that's added, treat any content or DevOps finding that references venue counts, categories, or line numbers as potentially stale. Cross-reference against `wc -l app.jsx` (currently 7,172 lines) and venue counts (86 beach, 65 skiing, 0 surfing) before actioning.
+The content agent produced four reports today, all based on 240 venues (78 surfing). Those reports recommend deleting venues that were already deleted in May 3. If actioned, they cause venue loss.
+
+The fix is structural and cheap: add `git pull origin main` as step 1 in each agent run script (`tasks/agents/devops.md`, `tasks/agents/content-data.md`, etc.). One line per file. 10 minutes total. Without it, every agent that runs on a stale local checkout generates a report that is more dangerous than useful.
+
+This is the only risk where acting on the recommended fix makes things worse.
