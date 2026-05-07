@@ -12,6 +12,82 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
   });
 }
 
+// Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
+// Rendered in Profile footer so "what version am I on?" takes 1 second.
+const PEAKLY_BUILD = "20260504h";
+
+// ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
+// Sync is "configured" when both URL + anon key are set. The Supabase JS lib
+// itself loads LAZILY (not at first paint) — only when a returning user has a
+// saved session, a magic-link redirect needs handling, or the user taps "Sign
+// in" in Profile. Saves anonymous-visitor first-paint payload (~80KB).
+// Anon key is public-safe; Row-Level Security on user_data is the gate.
+const SUPABASE_URL      = "https://wsoqcfwkvvemtlddcgfc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzb3FjZndrdnZlbXRsZGRjZ2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Mjk3ODQsImV4cCI6MjA5MzUwNTc4NH0.cgmOuuuYOTSmvHThPH3V6veSUn3u64kEFphgSrbYlVA";
+const CLOUD_SYNC_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+// Project ref → Supabase's localStorage session key. Used to detect existing
+// signed-in state without loading the full library.
+const _SUPABASE_PROJECT_REF = SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || "";
+const _SUPABASE_SESSION_KEY = _SUPABASE_PROJECT_REF ? `sb-${_SUPABASE_PROJECT_REF}-auth-token` : "";
+function _hasExistingSupabaseSession() {
+  if (!_SUPABASE_SESSION_KEY) return false;
+  try {
+    const v = localStorage.getItem(_SUPABASE_SESSION_KEY);
+    return !!v && v.includes("access_token");
+  } catch { return false; }
+}
+function _hasMagicLinkCallbackInUrl() {
+  return typeof window !== "undefined" && window.location.hash && window.location.hash.includes("access_token=");
+}
+
+// Lazy-load the Supabase JS UMD bundle. Returns a Promise that resolves to
+// the configured client (or null if not configured).
+let _supabase = null;
+let _supabaseLoadPromise = null;
+function ensureSupabase() {
+  if (!CLOUD_SYNC_CONFIGURED) return Promise.resolve(null);
+  if (_supabase) return Promise.resolve(_supabase);
+  if (_supabaseLoadPromise) return _supabaseLoadPromise;
+  _supabaseLoadPromise = new Promise((resolve, reject) => {
+    if (typeof supabase !== "undefined" && supabase.createClient) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load Supabase JS"));
+    document.head.appendChild(s);
+  }).then(() => {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        detectSessionInUrl: true,    // auto-parse access_token from magic-link fragment
+        flowType: "implicit",         // simpler for no-build SPAs
+        persistSession: true,         // keeps user signed in across visits
+        autoRefreshToken: true,       // refresh JWT before expiry
+      },
+    });
+    return _supabase;
+  });
+  return _supabaseLoadPromise;
+}
+
+// User-valuable localStorage keys that cloud-sync mirrors. Caches, error logs,
+// device-specific UI flags stay local.
+const SYNCED_KEYS = ["peakly_wishlists", "peakly_named_lists", "peakly_alerts", "peakly_trips", "peakly_profile"];
+
+// Auto-reload once when a new service worker takes control. Without this, the
+// first visit after a deploy serves OLD content from the OLD SW (classic SW
+// gotcha — skipWaiting + clients.claim help, but the page is already committed
+// before activation completes). One reload here = no manual hard-refresh.
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+  let _peaklyReloadGuard = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (_peaklyReloadGuard) return;
+    _peaklyReloadGuard = true;
+    window.location.reload();
+  });
+}
+
 (() => {
   // localStorage fallback logger (kept alongside Sentry)
   const errorLog = [];
@@ -165,9 +241,8 @@ const F = "'Plus Jakarta Sans', sans-serif";
 // ─── categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",     label:"All" },
-  { id:"skiing",  label:"Ski/Board" },
-  { id:"surfing", label:"Surf" },
-  { id:"tanning", label:"Beach" },
+  { id:"skiing",  label:"Skiing" },
+  { id:"beach", label:"Beach" },
 ];
 
 // ─── continents for filtering ─────────────────────────────────────────────────
@@ -319,17 +394,10 @@ const VENUES = [
     lat:50.1163, lon:-122.9574, ap:"YVR",
     icon:"🏔️", rating:4.97, reviews:2840,
     gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-    accent:"#6db3f2", tags:["Powder Day","All Levels"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic",
+    accent:"#6db3f2", tags:["Powder Day","All Levels"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
   },
   {
-    id:"pipeline",  category:"surfing",
-    title:"Pipeline, North Shore", location:"Oahu, Hawaii",
-    lat:21.6645, lon:-158.0453, ap:"HNL",
-    icon:"🌊", rating:4.99, reviews:1203,
-    gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",
-    accent:"#40c4a8", tags:["Expert","Offshore Winds"], photo:"https://images.unsplash.com/photo-1526813951498-5498cce49cdf?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.42",facing:330},
-  {
-    id:"borabora",  category:"tanning",
+    id:"borabora",  category:"beach",
     title:"Bora Bora Lagoon", location:"French Polynesia",
     lat:-16.5004, lon:-151.7415, ap:"PPT",
     icon:"🏝️", rating:4.96, reviews:988,
@@ -342,7 +410,7 @@ const VENUES = [
     lat:45.9237, lon:6.8694, ap:"GVA",
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
-    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent",
+    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent", lateSeason:true,
   },
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"ikon"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
@@ -353,7 +421,7 @@ const VENUES = [
   {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"], photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"breckenridge",category:"skiing",title:"Breckenridge",           location:"Colorado, USA",            lat:39.4817,lon:-106.0384,ap:"DEN",icon:"⛷️",rating:4.93,reviews:4820,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",tags:["Historic Town","Epic Pass"], photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49", skiPass:"epic"},
   {id:"tahoe",       category:"skiing",title:"Palisades Tahoe",         location:"California, USA",          lat:39.1959,lon:-120.2357,ap:"RNO",icon:"⛷️",rating:4.92,reviews:3240,gradient:"linear-gradient(160deg,#0a1c38,#1a407e,#306ec0)",accent:"#76a8db",tags:["Lake Views","Consistent Snow"], photo:"https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63", skiPass:"ikon"},
-  {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop", skiPass:"ikon", lateSeason:true},
   {id:"steamboat",   category:"skiing",title:"Steamboat Springs",       location:"Colorado, USA",            lat:40.4572,lon:-106.8045,ap:"HDN",icon:"⛷️",rating:4.91,reviews:2860,gradient:"linear-gradient(160deg,#0d1e38,#1a4280,#3270be)",accent:"#72a4d8",tags:["Champagne Powder","Cowboy Style"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33", skiPass:"ikon"},
   {id:"sunvalley",   category:"skiing",title:"Sun Valley",              location:"Idaho, USA",               lat:43.6936,lon:-114.3536,ap:"SUN",icon:"⛷️",rating:4.94,reviews:2420,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3472c0)",accent:"#74a8da",tags:["Bald Mountain","Original Resort"], photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30", skiPass:"ikon"},
   {id:"snowbasin",   category:"skiing",title:"Snowbasin",               location:"Utah, USA",                lat:41.2161,lon:-111.8548,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1980,gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",tags:["Olympic Venue","Uncrowded"], photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52", skiPass:"ikon"},
@@ -374,142 +442,72 @@ const VENUES = [
   {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
   {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"banzai_pipeline", category:"surfing",title:"Banzai Pipeline",          location:"Oahu, Hawaii",             lat:21.6622,lon:-158.0543,ap:"HNL",icon:"🏄",rating:4.99,reviews:6420,gradient:"linear-gradient(160deg,#003366,#0055a5,#00bcd4)",accent:"#00bcd4",tags:["Most Photographed Wave","Pro Tour Stop"], photo:"https://images.unsplash.com/photo-1509233725247-49e657c25740?w=800&h=600&fit=crop",facing:330},
-  {id:"honolua_bay", category:"surfing",title:"Honolua Bay",              location:"Maui, Hawaii",             lat:21.0204,lon:-156.6450,ap:"OGG",icon:"🏄",rating:4.95,reviews:2870,gradient:"linear-gradient(160deg,#003355,#005588,#0077cc)",accent:"#44aaff",tags:["World-Class Right","Pro Tour Finale"], photo:"https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=800&h=600&fit=crop",facing:315},
-  {id:"hanalei",     category:"surfing",title:"Hanalei Bay",             location:"Kauai, Hawaii",            lat:22.2152,lon:-159.4986,ap:"LIH",icon:"🏄",rating:4.93,reviews:2140,gradient:"linear-gradient(160deg,#00334d,#005580,#0077b3)",accent:"#33aadd",tags:["Gorgeous Bay","Long Rides"], photo:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800&h=600&fit=crop",facing:350},
-  {id:"trestles",    category:"surfing",title:"Trestles",                 location:"San Clemente, California", lat:33.3778,lon:-117.5792,ap:"SAN",icon:"🏄",rating:4.91,reviews:4100,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#3399cc",tags:["Pro Tour Classic","Performance Waves"], photo:"https://images.unsplash.com/photo-1588976071688-c2520b7b51f9?w=800&h=600&fit=crop",facing:220},
-  {id:"mavericks",   category:"surfing",title:"Mavericks",               location:"Half Moon Bay, California", lat:37.4952,lon:-122.4994,ap:"SFO",icon:"🌊",rating:4.90,reviews:2980,gradient:"linear-gradient(160deg,#001530,#003060,#004590)",accent:"#1166aa",tags:["Big Wave Icon","Invite-Only Contest"], photo:"https://images.unsplash.com/photo-1477204505220-510cd0d57764?w=800&h=600&fit=crop",facing:285},
-  {id:"blacks",      category:"surfing",title:"Black's Beach",           location:"San Diego, California",    lat:32.8828,lon:-117.2524,ap:"SAN",icon:"🏄",rating:4.88,reviews:3220,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Powerful Beach Break","La Jolla Gem"], photo:"https://images.unsplash.com/photo-1502680390548-bdbac40e2a78?w=800&h=600&fit=crop",facing:265},
-  {id:"rincon_ca",   category:"surfing",title:"Rincon Point",            location:"Santa Barbara, California", lat:34.3726,lon:-119.4745,ap:"LAX",icon:"🏄",rating:4.92,reviews:3640,gradient:"linear-gradient(160deg,#003355,#005580,#007ab3)",accent:"#3399cc",tags:["Queen of the Coast","Long Point Break"], photo:"https://images.unsplash.com/photo-1455729552457-5c322d6024db?w=800&h=600&fit=crop",facing:225},
-  {id:"montauk",     category:"surfing",title:"Montauk",                  location:"New York",                 lat:41.0340,lon:-71.9570,ap:"JFK",icon:"🏄",rating:4.75,reviews:1840,gradient:"linear-gradient(160deg,#002244,#004488,#1166bb)",accent:"#3388cc",tags:["East Coast Classic","Hurricane Swells"], photo:"https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.59",facing:165},
-  {id:"cape_hatteras",category:"surfing",title:"Cape Hatteras",          location:"North Carolina",           lat:35.2332,lon:-75.5280,ap:"ORF",icon:"🏄",rating:4.82,reviews:2100,gradient:"linear-gradient(160deg,#002040,#004080,#1160a0)",accent:"#2288bb",tags:["Graveyard of the Atlantic","Swell Magnet"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",facing:115},
-  {id:"puerto_escondido",category:"surfing",title:"Puerto Escondido",   location:"Oaxaca, Mexico",           lat:15.8700,lon:-97.0553,ap:"OAX",icon:"🌊",rating:4.96,reviews:4880,gradient:"linear-gradient(160deg,#003355,#005588,#006fcc)",accent:"#1188ee",tags:["Mexican Pipeline","Heaviest Shore Break"], photo:"https://images.unsplash.com/photo-1605009296117-557ee05cb8cc?w=800&h=600&fit=crop",facing:200},
-  {id:"sayulita",    category:"surfing",title:"Sayulita",                location:"Nayarit, Mexico",          lat:20.8700,lon:-105.4400,ap:"PVR",icon:"🏄",rating:4.85,reviews:3280,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#22aacc",tags:["Beginner Friendly","Pueblo Mágico"], photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&h=600&fit=crop",facing:260},
-  {id:"pavones",     category:"surfing",title:"Pavones",                  location:"Costa Rica",               lat:8.3900,lon:-83.1700,ap:"SJO",icon:"🏄",rating:4.88,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#22aacc",tags:["2nd Longest Left","Jungle Setting"], photo:"https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop",facing:220},
-  {id:"punta_roca",  category:"surfing",title:"Punta Roca",               location:"El Salvador",              lat:13.4900,lon:-89.2000,ap:"SAL",icon:"🏄",rating:4.89,reviews:2100,gradient:"linear-gradient(160deg,#002244,#004488,#0055aa)",accent:"#1177cc",tags:["Central American Jewel","Long Right Point"], photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop",facing:215},
-  {id:"rincon_pr",   category:"surfing",title:"Rincón",                   location:"Puerto Rico",              lat:18.3400,lon:-67.2500,ap:"SJU",icon:"🏄",rating:4.87,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Caribbean Surf Capital","Sunny Year-Round"], photo:"https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800&h=600&fit=crop",facing:290},
-  {id:"bathsheba",   category:"surfing",title:"Bathsheba",                location:"Barbados",                 lat:13.1900,lon:-59.5300,ap:"BGI",icon:"🌊",rating:4.86,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004480,#0066aa)",accent:"linear-gradient(#1188cc,#00aadd)",tags:["Soup Bowl Left","Atlantic Power"], photo:"https://images.unsplash.com/photo-1544551763-77932c184deb?w=800&h=600&fit=crop",facing:80},
-  {id:"chicama",     category:"surfing",title:"Chicama",                  location:"La Libertad, Peru",        lat:-7.8400,lon:-79.4500,ap:"LIM",icon:"🏄",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#003355,#005588,#0066aa)",accent:"#1188cc",tags:["World's Longest Left","2.4km Ride"], photo:"https://images.unsplash.com/photo-1497890312100-1e4488c9e5e5?w=800&h=600&fit=crop",facing:225},
-  {id:"punta_hermosa",category:"surfing",title:"Punta Hermosa",          location:"Lima, Peru",               lat:-12.3300,lon:-76.8200,ap:"LIM",icon:"🏄",rating:4.85,reviews:2440,gradient:"linear-gradient(160deg,#002244,#003f7f,#0060b3)",accent:"#1188cc",tags:["Peru Pro Stop","Consistent Beach Break"], photo:"https://images.unsplash.com/photo-1531722569936-825d3dd91b15?w=800&h=600&fit=crop",facing:225},
-  {id:"punta_lobos", category:"surfing",title:"Punta de Lobos",          location:"Pichilemu, Chile",         lat:-34.4400,lon:-72.0800,ap:"SCL",icon:"🌊",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#002040,#003878,#0050a8)",accent:"#0f7bcc",tags:["South American Big Wave","ISA World Site"], photo:"https://images.unsplash.com/photo-1496737018672-b1a6be2e949c?w=800&h=600&fit=crop",facing:225},
-  {id:"noronha_surf",category:"surfing",title:"Fernando de Noronha",     location:"Pernambuco, Brazil",       lat:-3.8542,lon:-32.4250,ap:"REC",icon:"🏄",rating:4.96,reviews:1980,gradient:"linear-gradient(160deg,#003344,#005577,#00789f)",accent:"#0099cc",tags:["UNESCO World Heritage","Crystal Waters"], photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop",facing:0},
-  {id:"hossegor",    category:"surfing",title:"Hossegor",                 location:"Landes, France",           lat:43.6700,lon:-1.4300,ap:"BIQ",icon:"🏄",rating:4.93,reviews:5200,gradient:"linear-gradient(160deg,#003344,#005577,#007799)",accent:"#0099bb",tags:["Quiksilver Pro","Hollow Sand Barrels"], photo:"https://images.unsplash.com/photo-1699883815067-e48996c32217?w=800&h=600&fit=crop",facing:290},
-  {id:"mundaka",     category:"surfing",title:"Mundaka",                  location:"Basque Country, Spain",   lat:43.4100,lon:-2.7000,ap:"BIO",icon:"🌊",rating:4.95,reviews:3840,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#0077cc",tags:["Best Left in Europe","River Mouth Barrel"], photo:"https://images.unsplash.com/photo-1654311670729-9426fc4a2a2f?w=800&h=600&fit=crop",facing:290},
-  {id:"supertubos",  category:"surfing",title:"Supertubos",               location:"Peniche, Portugal",        lat:39.3600,lon:-9.3700,ap:"LIS",icon:"🌊",rating:4.94,reviews:4100,gradient:"linear-gradient(160deg,#002244,#004480,#0066bb)",accent:"#1188ee",tags:["Portuguese Pipeline","WSL Stop"], photo:"https://images.unsplash.com/photo-1525266558638-6da3a79fbfc3?w=800&h=600&fit=crop",facing:260},
-  {id:"ericeira",    category:"surfing",title:"Ericeira",                 location:"Lisbon Coast, Portugal",   lat:38.9600,lon:-9.4200,ap:"LIS",icon:"🏄",rating:4.91,reviews:3600,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["World Surf Reserve","Village Vibes"], photo:"https://images.unsplash.com/photo-1528644355366-0c6a7b2bdf5d?w=800&h=600&fit=crop",facing:280},
-  {id:"nazare",      category:"surfing",title:"Nazaré",                   location:"Silver Coast, Portugal",   lat:39.6000,lon:-9.0700,ap:"LIS",icon:"🌊",rating:4.98,reviews:4800,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["World Record Waves","100ft Monsters"], photo:"https://images.unsplash.com/photo-1708356943415-6296d6c25d28?w=800&h=600&fit=crop",facing:270},
-  {id:"newquay",     category:"surfing",title:"Newquay",                  location:"Cornwall, England",        lat:50.3700,lon:-5.1000,ap:"NQY",icon:"🏄",rating:4.78,reviews:3200,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["UK Surf Capital","Fistral Beach"], photo:"https://images.unsplash.com/photo-1507680225127-6450260913c0?w=800&h=600&fit=crop",facing:290},
-  {id:"thurso_east", category:"surfing",title:"Thurso East",              location:"Caithness, Scotland",      lat:58.5900,lon:-3.5200,ap:"INV",icon:"🌊",rating:4.89,reviews:1640,gradient:"linear-gradient(160deg,#002040,#003878,#0050a0)",accent:"#0f7bcc",tags:["Scotland's Best Right","Arctic Swells"], photo:"https://images.unsplash.com/photo-1527769929977-c341ee9f2e66?w=800&h=600&fit=crop",facing:350},
-  {id:"lahinch",     category:"surfing",title:"Lahinch",                  location:"County Clare, Ireland",    lat:52.9300,lon:-9.3400,ap:"SNN",icon:"🏄",rating:4.82,reviews:1820,gradient:"linear-gradient(160deg,#003344,#005566,#007788)",accent:"#0099bb",tags:["Irish Surf Town","Cliffs of Moher Backdrop"], photo:"https://images.unsplash.com/photo-1508437981923-e88ea3be23de?w=800&h=600&fit=crop",facing:260},
-  {id:"la_santa",    category:"surfing",title:"La Santa",                 location:"Lanzarote, Canary Islands",lat:29.0600,lon:-13.6600,ap:"ACE",icon:"🌊",rating:4.90,reviews:2760,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Year-Round Swell","Lava Rock Reef"], photo:"https://images.unsplash.com/photo-1486890598084-3673ba1a7fc4?w=800&h=600&fit=crop",facing:310},
-  {id:"fuerteventura_surf",category:"surfing",title:"Fuerteventura",     location:"Canary Islands, Spain",    lat:28.3587,lon:-14.0537,ap:"FUE",icon:"🏄",rating:4.88,reviews:3100,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Windsurf & Surf Mecca","Consistent Atlantic"], photo:"https://images.unsplash.com/photo-1461696114087-397271a7aedc?w=800&h=600&fit=crop",facing:290},
-  {id:"anchor_point",category:"surfing",title:"Anchor Point",            location:"Agadir, Morocco",          lat:30.5300,lon:-9.7700,ap:"AGA",icon:"🌊",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Morocco's Best Right","Desert Point Break"], photo:"https://images.unsplash.com/photo-1517699418036-fb2fcd498b89?w=800&h=600&fit=crop",facing:260},
-  {id:"taghazout",   category:"surfing",title:"Taghazout",               location:"Agadir, Morocco",          lat:30.5600,lon:-9.7100,ap:"AGA",icon:"🏄",rating:4.88,reviews:4200,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#2299cc",tags:["Surf Village","Hash Point & Killers"], photo:"https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?w=800&h=600&fit=crop",facing:260},
-  {id:"jeffreys_bay",category:"surfing",title:"Jeffreys Bay",            location:"Eastern Cape, South Africa",lat:-34.0500,lon:24.9200,ap:"PLZ",icon:"🌊",rating:4.97,reviews:4640,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["J-Bay","WSL Championship Stop"], photo:"https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&h=600&fit=crop",facing:200},
-  {id:"cape_town_surf",category:"surfing",title:"Cape Town",             location:"Western Cape, South Africa",lat:-33.8900,lon:18.4200,ap:"CPT",icon:"🏄",rating:4.86,reviews:2880,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Table Mountain Backdrop","Cold Water Barrels"], photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop",facing:220},
-  {id:"uluwatu",     category:"surfing",title:"Uluwatu",                  location:"Bali, Indonesia",          lat:-8.8291,lon:115.0850,ap:"DPS",icon:"🌊",rating:4.96,reviews:6800,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1188ee",tags:["Cliff Temple","WSL Events"], photo:"https://images.unsplash.com/photo-1585823096440-9fdb837d48ba?w=800&h=600&fit=crop",facing:210},
-  {id:"padang_padang",category:"surfing",title:"Padang Padang",          location:"Bali, Indonesia",          lat:-8.8105,lon:115.0938,ap:"DPS",icon:"🌊",rating:4.93,reviews:4320,gradient:"linear-gradient(160deg,#001f40,#003880,#0055bb)",accent:"#2288ff",tags:["Eat Pray Love Beach","Barreling Left"], photo:"https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&h=600&fit=crop",facing:220},
-  {id:"keramas",     category:"surfing",title:"Keramas",                  location:"Bali, Indonesia",          lat:-8.5764,lon:115.3190,ap:"DPS",icon:"🏄",rating:4.85,reviews:2640,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Night Surfing","OC Pro Contest"], photo:"https://images.unsplash.com/photo-1537519646099-5e064512a1fd?w=800&h=600&fit=crop",facing:110},
-  {id:"mentawais",   category:"surfing",title:"Mentawai Islands",        location:"West Sumatra, Indonesia",  lat:-2.3500,lon:99.8500,ap:"PDG",icon:"🌊",rating:4.98,reviews:3200,gradient:"linear-gradient(160deg,#001a40,#003080,#0050cc)",accent:"#2277ff",tags:["Perfect Waves","HT's & Lance's Right"], photo:"https://images.unsplash.com/photo-1654137065487-cce388f2c58f?w=800&h=600&fit=crop",facing:245},
-  {id:"cloud9",      category:"surfing",title:"Cloud 9",                  location:"Siargao, Philippines",     lat:9.8600,lon:126.0600,ap:"CEB",icon:"🌊",rating:4.95,reviews:3640,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Asia's Best Wave","Hollow Reef Right"], photo:"https://images.unsplash.com/photo-1520443240718-fce5930fbb38?w=800&h=600&fit=crop",facing:90},
-  {id:"cloudbreak",  category:"surfing",title:"Cloudbreak",              location:"Tavarua, Fiji",            lat:-17.7748,lon:177.2362,ap:"NAN",icon:"🌊",rating:4.97,reviews:2980,gradient:"linear-gradient(160deg,#001a40,#003380,#0055cc)",accent:"#2277ff",tags:["South Pacific Power","Boat-Access Only"], photo:"https://images.unsplash.com/photo-1580402403932-f828854cb123?w=800&h=600&fit=crop",facing:225},
-  {id:"restaurants_fiji",category:"surfing",title:"Restaurants",        location:"Tavarua, Fiji",            lat:-17.7800,lon:177.2400,ap:"NAN",icon:"🏄",rating:4.89,reviews:1840,gradient:"linear-gradient(160deg,#003355,#005588,#007fbb)",accent:"#33aadd",tags:["Tavarua Left","Super Consistent"], photo:"https://images.unsplash.com/photo-1501949997128-2fdb1f5fbc85?w=800&h=600&fit=crop",facing:210},
-  {id:"teahupoo",    category:"surfing",title:"Teahupo'o",               location:"Tahiti, French Polynesia", lat:-17.8672,lon:-149.2594,ap:"PPT",icon:"🌊",rating:4.99,reviews:3840,gradient:"linear-gradient(160deg,#001530,#003070,#0050bb)",accent:"#1166ee",tags:["Scariest Wave on Earth","2024 Olympics"], photo:"https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=800&h=600&fit=crop",facing:200},
-  {id:"pasta_point", category:"surfing",title:"Pasta Point",             location:"Maldives",                 lat:4.7500,lon:72.9700,ap:"MLE",icon:"🏄",rating:4.94,reviews:2120,gradient:"linear-gradient(160deg,#003344,#005577,#007fa0)",accent:"#00bbdd",tags:["Indian Ocean Luxury","Resort Access"], photo:"https://images.unsplash.com/photo-1543039625-14cbd3802e7d?w=800&h=600&fit=crop",facing:260},
-  {id:"jailbreaks",  category:"surfing",title:"Jailbreaks",              location:"South Malé Atoll, Maldives",lat:3.5000,lon:73.0000,ap:"MLE",icon:"🌊",rating:4.88,reviews:1640,gradient:"linear-gradient(160deg,#002244,#004488,#006faa)",accent:"#1199cc",tags:["Dhow Boat Sessions","Crystal Water"], photo:"https://images.unsplash.com/photo-1545251142-f32339076e6d?w=800&h=600&fit=crop",facing:250},
-  {id:"snapper_rocks",category:"surfing",title:"Snapper Rocks",         location:"Gold Coast, Queensland",   lat:-28.1640,lon:153.5546,ap:"OOL",icon:"🌊",rating:4.94,reviews:5400,gradient:"linear-gradient(160deg,#002244,#003f7f,#0055b3)",accent:"#1177cc",tags:["Superbank","WSL Opener"], photo:"https://images.unsplash.com/photo-1583105103934-32c7a64ba012?w=800&h=600&fit=crop",facing:100},
-  {id:"bells_beach",  category:"surfing",title:"Bells Beach",           location:"Torquay, Victoria",        lat:-38.3700,lon:144.2800,ap:"MEL",icon:"🌊",rating:4.91,reviews:3680,gradient:"linear-gradient(160deg,#003355,#005588,#0077bb)",accent:"#2299ee",tags:["Rip Curl Pro","Australia's Most Famous"], photo:"https://images.unsplash.com/photo-1564429238961-2dbc6e71ea68?w=800&h=600&fit=crop",facing:220},
-  {id:"margaret_river_surf",category:"surfing",title:"Margaret River",  location:"Western Australia",        lat:-34.0500,lon:115.0900,ap:"PER",icon:"🌊",rating:4.89,reviews:2840,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#2288dd",tags:["Wine & Waves","Championship Reef"], photo:"https://images.unsplash.com/photo-1581059089599-0b7e13b9d952?w=800&h=600&fit=crop",facing:230},
-  {id:"the_pass",    category:"surfing",title:"The Pass",               location:"Byron Bay, NSW",           lat:-28.6500,lon:153.5800,ap:"OOL",icon:"🏄",rating:4.87,reviews:4100,gradient:"linear-gradient(160deg,#003355,#005580,#007faa)",accent:"#2299cc",tags:["Byron Bay Icon","Long Mellow Rights"], photo:"https://images.unsplash.com/photo-1484804959655-1074f38e5394?w=800&h=600&fit=crop",facing:80},
-  {id:"raglan",      category:"surfing",title:"Raglan",                  location:"Waikato, New Zealand",     lat:-37.8000,lon:174.8700,ap:"AKL",icon:"🌊",rating:4.88,reviews:2420,gradient:"linear-gradient(160deg,#002244,#004488,#0066bb)",accent:"#1188dd",tags:["Southern Hemisphere Left","Endless Rides"], photo:"https://images.unsplash.com/photo-1461730278450-19cc1863601c?w=800&h=600&fit=crop",facing:260},
-  {id:"chiba_surf",  category:"surfing",title:"Chiba Coast",             location:"Chiba Prefecture, Japan",  lat:35.3200,lon:140.3800,ap:"NRT",icon:"🏄",rating:4.78,reviews:2100,gradient:"linear-gradient(160deg,#003344,#005566,#007799)",accent:"#0099bb",tags:["Tokyo's Backyard","Beach Break Frenzy"], photo:"https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=800&h=600&fit=crop",facing:125},
-  {id:"beach_gcm",      category:"tanning",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
-  {id:"beach_grace",    category:"tanning",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
-  {id:"beach_shoal",    category:"tanning",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
-  {id:"beach_eagle",    category:"tanning",title:"Eagle Beach",            location:"Aruba",                         lat:12.5600,lon:-70.0850,ap:"AUA",icon:"🏖️",rating:4.95,reviews:13400,gradient:"linear-gradient(160deg,#003355,#00558a,#0088bb)",accent:"#22aadd",tags:["Iconic Divi Tree","Year-Round Sun"], photo:"https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"},
-  {id:"beach_magens",   category:"tanning",title:"Magens Bay",             location:"St. Thomas, USVI",              lat:18.3700,lon:-64.9330,ap:"STT",icon:"🏖️",rating:4.93,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Protected Horseshoe","Palm-Lined Shore"], photo:"https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"},
-  {id:"beach_stlucia",  category:"tanning",title:"Anse Chastanet",         location:"St. Lucia",                     lat:13.8630,lon:-61.0750,ap:"UVF",icon:"🏖️",rating:4.96,reviews:6200,gradient:"linear-gradient(160deg,#001a22,#003844,#006677)",accent:"#00aabb",tags:["Piton Views","Volcano Backdrop"], photo:"https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"},
-  {id:"beach_barbados", category:"tanning",title:"Bottom Bay",             location:"Barbados",                      lat:13.0700,lon:-59.4450,ap:"BGI",icon:"🏖️",rating:4.94,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099aa)",accent:"#00ccdd",tags:["Atlantic Wonder","Coral Cliffs"], photo:"https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"},
-  {id:"beach_orient",   category:"tanning",title:"Orient Bay",             location:"Saint-Martin, French Antilles",  lat:18.1000,lon:-63.0300,ap:"SXM",icon:"🏖️",rating:4.91,reviews:8600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",accent:"#33aadd",tags:["St-Barths Vibes","Water Sports Hub"], photo:"https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"},
-  {id:"beach_tobago",   category:"tanning",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
-  {id:"beach_negril",   category:"tanning",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"},
-  {id:"beach_holbox",   category:"tanning",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
-  {id:"beach_tulum",    category:"tanning",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
-  {id:"beach_cozumel",  category:"tanning",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"},
-  {id:"beach_rivmaya",  category:"tanning",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
-  {id:"beach_sayulita",category:"tanning",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Surf Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
-  {id:"beach_loscabos",category:"tanning",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
-  {id:"beach_manuelant",category:"tanning",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"},
-  {id:"beach_bocas",    category:"tanning",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"},
-  {id:"beach_noronha",  category:"tanning",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
-  {id:"beach_floripa",  category:"tanning",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Surf + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
-  {id:"beach_ob",       category:"tanning",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
-  {id:"beach_siestakey",category:"tanning",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
-  {id:"beach_clearwater",category:"tanning",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
-  {id:"beach_keywest",  category:"tanning",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
-  {id:"beach_destin",   category:"tanning",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
-  {id:"beach_myrtle",   category:"tanning",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"},
-  {id:"beach_miami",    category:"tanning",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"},
-  {id:"beach_lanikai",  category:"tanning",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"},
-  {id:"beach_hapuna",   category:"tanning",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"},
-  {id:"beach_kapalua",  category:"tanning",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
-  {id:"beach_positano", category:"tanning",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"},
-  {id:"beach_sardinia", category:"tanning",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"},
-  {id:"beach_algarve",  category:"tanning",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"},
-  {id:"beach_santorini",category:"tanning",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"},
-  {id:"beach_mykonos",  category:"tanning",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
-  {id:"beach_hvar",     category:"tanning",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"},
-  {id:"beach_dubrovnik",category:"tanning",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
-  {id:"beach_milos",    category:"tanning",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"},
-  {id:"beach_ibiza",    category:"tanning",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
-  {id:"beach_formentera",category:"tanning",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
-  {id:"beach_menorca",  category:"tanning",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"},
-  {id:"beach_cotedazur",category:"tanning",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
-  {id:"beach_diani",    category:"tanning",title:"Diani Beach",            location:"Mombasa, Kenya",                lat:-4.2720,lon:39.5930,ap:"MBA",icon:"🏖️",rating:4.93,reviews:8800,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22cc88",tags:["White Coral Sand","Colobus Monkeys"], photo:"https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"},
-  {id:"beach_zanzibar", category:"tanning",title:"Nungwi Beach",           location:"Zanzibar, Tanzania",            lat:-5.7215,lon:39.2978,ap:"ZNZ",icon:"🏖️",rating:4.95,reviews:12400,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Spice Island","Dhow Sunset Cruises"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
-  {id:"beach_seychelles",category:"tanning",title:"Anse Source d'Argent",  location:"La Digue, Seychelles",          lat:-4.3636,lon:55.8381,ap:"SEZ",icon:"🏖️",rating:4.99,reviews:10200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccdd",tags:["Most Photographed Beach","Granite Boulders"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
-  {id:"beach_praslin",  category:"tanning",title:"Anse Lazio",             location:"Praslin, Seychelles",           lat:-4.2836,lon:55.7133,ap:"PRI",icon:"🏖️",rating:4.98,reviews:8600,gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",accent:"#22bbee",tags:["Verdure d'Eau Clear","World Top10"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
-  {id:"beach_mauritius",category:"tanning",title:"Belle Mare Plage",       location:"Mauritius",                     lat:-20.2700,lon:57.7700,ap:"MRU",icon:"🏖️",rating:4.95,reviews:11200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Turquoise Lagoon","Indian Ocean Luxury"], photo:"https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"},
-  {id:"beach_railay",   category:"tanning",title:"Railay Beach",           location:"Krabi, Thailand",               lat:8.0107,lon:98.8382,ap:"KBV",icon:"🏖️",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Limestone Cliffs","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
-  {id:"beach_kohsamui", category:"tanning",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
-  {id:"beach_phiphi",   category:"tanning",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
-  {id:"beach_elnido",   category:"tanning",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
-  {id:"beach_boracay",  category:"tanning",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
-  {id:"beach_nusapenida",category:"tanning",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
-  {id:"beach_gilit",    category:"tanning",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
-  {id:"beach_aitutaki", category:"tanning",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
-  {id:"beach_whitehaven",category:"tanning",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
-  {id:"beach_cable",    category:"tanning",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"},
-  {id:"beach_portdouglas",category:"tanning",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
+  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
+  {id:"beach_gcm",      category:"beach",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
+  {id:"beach_grace",    category:"beach",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
+  {id:"beach_shoal",    category:"beach",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
+  {id:"beach_eagle",    category:"beach",title:"Eagle Beach",            location:"Aruba",                         lat:12.5600,lon:-70.0850,ap:"AUA",icon:"🏖️",rating:4.95,reviews:13400,gradient:"linear-gradient(160deg,#003355,#00558a,#0088bb)",accent:"#22aadd",tags:["Iconic Divi Tree","Year-Round Sun"], photo:"https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"},
+  {id:"beach_magens",   category:"beach",title:"Magens Bay",             location:"St. Thomas, USVI",              lat:18.3700,lon:-64.9330,ap:"STT",icon:"🏖️",rating:4.93,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Protected Horseshoe","Palm-Lined Shore"], photo:"https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"},
+  {id:"beach_stlucia",  category:"beach",title:"Anse Chastanet",         location:"St. Lucia",                     lat:13.8630,lon:-61.0750,ap:"UVF",icon:"🏖️",rating:4.96,reviews:6200,gradient:"linear-gradient(160deg,#001a22,#003844,#006677)",accent:"#00aabb",tags:["Piton Views","Volcano Backdrop"], photo:"https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"},
+  {id:"beach_barbados", category:"beach",title:"Bottom Bay",             location:"Barbados",                      lat:13.0700,lon:-59.4450,ap:"BGI",icon:"🏖️",rating:4.94,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099aa)",accent:"#00ccdd",tags:["Atlantic Wonder","Coral Cliffs"], photo:"https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"},
+  {id:"beach_orient",   category:"beach",title:"Orient Bay",             location:"Saint-Martin, French Antilles",  lat:18.1000,lon:-63.0300,ap:"SXM",icon:"🏖️",rating:4.91,reviews:8600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",accent:"#33aadd",tags:["St-Barths Vibes","Water Sports Hub"], photo:"https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"},
+  {id:"beach_tobago",   category:"beach",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
+  {id:"beach_negril",   category:"beach",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"},
+  {id:"beach_holbox",   category:"beach",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
+  {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
+  {id:"beach_cozumel",  category:"beach",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"},
+  {id:"beach_rivmaya",  category:"beach",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
+  {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Beach Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
+  {id:"beach_loscabos",category:"beach",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
+  {id:"beach_manuelant",category:"beach",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"},
+  {id:"beach_bocas",    category:"beach",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"},
+  {id:"beach_noronha",  category:"beach",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
+  {id:"beach_floripa",  category:"beach",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Beach + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
+  {id:"beach_ob",       category:"beach",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
+  {id:"beach_siestakey",category:"beach",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
+  {id:"beach_clearwater",category:"beach",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
+  {id:"beach_keywest",  category:"beach",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
+  {id:"beach_destin",   category:"beach",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
+  {id:"beach_myrtle",   category:"beach",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"},
+  {id:"beach_miami",    category:"beach",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"},
+  {id:"beach_lanikai",  category:"beach",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"},
+  {id:"beach_hapuna",   category:"beach",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"},
+  {id:"beach_kapalua",  category:"beach",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
+  {id:"beach_positano", category:"beach",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"},
+  {id:"beach_sardinia", category:"beach",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"},
+  {id:"beach_algarve",  category:"beach",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"},
+  {id:"beach_santorini",category:"beach",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"},
+  {id:"beach_mykonos",  category:"beach",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
+  {id:"beach_hvar",     category:"beach",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"},
+  {id:"beach_dubrovnik",category:"beach",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
+  {id:"beach_milos",    category:"beach",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"},
+  {id:"beach_ibiza",    category:"beach",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
+  {id:"beach_formentera",category:"beach",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
+  {id:"beach_menorca",  category:"beach",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"},
+  {id:"beach_cotedazur",category:"beach",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
+  {id:"beach_diani",    category:"beach",title:"Diani Beach",            location:"Mombasa, Kenya",                lat:-4.2720,lon:39.5930,ap:"MBA",icon:"🏖️",rating:4.93,reviews:8800,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22cc88",tags:["White Coral Sand","Colobus Monkeys"], photo:"https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"},
+  {id:"beach_zanzibar", category:"beach",title:"Nungwi Beach",           location:"Zanzibar, Tanzania",            lat:-5.7215,lon:39.2978,ap:"ZNZ",icon:"🏖️",rating:4.95,reviews:12400,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Spice Island","Dhow Sunset Cruises"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
+  {id:"beach_seychelles",category:"beach",title:"Anse Source d'Argent",  location:"La Digue, Seychelles",          lat:-4.3636,lon:55.8381,ap:"SEZ",icon:"🏖️",rating:4.99,reviews:10200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccdd",tags:["Most Photographed Beach","Granite Boulders"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
+  {id:"beach_praslin",  category:"beach",title:"Anse Lazio",             location:"Praslin, Seychelles",           lat:-4.2836,lon:55.7133,ap:"PRI",icon:"🏖️",rating:4.98,reviews:8600,gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",accent:"#22bbee",tags:["Verdure d'Eau Clear","World Top10"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
+  {id:"beach_mauritius",category:"beach",title:"Belle Mare Plage",       location:"Mauritius",                     lat:-20.2700,lon:57.7700,ap:"MRU",icon:"🏖️",rating:4.95,reviews:11200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Turquoise Lagoon","Indian Ocean Luxury"], photo:"https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"},
+  {id:"beach_railay",   category:"beach",title:"Railay Beach",           location:"Krabi, Thailand",               lat:8.0107,lon:98.8382,ap:"KBV",icon:"🏖️",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Limestone Cliffs","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
+  {id:"beach_kohsamui", category:"beach",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
+  {id:"beach_phiphi",   category:"beach",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
+  {id:"beach_elnido",   category:"beach",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
+  {id:"beach_boracay",  category:"beach",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
+  {id:"beach_nusapenida",category:"beach",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
+  {id:"beach_gilit",    category:"beach",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
+  {id:"beach_aitutaki", category:"beach",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
+  {id:"beach_whitehaven",category:"beach",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
+  {id:"beach_cable",    category:"beach",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"},
+  {id:"beach_portdouglas",category:"beach",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
   {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1557692493-0a42e50efc26?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.52",skiPass:"independent"},
   {id:"schweitzer-mtn",category:"skiing",title:"Schweitzer Mountain",location:"Idaho, USA",lat:48.3583,lon:-116.6272,ap:"GEG",icon:"🎿",rating:4.87,reviews:1567,gradient:"linear-gradient(160deg,#0e3b68,#1b68b5,#87bbea)",accent:"#1b68b5",tags:["Lake Pend Oreille Views","Expert","Uncrowded","Idaho Gem"],photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",skiPass:"ikon"},
-  {id:"kuta-beach",category:"surfing",title:"Kuta Beach",location:"Bali, Indonesia",lat:-8.7190,lon:115.1689,ap:"DPS",icon:"🌊",rating:4.83,reviews:3210,gradient:"linear-gradient(160deg,#06b6d4,#0891b2,#0284c7)",accent:"#06b6d4",tags:["Beach Break","Beginner","Surf Schools","Year-Round","Warm Water"],photo:"https://images.unsplash.com/photo-1474402656496-6641a08dab21?w=800&h=600&fit=crop&fp-x=0.37&fp-y=0.50",facing:245},
-  {id:"beach_spain_mallorca_es",category:"tanning",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
-  {id:"popoyo-s0",category:"surfing",title:"Popoyo",location:"Managua, Nicaragua",lat:11.3167,lon:-86.2833,ap:"MGA",icon:"🌊",rating:4.62,reviews:4747,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:220},
-  {id:"angourie-point-s3",category:"surfing",title:"Angourie Point",location:"New South Wales, Australia",lat:-29.47,lon:153.3742,ap:"BNK",icon:"🌊",rating:4.98,reviews:4463,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:120},
-  {id:"sagres-s6",category:"surfing",title:"Sagres",location:"Algarve, Portugal",lat:37.0099,lon:-8.9327,ap:"FAO",icon:"🌊",rating:4.58,reviews:4422,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:220},
-  {id:"baler-s7",category:"surfing",title:"Baler",location:"Aurora, Philippines",lat:15.7594,lon:121.5611,ap:"MNL",icon:"🌊",rating:4.93,reviews:3566,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Beach Break","Beginner Friendly","Warm Water","Year-Round"],photo:"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:90},
-  {id:"arrifana-s8",category:"surfing",title:"Arrifana",location:"Algarve, Portugal",lat:37.2966,lon:-8.8584,ap:"FAO",icon:"🌊",rating:4.97,reviews:4517,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1484591974057-265bb767ef71?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
-  {id:"ocean-beach-pier-s9",category:"surfing",title:"Ocean Beach Pier",location:"San Diego, California",lat:32.749,lon:-117.2548,ap:"SAN",icon:"🌊",rating:4.87,reviews:1747,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
-  {id:"tamarack-beach-s11",category:"surfing",title:"Tamarack Beach",location:"Carlsbad, California",lat:33.1435,lon:-117.3569,ap:"SAN",icon:"🌊",rating:4.99,reviews:3159,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Beach Break","All Levels","Consistent Swell","Longboard Friendly"],photo:"https://images.unsplash.com/photo-1500930195302-b638d8e49a90?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
-  {id:"haleiwa-alii-s13",category:"surfing",title:"Haleiwa Alii",location:"Oahu, Hawaii",lat:21.5978,lon:-158.1044,ap:"HNL",icon:"🌊",rating:4.72,reviews:2130,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1437557379629-c90edaf4b530?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:330},
-  {id:"piha-beach-s14",category:"surfing",title:"Piha Beach",location:"Auckland, New Zealand",lat:-36.9603,lon:174.4631,ap:"AKL",icon:"🌊",rating:4.61,reviews:2869,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1416005490249-4b7ade432dc0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:270},
-  {id:"mount-maunganui-s15",category:"surfing",title:"Mount Maunganui",location:"Bay of Plenty, New Zealand",lat:-37.6333,lon:176.1833,ap:"TRG",icon:"🌊",rating:4.51,reviews:4637,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:45},
-  {id:"catanduanes-s16",category:"surfing",title:"Catanduanes",location:"Bicol, Philippines",lat:13.6997,lon:124.2451,ap:"VRC",icon:"🌊",rating:4.61,reviews:1904,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Reef Break","Expert Level","Remote Spot","Pacific Power"],photo:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:90},
-  {id:"matanzas-s17",category:"surfing",title:"Matanzas",location:"Valparaiso, Chile",lat:-33.95,lon:-71.8833,ap:"SCL",icon:"🌊",rating:4.5,reviews:582,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Intermediate","Cold Water","Chilean Classic"],photo:"https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:245},
-  {id:"fernando-de-noronha-s20",category:"surfing",title:"Fernando de Noronha",location:"Pernambuco, Brazil",lat:-3.8569,lon:-32.4263,ap:"FEN",icon:"🌊",rating:4.75,reviews:2381,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:0},
-  {id:"indicator-s22",category:"surfing",title:"Indicator",location:"Santa Barbara, California",lat:34.4048,lon:-119.6864,ap:"SBA",icon:"🌊",rating:4.76,reviews:4777,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Point Break","Intermediate","Long Walls","Cold Water"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b066f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:225},
-  {id:"tsurigasaki-s23",category:"surfing",title:"Tsurigasaki",location:"Chiba, Japan",lat:35.4167,lon:140.45,ap:"NRT",icon:"🌊",rating:4.78,reviews:2090,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1476466329279-66c8a4e1ab6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:125},
-  {id:"pichilemu-s25",category:"surfing",title:"Pichilemu",location:"O'Higgins, Chile",lat:-34.3887,lon:-71.9985,ap:"SCL",icon:"🌊",rating:4.59,reviews:894,gradient:"linear-gradient(160deg,#0a3d3d,#0f7c6e,#40c4a8)",accent:"#40c4a8",tags:["Reef Break","Offshore Winds","Expert Level","Barrel Waves"],photo:"https://images.unsplash.com/photo-1531986627054-ab41afe57b2e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:230},
-  {id:"snappers-gold-coast-s26",category:"surfing",title:"Snappers Gold Coast",location:"Gold Coast, Australia",lat:-28.1667,lon:153.55,ap:"OOL",icon:"🌊",rating:4.82,reviews:3002,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Rock Point","Expert Level","WSL Tour Stop","Powerful Wedge"],photo:"https://images.unsplash.com/photo-1520466071398-92af8ecab28c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:100},
-  {id:"capbreton-s27",category:"surfing",title:"Capbreton",location:"Landes, France",lat:43.644,lon:-1.4381,ap:"BIQ",icon:"🌊",rating:4.71,reviews:3925,gradient:"linear-gradient(160deg,#0d2137,#1565c0,#42a5f5)",accent:"#90caf9",tags:["Beach Break","All Levels","Atlantic Swell","Cold Water"],photo:"https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:290},
-  {id:"fanore-s28",category:"surfing",title:"Fanore",location:"Clare, Ireland",lat:53.1219,lon:-9.2972,ap:"SNN",icon:"🌊",rating:4.92,reviews:543,gradient:"linear-gradient(160deg,#003333,#006666,#00a0a0)",accent:"#4dd0e1",tags:["World Class","Big Waves","Hollow Tubes","Remote Spot"],photo:"https://images.unsplash.com/photo-1590523276583-f3f9e40b0bcc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:260},
-  {id:"croyde-bay-s29",category:"surfing",title:"Croyde Bay",location:"Devon, England",lat:51.1333,lon:-4.2333,ap:"EXT",icon:"🌊",rating:4.83,reviews:906,gradient:"linear-gradient(160deg,#1a2a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Left-Hander","Right-Hander","Long Rides","Sandy Bottom"],photo:"https://images.unsplash.com/photo-1527427337751-fdec4e934b82?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",facing:290},
+  {id:"beach_spain_mallorca_es",category:"beach",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
   {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"AXT",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -522,9 +520,9 @@ const VENUES = [
   {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", lateSeason:true},
   {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"chamonix-mont-blanc-s18",category:"skiing",title:"Chamonix Mont-Blanc",location:"Haute-Savoie, France",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🏔️",rating:4.66,reviews:1477,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"chamonix-mont-blanc-s18",category:"skiing",title:"Chamonix Mont-Blanc",location:"Haute-Savoie, France",lat:45.9237,lon:6.8694,ap:"GVA",icon:"🏔️",rating:4.66,reviews:1477,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1587495165786-0890f9e15acd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", lateSeason:true},
   {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZPC",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"les-arcs-s20",category:"skiing",title:"Les Arcs",location:"Savoie, France",lat:45.5,lon:6.8333,ap:"GVA",icon:"🏔️",rating:4.76,reviews:1688,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"powder-mountain-s21",category:"skiing",title:"Powder Mountain",location:"Weber County, Utah",lat:41.3833,lon:-111.7833,ap:"SLC",icon:"🏔️",rating:4.94,reviews:2962,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -536,51 +534,53 @@ const VENUES = [
   {id:"lech-zurs-s27",category:"skiing",title:"Lech Zürs",location:"Vorarlberg, Austria",lat:47.2083,lon:10.1444,ap:"INN",icon:"🏔️",rating:4.73,reviews:4718,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Expert Terrain","Off-Piste Powder","Arlberg Region","Luxury"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"cerro-castor-s28",category:"skiing",title:"Cerro Castor",location:"Tierra del Fuego, Argentina",lat:-54.7833,lon:-68.1167,ap:"USH",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"aruba-eagle-beach-t1",category:"tanning",title:"Aruba Eagle Beach",location:"Aruba",lat:12.5617,lon:-70.0564,ap:"AUA",icon:"🏝️",rating:4.53,reviews:3660,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1473116763249-dec59e8ecf4f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"agios-prokopios-t2",category:"tanning",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"playa-de-la-concha-t3",category:"tanning",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"huatulco-santa-cruz-t4",category:"tanning",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"plage-de-pampelonne-t5",category:"tanning",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"matira-beach-t6",category:"tanning",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"outer-banks-nags-head-t7",category:"tanning",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"OAJ",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"turquoise-bay-t8",category:"tanning",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"natadola-beach-t9",category:"tanning",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tofo-beach-t10",category:"tanning",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tioman-island-t11",category:"tanning",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"TOD",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"mana-island-fiji-t12",category:"tanning",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"zlatni-rat-t14",category:"tanning",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"lovina-beach-t15",category:"tanning",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"nusa-dua-beach-t17",category:"tanning",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"patara-beach-t18",category:"tanning",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"bulabog-beach-boracay-t19",category:"tanning",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"san-vito-lo-capo-t21",category:"tanning",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"hyams-beach-t22",category:"tanning",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"lindos-beach-t23",category:"tanning",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"laguna-beach-t24",category:"tanning",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"koh-tao-sairee-t25",category:"tanning",title:"Koh Tao Sairee",location:"Surat Thani, Thailand",lat:10.0833,lon:99.8333,ap:"USM",icon:"🏝️",rating:4.96,reviews:1817,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"muscat-beach-t26",category:"tanning",title:"Muscat Beach",location:"Oman",lat:23.588,lon:58.3972,ap:"MCT",icon:"🏝️",rating:4.71,reviews:2486,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"rendezvous-bay-t28",category:"tanning",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"an-bang-beach-t29",category:"tanning",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"verbier",category:"skiing",title:"Verbier",location:"Valais, Switzerland",lat:46.0960,lon:7.2284,ap:"GVA",icon:"🎿",rating:4.96,reviews:3120,gradient:"linear-gradient(160deg,#0a1a40,#1a3a80,#3a70d0)",accent:"#7ab0f0",skiPass:"independent",tags:["4 Vallées","Freeride Capital","Expert","Mont Fort 3300m"],photo:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&fp-x=0.46&fp-y=0.55"},
-  {id:"yongpyong",category:"skiing",title:"Yongpyong Resort",location:"Gangwon, South Korea",lat:37.6872,lon:128.7539,ap:"GMP",icon:"🎿",rating:4.89,reviews:2640,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",skiPass:"independent",tags:["PyeongChang Olympics","Dragon Peak","Consistent Snow","Night Skiing"],photo:"https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45"},
-  {id:"arugam_bay",category:"surfing",title:"Arugam Bay",location:"Eastern Province, Sri Lanka",lat:6.8374,lon:81.8360,ap:"CMB",icon:"🌊",rating:4.91,reviews:2980,gradient:"linear-gradient(160deg,#002a1a,#005533,#009966)",accent:"#22cc88",facing:100,tags:["Asia's Best Point Break","Seasonal Gem","Warm Water","May–Oct Season"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.48"},
-  {id:"perisher",category:"skiing",title:"Perisher Blue",location:"Snowy Mountains, NSW Australia",lat:-36.4069,lon:148.4062,ap:"CBR",icon:"🎿",rating:4.85,reviews:2240,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",skiPass:"independent",tags:["SH Largest Ski Resort","4 Resorts Linked","Jul–Sep Season","All Levels"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.45"},
-  {id:"beach_phuquoc",category:"tanning",title:"Long Beach Phu Quoc",location:"Kien Giang, Vietnam",lat:10.2899,lon:103.9840,ap:"PQC",icon:"🏖️",rating:4.92,reviews:14800,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Gulf of Thailand","Powder White Sand","Hammock Sunset","Fast-Rising Gem"],photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.50"},
-  {id:"zermatt",     category:"skiing",  title:"Zermatt",            location:"Valais, Switzerland",  lat:46.0207,lon:7.7491,  ap:"GVA",icon:"🎿", rating:4.97,reviews:3650,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",skiPass:"independent",tags:["Matterhorn Views","Glacier Year-Round","Car-Free Village","3883m Vertical"], photo:"https://images.unsplash.com/photo-1578836537282-3171d77f8632?w=800&h=600&fit=crop"},
-  {id:"las-lenas",   category:"skiing",  title:"Las Leñas",          location:"Mendoza, Argentina",   lat:-35.1500,lon:-70.0833,ap:"MDZ",icon:"🎿", rating:4.91,reviews:1820,gradient:"linear-gradient(160deg,#0a1828,#1e3a6e,#3a6abd)",accent:"#82b0e8",skiPass:"independent",tags:["Best SH Powder","Andes Backcountry","400cm Annual Snowfall","Jun–Sep Season"], photo:"https://images.unsplash.com/photo-1543975660-71c80f7f6a6f?w=800&h=600&fit=crop"},
-  {id:"g-land",      category:"surfing", title:"G-Land (Grajagan)",  location:"East Java, Indonesia", lat:-8.6694,lon:114.2822, ap:"DPS",icon:"🌊", rating:4.96,reviews:1480,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["World's Best Left","Jungle Camp","Boat-Access Only","Expert Only"], photo:"https://images.unsplash.com/photo-1547519777-4be6701f2bce?w=800&h=600&fit=crop",facing:190},
-  {id:"siargao",     category:"surfing", title:"Siargao (Cloud 9)",  location:"Surigao del Norte, Philippines", lat:9.8500,lon:126.0500, ap:"IAO",icon:"🌊", rating:4.93,reviews:1650,gradient:"linear-gradient(160deg,#001a3a,#004080,#0080c0)",accent:"#40a0ff",tags:["Cloud 9 Reef","Barrel Machine","Island Hopping","Intermediate+"], photo:"https://images.unsplash.com/photo-1465212618042-5c59ead3d83e?w=800&h=600&fit=crop",facing:90},
-  {id:"maldives-lagoon", category:"tanning", title:"Maldives Lagoon Beaches", location:"North Malé Atoll, Maldives", lat:4.1755,lon:73.5093, ap:"MLE",icon:"🏝️", rating:4.98,reviews:9400,gradient:"linear-gradient(160deg,#001428,#002855,#004a8c)",accent:"#00ccff",tags:["Overwater Bungalows","World's Clearest Lagoons","UV 9","Sandbank Picnic"], photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop"},
-  {id:"skeleton-bay", category:"surfing", title:"Skeleton Bay", location:"Swakopmund, Namibia", lat:-22.8833,lon:14.5000, ap:"WDH",icon:"🌊", rating:4.95,reviews:580,gradient:"linear-gradient(160deg,#001a3a,#003a6e,#006090)",accent:"#40a0cc",tags:["World's Longest Barrel","2km Left-Hander","Expert Only","Desert Coast"], photo:"https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=800&h=600&fit=crop",facing:270},
-  {id:"val-thorens", category:"skiing", title:"Val Thorens", location:"Les 3 Vallées, Savoie, France", lat:45.2983,lon:6.5833, ap:"CMF",icon:"🎿", rating:4.95,reviews:3180,gradient:"linear-gradient(160deg,#0a1828,#1e3a6e,#3a6abd)",accent:"#82b0e8",skiPass:"independent",tags:["Highest Resort Europe 2300m","600km Pistes","Snowsure Nov–May","Les 3 Vallées"], photo:"https://images.unsplash.com/photo-1562184552-997c461e4e13?w=800&h=600&fit=crop"},
-  {id:"punta-mita", category:"surfing", title:"Punta Mita", location:"Nayarit, Mexico", lat:20.7667,lon:-105.5333, ap:"PVR",icon:"🌊", rating:4.88,reviews:2180,gradient:"linear-gradient(160deg,#003344,#005577,#0077aa)",accent:"#22aacc",tags:["World Surf Reserve","The Cove Right-Hander","Warm Water Year-Round","Intermediate+"], photo:"https://images.unsplash.com/photo-1455264745730-cb3b76250a18?w=800&h=600&fit=crop",facing:290},
-  {id:"exuma-cays", category:"tanning", title:"Exuma Cays", location:"Great Exuma, Bahamas", lat:23.5167,lon:-75.8333, ap:"GGT",icon:"🏝️", rating:4.94,reviews:6800,gradient:"linear-gradient(160deg,#001428,#00386e,#005fa0)",accent:"#00ccee",tags:["Swimming Pigs Beach","Bahamas Blue Holes","Crystal Sandbars","Island Hopping"], photo:"https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=800&h=600&fit=crop"},
-  {id:"whakapapa",  category:"skiing",  title:"Whakapapa",      location:"Mt Ruapehu, New Zealand",    lat:-39.2318,lon:175.5473, ap:"AKL",icon:"🎿", rating:4.87,reviews:2140,gradient:"linear-gradient(160deg,#0c1e38,#1a3f70,#306ab4)",accent:"#6aaad8",skiPass:"independent",tags:["NZ Largest Resort","Volcanic Crater Views","Jul–Sep Season","All Levels"],       photo:"https://images.unsplash.com/photo-1612802388559-a01e6ccba3ff?w=800&h=600&fit=crop"},
-  {id:"hakuba",     category:"skiing",  title:"Hakuba Valley",  location:"Nagano, Japan",              lat:36.6983,lon:137.8637,  ap:"NRT",icon:"🎿", rating:4.93,reviews:3280,gradient:"linear-gradient(160deg,#0d1e35,#1a3c70,#2e67b8)",accent:"#72a8dc",skiPass:"independent",tags:["1998 Olympics Venue","Deep Japan Powder","11 Linked Resorts","Jan–Mar Season"],  photo:"https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop"},
-  {id:"tofino",     category:"surfing", title:"Tofino",         location:"British Columbia, Canada",   lat:49.1533,lon:-125.9069, ap:"YVR",icon:"🌊", rating:4.81,reviews:1620,gradient:"linear-gradient(160deg,#001228,#003060,#006090)",accent:"#3090c0",tags:["Canada's Surf Capital","Old-Growth Rainforest","Cold Water Barrels","Chesterman Beach"],photo:"https://images.unsplash.com/photo-1590466809584-4f8f80c46af3?w=800&h=600&fit=crop",facing:270},
-  {id:"tamarindo",  category:"surfing", title:"Tamarindo",      location:"Guanacaste, Costa Rica",     lat:10.2994,lon:-85.8365,  ap:"LIR",icon:"🌊", rating:4.79,reviews:2870,gradient:"linear-gradient(160deg,#001630,#003870,#0070b0)",accent:"#38a8e8",tags:["Central America's Surf Hub","Year-Round Breaks","Beginner to Advanced","Sunset Beach Walk"],photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",facing:260},
-  {id:"ao-nang",    category:"tanning", title:"Ao Nang Beach",  location:"Krabi, Thailand",            lat:8.0328,lon:98.8306,    ap:"KBV",icon:"🏖️", rating:4.84,reviews:3140,gradient:"linear-gradient(160deg,#001430,#003878,#0068b8)",accent:"#50b0e8",tags:["Limestone Karst Cliffs","Longtail Boat Access","Nov–Apr Dry Season","Snorkeling"],          photo:"https://images.unsplash.com/photo-1504214208698-ea1916a2195a?w=800&h=600&fit=crop"},
+  {id:"agios-prokopios-t2",category:"beach",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"playa-de-la-concha-t3",category:"beach",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"OAJ",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"BRM",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"natadola-beach-t9",category:"beach",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"tioman-island-t11",category:"beach",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"TPN",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"mana-island-fiji-t12",category:"beach",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zlatni-rat-t14",category:"beach",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lovina-beach-t15",category:"beach",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"sarakiniko-beach-t16",category:"beach",title:"Sarakiniko Beach",location:"Milos, Greece",lat:36.7667,lon:24.4333,ap:"JMK",icon:"🏝️",rating:4.97,reviews:2714,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"patara-beach-t18",category:"beach",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"san-vito-lo-capo-t21",category:"beach",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"hyams-beach-t22",category:"beach",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"lindos-beach-t23",category:"beach",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"laguna-beach-t24",category:"beach",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"koh-tao-sairee-t25",category:"beach",title:"Koh Tao Sairee",location:"Surat Thani, Thailand",lat:10.0833,lon:99.8333,ap:"USM",icon:"🏝️",rating:4.96,reviews:1817,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"muscat-beach-t26",category:"beach",title:"Muscat Beach",location:"Oman",lat:23.588,lon:58.3972,ap:"MCT",icon:"🏝️",rating:4.71,reviews:2486,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"pigeon-point-t27",category:"beach",title:"Pigeon Point",location:"Tobago",lat:11.1667,lon:-60.8333,ap:"TAB",icon:"🏝️",rating:4.91,reviews:666,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Party Beach","Beach Bars","Water Sports","Vibrant"],photo:"https://images.unsplash.com/photo-1490750967868-88df5691b2ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rendezvous-bay-t28",category:"beach",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"an-bang-beach-t29",category:"beach",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"}
 ];
+
+// Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
+// (id collisions in localStorage), break React keys in the grid, and double-
+// count in price/weather batches. Fail loudly so any agent or human editing
+// VENUES sees it immediately in the console — not days later via a P1 report.
+(() => {
+  const seen = new Set();
+  const dups = [];
+  for (const v of VENUES) {
+    if (!v?.id) { dups.push("(missing id)"); continue; }
+    if (seen.has(v.id)) dups.push(v.id);
+    else seen.add(v.id);
+  }
+  if (dups.length) {
+    console.warn(
+      `[Peakly] VENUES has ${dups.length} duplicate id${dups.length > 1 ? "s" : ""} — fix before shipping:`,
+      dups
+    );
+  }
+})();
 
 const US_AIRPORTS = [
   { code:"JFK", label:"New York",      flag:"🗽" },
@@ -954,24 +954,34 @@ async function fetchMarine(lat, lon) {
   if (cached) return cached;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
+  // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
+  // is consumed by scoreVenue (water-temp gate). Wave/swell fields removed
+  // to trim Open-Meteo payload.
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=wave_height_max,wave_period_max,wave_direction_dominant,` +
-    `swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant,` +
-    `wind_wave_height_max,wind_wave_period_max,ocean_temperature_max` +
+    `&daily=ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
-  try {
-    const r = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!r.ok) return null;
-    const data = await r.json();
-    _wxCacheSet(cacheKey, data);
-    return data;
-  } catch (err) {
-    clearTimeout(timer);
-    console.warn("[Peakly] Marine API error:", err.name, err.message);
-    return null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url, { signal: controller.signal });
+      if (r.status === 429 || r.status >= 500) {
+        if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+        clearTimeout(timer); return null;
+      }
+      if (!r.ok) { clearTimeout(timer); return null; }
+      const data = await r.json();
+      clearTimeout(timer);
+      _wxCacheSet(cacheKey, data);
+      return data;
+    } catch (err) {
+      if (err.name === "AbortError") { return null; }
+      if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+      clearTimeout(timer);
+      console.warn("[Peakly] Marine API error:", err.name, err.message);
+      return null;
+    }
   }
+  clearTimeout(timer); return null;
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
@@ -1020,19 +1030,9 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   const isThunder      = wCode >= 95 && wCode <= 99;
   const isHail         = wCode === 96 || wCode === 99;
 
-  // ─── Marine data ───────────────────────────────────────────────────────
+  // ─── Marine data (beach only — water temp) ──────────────────────────────
   const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
-  const waveH     = atM(md?.wave_height_max)            ?? 0;
-  const wavePer   = atM(md?.wave_period_max)            ?? 10;
-  const waveDir   = atM(md?.wave_direction_dominant)    ?? 0;
-  const swellH    = atM(md?.swell_wave_height_max)      ?? waveH;
-  const swellPer  = atM(md?.swell_wave_period_max)      ?? wavePer;
-  const swellDir  = atM(md?.swell_wave_direction_dominant) ?? waveDir;
-  const windWaveH = atM(md?.wind_wave_height_max)       ?? 0;
   const waterTemp = atM(md?.ocean_temperature_max);     // null if no marine
-  // Yesterday's wave height — only meaningful when we have day-1 data
-  const yWaveH    = (di > 0 && Array.isArray(md?.wave_height_max) && md.wave_height_max[di-1] != null)
-                    ? md.wave_height_max[di-1] : null;
   const ySnow     = (di > 0 && Array.isArray(d?.snowfall_sum)  && d.snowfall_sum[di-1] != null)
                     ? d.snowfall_sum[di-1] : 0;
 
@@ -1059,7 +1059,6 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   // Trend: is tomorrow better or worse? (for "building" / "fading" labels)
   const tmrwPrecip = d.precipitation_sum?.[di+1] ?? precip;
   const tmrwWind   = d.wind_speed_10m_max?.[di+1] ?? wind;
-  const tmrwWaveH  = md?.wave_height_max?.[di+1] ?? waveH;
 
   let score = 50, label = "", period = "";
 
@@ -1078,7 +1077,11 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Shoulder months (Oct/May for N, Apr/Nov for S): open but marginal
       const isShoulder = isNorth ? (mo === 10 || mo === 5) : (mo === 4 || mo === 11);
 
-      if (!inSeason && !isShoulder) {
+      // Late-season exception: high-altitude resorts (venue.lateSeason) stay
+      // open into May/early June with real snow. Skip the hard off-season cut
+      // so spring corn weekends don't get hidden.
+      const inLateSeason = !inSeason && !isShoulder && venue.lateSeason && depth >= 0.5;
+      if (!inSeason && !isShoulder && !inLateSeason) {
         score = 8; label = "Off-season — resort closed"; period = "Opens " + (isNorth ? "November" : "May");
         break;
       }
@@ -1162,13 +1165,14 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       // Bad forecast confidence: high rain probability with no fresh snow
       if ((likelyRain || precipPct > 75) && snow < 3 && !isSnow) score -= 5;
 
-      const conditionTag = isFreezingRain ? " · FREEZING RAIN"
+      const conditionTag = (isFreezingRain ? " · FREEZING RAIN"
                          : isThunder ? " · ⚡ thunder"
                          : wetSnow ? " · wet/heavy"
                          : isHeavySnow ? " · heavy snow · flat light"
                          : isRain ? " · RAIN"
                          : isSnow ? " · snowing"
-                         : "";
+                         : "")
+                         + (inLateSeason ? " · late season" : "");
       label = snow > 0
         ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F${conditionTag}`
         : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
@@ -1190,144 +1194,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       break;
     }
 
-    case "surfing": {
-      // If no marine data at all, we can't score surf conditions — be honest
-      if (!md?.daily) {
-        score = 50;
-        label = "Swell data unavailable";
-        period = "Check back shortly";
-        break;
-      }
-
-      const facing = venue.facing ?? 270;
-
-      // ─── Swell hitting the break (orientation efficiency) ──────────────────
-      // Open-Meteo swellDir = direction swell comes FROM. Compare to facing.
-      // Direct hit = swell from exactly the direction the break faces out.
-      const swellAngleDiff = Math.abs(((swellDir - facing) + 540) % 360 - 180);
-      const swellEfficiency = swellAngleDiff <= 30  ? 1.0   // near-direct hit
-                            : swellAngleDiff <= 60  ? 0.85
-                            : swellAngleDiff <= 90  ? 0.65
-                            : swellAngleDiff <= 120 ? 0.4
-                            :                         0.2;  // sheltered
-      const effectiveSwellH = swellH * swellEfficiency;
-
-      // ─── Period quality: long period = more power, cleaner walls ──────────
-      // Sub-8s = windswell, 10-12s = decent, 14s+ = groundswell
-      const groundswellQuality = swellPer >= 15 ? 1.18
-                                : swellPer >= 13 ? 1.10
-                                : swellPer >= 11 ? 1.02
-                                : swellPer >= 9  ? 0.92
-                                : swellPer >= 7  ? 0.80
-                                :                  0.65;
-
-      // ─── Base score from effective height × period quality ────────────────
-      // Face height ≈ swell × 1.6 (rule of thumb for most breaks)
-      const faceM = effectiveSwellH * 1.6;
-      if      (faceM > 4.0) score = 92;      // double-overhead+ — world-class
-      else if (faceM > 3.0) score = 85;      // overhead+
-      else if (faceM > 2.0) score = 76;      // solid shoulder-high+
-      else if (faceM > 1.3) score = 66;      // fun size
-      else if (faceM > 0.8) score = 52;      // small but rideable
-      else if (faceM > 0.4) score = 38;
-      else                   score = 22;     // flat
-      score = score * groundswellQuality;
-
-      // ─── Wind direction: offshore vs onshore (KEY signal) ─────────────────
-      // Open-Meteo windDir = direction wind comes FROM (meteorological).
-      // Offshore = wind from LAND to SEA = wind direction opposite to facing.
-      // If facing = 270 (W), land is to the east, offshore wind blows from 90 (E).
-      // So: |windDir - (facing + 180)| small = offshore ✓
-      const glassy = wind < 6;
-      const blown  = wind > 22;
-
-      if (glassy) {
-        // Dead-glass: direction doesn't matter, surface is oil
-        score += 8;
-      } else if (windDirRaw == null) {
-        // No wind direction signal — penalize/reward by speed only, no direction guess
-        if (wind > 18) score -= 6;
-        else if (wind > 12) score -= 2;
-      } else {
-        const offshoreDir = (facing + 180) % 360;
-        const windOffshoreDiff = Math.abs(((windDir - offshoreDir) + 540) % 360 - 180);
-        if (windOffshoreDiff < 30) {
-          score += wind > 15 ? 8 : 12;
-        } else if (windOffshoreDiff < 60) {
-          score += 6;
-        } else if (windOffshoreDiff < 90) {
-          score -= wind > 12 ? 3 : 0;
-        } else if (windOffshoreDiff < 120) {
-          score -= wind > 10 ? 6 : 2;
-        } else {
-          score -= blown ? 18 : wind > 12 ? 12 : wind > 8 ? 7 : 3;
-        }
-      }
-
-      // ─── Severe weather: thunderstorm = leave the water immediately ─────
-      if (isThunder) score -= 30;
-
-      // ─── Wind chop / swell quality ──────────────────────────────────────
-      // When local wind chop dominates, the surf is a textured mess regardless
-      // of underlying swell. Hard-cap the score so we don't promise good waves.
-      if (swellH > 0.1 && windWaveH > swellH * 1.5) {
-        score = Math.min(score, 38);                   // pure windswell mess
-      } else if (swellH > 0.1 && windWaveH > swellH * 0.9) {
-        score = Math.min(score, 55);                   // mostly windswell
-        score -= 4;
-      } else if (windWaveH > swellH * 0.4) {
-        score -= 3;
-      }
-
-      // ─── Size danger: big waves are unrideable by most users ────────────
-      // Check title/id/tags so iconic big-wave breaks don't get the size penalty.
-      // Tags alone missed Pipeline (tags = ["Expert","Offshore Winds"]).
-      const bigWaveSig = `${venue.id || ""} ${venue.title || ""} ${(venue.tags || []).join(" ")}`.toLowerCase();
-      const bigWaveBreak = /big wave|xxl|tow|nazar|pipeline|mavericks|jaws|cortes|teahupo|peahi/i.test(bigWaveSig);
-      if (swellH > 5 && !bigWaveBreak) score -= 14;
-      else if (swellH > 4 && !bigWaveBreak) score -= 7;
-      else if (swellH > 6 && bigWaveBreak)  score -= 3;
-
-      // ─── Water temperature: wetsuit requirement ─────────────────────────
-      if (waterTemp !== null) {
-        if (waterTemp > 24) score += 3;        // tropical boardshorts
-        else if (waterTemp >= 20) score += 1;  // spring suit
-        else if (waterTemp >= 15) score -= 1;  // 3/2mm
-        else if (waterTemp >= 11) score -= 4;  // 4/3mm — cold
-        else if (waterTemp >= 8)  score -= 8;  // 5/4mm + hood
-        else                      score -= 12; // drysuit territory
-      }
-
-      // ─── Rain: minor penalty (runoff dirties the water) ─────────────────
-      if (rain > 20) score -= 4;
-      else if (rain > 10) score -= 2;
-
-      // Labels
-      const fFt = Math.max(1, Math.round(faceM * 3.28));
-      const windLabel = glassy ? "Glassy" : windOffshoreDiff < 60 ? `${wind.toFixed(0)}mph offshore`
-                      : windOffshoreDiff > 120 ? `${wind.toFixed(0)}mph onshore`
-                      : `${wind.toFixed(0)}mph cross`;
-      const perLabel = swellPer >= 14 ? "long period" : swellPer >= 10 ? "mid period" : "short period";
-      // Trend awareness: yesterday > today + tomorrow lower → swell is fading
-      const fading = yWaveH != null && yWaveH > waveH * 1.25 && tmrwWaveH < waveH;
-      const building = tmrwWaveH > waveH * 1.25;
-      // Fading swell drops the score — actionable info: "today is OK but
-      // tomorrow's nothing." User should know to plan AM session, not PM.
-      if (fading && !glassy) score -= 5;
-      label = isThunder ? `⚡ Lightning — out of the water`
-            : faceM > 0.8
-              ? `${fFt}ft · ${perLabel} · ${windLabel}${fading ? " · fading" : ""}`
-              : `Small · ${building ? "building" : "flat"}`;
-      period = isThunder ? "Thunderstorm — leave the water"
-             : faceM > 3 && !fading ? `Firing${bestDays > 1 ? " · " + bestDays + "d window" : ""}`
-             : faceM > 3 && fading ? "Firing but fading — go AM"
-             : faceM > 2 ? (fading ? "Solid but dropping" : `Solid · ${Math.min(bestDays, 3)}d window`)
-             : faceM > 1 ? (building ? "Building — better tomorrow" : fading ? "Tail end — last shot" : "Fun size")
-             : (building ? "Swell incoming" : "Flat — check back");
-      break;
-    }
-
-    case "tanning": {
+    case "beach": {
       // Weather code bands: 0=clear, 1=mainly clear, 2=partly cloudy, 3=overcast,
       // 45/48=fog, 51-67=rain/drizzle, 71-77=snow, 80+=showers/storms
       const sunny     = wCode <= 1;
@@ -1337,8 +1204,8 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       const rainy     = (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 82);
       const stormy    = wCode >= 95;
 
-      // Sunshine hours: real-world tanning quality indicator
-      const sunPct       = Math.min(1, sunHrs / 11);       // 0-1 of useful tanning hours
+      // Sunshine hours: real-world beach-day quality indicator
+      const sunPct       = Math.min(1, sunHrs / 11);       // 0-1 of useful sun hours
       const comfortTemp  = tempMax >= 75 && tempMax <= 92;
       const warmEnough   = tempMax >= 68 && tempMax < 75;
       const hotButOk     = tempMax > 92 && tempMax <= 102;
@@ -1398,17 +1265,25 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
       // ─── Water temperature (if marine data available) ──────────────────
       // Cold water = no swimming = bad beach day even on a sunny one
+      let chillyWater = false;
       if (waterTemp !== null) {
         if (waterTemp >= 24) score += 4;           // tropical swim
         else if (waterTemp >= 21) score += 2;      // pleasant
         else if (waterTemp >= 18) score += 0;      // OK
         else if (waterTemp >= 15) score -= 3;      // chilly — wade only
         else score -= 8;                            // cold — no swimming
+        // Hard cap below 18°C so a sunny day can't disguise unswimmable water.
+        // poolPrimary venues (resorts) skip this — guests don't depend on ocean.
+        if (waterTemp < 18 && !venue.poolPrimary) {
+          score = Math.min(score, 55);
+          chillyWater = true;
+        }
       }
 
       const sunLabel = sunHrs >= 10 ? "Full sun" : sunHrs >= 7 ? "Mostly sunny" : sunHrs >= 4 ? "Partly cloudy" : "Overcast";
       const weatherTag = stormy ? " · storms" : rainy ? " · rain" : foggy ? " · fog" : "";
-      label = `UV ${uv} · ${tempMax}°F · ${sunLabel}${weatherTag}`;
+      const chillyTag = chillyWater ? " · chilly water" : "";
+      label = `UV ${uv} · ${tempMax}°F · ${sunLabel}${weatherTag}${chillyTag}`;
       period = (sunny || clear) && bestDays > 2 ? `${Math.min(bestDays, 7)}-day clear stretch`
              : (sunny || clear) ? "Clear today"
              : rainy            ? "Wet day — wait it out"
@@ -1421,6 +1296,126 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   }
 
   return { score: Math.round(Math.min(100, Math.max(5, score))), label, period };
+}
+
+// ─── Weekend window scoring (front page) ──────────────────────────────────────
+// Front page locks to "this weekend" (Fri–Mon, flex return). Per-day scoreVenue
+// stays for the detail sheet's 7-day view; scoreWeekend wraps it for the
+// front-page "Firing this weekend" carousel.
+
+function weekendDayIndices(today) {
+  // Returns dayIndices [Fri, Sat, Sun, Mon] within 0..6 forecast window.
+  // If today is Sat/Sun/Mon, the in-progress weekend is partially in the past
+  // (forecast endpoint can't return historical days) so we clamp to remaining.
+  // If <2 days remain in current weekend, jump to next weekend.
+  const d = today.getDay(); // 0=Sun ... 6=Sat
+  let daysToFri;
+  if (d === 5)      daysToFri = 0;   // Friday
+  else if (d === 6) daysToFri = -1;  // Sat — Fri was yesterday
+  else if (d === 0) daysToFri = -2;  // Sun
+  else if (d === 1) daysToFri = -3;  // Mon
+  else              daysToFri = (5 - d + 7) % 7; // Tue=3, Wed=2, Thu=1
+  let indices = [daysToFri, daysToFri+1, daysToFri+2, daysToFri+3].filter(i => i >= 0 && i <= 6);
+  if (indices.length < 2) {
+    const nextFri = daysToFri + 7;
+    indices = [nextFri, nextFri+1, nextFri+2, nextFri+3].filter(i => i >= 0 && i <= 6);
+  }
+  return indices;
+}
+
+function scoreWeekend(venue, wx, marine, todayDate) {
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const indices = weekendDayIndices(todayDate);
+  if (!wx?.daily || indices.length === 0) {
+    return { score:50, label:"Loading…", period:"", days:"", confidence:"low" };
+  }
+
+  // Score each weekend day in window
+  const days = indices.map(di => {
+    const dt = new Date(todayDate);
+    dt.setDate(dt.getDate() + di);
+    const r = scoreVenue(venue, wx, marine, di);
+    return { ...r, di, dayName: dayNames[dt.getDay()] };
+  });
+
+  // Find best 2 consecutive days within window — score = avg of best pair.
+  // avg(best-2) is more honest than min for a flex-return user who'll skip
+  // the bad day; less optimistic than top-1 for a weekend trip user.
+  let bestPair = null, bestPairAvg = -1;
+  for (let i = 0; i < days.length - 1; i++) {
+    if (days[i+1].di === days[i].di + 1) {
+      const avg = (days[i].score + days[i+1].score) / 2;
+      if (avg > bestPairAvg) { bestPairAvg = avg; bestPair = [days[i], days[i+1]]; }
+    }
+  }
+  // Fall back to single best day if forecast window only allowed 1 day
+  if (!bestPair) {
+    const top = days.reduce((a,b) => b.score > a.score ? b : a);
+    bestPair = [top];
+    bestPairAvg = top.score;
+  }
+
+  // Confidence: based on the latest day in the weekend window.
+  // Day 0–4 = high (forecast solid), day 5 = medium, day 6+ = low.
+  const maxDi = Math.max(...indices);
+  const confidence = maxDi <= 4 ? "high" : maxDi === 5 ? "medium" : "low";
+
+  // Label = best day's per-day label, prefixed with day name.
+  const top = bestPair.reduce((a,b) => b.score > a.score ? b : a);
+  const label = `${top.dayName}: ${top.label}`;
+  const days_str = bestPair.length === 2 ? `${bestPair[0].dayName}–${bestPair[1].dayName}` : bestPair[0].dayName;
+
+  // Period — name the window, flag bad non-best days so user isn't surprised.
+  const otherDays = days.filter(d => !bestPair.includes(d));
+  const badOther = otherDays.find(d => d.score < bestPairAvg - 20);
+  const period = badOther
+    ? `${days_str} firing · ${badOther.dayName} ${badOther.score < 40 ? 'storms' : 'weak'}`
+    : `${days_str} window`;
+
+  return { score: Math.round(bestPairAvg), label, period, days: days_str, confidence };
+}
+
+// Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
+// prices only — estimates surface an "estimate" badge instead of a deal claim,
+// and "low" forecast confidence never produces a unified score (don't sell
+// certainty we don't have). Returns {score, conditions, priceRatio, isEstimate, label}.
+function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
+  const conditions = scoreWeekend(venue, wx, marine, today);
+  // Staleness gate: a "live" fare last seen >14 days ago is a different
+  // animal than one scraped this morning. Demote to estimate so we don't
+  // claim a deal off month-old data the carrier has since repriced.
+  const ageMs = flight?.foundAt ? Date.now() - new Date(flight.foundAt).getTime() : 0;
+  const isStale = flight?.foundAt && ageMs > 14 * 24 * 3600 * 1000;
+  const isEstimate = !flight || flight.live !== true || isStale;
+  if (isEstimate || !flight?.price) {
+    return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
+  }
+  const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK", today);
+  const priceRatio = typicalPrice > 0 ? flight.price / typicalPrice : null;
+  if (conditions.confidence === "low" || priceRatio == null) {
+    return { score: null, conditions, priceRatio, isEstimate: false, label: null };
+  }
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const base = conditions.score * 0.65;
+  const priceBonus = clamp((1 - priceRatio) * 100, -15, 35) * 0.35;
+  let final = clamp(base + priceBonus, 0, 100);
+  if (conditions.confidence === "medium") final *= 0.92;
+  final = Math.round(final);
+  // Volatile routes (wide per-origin price spread on this destination) need a
+  // deeper discount before "Strong deal" is honest — otherwise a normal cheap-
+  // origin fare gets dressed up as a deal. Stable routes keep the 0.85 floor.
+  const strongDealRatio = getPriceVolatility(venue, homeAirport) === "volatile" ? 0.65 : 0.85;
+  // Absolute-savings floor: 30% off an $80 fare is $24 — not a "deal" in any
+  // meaningful sense. Require ≥$60 absolute savings before claiming Strong
+  // deal or Rare alignment, scaled by typical price (cheap routes need less).
+  const absSavings = typicalPrice - flight.price;
+  const minSavings = Math.max(60, typicalPrice * 0.08);
+  let label = null;
+  if      (final >= 88 && priceRatio <= 0.7  && absSavings >= minSavings) label = "Rare alignment";
+  else if (final >= 78 && priceRatio <= strongDealRatio && absSavings >= minSavings) label = "Strong deal";
+  else if (final >= 70)                                                   label = "Solid weekend";
+  else if (final >= 60)                                                   label = "Worth a look";
+  return { score: final, conditions, priceRatio, isEstimate: false, label };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
@@ -1574,10 +1569,10 @@ const BASE_PRICES = {
   SJO:{ JFK:380, LAX:460, SFO:500, ORD:480, MIA:240, SEA:580, BOS:420, ATL:360, DEN:460, DFW:380, LAS:440, PHX:420, MSP:520, DTW:510 },
   LIR:{ JFK:400, LAX:480, SFO:520, ORD:500, MIA:260, SEA:600, BOS:440, ATL:380, DEN:480, DFW:400, LAS:460, PHX:440, MSP:540, DTW:530 },
   SAL:{ JFK:360, LAX:440, SFO:480, ORD:460, MIA:220, SEA:560, BOS:400, ATL:340, DEN:440, DFW:360, LAS:420, PHX:400, MSP:500, DTW:490 },
-  // Mexico surf
+  // Mexico beach
   OAX:{ JFK:480, LAX:360, SFO:400, ORD:460, MIA:380, SEA:500, BOS:520, ATL:440, DEN:420, DFW:380, LAS:380, PHX:340, MSP:500, DTW:490 },
   PVR:{ JFK:440, LAX:300, SFO:340, ORD:420, MIA:360, SEA:460, BOS:480, ATL:400, DEN:360, DFW:320, LAS:320, PHX:280, MSP:460, DTW:450 },
-  // US West/Hawaii surf
+  // Hawaii beach
   OGG:{ JFK:860, LAX:400, SFO:420, ORD:760, MIA:800, SEA:580, BOS:920, ATL:820, DEN:660, DFW:720, LAS:440, PHX:460, MSP:800, DTW:790 },
   LIH:{ JFK:880, LAX:420, SFO:440, ORD:780, MIA:820, SEA:600, BOS:940, ATL:840, DEN:680, DFW:740, LAS:460, PHX:480, MSP:820, DTW:810 },
   SAN:{ JFK:340, LAX:120, SFO:140, ORD:320, MIA:380, SEA:280, BOS:360, ATL:340, DEN:220, DFW:260, LAS:140, PHX:160, MSP:360, DTW:350 },
@@ -1623,39 +1618,110 @@ const TP_MARKER = "710303";
 // BULLETPROOF: handles all edge cases — empty/null origin defaults to JFK, bad dates fall back gracefully
 // URL format: https://www.aviasales.com/search/{ORIGIN}{DDMM_DEP}{DESTINATION}{DDMM_RET}1
 // Example: JFK0804SFO15041 = JFK→SFO, depart Apr 8, return Apr 15, 1 passenger
-// Typical round-trip price for a venue from a given home airport.
-// Uses the hand-coded BASE_PRICES matrix first (per-route, highest accuracy),
-// then falls back to continent-pair route estimates, then a flat default.
-// This is the SAME source of truth as getFlightDeal, so "typical" and
-// "estimate" always agree — no more ghost deals from a second formula.
-const getTypicalPrice = (venue, homeAirport = "JFK") => {
+// Seasonal multiplier on the annual-mean BASE_PRICES matrix. Without this,
+// "deal" compares a live October LAX→PVR fare against a peak-season-blended
+// baseline — off-season normal pricing reads as a deal, real off-season deals
+// look like nothing. Bands are conservative; when in doubt, closer to 1.0 so
+// we don't fabricate "deals" out of seasonal headwinds we can't measure.
+// Real fix is Travelpayouts month-trend data, but this closes the worst hole
+// today. Hemisphere derived from AP_CONTINENT (rough — Caribbean is N hemi
+// but treated as latam-N here since latam includes Mexican beaches; the
+// Caribbean curve is flatter anyway so the noise is small).
+const getSeasonalMultiplier = (venue, today = new Date()) => {
+  if (!venue?.category) return 1.0;
+  const m = today.getMonth(); // 0=Jan
+  // Prefer venue.lat (Brazil beaches are latam/N by continent but S by lat).
+  // Fall back to continent guess when lat isn't available.
+  const cont = AP_CONTINENT[venue.ap];
+  const isSouthern = (typeof venue.lat === "number")
+    ? venue.lat < 0
+    : (cont === "oceania" || cont === "africa");
+  if (venue.category === "skiing") {
+    if (isSouthern) {
+      if ([6, 7, 8].includes(m)) return 1.18;       // Jul–Sep peak (Aus/NZ)
+      if ([5, 9].includes(m))    return 1.00;       // Jun, Oct shoulder
+      return 0.78;
+    }
+    if ([11, 0, 1, 2].includes(m)) return 1.18;    // Dec–Mar peak (N hemi)
+    if ([3, 10].includes(m))       return 1.00;    // Apr, Nov shoulder
+    return 0.78;                                    // May–Oct off
+  }
+  if (venue.category === "beach") {
+    if (isSouthern) {
+      if ([11, 0, 1].includes(m)) return 1.16;     // Dec–Feb peak (Aus/NZ)
+      if ([10, 2].includes(m))    return 1.00;
+      return 0.86;
+    }
+    if ([5, 6, 7].includes(m)) return 1.16;        // Jun–Aug peak (N hemi)
+    if ([4, 8].includes(m))    return 1.00;
+    return 0.86;
+  }
+  return 1.0;
+};
+
+// Typical round-trip price for a venue from a given home airport, adjusted
+// for time-of-year. Without seasonal awareness, "deal" comparisons are
+// against an annual-mean baseline — which means off-season normal pricing
+// reads as a deal and real off-season deals are masked.
+// Same source of truth as getFlightDeal so "typical" and "estimate" agree.
+const getTypicalPrice = (venue, homeAirport = "JFK", today = new Date()) => {
   const ap = venue?.ap;
   if (!ap) return 800;
+  let base;
   const exact = BASE_PRICES[ap]?.[homeAirport];
-  if (exact) return exact;
-  const destCont = AP_CONTINENT[ap] || null;
-  const homeCont = AP_CONTINENT[homeAirport] || "na";
-  if (!destCont) return 800;
-  if (destCont === homeCont) return homeCont === "na" ? 350 : 450;
-  const routes = {
-    "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
-    "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
-    "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
-    "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
-    "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
-    "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
-  };
-  return routes[`${homeCont}-${destCont}`] || 800;
+  if (exact) base = exact;
+  else {
+    const destCont = AP_CONTINENT[ap] || null;
+    const homeCont = AP_CONTINENT[homeAirport] || "na";
+    if (!destCont) base = 800;
+    else if (destCont === homeCont) base = homeCont === "na" ? 350 : 450;
+    else {
+      const routes = {
+        "na-europe":750, "na-asia":1100, "na-oceania":1500, "na-latam":650, "na-africa":1200,
+        "europe-na":750, "europe-asia":900, "europe-oceania":1600, "europe-latam":1000, "europe-africa":700,
+        "asia-na":1100, "asia-europe":900, "asia-oceania":800, "asia-latam":1400, "asia-africa":1100,
+        "oceania-na":1500, "oceania-europe":1600, "oceania-asia":800, "oceania-latam":1800, "oceania-africa":1700,
+        "latam-na":650, "latam-europe":1000, "latam-asia":1400, "latam-oceania":1800, "latam-africa":1400,
+        "africa-na":1200, "africa-europe":700, "africa-asia":1100, "africa-oceania":1700, "africa-latam":1400,
+      };
+      base = routes[`${homeCont}-${destCont}`] || 800;
+    }
+  }
+  return Math.round(base * getSeasonalMultiplier(venue, today));
 };
 
 // Deal fraction: positive = below typical, negative = above. Only meaningful
 // for LIVE prices (estimates always return 0 since price == typical by construction).
-const getDealScore = (currentPrice, venue, homeAirport = "JFK") => {
+const getDealScore = (currentPrice, venue, homeAirport = "JFK", today = new Date()) => {
   if (!currentPrice || currentPrice <= 0) return 0;
-  const typical = getTypicalPrice(venue, homeAirport);
+  const typical = getTypicalPrice(venue, homeAirport, today);
   if (typical <= 0) return 0;
   return (typical - currentPrice) / typical;
 };
+
+// NB: name is historical — measures CROSS-ORIGIN price spread within
+// BASE_PRICES, not temporal price volatility on the route. Real-world
+// volatility would need Travelpayouts trend data we don't have.
+//
+// What it does: "Volatile" routes have a wide BASE_PRICES spread across home
+// airports for the same destination — e.g. LAS ranges $80–$340 by origin
+// (CV ~0.35). A price below the per-pair "typical" on those routes is often
+// just the normal floor for some origins, not a real deal. "Stable" long-haul
+// routes (narrow spread) make `typical` a reliable anchor. scoreWeekendDeal
+// uses this to require a deeper discount on volatile routes before "Strong
+// deal." Threshold: coefficient of variation > 0.30. Conservative default
+// "stable" when data is missing — don't tighten ratio if we can't measure.
+function getPriceVolatility(venue, homeAirport) {
+  const ap = venue?.ap;
+  const row = ap && BASE_PRICES[ap];
+  if (!row) return "stable";
+  const prices = Object.values(row).filter(p => typeof p === "number" && p > 0);
+  if (prices.length < 5) return "stable";
+  const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+  if (mean <= 0) return "stable";
+  const stddev = Math.sqrt(prices.reduce((a, p) => a + (p - mean) ** 2, 0) / prices.length);
+  return (stddev / mean) > 0.30 ? "volatile" : "stable";
+}
 
 function buildFlightUrl(from, to, opts) {
   // BULLETPROOF: handles all edge cases for flight URL construction
@@ -1761,6 +1827,47 @@ const AIRPORT_COORDS = {
   OKC:{lat:35.3931,lon:-97.6007},  TUL:{lat:36.1984,lon:-95.8881},  MHT:{lat:42.9326,lon:-71.4357},
   ALB:{lat:42.7483,lon:-73.8019},  SYR:{lat:43.1112,lon:-76.1063},  BDL:{lat:41.9389,lon:-72.6832},
 };
+
+// ─── Great-circle flight time estimate ────────────────────────────────────────
+// Used by the "Within Xhr flight" Explore filter. Avg cruise = 500 mph,
+// add 0.5h for taxi+climb+descend buffer. Returns null if either airport
+// has no coords on file (e.g. tiny regional in our coord table — let it
+// pass the filter rather than hide it). Same-airport returns 0.
+function flightHours(originAp, destAp) {
+  if (!originAp || !destAp) return null;
+  if (originAp === destAp) return 0;
+  const a = AIRPORT_COORDS[originAp];
+  const b = AIRPORT_COORDS[destAp];
+  if (!a || !b) return null;
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8; // Earth radius in miles
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const sa = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
+  const dist = 2 * R * Math.asin(Math.sqrt(sa));
+  return (dist / 500) + 0.5;
+}
+
+// ─── Seasonal default category ────────────────────────────────────────────────
+// Open the app on the right pill for the right season, based on the user's
+// hemisphere (derived from their home airport's lat). N. summer May-Aug → beach,
+// N. winter Nov-Apr → skiing, shoulder months → all. S. hemisphere = inverse.
+// User can still tap any pill — this only affects the initial render of
+// each fresh session (not persisted).
+function seasonalDefaultCat(homeAirport) {
+  const ap = AIRPORT_COORDS[homeAirport];
+  const isNorth = ap ? ap.lat >= 0 : true;
+  const m = new Date().getMonth() + 1; // 1-12
+  if (isNorth) {
+    if (m >= 5 && m <= 8)  return "beach";
+    if (m >= 11 || m <= 4) return "skiing";
+    return "all";
+  } else {
+    if (m >= 11 || m <= 2) return "beach";
+    if (m >= 5 && m <= 8)  return "skiing";
+    return "all";
+  }
+}
 
 function findNearestAirport(userLat, userLon) {
   let nearest = "JFK", minDist = Infinity;
@@ -1907,8 +2014,7 @@ function getVenuePhoto(name, category) {
   const cat = (category || name || "").toLowerCase();
   const photos = {
     skiing: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
-    surfing: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop",
-    tanning: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
     beach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
   };
   return photos[cat] || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop";
@@ -1917,17 +2023,234 @@ function getVenuePhoto(name, category) {
 // ─── localStorage hook ────────────────────────────────────────────────────────
 function useLocalStorage(key, initial) {
   const [val, setVal] = useState(() => {
-    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : initial; }
+    try {
+      let s = localStorage.getItem(key);
+      if (s) {
+        let mutated = false;
+        // 2026-05-03 pivot: tanning → beach
+        if (s.includes('"tanning"')) {
+          s = s.replace(/"tanning"/g, '"beach"');
+          mutated = true;
+        }
+        // 2026-05-03 pivot: surfing retired. Strip from any stored state so
+        // ghost badges / orphan alerts don't render. Drop from arrays first
+        // (profile.sports), then rewrite remaining property values
+        // (alert.sport, etc) to "skiing" so they stay editable.
+        if (s.includes('"surfing"')) {
+          s = s.replace(/"surfing"\s*,\s*/g, '');
+          s = s.replace(/,\s*"surfing"/g, '');
+          s = s.replace(/"surfing"/g, '"skiing"');
+          mutated = true;
+        }
+        if (mutated) localStorage.setItem(key, s);
+      }
+      return s ? JSON.parse(s) : initial;
+    }
     catch { return initial; }
   });
   const save = useCallback(v => {
     setVal(prev => {
       const next = typeof v === "function" ? v(prev) : v;
       try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+      // Notify cloud-sync hook (if any) that a synced key changed. Caches +
+      // device-specific keys are not in SYNCED_KEYS so they don't trigger.
+      if (SYNCED_KEYS.includes(key)) {
+        try { window.dispatchEvent(new CustomEvent("peakly-sync-dirty", { detail: { key } })); } catch {}
+      }
       return next;
     });
   }, [key]);
   return [val, save];
+}
+
+// ─── useCloudSync — magic-link auth + debounced background sync ───────────────
+// Returns: { enabled, status, user, signIn(email), signOut(), syncNow() }
+//   status: "disabled" | "offline" | "signed_out" | "checking_email"
+//         | "syncing" | "synced" | "error"
+// When enabled and signed-in: pushes the SYNCED_KEYS subset of localStorage
+// to user_data.data on any write (500ms debounce). On sign-in / app open,
+// pulls server state if newer than local lastSync. Last-writer-wins.
+function useCloudSync() {
+  const [user, setUser]         = useState(null);
+  const [status, setStatus]     = useState(CLOUD_SYNC_CONFIGURED ? "signed_out" : "disabled");
+  const dirtyRef                = useRef(false);
+  const debounceRef             = useRef(null);
+  const inFlightRef             = useRef(false);
+
+  const readLocal = useCallback(() => {
+    const out = {};
+    for (const k of SYNCED_KEYS) {
+      try { const raw = localStorage.getItem(k); if (raw) out[k] = JSON.parse(raw); } catch {}
+    }
+    return out;
+  }, []);
+
+  const writeLocal = useCallback((blob) => {
+    if (!blob || typeof blob !== "object") return;
+    for (const k of SYNCED_KEYS) {
+      if (blob[k] !== undefined) {
+        try { localStorage.setItem(k, JSON.stringify(blob[k])); } catch {}
+      }
+    }
+    try { localStorage.setItem("peakly_last_sync", String(Date.now())); } catch {}
+    try { window.dispatchEvent(new Event("peakly-sync-pulled")); } catch {}
+  }, []);
+
+  const pushNow = useCallback(async () => {
+    if (!CLOUD_SYNC_CONFIGURED || !user || inFlightRef.current) return;
+    inFlightRef.current = true;
+    setStatus("syncing");
+    const data = readLocal();
+    try {
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase not configured");
+      const { error } = await client
+        .from("user_data")
+        .upsert({ user_id: user.id, email: user.email, data, updated_at: new Date().toISOString() });
+      if (error) throw error;
+      try { localStorage.setItem("peakly_last_sync", String(Date.now())); } catch {}
+      dirtyRef.current = false;
+      setStatus("synced");
+    } catch (e) {
+      logEvent("cloud_sync_error", { stage: "push", message: String(e?.message || e) });
+      setStatus("error");
+    } finally {
+      inFlightRef.current = false;
+    }
+  }, [user, readLocal]);
+
+  const pullNow = useCallback(async () => {
+    if (!CLOUD_SYNC_CONFIGURED || !user) return;
+    setStatus("syncing");
+    try {
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase not configured");
+      const { data: row, error } = await client
+        .from("user_data")
+        .select("data, updated_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (row && row.data) {
+        const lastSync = parseInt(localStorage.getItem("peakly_last_sync") || "0", 10);
+        const serverTs = new Date(row.updated_at).getTime();
+        if (serverTs > lastSync) writeLocal(row.data);
+      } else {
+        await pushNow();
+        return;
+      }
+      setStatus("synced");
+    } catch (e) {
+      logEvent("cloud_sync_error", { stage: "pull", message: String(e?.message || e) });
+      setStatus("error");
+    }
+  }, [user, writeLocal, pushNow]);
+
+  // Listen for synced-key writes; debounce push by 500ms (only meaningful
+  // once user is signed in; before that we just mark dirty for later push).
+  useEffect(() => {
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    const onDirty = () => {
+      dirtyRef.current = true;
+      if (!user) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => { pushNow(); }, 500);
+    };
+    window.addEventListener("peakly-sync-dirty", onDirty);
+    return () => {
+      window.removeEventListener("peakly-sync-dirty", onDirty);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [user, pushNow]);
+
+  // On mount: ONLY load Supabase if there's an existing session in localStorage
+  // OR a magic-link callback in the URL. Anonymous first-time visitors don't
+  // pay the bundle cost. ProfileSyncSection triggers ensureSupabase() on first
+  // user interaction (sign-in tap) for everyone else.
+  useEffect(() => {
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    if (!_hasExistingSupabaseSession() && !_hasMagicLinkCallbackInUrl()) return;
+    let unsub = null;
+    (async () => {
+      try {
+        const client = await ensureSupabase();
+        if (!client) return;
+        const { data } = await client.auth.getSession();
+        if (data?.session?.user) setUser(data.session.user);
+        const { data: sub } = client.auth.onAuthStateChange((_evt, session) => {
+          setUser(session?.user || null);
+          if (!session) setStatus("signed_out");
+        });
+        unsub = sub?.subscription?.unsubscribe;
+      } catch (e) {
+        logEvent("cloud_sync_error", { stage: "init", message: String(e?.message || e) });
+      }
+    })();
+    return () => { try { unsub && unsub(); } catch {} };
+  }, []);
+
+  useEffect(() => {
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    if (!user) return;
+    pullNow();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    const onOff = () => setStatus("offline");
+    const onOn  = () => { if (user) pushNow(); };
+    window.addEventListener("offline", onOff);
+    window.addEventListener("online", onOn);
+    return () => {
+      window.removeEventListener("offline", onOff);
+      window.removeEventListener("online", onOn);
+    };
+  }, [user, pushNow]);
+
+  const signIn = useCallback(async (email) => {
+    if (!CLOUD_SYNC_CONFIGURED) return { ok: false, error: "Cloud sync disabled" };
+    if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid email" };
+    setStatus("syncing");
+    try {
+      // First sign-in attempt triggers the Supabase library load. After that
+      // the auth listener stays mounted for the rest of the session.
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase failed to load");
+      // If we hadn't attached onAuthStateChange yet (cold-start), do it now
+      // so the magic-link callback flips the user state.
+      if (!useCloudSync._authListenerAttached) {
+        client.auth.onAuthStateChange((_evt, session) => {
+          setUser(session?.user || null);
+          if (!session) setStatus("signed_out");
+        });
+        useCloudSync._authListenerAttached = true;
+      }
+      const { error } = await client.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + "/peakly/" },
+      });
+      if (error) throw error;
+      setStatus("checking_email");
+      logEvent("cloud_sync", { stage: "magic_link_sent" });
+      return { ok: true };
+    } catch (e) {
+      setStatus("error");
+      logEvent("cloud_sync_error", { stage: "sign_in", message: String(e?.message || e) });
+      return { ok: false, error: String(e?.message || e) };
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    if (!CLOUD_SYNC_CONFIGURED) return;
+    try {
+      const client = await ensureSupabase();
+      if (client) await client.auth.signOut();
+    } catch {}
+    setUser(null);
+    setStatus("signed_out");
+  }, []);
+
+  return { enabled: CLOUD_SYNC_CONFIGURED, status, user, signIn, signOut, syncNow: pushNow };
 }
 
 // ─── Analytics helper ─────────────────────────────────────────────────────────
@@ -1942,13 +2265,49 @@ function logEvent(name, props) {
   } catch {}
 }
 
-// Install PWA prompt listener
+// Install PWA prompt — capture the deferred event so React can trigger it
+// later (after positive engagement) instead of relying on the browser's
+// silent default banner that most users miss.
+let _peaklyInstallPrompt = null;
 (function() {
   try {
-    window.addEventListener("beforeinstallprompt", () => { logEvent("install_pwa"); });
-    window.addEventListener("appinstalled", () => { logEvent("install_pwa", { result: "installed" }); });
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();                                // suppress browser's auto-banner
+      _peaklyInstallPrompt = e;                          // stash for our nudge
+      window.dispatchEvent(new Event("peakly-install-ready"));
+      logEvent("install_pwa", { stage: "captured" });
+    });
+    window.addEventListener("appinstalled", () => {
+      _peaklyInstallPrompt = null;
+      try { localStorage.setItem("peakly_pwa_installed", "1"); } catch {}
+      logEvent("install_pwa", { stage: "installed" });
+    });
   } catch {}
 })();
+
+// React hook: returns whether install can be triggered + a callback to do it
+function useInstallPrompt() {
+  const [canInstall, setCanInstall] = useState(!!_peaklyInstallPrompt);
+  useEffect(() => {
+    const onReady = () => setCanInstall(true);
+    window.addEventListener("peakly-install-ready", onReady);
+    return () => window.removeEventListener("peakly-install-ready", onReady);
+  }, []);
+  const trigger = useCallback(async () => {
+    if (!_peaklyInstallPrompt) return false;
+    try {
+      _peaklyInstallPrompt.prompt();
+      const choice = await _peaklyInstallPrompt.userChoice;
+      logEvent("install_pwa", { stage: "user_choice", outcome: choice.outcome });
+      _peaklyInstallPrompt = null;
+      setCanInstall(false);
+      return choice.outcome === "accepted";
+    } catch {
+      return false;
+    }
+  }, []);
+  return { canInstall, trigger };
+}
 
 // ─── go/no-go verdict ────────────────────────────────────────────────────────
 function getGoVerdict(score) {
@@ -2073,7 +2432,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
               <span className="shimmer" style={{ width:52, height:10, borderRadius:5, display:"inline-block" }} />
             ) : (
               <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                from ${listing.flight.price}
+                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
               </span>
             )}
           </div>
@@ -2228,7 +2587,7 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
               <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
             ) : (
               <>
-                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
                 <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
               </>
             )}
@@ -2318,7 +2677,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           ) : (
             <>
               <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-                from ${listing.flight.price}
+                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
               </span>
               {listing.flight.live ? (
                 <span style={{
@@ -2364,6 +2723,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     skiPass: search.skiPass || "",
     sort: filters?.sort || "score",
     maxPrice: filters?.maxPrice ?? 1000,
+    maxFlightHrs: filters?.maxFlightHrs ?? null,
     startDate: filters?.startDate || "",
     endDate: filters?.endDate || "",
   });
@@ -2419,7 +2779,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   const apply = () => {
     const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
-    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, startDate: local.startDate, endDate: local.endDate });
+    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs, startDate: local.startDate, endDate: local.endDate });
     onApply(next);
     onClose();
   };
@@ -2451,7 +2811,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -2604,7 +2964,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
                 </button>
               );
             })()}
-            {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
+            {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
               const sel = local.activities.includes(cat.id);
               return (
                 <button key={cat.id} className={"pill" + (sel ? " pill-selected" : "")}
@@ -2729,6 +3089,33 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
+        {/* ── Max flight time (spontaneous-trip filter) ── */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <SectionLabel>Max flight time</SectionLabel>
+          <div style={{ display:"flex", gap:6 }}>
+            {[
+              { id:null, label:"Any" },
+              { id:4,    label:"≤ 4hr" },
+              { id:6,    label:"≤ 6hr" },
+              { id:8,    label:"≤ 8hr" },
+            ].map(opt => {
+              const sel = local.maxFlightHrs === opt.id;
+              return (
+                <button key={String(opt.id)} onClick={() => setLocal(l => ({...l, maxFlightHrs: opt.id}))} style={{
+                  flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
+                  background: sel ? "#222" : "#f5f5f5",
+                  color: sel ? "#fff" : "#555",
+                  border:"none",
+                  fontSize:11, fontWeight:700, fontFamily:F, textAlign:"center",
+                }}>{opt.label}</button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize:10, color:"#999", fontFamily:F, marginTop:6, lineHeight:1.4 }}>
+            For spontaneous weekend trips. Exceptional venues (weekend score ≥ 95) override and still show.
+          </div>
+        </div>
+
         {/* ── Sort ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Sort by</SectionLabel>
@@ -2848,19 +3235,19 @@ const SORT_OPTIONS = [
   { id:"score",  label:"Best conditions" },
   { id:"price",  label:"Cheapest flights" },
   { id:"value",  label:"Best value" },
+  { id:"deal",   label:"Best Deal" },
 ];
 
 // ─── vibe search engine ────────────────────────────────────────────────────────
 const VIBE_PROMPTS = [
   "Powder day with epic views and cozy lodge vibes after",
   "Remote tropical beach, no crowds, crystal water",
-  "Big wave surf, warm water, laid-back beach culture",
+  "Bluebird ski day, fresh tracks, cold smoke",
   "Luxury beach resort, turquoise sea, total relaxation",
-  "Underwater paradise — coral reefs, visibility 30m+",
   "Steep off-piste skiing, deep powder, real adventure",
   "Budget island escape, good food, cheap flights",
   "Warm Mediterranean vibes, history, seafood, wine",
-  "Surf town with nightlife, meet people, good energy",
+  "Spring corn skiing, sunshine, après on the deck",
 ];
 
 function scoreVibeMatch(listings, text) {
@@ -2877,7 +3264,6 @@ function scoreVibeMatch(listings, text) {
     budget:    /\b(budget|cheap|affordable|value|deal|backpack|frugal|save money|inexpensive)\b/.test(t),
     // activities
     ski:       /\b(ski|snowboard|powder|piste|mogul|lodge|après|apres|backcountry|off.piste|gondola)\b/.test(t),
-    surf:      /\b(surf|wave|barrel|swell|board|break|set|reef|point.break|hang.ten)\b/.test(t),
     beach:     /\b(beach|sand|tan|lounge|shore|coast|turquoise|crystal|clear water|sunbathe)\b/.test(t),
     // regions
     asia:      /\b(japan|bali|indonesia|asia|pacific|zen|exotic|east|southeast.asia|thai|balinese)\b/.test(t),
@@ -2900,22 +3286,21 @@ function scoreVibeMatch(listings, text) {
 
     // ── category match (strongest signal) ──────────────────────────────────
     if (f.ski   && l.category === "skiing")  s += 44;
-    if (f.surf  && l.category === "surfing") s += 44;
-    if (f.beach && l.category === "tanning") s += 44;
+    if (f.beach && l.category === "beach") s += 44;
 
     // ── temperature/climate match ───────────────────────────────────────────
     const isCold = l.category === "skiing";
-    const isWarm = l.category === "tanning" || l.category === "surfing";
+    const isWarm = l.category === "beach";
     if (f.cold && isCold)  s += 28;
     if (f.hot  && isWarm)  s += 28;
     if (f.cold && isWarm)  s -= 14;
     if (f.hot  && isCold)  s -= 14;
 
     // ── intensity / vibe ────────────────────────────────────────────────────
-    const isAdrenalineCat = l.category === "skiing" || l.category === "surfing";
+    const isAdrenalineCat = l.category === "skiing";
     if (f.adrenaline && isAdrenalineCat) s += 16;
-    if (f.relax && l.category === "tanning") s += 18;
-    if (f.adrenaline && l.category === "tanning") s -= 8;
+    if (f.relax && l.category === "beach") s += 18;
+    if (f.adrenaline && l.category === "beach") s -= 8;
 
     // ── social / crowd preference ───────────────────────────────────────────
     if (f.solo   && l.reviews < 7000)  s += 14;
@@ -2952,7 +3337,6 @@ function scoreVibeMatch(listings, text) {
   // ── generate natural-language summary ──────────────────────────────────────
   const themes = [
     f.ski         && "powder days on the mountain",
-    f.surf        && "firing surf sessions",
     f.beach       && "beachside bliss",
     f.cold        && "cold-weather thrills",
     f.hot         && "warm-weather vibes",
@@ -3000,7 +3384,7 @@ function FilterChip({ label, onRemove }) {
 }
 
 // ─── explore tab ──────────────────────────────────────────────────────────────
-function applyFilters(listings, activeCat, filters, search = {}) {
+function applyFilters(listings, activeCat, filters, search = {}, homeAirport = null) {
   // Category: activeCat pill OR multi-select activities from search
   const acts = search.activities || [];
   let out;
@@ -3026,6 +3410,17 @@ function applyFilters(listings, activeCat, filters, search = {}) {
     out = out.filter(l => l.skiPass === search.skiPass);
   }
   if (filters.maxPrice  < 2000) out = out.filter(l => l.flight.price   <= filters.maxPrice);
+  // Within-N-hours flight filter (spontaneous weekend mode). Exceptional
+  // venues (weekendScore >= 95) override the cutoff so a perfect powder
+  // day a continent away can still surface. Venues with no coord lookup
+  // pass through (flightHours returns null) — better to show than hide.
+  if (filters.maxFlightHrs && homeAirport) {
+    out = out.filter(l => {
+      const hrs = flightHours(homeAirport, l.ap);
+      if (hrs == null) return true;
+      return hrs <= filters.maxFlightHrs || (l.weekendScore || 0) >= 95;
+    });
+  }
   // Date range filter
   if (filters.startDate) {
     const start = new Date(filters.startDate);
@@ -3048,10 +3443,151 @@ function applyFilters(listings, activeCat, filters, search = {}) {
     const valB = b.conditionScore / (b.flight.price || 1);
     return valB - valA;
   });
+  // "Best Deal" — gated on flight.live (estimates / no-deal-score venues sink
+  // to the bottom rather than disappearing, so the list still feels populated
+  // when only some prices are live).
+  if (filters.sort === "deal") out = [...out].sort((a, b) => {
+    const aLive = a.flight?.live === true && a.dealScore != null;
+    const bLive = b.flight?.live === true && b.dealScore != null;
+    if (aLive !== bLive) return aLive ? -1 : 1;
+    return (b.dealScore || 0) - (a.dealScore || 0);
+  });
   return out;
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh }) {
+// One-time install nudge above the Explore carousel. Shows ONLY when:
+//   - the browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet — not iOS Safari)
+//   - user has saved >=2 wishlist items (positive engagement signal)
+//   - user has not previously dismissed the nudge
+// iOS users get the explicit "Install" button in Profile instead.
+function InstallNudge({ wishlistCount }) {
+  const { canInstall, trigger } = useInstallPrompt();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem("peakly_install_dismissed") === "1"; } catch { return false; }
+  });
+  const visible = canInstall && !dismissed && wishlistCount >= 2;
+  if (!visible) return null;
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
+    logEvent("install_pwa", { stage: "nudge_dismissed" });
+  };
+  const install = async () => {
+    const ok = await trigger();
+    if (!ok) dismiss(); // user declined or prompt errored — don't keep nudging
+  };
+  return (
+    <div style={{
+      margin:"12px 14px 0", padding:"12px 14px", borderRadius:14,
+      background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
+      display:"flex", alignItems:"center", gap:12, boxShadow:"0 2px 12px rgba(2,132,199,0.25)",
+    }}>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:13, fontWeight:800, fontFamily:F }}>Install Peakly</div>
+        <div style={{ fontSize:11, fontWeight:600, opacity:0.9, fontFamily:F, marginTop:2 }}>One tap to add to your home screen — no app store.</div>
+      </div>
+      <button onClick={install} className="pressable" style={{
+        background:"#fff", color:"#0284c7", border:"none", borderRadius:10,
+        padding:"7px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
+      }}>Install</button>
+      <button onClick={dismiss} aria-label="Dismiss" style={{
+        background:"none", border:"none", color:"rgba(255,255,255,0.85)",
+        fontSize:18, fontWeight:600, padding:"0 4px", cursor:"pointer", lineHeight:1,
+      }}>×</button>
+    </div>
+  );
+}
+
+// Tiny pill showing cloud-sync status. Hidden when sync is disabled
+// (placeholder constants) so existing users see no change.
+function SyncStatusPill({ cloudSync }) {
+  if (!cloudSync || !cloudSync.enabled) return null;
+  const map = {
+    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not synced" },
+    checking_email: { color:"#a16207",  bg:"#fef3c7", label:"Check email" },
+    syncing:        { color:"#0284c7",  bg:"#e0f2fe", label:"Syncing…" },
+    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Synced ✓" },
+    offline:        { color:"#888",     bg:"#f5f5f5", label:"Offline" },
+    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sync error" },
+  };
+  const m = map[cloudSync.status] || map.signed_out;
+  return (
+    <span style={{ fontSize:9, color:m.color, fontFamily:F, background:m.bg, padding:"2px 6px", borderRadius:4, fontWeight:700 }}>
+      {m.label}
+    </span>
+  );
+}
+
+// "Sync your data" section in Profile — sign-in (magic link) + sign-out + status.
+// Auto-hides when cloud sync is disabled at config time.
+function ProfileSyncSection({ cloudSync, profile }) {
+  if (!cloudSync || !cloudSync.enabled) return null;
+  const [email, setEmail]       = useState(profile?.email || "");
+  const [feedback, setFeedback] = useState("");
+  const [busy, setBusy]         = useState(false);
+  useEffect(() => {
+    if (cloudSync.status === "checking_email") setFeedback("Check your email — we sent a magic link to sign in.");
+    else if (cloudSync.status === "synced")    setFeedback("");
+    else if (cloudSync.status === "error")     setFeedback("Something went wrong. Try again or check your email.");
+  }, [cloudSync.status]);
+  const send = async () => {
+    setBusy(true); setFeedback("");
+    const r = await cloudSync.signIn(email.trim());
+    setBusy(false);
+    if (!r.ok) setFeedback(r.error || "Sign-in failed.");
+  };
+  const out = async () => { await cloudSync.signOut(); setFeedback(""); };
+
+  return (
+    <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+        <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase" }}>
+          Sync your data
+        </div>
+        <SyncStatusPill cloudSync={cloudSync} />
+      </div>
+      {cloudSync.user ? (
+        <>
+          <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10 }}>
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Wishlists, alerts, trips and profile sync automatically.
+          </div>
+          <button className="pressable" onClick={out} style={{
+            background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
+            padding:"9px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer",
+          }}>Sign out (data stays on this device)</button>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10, lineHeight:1.45 }}>
+            Sign in with email to sync your wishlists across devices and recover them if you clear your browser. We send a one-tap link — no password.
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <input
+              type="email" value={email} placeholder="you@email.com"
+              onChange={e => setEmail(e.target.value)} disabled={busy}
+              style={{
+                flex:1, padding:"10px 12px", borderRadius:10,
+                border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222",
+              }}
+            />
+            <button className="pressable" onClick={send} disabled={busy || !email.includes("@")} style={{
+              background:"#222", color:"#fff", border:"none", borderRadius:10,
+              padding:"10px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
+              opacity: (busy || !email.includes("@")) ? 0.5 : 1,
+            }}>{busy ? "Sending…" : "Send link"}</button>
+          </div>
+        </>
+      )}
+      {feedback && (
+        <div style={{ marginTop:10, fontSize:11, color: cloudSync.status === "error" ? "#ef4444" : "#0284c7", fontFamily:F }}>
+          {feedback}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
@@ -3102,7 +3638,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   // Hero card: highest-scoring venue that has REAL weather data loaded
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
-  const ACTIVE_CATS = new Set(["skiing", "surfing", "tanning"]);
+  const ACTIVE_CATS = new Set(["skiing", "beach"]);
   const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
   const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
   const heroPick = [...bestPool]
@@ -3113,22 +3649,20 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
     })[0] || null;
 
-  // "Best Right Now" carousel — GO venues only (score >= 80), up to 10
+  // "Firing this weekend" carousel — Fri–Mon best-2-of-4 score >= 75 with
+  // medium-or-better forecast confidence. Excludes "low" confidence (next
+  // weekend viewed early in the week) so the front page stays honest.
   const bestRightNow = (() => {
-    const allScored = [...bestPool].filter(l => l.conditionLabel !== "Checking conditions…");
+    const allScored = [...bestPool].filter(l => l.weekendLabel && l.weekendLabel !== "Loading…");
     const sortByVal = (a, b) => {
-      const aBoost = 0;
-      const bBoost = 0;
-      const aVal = (a.conditionScore + aBoost) - Math.round(a.flight.price / 20);
-      const bVal = (b.conditionScore + bBoost) - Math.round(b.flight.price / 20);
+      const aVal = a.weekendScore - Math.round(a.flight.price / 20);
+      const bVal = b.weekendScore - Math.round(b.flight.price / 20);
       return bVal - aVal;
     };
-    // Only include live-priced venues where price is within 20% of typical or cheaper.
-    // Estimates (isEstimate, !live) always score as "typical" so they don't unfairly
-    // rank above real-pricing venues — just pass through the conditionScore filter.
     return allScored
       .filter(l => {
-        if (l.conditionScore < 80) return false;
+        if (l.weekendScore < 75) return false;
+        if (l.weekendConfidence === "low") return false;
         if (!l.flight?.price) return true;
         if (!l.flight.live) return true;   // estimates don't drive deal filtering
         return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
@@ -3136,15 +3670,59 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
       .sort(sortByVal).slice(0, 10);
   })();
 
-  const filtered = applyFilters(activeListings, activeCat, filters, search);
-  // Exclude hero + Best Right Now venues from the grid to avoid duplicates
-  const heroAndBestIds = new Set([heroPick?.id, ...bestRightNow.map(l => l.id)].filter(Boolean));
+  // Fallback carousel — same shape but softer floor (weekendScore >= 65,
+  // allow low-confidence). Used when the primary "Firing this weekend" set
+  // doesn't meet the >=3 threshold, so the front page never goes blank.
+  // Late-week views (Fri/Sat afternoon) — when this-weekend is half-over and
+  // next-weekend is too far for high confidence — would otherwise show no
+  // carousel at all.
+  const bestRightNowFallback = (() => {
+    const allScored = [...bestPool].filter(l => l.weekendLabel && l.weekendLabel !== "Loading…");
+    const sortByVal = (a, b) => {
+      const aVal = a.weekendScore - Math.round(a.flight.price / 20);
+      const bVal = b.weekendScore - Math.round(b.flight.price / 20);
+      return bVal - aVal;
+    };
+    return allScored
+      .filter(l => l.weekendScore >= 65)
+      .sort(sortByVal).slice(0, 8);
+  })();
+  // Which carousel + header to render
+  const carouselUseFallback = bestRightNow.length < 3 && bestRightNowFallback.length >= 3;
+  const carouselVenues = carouselUseFallback ? bestRightNowFallback : bestRightNow;
+  const carouselReady = carouselVenues.length >= 3;
+
+  // "Cheap flight + firing weather" — the unified-deal carousel. Strict gates:
+  // dealScore >= 78, priceRatio <= 0.85, confidence === "high", live flights
+  // only (scoreWeekendDeal already returns null score for estimate / low conf).
+  const dealCarousel = (() => {
+    return [...bestPool]
+      .filter(l =>
+        l.dealScore != null &&
+        l.dealScore >= 78 &&
+        l.dealPriceRatio != null &&
+        l.dealPriceRatio <= 0.85 &&
+        l.weekendConfidence === "high" &&
+        l.flight?.live === true
+      )
+      .sort((a, b) => b.dealScore - a.dealScore)
+      .slice(0, 10);
+  })();
+  const dealCarouselReady = dealCarousel.length >= 3;
+
+  const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
+  // Exclude hero + carousel venues from the grid to avoid duplicates
+  const heroAndBestIds = new Set([
+    heroPick?.id,
+    ...carouselVenues.map(l => l.id),
+    ...dealCarousel.map(l => l.id),
+  ].filter(Boolean));
   const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
-  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || search.skiPass;
+  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || filters.maxFlightHrs || search.skiPass;
 
   // Last checked timestamp
   const timeAgo = wxLastUpdated ? (() => {
@@ -3157,8 +3735,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
-  // Only expose 3 active categories: Ski/Board, Surfing, Beach
-  const VISIBLE_CAT_IDS = ["all", "skiing", "surfing", "tanning"];
+  // Only expose 2 active categories: Skiing, Beach (surfing retired 2026-05-03)
+  const VISIBLE_CAT_IDS = ["all", "skiing", "beach"];
   const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
     .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
 
@@ -3226,13 +3804,16 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           {filters.maxPrice < 2000 && (
             <FilterChip label={`Max $${filters.maxPrice}`} onRemove={() => setFilters(f => ({...f, maxPrice:2000}))} />
           )}
+          {filters.maxFlightHrs && (
+            <FilterChip label={`≤ ${filters.maxFlightHrs}hr flight`} onRemove={() => setFilters(f => ({...f, maxFlightHrs:null}))} />
+          )}
           {(filters.startDate || filters.endDate) && (
             <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
           )}
           {search.skiPass && (
             <FilterChip label={search.skiPass.charAt(0).toUpperCase() + search.skiPass.slice(1) + " Pass"} onRemove={() => setSearch(s => ({...s, skiPass:""}))} />
           )}
-          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
@@ -3275,7 +3856,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                   </div>
                   <div style={{ padding:"6px 8px" }}>
                     <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>${l.flight.price}</div>
+                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
                   </div>
                 </div>
               ))}
@@ -3386,9 +3967,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           );
         })()}
 
-        {/* ── Last updated + data freshness ── */}
+        {/* ── Last updated + data freshness + cloud-sync status ── */}
         {timeAgo && !loading && (
           <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end", gap:8, alignItems:"center" }}>
+            <SyncStatusPill cloudSync={cloudSync} />
             {getFlightApiStatus() === "down" && (
               <span style={{ fontSize:9, color:"#f59e0b", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices — live API offline</span>
             )}
@@ -3396,15 +3978,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           </div>
         )}
 
-        {/* ── Best Right Now carousel — always show top 10 (min 3 scored) ── */}
-        {!loading && bestRightNow.length >= 3 && (
+        {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
+        <InstallNudge wishlistCount={wishlists.length} />
+
+        {/* ── Front-page carousel — primary or fallback, never blank ── */}
+        {!loading && carouselReady && (
           <div style={{ marginTop:12, marginBottom:16 }}>
             <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
                 <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
-                  Best Right Now
+                  {carouselUseFallback ? "Looking ahead" : "Firing this weekend"}
                 </div>
-                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>Conditions + prices converging this week</div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
+                  {carouselUseFallback
+                    ? "Forecast still firming up — early picks for the next weekend"
+                    : "Best Fri–Mon windows · spontaneous trips, bookable now"}
+                </div>
               </div>
             </div>
             <div style={{
@@ -3412,7 +4001,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
               WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
               touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
-              {bestRightNow.map(l => {
+              {carouselVenues.map(l => {
                 const v = getGoVerdict(l.conditionScore);
                 return (
                   <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
@@ -3437,10 +4026,71 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                       <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
                         <span style={{ display:"flex", alignItems:"baseline", gap:2 }}>
-                          <span style={{ fontSize:12, fontWeight:900, color:"#0284c7", fontFamily:F }}>${l.flight.price}</span>
-                          <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>rt</span>
+                          <span style={{ fontSize:12, fontWeight:900, color:"#222", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</span>
+                          <span style={{ fontSize:9, color:"#aaa", fontFamily:F }}>{l.flight.live ? 'rt' : 'est'}</span>
                         </span>
-                        <span style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.conditionScore}/100</span>
+                        <span style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:700 }}>{l.weekendDays || ""}</span>
+                      </div>
+                      {l.weekendConfidence === "medium" && (
+                        <div style={{ fontSize:9, color:"#a16207", fontFamily:F, marginTop:3 }}>· forecast firming up</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── "Cheap flight + firing weather" — unified deal carousel ── */}
+        {!loading && dealCarouselReady && (
+          <div style={{ marginTop:4, marginBottom:16 }}>
+            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+              <div>
+                <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
+                  Cheap flight + firing weather
+                </div>
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
+                  Live prices below typical · forecast locked in
+                </div>
+              </div>
+            </div>
+            <div style={{
+              display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
+              WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              touchAction:"pan-x", overscrollBehavior:"contain",
+            }}>
+              {dealCarousel.map(l => {
+                const pctOff = Math.max(0, Math.round((1 - l.dealPriceRatio) * 100));
+                return (
+                  <div key={l.id} className="card" onClick={() => onOpenDetail(l)}
+                    style={{
+                      minWidth:180, maxWidth:180, scrollSnapAlign:"start",
+                      background:"#fff", borderRadius:14, overflow:"hidden",
+                      border:"1.5px solid #bbf7d0",
+                      boxShadow:"0 1px 8px rgba(0,0,0,0.05)",
+                    }}>
+                    <div style={{ height:90, background:l.gradient, position:"relative", display:"flex", alignItems:"flex-end", padding:8, overflow:"hidden" }}>
+                      {l.photo && <img src={l.photo} alt={l.title} loading="lazy" onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(l.title, l.category); }} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />}
+                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 60%)" }} />
+                      <div style={{ position:"absolute", top:6, left:6, background:"#16a34a", color:"#fff", borderRadius:8, padding:"3px 7px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:0.2 }}>
+                        {l.dealLabel || `Deal ${l.dealScore}`}
+                      </div>
+                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
+                        position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:14,
+                        width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+                        filter: wishlists.includes(l.id) ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+                      }}>{wishlists.includes(l.id) ? "❤️" : "🤍"}</button>
+                    </div>
+                    <div style={{ padding:"8px 10px" }}>
+                      <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{l.title}</div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F, marginTop:2 }}>{l.location}</div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5 }}>
+                        <span style={{ display:"flex", alignItems:"baseline", gap:3 }}>
+                          <span style={{ fontSize:12, fontWeight:900, color:"#222", fontFamily:F }}>${l.flight.price}</span>
+                          <span style={{ fontSize:9, color:"#16a34a", fontFamily:F, fontWeight:800 }}>{pctOff > 0 ? `−${pctOff}%` : "rt"}</span>
+                        </span>
+                        <span style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:700 }}>{l.weekendDays || ""}</span>
                       </div>
                     </div>
                   </div>
@@ -3564,7 +4214,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
   const [newListEmoji, setNewListEmoji] = useState("🗺️");
 
   const savedAll  = listings.filter(l => wishlists.includes(l.id));
-  const EMOJIS    = ["🗺️","🎿","🏄","☀️","🌊","🏝️","⛷️","🛫","🎒"];
+  const EMOJIS    = ["🗺️","🎿","☀️","🏝️","⛷️","🛫","🎒","🏔️","🏖️"];
 
   const createList = () => {
     if (!newListName.trim()) return;
@@ -3711,18 +4361,14 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       case "good": return 70;
       case "custom": return draft.customScore || 85;
       case "powder": return 93;
-      case "swell": return 92;
       default: return 85;
     }
   };
 
-  // Helper to check if a listing matches a powder/swell condition
+  // Helper to check if a listing matches a powder condition
   const matchesSpecialCondition = (listing, condition) => {
     if (condition === "powder" && listing.category === "skiing") {
       return listing.tags?.includes("Powder Day") || listing.conditionScore >= 93;
-    }
-    if (condition === "swell" && listing.category === "surfing") {
-      return listing.tags?.includes("Offshore Winds") || listing.conditionScore >= 92;
     }
     return false;
   };
@@ -3743,7 +4389,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       }
 
       let scoreMatch = false;
-      if (a.condition === "powder" || a.condition === "swell") {
+      if (a.condition === "powder") {
         scoreMatch = matchesSpecialCondition(l, a.condition);
       } else {
         const threshold = getScoreThreshold(a.condition);
@@ -3794,7 +4440,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       <div style={{ padding:24 }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Pick a sport</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id))].map(cat => (
+          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id))].map(cat => (
             <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={{
               padding:"8px 14px", borderRadius:20, cursor:"pointer", fontFamily:F,
               background: draft.sport === cat.id ? "#222" : "#f7f7f7",
@@ -3822,17 +4468,6 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                     fontSize:13, fontWeight:600, textAlign:"left",
                   }}>
                     Powder Day (score ≥ 93)
-                  </button>
-                )}
-                {draft.sport === "surfing" && (
-                  <button onClick={() => setDraft(d => ({...d, condition:"swell"}))} style={{
-                    padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                    background: draft.condition === "swell" ? "#222" : "#f7f7f7",
-                    color: draft.condition === "swell" ? "#fff" : "#222",
-                    borderColor: draft.condition === "swell" ? "#222" : "#e8e8e8",
-                    fontSize:13, fontWeight:600, textAlign:"left",
-                  }}>
-                    Perfect Swell (score ≥ 92)
                   </button>
                 )}
                 <button onClick={() => setDraft(d => ({...d, condition:"insane"}))} style={{
@@ -4048,7 +4683,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
                   <span style={{ color:"white", fontSize:13, fontWeight:700, fontFamily:F }}>{l.title}</span>
                   <span style={{ color:"rgba(255,255,255,0.75)", fontSize:12, fontFamily:F }}> · Score {l.conditionScore}</span>
                 </div>
-                <span style={{ color:"white", fontSize:13, fontWeight:800, fontFamily:F }}>${l.flight.price}</span>
+                <span style={{ color:"white", fontSize:13, fontWeight:800, fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</span>
               </div>
             ))}
           </div>
@@ -4070,14 +4705,14 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         </div>
       ) : (
         <div style={{ padding:"0 24px" }}>
-          {userAlerts.map(a => {
+          {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
             const cat    = CATEGORIES.find(c => c.id === a.sport);
             const active = firing.some(l => {
               const sportMatch = a.sport === "all" || a.sport === l.category;
               const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
               const priceMatch = l.flight.price <= a.priceMax;
               let scoreMatch = false;
-              if (a.condition === "powder" || a.condition === "swell") {
+              if (a.condition === "powder") {
                 scoreMatch = matchesSpecialCondition(l, a.condition);
               } else {
                 const threshold = getScoreThreshold(a.condition);
@@ -4091,7 +4726,6 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
               "great": "Great (≥85)",
               "good": "Good (≥70)",
               "powder": "Powder Day",
-              "swell": "Perfect Swell",
               "custom": `Custom (≥${a.customScore})`
             };
 
@@ -4138,7 +4772,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle }) {
+function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle, cloudSync }) {
   const [airportQuery,      setAirportQuery]      = useState("");
   const [airportFocused,    setAirportFocused]    = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -4146,6 +4780,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
   const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
+  const { canInstall: canInstallPwa, trigger: triggerInstallPwa } = useInstallPrompt();
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
   const toggleSport = id => setProfile(p => ({
@@ -4200,10 +4835,11 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             </div>
           </div>
 
-          {/* Sport skill badges */}
-          {sports.length > 0 && (
+          {/* Sport skill badges — defensive filter: skip any sport id no longer
+              in CATEGORIES (e.g. legacy "surfing" survived migration somehow) */}
+          {sports.filter(s => CATEGORIES.find(c => c.id === s)).length > 0 && (
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:16 }}>
-              {sports.map(s => {
+              {sports.filter(s => CATEGORIES.find(c => c.id === s)).map(s => {
                 const cat = CATEGORIES.find(c => c.id === s);
                 return (
                   <div key={s} style={{
@@ -4212,7 +4848,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {cat?.label} · {skillLevels[s] || "Intermediate"}
+                      {cat.label} · {skillLevels[s] || "Intermediate"}
                     </span>
                   </div>
                 );
@@ -4405,7 +5041,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
             {/* Sports + skill levels */}
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your sports</div>
-              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <div key={cat.id} style={{ marginBottom:8 }}>
@@ -4587,7 +5223,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
                   </div>
                   <div style={{ padding:"7px 8px" }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>${l.flight.price} · {l.conditionLabel}</div>
+                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
                   </div>
                 </div>
               ))}
@@ -4618,7 +5254,7 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
         {/* ── Share & Refer (combined) ── */}
         <div style={{ marginBottom:20 }}>
           <button className="pressable" onClick={() => {
-            const msg = "Check out Peakly — find surf, ski & beach spots when conditions + cheap flights align. https://j1mmychu.github.io/peakly";
+            const msg = "Check out Peakly — find ski & beach spots firing this weekend, with cheap flights aligned. https://j1mmychu.github.io/peakly";
             const doCopy = () => {
               try {
                 if (navigator.clipboard?.writeText) {
@@ -4663,6 +5299,21 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
         </div>
 
+        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
+        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
+
+        {/* ── Install Peakly (only when prompt is captured) ── */}
+        {canInstallPwa && (
+          <button className="pressable" onClick={triggerInstallPwa} style={{
+            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
+            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
+            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          }}>
+            <span>📲</span> Install Peakly to home screen
+          </button>
+        )}
+
         {/* ── Sign Out ── */}
         {hasAccount && !signOutConfirm && (
           <button className="pressable" onClick={() => setSignOutConfirm(true)} style={{
@@ -4700,6 +5351,11 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           </div>
         )}
         {!hasAccount && <div style={{ height:32 }} />}
+
+        {/* Build stamp — useful for "did the deploy land?" debugging */}
+        <div style={{ textAlign:"center", padding:"0 0 24px", fontSize:9, color:"#ccc", fontFamily:F, letterSpacing:"0.05em" }}>
+          Build {PEAKLY_BUILD}
+        </div>
       </div>
     </div>
   );
@@ -4938,7 +5594,7 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                             fontFamily:F,
                           }}>{l.conditionScore}</span>
                           <span style={{ background:"#f0fff4", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:800, color:"#16a34a", fontFamily:F }}>
-                            ${l.flight.price}
+                            {l.flight.live ? '$' : '~$'}{l.flight.price}
                           </span>
                           <span style={{ background:"#f7f7f7", borderRadius:9, padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>
                             {cat?.label}
@@ -5271,7 +5927,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               Know when<br/>to go.
             </div>
             <div style={{ fontSize:15, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:28 }}>
-              Conditions and cheap flights, aligned. Peakly finds your perfect window across surf, snow, and adventure.
+              Conditions and cheap flights, aligned. Peakly finds your perfect ski or beach weekend.
             </div>
 
             {/* 3 value props */}
@@ -5280,7 +5936,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
                 bg:"#f0f9ff", color:"#0284c7",
                 icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z" fill="currentColor"/></svg>,
                 title:"Live condition scores",
-                desc:"Surf, snow, beach, and more — scored 0–100 in real time so you know exactly when it's firing.",
+                desc:"Ski and beach venues scored 0–100 against the Fri–Mon weekend window — so you know which spot is actually firing this weekend.",
               },
               {
                 bg:"#f0fdf4", color:"#16a34a",
@@ -5379,7 +6035,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
             <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
             <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
             <div style={{ display:"flex", flexWrap:"nowrap", gap:10 }}>
-              {CATEGORIES.filter(c => ["skiing", "surfing", "tanning"].includes(c.id)).map(cat => {
+              {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
@@ -5467,15 +6123,7 @@ const GEAR_ITEMS = {
     { name:"Atomic Bent 100 All-Mountain Skis", store:"Amazon", price:"$599+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=atomic+bent+100+all-mountain+skis" },
     { name:"Osprey Kamber 22L Ski Pack",        store:"Amazon", price:"$130",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=osprey+kamber+22+ski+backpack" },
   ],
-  surfing: [
-    { name:"Surf Wax",                             store:"Amazon", price:"$9+",   commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=surf+wax" },
-    { name:"Reef Safe Sunscreen",                  store:"Amazon", price:"$15+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
-    { name:"O'Neill 3/2mm Full Wetsuit",           store:"Amazon", price:"$189+", commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=oneill+psycho+tech+wetsuit+3mm" },
-    { name:"FCS II Surfboard Leash 6ft",           store:"Amazon", price:"$35+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=fcs+ii+surfboard+leash+6ft" },
-    { name:"Dakine Indo Board Bag",                store:"Amazon", price:"$89+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=dakine+indo+series+board+bag" },
-    { name:"UPF 50 Rashguard",                     store:"Amazon", price:"$29+",  commission:"4%", url:"https://www.amazon.com/s?tag=peakly-20&k=quiksilver+rashguard+upf50" },
-  ],
-  tanning: [
+  beach: [
     { name:"Reef Safe Sunscreen",           store:"Amazon",      price:"$15+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=reef+safe+sunscreen" },
     { name:"Polarized Sunglasses",          store:"Amazon",      price:"$49+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=polarized+sunglasses" },
     { name:"Beach Towel",                   store:"Amazon",      price:"$19+",   commission:"4%",  url:"https://www.amazon.com/s?tag=peakly-20&k=beach+towel" },
@@ -5491,12 +6139,7 @@ const EXPERIENCES = {
     { name:"Off-piste powder guide",         price:280, duration:"Full day" },
     { name:"Sunrise first tracks tour",      price:160, duration:"3 hrs" },
   ],
-  surfing: [
-    { name:"Beginner surf lesson",           price:65,  duration:"2 hrs" },
-    { name:"In-water surf photography",      price:120, duration:"2 hrs" },
-    { name:"Dawn patrol boat surf charter",  price:200, duration:"4 hrs" },
-  ],
-  tanning: [
+  beach: [
     { name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs" },
     { name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr" },
     { name:"Parasailing over the water",     price:89,  duration:"30 min" },
@@ -5568,7 +6211,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     precip:d.precipitation_sum?.[i]   ?? 0,
     wind:  d.wind_speed_10m_max?.[i]  ?? 0,
     code:  d.weather_code?.[i]        ?? 0,
-    wave:  md?.wave_height_max?.[i]   ?? null,
   })) : [];
 
   const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
@@ -5737,7 +6379,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                   <div key={i} style={{ flexShrink:0, background:"#f7f7f7", borderRadius:12, padding:"9px 8px", minWidth:62, textAlign:"center", border: i===0 ? "2px solid #0284c7" : "2px solid transparent" }}>
                     <div style={{ fontSize:9, fontWeight:700, color: i===0?"#0284c7":"#aaa", fontFamily:F, marginBottom:3, textTransform:"uppercase" }}>{fmtDate(f.date, i)}</div>
                     <div style={{ fontSize:21 }}>{wxEmoji(f.code)}</div>
-                    {f.wave != null && <div style={{ fontSize:9, color:"#0ea5e9", fontWeight:700, fontFamily:F, marginTop:1 }}>{(f.wave*3.28).toFixed(1)}ft</div>}
                     <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, marginTop:3 }}>{Math.round(f.hi)}°</div>
                     <div style={{ fontSize:10, color:"#bbb", fontFamily:F }}>{Math.round(f.lo)}°</div>
                     {f.precip > 1 && <div style={{ fontSize:9, color:"#3b82f6", fontWeight:600, fontFamily:F, marginTop:1 }}>💧{Math.round(f.precip)}"</div>}
@@ -5759,8 +6400,8 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
-          {false && GEAR_ITEMS[listing.category] && (
+          {/* 🛍️ Gear — affiliate (Amazon Associates, tag=peakly-20) */}
+          {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
@@ -6001,7 +6642,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
     }
 
     const flightPrice = duffelPrices[`${departureAirport}-${bestVenue.ap}`] || Math.floor(Math.random() * 800) + 200;
-    const hotelNightly = { skiing: 180, surfing: 150, tanning: 140 }[sport] || 150;
+    const hotelNightly = { skiing: 180, beach: 140 }[sport] || 150;
     const totalHotel = hotelNightly * days;
     const activitiesPerDay = 2;
     const activitiesCost = days * activitiesPerDay * 75;
@@ -6016,7 +6657,7 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
       days,
       sport,
       flight: { from: departureAirport, to: bestVenue.ap, price: flightPrice },
-      hotel: { name: { skiing: "Mountain Lodge", surfing: "Beachfront Resort", tanning: "Tropical Paradise" }[sport] || "Resort", nightly: hotelNightly, total: totalHotel },
+      hotel: { name: { skiing: "Mountain Lodge", beach: "Tropical Paradise" }[sport] || "Resort", nightly: hotelNightly, total: totalHotel },
       itinerary: Array.from({length: days}, (_, i) => ({
         day: i+1,
         activity: [
@@ -6184,9 +6825,8 @@ function TripBuilderSheet({ listings, duffelPrices, onClose, onSaveTrip, profile
             <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>What kind of adventure?</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { id:"skiing", label:"Ski/Board" },
-                { id:"surfing", label:"Surfing" },
-                { id:"tanning", label:"Beach" }
+                { id:"skiing", label:"Skiing" },
+                { id:"beach", label:"Beach" }
               ].map(s => (
                 <button key={s.id} onClick={() => {setSport(s.id); setStep(1);}} style={{
                   padding:14, borderRadius:12, border:"1.5px solid #e8e8e8", cursor:"pointer", fontFamily:F,
@@ -6397,16 +7037,14 @@ function TripsTab({ listings, wishlists, onToggle, namedLists, setNamedLists, on
 function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
   const guideCategories = [
     { id: "skiing",  title: "Ski & Snow Guides" },
-    { id: "surfing", title: "Surf Guides" },
-    { id: "tanning", title: "Beach Guides" },
+    { id: "beach", title: "Beach Guides" },
   ];
 
   const featured = [...listings].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
 
   const blurbs = {
     skiing: "Snow conditions, resort breakdowns & budget tips",
-    surfing: "Swell forecasts, board recs & local secrets",
-    tanning: "UV index intel, hidden beaches & sun safety",
+    beach: "UV index intel, hidden beaches & sun safety",
   };
 
   return (
@@ -6615,6 +7253,9 @@ class ErrorBoundary extends React.Component {
 
 // ─── app ──────────────────────────────────────────────────────────────────────
 function App() {
+  // Cloud sync — single instance lifted to App so Profile + Explore share state
+  const cloudSync = useCloudSync();
+
   // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
@@ -6633,13 +7274,13 @@ function App() {
   }, []);
 
   const [activeTab,    setActiveTab]    = useState("explore");
-  const [activeCat,    setActiveCat]    = useState("all");
+  const [activeCat,    setActiveCat]    = useState(() => seasonalDefaultCat(profile?.homeAirport));
   const [wxData,       setWxData]       = useState({});
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
   const [flightsLoading, setFlightsLoading] = useState(true);
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, startDate:"", endDate:"" });
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
@@ -6758,7 +7399,7 @@ function App() {
 
   const fetchVenueWeather = useCallback(async (venue) => {
     if (wxRef.current[venue.id]) return; // already fetched
-    const needsMarine = venue.category === "surfing" || venue.category === "tanning";
+    const needsMarine = venue.category === "beach";
     const [wxR, marR] = await Promise.allSettled([
       fetchWeather(venue.lat, venue.lon),
       needsMarine ? fetchMarine(venue.lat, venue.lon) : Promise.resolve(null),
@@ -6780,7 +7421,7 @@ function App() {
       const batch = initial.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
         batch.map(async v => {
-          const needsMarine = v.category === "surfing" || v.category === "tanning";
+          const needsMarine = v.category === "beach";
           const [wxR, marR] = await Promise.allSettled([
             fetchWeather(v.lat, v.lon),
             needsMarine ? fetchMarine(v.lat, v.lon) : Promise.resolve(null),
@@ -6939,7 +7580,26 @@ function App() {
     }
     const bestWindow = bestDay === 0 && bestScore === score ? null : { day: dayNames[bestDay] || ("Day " + bestDay), score: bestScore };
 
-    return { ...v, conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading };
+    // Front-page weekend window score (Fri–Mon, best 2 consecutive days).
+    // conditionScore stays for the detail-sheet 7-day view.
+    // scoreWeekendDeal fuses weekend conditions + flight pricing into one
+    // 0–100 deal score (live flights only; null when estimate or low confidence).
+    const deal = scoreWeekendDeal(v, vWx, vMar, new Date(), profile.homeAirport || "JFK", flight);
+    const wknd = deal.conditions;
+
+    return {
+      ...v,
+      conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading,
+      weekendScore: wknd.score,
+      weekendLabel: wknd.label,
+      weekendPeriod: wknd.period,
+      weekendDays: wknd.days,
+      weekendConfidence: wknd.confidence,
+      dealScore:      deal.score,
+      dealLabel:      deal.label,
+      dealPriceRatio: deal.priceRatio,
+      dealIsEstimate: deal.isEstimate,
+    };
   });
 
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
@@ -7059,6 +7719,7 @@ function App() {
               namedLists={namedLists} setNamedLists={setNamedLists}
               wxLastUpdated={wxLastUpdated} profile={profile}
               onRefresh={() => fetchAllWeather(false)}
+              cloudSync={cloudSync}
             />
           )}
           {activeTab === "alerts" && (
@@ -7079,6 +7740,7 @@ function App() {
               listings={listings} onOpenDetail={openDetail}
               namedLists={namedLists} setNamedLists={setNamedLists}
               onToggle={toggleWishlist}
+              cloudSync={cloudSync}
             />
           )}
         </div>
