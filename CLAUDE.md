@@ -156,6 +156,12 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 9. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 
+### Recently Fixed (2026-05-07 PM — Phase 1: 7-day commitment + Why-this-score expander)
+
+- ✅ **`<ScoreBreakdown>` component** (app.jsx ~6508, before VenueDetailSheet) — collapsible "Why this score?" panel inside the detail sheet. Renders Conditions / Price / Confidence rows + Verdict, mirroring `scoreWeekendDeal`'s 50/50 weighted math. Three states: live deal (full breakdown), estimate price ("flight pricing isn't live yet"), low confidence ("Beyond reliable forecast"). Score was a black box → trust erodes; now it's auditable per-row. ScoreRow helper kept inline.
+- ✅ **7-day window commitment** (app.jsx `getFlightDate` ~1652 + `WHEN_OPTIONS` ~2828) — stripped `twoweeks/month/nextmonth/60days/90days/winter/spring/summer/fall`. Default = upcoming Friday. WHEN_OPTIONS now: "This weekend / Next 7 days / Anytime" — all collapse to upcoming Fri because that's the only horizon Open-Meteo can honestly back. `scoreWeekendDeal` low-confidence return now sets `label: "Beyond 7-day window"` so the UI explains the absence rather than silently dropping the venue.
+- ✅ **Vision + copy alignment** (CLAUDE.md, README.md, manifest.json) — vision now reads "7-day window is the product, not a limit." Hotels formally deferred to v2 in the principles list. README + manifest description tightened to call out the 7-day horizon.
+
 ### Recently Fixed (2026-05-07 — UX course-correct: spontaneous flight default + filter-aware empty state)
 
 - ✅ **Default `maxFlightHrs` to 6** (app.jsx:7616 + SearchSheet reset) — was `null` = global results from a "spontaneous weekend" app, defeating the brand promise. Power users override via the chip's × or "Clear all." Auto-detect home airport already covers the no-airport case (geolocation fallback → silent bypass at applyFilters). Exceptional venues (`weekendScore >= 95`) still override the cap so a perfect powder day a continent away can surface.
