@@ -4758,20 +4758,51 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
-    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
-    // venueId: specific venue to watch (null = any matching sport/region)
-    // targetScore: minimum condition score to fire (derived from condition preset)
-    // maxPrice: maximum flight price to fire (from draft.priceMax)
-    // enabled: allows user to pause/resume without deleting
-    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
-    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
-    alertData.venueId = draft.venueId || null;
+    alertData.venueId = draft.venueId || (draft.locations && draft.locations[0]) || null;
     alertData.targetScore = getScoreThreshold(draft.condition);
     alertData.maxPrice = draft.priceMax || 500;
     alertData.enabled = true;
     setUserAlerts(p => [...p, alertData]);
     setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
+
+    // Register on server so the polling worker can fire push when conditions
+    // hit. Fire-and-forget — local alert is saved regardless. Server needs
+    // venue lat/lon/category/ap to fetch upstream weather without a duplicate
+    // venue table; we send those fields when a specific venue is chosen.
+    // Generic ("any location") alerts skip server fire — push only happens for
+    // venue-specific alerts in v1. In-app filter still surfaces them.
+    let pushToken = null;
+    let pushPlatform = null;
+    try { pushToken = localStorage.getItem("peakly_push_token") || null; } catch {}
+    if (pushToken && pushToken !== "web-sw-registered") {
+      pushPlatform = window.Capacitor?.platform === "ios" ? "ios"
+                   : window.Capacitor?.isNativePlatform?.() ? "capacitor"
+                   : "web";
+    }
+    const venueListing = alertData.venueId ? listings.find(l => l.id === alertData.venueId) : null;
+    const body = {
+      alertId: String(alertData.id),
+      venueId: alertData.venueId,
+      venueLat: venueListing?.lat ?? null,
+      venueLon: venueListing?.lon ?? null,
+      venueAp:  venueListing?.ap  ?? null,
+      venueCategory: venueListing?.category ?? alertData.sport ?? null,
+      sport: alertData.sport,
+      targetScore: alertData.targetScore,
+      maxPrice: alertData.maxPrice,
+      pushToken,
+      pushPlatform,
+      homeAirport: profile?.homeAirport || null,
+    };
+    fetch("https://peakly-api.duckdns.org/api/alerts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json()).then(j => {
+      if (j?.success) logEvent("alert_registered_server", { alertId: alertData.id, hasToken: !!pushToken });
+      else logEvent("alert_register_failed", { alertId: alertData.id, error: j?.error || "unknown" });
+    }).catch(e => logEvent("alert_register_error", { message: String(e?.message || e) }));
   };
   const delAlert  = id => setUserAlerts(p => p.filter(a => a.id !== id));
 
