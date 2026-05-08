@@ -1433,7 +1433,10 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK", today);
   const priceRatio = typicalPrice > 0 ? flight.price / typicalPrice : null;
   if (conditions.confidence === "low" || priceRatio == null) {
-    return { score: null, conditions, priceRatio, isEstimate: false, label: null };
+    // 7-day forecast horizon is the product, not a limit. Don't fabricate a
+    // score for a weekend the forecast can't honestly back. ScoreBreakdown
+    // surfaces this label so the user understands why the venue has no deal score.
+    return { score: null, conditions, priceRatio, isEstimate: false, label: conditions.confidence === "low" ? "Beyond 7-day window" : null };
   }
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   // 50/50 weight: conditions and price each contribute equally to final score.
