@@ -382,15 +382,17 @@ See `CHANGELOG.md` for full competitive intel.
 **Phased roadmap:**
 1. Ship quality (NOW) — photos, polish, PWA, analytics, 1K users
 2. The Weekend Score — proprietary best-2-of-4 score across Fri–Mon with confidence badge (DONE 2026-05-03)
-3. Distance-aware filter — `Within Nhr flight` toggle so spontaneous trips stay actually spontaneous (DONE 2026-05-03 — Block C, commit dc92123; ≥95 weekendScore overrides the cap)
-4. Live weekend pricing — query Travelpayouts with actual Fri–Mon dates instead of "from $X" historical avg
-5. Strike Missions — rare, opt-in, exceptional alignments push notifications
+3. Distance-aware filter — `Within Nhr flight` toggle so spontaneous trips stay actually spontaneous (DONE 2026-05-03 — Block C, commit dc92123; ≥95 weekendScore overrides the cap; 6hr default 2026-05-07)
+4. Live weekend pricing — query Travelpayouts with actual Fri–Mon dates (DONE 2026-05-04, awaiting VPS redeploy)
+5. Strike Alerts — server-side polling worker fires push when conditions hit user's target. Required for App Store review (in progress 2026-05-07)
 6. Group coordination
 7. Crowd intelligence
 
 **Strategic principles:**
 - **Niche down before expanding.** Skiing + beach only — surfing retired 2026-05-03 to focus the algorithm and brand.
-- **Don't sell certainty you don't have.** Forecast confidence is a first-class signal — `low` confidence weekends never reach the front page.
+- **7-day window is the product, not a limit.** Open-Meteo forecasts 7 days reliably; we don't sell certainty beyond what it can back. WHEN_OPTIONS reduced to "This weekend / Next 7 days / Anytime" 2026-05-07. No 30/60/90-day or seasonal options — they were dead UI promising scores we couldn't honestly produce.
+- **Don't sell certainty you don't have.** Forecast confidence is a first-class signal — `low` confidence weekends never reach the front page; ScoreBreakdown surfaces the reason.
+- **Lean before launch.** Hotels in deal score deferred 2026-05-07 — too much scope; ship flights+conditions first, fold hotels in v2 if user demand validates.
 - FOMO-first content ("the window most people missed")
 - Photos before features
 - PWA + SEO first, native later
