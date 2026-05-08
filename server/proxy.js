@@ -436,7 +436,6 @@ function alertMatches(alert, weather, flightPrice) {
 // 50 min (Apple recommends ≤1h). Requires env: APNS_KEY_ID, APNS_TEAM_ID,
 // APNS_BUNDLE_ID, APNS_KEY_PATH (path to .p8 file). APNS_PROD=true switches
 // to production endpoint (default sandbox during dev).
-const crypto = require('crypto');
 let _apnsTokenCache = { token: null, generatedAt: 0 };
 
 function _apnsConfigured() {
