@@ -6505,6 +6505,115 @@ const EXPERIENCES = {
   ],
 };
 
+// ─── Score breakdown — opens the black box ───────────────────────────────────
+// Users see "94 · Strong deal" but no breakdown. Without transparency, trust
+// erodes. This expander mirrors the scoreWeekendDeal math: conditionsNorm × 0.5
+// + priceNorm × 0.5 (when both signals live). Three states:
+//   1. Live deal — show Conditions / Price / Confidence rows + Verdict
+//   2. Estimate price (no live flight) — "Conditions only · flight pricing isn't live"
+//   3. Low confidence (>5-day forecast) — "Beyond reliable forecast"
+function ScoreBreakdown({ listing }) {
+  const [open, setOpen] = useState(false);
+
+  const wkConf = listing.weekendConfidence;
+  const isLow = wkConf === "low";
+  const isEstimate = listing.dealIsEstimate || listing.flight?.live !== true;
+  const conditionsNorm = listing.weekendScore ?? listing.conditionScore;
+  const ratio = listing.dealPriceRatio;
+  // Mirror scoreWeekendDeal: priceNorm = clamp(100*(1.5-ratio), 0, 100)
+  const priceNorm = ratio != null ? Math.max(0, Math.min(100, Math.round(100 * (1.5 - ratio)))) : null;
+  const finalScore = listing.dealScore;
+  const verdict = listing.dealLabel;
+
+  const confExplain = wkConf === "high"
+    ? "Forecast solid for the whole weekend window"
+    : wkConf === "medium"
+      ? "Last day at the 6-day forecast edge — slight uncertainty"
+      : "Outside the 7-day forecast horizon";
+
+  const conditionsExplain = listing.weekendLabel || listing.conditionLabel || "Conditions checked";
+
+  const priceExplain = (() => {
+    if (ratio == null) return "Flight pricing not live yet";
+    const pct = Math.round((1 - ratio) * 100);
+    const cur = listing.flight?.price;
+    const typ = listing.flight?.normal;
+    if (pct >= 1)  return `$${cur} vs $${typ} typical · ${pct}% below`;
+    if (pct <= -1) return `$${cur} vs $${typ} typical · ${-pct}% above`;
+    return `$${cur} matches typical pricing`;
+  })();
+
+  // Container styling (collapsed view is a one-line link/toggle)
+  const wrap = {
+    background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
+    marginBottom:14, overflow:"hidden",
+  };
+  const headerBtn = {
+    display:"flex", alignItems:"center", justifyContent:"space-between",
+    width:"100%", padding:"12px 14px", border:"none", background:"transparent",
+    cursor:"pointer", fontFamily:F,
+  };
+
+  // Don't render at all if there's literally nothing to show
+  if (conditionsNorm == null && finalScore == null) return null;
+
+  return (
+    <div style={wrap}>
+      <button onClick={() => setOpen(o => !o)} style={headerBtn} aria-expanded={open}>
+        <span style={{ fontSize:12, fontWeight:800, color:"#222", letterSpacing:"0.02em" }}>
+          {open ? "Hide score breakdown" : "Why this score?"}
+        </span>
+        <span style={{ fontSize:13, color:"#888", fontWeight:700 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{ padding:"4px 14px 14px", borderTop:"1px solid #f3f3f3" }}>
+          {isLow ? (
+            <div style={{ fontSize:12, color:"#717171", fontFamily:F, padding:"10px 0", lineHeight:1.5 }}>
+              Beyond the 7-day forecast — confidence too low to call this weekend. We only score what the forecast can back.
+            </div>
+          ) : (
+            <>
+              <ScoreRow label="Conditions" weight="50 pts" value={conditionsNorm} explain={conditionsExplain} />
+              {isEstimate ? (
+                <div style={{ fontSize:11, color:"#888", fontFamily:F, padding:"8px 0 4px", fontStyle:"italic", lineHeight:1.5 }}>
+                  Flight pricing isn't live yet — score reflects conditions only.
+                </div>
+              ) : (
+                <ScoreRow label="Price" weight="50 pts" value={priceNorm} explain={priceExplain} />
+              )}
+              <ScoreRow label="Confidence" weight={wkConf} value={null} explain={confExplain} />
+              {finalScore != null && verdict && (
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:10, marginTop:8, borderTop:"1px dashed #ebebeb" }}>
+                  <span style={{ fontSize:11, fontWeight:700, color:"#888", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Verdict</span>
+                  <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{verdict} · {finalScore}</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreRow({ label, weight, value, explain }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"8px 0", borderBottom:"1px solid #f7f7f7" }}>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F }}>
+          {label} <span style={{ fontWeight:600, color:"#aaa" }}>· {weight}</span>
+        </div>
+        <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:2, lineHeight:1.4 }}>{explain}</div>
+      </div>
+      {value != null && (
+        <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F, flexShrink:0, minWidth:46, textAlign:"right" }}>
+          {value}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── venue detail sheet ────────────────────────────────────────────────────────
 function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
   const [showListPicker, setShowListPicker] = useState(false);
