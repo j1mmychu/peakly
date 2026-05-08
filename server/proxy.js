@@ -369,17 +369,21 @@ app.get('/api/weather', (req, res) => _proxyWeather(req, res, 'weather'));
 app.get('/api/marine',  (req, res) => _proxyWeather(req, res, 'marine'));
 
 // ─── POST /api/alerts ─────────────────────────────────────────────────────────
-// Register a push notification alert (future: APNs / FCM / Web Push)
-// Body: { alertId, userId, venueId, sport, region, targetScore, maxPrice,
-//         dateFrom, dateTo, pushToken, pushPlatform }
-// Response: { success, id, message }
-const _alerts = new Map(); // in-memory store (replace with DB later)
-
+// Register a push notification alert. Server polls every 30 min and fires APNS
+// push when conditions match. Client must send lat/lon/category/ap so server
+// can fetch upstream weather + flights without a duplicate venue lookup table.
+// Body: { alertId, userId, venueId, venueLat, venueLon, venueAp, venueCategory,
+//         sport, targetScore, maxPrice, pushToken, pushPlatform }
+const _alerts = new Map();
 const ALERTS_MAX = 10000;
 
 app.post('/api/alerts', (req, res) => {
   const body = req.body || {};
-  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform } = body;
+  const {
+    alertId, venueId, venueLat, venueLon, venueAp, venueCategory,
+    sport, targetScore, maxPrice, pushToken, pushPlatform,
+    homeAirport,
+  } = body;
 
   if (typeof alertId !== 'string' || alertId.length === 0 || alertId.length > 128) {
     return res.status(400).json({ success: false, error: 'alertId must be a string of 1-128 chars' });
@@ -399,25 +403,49 @@ app.post('/api/alerts', (req, res) => {
 
   const record = {
     alertId,
-    venueId: venueId || null,
-    sport: typeof sport === 'string' ? sport.slice(0, 32) : null,
-    targetScore: targetScore ?? null,
-    maxPrice: maxPrice ?? null,
-    pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
-    pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
-    registeredAt: new Date().toISOString(),
-    lastChecked: null,
-    fired: false,
+    venueId:       venueId || null,
+    venueLat:      typeof venueLat === 'number' ? venueLat : null,
+    venueLon:      typeof venueLon === 'number' ? venueLon : null,
+    venueAp:       typeof venueAp === 'string' && IATA_RE.test(venueAp) ? venueAp : null,
+    venueCategory: typeof venueCategory === 'string' ? venueCategory.slice(0, 16) : null,
+    homeAirport:   typeof homeAirport === 'string' && IATA_RE.test(homeAirport) ? homeAirport : null,
+    sport:         typeof sport === 'string' ? sport.slice(0, 32) : null,
+    targetScore:   targetScore ?? null,
+    maxPrice:      maxPrice ?? null,
+    pushToken:     typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
+    pushPlatform:  typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
+    registeredAt:  new Date().toISOString(),
+    lastChecked:   null,
+    lastFiredAt:   null,
+    enabled:       true,
   };
   _alerts.set(alertId, record);
 
-  console.log(`[/api/alerts] registered alert ${alertId} for platform=${pushPlatform || 'web'}`);
+  console.log(`[/api/alerts] registered alert ${alertId} for platform=${pushPlatform || 'web'} venue=${venueId || 'any'}`);
 
   return res.status(201).json({
     success: true,
     id: alertId,
-    message: 'Alert registered. Conditions checked every 30 minutes.',
+    message: `Alert registered. Conditions checked every ${ALERT_POLL_MINUTES} minutes.`,
   });
+});
+
+// ─── POST /api/alerts/:alertId/test ───────────────────────────────────────────
+// Test-fire an alert push immediately, bypassing the match check. For App Store
+// reviewers + dev. Guarded by ALERTS_TEST_ENABLED=true env var (off in prod).
+app.post('/api/alerts/:alertId/test', async (req, res) => {
+  if (process.env.ALERTS_TEST_ENABLED !== 'true') {
+    return res.status(404).json({ success: false, error: 'Test endpoint disabled' });
+  }
+  const record = _alerts.get(req.params.alertId);
+  if (!record) return res.status(404).json({ success: false, error: 'Alert not found' });
+  try {
+    const result = await firePush(record, { score: 95, price: 0, test: true });
+    return res.json({ success: true, delivered: result.ok, status: result.status, reason: result.reason || null });
+  } catch (err) {
+    console.error('[/api/alerts/:id/test] error:', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ─── GET /api/alerts/:alertId ─────────────────────────────────────────────────
