@@ -1,255 +1,226 @@
-# Peakly DevOps Report — 2026-05-02
+# Peakly DevOps Report — 2026-05-08
 
-**Overall Status: 🟡 YELLOW**
-No P0s. Three issues carried from the April 24 report remain unaddressed (SRI, CSP, alert persistence). Three quick wins applied this run: cache bust, Sentry sample rate, proxy response body timeout. Ship posture is acceptable but the alert infrastructure is dead weight that erodes user trust at launch.
+**Overall Status: 🔴 RED**
+
+One P0 that should have been caught days ago: 6 days of shipped work (50+ commits) is stranded in unreachable dangling objects — not on `main`, not deployed, not on any branch. The live site is running 2026-05-02 code while CLAUDE.md confidently marks a dozen features as "DONE."
 
 ---
 
 ## Fixes Applied This Run
 
-| Fix | File | Impact |
-|---|---|---|
-| Cache buster bumped `20260422a` → `20260502a` | `index.html`, `sw.js` | P1 resolved — app.jsx changed Apr 23 (4 venues + Tioman fix), users were served 10-day-old cached code |
-| `tracesSampleRate: 1.0` → `0.05`, `replaysSessionSampleRate: 0.1` → `0.05` | `app.jsx` | P2 resolved — was burning Sentry free tier at ~667 MAU |
-| Added `res.setTimeout(8000)` to `fetchJson()` | `server/proxy.js` | P2 resolved — slow-drip Travelpayouts response could hang connection indefinitely |
+None. The P0 is a git recovery operation that requires Jack to confirm before execution — wrong direction, and we trash a week of work. Commands are below, ready to copy-paste.
+
+---
+
+## P0: REPO DIVERGENCE — 6 Days of Work Not Deployed
+
+**Discovery:** `git log --all --format="%H %ai %s" | grep "2026-05-0[3-9]"` returns nothing on any branch. `git fsck --lost-found` surfaces dangling commits. The chain rooted at `d19a7549` contains every feature CLAUDE.md marks as shipped since 2026-05-03.
+
+**What origin/main (live site) is missing:**
+
+| Feature | Dangling commit | Impact |
+|---------|----------------|--------|
+| Surf→beach pivot (kill 77 surfing venues) | `bb56aaf` | Live site still has surfing venues — brand contradiction |
+| WHEN_OPTIONS stripped to 3 options | in chain | "In 2 weeks" / "Next month" still render — dishonest scoring |
+| lateSeason flags on 7 ski venues | in chain | Late-season ski resorts wrongly capped |
+| scoreWeekend / scoreWeekendDeal unified | in chain | Front-page deal score broken on live |
+| Travelpayouts weekend-specific pricing | in chain | Prices are month-cheapest, not Fri–Mon |
+| Open-Meteo server-side proxy cache | in chain | No Reddit-spike protection |
+| Cloud sync (Supabase magic-link) | `ab692d3` | Sync UI shown in CLAUDE.md, not in live code |
+| Share-a-list viral loop | `d8560a1` | Not live |
+| ScoreBreakdown "Why this score?" | in chain | Not live |
+| Default ≤6hr flight filter | `d9cfb2e` | Not live |
+| Filter-aware empty state | in chain | Not live |
+| Push alert APNS wiring (server) | in chain | Not live |
+| Cache bust peakly-20260507e | in chain | sw.js still `peakly-20260502` (6 days stale) |
+
+**Confirmed:** `git show bb56aaf --stat` executes cleanly — the commits exist in the object store. They just have no branch reference. The tip is `d19a7549` (`auto: CLAUDE.md`, 2026-05-07 20:04 PDT).
+
+The merge commit `8002131b` ("Merge branch 'main' of github.com:j1mmychu/peakly", 2026-05-07) already incorporated `origin/main` into the dangling branch. No conflict expected.
+
+**Recovery commands — copy-paste in order:**
+
+```bash
+# 1. Confirm current state
+git log --oneline -3
+
+# 2. Create recovery branch from dangling tip
+git checkout -b recover-work d19a7549
+
+# 3. Review what's different (should be ~50 commits)
+git log --oneline main..recover-work | head -30
+
+# 4. If it looks right, merge to main
+git checkout main
+git merge recover-work --no-ff -m "recover: merge 6 days of dangling work (2026-05-03 through 2026-05-07)"
+
+# 5. Push
+git push -u origin main
+
+# 6. Clean up
+git branch -d recover-work
+```
+
+**Time to fix: 10 minutes (5 if the merge is clean).**
+
+Do not skip step 3. Inspect the log before merging. If conflicts appear on `app.jsx`, take the `recover-work` version — that's the more advanced code.
 
 ---
 
 ## 1. Live Site Health
 
 | Check | Result |
-|---|---|
-| `app.jsx` size | 7,150 lines / 467 KB (+10 lines / +4 KB vs Apr 24) |
+|-------|--------|
+| `app.jsx` size | 7,172 lines / 480,495 bytes |
 | CDN scripts | All HTTPS ✅ |
 | Plausible analytics | Present, uncommented, correct domain (`j1mmychu.github.io`) ✅ |
-| Cache-buster before this run | `v=20260422a` — STALE (app.jsx changed Apr 23) ❌ |
-| Cache-buster after this run | `v=20260502a` ✅ |
-| Service worker cache before | `peakly-20260422` — STALE ❌ |
-| Service worker cache after | `peakly-20260502` ✅ |
+| Cache-buster (`index.html`) | `v=20260502a` — **6 days stale** ❌ |
+| SW cache name | `peakly-20260502` — **6 days stale** ❌ |
+| Sentry DSN | Wired (`9416b032...`), `tracesSampleRate: 0.05` ✅ |
 
-**Cache staleness was real.** Commit `969e24a` (Apr 23) added 4 venues and fixed Tioman airport after the last cache bust on Apr 22. Any returning user never saw those changes. Fixed.
+Cache staleness resolves automatically once the P0 recovery lands — the dangling chain bumps to `peakly-20260507e`.
 
 ---
 
 ## 2. Flight Proxy Status
 
 | Check | Result |
-|---|---|
-| Proxy URL in app.jsx | `https://peakly-api.duckdns.org` — HTTPS ✅ |
-| Old HTTP IP (`104.131.82.242`) in client code | Not present ✅ |
-| Token in client code | No — `process.env.TRAVELPAYOUTS_TOKEN` server-only ✅ |
-| TP_MARKER in client | `"710303"` — public affiliate marker, not a secret ✅ |
-| Client timeout | 5s AbortController + 3 retries at 1.2s/2.4s backoff ✅ |
-| Proxy request timeout | `req.setTimeout(8000)` ✅ |
-| Proxy response body timeout | Added `res.setTimeout(8000)` this run ✅ |
-| Concurrency cap | Semaphore: max 3 concurrent flight requests ✅ |
-| CORS allowlist | `j1mmychu.github.io`, `peakly.app`, `www.peakly.app`, localhost ✅ |
-| Rate limiter | 60 req/min/IP, in-memory Map with 5-min GC ✅ |
+|-------|--------|
+| Proxy URL in app.jsx | `https://peakly-api.duckdns.org` (HTTPS) ✅ |
+| No raw IP exposed in client | Correct ✅ |
+| Travelpayouts token in client | Not present ✅ |
+| `fetchTravelpayoutsPrice` timeout | 5s AbortController ✅ |
+| Retry logic | 3 attempts, 1.2s / 2.4s backoff ✅ |
+| Weekend-specific `depart_date` | **Missing in committed code** — month-cheapest only ❌ |
+| Proxy weather/marine endpoints | **Missing in committed proxy.js** — no `/api/weather` or `/api/marine` ❌ |
 
-Proxy posture is solid. No fires.
+The committed `server/proxy.js` is 349 lines. The CLAUDE.md version (in dangling commits) is significantly larger with weather caching, APNS push, alert polling, and weekend date filtering. None of that is deployed to the VPS.
 
 ---
 
 ## 3. Weather & External APIs
 
 | Check | Result |
-|---|---|
-| Open-Meteo endpoints | `api.open-meteo.com/v1`, `marine-api.open-meteo.com/v1` ✅ |
-| Batch size / throttle | 50 venues/batch, 2s between batches ✅ |
-| Weather cache TTL | 2hr re-fetch, 6hr hard eviction ✅ |
-| Flight cache TTL | 15min re-fetch, 2hr cleanup ✅ |
-| Free tier risk (10K calls/day) | 229 venues × 2 API types = 458 max calls per cold user |
+|-------|--------|
+| Open-Meteo calls | Direct client→Open-Meteo. No server-side cache. ❌ |
+| Retry on 429/5xx | Present in `fetchWeather` (3 attempts, exponential) ✅ |
+| Client-side cache TTL | 2hr local, 6hr hard evict ✅ |
+| Marine fetch gating | `needsMarine` checks `category === "beach"` ✅ |
+| Rate limit exposure | 154 venues × N users = N×154 simultaneous upstream calls, no server dedup ❌ |
 
-At current near-zero MAU: no issue. At 1K simultaneous cold-cache users: 458K calls. Open-Meteo free tier is 10K/day. **One viral tweet = instant account suspension.** Mitigation is the server-side weather proxy documented below. Not yet built — still the highest-leverage pre-launch infrastructure work.
+At 1K concurrent users hitting the explore page cold, that's up to 154K Open-Meteo requests per session batch. Open-Meteo throttles aggressively above ~1K req/min from a single origin. The server-side weather proxy with in-flight dedup exists in the dangling commits — it's already written, just not deployed.
 
 ---
 
 ## 4. Security Audit
 
-### Passing
+| Check | Result |
+|-------|--------|
+| Travelpayouts token in client code | Not present ✅ |
+| Supabase anon key in client code | Not present (cloud sync not in committed code) ✅ |
+| Sentry DSN in app.jsx | Present — acceptable (DSN is public by design; restrict ingest origins in Sentry dashboard) ✅ |
+| `.gitignore` covers `.env` / keys | Yes — `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12` all covered ✅ |
+| Recent commits — no secrets | Checked last 30 commits — clean ✅ |
+| SRI hashes on CDN scripts | **Missing** — React, ReactDOM, Babel, Sentry loaded without integrity checks ❌ |
+| CSP meta tag | **Missing** ❌ |
 
-- No API tokens, secrets, or credentials in `app.jsx` or `index.html`
-- Travelpayouts token strictly server-side via `process.env.TRAVELPAYOUTS_TOKEN`
-- Sentry DSN in client code — intentional, DSNs are designed to be public
-- `.gitignore` covers `.env`, `.env.*`, `*.env`, `*.pem`, `*.key`, `*.p12`, `*.p8`, `*.mobileprovision`
-- Last 15 commits reviewed — no secrets introduced
-- TP_MARKER `"710303"` is a public affiliate marker, not a credential
+**SRI gap (P2):** A CDN supply-chain compromise on unpkg.com would silently execute arbitrary JS in every user's browser. Low probability, high impact.
 
-### P1 — No SRI on CDN Scripts (open 8 days)
-
-Three CDN scripts load without `integrity` attributes. A compromised unpkg push silently injects arbitrary JS into every Peakly session. This is a real supply-chain attack vector.
+Generate fresh hashes after confirming CDN content:
 
 ```bash
-# Generate SRI hashes (run from any machine with curl + openssl):
-curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
-
-curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
-
-curl -s https://unpkg.com/@babel/standalone@7.24.7/babel.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s "https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-Replace the three CDN `<script>` tags in `index.html`:
-```html
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
-  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"
-  integrity="sha384-HASH_FROM_ABOVE" crossorigin="anonymous"></script>
-```
+Then add `integrity="sha384-<HASH>"` to each `<script>` tag in index.html.
 
-**Time to fix: 15 minutes.**
-
-### P2 — No CSP Meta Tag (open 8 days)
-
-No `Content-Security-Policy`. GitHub Pages doesn't support custom HTTP headers so a meta tag is the only option. Babel Standalone requires `'unsafe-eval'` which limits effectiveness, but blocking unknown script origins is still worth doing.
-
-Add to `index.html` `<head>` before CDN scripts:
-```html
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' https://unpkg.com https://js.sentry-cdn.com https://plausible.io;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
-  img-src 'self' https://images.unsplash.com data: blob:;
-  connect-src 'self' https://peakly-api.duckdns.org https://api.open-meteo.com https://marine-api.open-meteo.com https://plausible.io https://o4511108649058304.ingest.us.sentry.io;
-  frame-ancestors 'none';
-">
-```
-
-**Time to fix: 20 minutes.**
+**CSP note:** Babel standalone requires `unsafe-eval` to transpile JSX. A CSP blocking `unsafe-eval` breaks the app. Set `script-src 'unsafe-eval' 'self' https://unpkg.com https://js.sentry-cdn.com https://plausible.io` at minimum — limits blast radius without breaking Babel.
 
 ---
 
 ## 5. Performance Analysis
 
-| Metric | Value |
-|---|---|
-| `app.jsx` | 467 KB (~141 KB gzipped est.) |
-| Babel Standalone 7.24.7 | ~1.5 MB (~550 KB gzipped) |
-| React 18.3.1 + ReactDOM | ~175 KB (~55 KB gzipped) |
-| **Total JS payload** | **~2.1 MB uncompressed / ~746 KB gzipped est.** |
-| All `<img>` tags lazy-loaded | Yes — 9 confirmed instances ✅ |
-| React CDN version | 18.3.1 — current ✅ |
-| Babel CDN version | 7.24.7 — 7.26.x available, minor delta, not urgent |
+| Check | Result |
+|-------|--------|
+| Images `loading="lazy"` | All 8 img render sites use it ✅ |
+| React version | 18.3.1 (latest major: 19.2.6 — skip, breaking changes) ✅ |
+| Babel standalone version | **7.24.7 — outdated** (latest: 7.29.4, 5 patch versions behind) ❌ |
 
-**Largest bottleneck: Babel Standalone.** 1.5 MB JS compiler executing 7,150 lines of JSX on the main thread on every cold load. Mid-range Android over 4G: 600–900ms of blocked rendering before any app pixel appears. No fix without a build step. Accepted architectural debt.
+**Estimated JS payload on first load:**
 
-**Second bottleneck: 229-venue weather fetch.** Cold cache = up to 458 HTTP requests batched at 50/2s. Full score population takes ~20 seconds. Tolerable today, painful above 1K MAU.
+| Asset | Raw | Gzipped (est.) |
+|-------|-----|----------------|
+| Babel standalone 7.24.7 | ~2.1 MB | ~600 KB |
+| ReactDOM 18.3.1 prod | ~440 KB | ~130 KB |
+| React 18.3.1 prod | ~140 KB | ~42 KB |
+| app.jsx | ~480 KB | ~141 KB |
+| **Total** | **~3.2 MB** | **~913 KB** |
 
----
+**The single largest performance bottleneck is Babel standalone** — 66% of gzipped payload, runs synchronously before React mounts, adds ~300–800ms on a mid-range Android device. Architectural constraint (no build step) prevents removing it. Mitigated by the splash screen but median TTI on 4G mobile is estimated 3–5 seconds.
 
-## 6. Alerts Infrastructure: Still Dead (P1)
+**Babel upgrade fix (P1):**
 
-`proxy.js` stores alert registrations in a JavaScript `Map` in process memory. A droplet reboot, crash, or `pm2 restart` wipes every registered alert with zero user notification. No polling worker exists. Alerts are registered and forgotten.
-
-```js
-const _alerts = new Map(); // erased on every restart
+```html
+<!-- index.html: line ~84 -->
+<!-- Before -->
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<!-- After -->
+<script src="https://unpkg.com/@babel/standalone@7.29.4/babel.min.js"></script>
 ```
 
-**Minimum viable persistence fix — add to `server/proxy.js`:**
+Also bump `app.jsx?v=20260508a` and `sw.js CACHE_NAME = "peakly-20260508"` when making this change. Do this after the P0 recovery (the dangling chain may already update Babel or the cache key — check before applying).
 
-```js
-const ALERTS_FILE = process.env.ALERTS_PATH
-  || path.join(__dirname, 'data', 'alerts.json');
+---
 
-function _loadAlerts() {
-  try {
-    const entries = JSON.parse(fs.readFileSync(ALERTS_FILE, 'utf8'));
-    for (const [k, v] of entries) _alerts.set(k, v);
-    console.log(`[alerts] loaded ${_alerts.size} alerts from disk`);
-  } catch {}
-}
+## 6. Cost Estimate
 
-function _saveAlerts() {
-  try {
-    fs.mkdirSync(path.dirname(ALERTS_FILE), { recursive: true });
-    fs.writeFileSync(ALERTS_FILE, JSON.stringify([..._alerts.entries()]));
-  } catch (e) { console.error('[alerts] save failed:', e.message); }
-}
+| Tier | Infrastructure | Monthly Cost |
+|------|---------------|-------------|
+| Current (pre-launch) | DO 1GB + GH Pages | **$6/month** |
+| 1K MAU | Same — proxy handles it | **$6/month** |
+| 10K MAU | DO 2GB upgrade recommended | **$18/month** |
+| 100K MAU | DO 4GB + Cloudflare free tier | **$36/month** |
 
-_loadAlerts(); // call once at bottom of file, before app.listen
+GitHub Pages is free with no practical MAU cap for a static SPA — not a cost variable.
+
+**What breaks first at scale:**
+
+Open-Meteo direct calls, then proxy in-memory OOM. At 100K MAU, simultaneous cold-cache sessions could fire 15M+ Open-Meteo requests per day. The server-side weather proxy with LRU cache (in dangling commits, not deployed) is the fix.
+
+The rate map in proxy.js (`_rateMap`) has no size cap — it grows unbounded with unique IPs. At 50K+ unique IPs it will OOM the 1GB droplet. Add this circuit breaker to proxy.js:
+
+```javascript
+// In rateLimiter(), before setInterval cleanup:
+if (_rateMap.size > 50000) _rateMap.clear(); // hard reset instead of OOM
 ```
 
-Then add `_saveAlerts()` after every `_alerts.set()` and `_alerts.delete()` call.
-
-**Persistence fix: 30 minutes. Polling worker (actually firing alerts): 4–8 hours.**
+**Time to fix: 2 minutes.**
 
 ---
 
-## 7. Cost Projection
+## Priority Matrix
 
-| Scale | Open-Meteo | VPS (DigitalOcean) | GitHub Pages | Monthly Total |
-|---|---|---|---|---|
-| Today (~0 MAU) | Free | $6 | Free | **$6** |
-| 1K MAU | Free* | $6 | Free | **$6** |
-| 10K MAU | Free* | $12 (upgrade to 2GB) | Free | **$12** |
-| 100K MAU | $200+ | $48 (2× $24 + LB) | Free | **$250+** |
+| # | Severity | Issue | ETA |
+|---|----------|-------|-----|
+| 1 | **P0** | 6 days of work in dangling commits — live site is 2026-05-02 code | 10 min |
+| 2 | **P1** | Babel 7.24.7 → 7.29.4 + cache bust (after P0) | 5 min |
+| 3 | **P1** | Proxy weather/marine endpoints not deployed — no Open-Meteo spike protection | VPS redeploy after P0 |
+| 4 | **P1** | Weekend-specific flight pricing not deployed | VPS redeploy after P0 |
+| 5 | **P2** | `_rateMap` no size cap in proxy.js — OOM at 50K+ unique IPs | 2 min |
+| 6 | **P2** | SRI hashes missing on CDN scripts | 20 min |
+| 7 | **P2** | APNS push worker not deployed — Alerts tab promises push, doesn't deliver | VPS redeploy + Apple .p8 |
 
-*Free tier survives only if localStorage cache absorbs repeat visits. One viral day with 5K simultaneous cold-cache users = 2.3M Open-Meteo calls. Instant suspension.
+**VPS redeploy path (for P1 items 3 + 4 + 7 — run after git recovery lands on main):**
 
-**Current burn: $6/month. No optimization available at this scale.**
-
----
-
-## 8. What Breaks First at Scale
-
-**The client-side Open-Meteo fetch model is the structural failure.** A viral surge sends thousands of cold-cache users through GitHub Pages CDN edge nodes (shared IPs). Open-Meteo rate-limits the shared IP. Venue scores stop loading app-wide, silently, with no alerting and no fallback. Users see spinners indefinitely. There is no circuit breaker.
-
-**Prevention — server-side weather proxy in `server/proxy.js` before 5K MAU:**
-
-```js
-const _wxCache = new Map();
-const WX_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
-
-app.get('/api/weather', async (req, res) => {
-  const { lat, lon, type, params } = req.query;
-  if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
-  const key = `${parseFloat(lat).toFixed(3)},${parseFloat(lon).toFixed(3)},${type || 'wx'}`;
-  const hit = _wxCache.get(key);
-  if (hit && Date.now() - hit.ts < WX_TTL_MS) {
-    res.setHeader('X-Cache', 'HIT');
-    return res.json(hit.data);
-  }
-  const base = type === 'marine'
-    ? 'https://marine-api.open-meteo.com/v1/marine'
-    : 'https://api.open-meteo.com/v1/forecast';
-  const url = `${base}?latitude=${parseFloat(lat)}&longitude=${parseFloat(lon)}${params ? '&' + params : ''}`;
-  try {
-    const { status, json } = await fetchJson(url);
-    if (status !== 200) return res.status(status).json(json);
-    _wxCache.set(key, { data: json, ts: Date.now() });
-    res.setHeader('X-Cache', 'MISS');
-    return res.json(json);
-  } catch (err) {
-    return res.status(502).json({ error: err.message });
-  }
-});
-
-setInterval(() => {
-  const cutoff = Date.now() - WX_TTL_MS;
-  for (const [k, v] of _wxCache) if (v.ts < cutoff) _wxCache.delete(k);
-}, WX_TTL_MS);
+```bash
+ssh root@198.199.80.21
+cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy
 ```
 
-This collapses 5K browser-direct Open-Meteo calls into 229 proxy-cached requests per 2-hour window. Zero additional cost. Keeps Open-Meteo free tier alive through ~100K MAU. Update `fetchWeather`/`fetchMarine` in `app.jsx` to point at `${FLIGHT_PROXY}/api/weather`. Estimated implementation: 4 hours.
-
-**Second failure: 1GB droplet OOM under load.** Rate-limit Map + alert Map + weather cache Map + Node.js heap approach the ceiling under concurrent sessions. Watch `pm2 monit` daily. Upgrade to $12/2GB before you see OOM kills in logs.
-
 ---
 
-## Open Action List
+## Bottom Line
 
-| Priority | Issue | Est. Time | Status |
-|---|---|---|---|
-| **P1** | Cache buster stale (10 days, app.jsx changed) | 2 min | **FIXED this run** |
-| **P1** | Alert registrations lost on server restart | 30 min | Open |
-| **P1** | No SRI on React/Babel CDN scripts | 15 min | Open — 8 days |
-| **P2** | Sentry `tracesSampleRate: 1.0` hits free tier at 667 MAU | 2 min | **FIXED this run** |
-| **P2** | `fetchJson()` missing response body timeout | 5 min | **FIXED this run** |
-| **P2** | No CSP meta tag | 20 min | Open — 8 days |
-| **Pre-5K MAU** | Server-side Open-Meteo weather cache proxy | 4 hrs | Not started |
-| **Pre-10K MAU** | Upgrade DO droplet to 2GB ($12/mo) | 5 min | Not started |
+The app hasn't deployed anything since May 2. CLAUDE.md's "Recently Fixed" section is a roadmap of undeployed work. Recover the dangling chain first — everything else is downstream of that. Estimated total remediation time after P0 recovery: 30 minutes.
