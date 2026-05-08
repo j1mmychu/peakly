@@ -11,10 +11,11 @@ Caddy terminates TLS and reverse-proxies `peakly-api.duckdns.org` → `localhost
 | GET | `/api/flights/latest` | Travelpayouts v1 latest prices (most recently found fares) |
 | GET | `/api/weather` | Open-Meteo forecast proxy (shared 2hr in-memory cache) |
 | GET | `/api/marine` | Open-Meteo marine proxy (water temp, shared 2hr cache) |
-| POST | `/api/alerts` | Register a push notification alert |
+| POST | `/api/alerts` | Register a strike alert (server polls every 30 min, fires APNS push on match) |
 | GET | `/api/alerts/:alertId` | Check alert registration status |
 | DELETE | `/api/alerts/:alertId` | Remove an alert |
-| GET | `/health` | Health check + uptime + wx cache size |
+| POST | `/api/alerts/:alertId/test` | Test-fire push (gated by `ALERTS_TEST_ENABLED=true`) |
+| GET | `/health` | Health + uptime + wx cache + alert poll stats + APNS status |
 
 ### GET /api/flights
 
