@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260504j";
+const PEAKLY_BUILD = "20260507b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -990,18 +990,27 @@ async function fetchMarine(lat, lon) {
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
-  try {
-    const r = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!r.ok) return null;
-    const data = await r.json();
-    _wxCacheSet(cacheKey, data);
-    return data;
-  } catch (err) {
-    clearTimeout(timer);
-    console.warn("[Peakly] Marine API error:", err.name, err.message);
-    return null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url, { signal: controller.signal });
+      if (r.status === 429 || r.status >= 500) {
+        if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+        clearTimeout(timer); return null;
+      }
+      if (!r.ok) { clearTimeout(timer); return null; }
+      const data = await r.json();
+      clearTimeout(timer);
+      _wxCacheSet(cacheKey, data);
+      return data;
+    } catch (err) {
+      if (err.name === "AbortError") { return null; }
+      if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
+      clearTimeout(timer);
+      console.warn("[Peakly] Marine API error:", err.name, err.message);
+      return null;
+    }
   }
+  clearTimeout(timer); return null;
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
@@ -6722,7 +6731,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate */}
+          {/* 🛍️ Gear — affiliate (Amazon Associates, tag=peakly-20) */}
           {GEAR_ITEMS[listing.category] && (
             <div style={{ marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
