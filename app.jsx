@@ -1648,24 +1648,24 @@ const BASE_PRICES = {
   AKL:{ JFK:2100,LAX:1580,SFO:1620,ORD:2050,MIA:2000,SEA:1780,BOS:2200,ATL:2050,DEN:1880,DFW:1960, LAS:1760,PHX:1740,MSP:2090,DTW:2080 },
 };
 
-// Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD)
+// Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).
+// 7-day forecast horizon is the product, not a limit — we removed >7-day
+// options (twoweeks, month, nextmonth, 60days, 90days, seasons) because we
+// can't honestly score conditions for them. Default = upcoming Friday.
 function getFlightDate(whenId = "anytime") {
   const now = new Date();
   const add = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return d; };
   const fmt = d => d.toISOString().slice(0, 10);
+  const upcomingFri = () => {
+    const ds = now.getDay();
+    const days = ds === 5 ? 0 : (5 - ds + 7) % 7;
+    return fmt(add(days));
+  };
   switch (whenId) {
-    case "weekend":  { const ds = now.getDay(); return fmt(add(ds === 6 ? 7 : 6 - ds)); }
-    case "nextweek":  return fmt(add(7));
-    case "twoweeks":  return fmt(add(14));
-    case "month":     return fmt(add(21));
-    case "nextmonth": return fmt(add(35));
-    case "60days":    return fmt(add(50));
-    case "90days":    return fmt(add(75));
-    case "winter":    return fmt(new Date(now.getFullYear() + (now.getMonth() >= 11 ? 1 : 0), 11, 20));
-    case "spring":    return fmt(new Date(now.getFullYear() + (now.getMonth() >= 3 ? 1 : 0), 3, 1));
-    case "summer":    return fmt(new Date(now.getFullYear() + (now.getMonth() >= 7 ? 1 : 0), 6, 1));
-    case "fall":      return fmt(new Date(now.getFullYear() + (now.getMonth() >= 9 ? 1 : 0), 9, 1));
-    default:          return fmt(add(14)); // "anytime" → default 2 weeks
+    case "weekend":  return upcomingFri();
+    case "nextweek": return upcomingFri();   // alias — both mean "this/next Fri"
+    case "anytime":  return upcomingFri();
+    default:         return upcomingFri();   // unknown ids fall back to upcoming Fri
   }
 }
 // Travelpayouts affiliate marker — replace with your marker from tp.media dashboard
