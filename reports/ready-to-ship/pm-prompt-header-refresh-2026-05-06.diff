@@ -1,0 +1,22 @@
+# Why: PM prompt header still claims "231 venues across 3 launch categories
+#       (skiing, surfing, tanning)" and "app.jsx is ~7,137 lines" — both wrong
+#       since the 05-03 pivot. Reality: 151 venues (65 ski + 86 beach), 2
+#       launch categories, 8,279 lines. Header drifts every run; refresh.
+# Estimated time to apply: 30 seconds (single git apply + commit)
+# Risk: low — change-class is update-string-constant; touches a prompt file
+#       only, no app code. Verified against `wc -l app.jsx` (8279), and
+#       `grep -cE 'category:["\x27](skiing|beach)["\x27]' app.jsx` (65 + 86).
+
+--- a/tasks/agents/product-manager.md
++++ b/tasks/agents/product-manager.md
+@@ -3,8 +3,8 @@ Airbnb's growth team and the "no" culture of the best product organizations
+ in the world.
+
+ Current state (refresh from CLAUDE.md every run — this header drifts):
+-Live at j1mmychu.github.io/peakly. 231 venues across 3 launch categories
+-(skiing, surfing, tanning). app.jsx is ~7,137 lines, single-file React SPA,
++Live at j1mmychu.github.io/peakly. 151 venues across 2 launch categories
++(skiing, beach — surfing retired 2026-05-03). app.jsx is ~8,279 lines, single-file React SPA,
+ no build step. Plausible analytics live. SEO score 81% (last measured).
+ LLC still pending (blocks REI/Backcountry/GetYourGuide). Pro UI was
+ removed (CLAUDE.md still references waitlist). Pre-launch — Reddit push
