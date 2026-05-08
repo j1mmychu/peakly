@@ -22,7 +22,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260504j, push + caching)
+├── sw.js                    # Service worker (peakly-20260507c, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
@@ -84,12 +84,15 @@ Trips and Wishlists deferred until 1K users — keep nav lean.
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None | Wave height, swell |
 | Travelpayouts (via VPS proxy) | `peakly-api.duckdns.org/api/flights` | Server-side token | "from $X" pricing |
 | Aviasales | Deep links with exact dates | N/A | Flight booking |
+| Supabase | `wsoqcfwkvvemtlddcgfc.supabase.co` | Anon key (public-safe, RLS-gated) | Cloud sync + magic-link auth + shared_lists |
 
 **Travelpayouts token is server-side only.** Never put it in client code.
 
 ## Data Storage
 
-All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
+Local-first via localStorage with optional cloud sync via Supabase Postgres (magic-link auth, anon-visitor flow unchanged). Prefix all keys with `peakly_`.
+
+**Cloud sync (live 2026-05-04):** `SYNCED_KEYS` = wishlists / named_lists / alerts / trips / profile only. Caches, error logs, push tokens, install-dismissed flag stay local-only. Last-writer-wins conflict resolution by `server.updated_at`. Supabase project: `wsoqcfwkvvemtlddcgfc.supabase.co`; anon key wired; `CLOUD_SYNC_CONFIGURED = true`. Library lazy-loaded (~80KB gzipped) — only fetches when there's an existing session, magic-link callback, or user taps Sign in.
 
 | Key | Contents |
 |-----|----------|
@@ -138,20 +141,32 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-05-04)
+## Current State (2026-05-06)
 
 ### What's Broken / Open (Priority Order)
 
 1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
 2. ~~**Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).~~ **DONE 2026-05-04** — Revenue agent flipped to `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704; merged via a9aacf5. Day-25 finding finally closed.
 3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
-4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04** — Cervinia + Val d'Isere s16 carry the flag (app.jsx:412, :486). Note: 7 of the venues called out in PM report (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
+4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04 (expanded through 2026-05-05)** — 7 venues now carry the flag (app.jsx:397, :413, :424, :445, :449, :523, :525): Whistler-area (line 397), Chamonix-area (:413), Mammoth, Tignes/Val d'Isère, Cervinia, Val d'Isère s16, Chamonix Mont-Blanc s18. Note: 7 of the venues called out in earlier PM reports (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
 5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
 6. ~~**Travelpayouts weekend-specific dates not wired**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — `proxy.js` now accepts `depart_date`/`return_date`; client `fetchTravelpayoutsPrice` passes upcoming Fri date via `upcomingFridayISO()`. Backward-compatible (no-args → legacy month-cheapest). Jack must SSH to 198.199.80.21, `cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` (or `npm install` if deps changed — they didn't this round).
 7. ~~**Open-Meteo weather cache still unbuilt**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — proxy now exposes `/api/weather` + `/api/marine` with shared in-memory 2hr cache + in-flight dedupe. Client `fetchWeather`/`fetchMarine` try proxy first, fall back to direct Open-Meteo. Reddit-spike protection: N simultaneous users hitting the same (lat,lon) trigger 1 upstream call. Same redeploy path as #6.
 8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
 9. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-07 — UX course-correct: spontaneous flight default + filter-aware empty state)
+
+- ✅ **Default `maxFlightHrs` to 6** (app.jsx:7616 + SearchSheet reset) — was `null` = global results from a "spontaneous weekend" app, defeating the brand promise. Power users override via the chip's × or "Clear all." Auto-detect home airport already covers the no-airport case (geolocation fallback → silent bypass at applyFilters). Exceptional venues (`weekendScore >= 95`) still override the cap so a perfect powder day a continent away can surface.
+- ✅ **Filter-aware empty state** (app.jsx ~4327) — heading + sub-copy + CTAs now reflect WHY the grid is empty. `≤Nhr flight` set → "Try ≤8hr" or "Show all flight times" CTA. Specific category → "Show all categories." Any active filter → "Clear all filters" fallback. Old state was a single generic "Nothing great this weekend" + "Set an alert" — silent void on filter-driven empties was a bounce-magnet.
+
+### Recently Fixed (2026-05-04 late evening / 2026-05-05 — Supabase cloud sync LIVE + share-a-list viral loop)
+
+- ✅ **B.4 Supabase cloud sync — magic-link auth, user-valuable subset** (commits ab692d3 + b92f653 + 011b8dc + 028162a) — implements the data-loss problem fix from the audit. `SYNCED_KEYS` = wishlists / named_lists / alerts / trips / profile sync to Supabase Postgres via magic-link auth; caches/error logs/push token/install-dismissed flag stay local-only. Anon-visitor flow unchanged (no nag, no banner). Lazy-loaded Supabase JS UMD (~80KB gzipped) — only loads when there's an existing session, magic-link callback, or user taps "Sign in." `useCloudSync` hook in App root returns `{enabled, status, user, signIn(email), signOut(), syncNow}`. 500ms debounced upsert to `user_data.data` jsonb on every SYNCED_KEY write. Conflict resolution: last-writer-wins by server.updated_at. ProfileSyncSection (email + Send link / Sign out) + SyncStatusPill in Explore header. SUPABASE_URL = `https://wsoqcfwkvvemtlddcgfc.supabase.co` + anon key wired → `CLOUD_SYNC_CONFIGURED = true`. **Live as of 2026-05-04 evening — sync UI now visible to all users.** Plausible logging: `cloud_sync` events.
+- ✅ **B.8 Share-a-list viral loop** (commit d8560a1) — `shareList()` snapshots a named list to Supabase `shared_lists` with 8-char URL-safe slug; `fetchSharedList()` is public-read with view-count RPC bump. `<SharedListView>` is a full-screen recipient view with sign-in CTA + no nav distractions. `MyListsSection` in Profile gets per-list Share button (sharer must be signed in). `?l=<slug>&r=<owner_id>` URL parser on App mount → `importSharedSnapshot` appends "From a friend: <name>" namedList, writes `profile.referred_by`, strips URL, shows toast. Pending-import in localStorage survives the magic-link tab switch. **REQUIRES SQL DEPLOY before share button works** — see `~/.claude/plans/effervescent-jumping-hopper.md` for the schema + hand-off.
+- ✅ Cache key bumped 20260504j → final state across sw.js / app.jsx / index.html. Brace balance: 4936/4936.
+- ✅ Working tree improvements absorbed: `scoreWeekendDeal()` unified deal score, "Cheap flight + firing weather" carousel, `lateSeason` flags now on Cervinia + Val d'Isère + Chamonix Mont-Blanc.
 
 ### Recently Fixed (2026-05-04 evening — weekend-pricing wire-up + weather proxy + 50/50 deal weight)
 
