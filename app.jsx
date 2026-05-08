@@ -6828,6 +6828,9 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </div>
 
+          {/* Why this score? — opens the black box */}
+          <ScoreBreakdown listing={listing} />
+
           {/* Set Alert CTA */}
           <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
             background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
