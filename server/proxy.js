@@ -728,6 +728,8 @@ app.get('/health', (req, res) => {
     alerts: _alerts.size,
     wx_cache_size: _wxCache.size,
     wx_inflight: _wxInflight.size,
+    poll: _pollStats,
+    apns: _apnsConfigured() ? 'configured' : 'unconfigured',
   });
 });
 
