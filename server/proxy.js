@@ -4,6 +4,7 @@ const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json({ limit: '16kb' }));
