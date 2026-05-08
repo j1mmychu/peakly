@@ -4804,7 +4804,12 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       else logEvent("alert_register_failed", { alertId: alertData.id, error: j?.error || "unknown" });
     }).catch(e => logEvent("alert_register_error", { message: String(e?.message || e) }));
   };
-  const delAlert  = id => setUserAlerts(p => p.filter(a => a.id !== id));
+  const delAlert  = id => {
+    setUserAlerts(p => p.filter(a => a.id !== id));
+    // Mirror deletion on server (fire-and-forget) so polling stops + push won't fire stale
+    fetch(`https://peakly-api.duckdns.org/api/alerts/${encodeURIComponent(String(id))}`, { method: "DELETE" })
+      .catch(() => {});
+  };
 
   // ── add alert sheet ────────────────────────────────────────────────────────
   if (adding) return (
