@@ -1,0 +1,22 @@
+# Why: Amazon gear gate sits at app.jsx:5683 with `{false && GEAR_ITEMS...}`.
+# CLAUDE.md lists this as open-issue #2 and the revenue table notes "+82% RPM
+# with gear gate flipped" (~$11/mo per 1K MAU left on the floor). Open since
+# 2026-04-10 (Day 24+). Removing `false && ` falls back to the existing
+# GEAR_ITEMS[listing.category] truthy guard, so categories without gear data
+# still render nothing.
+# Estimated time to apply: 5 seconds
+# Risk: low — change-class is flip-boolean. The right-side guard already
+# filters categories without GEAR_ITEMS entries. Tested mentally against the
+# render path: empty/undefined GEAR_ITEMS[listing.category] short-circuits.
+
+--- a/app.jsx
++++ b/app.jsx
+@@ -5680,7 +5680,7 @@
+           </div>
+
+           {/* 🛍️ Gear — affiliate (hidden for launch, re-enable by changing false to GEAR_ITEMS[listing.category]) */}
+-          {false && GEAR_ITEMS[listing.category] && (
++          {GEAR_ITEMS[listing.category] && (
+             <div style={{ marginBottom:16 }}>
+               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                 <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
