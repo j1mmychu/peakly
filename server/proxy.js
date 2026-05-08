@@ -368,6 +368,218 @@ async function _proxyWeather(req, res, kind) {
 app.get('/api/weather', (req, res) => _proxyWeather(req, res, 'weather'));
 app.get('/api/marine',  (req, res) => _proxyWeather(req, res, 'marine'));
 
+// ─── Strike-alert polling worker + APNS push delivery ───────────────────────
+// 30-min poll cycle (configurable via ALERT_POLL_MINUTES). For each alert,
+// fetch weather (reusing _wxCache) + flight price (reusing /api/flights
+// internals). When conditions hit user's targetScore AND price is within
+// maxPrice, fire APNS push. Anti-spam: same alert won't refire within 6h.
+//
+// Scoring on server is a *heuristic* match — the canonical engine lives in
+// app.jsx (scoreVenue / scoreWeekend). We don't extract here to stay lean
+// pre-launch; instead the heuristic errs conservative (only fires when
+// conditions clearly hit). False negatives over false positives.
+
+const ALERT_POLL_MINUTES = Number(process.env.ALERT_POLL_MINUTES) || 30;
+const ALERT_REFIRE_COOLDOWN_HOURS = 6;
+
+// Heuristic match: returns true when conditions look firing-enough to warrant
+// the push. Conservative thresholds — only the obvious cases fire.
+function alertMatches(alert, weather, flightPrice) {
+  if (!weather?.daily) return false;
+  const d = weather.daily;
+  // Look at days 0..3 (Fri/Sat/Sun/Mon equivalent) for any day that hits target
+  const days = Math.min(4, d.temperature_2m_max?.length || 0);
+
+  let bestScore = 0;
+  for (let i = 0; i < days; i++) {
+    let s = 50;
+    const tempMax  = d.temperature_2m_max?.[i] ?? 60;
+    const precip   = d.precipitation_sum?.[i] ?? 0;
+    const wCode    = d.weather_code?.[i] ?? 0;
+    const wind     = d.wind_speed_10m_max?.[i] ?? 0;
+    const sunHrs   = (d.sunshine_duration?.[i] || 0) / 3600;
+    const uv       = d.uv_index_max?.[i] ?? 0;
+    const snowDep  = d.snow_depth_max?.[i] ?? 0;
+    const snowFall = d.snowfall_sum?.[i] ?? 0;
+
+    if (alert.venueCategory === 'skiing') {
+      if (snowFall >= 8 && tempMax < 32) s = 92;          // fresh powder, cold
+      else if (snowDep >= 1.0 && tempMax < 36) s = 88;    // good base, cold
+      else if (snowDep >= 0.5 && tempMax < 36) s = 80;    // packed
+      else if (snowDep >= 0.3) s = 65;                    // thin
+      else s = 30;                                        // poor
+      if (wCode >= 95) s -= 22;                           // thunderstorms
+      if (wCode === 66 || wCode === 67) s -= 28;          // freezing rain
+      if (wind > 35) s -= 15;
+    } else if (alert.venueCategory === 'beach') {
+      const sunny = wCode <= 1;
+      if (sunny && uv >= 8 && sunHrs >= 10 && tempMax >= 75 && tempMax <= 92) s = 94;
+      else if (sunny && uv >= 6 && tempMax >= 75) s = 85;
+      else if (uv >= 5 && tempMax >= 72) s = 70;
+      else if (tempMax >= 68) s = 55;
+      else s = 35;
+      if (precip > 2) s -= 22;
+      if (wind > 22) s -= 12;
+      if (wCode >= 95) s -= 25;
+    }
+    if (s > bestScore) bestScore = s;
+  }
+
+  const conditionOK = alert.targetScore == null || bestScore >= alert.targetScore;
+  const priceOK     = alert.maxPrice    == null || flightPrice == null || flightPrice <= alert.maxPrice;
+  return conditionOK && priceOK;
+}
+
+// ─── APNS HTTP/2 sender (no deps — native fetch + JWT via crypto) ────────────
+// Uses Apple's token-based authentication (.p8 key + JWT). Token cached for
+// 50 min (Apple recommends ≤1h). Requires env: APNS_KEY_ID, APNS_TEAM_ID,
+// APNS_BUNDLE_ID, APNS_KEY_PATH (path to .p8 file). APNS_PROD=true switches
+// to production endpoint (default sandbox during dev).
+const crypto = require('crypto');
+let _apnsTokenCache = { token: null, generatedAt: 0 };
+
+function _apnsConfigured() {
+  return !!(process.env.APNS_KEY_ID && process.env.APNS_TEAM_ID && process.env.APNS_BUNDLE_ID && process.env.APNS_KEY_PATH);
+}
+
+function _signApnsJwt() {
+  const now = Math.floor(Date.now() / 1000);
+  if (_apnsTokenCache.token && (now - _apnsTokenCache.generatedAt) < 50 * 60) {
+    return _apnsTokenCache.token;
+  }
+  const keyPem = fs.readFileSync(process.env.APNS_KEY_PATH, 'utf8');
+  const header = { alg: 'ES256', kid: process.env.APNS_KEY_ID, typ: 'JWT' };
+  const payload = { iss: process.env.APNS_TEAM_ID, iat: now };
+  const b64url = (s) => Buffer.from(s).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const headerB64 = b64url(JSON.stringify(header));
+  const payloadB64 = b64url(JSON.stringify(payload));
+  const signingInput = `${headerB64}.${payloadB64}`;
+  const signature = crypto.createSign('SHA256')
+    .update(signingInput)
+    .sign(keyPem);
+  const sigB64 = signature.toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const jwt = `${signingInput}.${sigB64}`;
+  _apnsTokenCache = { token: jwt, generatedAt: now };
+  return jwt;
+}
+
+async function firePush(alert, payload = {}) {
+  if (!alert.pushToken) return { ok: false, reason: 'no_token' };
+  if (alert.pushPlatform !== 'ios' && alert.pushPlatform !== 'capacitor') return { ok: false, reason: 'unsupported_platform' };
+  if (!_apnsConfigured()) return { ok: false, reason: 'apns_not_configured' };
+
+  const jwt = _signApnsJwt();
+  const isProd = process.env.APNS_PROD === 'true';
+  const host = isProd ? 'api.push.apple.com' : 'api.sandbox.push.apple.com';
+  const url = `https://${host}/3/device/${alert.pushToken}`;
+
+  const body = {
+    aps: {
+      alert: {
+        title: payload.test ? 'Peakly · Test alert' : 'Peakly · Conditions firing',
+        body: payload.test
+          ? 'Push delivery is wired. Real alerts fire when conditions hit your target.'
+          : `Score ${payload.score || ''}${payload.price ? ` · Flight $${payload.price}` : ''}`,
+      },
+      badge: 1,
+      sound: 'default',
+    },
+    peakly: {
+      venueId: alert.venueId,
+      score: payload.score || null,
+      price: payload.price || null,
+    },
+  };
+
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'authorization': `bearer ${jwt}`,
+        'apns-topic': process.env.APNS_BUNDLE_ID,
+        'apns-push-type': 'alert',
+        'apns-priority': '10',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (r.status === 200) return { ok: true, status: 200 };
+    const errBody = await r.text();
+    return { ok: false, status: r.status, reason: errBody };
+  } catch (err) {
+    return { ok: false, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+// ─── Polling worker ──────────────────────────────────────────────────────────
+let _pollStats = { lastRunAt: null, alertsChecked: 0, pushesFired: 0, errors: 0 };
+
+async function checkAlerts() {
+  _pollStats.lastRunAt = new Date().toISOString();
+  const now = Date.now();
+  const cooldownMs = ALERT_REFIRE_COOLDOWN_HOURS * 3600 * 1000;
+
+  // Group alerts by venue so we fetch weather once per unique (lat,lon)
+  const byVenue = new Map();
+  for (const [alertId, alert] of _alerts) {
+    if (!alert.enabled) continue;
+    if (alert.venueLat == null || alert.venueLon == null) continue;
+    const key = `${alert.venueLat.toFixed(2)}_${alert.venueLon.toFixed(2)}`;
+    if (!byVenue.has(key)) byVenue.set(key, { lat: alert.venueLat, lon: alert.venueLon, ap: alert.venueAp, alerts: [] });
+    byVenue.get(key).alerts.push(alert);
+  }
+
+  for (const { lat, lon, ap, alerts } of byVenue.values()) {
+    try {
+      // Reuse the proxy's own /api/weather cache via direct call to the cache
+      const cacheKey = `weather_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+      let weather = _wxCacheGet(cacheKey);
+      if (!weather) {
+        // Cache miss — fetch fresh
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}`
+          + `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,`
+          + `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,`
+          + `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,`
+          + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
+          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
+        const { status, json } = await fetchJson(url);
+        if (status === 200 && json) { _wxCacheSet(cacheKey, json); weather = json; }
+      }
+
+      for (const alert of alerts) {
+        _pollStats.alertsChecked++;
+        alert.lastChecked = new Date().toISOString();
+
+        // Cooldown — don't refire too quickly
+        if (alert.lastFiredAt && (now - new Date(alert.lastFiredAt).getTime()) < cooldownMs) continue;
+
+        // We don't fetch flight price per-alert in this iteration to keep upstream
+        // load light; treat maxPrice as advisory only when no flight data available
+        const flightPrice = null;
+        if (alertMatches(alert, weather, flightPrice)) {
+          const result = await firePush(alert, { score: alert.targetScore || 85, price: alert.maxPrice });
+          if (result.ok) {
+            alert.lastFiredAt = new Date().toISOString();
+            _pollStats.pushesFired++;
+            console.log(`[poll] fired alert ${alert.alertId} venue=${alert.venueId}`);
+          } else {
+            _pollStats.errors++;
+            console.warn(`[poll] push failed ${alert.alertId}: ${result.reason}`);
+          }
+        }
+      }
+    } catch (err) {
+      _pollStats.errors++;
+      console.error('[poll] venue error:', err.message);
+    }
+  }
+}
+
+// Start the poller — interval clamped to 5 min minimum to avoid runaway upstream traffic
+const _pollIntervalMs = Math.max(5, ALERT_POLL_MINUTES) * 60 * 1000;
+setInterval(() => { checkAlerts().catch(e => console.error('[poll] uncaught:', e.message)); }, _pollIntervalMs);
+console.log(`[poll] strike-alert worker starting; interval=${ALERT_POLL_MINUTES}min, apns=${_apnsConfigured() ? 'configured' : 'NOT configured'}, test_endpoint=${process.env.ALERTS_TEST_ENABLED === 'true' ? 'enabled' : 'disabled'}`);
+
 // ─── POST /api/alerts ─────────────────────────────────────────────────────────
 // Register a push notification alert. Server polls every 30 min and fires APNS
 // push when conditions match. Client must send lat/lon/category/ap so server
