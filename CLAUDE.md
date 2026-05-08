@@ -156,6 +156,15 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 9. ~~**Strike alerts server polling**~~ **CODE DONE 2026-05-07, AWAITING APNS .p8 + VPS REDEPLOY** — proxy.js now has 30-min polling worker, conservative heuristic matcher, native APNS sender (HTTP/2 + JWT via crypto, no deps). Client posts pushToken + venue lat/lon to `/api/alerts`. Test-fire endpoint guarded by `ALERTS_TEST_ENABLED=true` for App Store review. Setup runbook: `peakly-native/PUSH_SETUP.md`. Persistence still in-memory (Phase 2C deferred to v2 — see plan). Required env: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH`, `APNS_PROD=true`.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 
+### Recently Fixed (2026-05-07 evening — Phase 2: Strike alerts production-ready)
+
+- ✅ **Polling worker + APNS push delivery** (server/proxy.js) — `setInterval(checkAlerts, 30min)`, configurable via `ALERT_POLL_MINUTES` env (min 5min). Groups alerts by venue lat/lon to dedupe upstream weather fetches (reuses `_wxCache`). 6h refire cooldown per alert. Native APNS sender via HTTP/2 fetch + JWT-signed-with-`crypto` (no `node-apn` dep). `/health` exposes poll stats + APNS status.
+- ✅ **alertMatches heuristic** (proxy.js ~388) — conservative server-side condition match. Ski: snow depth + temp; Beach: UV + sun + temp + precip. Errs toward false negatives over false positives — push only when conditions clearly hit. Canonical client engine (`scoreVenue`) stays untouched; drift accepted as scope cost (revisit if alerts feel too quiet post-launch).
+- ✅ **pushToken → server linkage** (app.jsx `addAlert`) — fire-and-forget POST to `/api/alerts` with venueLat/Lon/ap/category + Capacitor pushToken from localStorage. `delAlert` mirrors DELETE. Web users (no native push) skip server registration cleanly. Plausible events: `alert_registered_server`, `alert_register_failed`, `alert_register_error`.
+- ✅ **Test-fire endpoint** (`POST /api/alerts/:id/test`, guarded by `ALERTS_TEST_ENABLED=true`) — App Store reviewers + dev can verify push delivery without waiting for natural poll cycle.
+- ✅ **PUSH_SETUP.md runbook** (peakly-native/) — full Apple Dev console + .p8 key + VPS env steps + reviewer notes for App Store submission. Persistence (Supabase migration) deferred to v2; runbook calls out the limitation.
+- ✅ Cache key 20260507d → 20260507e.
+
 ### Recently Fixed (2026-05-07 PM — Phase 1: 7-day commitment + Why-this-score expander)
 
 - ✅ **`<ScoreBreakdown>` component** (app.jsx ~6508, before VenueDetailSheet) — collapsible "Why this score?" panel inside the detail sheet. Renders Conditions / Price / Confidence rows + Verdict, mirroring `scoreWeekendDeal`'s 50/50 weighted math. Three states: live deal (full breakdown), estimate price ("flight pricing isn't live yet"), low confidence ("Beyond reliable forecast"). Score was a black box → trust erodes; now it's auditable per-row. ScoreRow helper kept inline.
