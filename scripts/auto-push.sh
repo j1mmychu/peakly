@@ -11,8 +11,13 @@ set -euo pipefail
 REPO=/Users/haydenb/peakly
 cd "$REPO"
 
-# Bail if not inside the peakly working tree (some other Claude session)
-if [ "$(git rev-parse --show-toplevel)" != "$REPO" ]; then exit 0; fi
+# Bail if not inside the peakly working tree (some other Claude session).
+# Compare resolved real paths — /Users/haydenb/peakly is a symlink into
+# ~/Library/Application Support/Claude/... and `git rev-parse` returns the
+# real path, not the symlink.
+REPO_REAL=$(cd "$REPO" && pwd -P)
+GIT_TOP_REAL=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ "$GIT_TOP_REAL" != "$REPO_REAL" ]; then exit 0; fi
 
 # Acquire a short lock so simultaneous Edit calls don't race.
 LOCK="$REPO/.git/.auto-push.lock"

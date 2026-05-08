@@ -131,4 +131,4 @@ fi
 
 echo
 hr
-echo "${DIM}refresh: bash scripts/status.sh   ·   live tail: tail -f /tmp/peakly-auto-push.log${RESET}"
+echo "${DIM}refresh: bash scripts/status.sh   ·   live tail: tail -f /tmp/peakly-auto-push.log   ·   v1${RESET}"
