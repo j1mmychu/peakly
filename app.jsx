@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260507b";
+const PEAKLY_BUILD = "20260507c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2943,7 +2943,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:6, startDate:"", endDate:"" })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -4324,30 +4324,58 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                     ? <CompactCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                     : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
                 )
-              : (
-                <div style={{ gridColumn:"1/-1", padding:"40px 20px", textAlign:"center" }}>
-                  <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
-                  <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>Nothing great this weekend</div>
-                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:6, lineHeight:1.5 }}>
-                    {heroPick
-                      ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
-                      : "Conditions are quiet across the board right now."}
-                  </div>
-                  <div style={{ fontSize:13, color:"#0284c7", fontFamily:F, fontWeight:700, marginBottom:16 }}>
-                    Set an alert and we'll text you when it's time.
-                  </div>
-                  <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-                    <button onClick={onViewAlerts} className="pressable" style={{
-                      background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
-                      color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                    }}>Set an alert</button>
-                    <button onClick={() => setActiveCat("all")} className="pressable" style={{
-                      background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
-                      color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                    }}>Show all</button>
-                  </div>
-                </div>
-              )
+              : (() => {
+                  // Filter-aware empty state: tell the user WHY they're seeing
+                  // nothing. Most empty results are filter-driven (≤Nhr flight,
+                  // tight category, off-season) — silent void = bounce. Each
+                  // CTA undoes the most likely cause without nuking the rest.
+                  const hasFlightCap = !!filters.maxFlightHrs;
+                  const hasPriceCap = filters.maxPrice < 2000;
+                  const onSpecificCat = activeCat !== "all";
+                  const heading = (hasFlightCap || hasPriceCap || onSpecificCat || search.skiPass)
+                    ? "No matches with these filters"
+                    : "Nothing great this weekend";
+                  const sub = hasFlightCap
+                    ? `Nothing within ${filters.maxFlightHrs} hours from ${profile?.homeAirport || "your airport"}. Try expanding your range.`
+                    : onSpecificCat
+                      ? `Quiet for ${catLabel.toLowerCase()} this weekend. Other categories may be firing.`
+                      : heroPick
+                        ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
+                        : "Conditions are quiet across the board right now.";
+                  return (
+                    <div style={{ gridColumn:"1/-1", padding:"40px 20px", textAlign:"center" }}>
+                      <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
+                      <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>{heading}</div>
+                      <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:16, lineHeight:1.5 }}>{sub}</div>
+                      <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+                        {hasFlightCap && (
+                          <button onClick={() => setFilters(f => ({...f, maxFlightHrs: f.maxFlightHrs >= 8 ? null : 8}))} className="pressable" style={{
+                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                          }}>{filters.maxFlightHrs >= 8 ? "Show all flight times" : "Try ≤ 8hr flights"}</button>
+                        )}
+                        {!hasFlightCap && onSpecificCat && (
+                          <button onClick={() => setActiveCat("all")} className="pressable" style={{
+                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                          }}>Show all categories</button>
+                        )}
+                        {!hasFlightCap && !onSpecificCat && (
+                          <button onClick={onViewAlerts} className="pressable" style={{
+                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                          }}>Set an alert</button>
+                        )}
+                        {hasActiveFilters && (
+                          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
+                            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
+                            color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                          }}>Clear all filters</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
           }
         </div>
         {/* Show more button */}
@@ -7611,7 +7639,10 @@ function App() {
   const [loading,      setLoading]      = useState(true);
   const [duffelPrices, setDuffelPrices] = useState({});
   const [flightsLoading, setFlightsLoading] = useState(true);
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:null, startDate:"", endDate:"" });
+  // Default ≤6hr flight: aligns "spontaneous weekend" with realistic flight
+  // times. Globe-spanning results from a "this weekend" app defeat the brand
+  // promise. Power users override via the chip's × button or Clear all.
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:6, startDate:"", endDate:"" });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
