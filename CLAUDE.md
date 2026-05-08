@@ -22,7 +22,7 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260507c, push + caching)
+├── sw.js                    # Service worker (peakly-20260507d, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
