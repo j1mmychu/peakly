@@ -2828,19 +2828,14 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 }
 
 // ─── search sheet ─────────────────────────────────────────────────────────────
+// 7-day forecast is the product, not a limit. Options >7 days out were dropped
+// 2026-05-07 — we never sell certainty we don't have. "Anytime" defaults to
+// the upcoming Fri (same as "This weekend") since the only horizon we can
+// honestly score is the next 7 days.
 const WHEN_OPTIONS = [
-  { id:"anytime",    label:"Any time" },
   { id:"weekend",    label:"This weekend" },
-  { id:"nextweek",   label:"Next week" },
-  { id:"twoweeks",   label:"In 2 weeks" },
-  { id:"month",      label:"This month" },
-  { id:"nextmonth",  label:"Next month" },
-  { id:"60days",     label:"Next 60 days" },
-  { id:"90days",     label:"Next 90 days" },
-  { id:"winter",     label:"Winter" },
-  { id:"spring",     label:"Spring" },
-  { id:"summer",     label:"Summer" },
-  { id:"fall",       label:"Fall" },
+  { id:"nextweek",   label:"Next 7 days" },
+  { id:"anytime",    label:"Any time" },
 ];
 
 function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, setFilters, wishlists, onToggle, onOpenDetail }) {
