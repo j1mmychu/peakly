@@ -1,7 +1,7 @@
 {
   "name": "Peakly — Adventure When Conditions Align",
   "short_name": "Peakly",
-  "description": "Find surf, ski & adventure spots with perfect conditions and cheap flights.",
+  "description": "Find ski & beach spots when this weekend's forecast and cheap flights align. 7-day forecast horizon — we only recommend weekends we can stand behind.",
   "start_url": "/peakly/",
   "scope": "/peakly/",
   "display": "standalone",

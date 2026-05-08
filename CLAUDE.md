@@ -4,12 +4,13 @@
 
 ## Project Overview
 
-Peakly is a **single-file React SPA** for discovering surf, ski, and beach spots when conditions and cheap flights align. It runs entirely in the browser with no build step — React and Babel are loaded via CDN and JSX is transpiled client-side.
+Peakly is a **single-file React SPA** for finding the best ski or beach spot to fly to **this weekend**. It runs entirely in the browser with no build step — React and Babel are loaded via CDN and JSX is transpiled client-side.
 
 - **Live:** https://j1mmychu.github.io/peakly/
 - **Goal:** 100K+ downloads. Steve Jobs-level quality.
 - **Owner:** Jack (jjciluzzi@gmail.com)
-- **Top 3 categories at launch:** Surfing, Ski/Board, Beach. Other categories (climbing, MTB, hiking, kayak, dive, yoga, wellness) still scored but deprioritized.
+- **Categories at launch (post-2026-05-03 pivot):** Skiing and Beach only. Surfing was retired; other categories (climbing, MTB, hiking, kayak, dive, yoga, wellness) were never re-enabled.
+- **Front page:** Locks to a Fri–Mon weekend window — `scoreWeekend` returns best-2-of-4 with confidence flag. Per-day `scoreVenue` powers the detail-sheet 7-day view.
 
 ## Architecture
 
@@ -21,15 +22,20 @@ peakly/
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260412a, push + caching)
+├── sw.js                    # Service worker (peakly-20260507e, push + caching)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
 ├── .github/workflows/deploy.yml  # Pages auto-deploy on push to main+master
 ├── server/                  # Node.js VPS proxy source (Travelpayouts + alerts)
 ├── peakly-native/           # Capacitor native project files
-├── tasks/agents/            # Agent prompts (4 active, 10 paused)
-└── reports/                 # Daily agent reports (older >7d in reports/archive/)
+├── tasks/agents/            # 5 input agents + daily-briefing (canonical prompts)
+└── reports/
+    ├── briefings/           # ONE file/day from daily-briefing agent — read this first
+    ├── inputs/              # Raw daily reports from the 5 input agents (5 files/day)
+    ├── ready-to-ship/       # Sub-15-min diffs the agents prepared for paste
+    ├── known-skipped.md     # Findings the agents agreed to stop reporting
+    └── archive/             # >7-day-old reports
 ```
 
 **No build step.** Babel Standalone transpiles JSX in the browser at runtime. No webpack, no Vite, no bundler, no ES module imports.
@@ -53,9 +59,9 @@ peakly/
 
 1. Error monitoring & crash detection (~lines 1–66)
 2. CSS injection (~lines 68–136)
-3. Constants & data (~lines 138–950): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (231), `AVATAR_COLORS`, weather code maps
-4. Utility functions (~lines 950–1100): `useLocalStorage`, `fetchWeather`, `fetchMarine`, `fetchTravelpayoutsPrice`, `scoreVenue`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
-5. UI components (~lines 1100–4900)
+3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (~154), `AVATAR_COLORS`, weather code maps
+4. Utility functions (~lines 860–1260): `useLocalStorage` (with tanning→beach migration), `fetchWeather`, `fetchMarine` (beach water-temp only), `fetchTravelpayoutsPrice`, `scoreVenue` (per-day), `scoreWeekend` (Fri–Mon window — front page), `weekendDayIndices`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
+5. UI components (~lines 1260–4900)
 6. App root + `ErrorBoundary` (~lines 4900–end)
 
 ### Tabs (3 visible, 5 built)
@@ -78,12 +84,15 @@ Trips and Wishlists deferred until 1K users — keep nav lean.
 | Open-Meteo Marine | `marine-api.open-meteo.com/v1/marine` | None | Wave height, swell |
 | Travelpayouts (via VPS proxy) | `peakly-api.duckdns.org/api/flights` | Server-side token | "from $X" pricing |
 | Aviasales | Deep links with exact dates | N/A | Flight booking |
+| Supabase | `wsoqcfwkvvemtlddcgfc.supabase.co` | Anon key (public-safe, RLS-gated) | Cloud sync + magic-link auth + shared_lists |
 
 **Travelpayouts token is server-side only.** Never put it in client code.
 
 ## Data Storage
 
-All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
+Local-first via localStorage with optional cloud sync via Supabase Postgres (magic-link auth, anon-visitor flow unchanged). Prefix all keys with `peakly_`.
+
+**Cloud sync (live 2026-05-04):** `SYNCED_KEYS` = wishlists / named_lists / alerts / trips / profile only. Caches, error logs, push tokens, install-dismissed flag stay local-only. Last-writer-wins conflict resolution by `server.updated_at`. Supabase project: `wsoqcfwkvvemtlddcgfc.supabase.co`; anon key wired; `CLOUD_SYNC_CONFIGURED = true`. Library lazy-loaded (~80KB gzipped) — only fetches when there's an existing session, magic-link callback, or user taps Sign in.
 
 | Key | Contents |
 |-----|----------|
@@ -109,7 +118,14 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 
 ### Scoring
 
-`scoreVenue(venue, weather, marine, dayIndex)` returns a real-time score per category. Frozen until post-Reddit launch (PM v16, 2026-03-27). Do not modify the scoring algorithm without explicit approval.
+Two entry points:
+
+- **`scoreWeekend(venue, wx, marine, todayDate)`** — front-page entry. Computes best 2 consecutive days within the Fri–Mon weekend window. Returns `{score, label, period, days, confidence}`. `confidence` is `high` (window all within day 0–4 forecast), `medium` (max day 5), or `low` (max day 6+ — front page filters this out so the product doesn't sell uncertain weekends as GO).
+- **`scoreVenue(venue, weather, marine, dayIndex)`** — per-day engine, used by the detail sheet's 7-day view and called internally by `scoreWeekend`.
+
+Scoring is no longer frozen — the 2026-05-03 pivot unlocked it. Do not modify scoring without an algorithm critique (see `~/.claude/plans/effervescent-jumping-hopper.md` for the most recent six-hole audit).
+
+Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in VENUES (Whistler, Tignes, Mammoth, Chamonix, etc.) bypass the off-season binary cap when `snow_depth_max >= 0.5m`. Beach venues marked `poolPrimary: true` skip the water-temp <18°C hard cap.
 
 ## Important Notes for AI Assistants
 
@@ -121,17 +137,115 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 6. **Travelpayouts token off the client** — always via VPS proxy.
 7. **Mobile-first** — safe area insets matter.
 8. **Test in browser** after changes — check console for Babel parse errors.
-9. **Venue data is hardcoded** — `VENUES` array has **229 entries** (3 launch categories only: skiing, surfing, tanning). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL.
+9. **Venue data is hardcoded** — `VENUES` array has **~154 entries** (2 launch categories: skiing and beach; surfing retired 2026-05-03). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL. Marine API only fetched for beach venues (water temp only).
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-04-14)
+## Current State (2026-05-06)
 
 ### What's Broken / Open (Priority Order)
 
-1. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
-2. **Strike alerts server polling** — `/api/alerts` endpoint registers, but no background worker reads `_alerts` Map and fires push when venue hits target.
-3. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
+2. ~~**Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).~~ **DONE 2026-05-04** — Revenue agent flipped to `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704; merged via a9aacf5. Day-25 finding finally closed.
+3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
+4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04 (expanded through 2026-05-05)** — 7 venues now carry the flag (app.jsx:397, :413, :424, :445, :449, :523, :525): Whistler-area (line 397), Chamonix-area (:413), Mammoth, Tignes/Val d'Isère, Cervinia, Val d'Isère s16, Chamonix Mont-Blanc s18. Note: 7 of the venues called out in earlier PM reports (Zermatt, Saas-Fee, Hintertux, Val Thorens, Verbier, Stelvio, Les Deux Alpes) don't exist in VENUES — were a planned batch that never landed. Decide if they're in launch scope before re-flagging.
+5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
+6. ~~**Travelpayouts weekend-specific dates not wired**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — `proxy.js` now accepts `depart_date`/`return_date`; client `fetchTravelpayoutsPrice` passes upcoming Fri date via `upcomingFridayISO()`. Backward-compatible (no-args → legacy month-cheapest). Jack must SSH to 198.199.80.21, `cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` (or `npm install` if deps changed — they didn't this round).
+7. ~~**Open-Meteo weather cache still unbuilt**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — proxy now exposes `/api/weather` + `/api/marine` with shared in-memory 2hr cache + in-flight dedupe. Client `fetchWeather`/`fetchMarine` try proxy first, fall back to direct Open-Meteo. Reddit-spike protection: N simultaneous users hitting the same (lat,lon) trigger 1 upstream call. Same redeploy path as #6.
+8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
+9. ~~**Strike alerts server polling**~~ **CODE DONE 2026-05-07, AWAITING APNS .p8 + VPS REDEPLOY** — proxy.js now has 30-min polling worker, conservative heuristic matcher, native APNS sender (HTTP/2 + JWT via crypto, no deps). Client posts pushToken + venue lat/lon to `/api/alerts`. Test-fire endpoint guarded by `ALERTS_TEST_ENABLED=true` for App Store review. Setup runbook: `peakly-native/PUSH_SETUP.md`. Persistence still in-memory (Phase 2C deferred to v2 — see plan). Required env: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH`, `APNS_PROD=true`.
+10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+
+### Recently Fixed (2026-05-07 evening — Phase 2: Strike alerts production-ready)
+
+- ✅ **Polling worker + APNS push delivery** (server/proxy.js) — `setInterval(checkAlerts, 30min)`, configurable via `ALERT_POLL_MINUTES` env (min 5min). Groups alerts by venue lat/lon to dedupe upstream weather fetches (reuses `_wxCache`). 6h refire cooldown per alert. Native APNS sender via HTTP/2 fetch + JWT-signed-with-`crypto` (no `node-apn` dep). `/health` exposes poll stats + APNS status.
+- ✅ **alertMatches heuristic** (proxy.js ~388) — conservative server-side condition match. Ski: snow depth + temp; Beach: UV + sun + temp + precip. Errs toward false negatives over false positives — push only when conditions clearly hit. Canonical client engine (`scoreVenue`) stays untouched; drift accepted as scope cost (revisit if alerts feel too quiet post-launch).
+- ✅ **pushToken → server linkage** (app.jsx `addAlert`) — fire-and-forget POST to `/api/alerts` with venueLat/Lon/ap/category + Capacitor pushToken from localStorage. `delAlert` mirrors DELETE. Web users (no native push) skip server registration cleanly. Plausible events: `alert_registered_server`, `alert_register_failed`, `alert_register_error`.
+- ✅ **Test-fire endpoint** (`POST /api/alerts/:id/test`, guarded by `ALERTS_TEST_ENABLED=true`) — App Store reviewers + dev can verify push delivery without waiting for natural poll cycle.
+- ✅ **PUSH_SETUP.md runbook** (peakly-native/) — full Apple Dev console + .p8 key + VPS env steps + reviewer notes for App Store submission. Persistence (Supabase migration) deferred to v2; runbook calls out the limitation.
+- ✅ Cache key 20260507d → 20260507e.
+
+### Recently Fixed (2026-05-07 PM — Phase 1: 7-day commitment + Why-this-score expander)
+
+- ✅ **`<ScoreBreakdown>` component** (app.jsx ~6508, before VenueDetailSheet) — collapsible "Why this score?" panel inside the detail sheet. Renders Conditions / Price / Confidence rows + Verdict, mirroring `scoreWeekendDeal`'s 50/50 weighted math. Three states: live deal (full breakdown), estimate price ("flight pricing isn't live yet"), low confidence ("Beyond reliable forecast"). Score was a black box → trust erodes; now it's auditable per-row. ScoreRow helper kept inline.
+- ✅ **7-day window commitment** (app.jsx `getFlightDate` ~1652 + `WHEN_OPTIONS` ~2828) — stripped `twoweeks/month/nextmonth/60days/90days/winter/spring/summer/fall`. Default = upcoming Friday. WHEN_OPTIONS now: "This weekend / Next 7 days / Anytime" — all collapse to upcoming Fri because that's the only horizon Open-Meteo can honestly back. `scoreWeekendDeal` low-confidence return now sets `label: "Beyond 7-day window"` so the UI explains the absence rather than silently dropping the venue.
+- ✅ **Vision + copy alignment** (CLAUDE.md, README.md, manifest.json) — vision now reads "7-day window is the product, not a limit." Hotels formally deferred to v2 in the principles list. README + manifest description tightened to call out the 7-day horizon.
+
+### Recently Fixed (2026-05-07 — UX course-correct: spontaneous flight default + filter-aware empty state)
+
+- ✅ **Default `maxFlightHrs` to 6** (app.jsx:7616 + SearchSheet reset) — was `null` = global results from a "spontaneous weekend" app, defeating the brand promise. Power users override via the chip's × or "Clear all." Auto-detect home airport already covers the no-airport case (geolocation fallback → silent bypass at applyFilters). Exceptional venues (`weekendScore >= 95`) still override the cap so a perfect powder day a continent away can surface.
+- ✅ **Filter-aware empty state** (app.jsx ~4327) — heading + sub-copy + CTAs now reflect WHY the grid is empty. `≤Nhr flight` set → "Try ≤8hr" or "Show all flight times" CTA. Specific category → "Show all categories." Any active filter → "Clear all filters" fallback. Old state was a single generic "Nothing great this weekend" + "Set an alert" — silent void on filter-driven empties was a bounce-magnet.
+
+### Recently Fixed (2026-05-04 late evening / 2026-05-05 — Supabase cloud sync LIVE + share-a-list viral loop)
+
+- ✅ **B.4 Supabase cloud sync — magic-link auth, user-valuable subset** (commits ab692d3 + b92f653 + 011b8dc + 028162a) — implements the data-loss problem fix from the audit. `SYNCED_KEYS` = wishlists / named_lists / alerts / trips / profile sync to Supabase Postgres via magic-link auth; caches/error logs/push token/install-dismissed flag stay local-only. Anon-visitor flow unchanged (no nag, no banner). Lazy-loaded Supabase JS UMD (~80KB gzipped) — only loads when there's an existing session, magic-link callback, or user taps "Sign in." `useCloudSync` hook in App root returns `{enabled, status, user, signIn(email), signOut(), syncNow}`. 500ms debounced upsert to `user_data.data` jsonb on every SYNCED_KEY write. Conflict resolution: last-writer-wins by server.updated_at. ProfileSyncSection (email + Send link / Sign out) + SyncStatusPill in Explore header. SUPABASE_URL = `https://wsoqcfwkvvemtlddcgfc.supabase.co` + anon key wired → `CLOUD_SYNC_CONFIGURED = true`. **Live as of 2026-05-04 evening — sync UI now visible to all users.** Plausible logging: `cloud_sync` events.
+- ✅ **B.8 Share-a-list viral loop** (commit d8560a1) — `shareList()` snapshots a named list to Supabase `shared_lists` with 8-char URL-safe slug; `fetchSharedList()` is public-read with view-count RPC bump. `<SharedListView>` is a full-screen recipient view with sign-in CTA + no nav distractions. `MyListsSection` in Profile gets per-list Share button (sharer must be signed in). `?l=<slug>&r=<owner_id>` URL parser on App mount → `importSharedSnapshot` appends "From a friend: <name>" namedList, writes `profile.referred_by`, strips URL, shows toast. Pending-import in localStorage survives the magic-link tab switch. **REQUIRES SQL DEPLOY before share button works** — see `~/.claude/plans/effervescent-jumping-hopper.md` for the schema + hand-off.
+- ✅ Cache key bumped 20260504j → final state across sw.js / app.jsx / index.html. Brace balance: 4936/4936.
+- ✅ Working tree improvements absorbed: `scoreWeekendDeal()` unified deal score, "Cheap flight + firing weather" carousel, `lateSeason` flags now on Cervinia + Val d'Isère + Chamonix Mont-Blanc.
+
+### Recently Fixed (2026-05-04 evening — weekend-pricing wire-up + weather proxy + 50/50 deal weight)
+
+- ✅ **Travelpayouts weekend-specific dates** (proxy.js + client) — `proxy.js` `/api/flights` accepts optional `depart_date`/`return_date` (YYYY-MM-DD), filters month-matrix to exact-date matches, returns single weekend-specific price. Client `fetchTravelpayoutsPrice(origin, dest, departDate, returnDate?)` + new `upcomingFridayISO(today)` helper threads upcoming Fri through the App-level price-fetch effect. Cache key includes departDate so different weekends don't collide. Backward-compatible: omitted args → legacy month-cheapest. **Awaiting VPS redeploy on 198.199.80.21.**
+- ✅ **Open-Meteo proxy with shared cache** (proxy.js + client) — new `/api/weather` and `/api/marine` endpoints proxy Open-Meteo with shared in-memory 2hr cache (4000-entry LRU) + in-flight dedupe (1000 simultaneous users hitting the same uncached coord = 1 upstream call). Coords rounded to 2 decimals (~1.1km grid) so neighbouring venues share entries. Client `fetchWeather`/`fetchMarine` try proxy first via `_tryProxyWx()` (4s timeout), fall back to direct Open-Meteo if proxy is down or returns non-success. P0 Reddit-spike protection.  **Awaiting VPS redeploy.**
+- ✅ **scoreWeekendDeal weight rebalanced 50/50** — was conditions × 0.65 + clamp(priceBonus, -15..35) × 0.35 → max price impact ~12pts. Now both signals normalized 0-100 (priceNorm linear: ratio 1.0 = 50, 0.5 = 100, 1.5 = 0), `final = conditionsNorm × 0.5 + priceNorm × 0.5`. Price now actually moves the needle. `DEAL_WEIGHT = 0.5` constant — future profile slider can wire to it.
+- ✅ Cache key 20260504h → 20260504j across sw.js + app.jsx + index.html (i was a partial bump). PRECACHE remains [].
+
+### Recently Fixed (2026-05-04 PM — deal-algorithm honesty pass)
+
+- ✅ **Seasonal-aware typical price** (app.jsx:1602 `getSeasonalMultiplier`, :1640 `getTypicalPrice`) — BASE_PRICES is an annual mean. Without seasonality, off-season normal pricing reads as a deal and real off-season deals are masked. Added per-category month bands (skiing N: Dec–Mar peak 1.18×, May–Oct off 0.78×; beach N: Jun–Aug peak 1.16×, Oct–Apr off 0.86×; hemispheres flipped for S). Threaded `today` through `getTypicalPrice` + `getDealScore`. Conservative bands — when in doubt, closer to 1.0.
+- ✅ **Stale flight.foundAt → estimate** (scoreWeekendDeal) — a "live" fare last seen >14 days ago is no longer treated as a real-time deal signal. Demoted to estimate so we don't claim a deal off month-old data the carrier has since repriced.
+- ✅ **Absolute-savings floor on "Strong deal"** (scoreWeekendDeal) — 30% off an $80 LAS fare is $24, not a deal worth the label. Now requires ≥$60 absolute savings (or 8% of typical, whichever higher) before "Strong deal" or "Rare alignment" labels render. Stops cheap-route micro-discounts from gaming the deal sort.
+- ✅ **getPriceVolatility comment fix** — function name is historical and misleading; it measures cross-origin price spread in the static matrix, not temporal volatility. Comment updated to be honest about that.
+- ✅ Cache key + build stamp 20260504g → 20260504h (sw.js, app.jsx, index.html). PRECACHE = [] (regression cleared again).
+
+### Recently Fixed (2026-05-04 — top-3 audit fixes + gear gate + seasonal default)
+
+- ✅ **B.1 Estimate prices labeled with `~`** (commit 3bbe88e) — 8 card-render sites updated. When `flight.live === false`, price renders as `~$X` instead of `$X`. Trust signal so users don't think estimates are real fares.
+- ✅ **B.2 Front-page carousel never goes blank** (commit 3bbe88e) — `bestRightNowFallback` softer floor (weekendScore >= 65, allows low confidence). When primary set has <3 venues, falls back automatically with "Looking ahead" header.
+- ✅ **B.3 PWA install nudge after positive engagement** (commit 3bbe88e) — captured `beforeinstallprompt`, exposed via `useInstallPrompt()` hook. `<InstallNudge>` banner on Explore (shows when ≥2 wishlists saved) + "📲 Install Peakly" button on Profile. iOS Safari auto-hides. Plausible logging: `install_pwa` event.
+- ✅ **Amazon gear gate FLIPPED** (commit a9aacf5) — `{false && GEAR_ITEMS...}` → `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704 (was 5682 in flat code). Day-25 finding from Revenue agent. ~$11/mo/1K MAU unlocked (Amazon Associates `peakly-20`). The findings-to-fix loop officially worked.
+- ✅ **Seasonal-default category** (commit 84f5e30) — new `seasonalDefaultCat(homeAirport)` helper at app.jsx:1652. N. hemisphere: May–Aug → Beach, Nov–Apr → Skiing, Sep–Oct → All. S. hemisphere inverse. App opens to the right pill instead of "All" in peak beach season. Not persisted (always re-applies).
+- ✅ **DevOps 5/4 cache busts + cleanup** (commit 47f12e1) — cache-buster bumped 20260502a → 20260504a (index.html). SW CACHE_NAME bumped peakly-20260503c → peakly-20260504. PRECACHE regression cleared `["/peakly/app.jsx"]` → `[]` (sw.js). PEAKLY_BUILD bumped to 20260504a. 8 stale reports archived.
+- ✅ Cache key + build stamp now at peakly-20260504b / 20260504b after 3bbe88e.
+
+### Recently Fixed (2026-05-03 — pivot + distance filter + surf-leak defense)
+
+- ✅ **Pivot to weekend-spontaneity** (commit bb56aaf) — killed all 77 surfing venues, renamed tanning → beach (102+ sites + 8 unquoted keys), one-shot useLocalStorage migration for existing users with `category: "tanning"`. Marked 5 known late-season ski venues with `lateSeason: true`. Added optional `poolPrimary: true` field. Deleted 136-line surfing case + all surf-specific marine extraction. Beach water-temp HARD CAP at 18°C. Off-season ski binary RELAXED for `lateSeason` venues. NEW `scoreWeekend(venue, wx, marine, today)` front-page entry + `weekendDayIndices(today)` Fri–Mon window helper. Carousel title "Best Right Now" → "Firing this weekend"; floor weekendScore >= 75 AND confidence !== "low". `app.jsx` 7137 → 6984 lines.
+- ✅ **Block C — Within-Nhr-flight distance filter** (commit dc92123) — new `flightHours(originAp, destAp)` helper (haversine + 500mph cruise + 0.5h buffer) using AIRPORT_COORDS. SearchSheet UI adds "Max flight time" chips (Any / ≤4hr / ≤6hr / ≤8hr). Conditions score stays pure 0-100, distance is a filter — exception: `weekendScore >= 95` overrides the cap (perfect powder a continent away still surfaces). Active-filter chip + Clear All updated.
+- ✅ **Surf-leak defense in depth** (commit ce8e1db) — (A) SW auto-reload via `controllerchange` listener so users get fresh code without manual hard-refresh after deploys. (B) `useLocalStorage` migration extended: strips legacy `"surfing"` from arrays + rewrites standalone surfing values to `"skiing"`. (C) "Ski/Board" → "Skiing" in CATEGORIES + onboarding (the "Board" was reading as surfboard). (D) build stamp + cache key bump. Belt + suspenders: Profile sport-badge map + Alert row map both `.filter()` against CATEGORIES.
+- ✅ **Surf-removal stragglers** (commit 9d26e84) — onboarding copy, EMOJIS, swell condition labels, wave fields, marine API checks all cleaned up post-pivot.
+- ✅ **18 days of working-tree drift cleared** (commit 6e964e9) — committed proxy.js dedupe (removed dead duplicate `/api/waitlist` handler) + 5 untracked agent reports.
+- ✅ **Reports archived** (commit 6e964e9) — 73 files older than 7 days moved to `reports/archive/` per the >7d rule.
+- ✅ **Agent channels streamlined** (commit 35e60c2) — 24 remote stubs → 5 live; 14 local prompts → 6. New daily-briefing pipeline. Findings-to-fix loop appended to all 5 input prompts (sub-15-min fixes go to `reports/ready-to-ship/`; two-strikes rule → `reports/known-skipped.md`).
+
+### Recently Fixed (2026-04-15 — proxy cleanup)
+
+- ✅ **Duplicate `require()` in proxy.js** — `fs` and `path` were required twice (lines 5-6 and 232-233). Removed duplicates. No runtime impact.
+
+### Recently Fixed (2026-04-14 — 18 algorithm holes)
+
+**7 holes (commit 4475f3a):**
+- ✅ **Day-index fallback silently used today's data for future days** — `d.X?.[0]` fallback returned Tuesday's weather when asking about Saturday. Replaced with strict `at(arr)` helper returning null when out of range.
+- ✅ **gustFactor false-triggered on calm days** — wind=2 + gusts=5 = ratio 2.5 triggered "erratic gusts" penalty. Now only computes gust factor when wind >= 8mph.
+- ✅ **Windswell-dominant surf scored too high** — windWaveH > 1.5x swellH now hard-caps score at 38; > 0.9x caps at 55.
+- ✅ **bigWaveBreak detection only checked tags** — Pipeline, Jaws, Mavericks missed. Now scans id + title + tags. Added more iconic breaks to regex.
+- ✅ **Wet-snow false powder bonus** — snow > 0 + tempMax > 36°F was slush, not powder. Capped at 75, added "wet/heavy" label.
+- ✅ **Trend awareness added** — fading swell (yesterday > today + tomorrow lower) → "Tail end — last shot" / "Firing but fading — go AM" labels. Ski storm fading also labeled.
+- ✅ **Tanning cloud_cover_max added to fetchWeather** — was never requested. 80%+ cloud → -6, 60%+ → -3, ≤15% bluebird → +2. Fixes inflated scores on grey days with "mainly clear" wCode.
+- ✅ Cache bump 20260412a → 20260414a.
+
+**11 holes (commit 4cd0f6c):**
+- ✅ **Freezing rain (wCode 66/67) treated as regular rain** — now -28 ski penalty + "FREEZING RAIN — DO NOT ski" label.
+- ✅ **Thunderstorms ignored for skiing + surfing** — now: ski -22 (lifts evacuated), surf -30 ("Lightning — out of the water"). Hail gets additional -6 ski penalty.
+- ✅ **Surfing wind direction defaulted to 0 (north) when missing** — computed phantom offshore/onshore against ghost data. Now falls back to speed-only scoring.
+- ✅ **Bluebird powder bonus added** — snow >= 8cm + tempMax < 32°F + sunny (wCode ≤ 1) → +6 "Bluebird powder — perfect day." Was scoring same as overcast powder.
+- ✅ **Fading swell now drops score 5pts** — yesterday 8ft + today 4ft + tomorrow 2ft was getting same score as steady 4ft.
+- ✅ **Snowmaking floor differentiated by season** — peak → 35, shoulder → 25, off-season → 15. Was 35 flat.
+- ✅ **NWS official wind chill formula** — replaces rough `tempMax - wind*0.7`. Old formula overestimated chill and triggered false penalties.
+- ✅ **Tighter beach wind band** — 22mph "umbrella-flipping zone" added between 18 and 25mph thresholds.
+- ✅ **likelyRain detection for beach** — precip < 1mm + precipPct > 70% now penalizes -16. Fixes 0mm/90%-probability scattered showers scored as clear.
+- ✅ **Heavy snow labels visibility warning** — wCode 75/86 surfaces "heavy snow · flat light" label. Score stays high (powder!) but user warned.
+- ✅ Cache bump 20260414a → 20260414b.
 
 ### Recently Fixed (2026-04-12 — 7 algorithm holes)
 
@@ -184,25 +298,69 @@ All client-side localStorage. No backend DB. Prefix all keys with `peakly_`.
 - Google Play Store via PWABuilder/TWA ($25)
 - ListingCard "Book" button Plausible event
 
-## Agent Team (Slim Roster)
+## Agent Team (5 + briefing + token watch)
 
-Reduced from 14 → 4 active agents on 2026-04-10. Reports were filing into the void.
+Streamlined 2026-05-03: 14 local prompts → 5 input agents + 1 briefing.
+24 remote scheduled stubs → 5 live routines (4 daily + briefing + weekly token check).
 
-| Agent | File | Schedule |
-|-------|------|----------|
-| Product Manager | `tasks/agents/product-manager.md` | 9am daily |
-| DevOps | `tasks/agents/devops.md` | 7am daily |
-| UX Designer | `tasks/agents/ux-designer.md` | 11am daily |
-| Revenue | `tasks/agents/revenue.md` | 12pm daily |
+### Daily roster (UTC)
 
-Paused: growth-lead, content-data, executive-briefing, qa-agent, data-enrichment, seo-analytics, competitor-watch, community-agent, code-quality. Re-enable post-launch when there's bandwidth to act on findings.
+| Slot | Agent | Local prompt | Remote routine |
+|------|-------|--------------|----------------|
+| 14:00 | DevOps | `tasks/agents/devops.md` | `peakly-devops` ✅ live |
+| 15:00 | Content & Data | `tasks/agents/content-data.md` | `peakly-content-data` ✅ live |
+| 16:00 | Product Manager | `tasks/agents/product-manager.md` | `peakly-product-manager` ✅ live |
+| 16:30 | Revenue | `tasks/agents/revenue.md` | (local-only — schedule on demand) |
+| 17:00 | UX Designer | `tasks/agents/ux-designer.md` | (local-only — schedule on demand) |
+| 17:30 | Daily Briefing | `tasks/agents/daily-briefing.md` | `peakly-daily-briefing` ⏳ needs scheduling |
 
-**Run any agent on demand:**
+Plus `peakly-token-renewal` weekly (Mondays) — watches the GitHub PAT
+expiring 2026-06-15 and alerts when <14 days remain.
+
+### Source of truth
+
+The local `tasks/agents/<role>.md` file is canonical. Each remote routine's
+`SKILL.md` is a thin shim that `curl`s the canonical prompt from
+`raw.githubusercontent.com/j1mmychu/peakly` so edits to the local prompt
+flow to the next remote run automatically. Don't edit remote SKILL.md
+directly — edit the repo file.
+
+### Output flow
+
+- Input agents write to `reports/inputs/<role>-YYYY-MM-DD.md`
+- Daily briefing reads all of today's inputs + yesterday's briefing,
+  emits one ~50-line digest to `reports/briefings/YYYY-MM-DD.md`
+- Sub-15-min one-line fixes (gear-gate flips, color swaps, etc.) get
+  written as unified diffs to `reports/ready-to-ship/<name>-YYYY-MM-DD.diff`
+  for Jack to `git apply` and commit
+- Findings flagged 3 days running with no action move to
+  `reports/known-skipped.md` and stop being reported (two-strikes rule)
+
+### Run any agent on demand
+
 ```bash
 cd ~/peakly && claude "$(cat tasks/agents/product-manager.md)"
 ```
 
-Reports → `reports/`. Anything older than 7 days → `reports/archive/`.
+Or run the whole daily team locally:
+
+```bash
+bash tasks/agents/run-all.sh
+```
+
+Files older than 7 days in `reports/` → archived to `reports/archive/`.
+
+### What got cut on 2026-05-03
+
+Remote stubs archived to `~/Documents/Claude/Scheduled/_archive_2026-05-03/`
+(19 dirs, none had fired since March): app-health, backup, ci-deploy,
+code-quality, community-agent, competitor-watch, data-enrichment,
+executive-briefing, firewall-vpn, growth-lead, qa-agent, revenue,
+security-audit, seo-analytics, site-uptime, ux-designer, vps-health,
+vps-selfheal, vuln-scan.
+
+Local prompts deleted (8): code-quality, community-agent, competitor-watch,
+data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 
 ## Revenue Model
 
@@ -214,43 +372,46 @@ Reports → `reports/`. Anything older than 7 days → `reports/archive/`.
 | Travelpayouts (HTTPS proxy, TP_MARKER=710303) | LIVE | $0.14 |
 | REI (Avantlink signup pending) | $0 | +$6.16 |
 | Backcountry / GetYourGuide | $0 | +$1.84 |
-| Peakly Pro $79/yr | EMAIL WAITLIST | +$13.17 |
+| Peakly Pro | UI REMOVED 2026-04-16 — decision pending (kill or ship) | TBD |
 
-**Live RPM:** ~$12/month per 1K MAU. **Post-LLC RPM:** ~$33.
+**Live RPM:** ~$11.98/1K MAU (4 of 6 streams earning — gear gate flipped 2026-05-04, Amazon now active). **With GYG partner_id added:** ~$13.66 (+14%).
 
 ## Competitive Edge
 
 | Competitor | Gap |
 |-----------|-----|
-| Surfline | Single sport, no flights |
-| OnTheSnow / OpenSnow | Single sport, no flights |
+| OnTheSnow / OpenSnow | Single sport, no flights, no weekend framing |
 | AllTrails | No conditions, no flights |
 | KAYAK | Conditions-blind |
-| Stormrider Surf | No real-time scoring, no flights, offline-static |
+| Hopper | Flights only, no conditions, no spontaneity framing |
+| Skyscanner | Flights only, no conditions |
 
-**Peakly's angle:** First app combining live conditions + real-time flights + AI vibe search across all adventure sports.
+**Peakly's angle (post-2026-05-03):** The go-to app for a spontaneous **ski or beach weekend** — only product combining live Fri–Mon weather + cheap flights + a confidence flag that admits when the forecast is too uncertain to recommend.
 
 See `CHANGELOG.md` for full competitive intel.
 
 ## Vision (Short)
 
-**"Know when to go."** Surfline tells you the conditions. Peakly tells you when the timing is right.
+**"Where to go this weekend."** OpenSnow tells you the snow. KAYAK tells you the flights. Peakly tells you which weekend window is actually worth booking — and is honest when the forecast can't promise.
 
 **Phased roadmap:**
 1. Ship quality (NOW) — photos, polish, PWA, analytics, 1K users
-2. The Window Score — proprietary single number combining conditions + flights + crowd + trend
-3. Forecast Horizon — best 3-day window across next 60 days for any venue
-4. Strike Missions — rare, opt-in, exceptional alignments
-5. Multi-sport trip optimization
+2. The Weekend Score — proprietary best-2-of-4 score across Fri–Mon with confidence badge (DONE 2026-05-03)
+3. Distance-aware filter — `Within Nhr flight` toggle so spontaneous trips stay actually spontaneous (DONE 2026-05-03 — Block C, commit dc92123; ≥95 weekendScore overrides the cap; 6hr default 2026-05-07)
+4. Live weekend pricing — query Travelpayouts with actual Fri–Mon dates (DONE 2026-05-04, awaiting VPS redeploy)
+5. Strike Alerts — server-side polling worker fires push when conditions hit user's target. Required for App Store review (in progress 2026-05-07)
 6. Group coordination
 7. Crowd intelligence
 
 **Strategic principles:**
-- Niche down before expanding (win surf + ski before broadening)
+- **Niche down before expanding.** Skiing + beach only — surfing retired 2026-05-03 to focus the algorithm and brand.
+- **7-day window is the product, not a limit.** Open-Meteo forecasts 7 days reliably; we don't sell certainty beyond what it can back. WHEN_OPTIONS reduced to "This weekend / Next 7 days / Anytime" 2026-05-07. No 30/60/90-day or seasonal options — they were dead UI promising scores we couldn't honestly produce.
+- **Don't sell certainty you don't have.** Forecast confidence is a first-class signal — `low` confidence weekends never reach the front page; ScoreBreakdown surfaces the reason.
+- **Lean before launch.** Hotels in deal score deferred 2026-05-07 — too much scope; ship flights+conditions first, fold hotels in v2 if user demand validates.
 - FOMO-first content ("the window most people missed")
 - Photos before features
 - PWA + SEO first, native later
-- The Window Score is the moat
+- The Weekend Score is the moat
 
 ## Interaction Rules
 
@@ -267,9 +428,10 @@ See `CHANGELOG.md` for full competitive intel.
 - Do NOT split `app.jsx` into multiple files
 - Do NOT add a build step or bundler
 - Do NOT use ES module imports
-- Do NOT change localStorage key names
+- Do NOT change localStorage key names (the `tanning → beach` rename includes a one-shot useLocalStorage migration; don't add more renames without a migration)
 - Do NOT remove existing functionality
-- Do NOT change the scoring algorithm (frozen until post-Reddit)
+- Do NOT modify scoring without an algorithm critique (the freeze was lifted 2026-05-03 — but lifting it doesn't mean "wing it")
+- Do NOT add a category back without explicit launch-scope decision (surfing was retired with deliberation; resurrecting needs a real product call)
 - Do NOT modify weather/flight API call structure
 - Do NOT add npm dependencies
 - Do NOT over-engineer — every fix is surgical

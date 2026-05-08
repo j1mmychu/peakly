@@ -1,0 +1,106 @@
+# Why: d8560a1 has been unpushed for 3 days. The deploy chain (commit working tree
+#      → run Supabase SQL → push → VPS redeploy → smoke-test) is ~10 min of typing
+#      across 4 systems, which is exactly the friction that's keeping it unshipped.
+#      One paste-and-go script collapses it. Per pm-2026-05-06 commitment: file as
+#      Rule-1 meta-rule exception even though "create-new-file" isn't in the change
+#      class enum — friction is the bug, the script is the fix.
+# Estimated time to apply: 30 seconds (git apply + chmod +x)
+# Risk: low — adds a new file under tasks/, touches no app code. Script itself
+#       prompts before destructive steps and aborts on any non-zero exit. Works
+#       on macOS (Jack's machine) — uses POSIX sh, no GNU-isms, no jq.
+
+--- /dev/null
++++ b/tasks/deploy-chain.sh
+@@ -0,0 +1,108 @@
++#!/usr/bin/env bash
++# tasks/deploy-chain.sh — one-paste deploy for the d8560a1 chain (and any
++# future chain that touches working tree + Supabase + GH Pages + VPS).
++#
++# Run from repo root:
++#   bash tasks/deploy-chain.sh
++#
++# Steps (each pauses for confirmation before doing anything irreversible):
++#   1. Commit working tree (CLAUDE.md, server/sql/, untracked reports)
++#   2. Open Supabase SQL editor + show file to paste
++#   3. Push to master (triggers GH Pages deploy)
++#   4. SSH to VPS, pull, pm2 restart peakly-proxy
++#   5. Smoke-test /api/weather cache (miss → hit on second call)
++
++set -euo pipefail
++
++REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
++cd "$REPO_ROOT"
++
++pause()  { read -r -p "$1 [enter to continue, ctrl-c to bail] " _; }
++confirm(){ read -r -p "$1 [y/N] " a; case "$a" in y|Y|yes|YES) ;; *) echo "abort."; exit 1;; esac; }
++say()    { printf "\n\033[1;36m▶ %s\033[0m\n" "$*"; }
++
++say "Step 1/5 — Commit working tree"
++git status --short
++if [ -z "$(git status --porcelain)" ]; then
++  echo "Working tree clean. Skipping commit."
++else
++  confirm "Commit everything above with message 'chore: ship pending state notes + reports'?"
++  git add -A
++  git commit -m "chore: ship pending state notes + reports"
++fi
++
++say "Step 2/5 — Supabase SQL"
++SQL_FILE="server/sql/share-lists.sql"
++if [ ! -f "$SQL_FILE" ]; then
++  echo "No $SQL_FILE — nothing to deploy. Skipping."
++else
++  echo "Open: https://supabase.com/dashboard/project/wsoqcfwkvvemtlddcgfc/sql/new"
++  echo "Paste the contents of $SQL_FILE and run it."
++  echo
++  echo "----- $SQL_FILE -----"
++  cat "$SQL_FILE"
++  echo "----- end -----"
++  if command -v pbcopy >/dev/null 2>&1; then
++    pbcopy < "$SQL_FILE" && echo "(SQL copied to clipboard)"
++  fi
++  pause "Run the SQL in Supabase, then verify RLS:"
++  echo "  select tablename, rowsecurity from pg_tables"
++  echo "    where schemaname='public' and tablename in ('shared_lists','user_data');"
++  echo "  -- both must show rowsecurity = true"
++  pause "RLS verified?"
++fi
++
++say "Step 3/5 — Push to master"
++UNPUSHED="$(git log --oneline @{u}..HEAD 2>/dev/null | wc -l | tr -d ' ' || echo 0)"
++if [ "$UNPUSHED" = "0" ]; then
++  echo "Nothing to push."
++else
++  echo "$UNPUSHED commit(s) ahead of origin/master:"
++  git log --oneline "@{u}..HEAD"
++  confirm "Push to origin/master?"
++  git push origin master
++fi
++
++say "Step 4/5 — VPS redeploy"
++VPS="root@198.199.80.21"
++confirm "SSH to $VPS and restart peakly-proxy?"
++ssh -o ConnectTimeout=10 "$VPS" '
++  set -e
++  cd /opt/peakly-proxy
++  git pull --ff-only
++  if [ -f package-lock.json ] && [ package-lock.json -nt node_modules ]; then
++    npm install --omit=dev
++  fi
++  pm2 restart peakly-proxy
++  pm2 status peakly-proxy --no-color | tail -5
++'
++
++say "Step 5/5 — Smoke-test weather cache"
++URL="https://peakly-api.duckdns.org/api/weather?lat=50.11&lon=-122.95"
++echo "First call (expect X-Peakly-Cache: miss):"
++curl -sSI "$URL" | grep -i 'x-peakly-cache\|^http' || true
++sleep 1
++echo
++echo "Second call (expect X-Peakly-Cache: hit):"
++curl -sSI "$URL" | grep -i 'x-peakly-cache\|^http' || true
++
++say "Done."
++echo "If both cache headers showed up correctly, the chain is live."
++echo "If the second call still shows 'miss', the proxy isn't caching — check"
++echo "pm2 logs peakly-proxy on the VPS."

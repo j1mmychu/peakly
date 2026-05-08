@@ -1,8 +1,8 @@
 # Peakly ⛰️
 
-**Find surf, ski & adventure spots when conditions and cheap flights align.**
+**Find ski & beach spots when this weekend's forecast and cheap flights align.**
 
-A mobile-first adventure sports app that surfaces the best windows worldwide — cross-referencing live weather conditions, wave heights, snow reports, and real-time flight deals in one place.
+A mobile-first weekend-spontaneity app for the Fri–Mon window. We score conditions across the next 7 days only — that's the forecast horizon we can honestly back — and cross-reference real-time flight deals so you know when conditions and price actually line up.
 
 ## Live Demo
 

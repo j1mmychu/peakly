@@ -7,19 +7,26 @@ Caddy terminates TLS and reverse-proxies `peakly-api.duckdns.org` → `localhost
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/flights` | Travelpayouts v2 month-matrix (cheapest price per month) |
+| GET | `/api/flights` | Travelpayouts v2 month-matrix (cheapest per month, or specific weekend) |
 | GET | `/api/flights/latest` | Travelpayouts v1 latest prices (most recently found fares) |
-| POST | `/api/alerts` | Register a push notification alert |
+| GET | `/api/weather` | Open-Meteo forecast proxy (shared 2hr in-memory cache) |
+| GET | `/api/marine` | Open-Meteo marine proxy (water temp, shared 2hr cache) |
+| POST | `/api/alerts` | Register a strike alert (server polls every 30 min, fires APNS push on match) |
 | GET | `/api/alerts/:alertId` | Check alert registration status |
 | DELETE | `/api/alerts/:alertId` | Remove an alert |
-| GET | `/health` | Health check + uptime |
+| POST | `/api/alerts/:alertId/test` | Test-fire push (gated by `ALERTS_TEST_ENABLED=true`) |
+| GET | `/health` | Health + uptime + wx cache + alert poll stats + APNS status |
 
 ### GET /api/flights
 
-Calls `v2/prices/month-matrix`. Good for "cheapest flight this month" display.
+Calls `v2/prices/month-matrix`. Without `depart_date`: cheapest fare per month.
+With `depart_date` (YYYY-MM-DD), filters to entries on that exact depart and
+returns the cheapest match — used for weekend-specific pricing. Add
+`return_date` to also constrain the round-trip return.
 
 ```
 GET /api/flights?origin=JFK&destination=BCN
+GET /api/flights?origin=JFK&destination=BCN&depart_date=2026-05-15&return_date=2026-05-18
 ```
 
 Response:
@@ -50,6 +57,22 @@ Parameters:
 - `one_way` — `true` or `false` (default: `true`)
 
 Response shape is identical to `/api/flights`.
+
+### GET /api/weather and /api/marine
+
+Open-Meteo passthrough with shared in-memory cache (2hr TTL, coords rounded to
+2 decimals so neighbouring venues share entries). In-flight dedupe means N
+simultaneous users hitting the same uncached coord = 1 upstream call. Reddit
+spike protection — without this, every cold-start user fetches ~150 venues
+direct against Open-Meteo.
+
+```
+GET /api/weather?lat=46.55&lon=-121.74
+GET /api/marine?lat=21.27&lon=-157.83
+```
+
+Response: `{ success, data, cached: true|false }`. `data` is the raw
+Open-Meteo payload. Header `X-Peakly-Cache: hit|miss` for debugging.
 
 ### POST /api/alerts
 
@@ -94,13 +117,34 @@ cd /opt/peakly-proxy
 npm install
 ```
 
-### 3. Set environment variable
+### 3. Set environment variables
 
 ```bash
 # /etc/environment or systemd unit
 TRAVELPAYOUTS_TOKEN=your_token_here
 PORT=3001
+
+# Strike-alert push (iOS APNS) — required for app store launch
+APNS_KEY_ID=ABC123XYZ                     # 10-char Key ID from Apple Dev console
+APNS_TEAM_ID=DEF456GHI                    # 10-char Team ID from Apple Dev console
+APNS_BUNDLE_ID=com.peakly.app             # iOS bundle identifier
+APNS_KEY_PATH=/etc/peakly/AuthKey_ABC.p8  # path to .p8 file (chmod 600, never commit)
+APNS_PROD=true                            # 'true' for production endpoint, 'false' for sandbox
+
+# Optional: tune polling cadence (default 30 min, min 5 min)
+ALERT_POLL_MINUTES=30
+
+# Optional: enable test-fire endpoint (App Store reviewers / dev only)
+ALERTS_TEST_ENABLED=false
 ```
+
+**APNS .p8 key setup:**
+1. Apple Developer → Keys → "+" → enable "Apple Push Notifications service (APNs)" → name it "Peakly APNs" → download the .p8 file
+2. SCP to VPS: `scp AuthKey_ABC.p8 root@198.199.80.21:/etc/peakly/AuthKey_ABC.p8`
+3. `chmod 600 /etc/peakly/AuthKey_ABC.p8` (never world-readable)
+4. Note the Key ID (10 chars) and Team ID (Apple Dev → Membership) — set as env vars above
+5. Restart proxy: `pm2 restart peakly-proxy`
+6. Verify: `curl https://peakly-api.duckdns.org/health` returns `"apns": "configured"`
 
 ### 4. Run with PM2 (recommended)
 
