@@ -116,13 +116,34 @@ cd /opt/peakly-proxy
 npm install
 ```
 
-### 3. Set environment variable
+### 3. Set environment variables
 
 ```bash
 # /etc/environment or systemd unit
 TRAVELPAYOUTS_TOKEN=your_token_here
 PORT=3001
+
+# Strike-alert push (iOS APNS) — required for app store launch
+APNS_KEY_ID=ABC123XYZ                     # 10-char Key ID from Apple Dev console
+APNS_TEAM_ID=DEF456GHI                    # 10-char Team ID from Apple Dev console
+APNS_BUNDLE_ID=com.peakly.app             # iOS bundle identifier
+APNS_KEY_PATH=/etc/peakly/AuthKey_ABC.p8  # path to .p8 file (chmod 600, never commit)
+APNS_PROD=true                            # 'true' for production endpoint, 'false' for sandbox
+
+# Optional: tune polling cadence (default 30 min, min 5 min)
+ALERT_POLL_MINUTES=30
+
+# Optional: enable test-fire endpoint (App Store reviewers / dev only)
+ALERTS_TEST_ENABLED=false
 ```
+
+**APNS .p8 key setup:**
+1. Apple Developer → Keys → "+" → enable "Apple Push Notifications service (APNs)" → name it "Peakly APNs" → download the .p8 file
+2. SCP to VPS: `scp AuthKey_ABC.p8 root@198.199.80.21:/etc/peakly/AuthKey_ABC.p8`
+3. `chmod 600 /etc/peakly/AuthKey_ABC.p8` (never world-readable)
+4. Note the Key ID (10 chars) and Team ID (Apple Dev → Membership) — set as env vars above
+5. Restart proxy: `pm2 restart peakly-proxy`
+6. Verify: `curl https://peakly-api.duckdns.org/health` returns `"apns": "configured"`
 
 ### 4. Run with PM2 (recommended)
 
