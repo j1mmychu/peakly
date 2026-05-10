@@ -29,6 +29,7 @@ peakly/
 ├── .github/workflows/deploy.yml  # Pages auto-deploy on push to main+master
 ├── server/                  # Node.js VPS proxy source (Travelpayouts + alerts)
 ├── peakly-native/           # Capacitor native project files
+├── scripts/                 # auto-push.sh + status.sh (ship pipeline)
 ├── tasks/agents/            # 5 input agents + daily-briefing (canonical prompts)
 └── reports/
     ├── briefings/           # ONE file/day from daily-briefing agent — read this first
@@ -141,7 +142,7 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 
-## Current State (2026-05-06)
+## Current State (2026-05-09)
 
 ### What's Broken / Open (Priority Order)
 
@@ -155,6 +156,21 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
 9. ~~**Strike alerts server polling**~~ **CODE DONE 2026-05-07, AWAITING APNS .p8 + VPS REDEPLOY** — proxy.js now has 30-min polling worker, conservative heuristic matcher, native APNS sender (HTTP/2 + JWT via crypto, no deps). Client posts pushToken + venue lat/lon to `/api/alerts`. Test-fire endpoint guarded by `ALERTS_TEST_ENABLED=true` for App Store review. Setup runbook: `peakly-native/PUSH_SETUP.md`. Persistence still in-memory (Phase 2C deferred to v2 — see plan). Required env: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH`, `APNS_PROD=true`.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
+11. **Auto-push pipeline orphans scheduled-task agent writes** — `scripts/auto-push.sh` fires from Claude Code's PostToolUse hook on Edit/Write inside `~/peakly`, which only catches Jack's local Claude sessions. Scheduled-task agents (devops/pm/content/revenue/ux daily runs) execute outside that hook's catchment, so their writes silently never commit. Visible symptom 2026-05-09: 24h of agent writes (devops-2026-05-08.md, pm-2026-05-08.md, eager-supabase-delete-2026-05-08.diff + 3 modified state files) sat untracked. Fix recommended in `reports/inputs/devops-2026-05-09.md` §P1: add `45 17 * * * cd ~/peakly && bash scripts/auto-push.sh "daily reports + state notes"` to Jack's local crontab after the 17:30 daily-briefing slot. Two-minute install. Without it, every report after today reads stale state and re-surfaces findings the previous run already closed.
+12. **APNS configuration deadline 2026-05-13** (PM call 2026-05-09) — Strike Alerts code is shipped but `apns_configured: false` until Jack runs the Apple Dev console + 5 `pm2 set` calls (runbook: `peakly-native/PUSH_SETUP.md`). 72h on the critical path with no movement. PM forcing function: by end-of-day Wednesday 2026-05-13, either APNS is live (`/health` shows `apns_configured: true`) OR add `Capacitor.isNativePlatform()` gate to hide the Alerts tab on iOS specifically and ship App Store v1 without push. Web product preserved either way; polling worker preserved for future native re-enable.
+
+### Recently Resolved by Documentation (2026-05-09)
+
+- **Pro UI revival** — was "decision pending (kill or ship)" in the Revenue Model table. Formally **CUT** for v1 per PM 2026-05-08 + 2026-05-09 reports. Off the table; revisit post-1K MAU if a real revenue gap emerges.
+- **Eager Supabase `<script>` in `index.html:85`** — graduated to `reports/known-skipped.md` per two-strikes rule (3 reports unchanged: 05-06 + 05-08 + 05-09). Diff stays at `reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff` (1478 bytes, `git apply`-clean, 30-sec apply). Re-flag if cold-load TTI becomes a measurable bounce driver post-Reddit-launch.
+- **Unsplash `auto=format&q=75`** — graduated to `reports/known-skipped.md` (3 reports unchanged). ~7 MB savings on a full Explore scroll. Sed block in `devops-2026-05-06.md` §P1-images. Re-flag once MAU > 100 OR Sentry shows LCP regression.
+- **`scripts/deploy-chain.sh`** — written by PM 2026-05-09 as a one-paste deploy chain (commit dirty files → push → SSH VPS → `pm2 restart` → smoke-test). Idempotent, supports `--dry-run`. Closes the "stuck behind one of five steps" pattern that ate 37 hours between 05-07 and 05-09.
+
+### Recently Fixed (2026-05-07 evening — ship-pipeline scripts)
+
+- ✅ **`scripts/auto-push.sh`** (commit 76ad31c) — fires from Claude Code PostToolUse hook on Edit/Write inside `~/peakly`. Bumps cache key in lockstep, commits, rebases, pushes `master:main`. Silent no-op outside peakly or when nothing changed. Visible in git log as the wave of `auto: <file>` commits 2026-05-07 19:48–20:04.
+- ✅ **`scripts/status.sh`** — "all the work on one page" view: branch state, ahead/behind, build, dirty files, last 8 ships, ready-to-ship diffs, today's briefing, agent inputs, worktree count, auto-push log tail.
+- ✅ Same commit also tracked orphan agent artifacts that were sitting untracked in the working tree (cloud agent reports, ready-to-ship diffs, `server/sql/share-lists.sql`).
 
 ### Recently Fixed (2026-05-07 evening — Phase 2: Strike alerts production-ready)
 

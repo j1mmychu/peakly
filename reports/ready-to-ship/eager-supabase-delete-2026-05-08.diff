@@ -1,0 +1,25 @@
+# Why: Lazy-load contract for Supabase JS is documented in app.jsx:18-22 + the
+#      ensureSupabase() helper at app.jsx:48 — every anonymous visitor is
+#      supposed to skip the ~80KB gzipped UMD bundle until they tap Sign in or
+#      land on a magic-link redirect. The eager <script> tag in index.html
+#      (lines 83-85) defeats this and ships ~80KB to every cold load. Same
+#      finding as devops-2026-05-06.md §P1-eager. Day 2 unchanged, Rule 1
+#      spirit applies (delete-block, scoped, low risk).
+# Estimated time to apply: 30 seconds (git apply + bump cache stamp)
+# Risk: low — deletes 3 lines in one file, ensureSupabase() already
+#       handles the cold-load injection path. Bump CACHE_NAME +
+#       PEAKLY_BUILD + index.html ?v= in lockstep to 20260508a so
+#       service workers mid-fetch get fresh HTML.
+
+--- a/index.html
++++ b/index.html
+@@ -80,10 +80,6 @@
+   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+
+-  <!-- Supabase JS (UMD) — cloud sync for wishlists/alerts/profile.
+-       Inert until SUPABASE_URL is set in app.jsx. -->
+-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+-
+   <!-- Babel standalone — transforms JSX in the browser -->
+   <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
