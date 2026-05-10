@@ -1570,7 +1570,10 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   else if (final >= 78 && priceRatio <= strongDealRatio && absSavings >= minSavings) label = "Strong deal";
   else if (final >= 70)                                                   label = "Solid weekend";
   else if (final >= 60)                                                   label = "Worth a look";
-  return { score: final, conditions, priceRatio, isEstimate: false, label };
+  return {
+    score: final, conditions, priceRatio, isEstimate: false, label,
+    lo: dealLo, hi: dealHi, halfWidth: Math.max(dealHi - final, final - dealLo),
+  };
 }
 
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
