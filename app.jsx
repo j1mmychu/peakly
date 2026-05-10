@@ -4510,7 +4510,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
               ? gridListings.slice(0, visibleCount).map(l =>
                   isAll
                     ? <CompactCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
-                    : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />
+                    : <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} alertedIds={alertedIds} onAlertToggle={onAlertToggle} />
                 )
               : (() => {
                   // Filter-aware empty state: tell the user WHY they're seeing
