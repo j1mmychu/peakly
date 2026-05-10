@@ -1379,14 +1379,37 @@ function scoreWeekend(venue, wx, marine, todayDate) {
     return { ...r, di, dayName: dayNames[dt.getDay()] };
   });
 
-  // Find best 2 consecutive days within window — score = avg of best pair.
-  // avg(best-2) is more honest than min for a flex-return user who'll skip
-  // the bad day; less optimistic than top-1 for a weekend trip user.
-  let bestPair = null, bestPairAvg = -1;
-  for (let i = 0; i < days.length - 1; i++) {
-    if (days[i+1].di === days[i].di + 1) {
-      const avg = (days[i].score + days[i+1].score) / 2;
-      if (avg > bestPairAvg) { bestPairAvg = avg; bestPair = [days[i], days[i+1]]; }
+  // Find best 2 days within window — score = avg of best pair.
+  // Prefer consecutive (real weekend feel), but allow a non-consecutive split
+  // (e.g. Fri+Sun, skip Sat storm) when the gap day drags consecutive avg
+  // down materially. Front-page used to lie about Fri=92/Sat=40/Sun=92 venues
+  // by averaging the worst pair; honest call is "fly Fri, leave Sun".
+  let bestPair = null, bestPairAvg = -1, splitWeekend = false;
+  for (let i = 0; i < days.length; i++) {
+    for (let j = i + 1; j < days.length; j++) {
+      const avg = (days[i].score + days[j].score) / 2;
+      if (avg > bestPairAvg) {
+        bestPairAvg = avg;
+        bestPair = [days[i], days[j]];
+        splitWeekend = (days[j].di - days[i].di) > 1;
+      }
+    }
+  }
+  // Only call it a split if the gap day is meaningfully worse than the pair
+  // (>15 below). Otherwise it's noise — fall back to consecutive logic.
+  if (splitWeekend && bestPair) {
+    const gapDays = days.filter(d => d.di > bestPair[0].di && d.di < bestPair[1].di);
+    const minGap = Math.min(...gapDays.map(d => d.score));
+    if (minGap >= bestPairAvg - 15) {
+      // Gap not bad enough — re-pick best consecutive pair instead
+      let consecAvg = -1, consecPair = null;
+      for (let i = 0; i < days.length - 1; i++) {
+        if (days[i+1].di === days[i].di + 1) {
+          const avg = (days[i].score + days[i+1].score) / 2;
+          if (avg > consecAvg) { consecAvg = avg; consecPair = [days[i], days[i+1]]; }
+        }
+      }
+      if (consecPair) { bestPair = consecPair; bestPairAvg = consecAvg; splitWeekend = false; }
     }
   }
   // Fall back to single best day if forecast window only allowed 1 day
