@@ -4049,6 +4049,18 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
     return `${Math.round(mins / 60)}h ago`;
   })() : null;
 
+  // Weekend window label — anchors the time-sensitivity at the top of Explore
+  // so users see "this weekend" framed every scroll session.
+  const weekendLabel = (() => {
+    const today = new Date();
+    const indices = weekendDayIndices(today);
+    if (!indices.length) return null;
+    const fri = new Date(today); fri.setDate(today.getDate() + indices[0]);
+    const last = new Date(today); last.setDate(today.getDate() + indices[indices.length - 1]);
+    const fmt = d => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    return `${fmt(fri)} → ${fmt(last)}`;
+  })();
+
   // Saved count for quick-access
   const savedCount = wishlists.length;
 
