@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510f";
+const PEAKLY_BUILD = "20260510g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6900,6 +6900,63 @@ function ScoreRow({ label, weight, value, explain }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── booking handoff confirm sheet ────────────────────────────────────────────
+// Shown before any outbound affiliate redirect (Aviasales, Booking.com). Tells
+// the user they're leaving Peakly, names the partner, discloses the affiliate
+// relationship (App Store + FTC requirement), and flags estimate prices so
+// nobody arrives at checkout assuming the in-app price is final.
+function BookingConfirmSheet({ partner, url, label, kind, isEstimate, onConfirm, onCancel }) {
+  return (
+    <>
+      <div onClick={onCancel} style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:300,
+      }} />
+      <div className="sheet" style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0",
+        zIndex:301, padding:"20px 22px max(env(safe-area-inset-bottom,0px),24px)",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+      }}>
+        <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 18px" }} />
+        <div style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F, marginBottom:6 }}>
+          Continue to {partner}?
+        </div>
+        <div style={{ fontSize:13, color:"#555", fontFamily:F, lineHeight:1.5, marginBottom:14 }}>
+          {label}. You'll leave Peakly to complete booking on {partner}.
+        </div>
+
+        {isEstimate && (
+          <div style={{ background:"#fef3c7", border:"1px solid #fde68a", borderRadius:10, padding:"10px 12px", marginBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:800, color:"#92400e", fontFamily:F, marginBottom:2 }}>Heads up — estimated price</div>
+            <div style={{ fontSize:11, color:"#78350f", fontFamily:F, lineHeight:1.45 }}>
+              The price shown in Peakly is an estimate. Final fare on {partner} may differ — search before booking.
+            </div>
+          </div>
+        )}
+
+        <div style={{ background:"#f7f9fb", borderRadius:10, padding:"10px 12px", marginBottom:18, fontSize:11, color:"#64748b", fontFamily:F, lineHeight:1.45 }}>
+          Peakly earns a small commission if you book through this link, at no extra cost to you. It does not affect search results or rankings.
+        </div>
+
+        <button onClick={onConfirm} className="pressable" style={{
+          width:"100%", background:"#222", border:"none", borderRadius:14,
+          padding:"15px 0", color:"white", fontSize:14, fontWeight:900,
+          fontFamily:F, cursor:"pointer", marginBottom:8,
+        }}>
+          Continue to {partner} ↗
+        </button>
+        <button onClick={onCancel} style={{
+          width:"100%", background:"none", border:"none",
+          padding:"10px 0", color:"#888", fontSize:13, fontWeight:700,
+          fontFamily:F, cursor:"pointer",
+        }}>
+          Stay in Peakly
+        </button>
+      </div>
+    </>
   );
 }
 
