@@ -44,8 +44,13 @@ yarn-error.*
 *.rej
 .claude/
 
-# Local business docs — never commit
+# Local business docs — never commit (auto-push false-positive 2026-05-09 forced this)
 Peakly-Business-Plan.*
 .~lock.*
 *.pdf
 *.pptx
+*.docx
+*.xlsx
+*.numbers
+*.pages
+*.keynote
