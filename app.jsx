@@ -6725,6 +6725,22 @@ function ScoreBreakdown({ listing }) {
           ) : (
             <>
               <ScoreRow label="Conditions" weight="50 pts" value={conditionsNorm} explain={conditionsExplain} />
+              {listing.weekendHeadline && listing.weekendHeadline.score >= conditionsNorm + 4 && (
+                <ScoreRow
+                  label="Headline day"
+                  weight={listing.weekendHeadline.name}
+                  value={listing.weekendHeadline.score}
+                  explain={listing.weekendHeadline.label || "The single best day in the window"}
+                />
+              )}
+              {listing.weekendHalfWidth >= 4 && listing.weekendLo != null && (
+                <ScoreRow
+                  label="Score range"
+                  weight={`±${listing.weekendHalfWidth}`}
+                  value={null}
+                  explain={`${listing.weekendLo}–${listing.weekendHi} given current forecast horizon`}
+                />
+              )}
               {isEstimate ? (
                 <div style={{ fontSize:11, color:"#888", fontFamily:F, padding:"8px 0 4px", fontStyle:"italic", lineHeight:1.5 }}>
                   Flight pricing isn't live yet — score reflects conditions only.
