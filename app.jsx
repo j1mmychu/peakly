@@ -4071,6 +4071,35 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
+      {/* Weekend window strip — anchors "this weekend" framing + tappable refresh.
+          Replaces the buried "Updated Xm ago" pill that nobody noticed. */}
+      {weekendLabel && (
+        <button
+          onClick={() => { if (!loading && onRefresh) { onRefresh(); haptic(); } }}
+          disabled={loading}
+          aria-label="Refresh weekend conditions"
+          style={{
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            background:"#f0f9ff", borderBottom:"1px solid #e0f2fe", border:"none",
+            padding:"7px 14px", cursor: loading ? "default" : "pointer",
+            width:"100%", textAlign:"left", flexShrink:0,
+            fontFamily:F,
+          }}
+        >
+          <span style={{ display:"flex", alignItems:"baseline", gap:8, minWidth:0, overflow:"hidden" }}>
+            <span style={{ fontSize:12, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
+            <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
+              {timeAgo ? `Updated ${timeAgo}` : (loading ? "Loading…" : "Tap to refresh")}
+            </span>
+          </span>
+          <span style={{
+            fontSize:14, color:"#0284c7", fontWeight:800, marginLeft:8, flexShrink:0,
+            transform: pullRefreshing ? "rotate(360deg)" : "none",
+            transition:"transform 0.6s ease",
+          }}>⟲</span>
+        </button>
+      )}
+
       {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
       <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
         {visibleCats.map(c => (
