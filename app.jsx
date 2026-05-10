@@ -4348,9 +4348,21 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
                         </span>
                         <span style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:700 }}>{l.weekendDays || ""}</span>
                       </div>
-                      {l.weekendConfidence === "medium" && (
-                        <div style={{ fontSize:9, color:"#a16207", fontFamily:F, marginTop:3 }}>· forecast firming up</div>
-                      )}
+                      {(() => {
+                        // Confidence pill — make uncertainty visible. medium = 5-day
+                        // horizon. wide halfWidth on high-confidence = model itself
+                        // hedging (high precip-prob with ~0mm forecast).
+                        if (l.weekendConfidence === "medium") {
+                          return <div style={{ fontSize:9, color:"#a16207", fontFamily:F, marginTop:3 }}>· 5-day forecast — may shift</div>;
+                        }
+                        if (l.weekendHalfWidth >= 8) {
+                          return <div style={{ fontSize:9, color:"#a16207", fontFamily:F, marginTop:3 }}>· forecast wobble (±{l.weekendHalfWidth})</div>;
+                        }
+                        if (l.weekendHeadline && l.weekendConsistency != null && l.weekendConsistency < 70 && l.weekendHeadline.score >= l.weekendScore + 6) {
+                          return <div style={{ fontSize:9, color:"#0f766e", fontFamily:F, marginTop:3 }}>· {l.weekendHeadline.name} is the day ({l.weekendHeadline.score})</div>;
+                        }
+                        return null;
+                      })()}
                     </div>
                   </div>
                 );
