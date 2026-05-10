@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510c";
+const PEAKLY_BUILD = "20260510d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4514,9 +4514,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                 )
               : (() => {
                   // Filter-aware empty state: tell the user WHY they're seeing
-                  // nothing. Most empty results are filter-driven (≤Nhr flight,
-                  // tight category, off-season) — silent void = bounce. Each
-                  // CTA undoes the most likely cause without nuking the rest.
+                  // nothing, then ALSO surface the closest-matching firing
+                  // venues that fell outside their filters. "No results" was a
+                  // dead-end; "here's what came close" converts the same query
+                  // into a recovery flow.
                   const hasFlightCap = !!filters.maxFlightHrs;
                   const hasPriceCap = filters.maxPrice < 2000;
                   const onSpecificCat = activeCat !== "all";
@@ -4530,37 +4531,63 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                       : heroPick
                         ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
                         : "Conditions are quiet across the board right now.";
+
+                  // Closest-3 venues that DON'T match the active filters but
+                  // are firing this weekend. We only show this when the user
+                  // actually has filters set — without filters there's nothing
+                  // for them to be "outside" of.
+                  const fallback = hasActiveFilters
+                    ? [...listings]
+                        .filter(l => l.conditionScore >= 70)
+                        .sort((a, b) => b.conditionScore - a.conditionScore)
+                        .slice(0, 3)
+                    : [];
+
                   return (
-                    <div style={{ gridColumn:"1/-1", padding:"40px 20px", textAlign:"center" }}>
-                      <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
-                      <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>{heading}</div>
-                      <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:16, lineHeight:1.5 }}>{sub}</div>
-                      <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-                        {hasFlightCap && (
-                          <button onClick={() => setFilters(f => ({...f, maxFlightHrs: f.maxFlightHrs >= 8 ? null : 8}))} className="pressable" style={{
-                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
-                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                          }}>{filters.maxFlightHrs >= 8 ? "Show all flight times" : "Try ≤ 8hr flights"}</button>
-                        )}
-                        {!hasFlightCap && onSpecificCat && (
-                          <button onClick={() => setActiveCat("all")} className="pressable" style={{
-                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
-                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                          }}>Show all categories</button>
-                        )}
-                        {!hasFlightCap && !onSpecificCat && (
-                          <button onClick={onViewAlerts} className="pressable" style={{
-                            background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
-                            color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                          }}>Set an alert</button>
-                        )}
-                        {hasActiveFilters && (
-                          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
-                            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
-                            color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
-                          }}>Clear all filters</button>
-                        )}
+                    <div style={{ gridColumn:"1/-1" }}>
+                      <div style={{ padding:"40px 20px 24px", textAlign:"center" }}>
+                        <div style={{ fontSize:40, marginBottom:12 }}>🌤️</div>
+                        <div style={{ fontSize:16, fontWeight:700, color:"#222", fontFamily:F, marginBottom:6 }}>{heading}</div>
+                        <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:16, lineHeight:1.5 }}>{sub}</div>
+                        <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+                          {hasFlightCap && (
+                            <button onClick={() => setFilters(f => ({...f, maxFlightHrs: f.maxFlightHrs >= 8 ? null : 8}))} className="pressable" style={{
+                              background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                            }}>{filters.maxFlightHrs >= 8 ? "Show all flight times" : "Try ≤ 8hr flights"}</button>
+                          )}
+                          {!hasFlightCap && onSpecificCat && (
+                            <button onClick={() => setActiveCat("all")} className="pressable" style={{
+                              background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                            }}>Show all categories</button>
+                          )}
+                          {!hasFlightCap && !onSpecificCat && (
+                            <button onClick={onViewAlerts} className="pressable" style={{
+                              background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
+                              color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                            }}>Set an alert</button>
+                          )}
+                          {hasActiveFilters && (
+                            <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
+                              background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
+                              color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
+                            }}>Clear all filters</button>
+                          )}
+                        </div>
                       </div>
+                      {fallback.length > 0 && (
+                        <div style={{ padding:"8px 14px 4px" }}>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#0284c7", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:10, paddingLeft:2 }}>
+                            Outside your filters, but firing this weekend
+                          </div>
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                            {fallback.map(l => (
+                              <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} alertedIds={alertedIds} onAlertToggle={onAlertToggle} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()
