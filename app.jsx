@@ -2638,7 +2638,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
         )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 52%)" }} />
 
-        {/* Heart + Share */}
+        {/* Share + Alert + Heart */}
         <div style={{ position:"absolute", top:8, right:8, display:"flex", gap:4 }}>
           <button className="heart pressable" onClick={e => { e.stopPropagation(); shareVenue(listing, () => { setShareCopied(true); setTimeout(() => setShareCopied(false), 1800); }); }} style={{
             background: shareCopied ? "rgba(34,197,94,0.85)" : "rgba(0,0,0,0.35)", border:"none", borderRadius:"50%", fontSize:13,
@@ -2647,6 +2647,22 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
           }}>
             {shareCopied ? "✓" : "↑"}
           </button>
+          {onAlertToggle && (
+            <button
+              className="heart pressable"
+              onClick={e => { e.stopPropagation(); onAlertToggle(listing); }}
+              aria-label={alerted ? "Alerts on — tap to remove" : "Alert me when this fires"}
+              title={alerted ? "Alerts on — we'll push you when it peaks" : "Tap to get alerted when this venue fires"}
+              style={{
+                background: alerted ? "rgba(2,132,199,0.92)" : "rgba(0,0,0,0.35)",
+                border:"none", borderRadius:"50%", fontSize:14,
+                width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center",
+                cursor:"pointer", color:"white", fontFamily:F,
+                boxShadow: alerted ? "0 1px 4px rgba(2,132,199,0.4)" : "none",
+              }}>
+              🔔
+            </button>
+          )}
           <button
             className={"heart" + (savedAnim ? " heart-pop" : "")}
             onClick={e => {
