@@ -2616,6 +2616,7 @@ function SkeletonCard() {
 // ─── listing card ─────────────────────────────────────────────────────────────
 function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlertToggle }) {
   const saved = wishlists.includes(listing.id);
+  const alerted = !!(alertedIds && alertedIds.has(listing.id));
   const [savedAnim, setSavedAnim] = useState(false);
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
