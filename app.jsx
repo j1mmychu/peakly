@@ -6520,9 +6520,21 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               We'll show flight prices from your home airport to every spot.
             </div>
 
+            {navigator.geolocation && (
+              <button onClick={detectAirport} disabled={detecting} className="pressable" style={{
+                width:"100%", padding:"12px 14px", marginBottom:10, borderRadius:14,
+                border:"1.5px solid #0284c7", background:"#f0f9ff", color:"#0284c7",
+                fontSize:14, fontWeight:800, fontFamily:F, cursor: detecting ? "default" : "pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                opacity: detecting ? 0.7 : 1,
+              }}>
+                <span style={{ fontSize:16 }}>📍</span>
+                <span>{detecting ? "Detecting your nearest airport…" : "Use my current location"}</span>
+              </button>
+            )}
             <div style={{ position:"relative", marginBottom:14 }}>
               <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
+              <input type="text" placeholder="Or search any airport worldwide…"
                 value={apQuery} onChange={e => setApQuery(e.target.value)}
                 onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
