@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260507e";
+const PEAKLY_BUILD = "20260509a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4758,6 +4758,10 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
+    // Consumed by the polling worker in server/proxy.js, which scores each
+    // alert's venue every 30 min and dispatches push when the weekend score
+    // meets targetScore (24h fire cooldown). Platform delivery (APNs / FCM /
+    // web push) is wired in dispatchPush() server-side.
     alertData.venueId = draft.venueId || (draft.locations && draft.locations[0]) || null;
     alertData.targetScore = getScoreThreshold(draft.condition);
     alertData.maxPrice = draft.priceMax || 500;
