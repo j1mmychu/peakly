@@ -2581,43 +2581,60 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
           </button>
         </div>
 
-        {/* Go/No-Go verdict + flight deal */}
-        <div style={{ position:"absolute", top:12, left:12, display:"flex", gap:5, alignItems:"center" }}>
-          {listing.conditionLabel !== "Checking conditions…" && <GoVerdictBadge score={listing.conditionScore} />}
-          <div style={{
-            background:"#fff", borderRadius:20, padding:"3px 8px",
-            display:"flex", alignItems:"center", gap:3,
-            boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-          }}>
-            <span style={{ fontSize:10 }}>✈️</span>
-            {listing.flightsLoading && !listing.flight.live ? (
-              <span className="shimmer" style={{ width:52, height:10, borderRadius:5, display:"inline-block" }} />
-            ) : (
-              <span style={{ fontSize:10, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
-              </span>
-            )}
-          </div>
-          {listing.conditionLabel !== "Checking conditions…" && listing.conditionScore >= 85 && (
-            <div style={{ background:"rgba(234,179,8,0.9)", borderRadius:20, padding:"3px 8px", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
-              <span style={{ fontSize:9, fontWeight:800, color:"#fff", fontFamily:F }}>🔥 TRENDING</span>
+        {/* Single-row chip overlay: verdict + flight price + condition.
+            All three pills share height 22px and gap 6px so the row reads as
+            one symmetrical bar across the top of the photo. TRENDING is no
+            longer a separate chip — when conditionScore >= 85 the verdict
+            pill itself goes warm-yellow with a 🔥 prefix. */}
+        {(() => {
+          const ready = listing.conditionLabel !== "Checking conditions…";
+          const v = ready ? getGoVerdict(listing.conditionScore) : null;
+          const hot = ready && listing.conditionScore >= 85;
+          const verdictBg = hot ? "rgba(234,179,8,0.92)" : (v ? v.bg : "rgba(255,255,255,0.18)");
+          const verdictColor = hot ? "#fff" : (v ? v.color : "#fff");
+          const verdictDot = hot ? "#fff" : (v ? v.color : "rgba(255,255,255,0.6)");
+          const verdictLabel = hot ? `🔥 ${v.label}` : (v ? v.label : "");
+          const PILL = {
+            height: 22, display: "inline-flex", alignItems: "center",
+            padding: "0 8px", borderRadius: 11, fontSize: 11, fontWeight: 700,
+            fontFamily: F, lineHeight: 1, gap: 5,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+          };
+          return (
+            <div style={{
+              position: "absolute", top: 12, left: 12, right: 12,
+              display: "flex", gap: 6, alignItems: "center", flexWrap: "nowrap",
+            }}>
+              {ready ? (
+                <div style={{ ...PILL, background: verdictBg, color: verdictColor, flexShrink: 0 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: verdictDot }} />
+                  <span>{verdictLabel}</span>
+                </div>
+              ) : (
+                <div style={{ ...PILL, background: "rgba(0,0,0,0.35)", flexShrink: 0 }}>
+                  <span className="shimmer" style={{ width: 28, height: 9, borderRadius: 4, display: "inline-block" }} />
+                </div>
+              )}
+              <div style={{ ...PILL, background: "rgba(255,255,255,0.92)", color: "#0284c7", flexShrink: 0 }}>
+                <span style={{ fontSize: 10 }}>✈️</span>
+                {listing.flightsLoading && !listing.flight.live ? (
+                  <span className="shimmer" style={{ width: 36, height: 9, borderRadius: 4, display: "inline-block" }} />
+                ) : (
+                  <span>{listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
+                )}
+              </div>
+              <div style={{
+                ...PILL, background: "rgba(0,0,0,0.55)", color: "#fff",
+                backdropFilter: "blur(6px)", minWidth: 0, flex: "1 1 auto",
+                overflow: "hidden", whiteSpace: "nowrap",
+              }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {listing.conditionLabel}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Condition label */}
-        <div style={{
-          position:"absolute", bottom:12, left:12, right:12,
-        }}>
-          <div style={{
-            background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-            borderRadius:8, padding:"4px 10px",
-            color:"white", fontSize:12, fontWeight:600, fontFamily:F,
-            border:"1px solid rgba(255,255,255,0.25)", maxWidth:"100%", display:"inline-block",
-          }}>
-            {listing.conditionLabel}
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Body */}
