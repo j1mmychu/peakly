@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510j";
+const PEAKLY_BUILD = "20260510k";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4160,33 +4160,54 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Weekend window strip — anchors "this weekend" framing + tappable refresh.
-          Replaces the buried "Updated Xm ago" pill that nobody noticed. */}
+      {/* Weekend window strip — anchors "this weekend" framing + tappable refresh
+          on the left, Map/List view toggle on the right. */}
       {weekendLabel && (
-        <button
-          onClick={() => { if (!loading && onRefresh) { onRefresh(); haptic(); } }}
-          disabled={loading}
-          aria-label="Refresh weekend conditions"
-          style={{
-            display:"flex", alignItems:"center", justifyContent:"space-between",
-            background:"#f0f9ff", borderBottom:"1px solid #e0f2fe", border:"none",
-            padding:"7px 14px", cursor: loading ? "default" : "pointer",
-            width:"100%", textAlign:"left", flexShrink:0,
-            fontFamily:F,
-          }}
-        >
-          <span style={{ display:"flex", alignItems:"baseline", gap:8, minWidth:0, overflow:"hidden" }}>
-            <span style={{ fontSize:12, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
-            <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
-              {timeAgo ? `Updated ${timeAgo}` : (loading ? "Loading…" : "Tap to refresh")}
+        <div style={{
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          background:"#f0f9ff", borderBottom:"1px solid #e0f2fe",
+          padding:"5px 8px 5px 14px", flexShrink:0, fontFamily:F, gap:8,
+        }}>
+          <button
+            onClick={() => { if (!loading && onRefresh) { onRefresh(); haptic(); } }}
+            disabled={loading}
+            aria-label="Refresh weekend conditions"
+            style={{
+              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8,
+              background:"none", border:"none", padding:"4px 0",
+              cursor: loading ? "default" : "pointer", textAlign:"left",
+            }}
+          >
+            <span style={{ display:"flex", alignItems:"baseline", gap:8, minWidth:0, overflow:"hidden" }}>
+              <span style={{ fontSize:12, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
+              <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
+                {timeAgo ? `Updated ${timeAgo}` : (loading ? "Loading…" : "Tap to refresh")}
+              </span>
             </span>
-          </span>
-          <span style={{
-            fontSize:14, color:"#0284c7", fontWeight:800, marginLeft:8, flexShrink:0,
-            transform: pullRefreshing ? "rotate(360deg)" : "none",
-            transition:"transform 0.6s ease",
-          }}>⟲</span>
-        </button>
+            <span style={{
+              fontSize:14, color:"#0284c7", fontWeight:800, marginLeft:4, flexShrink:0,
+              transform: pullRefreshing ? "rotate(360deg)" : "none",
+              transition:"transform 0.6s ease",
+            }}>⟲</span>
+          </button>
+          {/* List/Map toggle — segmented control. Map plots venues geographically
+              so the "≤Nhr from <airport>" mental model becomes visual. */}
+          <div style={{ display:"flex", background:"#dbeafe", borderRadius:14, padding:2, flexShrink:0 }}>
+            {[{ id:"list", label:"List" }, { id:"map", label:"Map" }].map(m => (
+              <button key={m.id}
+                onClick={() => { setViewMode(m.id); haptic(); window.plausible && window.plausible('View Mode', { props: { mode: m.id } }); }}
+                aria-pressed={viewMode === m.id}
+                style={{
+                  padding:"4px 12px", borderRadius:12, border:"none", cursor:"pointer",
+                  background: viewMode === m.id ? "#fff" : "transparent",
+                  color: viewMode === m.id ? "#0284c7" : "#0c4a6e",
+                  fontSize:11, fontWeight:800, fontFamily:F,
+                  boxShadow: viewMode === m.id ? "0 1px 2px rgba(2,132,199,0.18)" : "none",
+                }}
+              >{m.label}</button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
