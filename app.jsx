@@ -7872,7 +7872,7 @@ function App() {
     // Record when the page started loading (approximated by performance.timing or Date.now)
     const pageStart = window.performance?.timing?.navigationStart || Date.now();
     const elapsed = Date.now() - pageStart;
-    const MIN_VISIBLE = 1800; // ms
+    const MIN_VISIBLE = 400; // ms — long enough for the brand mark to register, short enough that nobody waits
     const remaining = Math.max(0, MIN_VISIBLE - elapsed);
     const t1 = setTimeout(() => {
       splash.classList.add('fade-out');
