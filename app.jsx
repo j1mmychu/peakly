@@ -1549,9 +1549,13 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const DEAL_WEIGHT = 0.5;
   const conditionsNorm = conditions.score;
   const priceNorm = clamp(100 * (1.5 - priceRatio), 0, 100);
-  let final = clamp(conditionsNorm * (1 - DEAL_WEIGHT) + priceNorm * DEAL_WEIGHT, 0, 100);
-  if (conditions.confidence === "medium") final *= 0.92;
-  final = Math.round(final);
+  const confMult = conditions.confidence === "medium" ? 0.92 : 1;
+  const fuse = (cond) => Math.round(clamp(cond * (1 - DEAL_WEIGHT) + priceNorm * DEAL_WEIGHT, 0, 100) * confMult);
+  let final = fuse(conditionsNorm);
+  // Propagate the conditions band through the same fusion math so the deal
+  // score's uncertainty is honest: a wide-band weekend produces a wide-band deal.
+  const dealLo = fuse(conditions.lo ?? conditionsNorm);
+  const dealHi = fuse(conditions.hi ?? conditionsNorm);
   // Volatile routes (wide per-origin price spread on this destination) need a
   // deeper discount before "Strong deal" is honest — otherwise a normal cheap-
   // origin fare gets dressed up as a deal. Stable routes keep the 0.85 floor.
