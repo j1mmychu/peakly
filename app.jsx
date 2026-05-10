@@ -1013,6 +1013,39 @@ async function fetchMarine(lat, lon) {
   clearTimeout(timer); return null;
 }
 
+// Returns a hard score cap for off-season beach venues, or null if in-season.
+// Mirrors skiing's off-season cap=8 logic — a sunny February day in Hvar isn't
+// a beach trip, every restaurant and rental is shut. Default by latitude band;
+// venues can override with venue.beachSeason = { offStart:"MM-DD", offEnd:"MM-DD" }
+// for hand-tuning (e.g. southern-Med outliers that stay open later).
+function getBeachSeasonCap(venue, date) {
+  if (venue.category !== "beach") return null;
+  const absLat = Math.abs(venue.lat);
+  if (absLat < 30) return null; // tropical: no cap, year-round beach
+
+  const mmdd = `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const inRange = (off, start, end) =>
+    start <= end ? (off >= start && off <= end) : (off >= start || off <= end);
+
+  if (venue.beachSeason?.offStart && venue.beachSeason?.offEnd) {
+    return inRange(mmdd, venue.beachSeason.offStart, venue.beachSeason.offEnd) ? 25 : null;
+  }
+
+  const northern = venue.lat > 0;
+  if (absLat >= 46) {
+    // Northern Europe / N Atlantic / NZ South Is — long off-season
+    const off = northern
+      ? inRange(mmdd, "10-01", "05-31")
+      : inRange(mmdd, "04-01", "11-15");
+    return off ? 20 : null;
+  }
+  // 30 <= |lat| < 46 — Med, Carolinas, N Africa, S Australia
+  const off = northern
+    ? inRange(mmdd, "11-01", "04-14")
+    : inRange(mmdd, "05-15", "09-30");
+  return off ? 25 : null;
+}
+
 // ─── condition scoring ────────────────────────────────────────────────────────
 // dayIndex: 0=today (default), 1=tomorrow, etc. Supports date-aware scoring.
 function scoreVenue(venue, wx, marine, dayIndex) {
