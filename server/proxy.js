@@ -591,15 +591,13 @@ const ALERTS_MAX = 10000;
 
 app.post('/api/alerts', (req, res) => {
   const body = req.body || {};
-<<<<<<< HEAD
   const {
     alertId, venueId, venueLat, venueLon, venueAp, venueCategory,
     sport, targetScore, maxPrice, pushToken, pushPlatform,
     homeAirport,
   } = body;
-=======
-  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform, lat, lon } = body;
->>>>>>> origin/claude/implement-todo-item-igUtK
+  const lat = venueLat;
+  const lon = venueLon;
 
   if (typeof alertId !== 'string' || alertId.length === 0 || alertId.length > 128) {
     return res.status(400).json({ success: false, error: 'alertId must be a string of 1-128 chars' });
