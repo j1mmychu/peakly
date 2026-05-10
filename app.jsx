@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510g";
+const PEAKLY_BUILD = "20260510h";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2621,7 +2621,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
-      <div style={{ position:"relative", height:220, overflow:"hidden", borderRadius:16 }}>
+      <div style={{ position:"relative", height:160, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
