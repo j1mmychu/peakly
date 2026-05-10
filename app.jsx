@@ -8584,6 +8584,7 @@ function App() {
             <ExploreTab
               listings={listings} loading={loading}
               wishlists={wishlistIds} onToggle={toggleWishlist}
+              alertedIds={alertedVenueIds} onAlertToggle={quickToggleAlert}
               onViewAlerts={() => setActiveTab("alerts")}
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
