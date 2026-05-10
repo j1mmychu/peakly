@@ -1293,19 +1293,17 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       }
 
       // ─── Water temperature (if marine data available) ──────────────────
-      // Cold water = no swimming = bad beach day even on a sunny one
+      // Graduated penalty (was hard cap at 18°C — too blunt; a 17°C Med day
+      // with 90°F air + UV 9 was capping at 55, underselling legitimate trips).
+      // poolPrimary venues skip the penalty — guests don't depend on ocean.
       let chillyWater = false;
       if (waterTemp !== null) {
-        if (waterTemp >= 24) score += 4;           // tropical swim
-        else if (waterTemp >= 21) score += 2;      // pleasant
-        else if (waterTemp >= 18) score += 0;      // OK
-        else if (waterTemp >= 15) score -= 3;      // chilly — wade only
-        else score -= 8;                            // cold — no swimming
-        // Hard cap below 18°C so a sunny day can't disguise unswimmable water.
-        // poolPrimary venues (resorts) skip this — guests don't depend on ocean.
-        if (waterTemp < 18 && !venue.poolPrimary) {
-          score = Math.min(score, 55);
-          chillyWater = true;
+        if (waterTemp >= 22) score += 4;                      // tropical swim
+        else if (waterTemp >= 18) score += (waterTemp - 18);  // 18→0, 22→+4 linear
+        else if (!venue.poolPrimary) {
+          if (waterTemp >= 14) score -= 10 + (18 - waterTemp) * 3.75;  // 18→-10, 14→-25
+          else score -= 30;                                   // genuinely cold
+          chillyWater = waterTemp < 16;
         }
       }
 
