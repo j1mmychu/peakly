@@ -95,3 +95,16 @@ git push origin master:main --quiet 2>>/tmp/peakly-auto-push.log || {
 }
 
 echo "[auto-push] shipped: ${SHORT}"
+
+# Post-deploy smoke test: only when runtime files (app.jsx/sw.js/index.html)
+# changed AND playwright is installed. Sleep ~25s for GitHub Pages CDN to
+# update, then run headless boot check against the live URL. Fails loud but
+# non-fatal — the commit/push already happened; this just alerts.
+if cache_files_changed && [ -f "$REPO/node_modules/playwright/package.json" ]; then
+  ( sleep 25
+    if ! bash "$REPO/scripts/smoke-test.sh" >>/tmp/peakly-smoke.log 2>&1; then
+      echo "[auto-push] ❌ DEPLOY SMOKE FAILED — site may be broken — see /tmp/peakly-smoke.log" >&2
+    fi
+  ) &
+  disown
+fi
