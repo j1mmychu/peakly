@@ -1495,7 +1495,27 @@ function scoreWeekend(venue, wx, marine, todayDate) {
     ? `${days_str} firing · ${badOther.dayName} ${badOther.score < 40 ? 'storms' : 'weak'}`
     : `${days_str} window`;
 
-  return { score: Math.round(bestPairAvg), label, period, days: days_str, confidence, splitWeekend };
+  // Band: avg the lo/hi of the chosen pair so the propagated uncertainty is
+  // actually the uncertainty of the days we're recommending, not all days.
+  const finalScore = Math.round(bestPairAvg);
+  const lo = Math.round(bestPair.reduce((s, d) => s + (d.lo ?? d.score), 0) / bestPair.length);
+  const hi = Math.round(bestPair.reduce((s, d) => s + (d.hi ?? d.score), 0) / bestPair.length);
+  const halfWidth = Math.max(hi - finalScore, finalScore - lo);
+
+  // Headline day: the iconic single day inside the window. Surfaced separately
+  // because best-2 averaging buries days that should drive the booking.
+  const headline = days.reduce((a, b) => b.score > a.score ? b : a);
+  const headlineDay = { name: headline.dayName, score: headline.score, label: headline.label, di: headline.di };
+
+  // Consistency: 100 = identical scores across window, 0 = wildly variable.
+  const dayScores = days.map(d => d.score);
+  const variance = Math.max(...dayScores) - Math.min(...dayScores);
+  const consistency = Math.max(0, 100 - variance);
+
+  return {
+    score: finalScore, label, period, days: days_str, confidence, splitWeekend,
+    lo, hi, halfWidth, headlineDay, consistency,
+  };
 }
 
 // Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
