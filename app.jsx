@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510b";
+const PEAKLY_BUILD = "20260510c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6750,7 +6750,16 @@ const EXPERIENCES = {
 //   2. Estimate price (no live flight) — "Conditions only · flight pricing isn't live"
 //   3. Low confidence (>5-day forecast) — "Beyond reliable forecast"
 function ScoreBreakdown({ listing }) {
-  const [open, setOpen] = useState(false);
+  // First-time score education: auto-expand on the first detail-sheet open
+  // ever, then flip the localStorage flag so subsequent opens stay collapsed.
+  // New users get the math up-front; returning users get the cleaner default.
+  const seenInitial = (() => { try { return !!localStorage.getItem("peakly_score_seen"); } catch { return true; } })();
+  const [open, setOpen] = useState(!seenInitial);
+  useEffect(() => {
+    if (!seenInitial) {
+      try { localStorage.setItem("peakly_score_seen", "1"); } catch {}
+    }
+  }, []);
 
   const wkConf = listing.weekendConfidence;
   const isLow = wkConf === "low";
