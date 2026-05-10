@@ -8339,6 +8339,65 @@ function App() {
     });
   }, [wishlistIds, setWishlists, setNamedLists]);
 
+  // Set of venueIds that have an active alert — drives the 🔔 badge on cards
+  const alertedVenueIds = React.useMemo(
+    () => new Set(userAlerts.filter(a => a.venueId).map(a => a.venueId)),
+    [userAlerts]
+  );
+
+  // One-tap alert toggle from a venue card. Defaults: targetScore 90 (great
+  // conditions) + maxPrice 500 (lenient). Users who want finer control still
+  // have the full Alerts tab. Mirrors to the server polling worker so push
+  // can fire when conditions hit.
+  const quickToggleAlert = useCallback(listing => {
+    const existing = userAlerts.find(a => a.venueId === listing.id);
+    if (existing) {
+      setUserAlerts(p => p.filter(a => a.id !== existing.id));
+      fetch(`https://peakly-api.duckdns.org/api/alerts/${encodeURIComponent(String(existing.id))}`,
+        { method: "DELETE" }).catch(() => {});
+      logEvent("alert_quick_remove", { venue: listing.title });
+      return;
+    }
+    const id = Date.now();
+    const data = {
+      id, venueId: listing.id,
+      sport: listing.category,
+      condition: "great",
+      locations: [listing.id],
+      targetScore: 90,
+      priceMax: 500,
+      maxPrice: 500,
+      enabled: true,
+    };
+    setUserAlerts(p => [...p, data]);
+    let pushToken = null, pushPlatform = null;
+    try { pushToken = localStorage.getItem("peakly_push_token") || null; } catch {}
+    if (pushToken && pushToken !== "web-sw-registered") {
+      pushPlatform = window.Capacitor?.platform === "ios" ? "ios"
+                   : window.Capacitor?.isNativePlatform?.() ? "capacitor"
+                   : "web";
+    }
+    fetch("https://peakly-api.duckdns.org/api/alerts", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        alertId: String(id),
+        venueId: listing.id,
+        venueLat: listing.lat ?? null,
+        venueLon: listing.lon ?? null,
+        venueAp: listing.ap ?? null,
+        venueCategory: listing.category,
+        sport: listing.category,
+        targetScore: 90,
+        maxPrice: 500,
+        pushToken, pushPlatform,
+        homeAirport: profile?.homeAirport || null,
+      }),
+    }).catch(() => {});
+    haptic("medium");
+    window.plausible && window.plausible('Alert Quick Add', { props: { venue: listing.title } });
+    logEvent("alert_quick_add", { venue: listing.title, score: listing.conditionScore });
+  }, [userAlerts, setUserAlerts, profile?.homeAirport]);
+
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
     // Lazy-fetch weather for this venue if not already loaded
