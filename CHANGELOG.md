@@ -10,6 +10,18 @@ Three holes plugged in `scoreVenue` + `scoreWeekend`:
 
 Cache 20260509b → 20260509c.
 
+### Round 2 — ideology shift: "the score tells the truth about itself"
+Same evening, second pass. Round 1 polished a model that had structural lies in it. Round 2 makes the score honest about uncertainty + refuses to recommend trips that aren't real.
+- **Banded scoring.** `scoreVenue` now returns `{score, lo, hi, halfWidth}`. Band widens with forecast horizon (day-0 ±2, day-5 ±10, day-7 ±15) and again when Open-Meteo itself hedges (precipPct ≥ 50 with ~0mm forecast → +4). `scoreWeekend` propagates by averaging the chosen pair's `lo`/`hi`. Day-7 forecasts no longer wear the same confidence as day-1.
+- **Headline day surfaced.** `scoreWeekend` returns `headlineDay: {name, score, label}` — the iconic single day inside the window. ListingCard pill flags it when consistency < 70 + headline ≥ avg + 6: "Sat is the day (97)". Best-2 averaging no longer buries the day worth booking around.
+- **Consistency metric.** `consistency = 100 − (max − min)` over the window. ScoreBreakdown surfaces the band as a "Score range" row when halfWidth ≥ 4.
+- **Confidence pill on cards.** Replaced the static "forecast firming up" hedge with three states: medium → "5-day forecast — may shift", high+wide-band → "forecast wobble (±N)", consistency-driven headline-day callout. Uncertainty is now visible, not just a hidden filter.
+- **Beach off-season cap.** `getBeachSeasonCap` mirrors skiing's binary cap. Med beaches (|lat| 30–46): off Nov 1 – Apr 14 → cap 25. N Europe / N Atlantic (|lat| 46+): off Oct 1 – May 31 → cap 20. Tropical (|lat| < 30): no cap, year-round. S hemisphere mirrored. A sunny February day in Hvar can no longer outscore the cap — there are no boats, no bars, no point. Period prefixed with "Off-season —".
+- **Deal-score band.** `scoreWeekendDeal` re-runs the 50/50 fusion against `conditions.lo` and `conditions.hi` so the deal score's uncertainty is honest. Wide-band weekend → wide-band deal.
+- **ScoreBreakdown rows.** "Headline day" and "Score range" rows added when meaningful (halfWidth ≥ 4 or headline ≥ avg + 4).
+
+Cache 20260509c → 20260509d.
+
 ## 2026-04-15
 - Removed duplicate `require()` of `fs` and `path` in proxy.js (lines 5-6 and 232-233 were dupes). No runtime impact.
 
