@@ -4325,14 +4325,14 @@ function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, acti
           );
         })()}
 
-        {/* ── Last updated + data freshness + cloud-sync status ── */}
+        {/* ── Data freshness + cloud-sync status (the "Updated Xm ago" moved
+              to the sticky weekend strip at top of ExploreTab). ── */}
         {timeAgo && !loading && (
           <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end", gap:8, alignItems:"center" }}>
             <SyncStatusPill cloudSync={cloudSync} />
             {getFlightApiStatus() === "down" && (
               <span style={{ fontSize:9, color:"#f59e0b", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices — live API offline</span>
             )}
-            <span style={{ fontSize:10, color:"#bbb", fontFamily:F }}>Updated {timeAgo}</span>
           </div>
         )}
 
