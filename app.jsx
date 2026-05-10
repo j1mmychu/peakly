@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260509b";
+const PEAKLY_BUILD = "20260509c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1427,16 +1427,19 @@ function scoreWeekend(venue, wx, marine, todayDate) {
   // Label = best day's per-day label, prefixed with day name.
   const top = bestPair.reduce((a,b) => b.score > a.score ? b : a);
   const label = `${top.dayName}: ${top.label}`;
-  const days_str = bestPair.length === 2 ? `${bestPair[0].dayName}–${bestPair[1].dayName}` : bestPair[0].dayName;
+  const sep = bestPair.length === 2 ? (splitWeekend ? ' & ' : '–') : '';
+  const days_str = bestPair.length === 2 ? `${bestPair[0].dayName}${sep}${bestPair[1].dayName}` : bestPair[0].dayName;
 
   // Period — name the window, flag bad non-best days so user isn't surprised.
   const otherDays = days.filter(d => !bestPair.includes(d));
   const badOther = otherDays.find(d => d.score < bestPairAvg - 20);
-  const period = badOther
+  const period = splitWeekend && badOther
+    ? `${days_str} firing · skip ${badOther.dayName}`
+    : badOther
     ? `${days_str} firing · ${badOther.dayName} ${badOther.score < 40 ? 'storms' : 'weak'}`
     : `${days_str} window`;
 
-  return { score: Math.round(bestPairAvg), label, period, days: days_str, confidence };
+  return { score: Math.round(bestPairAvg), label, period, days: days_str, confidence, splitWeekend };
 }
 
 // Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
