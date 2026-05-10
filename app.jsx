@@ -1358,7 +1358,30 @@ function scoreVenue(venue, wx, marine, dayIndex) {
       score = 65; label = `${tempMax}°F · ${sunHrs.toFixed(0)}h sun`; period = "Conditions fair";
   }
 
-  return { score: Math.round(Math.min(100, Math.max(5, score))), label, period };
+  // Beach off-season cap (mirrors skiing's binary cap). Med/N-Europe/etc.
+  // beaches in their dead months can't outscore the cap regardless of weather —
+  // a sunny February day in Hvar still has no boats, no bars, no point.
+  const dayDate = d.time?.[di] ? new Date(d.time[di]) : new Date();
+  const beachCap = getBeachSeasonCap(venue, dayDate);
+  if (beachCap != null) score = Math.min(score, beachCap);
+  if (beachCap != null) period = `Off-season — ${period.toLowerCase()}`;
+
+  // Banded score: be honest about forecast horizon + model self-uncertainty.
+  // Day-0 forecasts are tight (±2); day-7 is barely better than climatology
+  // (±15+). When the model itself hedges (high precipPct + ~0mm forecast),
+  // widen the band further.
+  const baseHalfWidth = 2;
+  const horizonWidth = Math.max(0, di - 1) * 2.5;
+  const hedgeWidth = (precipPct >= 50 && precip < 1) ? 4 : 0;
+  const halfWidth = Math.round(baseHalfWidth + horizonWidth + hedgeWidth);
+  const finalScore = Math.round(Math.min(100, Math.max(5, score)));
+  return {
+    score: finalScore,
+    lo: Math.max(5, finalScore - halfWidth),
+    hi: Math.min(100, finalScore + halfWidth),
+    halfWidth,
+    label, period,
+  };
 }
 
 // ─── Weekend window scoring (front page) ──────────────────────────────────────
