@@ -4662,7 +4662,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
           </div>
         ) : (
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, padding:"0 20px 24px" }}>
-            {listListings.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />)}
+            {listListings.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} alertedIds={alertedIds} onAlertToggle={onAlertToggle} />)}
           </div>
         )}
         <div style={{ height:32 }} />
