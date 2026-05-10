@@ -7783,7 +7783,11 @@ function App() {
   }, []);
 
   const [activeTab,    setActiveTab]    = useState("explore");
-  const [activeCat,    setActiveCat]    = useState(() => seasonalDefaultCat(profile?.homeAirport));
+  const [activeCat,    setActiveCat]    = useState(() => {
+    let homeAirport = "";
+    try { homeAirport = JSON.parse(localStorage.getItem("peakly_profile") || "{}").homeAirport || ""; } catch {}
+    return seasonalDefaultCat(homeAirport);
+  });
   const [wxData,       setWxData]       = useState({});
   const [marData,      setMarData]      = useState({});
   const [loading,      setLoading]      = useState(true);
