@@ -6387,6 +6387,20 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
+  const [detecting,   setDetecting]  = useState(false);
+  const detectAirport = () => {
+    if (!navigator.geolocation || detecting) return;
+    setDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
+        if (code) setAirport(code);
+        setDetecting(false);
+      },
+      () => setDetecting(false),
+      { timeout: 4000, maximumAge: 300000 }
+    );
+  };
 
   // Sync airport when geolocation resolves after onboarding opened
   useEffect(() => {
