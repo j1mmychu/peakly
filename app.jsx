@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510i";
+const PEAKLY_BUILD = "20260510j";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3921,7 +3921,79 @@ function MyListsSection({ namedLists, cloudSync }) {
   );
 }
 
+// ─── map view ─────────────────────────────────────────────────────────────────
+// Leaflet map with venue markers colored by verdict. Tap → detail sheet.
+// Initial center keys off home airport coords; falls back to world view.
+function MapView({ listings, profile, onOpenDetail }) {
+  const containerRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+  const layerRef = React.useRef(null);
+
+  const initialCenter = (() => {
+    const ap = profile?.homeAirport;
+    if (ap && typeof AIRPORT_COORDS !== "undefined" && AIRPORT_COORDS[ap]) {
+      return { lat: AIRPORT_COORDS[ap].lat, lon: AIRPORT_COORDS[ap].lon, zoom: 4 };
+    }
+    return { lat: 30, lon: 0, zoom: 2 };
+  })();
+
+  useEffect(() => {
+    if (!window.L || !containerRef.current || mapRef.current) return;
+    const L = window.L;
+    const map = L.map(containerRef.current, {
+      center: [initialCenter.lat, initialCenter.lon],
+      zoom: initialCenter.zoom,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors © <a href="https://carto.com">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 18,
+    }).addTo(map);
+    mapRef.current = map;
+    layerRef.current = L.layerGroup().addTo(map);
+    return () => { try { map.remove(); } catch (_) {} mapRef.current = null; layerRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (!layerRef.current || !window.L) return;
+    const L = window.L;
+    layerRef.current.clearLayers();
+    listings.forEach(v => {
+      if (typeof v.lat !== "number" || typeof v.lon !== "number") return;
+      const verdict = getGoVerdict(v.conditionScore);
+      const marker = L.circleMarker([v.lat, v.lon], {
+        radius: v.conditionScore >= 85 ? 11 : 8,
+        fillColor: verdict.color,
+        color: "#fff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.92,
+      });
+      marker.bindTooltip(
+        `<div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:11px"><strong>${v.title}</strong><br/>${verdict.label} · ${v.conditionScore} · $${v.flight?.price ?? "—"}</div>`,
+        { direction: "top", offset: [0, -6] }
+      );
+      marker.on("click", () => { try { onOpenDetail && onOpenDetail(v); } catch (_) {} });
+      layerRef.current.addLayer(marker);
+    });
+  }, [listings]);
+
+  return (
+    <div style={{ flex:1, position:"relative", minHeight:0 }}>
+      <div ref={containerRef} style={{ position:"absolute", inset:0 }} />
+      {!window.L && (
+        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", color:"#888", fontFamily:F, fontSize:13 }}>
+          Loading map…
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
+  const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
