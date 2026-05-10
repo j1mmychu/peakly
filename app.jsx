@@ -6941,30 +6941,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             ))}
           </div>
 
-          {/* 🛍️ Gear — affiliate (Amazon Associates, tag=peakly-20) */}
-          {GEAR_ITEMS[listing.category] && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🛍️ Gear for this trip</div>
-                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>Affiliate links · no extra cost</span>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-                {GEAR_ITEMS[listing.category].map((item, i) => (
-                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none" }}>
-                    <div className="pressable" style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#f7f7f7", borderRadius:12, border:"1.5px solid #e8e8e8" }}>
-                      <span style={{ fontSize:22, flexShrink:0 }}>{item.emoji}</span>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{item.name}</div>
-                        <div style={{ fontSize:10, color:"#888", fontFamily:F, marginTop:1 }}>{item.store} · {item.price}</div>
-                      </div>
-                      <span style={{ fontSize:11, color:"#0284c7", fontWeight:800, fontFamily:F, flexShrink:0 }}>Shop ↗</span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* 🎟️ Book an experience */}
           {EXPERIENCES[listing.category] && (
             <div style={{ marginBottom:16 }}>
