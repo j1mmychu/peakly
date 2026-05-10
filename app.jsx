@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510e";
+const PEAKLY_BUILD = "20260510f";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7312,31 +7312,43 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           gap:10,
           flexShrink:0,
         }}>
-          <a href={flightUrl} target="_blank" rel="noopener noreferrer"
-             onClick={() => { logEvent('flight_click', {venue: listing.title, origin: listing.flight.from}); }}
-             style={{ flex:2, textDecoration:"none" }}>
-            <div className="pressable" style={{
-              background:"#222", borderRadius:14, padding:"15px 0",
-              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-            }}>
-              <span style={{ fontSize:16 }}>✈️</span>
-              <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · from ${listing.flight.price}</span>
-              {listing.flight.foundAt && <span style={{ fontSize:10, color:"rgba(255,255,255,0.65)", fontFamily:F }}> · {relTime(listing.flight.foundAt)}</span>}
-            </div>
-          </a>
-          <a href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`}
-             target="_blank" rel="noopener noreferrer"
-             onClick={() => logEvent('hotel_click', {venue: listing.title})}
-             style={{ flex:1, textDecoration:"none" }}>
-            <div className="pressable" style={{
-              background:"#f0f0f0", borderRadius:14, padding:"15px 0",
-              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-            }}>
-              <span style={{ fontSize:16 }}>🏨</span>
-              <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>Hotels</span>
-            </div>
-          </a>
+          <button onClick={() => {
+            logEvent('flight_click', {venue: listing.title, origin: listing.flight.from});
+            setBookConfirm({ partner: "Aviasales", url: flightUrl, label: `Flights · from $${listing.flight.price}`, kind: "flight" });
+          }} className="pressable" style={{
+            flex:2, background:"#222", borderRadius:14, padding:"15px 0", border:"none",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7, cursor:"pointer",
+          }}>
+            <span style={{ fontSize:16 }}>✈️</span>
+            <span style={{ fontSize:14, fontWeight:900, color:"white", fontFamily:F }}>Flights · from ${listing.flight.price}</span>
+            {listing.flight.foundAt && <span style={{ fontSize:10, color:"rgba(255,255,255,0.65)", fontFamily:F }}> · {relTime(listing.flight.foundAt)}</span>}
+          </button>
+          <button onClick={() => {
+            logEvent('hotel_click', {venue: listing.title});
+            setBookConfirm({ partner: "Booking.com", url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`, label: "Hotels in " + listing.location, kind: "hotel" });
+          }} className="pressable" style={{
+            flex:1, background:"#f0f0f0", borderRadius:14, padding:"15px 0", border:"none",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7, cursor:"pointer",
+          }}>
+            <span style={{ fontSize:16 }}>🏨</span>
+            <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>Hotels</span>
+          </button>
         </div>
+        {bookConfirm && (
+          <BookingConfirmSheet
+            partner={bookConfirm.partner}
+            url={bookConfirm.url}
+            label={bookConfirm.label}
+            kind={bookConfirm.kind}
+            isEstimate={bookConfirm.kind === "flight" && listing.flight?.live !== true}
+            onCancel={() => setBookConfirm(null)}
+            onConfirm={() => {
+              logEvent('booking_confirm', { partner: bookConfirm.partner, kind: bookConfirm.kind, venue: listing.title });
+              try { window.open(bookConfirm.url, "_blank", "noopener,noreferrer"); } catch (_) {}
+              setBookConfirm(null);
+            }}
+          />
+        )}
       </div>
     </>
   );
