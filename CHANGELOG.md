@@ -2,6 +2,14 @@
 
 Historical "what was shipped" and "decisions made" log. Moved out of CLAUDE.md on 2026-04-10 to keep the shared brain lean. Read this when you need historical context — otherwise stay focused on CLAUDE.md.
 
+## 2026-05-09 — scoring tightening (front-page truth)
+Three holes plugged in `scoreVenue` + `scoreWeekend`:
+- **Split-weekend support.** Best-2 pair was *consecutive only* — Fri 92 / Sat 40 / Sun 92 averaged the worst pair (~66) and lied about firing weekends. Now considers every pair; if non-consecutive wins AND the gap day is >15 below the pair avg, returns `splitWeekend: true`, days_str = `Fri & Sun`, period = `firing · skip Sat`. Otherwise re-picks the best consecutive pair (don't manufacture splits from noise).
+- **Water-temp graduated penalty.** 18°C hard-cap-to-55 was too blunt — a 17°C Med day with 90°F air + UV 9 was scoring 55 when lived experience says high 70s. Replaced with smooth subtraction: ≥22°C +4, 18–22°C linear 0→+4, 14–18°C linear -10→-25, <14°C -30. `chillyWater` flag tightened to <16°C. `poolPrimary` still skips entirely.
+- **Bluebird actually scores.** `bluebird` const at line 1209 was computed but only changed the period *label* — added zero score. Now `score += 10` when snow≥10cm + temp<30°F + clear + wind<25mph. Iconic powder-after-storm days finally headline 95+ instead of 85.
+
+Cache 20260509b → 20260509c.
+
 ## 2026-04-15
 - Removed duplicate `require()` of `fs` and `path` in proxy.js (lines 5-6 and 232-233 were dupes). No runtime impact.
 
