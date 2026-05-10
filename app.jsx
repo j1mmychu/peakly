@@ -2639,15 +2639,8 @@ function ListingCard({ listing, wishlists, onToggle, onOpen }) {
 
       {/* Body */}
       <div style={{ padding:"12px 14px 8px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
-            {listing.title}
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0, marginLeft:8 }}>
-            <span style={{ fontSize:12 }}>⭐</span>
-            <span style={{ fontSize:12, fontWeight:600, color:"#222", fontFamily:F }}>{listing.rating}</span>
-            <span style={{ fontSize:10, color:"#aaa", fontFamily:F }}>({listing.reviews})</span>
-          </div>
+        <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
+          {listing.title}
         </div>
         <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>
           {listing.location}
