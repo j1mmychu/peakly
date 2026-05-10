@@ -2,6 +2,51 @@
 
 Historical "what was shipped" and "decisions made" log. Moved out of CLAUDE.md on 2026-04-10 to keep the shared brain lean. Read this when you need historical context — otherwise stay focused on CLAUDE.md.
 
+## 2026-04-15
+- Removed duplicate `require()` of `fs` and `path` in proxy.js (lines 5-6 and 232-233 were dupes). No runtime impact.
+
+## 2026-04-14 — 18 algorithm holes
+**7 holes (commit 4475f3a):** strict day-index `at(arr)` helper, gustFactor only when wind ≥ 8mph, windswell-dominant surf hard-capped, bigWaveBreak detection scans id/title/tags, wet-snow false powder bonus capped at 75, swell trend awareness ("tail end" / "fading" labels), tanning cloud_cover_max wired into fetchWeather. Cache 20260412a → 20260414a.
+**11 holes (commit 4cd0f6c):** freezing rain (wCode 66/67) ski penalty -28, thunderstorms penalize ski -22 / surf -30, surfing wind direction defaults to speed-only when missing, bluebird powder bonus +6, fading swell -5pts, snowmaking floor by season (peak 35 / shoulder 25 / off 15), NWS official wind chill formula, beach 22mph "umbrella-flipping" band, likelyRain detection -16 for beach, heavy snow visibility warning. Cache 20260414a → 20260414b.
+
+## 2026-04-12 — 7 algorithm holes
+- Marine data missing → score 50 "Swell data unavailable" instead of dishonest 22.
+- Beach marine data NOW FETCHED (`needsMarine` was surfing-only before).
+- Skiing season awareness: off-season → score 8, shoulder months capped unless real snow.
+- Spring skiing penalty gated on base depth (42°F + 200cm = corn, not slush).
+- bestDays counter category-aware (snow days = good for skiing).
+- Heat index humidity penalty for beach (dangerous -12 / oppressive -7 / sticky -3).
+- Snowmaking floor 35 (was 20) during ski season.
+- Cache 20260411a → 20260412a.
+
+## 2026-04-11 — accuracy + honesty pass
+- Surfing wind direction was INVERTED — fixed to use `venue.facing + 180` for offshore bearing. Glassy/offshore/cross/onshore penalties recalibrated.
+- Skiing wCode ≥ 65 split rain (penalty) from snow (no penalty); wind chill component added.
+- Tanning wind thresholds tightened (uncomfortable 13mph, miserable 18mph). Water-temp bonus/penalty added when marine data fetched.
+- Flight pricing stopped fabricating deals — `getFlightDeal` returns honest typical price, `pct: 0`, `isEstimate: true`.
+- `getTypicalPrice` rewritten: `BASE_PRICES[venue.ap]?.[homeAirport]` with region-pair fallback. Single source of truth with `getFlightDeal`.
+- UI price badges gated on `flight.live` (only render "X% off" when real AND pct ≥ 10).
+- `best-right-now` filter passes homeAirport to `getDealScore`; excludes estimates.
+- Insider Tips removed (LOCAL_TIPS + PACKING orphans deleted).
+- "You'd also like" moved to bottom of VenueDetailSheet.
+
+## 2026-04-10 — cleanup + launch-scope pass
+- `TP_MARKER = "710303"` (flight commission earning).
+- `fetchWeather` retries 429/5xx with backoff; returns null instead of throw.
+- Proxy: deduped rate limiter, IATA regex validation, /api/alerts schema validation + cap.
+- Proxy: new POST /api/waitlist → appends to `server/data/waitlist.jsonl`.
+- index.html: pinned react/react-dom @18.3.1.
+- REI section removed (22 dead $0 links).
+- VENUES scaled 3,726 → 257 (unique-photo dedupe) → 231 (launch cats only: ski/surf/tan).
+- CATEGORIES trimmed to 4; emoji field stripped.
+- LOCAL_TIPS / PACKING / GEAR_ITEMS / EXPERIENCES / guideCategories / blurbs / vibe-search intents / getVenuePhoto / needsMarine all pruned to launch-only.
+- 8 dead `switch` cases removed from `scoreVenue` (diving/climbing/kite/kayak/mtb/fishing/paraglide/hiking).
+- `venue.facing` compass bearing on all 77 surfing venues.
+- Email capture: real POST to `/api/waitlist` with inline status (no more `alert()`).
+- Sitemap: dropped hash-fragment URLs.
+- `.archive/` deleted (64K April 7-9 QA snapshots).
+- `.gitignore`: added `*.orig`, `*.rej`.
+
 ## 2026-04-05 → 2026-04-10
 - Pre-fetch weather during onboarding (commit `ce730cf`, on `main`, not yet merged to `master` as of 2026-04-10).
 - Code freeze: only one product commit in this window. P1 bug list unchanged. ProductHunt 5 days out.
