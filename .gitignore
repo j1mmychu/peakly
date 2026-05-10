@@ -43,3 +43,9 @@ yarn-error.*
 *.orig
 *.rej
 .claude/
+
+# Local business docs — never commit
+Peakly-Business-Plan.*
+.~lock.*
+*.pdf
+*.pptx
