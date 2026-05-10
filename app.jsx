@@ -3904,7 +3904,7 @@ function MyListsSection({ namedLists, cloudSync }) {
   );
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
+function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
