@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Peakly — Privacy Policy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#111; --muted:#666; --line:#eee; --primary:#0284c7; --bg:#f5f5f5; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.55; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; }
+  h2 { font-size: 18px; font-weight: 600; margin: 28px 0 8px; }
+  p, li { font-size: 15px; color: #222; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .updated { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .back { display: inline-block; margin-top: 24px; font-size: 14px; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 2026-05-09</p>
+
+  <p>Peakly is a weekend-trip discovery app (web at <a href="https://j1mmychu.github.io/peakly/">j1mmychu.github.io/peakly</a> and on iOS). This page explains what data Peakly collects, where it goes, and what we do not do.</p>
+
+  <h2>What Peakly stores on your device</h2>
+  <p>Most of the app is local-first. We store the following in your browser's <code>localStorage</code> (or the iOS app's local storage):</p>
+  <ul>
+    <li>Wishlists, named lists, alerts, trips, and profile (name, email if you provide it, home airports, sport preferences)</li>
+    <li>Forecast and price caches (so the app stays fast)</li>
+    <li>Anonymous error logs and performance metrics</li>
+    <li>Your iOS push token, if you enabled push notifications</li>
+  </ul>
+  <p>Local data never leaves your device unless you sign in for cloud sync (below).</p>
+
+  <h2>Optional: cloud sync</h2>
+  <p>If you sign in with your email (magic-link auth via Supabase), the following sync to our database so you can use Peakly across devices:</p>
+  <ul>
+    <li>Wishlists, named lists, alerts, trips, profile</li>
+    <li>Your email address (for the magic-link login)</li>
+  </ul>
+  <p>Caches, error logs, and the push token stay local-only. You can sign out at any time; sign-out leaves the server copy in place — email <a href="mailto:jjciluzzi@gmail.com">jjciluzzi@gmail.com</a> if you want it deleted.</p>
+
+  <h2>Third-party services we use</h2>
+  <ul>
+    <li><strong>Supabase</strong> — cloud sync database and magic-link auth. Stores your email and your synced lists. <a href="https://supabase.com/privacy">Their privacy policy</a>.</li>
+    <li><strong>Sentry</strong> — automatic error reporting. Collects stack traces, browser/device info, and a randomized session ID. No personally identifying information. <a href="https://sentry.io/privacy/">Their privacy policy</a>.</li>
+    <li><strong>Plausible</strong> — privacy-friendly analytics. No cookies, no cross-site tracking, no IP retention. <a href="https://plausible.io/privacy">Their privacy policy</a>.</li>
+    <li><strong>Open-Meteo</strong> — weather forecasts. We send only the latitude/longitude of the venue you're viewing. No identifying information. <a href="https://open-meteo.com/en/terms">Their terms</a>.</li>
+    <li><strong>Travelpayouts / Aviasales</strong> — flight pricing and booking links. Pricing requests go through our server-side proxy and contain only origin/destination airport codes and dates. <a href="https://www.travelpayouts.com/legal/privacy_policy">Their privacy policy</a>.</li>
+    <li><strong>Apple Push Notification service</strong> (iOS only) — delivers Strike Alert pushes when forecast conditions hit your target. Apple receives a device push token; we send no message body that identifies you.</li>
+  </ul>
+
+  <h2>Affiliate links</h2>
+  <p>Some outbound links (flight bookings, hotel bookings, gear, travel insurance) are affiliate links — we earn a small commission at no cost to you. This does not change which results we show; rankings are based on conditions and price only.</p>
+
+  <h2>What we do NOT do</h2>
+  <ul>
+    <li>We do not sell or share your data with advertisers or data brokers.</li>
+    <li>We do not run third-party ads in Peakly.</li>
+    <li>We do not track you across other apps or websites.</li>
+    <li>We do not store your IP address on our server beyond the request lifetime.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>Peakly is not directed at children under 13 and does not knowingly collect their data.</p>
+
+  <h2>Your rights</h2>
+  <p>To delete your synced data, email <a href="mailto:jjciluzzi@gmail.com">jjciluzzi@gmail.com</a> from the address you signed in with. We'll delete the row within 7 days. To clear all local data, uninstall the app or clear your browser storage for the Peakly origin.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the "Last updated" date at the top will change. Material changes will be communicated in-app.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="mailto:jjciluzzi@gmail.com">jjciluzzi@gmail.com</a></p>
+
+  <hr>
+  <a class="back" href="./">← Back to Peakly</a>
+</main>
+</body>
+</html>
