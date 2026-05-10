@@ -734,14 +734,10 @@ app.get('/health', (req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     alerts: _alerts.size,
-<<<<<<< HEAD
     wx_cache_size: _wxCache.size,
     wx_inflight: _wxInflight.size,
     poll: _pollStats,
     apns: _apnsConfigured() ? 'configured' : 'unconfigured',
-=======
-    lastPollAt: _lastPollAt,
->>>>>>> origin/claude/implement-todo-item-igUtK
   });
 });
 
