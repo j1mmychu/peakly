@@ -1206,7 +1206,10 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         ? `${sIn}" fresh · ${dIn}" base · ${tempMax}°F${conditionTag}`
         : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
       const stormFading = ySnow > snow + 8 && snow < 10;
-      const bluebird = snow >= 8 && tempMax < 32 && wCode <= 1;
+      const bluebird = snow >= 10 && tempMax < 30 && wCode <= 1 && wind < 25;
+      // Bluebird = post-storm clear cold day. Today this only changed the
+      // label; now it actually moves the score so iconic powder days headline.
+      if (bluebird) score += 10;
       period = isFreezingRain ? "Freezing rain — DO NOT ski"
              : isThunder ? "Thunderstorm — lifts will close"
              : wetSnow && snow >= 10 ? "Wet snow — heavy & sticky"
