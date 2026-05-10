@@ -241,76 +241,9 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 - ✅ **Reports archived** (commit 6e964e9) — 73 files older than 7 days moved to `reports/archive/` per the >7d rule.
 - ✅ **Agent channels streamlined** (commit 35e60c2) — 24 remote stubs → 5 live; 14 local prompts → 6. New daily-briefing pipeline. Findings-to-fix loop appended to all 5 input prompts (sub-15-min fixes go to `reports/ready-to-ship/`; two-strikes rule → `reports/known-skipped.md`).
 
-### Recently Fixed (2026-04-15 — proxy cleanup)
+### Older fixes
 
-- ✅ **Duplicate `require()` in proxy.js** — `fs` and `path` were required twice (lines 5-6 and 232-233). Removed duplicates. No runtime impact.
-
-### Recently Fixed (2026-04-14 — 18 algorithm holes)
-
-**7 holes (commit 4475f3a):**
-- ✅ **Day-index fallback silently used today's data for future days** — `d.X?.[0]` fallback returned Tuesday's weather when asking about Saturday. Replaced with strict `at(arr)` helper returning null when out of range.
-- ✅ **gustFactor false-triggered on calm days** — wind=2 + gusts=5 = ratio 2.5 triggered "erratic gusts" penalty. Now only computes gust factor when wind >= 8mph.
-- ✅ **Windswell-dominant surf scored too high** — windWaveH > 1.5x swellH now hard-caps score at 38; > 0.9x caps at 55.
-- ✅ **bigWaveBreak detection only checked tags** — Pipeline, Jaws, Mavericks missed. Now scans id + title + tags. Added more iconic breaks to regex.
-- ✅ **Wet-snow false powder bonus** — snow > 0 + tempMax > 36°F was slush, not powder. Capped at 75, added "wet/heavy" label.
-- ✅ **Trend awareness added** — fading swell (yesterday > today + tomorrow lower) → "Tail end — last shot" / "Firing but fading — go AM" labels. Ski storm fading also labeled.
-- ✅ **Tanning cloud_cover_max added to fetchWeather** — was never requested. 80%+ cloud → -6, 60%+ → -3, ≤15% bluebird → +2. Fixes inflated scores on grey days with "mainly clear" wCode.
-- ✅ Cache bump 20260412a → 20260414a.
-
-**11 holes (commit 4cd0f6c):**
-- ✅ **Freezing rain (wCode 66/67) treated as regular rain** — now -28 ski penalty + "FREEZING RAIN — DO NOT ski" label.
-- ✅ **Thunderstorms ignored for skiing + surfing** — now: ski -22 (lifts evacuated), surf -30 ("Lightning — out of the water"). Hail gets additional -6 ski penalty.
-- ✅ **Surfing wind direction defaulted to 0 (north) when missing** — computed phantom offshore/onshore against ghost data. Now falls back to speed-only scoring.
-- ✅ **Bluebird powder bonus added** — snow >= 8cm + tempMax < 32°F + sunny (wCode ≤ 1) → +6 "Bluebird powder — perfect day." Was scoring same as overcast powder.
-- ✅ **Fading swell now drops score 5pts** — yesterday 8ft + today 4ft + tomorrow 2ft was getting same score as steady 4ft.
-- ✅ **Snowmaking floor differentiated by season** — peak → 35, shoulder → 25, off-season → 15. Was 35 flat.
-- ✅ **NWS official wind chill formula** — replaces rough `tempMax - wind*0.7`. Old formula overestimated chill and triggered false penalties.
-- ✅ **Tighter beach wind band** — 22mph "umbrella-flipping zone" added between 18 and 25mph thresholds.
-- ✅ **likelyRain detection for beach** — precip < 1mm + precipPct > 70% now penalizes -16. Fixes 0mm/90%-probability scattered showers scored as clear.
-- ✅ **Heavy snow labels visibility warning** — wCode 75/86 surfaces "heavy snow · flat light" label. Score stays high (powder!) but user warned.
-- ✅ Cache bump 20260414a → 20260414b.
-
-### Recently Fixed (2026-04-12 — 7 algorithm holes)
-
-- ✅ **Marine data missing → surfing scored "flat" dishonestly** — was asserting score 22 when marine data simply wasn't available. Now returns score 50 "Swell data unavailable" instead of lying about conditions.
-- ✅ **Beach marine data was NEVER FETCHED** — `needsMarine` only checked surfing category. Water temp scoring was dead code for beaches. Now fetches marine for both surfing and tanning.
-- ✅ **Skiing had no season awareness** — a resort in July with residual snowpack scored 72. Now checks month vs hemisphere: off-season → score 8 "Off-season — resort closed." Shoulder months capped unless real snow.
-- ✅ **Spring skiing penalty was wrong** — 42°F with 200cm base scored as "slush" when it's excellent corn skiing. Warm-temp penalty now gated on base depth.
-- ✅ **bestDays counter treated snow as BAD for skiing** — precip > 3mm = "bad day" hit powder days. A 4-day storm showed bestDays = 1. Now category-aware: snow days count as good for skiing.
-- ✅ **Heat index ignored for beach** — 90°F at 90% humidity vs 40% scored the same. Added humidity penalty (dangerous: -12, oppressive: -7, sticky: -3).
-- ✅ **Snowmaking floor added** — during ski season, resorts with 0 natural snowpack get score 35 (not 20) since most resorts make snow.
-- ✅ Cache bump 20260411a → 20260412a.
-
-### Recently Fixed (2026-04-11 accuracy + honesty pass)
-
-- ✅ **Surfing wind direction was INVERTED** — was comparing wind to swell direction; offshore is relative to the break's FACING. Now uses `venue.facing + 180` for offshore bearing. Glassy / offshore / cross / onshore penalties calibrated. This was making clean offshore days score worse than blown-out onshore days.
-- ✅ **Skiing penalized heavy snow as "low visibility"** — `wCode >= 65` hit snow codes 71-77. Now splits rain (penalty) from snow (no penalty). Added wind chill component and tuned snow-depth curve.
-- ✅ **Tanning wind thresholds were too forgiving** — beach is uncomfortable at 13mph, miserable at 18mph. Tightened. Added water temperature bonus/penalty when marine data is fetched.
-- ✅ **Flight pricing was fabricating deals** — `getFlightDeal` returned a pseudo-random 28–75% "discount" off BASE_PRICES when Travelpayouts hadn't responded yet. Users saw "$180 · 60% off" on venues where no real data existed. Now returns the honest typical price, `pct: 0`, `isEstimate: true`.
-- ✅ **`getTypicalPrice` used euclidean degrees** from a hardcoded "central US" point, ignoring home airport entirely. Rewrote to look up `BASE_PRICES[venue.ap]?.[homeAirport]` with region-pair fallback. Single source of truth shared with `getFlightDeal`.
-- ✅ **UI price badges now gated on `flight.live`** — "X% off" and the strikethrough typical only render when data is real AND pct >= 10. When estimate: shows "~$X typical" in muted color.
-- ✅ **Best-right-now filter** now passes homeAirport to `getDealScore` and excludes estimates from the deal threshold.
-- ✅ **Insider Tips section removed** from VenueDetailSheet (LOCAL_TIPS const + PACKING const deleted — both were orphaned after).
-- ✅ **"You'd also like"** moved to bottom of VenueDetailSheet (after Save-to-list).
-
-### Recently Fixed (2026-04-10 cleanup + launch-scope pass)
-
-- ✅ `TP_MARKER = "710303"` set — flight commission earning
-- ✅ `fetchWeather` now retries on 429/5xx with backoff, returns null instead of throw
-- ✅ Proxy: deduped rate limiter, IATA regex validation, /api/alerts schema validation + cap
-- ✅ Proxy: new **POST /api/waitlist** endpoint → appends to `server/data/waitlist.jsonl` (free, uses existing VPS disk)
-- ✅ index.html: pinned react/react-dom 18.3.1 (was floating @18)
-- ✅ REI section removed from GEAR_ITEMS (22 dead $0 links)
-- ✅ VENUES scaled 3,726 → 257 (unique-photo dedupe) → **231** (launch cats only: skiing/surfing/tanning)
-- ✅ CATEGORIES trimmed to 4 (all + ski/surf/beach); emoji field stripped
-- ✅ LOCAL_TIPS, PACKING, GEAR_ITEMS, EXPERIENCES, guideCategories, blurbs, vibe-search intents, getVenuePhoto, needsMarine — all pruned to launch-only
-- ✅ 8 dead `switch` cases removed from `scoreVenue` (diving/climbing/kite/kayak/mtb/fishing/paraglide/hiking)
-- ✅ `venue.facing` compass bearing added to all 77 surfing venues — per-break data based on iconic knowledge, no more broken default
-- ✅ Email capture: real POST to `/api/waitlist`, inline status feedback (no more `alert()`)
-- ✅ Emoji stripped from CATEGORIES pills, LOCAL_TIPS/PACKING strings, guideCategories, GEAR_ITEMS items, EXPERIENCES items, and 5 JSX render sites
-- ✅ Sitemap: dropped hash-fragment URLs (not indexable), homepage only
-- ✅ `.archive/` deleted (64K of April 7-9 QA snapshots)
-- ✅ `.gitignore`: added `*.orig`, `*.rej`
+For 2026-04-15 and earlier (proxy cleanup, 18 algorithm holes 04-14, 7 algorithm holes 04-12, accuracy + honesty pass 04-11, launch-scope pass 04-10), see **CHANGELOG.md**.
 
 ### Open Pre-Launch Items
 
