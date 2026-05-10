@@ -141,6 +141,7 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 9. **Venue data is hardcoded** — `VENUES` array has **~154 entries** (2 launch categories: skiing and beach; surfing retired 2026-05-03). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL. Marine API only fetched for beach venues (water temp only).
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
+12. **Pre-deploy smoke test** runs automatically via `scripts/auto-push.sh` → Playwright headless against the live URL after each push that touches app.jsx/sw.js/index.html. If you see `❌ DEPLOY SMOKE FAILED` in the auto-push output (or `/tmp/peakly-smoke.log`), the live site likely has a runtime error — diagnose before more pushes. Manual run: `npm run smoke` (live) or `npm run smoke:local` (dist/ on :8002). Catches "parses but throws on first render" bugs (TDZ, undefined refs).
 
 ## Current State (2026-05-09)
 
