@@ -623,7 +623,6 @@ app.post('/api/alerts', (req, res) => {
 
   const record = {
     alertId,
-<<<<<<< HEAD
     venueId:       venueId || null,
     venueLat:      typeof venueLat === 'number' ? venueLat : null,
     venueLon:      typeof venueLon === 'number' ? venueLon : null,
@@ -639,22 +638,6 @@ app.post('/api/alerts', (req, res) => {
     lastChecked:   null,
     lastFiredAt:   null,
     enabled:       true,
-=======
-    venueId: venueId || null,
-    sport: typeof sport === 'string' ? sport.slice(0, 32) : null,
-    targetScore: targetScore ?? null,
-    maxPrice: maxPrice ?? null,
-    lat: typeof lat === 'number' ? lat : null,
-    lon: typeof lon === 'number' ? lon : null,
-    pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
-    pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
-    registeredAt: new Date().toISOString(),
-    lastChecked: null,
-    lastScore: null,
-    lastFiredAt: null,
-    fired: false,
-    enabled: true,
->>>>>>> origin/claude/implement-todo-item-igUtK
   };
   _alerts.set(alertId, record);
 
