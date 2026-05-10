@@ -43,23 +43,33 @@ if cache_files_changed; then
   CURRENT=$(grep -E 'const PEAKLY_BUILD = "' app.jsx | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
   PREFIX="${CURRENT:0:8}"
   SUFFIX="${CURRENT:8}"
+  SLEN=${#SUFFIX}
 
-  if [ "$PREFIX" != "$TODAY" ]; then
-    NEW_SUFFIX="a"
+  # Only reset to "a" when the current stamp is from a PRIOR day. Same-day or
+  # future-day stamps (e.g. manually bumped past midnight UTC) increment
+  # forward — never regress to a smaller suffix on the same day.
+  NEW_BUILD=""
+  if [ -z "$CURRENT" ] || [ "$PREFIX" \< "$TODAY" ]; then
+    NEW_BUILD="${TODAY}a"
   else
-    # Increment one letter, a→b→...→z. Past z, wrap to "aa","ab"... (extreme)
-    case "$SUFFIX" in
-      "")  NEW_SUFFIX="a" ;;
-      z)   NEW_SUFFIX="aa" ;;
-      *z)  NEW_SUFFIX="${SUFFIX::-1}aa" ;;
-      *)   LAST="${SUFFIX: -1}"
-           REST="${SUFFIX::-1}"
-           # next letter
-           NEXT=$(printf '\\%03o' "$(($(printf '%d' "'$LAST") + 1))")
-           NEW_SUFFIX="${REST}$(printf "$NEXT")" ;;
-    esac
+    # Increment last char of SUFFIX (a→b→...→z, then z→aa, dz→daa, etc.).
+    # Use bash-3-compatible substring forms — ${var: -1} and ${var::-1} fail
+    # silently on macOS's default bash 3.2.
+    if [ -z "$SUFFIX" ]; then
+      NEW_SUFFIX="a"
+    else
+      LAST="${SUFFIX:$((SLEN-1)):1}"
+      REST="${SUFFIX:0:$((SLEN-1))}"
+      if [ "$LAST" = "z" ]; then
+        NEW_SUFFIX="${REST}aa"   # wrap: ...z → ...aa
+      else
+        NEXT_CODE=$(($(printf '%d' "'$LAST") + 1))
+        NEXT_CHAR=$(printf "\\$(printf '%03o' "$NEXT_CODE")")
+        NEW_SUFFIX="${REST}${NEXT_CHAR}"
+      fi
+    fi
+    NEW_BUILD="${PREFIX}${NEW_SUFFIX}"
   fi
-  NEW_BUILD="${TODAY}${NEW_SUFFIX}"
 
   # In-place edits — keep all three files locked to the same slug.
   if [ "$NEW_BUILD" != "$CURRENT" ]; then
