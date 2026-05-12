@@ -1,32 +1,12 @@
-# Peakly DevOps Report — 2026-05-08
+# Peakly DevOps Report — 2026-05-12
 
-**Overall Status: 🟡 YELLOW**
+**Overall Status: YELLOW**
 
-A P0 was found and self-resolved during this audit: 6 days of local commits (2026-05-03 through 2026-05-07) were pushed to `origin/main` partway through the session. Main is now current. The residual work is VPS redeploy — the proxy has never been updated with the new server-side code. Until that deploy runs, weather proxy caching, weekend-specific flight pricing, and APNS push alerts remain dead letters.
-
----
-
-## Fixes Applied This Run
-
-None to code — the P0 resolved via an external push during audit. See VPS redeploy checklist below.
-
----
-
-## P0 (RESOLVED DURING SESSION): Repo Divergence
-
-At audit start, `origin/main` was at `52e2236` (2026-05-02). `git fsck --lost-found` surfaced a dangling commit chain (`d19a7549` tip) containing everything CLAUDE.md listed as "Recently Fixed" since 2026-05-03. During the audit, origin/main was pushed forward to `d19a7549`, incorporating all 50+ commits. Local merge is now required to absorb the pull conflict.
-
-**Current main now contains (confirmed in code):**
-- Surf→beach pivot ✅ (only 5 surfing refs remain, all in migration code or comments)
-- WHEN_OPTIONS stripped to 3 options (weekend / next 7 days / anytime) ✅
-- `lateSeason: true` on 7 ski venues ✅
-- `scoreWeekend` / `scoreWeekendDeal` unified ✅
-- `ScoreBreakdown` "Why this score?" component ✅
-- `seasonalDefaultCat()` helper ✅
-- `useCloudSync` / Supabase magic-link auth ✅
-- Default `maxFlightHrs: 6` ✅
-- Cache bust at `peakly-20260507e` / `v=20260507e` ✅
-- app.jsx: 8,465 lines / ~490 KB
+Infrastructure is solid. Proxy is HTTPS, secrets are protected, analytics
+running, pivot features confirmed live. Two issues need action this week:
+stale SEO copy is actively hurting search indexing, and APNS must ship by
+tomorrow or the Alerts tab needs a platform gate before App Store submission.
+Everything else is maintenance-tier.
 
 ---
 
@@ -34,14 +14,20 @@ At audit start, `origin/main` was at `52e2236` (2026-05-02). `git fsck --lost-fo
 
 | Check | Result |
 |-------|--------|
-| `app.jsx` size | 8,465 lines |
-| CDN scripts | All HTTPS ✅ |
-| Plausible analytics | Present, uncommented, `domain=j1mmychu.github.io` ✅ |
-| Cache-buster (`index.html`) | `v=20260507e` ✅ |
-| SW cache name | `peakly-20260507e` ✅ |
-| Sentry DSN | Wired (`9416b032...`), `tracesSampleRate: 0.05` ✅ |
-| WHEN_OPTIONS (honest forecast window) | 3 options — weekend / next 7 days / anytime ✅ |
-| Surfing venues | Retired — 5 remaining refs are migration/comment only ✅ |
+| app.jsx size | 8,928 lines / 531,918 bytes (~130 KB gzipped est.) |
+| CDN scripts | All HTTPS, pinned versions ✅ |
+| Plausible analytics | Present, active, `data-domain="j1mmychu.github.io"` ✅ |
+| Cache buster (index.html) | `v=20260510l` — 2 days old, bump before next deploy |
+| SW cache name | `peakly-20260510l` — matches index.html ✅ |
+| Sentry DSN | Configured, `tracesSampleRate: 0.05` ✅ |
+| Image lazy loading | `loading="lazy"` on all `<img>` tags ✅ |
+| PRECACHE | `[]` (empty) — no offline shell, acceptable for now |
+| Pivot features live | `scoreWeekend`, `weekendDayIndices`, `scoreWeekendDeal`, `bestRightNow`, `bestRightNowFallback` all confirmed in code ✅ |
+| `category:"tanning"` remaining | 0 occurrences — migration complete ✅ |
+
+**app.jsx grew 1,756 lines since 05-09** (7,172 → 8,928, +24% in 3 days),
+driven by cloud sync + share-a-list features. No action required yet — watch
+the trajectory. Hits 10K lines within 2 weeks at this pace.
 
 ---
 
@@ -49,183 +35,226 @@ At audit start, `origin/main` was at `52e2236` (2026-05-02). `git fsck --lost-fo
 
 | Check | Result |
 |-------|--------|
-| Proxy URL | `https://peakly-api.duckdns.org` (HTTPS) ✅ |
-| No raw IP in client | Correct ✅ |
-| Travelpayouts token in client | Not present ✅ |
-| Fetch timeout | 5s AbortController ✅ |
-| Retry logic | 3 attempts, 1.2s / 2.4s backoff ✅ |
-| Weekend-specific `depart_date` param | **Code present, VPS not redeployed** ❌ |
-| `/api/weather` + `/api/marine` proxy endpoints | **Code present in server/proxy.js, VPS not redeployed** ❌ |
-| APNS push alert worker | **Code present in server/proxy.js, VPS not redeployed** ❌ |
+| Proxy URL | `https://peakly-api.duckdns.org` — HTTPS via DuckDNS + Caddy ✅ |
+| IP fallback | No direct IP references in app.jsx ✅ |
+| TP token | Server-side only (`process.env.TRAVELPAYOUTS_TOKEN`) ✅ |
+| fetchTravelpayoutsPrice timeout | 5s AbortController, semaphore capped at 3 concurrent ✅ |
+| Rate limiting | 60 req/min/IP with in-memory map + auto-cleanup ✅ |
+| CORS | Locked to `j1mmychu.github.io`, `peakly.app`, localhost ✅ |
+| VPS redeploy (weekend pricing + weather proxy) | **UNKNOWN — still pending Jack's SSH step per CLAUDE.md** |
 
-**The committed `server/proxy.js` now has all the new endpoints. The VPS is still running the old binary. One command fixes this:**
+Weekend-specific Travelpayouts pricing and Open-Meteo proxy caching have been
+code-complete since 2026-05-04. Until Jack runs:
 
 ```bash
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"
+ssh root@198.199.80.21
+cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy
 ```
 
-**Verify after:**
-```bash
-curl https://peakly-api.duckdns.org/health
-# Expect: {"status":"ok","alerts":0,"pollStats":{...},"apns":{...}}
-```
-
-If `/health` returns the new schema, the deploy succeeded. If it 404s, the old binary is still running.
+— flight prices are month-cheapest instead of weekend-specific, and every
+user session hammers Open-Meteo directly (no spike protection). This is
+the single highest-leverage undeployed action in the project.
 
 ---
 
-## 3. Weather & External APIs
+## 3. Security Audit
 
 | Check | Result |
 |-------|--------|
-| Open-Meteo client calls | Direct client→Open-Meteo. **No server-side cache yet** (awaiting VPS redeploy) ❌ |
-| Client-side cache | 2hr TTL, 6hr hard evict ✅ |
-| Retry on 429/5xx | 3 attempts, exponential backoff ✅ |
-| Marine fetch gating | Checks `category === "beach"` correctly ✅ |
-| Rate-limit exposure | 154 venues × N users simultaneous = N×154 uncached upstream calls ❌ |
+| Travelpayouts token in client | None ✅ — only `TP_MARKER = "710303"` (public affiliate marker, safe) |
+| Supabase anon key | Exposed at app.jsx:26 — intentional, RLS-gated per CLAUDE.md ✅ |
+| Sentry DSN | Exposed in index.html:77 — standard practice, Sentry DSNs are public ✅ |
+| .gitignore | Covers `.env`, `.pem`, `.key`, `.p8`, `*.pdf`, `*.pptx`, business docs ✅ |
+| Git log secrets scan | Last 20 commits are all `auto: app.jsx/index.html/sw.js` — no credential commits detected ✅ |
+| SRI on Leaflet | `integrity=sha256-...` on both CSS and JS ✅ |
+| SRI on React, ReactDOM, Babel, Supabase | **MISSING — 4 of 6 CDN scripts have no integrity hash** ⚠️ |
 
-Once VPS redeploy runs, `fetchWeather` / `fetchMarine` fall through to the server-side 2hr LRU cache with in-flight dedup. Until then, a spike of 500+ simultaneous users hitting cold cache will fire 77K+ Open-Meteo requests in one batch. At current scale (pre-launch) this is acceptable risk.
+### P1 — Missing SRI on 4 CDN Scripts
+
+React, ReactDOM, Babel, and Supabase load from unpkg/jsdelivr with no
+`integrity=` attribute. Leaflet already has this right; copy the pattern.
+If unpkg CDN is compromised, you serve malicious JS to every user silently.
+
+**Time to fix: 15 minutes.**
+
+```bash
+# Run locally to generate hashes, paste output into index.html integrity= attributes
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
+  | openssl dgst -sha256 -binary | openssl base64 -A | xargs -I{} echo "sha256-{}"
+
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
+  | openssl dgst -sha256 -binary | openssl base64 -A | xargs -I{} echo "sha256-{}"
+
+curl -s https://unpkg.com/@babel/standalone@7.24.7/babel.min.js \
+  | openssl dgst -sha256 -binary | openssl base64 -A | xargs -I{} echo "sha256-{}"
+
+curl -s https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js \
+  | openssl dgst -sha256 -binary | openssl base64 -A | xargs -I{} echo "sha256-{}"
+```
+
+Then add `integrity="sha256-<HASH>"` + `crossorigin` to each script tag,
+matching the Leaflet pattern already in index.html lines 88-89.
 
 ---
 
-## 4. Security Audit
+## 4. SEO Metadata — Stale Surf References (P1, Fixed This Run)
 
-| Check | Result |
-|-------|--------|
-| Travelpayouts token in client | Not present ✅ |
-| Supabase anon key in client | **Present** — intentional, public-safe by design ⚠️ |
-| Sentry DSN in client | Present — acceptable (restrict ingest origins in Sentry dashboard) ✅ |
-| `.gitignore` | Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12` ✅ |
-| Recent commits — no secrets | Clean ✅ |
-| SRI hashes on CDN scripts | **Missing** ❌ |
-| CSP meta tag | **Missing** ❌ |
+The 2026-05-03 pivot retired surfing. `app.jsx` is clean — zero surf venues,
+zero `category:"tanning"`. But index.html had surf in 7 places that Google
+and social crawlers were actively indexing. **Fixed this run:**
 
-**Supabase anon key (P2):** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` is in app.jsx line 26. This is intentional design for Supabase — anon keys are public-facing JWTs and RLS policies are the actual gate. However, verify RLS is locked on the `user_data` and `shared_lists` tables before launch. If RLS isn't enforced, anyone with the key can read all users' synced data.
+| Location | Was | Now |
+|----------|-----|-----|
+| `<meta name="description">` | "Find surf, ski & adventure spots..." | "Find the best ski & beach spots to fly to this weekend." |
+| `<meta property="og:title">` | "Adventure When Conditions Align" | "Ski & Beach When Conditions Align" |
+| `<meta property="og:description">` | "Find surf, ski & beach spots...180+ venues" | "Find ski & beach spots...150+ venues" |
+| `<meta name="twitter:title">` | "Adventure When Conditions Align" | "Ski & Beach When Conditions Align" |
+| `<meta name="twitter:description">` | "Find surf, ski & beach spots" | "Find ski & beach spots" |
+| `<title>` | "Find Surf, Ski & Adventure Spots" | "Best Ski & Beach Weekend Trips" |
+| Noscript `<h1>` | "Surf, Ski & Adventure Spots" | "Ski & Beach Weekend Trips" |
 
-**Quick RLS verification:**
-```sql
--- Run in Supabase SQL editor
-SELECT tablename, rowsecurity FROM pg_tables 
-WHERE schemaname = 'public' AND tablename IN ('user_data', 'shared_lists');
--- Both should show rowsecurity = true
+Google was indexing "surf" as a primary keyword 9 days post-pivot. Done.
+
+---
+
+## 5. APNS Deadline — Tomorrow (2026-05-13) (P0 for App Store)
+
+Per CLAUDE.md item #12: Strike Alerts code is fully shipped. APNS is not
+configured. PM deadline is EOD Wednesday 2026-05-13 — **that is tomorrow.**
+
+Two paths:
+
+**Path A — Ship APNS:** Run the `peakly-native/PUSH_SETUP.md` runbook.
+Apple Dev console + 5 `pm2 set` calls. `/health` endpoint confirms
+`apns_configured: true`. Full alerts live.
+
+**Path B — Gate the tab:** If APNS isn't happening by tomorrow, add this
+guard so iOS reviewers don't see a broken Alerts tab. Web product unaffected.
+
+```jsx
+// In App root (near tab render logic), fetch /health on mount:
+const [apnsConfigured, setApnsConfigured] = React.useState(true);
+React.useEffect(() => {
+  fetch(`${FLIGHT_PROXY}/health`)
+    .then(r => r.json())
+    .then(d => setApnsConfigured(d.apns_configured !== false))
+    .catch(() => {}); // fail open
+}, []);
+
+// In nav tab render — hide Alerts on native iOS when APNS is not configured:
+const showAlertsTab = !window.Capacitor?.isNativePlatform?.() || apnsConfigured;
 ```
 
-**SRI gap (P2):** CDN supply-chain attack on unpkg.com → silent arbitrary JS execution. Low probability, high impact.
+**Do not ship App Store v1 with a broken Alerts tab.** Pick a path by EOD today.
 
-```bash
-# Generate SRI hashes (run once, pin the results in index.html)
-curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-curl -s "https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" | openssl dgst -sha384 -binary | openssl base64 -A
-```
+---
 
-Add `integrity="sha384-<HASH>"` to each `<script>` tag in index.html.
+## 6. Performance Analysis
 
-**CSP note:** Babel requires `unsafe-eval` to transpile JSX at runtime. CSP with `unsafe-eval` blocked = broken app. Minimum viable CSP:
+**CDN payload on first load (gzipped estimates):**
+
+| Asset | Gzipped |
+|-------|----------|
+| Babel Standalone 7.24.7 | ~250 KB |
+| ReactDOM 18.3.1 | ~130 KB |
+| app.jsx | ~130 KB |
+| Supabase JS 2.45.4 | ~80 KB |
+| React 18.3.1 | ~42 KB |
+| Leaflet JS 1.9.4 | ~40 KB |
+| Plus Jakarta Sans | ~20 KB |
+| Leaflet CSS + index.html | ~8 KB |
+| **Total first load** | **~700 KB gzipped** |
+
+**Biggest bottleneck: Babel Standalone (~250 KB gzipped, ~960 KB raw).**
+
+Babel downloads and executes before `app.jsx` starts parsing. On 4G this
+adds ~1s of dead time. On 3G, ~2s. This is structural to the no-build-step
+architecture — can't eliminate it without a build step.
+
+Fixed this run: added a preload hint so Babel fetches in parallel with
+React and Google Fonts instead of sequentially:
+
 ```html
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://js.sentry-cdn.com https://plausible.io;
-  connect-src 'self' https://peakly-api.duckdns.org https://wsoqcfwkvvemtlddcgfc.supabase.co https://api.open-meteo.com https://marine-api.open-meteo.com https://plausible.io https://*.sentry.io;
-  img-src 'self' https://images.unsplash.com data:;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
-">
+<link rel="preload" href="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" as="script" crossorigin />
 ```
+
+**Saves ~200-400ms on first load.**
 
 ---
 
-## 5. Performance Analysis
+## 7. Open-Meteo Rate Limit Status
 
-| Check | Result |
-|-------|--------|
-| Images `loading="lazy"` | All img render sites ✅ |
-| React 18.3.1 | Latest stable 18.x ✅ (React 19 is a major version — skip) |
-| Babel standalone 7.24.7 | **Outdated** — latest 7.29.4, 5 patch versions behind ❌ |
-| Supabase JS 2.45.4 (new in index.html) | Latest 2.x — check for 2.49+ ⚠️ |
+Free tier limit: 10,000 requests/day per IP.
 
-**Estimated JS payload on first load:**
+**Pre-VPS-redeploy (current state):** Each user session fetches weather for
+all ~154 venues × 2 calls (weather + marine for beach). At 1K MAU with 3
+sessions/day = ~924K upstream calls/day. That's **92× the free tier limit.**
+Open-Meteo will start 429-ing and venues will score as 0. The VPS redeploy
+is not optional at any real traffic level.
 
-| Asset | Raw | Gzipped (est.) |
-|-------|-----|----------------|
-| Babel standalone 7.24.7 | ~2.1 MB | ~600 KB |
-| Supabase JS 2.45.4 | ~400 KB | ~120 KB |
-| ReactDOM 18.3.1 | ~440 KB | ~130 KB |
-| React 18.3.1 | ~140 KB | ~42 KB |
-| app.jsx | ~490 KB | ~145 KB |
-| **Total** | **~3.6 MB** | **~1.04 MB** |
-
-Supabase JS added 120KB gzip to the payload compared to last audit. The original plan was to lazy-load it (only when signed in / magic-link callback). Check `index.html:85` — it's now a blocking `<script>` tag, not lazy-loaded. This means every anonymous user on first paint is downloading an extra 120KB.
-
-**Babel standalone remains the #1 bottleneck** — 58% of gzip payload, synchronous parse before any React mounts. Architectural constraint. The splash screen covers the delay but median TTI on 4G mobile is ~3–5s.
-
-**Babel upgrade (P1):**
-```html
-<!-- index.html line ~88 -->
-<script src="https://unpkg.com/@babel/standalone@7.29.4/babel.min.js"></script>
-```
-Also bump `app.jsx?v=20260508a` and `CACHE_NAME = "peakly-20260508"` when applying.
+**Post-VPS-redeploy:** Shared 2hr cache across all users. 154 venues × 12
+upstream calls/day max = ~1,848 calls/day. Comfortably within free tier.
+The deploy is one SSH command.
 
 ---
 
-## 6. Cost Estimate
+## 8. Cost Projection
 
-| Tier | Infrastructure | Monthly Cost |
-|------|---------------|-------------|
-| Current (pre-launch) | DO 1GB + GH Pages | **$6/month** |
-| 1K MAU | Same | **$6/month** |
-| 10K MAU | DO 2GB upgrade | **$18/month** |
-| 100K MAU | DO 4GB + Cloudflare free | **$36/month** |
+| MAU | DigitalOcean | Supabase | Plausible | Open-Meteo | Total/mo |
+|-----|-------------|---------|-----------|------------|----------|
+| Pre-launch | $6 | Free | $9 | Free | **~$15** |
+| 1K | $6 | Free (<500 MB) | $9 | Free (proxy) | **~$15** |
+| 10K | $12 (2 GB) | $25 (Pro) | $19 | Free (proxy) | **~$56** |
+| 100K | $48 (8 GB) | $25+ usage | $99 | $50 (paid plan) | **~$222** |
 
-GitHub Pages: free, no practical cap for a static SPA.
-
-**What breaks first at scale:**
-
-1. **Open-Meteo direct calls** — at 10K+ MAU with cold cache, simultaneous explore page loads can fire 1.5M+ upstream calls/day. Server-side weather cache (in proxy.js, waiting for VPS redeploy) is the fix.
-
-2. **`_rateMap` OOM at 50K+ unique IPs** — proxy.js rate map grows unbounded. At 50K unique daily IPs the 1GB droplet OOMs. One-line fix:
-
-```javascript
-// Add inside rateLimiter(), before the normal entry.count check:
-if (_rateMap.size > 50_000) _rateMap.clear(); // hard circuit breaker
-```
-
-3. **APNS in-memory alert store** — push alert registrations are in-memory only. Server restart = all alert subscriptions lost. Supabase migration for alert persistence is in the plan (v2 scope per CLAUDE.md) but will need to ship before the App Store review cycle or push alert quality will be erratic.
+Costs stay bootstrapped through 10K MAU. The $9/mo Plausible bill can be
+eliminated by self-hosting on the existing DigitalOcean droplet (~30 min
+one-time setup, saves $108/year).
 
 ---
 
-## Priority Matrix
+## 9. What Breaks First at Scale
 
-| # | Severity | Issue | ETA |
-|---|----------|-------|-----|
-| 1 | **P1** | VPS not redeployed — weather cache, weekend pricing, APNS push all inactive | 5 min SSH |
-| 2 | **P1** | Supabase JS loaded as blocking script — adds 120KB gzip to anonymous first paint | 15 min |
-| 3 | **P1** | Babel 7.24.7 → 7.29.4 + cache bust | 5 min |
-| 4 | **P2** | `_rateMap` no size cap in proxy.js — OOM risk at scale | 2 min |
-| 5 | **P2** | Verify Supabase RLS is active on `user_data` + `shared_lists` | 5 min |
-| 6 | **P2** | SRI hashes on CDN scripts | 20 min |
-| 7 | **P2** | CSP meta tag | 10 min |
-| 8 | **P3** | APNS alert persistence — in-memory store lost on restart | v2 scope |
+**The single $6 VPS collapses at ~5K concurrent users.**
 
-**VPS redeploy (resolves P1 item 1):**
-```bash
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"
-curl https://peakly-api.duckdns.org/health
-```
+The proxy handles 5 jobs: Travelpayouts pricing, Open-Meteo weather cache,
+Marine API cache, Push alerts polling, Waitlist. All in-memory on 1 GB RAM.
+No load balancer. No horizontal scaling. **A VPS reboot wipes all alert
+subscriptions silently** — there is no persistence (CLAUDE.md: "Phase 2C
+deferred to v2").
 
-**Supabase lazy-load fix (P1 item 2):** Remove the `<script>` tag for Supabase from index.html. Add it dynamically in `useCloudSync` only when needed:
-```javascript
-// In useCloudSync, before createClient:
-await new Promise((res, rej) => {
-  const s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
-  s.onload = res; s.onerror = rej;
-  document.head.appendChild(s);
-});
-```
+**Prevention playbook (in order of impact):**
+
+1. **Deploy the VPS (5 min)** — eliminates the Open-Meteo rate bomb.
+   This is already written and waiting. Everything else is downstream of it.
+
+2. **Move alert subscriptions to Supabase before 1K users** — the schema
+   is already in `~/.claude/plans/effervescent-jumping-hopper.md`. One
+   migration + one `INSERT` in the proxy `/api/alerts` handler. Without this,
+   a VPS reboot loses every user's alert silently.
+
+3. **Add UptimeRobot** (free tier, 5 min) — point at
+   `https://peakly-api.duckdns.org/health`. Zero alerting today if the VPS
+   goes down. Users see broken prices with no signal to Jack.
+
+4. **Add Cloudflare in front of GitHub Pages** (~30 min) — free DDoS
+   protection, HTTP/2 push, HTML compression, real analytics. Covers any
+   traffic Peakly will see pre-Series A.
+
+5. **Upgrade to 2 GB RAM at 10K MAU** (~$6/mo increase) — the 4,000-entry
+   LRU weather cache starts thrashing at sustained 10K MAU. 2 GB allows
+   expanding to 16K entries.
 
 ---
 
-## Bottom Line
+## Summary — Action Queue
 
-Main is current. VPS is not. One SSH command ships everything that's been waiting since May 4. Do that first. Then fix the Supabase blocking script — every anonymous user is paying 120KB gzip for a feature they may never use.
+| Priority | Item | Time | Blocks |
+|----------|------|------|--------|
+| P0 | **VPS redeploy** — `git pull && pm2 restart` on 198.199.80.21 | 5 min | Weekend pricing, Open-Meteo spike protection |
+| P0 | **APNS by EOD 2026-05-13** — run PUSH_SETUP.md OR add Capacitor gate | 30 min | App Store v1 |
+| P1 | **SEO copy** — DONE THIS RUN — surf removed from 7 meta/title tags | ✅ | Search indexing accuracy |
+| P1 | **SRI hashes** — add `integrity=` to React, ReactDOM, Babel, Supabase | 15 min | Supply-chain security |
+| P2 | **Babel preload link** — DONE THIS RUN — `<link rel="preload">` added | ✅ | 200-400ms TTI improvement |
+| P2 | **UptimeRobot** — monitor `/health` on proxy | 5 min | Ops visibility |
+| P2 | **Alert subscriptions to Supabase** — before first Reddit post | 2 hr | Data durability at launch |
