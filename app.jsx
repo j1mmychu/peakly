@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513c";
+const PEAKLY_BUILD = "20260513d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6728,7 +6728,7 @@ const AVATAR_COLORS = [
   { id:"night",   grad:"linear-gradient(135deg,#334155,#0f172a)", hex:"#334155" },
 ];
 
-function OnboardingSheet({ profile, setProfile, onClose }) {
+function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
@@ -6763,6 +6763,17 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const complete = () => {
     setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
+    // If they gave a valid email and cloud sync is on, this IS their account —
+    // fire the magic link now so there's no second "create account" step in Profile.
+    const trimmed = (email || "").trim();
+    if (trimmed.includes("@") && cloudSync?.enabled && !cloudSync.user) {
+      cloudSync.signIn(trimmed).then(r => {
+        if (r?.ok && setImportToast) {
+          setImportToast("Check your email for a one-tap sign-in link ✉️");
+          setTimeout(() => setImportToast(""), 4500);
+        }
+      });
+    }
     onClose();
   };
 
@@ -6928,9 +6939,14 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               <input type="text" placeholder="Your name (optional)" value={name} onChange={e => setName(e.target.value)}
                 style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600, marginBottom:10 }}
               />
-              <input type="email" placeholder="Email (optional, for alerts)" value={email} onChange={e => setEmail(e.target.value)}
+              <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}
                 style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
               />
+              {cloudSync?.enabled && (
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:8, lineHeight:1.45, paddingLeft:4 }}>
+                  Add your email and we'll send a one-tap magic link to sync wishlists & alerts across devices. No password.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -8946,20 +8962,20 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
-                  <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ display:"flex", alignItems:"center", flexShrink:0 }}>
+                  <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
                     peakly
                   </span>
                 </div>
-                <div style={{ flex:1 }}>
+                <div style={{ flex:1, minWidth:0 }}>
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
                 peakly
               </span>
             </div>
@@ -9040,6 +9056,8 @@ function App() {
           <OnboardingSheet
             profile={profile}
             setProfile={setProfile}
+            cloudSync={cloudSync}
+            setImportToast={setImportToast}
             onClose={() => {
               setShowOnboarding(false);
               // Show airport setup modal after onboarding if not already done
