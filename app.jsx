@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513h";
+const PEAKLY_BUILD = "20260513i";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5167,6 +5167,7 @@ function EmptyAlertsIllustration() {
 function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
+  const [showMore, setShowMore] = useState(false);
 
   // Helper to get condition score threshold
   const getScoreThreshold = (condition) => {
@@ -5279,215 +5280,155 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
   };
 
   // ── add alert sheet ────────────────────────────────────────────────────────
-  if (adding) return (
-    <div style={{ flex:1, overflowY:"auto" }}>
-      <div style={{ padding:"24px 24px 0" }}>
-        <button onClick={() => setAdding(false)} style={{
-          background:"none", border:"none", fontSize:14, color:"#717171", cursor:"pointer", fontFamily:F,
-          display:"flex", alignItems:"center", gap:4,
-        }}>← Back</button>
-        <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginTop:14 }}>Create Alert</div>
-        <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F, lineHeight:1.4 }}>
-          We'll text you when conditions peak AND flights are cheap — so you never miss your window.
-        </div>
-      </div>
+  // Condensed to fit a single screen: Sport / Trigger / Max price + CTA above
+  // the fold; Region, Locations, Travel dates folded behind "More options".
+  if (adding) {
+    const pillBase = (active) => ({
+      padding:"7px 12px", borderRadius:20, cursor:"pointer", fontFamily:F,
+      background: active ? "#222" : "#f7f7f7",
+      color:      active ? "#fff" : "#222",
+      border:"1.5px solid", borderColor: active ? "#222" : "#e8e8e8",
+      fontSize:13, fontWeight:600,
+    });
+    const sectionLabel = { fontSize:11, fontWeight:700, color:"#888", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" };
 
-      <div style={{ padding:24 }}>
-        <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Pick a sport</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[{ id:"all", label:"Any sport", emoji:"✨" }, ...CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id))].map(cat => (
-            <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={{
-              padding:"8px 14px", borderRadius:20, cursor:"pointer", fontFamily:F,
-              background: draft.sport === cat.id ? "#222" : "#f7f7f7",
-              color:      draft.sport === cat.id ? "#fff" : "#222",
-              border:"1.5px solid", borderColor: draft.sport === cat.id ? "#222" : "#e8e8e8",
-              fontSize:13, fontWeight:600, display:"flex", alignItems:"center", gap:5,
-            }}>
-              {cat.label}
-            </button>
-          ))}
+    return (
+      <div style={{ flex:1, overflowY:"auto" }}>
+        <div style={{ padding:"14px 18px 0" }}>
+          <button onClick={() => setAdding(false)} style={{
+            background:"none", border:"none", fontSize:13, color:"#717171", cursor:"pointer", fontFamily:F,
+            display:"flex", alignItems:"center", gap:4, padding:0,
+          }}>← Back</button>
+          <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:8, letterSpacing:"-0.01em" }}>Create Alert</div>
+          <div style={{ fontSize:12, color:"#717171", marginTop:2, fontFamily:F, lineHeight:1.4 }}>
+            We'll notify you when conditions peak AND flights are cheap.
+          </div>
         </div>
 
-        {draft.sport && (
-          <div className="fade-in">
-            {/* Condition presets */}
-            <div style={{ marginTop:28 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Trigger condition</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        <div style={{ padding:"14px 18px 24px" }}>
+          <div style={sectionLabel}>Sport</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {[{ id:"all", label:"Any" }, ...CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id))].map(cat => (
+              <button key={cat.id} onClick={() => setDraft(d => ({...d, sport:cat.id}))} style={pillBase(draft.sport === cat.id)}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {draft.sport && (
+            <div className="fade-in">
+              <div style={{ ...sectionLabel, marginTop:16 }}>Trigger</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                 {draft.sport === "skiing" && (
-                  <button onClick={() => setDraft(d => ({...d, condition:"powder"}))} style={{
-                    padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                    background: draft.condition === "powder" ? "#222" : "#f7f7f7",
-                    color: draft.condition === "powder" ? "#fff" : "#222",
-                    borderColor: draft.condition === "powder" ? "#222" : "#e8e8e8",
-                    fontSize:13, fontWeight:600, textAlign:"left",
-                  }}>
-                    Powder Day (score ≥ 93)
-                  </button>
+                  <button onClick={() => setDraft(d => ({...d, condition:"powder"}))} style={pillBase(draft.condition === "powder")}>Powder 93+</button>
                 )}
-                <button onClick={() => setDraft(d => ({...d, condition:"insane"}))} style={{
-                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                  background: draft.condition === "insane" ? "#222" : "#f7f7f7",
-                  color: draft.condition === "insane" ? "#fff" : "#222",
-                  borderColor: draft.condition === "insane" ? "#222" : "#e8e8e8",
-                  fontSize:13, fontWeight:600, textAlign:"left",
-                }}>
-                  Insane conditions (score ≥ 95)
-                </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"great"}))} style={{
-                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                  background: draft.condition === "great" ? "#222" : "#f7f7f7",
-                  color: draft.condition === "great" ? "#fff" : "#222",
-                  borderColor: draft.condition === "great" ? "#222" : "#e8e8e8",
-                  fontSize:13, fontWeight:600, textAlign:"left",
-                }}>
-                  Great conditions (score ≥ 85)
-                </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"good"}))} style={{
-                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                  background: draft.condition === "good" ? "#222" : "#f7f7f7",
-                  color: draft.condition === "good" ? "#fff" : "#222",
-                  borderColor: draft.condition === "good" ? "#222" : "#e8e8e8",
-                  fontSize:13, fontWeight:600, textAlign:"left",
-                }}>
-                  Good conditions (score ≥ 70)
-                </button>
-                <button onClick={() => setDraft(d => ({...d, condition:"custom", customScore: 85}))} style={{
-                  padding:"12px 14px", borderRadius:12, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                  background: draft.condition === "custom" ? "#222" : "#f7f7f7",
-                  color: draft.condition === "custom" ? "#fff" : "#222",
-                  borderColor: draft.condition === "custom" ? "#222" : "#e8e8e8",
-                  fontSize:13, fontWeight:600, textAlign:"left",
-                }}>
-                  Custom score
-                </button>
+                <button onClick={() => setDraft(d => ({...d, condition:"insane"}))} style={pillBase(draft.condition === "insane")}>Insane 95+</button>
+                <button onClick={() => setDraft(d => ({...d, condition:"great"}))}  style={pillBase(draft.condition === "great")}>Great 85+</button>
+                <button onClick={() => setDraft(d => ({...d, condition:"good"}))}   style={pillBase(draft.condition === "good")}>Good 70+</button>
+                <button onClick={() => setDraft(d => ({...d, condition:"custom", customScore: 85}))} style={pillBase(draft.condition === "custom")}>Custom</button>
               </div>
-            </div>
 
-            {draft.condition === "custom" && (
-              <div style={{ marginTop:20 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>Min score</span>
-                  <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>{draft.customScore}</span>
+              {draft.condition === "custom" && (
+                <div style={{ marginTop:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                    <span style={{ fontSize:12, fontWeight:600, color:"#666", fontFamily:F }}>Min score</span>
+                    <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{draft.customScore}</span>
+                  </div>
+                  <input type="range" min={60} max={98} value={draft.customScore}
+                    onChange={e => setDraft(d => ({...d, customScore:+e.target.value}))}
+                    style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
+                  />
                 </div>
-                <input type="range" min={60} max={98} value={draft.customScore}
-                  onChange={e => setDraft(d => ({...d, customScore:+e.target.value}))}
+              )}
+
+              <div style={{ marginTop:16 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:4 }}>
+                  <span style={sectionLabel}>
+                    Max flight{profile.homeAirport ? ` · from ${profile.homeAirport}` : ""}
+                  </span>
+                  <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>
+                    {draft.priceMax >= 2100 ? "Any" : `$${draft.priceMax}`}
+                  </span>
+                </div>
+                <input type="range" min={100} max={2200} step={50} value={draft.priceMax}
+                  onChange={e => setDraft(d => ({...d, priceMax:+e.target.value}))}
                   style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
                 />
               </div>
-            )}
 
-            {/* Location selection */}
-            <div style={{ marginTop:28 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Locations</div>
-              <button onClick={() => setDraft(d => ({...d, locations:[]}))} style={{
-                padding:"8px 12px", borderRadius:10, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                background: draft.locations.length === 0 ? "#222" : "#f7f7f7",
-                color: draft.locations.length === 0 ? "#fff" : "#222",
-                borderColor: draft.locations.length === 0 ? "#222" : "#e8e8e8",
-                fontSize:13, fontWeight:600, width:"100%", textAlign:"center", marginBottom:8,
+              <button onClick={() => setShowMore(s => !s)} style={{
+                background:"none", border:"none", color:"#0284c7", fontSize:12, fontWeight:700,
+                fontFamily:F, cursor:"pointer", padding:"10px 0 0",
               }}>
-                Any location
+                {showMore ? "Hide options ▴" : "More options ▾"}
               </button>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {listings
-                  .filter(l => draft.sport === "all" || l.category === draft.sport)
-                  .map(venue => (
-                    <button key={venue.id} onClick={() => {
-                      setDraft(d => {
-                        const locs = [...d.locations];
-                        const idx = locs.indexOf(venue.id);
-                        if (idx >= 0) locs.splice(idx, 1);
-                        else locs.push(venue.id);
-                        return {...d, locations: locs};
-                      });
-                    }} style={{
-                      padding:"6px 11px", borderRadius:8, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                      background: draft.locations.includes(venue.id) ? "#0284c7" : "#f7f7f7",
-                      color: draft.locations.includes(venue.id) ? "#fff" : "#222",
-                      borderColor: draft.locations.includes(venue.id) ? "#0284c7" : "#e8e8e8",
-                      fontSize:12, fontWeight:600,
-                    }}>
-                      {venue.title.split(",")[0]}
-                    </button>
-                  ))}
-              </div>
-            </div>
 
-            {/* Region / continent filter */}
-            <div style={{ marginTop:28 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Region</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {[{id:"",label:"Anywhere"},{id:"NA",label:"North America"},{id:"SA",label:"South America"},{id:"EU",label:"Europe"},{id:"AS",label:"Asia"},{id:"OC",label:"Oceania"},{id:"AF",label:"Africa"}].map(r => (
-                  <button key={r.id} onClick={() => setDraft(d => ({...d, region:r.id}))} style={{
-                    padding:"7px 12px", borderRadius:10, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                    background: (draft.region||"") === r.id ? "#222" : "#f7f7f7",
-                    color: (draft.region||"") === r.id ? "#fff" : "#222",
-                    borderColor: (draft.region||"") === r.id ? "#222" : "#e8e8e8",
-                    fontSize:12, fontWeight:600,
-                  }}>
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {showMore && (
+                <div className="fade-in">
+                  <div style={{ ...sectionLabel, marginTop:10 }}>Region</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {[{id:"",label:"Anywhere"},{id:"NA",label:"N. America"},{id:"SA",label:"S. America"},{id:"EU",label:"Europe"},{id:"AS",label:"Asia"},{id:"OC",label:"Oceania"},{id:"AF",label:"Africa"}].map(r => (
+                      <button key={r.id} onClick={() => setDraft(d => ({...d, region:r.id}))} style={{
+                        ...pillBase((draft.region||"") === r.id), fontSize:12, padding:"6px 11px",
+                      }}>{r.label}</button>
+                    ))}
+                  </div>
 
-            {/* Date range filter */}
-            <div style={{ marginTop:28 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:12 }}>Travel dates (optional)</div>
-              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-                <div style={{ flex:1 }}>
-                  <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>From</label>
-                  <input type="date" value={draft.dateFrom || ""}
-                    onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
-                    className={draft.dateFrom ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateFrom ? "#eff6ff" : "#fff", color: draft.dateFrom ? "#0284c7" : "#222", fontWeight: draft.dateFrom ? 700 : 400 }}
-                  />
+                  <div style={{ ...sectionLabel, marginTop:14 }}>Specific venues</div>
+                  <button onClick={() => setDraft(d => ({...d, locations:[]}))} style={{
+                    ...pillBase(draft.locations.length === 0), fontSize:12, padding:"6px 11px", marginBottom:6,
+                  }}>Any</button>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {listings
+                      .filter(l => draft.sport === "all" || l.category === draft.sport)
+                      .map(venue => (
+                        <button key={venue.id} onClick={() => {
+                          setDraft(d => {
+                            const locs = [...d.locations];
+                            const idx = locs.indexOf(venue.id);
+                            if (idx >= 0) locs.splice(idx, 1);
+                            else locs.push(venue.id);
+                            return {...d, locations: locs};
+                          });
+                        }} style={{
+                          padding:"5px 10px", borderRadius:14, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                          background: draft.locations.includes(venue.id) ? "#0284c7" : "#f7f7f7",
+                          color: draft.locations.includes(venue.id) ? "#fff" : "#222",
+                          borderColor: draft.locations.includes(venue.id) ? "#0284c7" : "#e8e8e8",
+                          fontSize:12, fontWeight:600,
+                        }}>{venue.title.split(",")[0]}</button>
+                      ))}
+                  </div>
+
+                  <div style={{ ...sectionLabel, marginTop:14 }}>Travel window (optional)</div>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <input type="date" value={draft.dateFrom || ""}
+                      onChange={e => setDraft(d => ({...d, dateFrom:e.target.value}))}
+                      className={draft.dateFrom ? "date-filled" : ""}
+                      style={{ flex:1, padding:"8px 10px", borderRadius:10, border:`1.5px solid ${draft.dateFrom ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, background: draft.dateFrom ? "#eff6ff" : "#fff", color: draft.dateFrom ? "#0284c7" : "#222", fontWeight: draft.dateFrom ? 700 : 400 }}
+                    />
+                    <input type="date" value={draft.dateTo || ""}
+                      onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
+                      className={draft.dateTo ? "date-filled" : ""}
+                      style={{ flex:1, padding:"8px 10px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, background: draft.dateTo ? "#eff6ff" : "#fff", color: draft.dateTo ? "#0284c7" : "#222", fontWeight: draft.dateTo ? 700 : 400 }}
+                    />
+                  </div>
                 </div>
-                <div style={{ flex:1 }}>
-                  <label style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>To</label>
-                  <input type="date" value={draft.dateTo || ""}
-                    onChange={e => setDraft(d => ({...d, dateTo:e.target.value}))}
-                    className={draft.dateTo ? "date-filled" : ""}
-                    style={{ width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${draft.dateTo ? "#0284c7" : "#e8e8e8"}`, fontFamily:F, fontSize:13, marginTop:4, background: draft.dateTo ? "#eff6ff" : "#fff", color: draft.dateTo ? "#0284c7" : "#222", fontWeight: draft.dateTo ? 700 : 400 }}
-                  />
-                </div>
-              </div>
-              {draft.dateFrom && <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:6 }}>Alerts will only fire during this window</div>}
-            </div>
+              )}
 
-            {/* Price ceiling */}
-            <div style={{ marginTop:28 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-                <span style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F }}>
-                  Max flight price{profile.homeAirport ? ` · from ${profile.homeAirport}` : ""}
-                </span>
-                <span style={{ fontSize:15, fontWeight:800, color:"#0284c7", fontFamily:F }}>
-                  {draft.priceMax >= 2100 ? "Any" : `$${draft.priceMax}`}
-                </span>
-              </div>
-              <input type="range" min={100} max={2200} step={50} value={draft.priceMax}
-                onChange={e => setDraft(d => ({...d, priceMax:+e.target.value}))}
-                style={{ width:"100%", accentColor:"#0284c7", background:"#e8e8e8" }}
-              />
-              <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-                <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>$100</span>
-                <span style={{ fontSize:11, color:"#aaa", fontFamily:F }}>Any price</span>
-              </div>
+              <button onClick={addAlert} style={{
+                width:"100%", background:"#0284c7", border:"none",
+                borderRadius:14, padding:14, marginTop:18,
+                color:"white", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
+              }}>
+                Create Alert
+              </button>
             </div>
-
-            <button onClick={addAlert} style={{
-              width:"100%", background:"#0284c7", border:"none",
-              borderRadius:14, padding:16, marginTop:32,
-              color:"white", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
-            }}>
-              Create Alert
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   // ── alerts list ─────────────────────────────────────────────────────────────
   return (
