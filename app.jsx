@@ -3486,7 +3486,7 @@ function SearchBar({ search, onOpen }) {
       display:"flex", alignItems:"center",
       background:"#fff", borderRadius:40,
       boxShadow:"0 3px 22px rgba(0,0,0,0.11)", border:"1.5px solid #ebebeb",
-      padding:"13px 12px 13px 20px", gap:10, cursor:"pointer",
+      padding:"15px 14px 15px 22px", gap:10, cursor:"pointer",
     }}>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
@@ -3688,7 +3688,7 @@ function scoreVibeMatch(listings, text) {
 // ─── filter chip (active filter badge with ×) ─────────────────────────────────
 function FilterChip({ label, onRemove }) {
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:4, background:"#f0f9ff", border:"1.5px solid #bae6fd", borderRadius:20, padding:"4px 10px", flexShrink:0, cursor:"default" }}>
+    <div style={{ display:"flex", alignItems:"center", gap:4, background:"#f0f9ff", border:"1.5px solid #bae6fd", borderRadius:20, padding:"3px 10px", flexShrink:0, cursor:"default" }}>
       <span style={{ fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, whiteSpace:"nowrap" }}>{label}</span>
       <button onClick={onRemove} style={{ background:"none", border:"none", cursor:"pointer", padding:0, lineHeight:1, fontSize:11, color:"#0284c7", fontWeight:900, display:"flex", alignItems:"center" }}>✕</button>
     </div>
@@ -4276,90 +4276,66 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
     .sort((a, b) => VISIBLE_CAT_IDS.indexOf(a.id) - VISIBLE_CAT_IDS.indexOf(b.id));
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-      {/* Weekend window strip — anchors "this weekend" framing + tappable refresh
-          on the left, Map/List view toggle on the right. */}
+    <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden", position:"relative" }}>
+      {/* Unified toolbar — weekend window on the left, category pills on the
+          right. The List/Map toggle moved to a floating FAB further down so
+          this strip can shrink to a single tighter row. */}
       {weekendLabel && (
         <div style={{
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          background:"#f0f9ff", borderBottom:"1px solid #e0f2fe",
-          padding:"5px 8px 5px 14px", flexShrink:0, fontFamily:F, gap:8,
+          display:"flex", alignItems:"center", gap:8,
+          background:"#fff", borderBottom:"1px solid #f0f0f0",
+          padding:"6px 12px", flexShrink:0, fontFamily:F, minWidth:0,
         }}>
           <button
             onClick={() => { if (!loading && onRefresh) { onRefresh(); haptic(); } }}
             disabled={loading}
             aria-label="Refresh weekend conditions"
             style={{
-              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6,
-              background:"none", border:"none", padding:"4px 0",
-              cursor: loading ? "default" : "pointer", textAlign:"left",
+              display:"flex", alignItems:"center", gap:6, flexShrink:0,
+              background:"#f0f9ff", border:"1px solid #e0f2fe",
+              borderRadius:14, padding:"4px 10px",
+              cursor: loading ? "default" : "pointer",
+              fontFamily:F,
             }}
           >
-            <span style={{ display:"flex", alignItems:"baseline", gap:8, minWidth:0, overflow:"hidden" }}>
-              <span style={{ fontSize:12, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
-              {!timeAgo && (
-                <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
-                  {loading ? "Loading…" : "Tap to refresh"}
-                </span>
-              )}
-            </span>
+            <span style={{ fontSize:11, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
             <span style={{
-              fontSize:14, color:"#0284c7", fontWeight:800, flexShrink:0,
+              fontSize:12, color:"#0284c7", fontWeight:800,
               transform: pullRefreshing ? "rotate(360deg)" : "none",
               transition:"transform 0.6s ease",
             }}>⟲</span>
           </button>
-          {/* List/Map toggle — segmented control. Map plots venues geographically
-              so the "≤Nhr from <airport>" mental model becomes visual. */}
-          <div style={{ display:"flex", background:"#dbeafe", borderRadius:14, padding:2, flexShrink:0 }}>
-            {[{ id:"list", label:"List" }, { id:"map", label:"Map" }].map(m => (
-              <button key={m.id}
-                onClick={() => { setViewMode(m.id); haptic(); window.plausible && window.plausible('View Mode', { props: { mode: m.id } }); }}
-                aria-pressed={viewMode === m.id}
+          <div style={{ display:"flex", gap:4, flex:1, minWidth:0 }}>
+            {visibleCats.map(c => (
+              <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
+                onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+                aria-label={`Filter by ${c.label}`}
+                aria-pressed={activeCat === c.id}
                 style={{
-                  padding:"4px 12px", borderRadius:12, border:"none", cursor:"pointer",
-                  background: viewMode === m.id ? "#fff" : "transparent",
-                  color: viewMode === m.id ? "#0284c7" : "#0c4a6e",
-                  fontSize:11, fontWeight:800, fontFamily:F,
-                  boxShadow: viewMode === m.id ? "0 1px 2px rgba(2,132,199,0.18)" : "none",
-                }}
-              >{m.label}</button>
+                  flex: 1, minWidth:0,
+                  padding:"4px 4px", borderRadius:14, cursor:"pointer",
+                  whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
+                  background: activeCat === c.id ? "#0284c7" : "#f5f5f5",
+                  color: activeCat === c.id ? "#fff" : "#555",
+                  border:"1.5px solid", borderColor: activeCat === c.id ? "#0284c7" : "transparent",
+                  fontSize:11, fontWeight:700, fontFamily:F,
+              }}>
+                {c.label}
+              </button>
             ))}
           </div>
+          {savedCount > 0 && (
+            <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
+              flexShrink:0, padding:"4px 8px", borderRadius:14, cursor:"pointer",
+              background: showSaved ? "#fee2e2" : "#f5f5f5",
+              border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
+              fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
+            }}>
+              ❤️ {savedCount}
+            </button>
+          )}
         </div>
       )}
-
-      {/* Category pills — collapsed: equal-width pills fill row; expanded: scrollable */}
-      <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", minWidth:0, padding:"6px 10px 6px 10px", gap:4 }}>
-        {visibleCats.map(c => (
-          <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-            onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
-            aria-label={`Filter by ${c.label}`}
-            aria-pressed={activeCat === c.id}
-            style={{
-              flex: 1, minWidth:0,
-              padding:"5px 6px", borderRadius:18, cursor:"pointer",
-              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
-              background: activeCat === c.id ? "#0284c7" : "#f5f5f5",
-              color: activeCat === c.id ? "#fff" : "#555",
-              border:"1.5px solid", borderColor: activeCat === c.id ? "#0284c7" : "transparent",
-              fontSize:11, fontWeight:700, fontFamily:F,
-          }}>
-            {c.label}
-          </button>
-        ))}
-        {/* Saved quick-access — always last */}
-        {savedCount > 0 && (
-          <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-            flex:"0 0 auto", padding:"5px 8px", borderRadius:18, cursor:"pointer",
-            background: showSaved ? "#fee2e2" : "#f5f5f5",
-            border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-            fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
-          }}>
-            ❤️ {savedCount}
-          </button>
-        )}
-      </div>
 
       {/* Ski pass filter pills — show when skiing is selected */}
       {activeCat === "skiing" && (
@@ -4384,7 +4360,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
       {/* Active filter strip */}
       {hasActiveFilters && (
-        <div style={{ display:"flex", gap:6, padding:"6px 14px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
+        <div style={{ display:"flex", gap:6, padding:"4px 14px 6px", overflowX:"auto", scrollbarWidth:"none", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0, alignItems:"center", touchAction:"pan-x", overscrollBehavior:"contain" }}>
           {filters.sort !== "score" && (
             <FilterChip label={`${SORT_OPTIONS.find(s => s.id === filters.sort)?.label ?? filters.sort}`} onRemove={() => setFilters(f => ({...f, sort:"score"}))} />
           )}
@@ -4485,9 +4461,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         {/* ── Hero moment: Best opportunity right now ── */}
         {!loading && !showSaved && !heroPick && (
           /* Skeleton while weather is still fetching for first venues */
-          <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
-            <div className="shimmer" style={{ height:140 }} />
-            <div style={{ padding:16 }}>
+          <div style={{ margin:"10px 12px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div className="shimmer" style={{ height:170 }} />
+            <div style={{ padding:14 }}>
               <div className="shimmer" style={{ height:12, borderRadius:6, width:"45%", marginBottom:10 }} />
               <div className="shimmer" style={{ height:20, borderRadius:6, width:"70%", marginBottom:8 }} />
               <div className="shimmer" style={{ height:12, borderRadius:6, width:"50%" }} />
@@ -4498,100 +4474,108 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           const hero = heroPick;
           const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
+          const heroCity = AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York";
           return (
-            <div style={{ margin:"12px 14px 0", borderRadius:16, overflow:"hidden",
+            <div style={{ margin:"10px 12px 0", borderRadius:16, overflow:"hidden",
               background:"#fff",
               border: weatherLoaded ? `2px solid ${verdict.color}33` : "2px solid #f0f0f0",
               boxShadow:"0 2px 12px rgba(0,0,0,0.08)",
             }} onClick={() => onOpenDetail(hero)} className="card">
               {/* Hero photo */}
               {hero.photo && (
-                <div style={{ position:"relative", height:140, overflow:"hidden" }}>
+                <div style={{ position:"relative", height:170, overflow:"hidden" }}>
                   <img src={hero.photo} alt={hero.title} loading="lazy"
                     onError={e => { e.target.onerror = null; e.target.src = getVenuePhoto(hero.title, hero.category); }}
                     style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
-                  <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />
-                  <div style={{ position:"absolute", bottom:8, left:12 }}>
+                  <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)" }} />
+                  <div style={{ position:"absolute", bottom:10, left:14 }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
                       Your best window right now
                     </div>
                   </div>
                   {weatherLoaded && (
-                    <div style={{ position:"absolute", top:8, right:8 }}>
+                    <div style={{ position:"absolute", top:10, right:10 }}>
                       <GoVerdictBadge score={hero.conditionScore} size="lg" />
                     </div>
                   )}
                 </div>
               )}
-              <div style={{ padding:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                <div>
-                  {!hero.photo && (
-                    <div style={{ fontSize:11, fontWeight:700, color: weatherLoaded ? verdict.color : "#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                      Your best window right now
+              <div style={{ padding:14 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    {!hero.photo && (
+                      <div style={{ fontSize:11, fontWeight:700, color: weatherLoaded ? verdict.color : "#aaa", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                        Your best window right now
+                      </div>
+                    )}
+                    <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:hero.photo ? 0 : 4, lineHeight:1.2 }}>
+                      {hero.title}
                     </div>
-                  )}
-                  <div style={{ fontSize:20, fontWeight:900, color:"#222", fontFamily:F, marginTop:hero.photo ? 0 : 4, lineHeight:1.2 }}>
-                    {hero.title}
-                  </div>
-                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
-                  {hero.weekendConfidence === "medium" && (
-                    <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4, background:"#fef3c7", display:"inline-block", padding:"2px 7px", borderRadius:6 }}>
-                      5-day forecast — may shift
-                    </div>
-                  )}
-                </div>
-                {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
-              </div>
-              <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <div style={{ background:"#fafafa", borderRadius:10, padding:"10px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
-                  {weatherLoaded ? (
-                    <>
-                      <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1 }}>{hero.conditionScore}<span style={{ fontSize:11, color:"#bbb" }}>/100</span></div>
-                      <div style={{ fontSize:9, fontWeight:600, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
-                    </>
-                  ) : (
-                    <div className="shimmer" style={{ height:12, borderRadius:6, marginTop:6, marginBottom:4 }} />
-                  )}
-                </div>
-                <div style={{ background:"#fafafa", borderRadius:10, padding:"10px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase", display:"inline-flex", alignItems:"center", justifyContent:"center", gap:4 }}>
-                    <span>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</span>
-                    {getFlightApiStatus() === "down" && (
-                      <span
-                        title="Live pricing offline — showing estimates"
-                        aria-label="Live pricing offline — showing estimates"
-                        style={{ fontSize:9, fontWeight:900, color:"#f59e0b", background:"#fef3c7", borderRadius:8, padding:"1px 5px", lineHeight:1 }}
-                      >!</span>
+                    <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
+                    {hero.weekendConfidence === "medium" && (
+                      <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4, background:"#fef3c7", display:"inline-block", padding:"2px 7px", borderRadius:6 }}>
+                        5-day forecast — may shift
+                      </div>
                     )}
                   </div>
-                  <div style={{ fontSize:22, fontWeight:900, color:"#0284c7", fontFamily:F, lineHeight:1.1 }}>
-                    {hero.flight.live ? `$${hero.flight.price}` : `~$${hero.flight.price}`}
-                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600, marginLeft:4 }}>typical</span>}
+                  {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
+                </div>
+                {/* Inline stat strip — conditions left, flight price right, thin
+                    vertical divider between them. Replaces the two boxed stat
+                    cards so the hero card stays slim. */}
+                <div style={{ display:"flex", alignItems:"stretch", gap:14, padding:"6px 0" }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    {weatherLoaded ? (
+                      <>
+                        <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
+                          <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1 }}>{hero.conditionScore}</span>
+                          <span style={{ fontSize:11, color:"#bbb", fontFamily:F }}>/100</span>
+                        </div>
+                        <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{hero.conditionLabel}</div>
+                      </>
+                    ) : (
+                      <div className="shimmer" style={{ height:14, borderRadius:6, width:"60%" }} />
+                    )}
                   </div>
-                  {hero.flight.live && hero.flight.pct >= 10 && (
-                    <div style={{ fontSize:9, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% below typical</div>
-                  )}
+                  <div style={{ width:1, background:"#eee", flexShrink:0 }} />
+                  <div style={{ flex:1, minWidth:0, textAlign:"right" }}>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:4, justifyContent:"flex-end" }}>
+                      <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", fontFamily:F, lineHeight:1 }}>
+                        {hero.flight.live ? `$${hero.flight.price}` : `~$${hero.flight.price}`}
+                      </span>
+                      {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:700, fontFamily:F }}>typical</span>}
+                      {getFlightApiStatus() === "down" && (
+                        <span
+                          title="Live pricing offline — showing estimates"
+                          aria-label="Live pricing offline — showing estimates"
+                          style={{ fontSize:9, fontWeight:900, color:"#f59e0b", background:"#fef3c7", borderRadius:8, padding:"1px 5px", lineHeight:1 }}
+                        >!</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                      {hero.flight.live && hero.flight.pct >= 10
+                        ? `${hero.flight.pct}% below typical · from ${heroCity}`
+                        : `from ${heroCity}`}
+                    </div>
+                  </div>
+                </div>
+                {/* CTA row */}
+                <div style={{ marginTop:12, display:"flex", gap:8 }}>
+                  <button className="pressable" onClick={(e) => { e.stopPropagation(); onOpenDetail(hero); }} style={{
+                    flex:1, background:"#0284c7", border:"none", borderRadius:14, padding:"12px 0",
+                    color:"#fff", fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer",
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    View Details
+                  </button>
+                  <button className="pressable" onClick={(e) => { e.stopPropagation(); onToggle(hero.id); haptic("medium"); }} style={{
+                    width:46, background: wishlists.includes(hero.id) ? "#fee2e2" : "#f5f5f5",
+                    border: wishlists.includes(hero.id) ? "1.5px solid #fca5a5" : "1.5px solid #e8e8e8",
+                    borderRadius:14, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center",
+                  }}>{wishlists.includes(hero.id) ? "❤️" : "🤍"}</button>
                 </div>
               </div>
-              {/* CTA row */}
-              <div style={{ marginTop:12, display:"flex", gap:8 }}>
-                <button className="pressable" onClick={(e) => { e.stopPropagation(); onOpenDetail(hero); }} style={{
-                  flex:1, background:"#0284c7", border:"none", borderRadius:14, padding:"10px 0",
-                  color:"#fff", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  View Details
-                </button>
-                <button className="pressable" onClick={(e) => { e.stopPropagation(); onToggle(hero.id); haptic("medium"); }} style={{
-                  width:42, background: wishlists.includes(hero.id) ? "#fee2e2" : "#f5f5f5",
-                  border: wishlists.includes(hero.id) ? "1.5px solid #fca5a5" : "1.5px solid #e8e8e8",
-                  borderRadius:14, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center",
-                }}>{wishlists.includes(hero.id) ? "❤️" : "🤍"}</button>
-              </div>
-              </div>{/* close padding wrapper */}
             </div>
           );
         })()}
@@ -4610,10 +4594,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
         {/* ── Front-page carousel — primary or fallback, never blank ── */}
         {!loading && carouselReady && (
-          <div style={{ marginTop:12, marginBottom:16 }}>
-            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+          <div style={{ marginTop:8, marginBottom:14 }}>
+            <div style={{ padding:"0 14px 6px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
-                <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
+                <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
                   {carouselUseFallback ? "Looking ahead" : "Firing this weekend"}
                 </div>
                 <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
@@ -4625,7 +4609,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </div>
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
-              WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              WebkitOverflowScrolling:"touch", padding:"0 14px", scrollSnapType:"x mandatory",
               touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
               {carouselVenues.map(l => {
@@ -4683,10 +4667,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
         {/* ── "Cheap flight + firing weather" — unified deal carousel ── */}
         {!loading && dealCarouselReady && (
-          <div style={{ marginTop:4, marginBottom:16 }}>
-            <div style={{ padding:"0 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+          <div style={{ marginTop:4, marginBottom:14 }}>
+            <div style={{ padding:"0 14px 6px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
-                <div style={{ fontSize:18, fontWeight:800, color:"#222", fontFamily:F }}>
+                <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
                   Cheap flight + firing weather
                 </div>
                 <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:1 }}>
@@ -4696,7 +4680,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </div>
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
-              WebkitOverflowScrolling:"touch", padding:"0 24px", scrollSnapType:"x mandatory",
+              WebkitOverflowScrolling:"touch", padding:"0 14px", scrollSnapType:"x mandatory",
               touchAction:"pan-x", overscrollBehavior:"contain",
             }}>
               {dealCarousel.map(l => {
@@ -4896,6 +4880,23 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         </div>
         <div style={{ height:24 }} />
       </div>
+      {/* Floating List/Map view toggle — hovers above the bottom tab nav so it
+          stays reachable from either view without consuming a toolbar slot. */}
+      <button
+        onClick={() => { const next = viewMode === "map" ? "list" : "map"; setViewMode(next); haptic(); window.plausible && window.plausible('View Mode', { props: { mode: next } }); }}
+        aria-label={viewMode === "map" ? "Switch to list view" : "Switch to map view"}
+        style={{
+          position:"absolute", bottom:18, right:14, zIndex:6,
+          display:"flex", alignItems:"center", gap:6,
+          background:"#222", color:"#fff",
+          border:"none", borderRadius:24, padding:"10px 16px",
+          boxShadow:"0 4px 16px rgba(0,0,0,0.25)",
+          fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer",
+        }}
+      >
+        <span style={{ fontSize:14, lineHeight:1 }}>{viewMode === "map" ? "≡" : "🗺"}</span>
+        <span>{viewMode === "map" ? "List" : "Map"}</span>
+      </button>
     </div>
   );
 }
@@ -8682,24 +8683,24 @@ function App() {
             boxShadow:"0 4px 22px rgba(0,0,0,0.25)", maxWidth:"calc(100% - 28px)",
           }}>{importToast}</div>
         )}
-        {/* Top header — hidden on map tab so map fills screen edge-to-edge */}
+        {/* Top header — hidden on map tab so map fills screen edge-to-edge.
+            Explore: stacked rows so the wordmark and the search bar each get
+            their own breathing room instead of fighting for width on one line. */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
-            <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ display:"flex", alignItems:"center", flexShrink:0 }}>
-                  <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
-                    peakly
-                  </span>
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <SearchBar search={search} onOpen={() => setShowSearch(true)} />
-                </div>
+            <div style={{ background:"#fff", flexShrink:0 }}>
+              <div style={{ padding:"52px 20px 0" }}>
+                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1 }}>
+                  peakly
+                </span>
+              </div>
+              <div style={{ padding:"10px 16px 14px" }}>
+                <SearchBar search={search} onOpen={() => setShowSearch(true)} />
               </div>
             </div>
           ) : (
-            <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
+            <div style={{ padding:"52px 20px 14px", background:"#fff", display:"flex", alignItems:"center", flexShrink:0 }}>
+              <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1 }}>
                 peakly
               </span>
             </div>
