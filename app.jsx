@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513b";
+const PEAKLY_BUILD = "20260513c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5520,59 +5520,22 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         </div>
       )}
 
-      {/* Empty state — illustration + headline + CTA + Guided Setup templates */}
+      {/* Empty state — illustration + headline + CTA (only when zero alerts) */}
       {userAlerts.length === 0 ? (
-        <>
-          <div style={{ padding:"24px 24px 12px", textAlign:"center" }}>
-            <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
-              <EmptyAlertsIllustration />
-            </div>
-            <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:6 }}>No alerts yet</div>
-            <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20, lineHeight:1.45, maxWidth:280, marginLeft:"auto", marginRight:"auto" }}>
-              Create an alert and we'll tell you when conditions + cheap flights align
-            </div>
-            <button onClick={() => setAdding(true)} className="pressable" style={{
-              background:"#0284c7", border:"none", borderRadius:14,
-              padding:"12px 28px", color:"white", fontSize:13, fontWeight:800,
-              fontFamily:F, cursor:"pointer",
-            }}>Create your first alert</button>
+        <div style={{ padding:"24px 24px 12px", textAlign:"center" }}>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+            <EmptyAlertsIllustration />
           </div>
-
-          {/* Guided Setup — Quick Templates carousel */}
-          <div style={{ padding:"8px 0 24px" }}>
-            <div style={{ padding:"0 24px 10px" }}>
-              <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>Guided Setup</div>
-              <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>Try a Quick Template</div>
-            </div>
-            <div style={{
-              display:"flex", gap:12, overflowX:"auto", padding:"4px 24px 8px",
-              scrollSnapType:"x mandatory", WebkitOverflowScrolling:"touch",
-            }}>
-              {ALERT_TEMPLATES.map(t => (
-                <button key={t.id} onClick={() => {
-                  setDraft({ sport:"", condition:"great", locations:[], priceMax:500, ...t.draft });
-                  setAdding(true);
-                  haptic();
-                  logEvent("alert_template_applied", { id: t.id });
-                }} className="pressable" style={{
-                  flex:"0 0 152px", scrollSnapAlign:"start",
-                  background:t.bg, border:"none", borderRadius:14,
-                  padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
-                  position:"relative", overflow:"hidden", minHeight:108,
-                  display:"flex", flexDirection:"column", justifyContent:"space-between",
-                }}>
-                  <div>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.title}</div>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.subtitle}</div>
-                  </div>
-                  <div style={{ alignSelf:"flex-end" }}>
-                    <TemplateGlyph kind={t.glyph} color={t.accent} />
-                  </div>
-                </button>
-              ))}
-            </div>
+          <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:6 }}>No alerts yet</div>
+          <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20, lineHeight:1.45, maxWidth:280, marginLeft:"auto", marginRight:"auto" }}>
+            Create an alert and we'll tell you when conditions + cheap flights align
           </div>
-        </>
+          <button onClick={() => setAdding(true)} className="pressable" style={{
+            background:"#0284c7", border:"none", borderRadius:14,
+            padding:"12px 28px", color:"white", fontSize:13, fontWeight:800,
+            fontFamily:F, cursor:"pointer",
+          }}>Create your first alert</button>
+        </div>
       ) : (
         <div style={{ padding:"0 24px" }}>
           {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
@@ -5636,6 +5599,46 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
           })}
         </div>
       )}
+
+      {/* Quick Templates carousel — always visible. Header copy adapts to context. */}
+      <div style={{ padding:"8px 0 24px" }}>
+        <div style={{ padding:"0 24px 10px" }}>
+          <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
+            {userAlerts.length === 0 ? "Guided Setup" : "Quick Templates"}
+          </div>
+          <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>
+            {userAlerts.length === 0 ? "Try a Quick Template" : "Add another in one tap"}
+          </div>
+        </div>
+        <div style={{
+          display:"flex", gap:12, overflowX:"auto", padding:"4px 24px 8px",
+          scrollSnapType:"x mandatory", WebkitOverflowScrolling:"touch",
+        }}>
+          {ALERT_TEMPLATES.map(t => (
+            <button key={t.id} onClick={() => {
+              setDraft({ sport:"", condition:"great", locations:[], priceMax:500, ...t.draft });
+              setAdding(true);
+              haptic();
+              logEvent("alert_template_applied", { id: t.id });
+            }} className="pressable" style={{
+              flex:"0 0 152px", scrollSnapAlign:"start",
+              background:t.bg, border:"none", borderRadius:14,
+              padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
+              position:"relative", overflow:"hidden", minHeight:108,
+              display:"flex", flexDirection:"column", justifyContent:"space-between",
+            }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.title}</div>
+                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.subtitle}</div>
+              </div>
+              <div style={{ alignSelf:"flex-end" }}>
+                <TemplateGlyph kind={t.glyph} color={t.accent} />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ height:32 }} />
     </div>
   );
