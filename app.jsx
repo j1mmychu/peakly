@@ -1,3 +1,1 @@
-const { useState, useEffect, useRef, useCallback } = React;
-
-// ─── error monitoring & crash detection ──────────────────────────────────────
+$(cat /tmp/peakly_app_jsx_FINAL.txt)
