@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513e";
+const PEAKLY_BUILD = "20260513f";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6731,7 +6731,6 @@ const AVATAR_COLORS = [
 
 function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
-  const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
@@ -6762,7 +6761,7 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
   };
 
   const complete = () => {
-    setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
+    setProfile(p => ({ ...p, email, sports, homeAirport: airport, hasAccount:true }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
     // If they gave a valid email and cloud sync is on, this IS their account —
     // fire the magic link now so there's no second "create account" step in Profile.
@@ -6811,79 +6810,60 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
 
         {/* ── Step 0: Welcome ── */}
         {step === 0 && (
-          <div style={{ padding:"20px 28px 0" }}>
+          <div style={{ padding:"32px 28px 8px" }}>
             {/* Brand mark */}
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:24 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40 }}>
               <div style={{
-                width:46, height:46, borderRadius:14,
+                width:42, height:42, borderRadius:12,
                 background:"linear-gradient(135deg,#0284c7,#38bdf8)",
                 display:"flex", alignItems:"center", justifyContent:"center",
-                boxShadow:"0 4px 16px rgba(2,132,199,0.35)",
+                boxShadow:"0 4px 16px rgba(2,132,199,0.32)",
               }}>
-                <svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+                <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                   <path d="M12 3L9 9H3L8 13.5L6 21L12 17L18 21L16 13.5L21 9H15L12 3Z" fill="white"/>
                 </svg>
               </div>
-              <span style={{ fontSize:30, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
+              <span style={{ fontSize:26, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.5px" }}>peakly</span>
             </div>
 
-            <div style={{ fontSize:32, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, marginBottom:10 }}>
+            <div style={{ fontSize:40, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.02, letterSpacing:"-1.6px", marginBottom:14 }}>
               Know when<br/>to go.
             </div>
-            <div style={{ fontSize:15, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:28 }}>
-              Conditions and cheap flights, aligned. Peakly finds your perfect ski or beach weekend.
+            <div style={{ fontSize:15, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:36 }}>
+              Live conditions and cheap flights, aligned. The perfect ski or beach weekend, in one tap.
             </div>
 
-            {/* 3 value props */}
-            {[
-              {
-                bg:"#f0f9ff", color:"#0284c7",
-                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z" fill="currentColor"/></svg>,
-                title:"Live condition scores",
-                desc:"Ski and beach venues scored 0–100 against the Fri–Mon weekend window — so you know which spot is actually firing this weekend.",
-              },
-              {
-                bg:"#f0fdf4", color:"#16a34a",
-                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: profile?.homeAirport
-                  ? `Cheap flights from ${AIRPORT_CITY[profile.homeAirport] || profile.homeAirport}`
-                  : "Cheap flights to every spot",
-                desc:"Real-time prices from your home airport. Book when the conditions and the deal line up.",
-              },
-              {
-                bg:"#fef9ec", color:"#d97706",
-                icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title:"Strike alerts for your spots",
-                desc:"Get notified the moment your saved venue peaks — conditions and price, together.",
-              },
-            ].map(({ bg, color, icon, title, desc }) => (
-              <div key={title} style={{ display:"flex", gap:14, marginBottom:18 }}>
-                <div style={{
-                  width:40, height:40, borderRadius:12, background:bg, color,
-                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-                }}>{icon}</div>
-                <div style={{ paddingTop:2 }}>
-                  <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>{title}</div>
-                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, lineHeight:1.45 }}>{desc}</div>
+            {/* 3 inline bullets — clean, scannable */}
+            <div style={{ display:"flex", flexDirection:"column", gap:18, marginBottom:8 }}>
+              {[
+                { dot:"#0284c7", text:"Live ski & beach scores for this weekend" },
+                { dot:"#16a34a", text: profile?.homeAirport
+                    ? `Cheap flights from ${AIRPORT_CITY[profile.homeAirport] || profile.homeAirport}`
+                    : "Cheap flights from your home airport" },
+                { dot:"#d97706", text:"Strike alerts the moment your spots peak" },
+              ].map(({ dot, text }, i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:14 }}>
+                  <span style={{ width:8, height:8, borderRadius:"50%", background:dot, flexShrink:0 }} />
+                  <span style={{ fontSize:14.5, color:"#222", fontFamily:F, fontWeight:600, lineHeight:1.35 }}>{text}</span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
         {/* ── Step 1: Airport ── */}
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.2 }}>
+            <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.15, letterSpacing:"-0.6px" }}>
               Where do you fly from?
             </div>
-            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:24, lineHeight:1.5 }}>
-              We'll show flight prices from your home airport to every spot.
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:22, lineHeight:1.5 }}>
+              We'll show real flight prices from your airport to every spot.
             </div>
 
             {navigator.geolocation && (
               <button onClick={detectAirport} disabled={detecting} className="pressable" style={{
-                width:"100%", padding:"12px 14px", marginBottom:10, borderRadius:14,
+                width:"100%", padding:"13px 14px", marginBottom:10, borderRadius:14,
                 border:"1.5px solid #0284c7", background:"#f0f9ff", color:"#0284c7",
                 fontSize:14, fontWeight:800, fontFamily:F, cursor: detecting ? "default" : "pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -6901,17 +6881,17 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
               />
             </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:8 }}>
               {US_AIRPORTS.slice(0, 10).map(ap => {
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
                     onClick={() => { setAirport(ap.code); setApQuery(""); }} style={{
                       padding:"10px 14px", borderRadius:20, cursor:"pointer", minHeight:42,
-                      background: sel ? "#222" : "#f5f5f5", color: sel ? "#fff" : "#444",
-                      border:"2px solid", borderColor: sel ? "#222" : "transparent",
+                      background: sel ? "#0284c7" : "#f5f5f5", color: sel ? "#fff" : "#444",
+                      border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
                       fontSize:13, fontWeight:700, fontFamily:F,
-                      boxShadow: sel ? "0 2px 8px rgba(0,0,0,0.14)" : "none",
+                      boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.32)" : "none",
                   }}>{ap.flag} {ap.code} <span style={{ fontSize:10, opacity:0.7 }}>{ap.label}</span></button>
                 );
               })}
@@ -6920,7 +6900,7 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
                 {apResults.map((ap,i) => (
                   <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); }} style={{
-                    width:"100%", padding:"12px 16px", background: airport===ap.code?"#fff5f5":"#fff",
+                    width:"100%", padding:"12px 16px", background: airport===ap.code?"#f0f9ff":"#fff",
                     border:"none", borderBottom: i<apResults.length-1?"1px solid #f5f5f5":"none",
                     textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
                   }}>
@@ -6934,47 +6914,67 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 ))}
               </div>
             )}
-
-            {/* Name + Email inline */}
-            <div style={{ marginTop:18 }}>
-              <input type="text" placeholder="Your name (optional)" value={name} onChange={e => setName(e.target.value)}
-                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600, marginBottom:10 }}
-              />
-              <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
-              {cloudSync?.enabled && (
-                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:8, lineHeight:1.45, paddingLeft:4 }}>
-                  Add your email and we'll send a one-tap magic link to sync wishlists & alerts across devices. No password.
-                </div>
-              )}
-            </div>
           </div>
         )}
 
-        {/* ── Step 2: Sports ── */}
+        {/* ── Step 2: Sports + Email ── */}
         {step === 2 && (
           <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4 }}>What are you into?</div>
-            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20 }}>Pick the activities you want to track — we'll personalize your feed.</div>
-            <div style={{ display:"flex", flexWrap:"nowrap", gap:10 }}>
+            <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.15, letterSpacing:"-0.6px" }}>
+              What's your move?
+            </div>
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:22, lineHeight:1.5 }}>
+              Pick what you want to chase — we'll personalize your feed.
+            </div>
+            <div style={{ display:"flex", gap:12, marginBottom:24 }}>
               {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
                 const sel = sports.includes(cat.id);
+                const grad = cat.id === "skiing"
+                  ? "linear-gradient(135deg,#0284c7,#7dd3fc)"
+                  : "linear-gradient(135deg,#06b6d4,#fbbf24)";
                 return (
                   <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
-                    flex:1, padding:"12px 8px", borderRadius:16, cursor:"pointer",
-                    background: sel ? "#222" : "#f5f5f5",
+                    flex:1, padding:"24px 12px 22px", borderRadius:18, cursor:"pointer",
+                    background: sel ? grad : "#f5f5f5",
                     color: sel ? "#fff" : "#444",
-                    border:"2px solid", borderColor: sel ? "#222" : "transparent",
-                    fontSize:14, fontWeight:700, fontFamily:F,
-                    display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-                    boxShadow: sel ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
+                    border:"2px solid", borderColor: sel ? "transparent" : "#ebebeb",
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:10,
+                    boxShadow: sel ? "0 8px 22px rgba(2,132,199,0.30)" : "none",
+                    transition:"transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease",
+                    transform: sel ? "translateY(-1px)" : "none",
+                    position:"relative", minHeight:130,
                   }}>
-                    {cat.label}
-                    {sel && <span style={{ fontSize:13 }}>✓</span>}
+                    <span style={{ fontSize:42, lineHeight:1, filter: sel ? "none" : "grayscale(0.25)" }}>
+                      {cat.id === "skiing" ? "🏔️" : "🏖️"}
+                    </span>
+                    <span style={{ fontSize:16, fontWeight:800, fontFamily:F }}>{cat.label}</span>
+                    {sel && (
+                      <span style={{
+                        position:"absolute", top:10, right:10,
+                        width:22, height:22, borderRadius:"50%",
+                        background:"rgba(255,255,255,0.28)", color:"#fff",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:12, fontWeight:900,
+                      }}>✓</span>
+                    )}
                   </button>
                 );
               })}
+            </div>
+
+            {/* Email — magic link sign-in. Optional; if filled the magic link sends on Finish. */}
+            <div>
+              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase", marginBottom:8 }}>
+                Stay synced (optional)
+              </div>
+              <input type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
+                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
+              />
+              {cloudSync?.enabled && (
+                <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
+                  We'll send a one-tap magic link so your wishlists and alerts sync across devices. No password, no spam.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -6983,8 +6983,9 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
         {step === 0 ? (
           <div style={{ padding:"28px 24px 8px" }}>
             <button onClick={() => setStep(1)} className="pressable" style={{
-              width:"100%", background:"#222", border:"none", borderRadius:16, padding:"18px 0",
+              width:"100%", background:"#0284c7", border:"none", borderRadius:16, padding:"18px 0",
               color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
+              boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
             }}>
               Get Started
             </button>
@@ -7002,8 +7003,9 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
             }}>←</button>
             {step < 2 ? (
               <button onClick={() => setStep(2)} className="pressable" style={{
-                flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
+                flex:1, background:"#0284c7", border:"none", borderRadius:16, padding:"17px 0",
                 color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
+                boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
               }}>
                 Continue →
               </button>
