@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513h";
+const PEAKLY_BUILD = "20260513i";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8038,14 +8038,14 @@ function App() {
   // Cloud sync — single instance lifted to App so Profile + Explore share state
   const cloudSync = useCloudSync();
 
-  // Dismiss the splash screen — minimum 1.8s visible, then 0.75s fade
+  // Dismiss the splash screen — minimum 1.5s visible, then 0.9s fade
   useEffect(() => {
     const splash = document.getElementById('splash');
     if (!splash) return;
     // Record when the page started loading (approximated by performance.timing or Date.now)
     const pageStart = window.performance?.timing?.navigationStart || Date.now();
     const elapsed = Date.now() - pageStart;
-    const MIN_VISIBLE = 400; // ms — long enough for the brand mark to register, short enough that nobody waits
+    const MIN_VISIBLE = 1500; // ms — long enough for the first rotating teaser line to land before the UI replaces the splash
     const remaining = Math.max(0, MIN_VISIBLE - elapsed);
     const t1 = setTimeout(() => {
       splash.classList.add('fade-out');
