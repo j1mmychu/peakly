@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513i";
+const PEAKLY_BUILD = "20260513j";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5612,7 +5612,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cloudSync }) {
+function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cloudSync, wishlists = [], listings = [], onOpenDetail, onToggle }) {
   const [airportQuery,      setAirportQuery]      = useState("");
   const [airportFocused,    setAirportFocused]    = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -8737,6 +8737,10 @@ function App() {
               onShowOnboarding={() => setShowOnboarding(true)}
               namedLists={namedLists}
               cloudSync={cloudSync}
+              wishlists={wishlistIds}
+              listings={listings}
+              onOpenDetail={openDetail}
+              onToggle={toggleWishlist}
             />
           )}
         </div>
