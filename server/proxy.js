@@ -5,6 +5,15 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+const { makeStore, makeDispatcher, startWorker } = require('./alerts-worker');
+
+// web-push is optional at boot — server still starts (and registration still
+// works) without it, just no notifications are dispatched. Lets us deploy
+// without the dep installed and discover the gap from /health.
+let webpush = null;
+try { webpush = require('web-push'); }
+catch { console.warn('[proxy] web-push not installed — push dispatch disabled'); }
+
 const app = express();
 app.use(express.json({ limit: '16kb' }));
 
@@ -226,52 +235,134 @@ app.get('/api/flights/latest', async (req, res) => {
   }
 });
 
-// ─── POST /api/alerts ─────────────────────────────────────────────────────────
-// Register a push notification alert (future: APNs / FCM / Web Push)
-// Body: { alertId, userId, venueId, sport, region, targetScore, maxPrice,
-//         dateFrom, dateTo, pushToken, pushPlatform }
-// Response: { success, id, message }
-const _alerts = new Map(); // in-memory store (replace with DB later)
+// ─── Strike-alerts store + push dispatch ──────────────────────────────────────
+// POST /api/alerts registers an alert. The polling worker (alerts-worker.js)
+// sweeps every 30 min, computes weekend score, and fires push when conditions
+// hit the user's targetScore. Web push uses VAPID; iOS Capacitor sends an
+// APNs token (delivery is currently logged-only — APNs cert wiring is ops).
 
+const ALERTS_PATH = process.env.ALERTS_PATH || path.join(__dirname, 'data', 'alerts.json');
+const _alertsStore = makeStore(ALERTS_PATH);
 const ALERTS_MAX = 10000;
 
+// VAPID keys — load from env. For first-time setup, the operator runs
+// `npx web-push generate-vapid-keys` once and pastes the pair into systemd
+// env. We do NOT auto-generate at boot: the public key would change on every
+// restart and invalidate every existing subscription.
+const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+const VAPID_SUBJECT     = process.env.VAPID_SUBJECT     || 'mailto:jjciluzzi@gmail.com';
+
+if (webpush && (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY)) {
+  console.warn('[proxy] VAPID keys missing — push dispatch will no-op until VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY are set.');
+  console.warn('[proxy] Generate with: npx web-push generate-vapid-keys');
+}
+
+const _dispatcher = makeDispatcher({
+  webpush,
+  vapidPublicKey: VAPID_PUBLIC_KEY,
+  vapidPrivateKey: VAPID_PRIVATE_KEY,
+  vapidSubject: VAPID_SUBJECT,
+});
+
+startWorker({ store: _alertsStore, dispatcher: _dispatcher });
+
+// ─── GET /api/push/vapid-public-key ───────────────────────────────────────────
+// Client calls this once before subscribing to web push.
+app.get('/api/push/vapid-public-key', (req, res) => {
+  if (!VAPID_PUBLIC_KEY) {
+    return res.status(503).json({ success: false, error: 'VAPID not configured' });
+  }
+  res.json({ success: true, publicKey: VAPID_PUBLIC_KEY });
+});
+
+// ─── POST /api/alerts ─────────────────────────────────────────────────────────
+// Register a push notification alert. Body:
+//   alertId          required — stable client-generated id (e.g. timestamp)
+//   venueId          required — venue identifier
+//   venueName        optional — for nicer push body text
+//   category         required — "skiing" | "beach" (drives marine fetch)
+//   lat, lon         required — venue coordinates (server fetches Open-Meteo)
+//   lateSeason       optional — bool, ski algorithm flag
+//   poolPrimary      optional — bool, beach algorithm flag
+//   sport            optional — same as category, kept for backwards compat
+//   targetScore      required — 0..100, fire when scoreWeekend >= this
+//   maxPrice         optional — currently informational; flight gate TBD
+//   dateFrom, dateTo optional — ISO date strings, alert silenced after dateTo
+//   pushSubscription optional — full PushSubscription JSON for web push
+//   pushToken        optional — APNs/FCM token for native (Capacitor)
+//   pushPlatform     optional — "web" | "ios" | "android"
 app.post('/api/alerts', (req, res) => {
   const body = req.body || {};
-  const { alertId, venueId, sport, targetScore, maxPrice, pushToken, pushPlatform } = body;
+  const {
+    alertId, venueId, venueName, category, lat, lon, lateSeason, poolPrimary,
+    sport, targetScore, maxPrice, dateFrom, dateTo,
+    pushSubscription, pushToken, pushPlatform,
+  } = body;
 
   if (typeof alertId !== 'string' || alertId.length === 0 || alertId.length > 128) {
     return res.status(400).json({ success: false, error: 'alertId must be a string of 1-128 chars' });
   }
-  if (venueId !== undefined && (typeof venueId !== 'string' || venueId.length > 128)) {
-    return res.status(400).json({ success: false, error: 'venueId must be a string of ≤128 chars' });
+  if (typeof venueId !== 'string' || venueId.length === 0 || venueId.length > 128) {
+    return res.status(400).json({ success: false, error: 'venueId required (≤128 chars)' });
   }
-  if (targetScore !== undefined && (typeof targetScore !== 'number' || targetScore < 0 || targetScore > 100)) {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return res.status(400).json({ success: false, error: 'lat/lon required as valid numeric coordinates' });
+  }
+  const cat = typeof category === 'string' ? category : (typeof sport === 'string' ? sport : null);
+  if (cat !== 'skiing' && cat !== 'beach') {
+    return res.status(400).json({ success: false, error: 'category must be "skiing" or "beach"' });
+  }
+  if (typeof targetScore !== 'number' || targetScore < 0 || targetScore > 100) {
     return res.status(400).json({ success: false, error: 'targetScore must be a number 0-100' });
   }
-  if (maxPrice !== undefined && (typeof maxPrice !== 'number' || maxPrice < 0 || maxPrice > 100000)) {
+  if (maxPrice !== undefined && maxPrice !== null && (typeof maxPrice !== 'number' || maxPrice < 0 || maxPrice > 100000)) {
     return res.status(400).json({ success: false, error: 'maxPrice must be a number 0-100000' });
   }
-  if (_alerts.size >= ALERTS_MAX && !_alerts.has(alertId)) {
+  if (pushSubscription !== undefined && pushSubscription !== null) {
+    if (typeof pushSubscription !== 'object' || typeof pushSubscription.endpoint !== 'string'
+        || !pushSubscription.keys || typeof pushSubscription.keys.p256dh !== 'string'
+        || typeof pushSubscription.keys.auth !== 'string') {
+      return res.status(400).json({ success: false, error: 'pushSubscription must be a valid PushSubscription JSON' });
+    }
+    if (pushSubscription.endpoint.length > 1024) {
+      return res.status(400).json({ success: false, error: 'pushSubscription.endpoint too long' });
+    }
+  }
+  if (_alertsStore.size() >= ALERTS_MAX && !_alertsStore.has(alertId)) {
     return res.status(503).json({ success: false, error: 'Alert capacity reached' });
   }
 
+  const existing = _alertsStore.get(alertId);
   const record = {
     alertId,
-    venueId: venueId || null,
-    sport: typeof sport === 'string' ? sport.slice(0, 32) : null,
-    targetScore: targetScore ?? null,
-    maxPrice: maxPrice ?? null,
-    pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : null,
-    pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : null,
-    registeredAt: new Date().toISOString(),
-    lastChecked: null,
-    fired: false,
+    venueId,
+    venueName: typeof venueName === 'string' ? venueName.slice(0, 96) : null,
+    category: cat,
+    lat,
+    lon,
+    lateSeason: !!lateSeason,
+    poolPrimary: !!poolPrimary,
+    sport: typeof sport === 'string' ? sport.slice(0, 32) : cat,
+    targetScore,
+    maxPrice: typeof maxPrice === 'number' ? maxPrice : null,
+    dateFrom: typeof dateFrom === 'string' ? dateFrom.slice(0, 24) : null,
+    dateTo: typeof dateTo === 'string' ? dateTo.slice(0, 24) : null,
+    pushSubscription: pushSubscription || existing?.pushSubscription || null,
+    pushToken: typeof pushToken === 'string' ? pushToken.slice(0, 512) : (existing?.pushToken || null),
+    pushPlatform: typeof pushPlatform === 'string' ? pushPlatform.slice(0, 16) : (existing?.pushPlatform || 'web'),
+    enabled: true,
+    registeredAt: existing?.registeredAt || new Date().toISOString(),
+    lastChecked: existing?.lastChecked || null,
+    lastFiredAt: existing?.lastFiredAt || null,
+    lastScore: existing?.lastScore || null,
+    lastConfidence: existing?.lastConfidence || null,
   };
-  _alerts.set(alertId, record);
+  _alertsStore.set(alertId, record);
 
-  console.log(`[/api/alerts] registered alert ${alertId} for platform=${pushPlatform || 'web'}`);
+  console.log(`[/api/alerts] ${existing ? 'updated' : 'registered'} ${alertId} for ${cat} venue ${venueId} target=${targetScore}`);
 
-  return res.status(201).json({
+  return res.status(existing ? 200 : 201).json({
     success: true,
     id: alertId,
     message: 'Alert registered. Conditions checked every 30 minutes.',
@@ -279,22 +370,20 @@ app.post('/api/alerts', (req, res) => {
 });
 
 // ─── GET /api/alerts/:alertId ─────────────────────────────────────────────────
-// Check registration status of an alert
 app.get('/api/alerts/:alertId', (req, res) => {
-  const { alertId } = req.params;
-  const record = _alerts.get(alertId);
-
-  if (!record) {
-    return res.status(404).json({ success: false, error: 'Alert not found' });
-  }
+  const record = _alertsStore.get(req.params.alertId);
+  if (!record) return res.status(404).json({ success: false, error: 'Alert not found' });
 
   return res.json({
     success: true,
     alert: {
-      id: alertId,
+      id: record.alertId,
+      venueId: record.venueId,
       registeredAt: record.registeredAt,
       lastChecked: record.lastChecked,
-      fired: record.fired,
+      lastScore: record.lastScore,
+      lastConfidence: record.lastConfidence,
+      lastFiredAt: record.lastFiredAt,
       enabled: record.enabled !== false,
     },
   });
@@ -302,11 +391,9 @@ app.get('/api/alerts/:alertId', (req, res) => {
 
 // ─── DELETE /api/alerts/:alertId ──────────────────────────────────────────────
 app.delete('/api/alerts/:alertId', (req, res) => {
-  const { alertId } = req.params;
-  if (!_alerts.has(alertId)) {
+  if (!_alertsStore.delete(req.params.alertId)) {
     return res.status(404).json({ success: false, error: 'Alert not found' });
   }
-  _alerts.delete(alertId);
   return res.json({ success: true, message: 'Alert removed' });
 });
 
@@ -340,7 +427,15 @@ app.post('/api/waitlist', (req, res) => {
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), alerts: _alerts.size });
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    alerts: _alertsStore.size(),
+    push: {
+      vapidConfigured: Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY),
+      webpushAvailable: Boolean(webpush),
+    },
+  });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

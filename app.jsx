@@ -1412,6 +1412,55 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
 // ─── Flight pricing via VPS proxy ────────────────────────────────────────────
 // API token lives server-side on the VPS — never exposed in client code
 const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
+
+// ─── Web push subscription (VAPID) ───────────────────────────────────────────
+// Subscribes the browser to the server's VAPID identity once and caches the
+// resulting PushSubscription. Returns null on any unsupported / denied path so
+// callers can degrade gracefully (alerts still register, just don't get push).
+let _pushSubscriptionPromise = null;
+function _urlBase64ToUint8Array(base64) {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+async function getWebPushSubscription() {
+  if (typeof window === "undefined") return null;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+  if (Notification.permission === "denied") return null;
+  if (_pushSubscriptionPromise) return _pushSubscriptionPromise;
+
+  _pushSubscriptionPromise = (async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) return existing.toJSON();
+
+      if (Notification.permission === "default") {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") return null;
+      }
+
+      const keyRes = await fetch(`${FLIGHT_PROXY}/api/push/vapid-public-key`);
+      if (!keyRes.ok) return null;
+      const { publicKey } = await keyRes.json();
+      if (!publicKey) return null;
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: _urlBase64ToUint8Array(publicKey),
+      });
+      return sub.toJSON();
+    } catch (err) {
+      console.warn("[Peakly] push subscription failed:", err?.message || err);
+      _pushSubscriptionPromise = null; // allow retry next time
+      return null;
+    }
+  })();
+  return _pushSubscriptionPromise;
+}
 let _flightApiStatus = "unknown"; // "live", "down", "unknown"
 function getFlightApiStatus() { return _flightApiStatus; }
 
@@ -4391,28 +4440,65 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
     })
   );
 
-  const addAlert  = () => {
+  const addAlert = async () => {
     if (!draft.sport) return;
     const alertData = { ...draft, id: Date.now() };
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
-    // Push notification fields — used by backend polling endpoint to trigger APNs/FCM/web push
     // venueId: specific venue to watch (null = any matching sport/region)
     // targetScore: minimum condition score to fire (derived from condition preset)
     // maxPrice: maximum flight price to fire (from draft.priceMax)
     // enabled: allows user to pause/resume without deleting
-    // TODO: backend endpoint at peakly-api.duckdns.org/api/alerts that polls conditions
-    //       every 30 min and sends push via APNs (Capacitor token) or web push (VAPID)
-    alertData.venueId = draft.venueId || null;
+    alertData.venueId = draft.venueId || (draft.locations?.length === 1 ? draft.locations[0] : null);
     alertData.targetScore = getScoreThreshold(draft.condition);
     alertData.maxPrice = draft.priceMax || 500;
     alertData.enabled = true;
     setUserAlerts(p => [...p, alertData]);
     setDraft({ sport:"", condition:"great", locations:[], priceMax:500 });
     setAdding(false);
+
+    // Register with the VPS poller so the alert fires even when the app is closed.
+    // Per-venue alerts only — multi-venue/any-venue alerts stay client-side
+    // (server polling fans out by venueId, not category).
+    if (alertData.venueId) {
+      const venue = VENUES.find(v => v.id === alertData.venueId);
+      if (venue) {
+        try {
+          const sub = await getWebPushSubscription();
+          await fetch(`${FLIGHT_PROXY}/api/alerts`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              alertId: String(alertData.id),
+              venueId: venue.id,
+              venueName: venue.title,
+              category: venue.category,
+              lat: venue.lat,
+              lon: venue.lon,
+              lateSeason: !!venue.lateSeason,
+              poolPrimary: !!venue.poolPrimary,
+              sport: alertData.sport,
+              targetScore: alertData.targetScore,
+              maxPrice: alertData.maxPrice,
+              dateFrom: alertData.dateFrom || null,
+              dateTo: alertData.dateTo || null,
+              pushSubscription: sub || null,
+              pushPlatform: window.Capacitor?.isNativePlatform() ? "ios" : "web",
+              pushToken: localStorage.getItem("peakly_push_token") || null,
+            }),
+          });
+        } catch (err) {
+          console.warn("[Peakly] alert registration failed:", err?.message || err);
+        }
+      }
+    }
   };
-  const delAlert  = id => setUserAlerts(p => p.filter(a => a.id !== id));
+  const delAlert = id => {
+    setUserAlerts(p => p.filter(a => a.id !== id));
+    fetch(`${FLIGHT_PROXY}/api/alerts/${encodeURIComponent(String(id))}`, { method: "DELETE" })
+      .catch(() => {}); // server cleanup best-effort — alert is gone from UI either way
+  };
 
   // ── add alert sheet ────────────────────────────────────────────────────────
   if (adding) return (
@@ -7338,9 +7424,10 @@ function App() {
         }
       })();
     } else if ("serviceWorker" in navigator && "PushManager" in window) {
-      // Web — register service worker for web push (VAPID keys needed server-side to actually send)
-      navigator.serviceWorker.register("/peakly/sw.js").then((reg) => {
-        // Token will be obtained when backend calls pushManager.subscribe() with VAPID public key
+      // Web — register the SW. Actual VAPID subscription happens lazily when
+      // the user creates their first alert (so we don't trigger the browser's
+      // notification-permission prompt before there's a reason to).
+      navigator.serviceWorker.register("/peakly/sw.js").then(() => {
         try { localStorage.setItem("peakly_push_token", "web-sw-registered"); } catch {}
       }).catch(() => {});
     }
