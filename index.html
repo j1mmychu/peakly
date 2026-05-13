@@ -196,7 +196,7 @@
         splashIconIn 0.7s cubic-bezier(0.34,1.5,0.64,1) 0.08s forwards,
         splashIconFloat 5s ease-in-out 0.78s infinite;
       margin-bottom: 24px;
-      filter: drop-shadow(0 0 18px rgba(2,132,199,0.55)) drop-shadow(0 0 40px rgba(2,132,199,0.18));
+      filter: drop-shadow(0 0 18px rgba(2,132,199,0.55)) drop-shadow(0 0 32px rgba(254,215,170,0.18)) drop-shadow(0 0 40px rgba(2,132,199,0.18));
     }
     @keyframes splashIconIn {
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -224,18 +224,54 @@
     /* Tagline */
     .splash-tagline {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
-      color: rgba(186,230,253,0.45);
-      letter-spacing: 2.4px;
+      color: rgba(186,230,253,0.55);
+      letter-spacing: 1.8px;
       text-transform: uppercase;
       margin-top: 13px;
       opacity: 0;
       animation: splashFadeIn 0.6s ease 0.42s forwards;
+      white-space: nowrap;
+    }
+    /* Rotating teaser lines — teach the product before the UI loads */
+    .splash-teasers {
+      position: relative;
+      margin-top: 16px;
+      height: 18px;
+      width: 280px;
+      max-width: 80vw;
+      opacity: 0;
+      animation: splashFadeIn 0.6s ease 0.55s forwards;
+    }
+    .splash-teaser {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(186,230,253,0.78);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      opacity: 0;
+      animation: splashTeaserCycle 4.2s ease-in-out infinite;
+    }
+    .splash-teaser:nth-child(1) { animation-delay: 0s; }
+    .splash-teaser:nth-child(2) { animation-delay: 1.4s; }
+    .splash-teaser:nth-child(3) { animation-delay: 2.8s; }
+    @keyframes splashTeaserCycle {
+      0%   { opacity: 0; transform: translateY(6px); }
+      8%   { opacity: 1; transform: translateY(0); }
+      28%  { opacity: 1; transform: translateY(0); }
+      36%  { opacity: 0; transform: translateY(-6px); }
+      100% { opacity: 0; transform: translateY(-6px); }
     }
     /* ── Loading indicator ── */
     .splash-loader {
-      margin-top: 60px;
+      margin-top: 36px;
       opacity: 0;
       animation: splashFadeIn 0.5s ease 0.62s forwards;
       display: flex;
@@ -315,6 +351,10 @@
       <!-- Mountain peak mark — larger, more refined -->
       <div class="splash-icon">
         <svg width="66" height="54" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Sun glow disc — sits behind the range, warm peach so it reads as ambient sunlight not a logo element -->
+          <circle cx="49" cy="18" r="9" fill="rgba(254,215,170,0.32)"/>
+          <circle cx="49" cy="18" r="6" fill="rgba(254,215,170,0.55)"/>
+          <circle cx="49" cy="18" r="3.5" fill="rgba(255,237,213,0.9)"/>
           <!-- Back range (ghost mountains) -->
           <path d="M2 50 L19 14 L36 50" stroke="rgba(56,189,248,0.3)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(2,132,199,0.06)"/>
           <!-- Middle range -->
@@ -328,7 +368,12 @@
         </svg>
       </div>
       <div class="splash-wordmark">Peakly</div>
-      <div class="splash-tagline">Know when to go</div>
+      <div class="splash-tagline">Cheap flights · Great weather · This weekend</div>
+      <div class="splash-teasers" aria-hidden="true">
+        <div class="splash-teaser">Niseko · 9° powder · $487 from LAX</div>
+        <div class="splash-teaser">Mykonos · 28° sun · $190 from LHR</div>
+        <div class="splash-teaser">Chamonix · fresh snow · $312 from JFK</div>
+      </div>
       <div class="splash-loader">
         <div class="splash-track">
           <div class="splash-orb"></div>
