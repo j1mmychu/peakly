@@ -1603,10 +1603,15 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   // deal or Rare alignment, scaled by typical price (cheap routes need less).
   const absSavings = typicalPrice - flight.price;
   const minSavings = Math.max(60, typicalPrice * 0.08);
+  // "Solid weekend" also gates on a softer absolute-savings floor (50% of the
+  // Strong deal floor). Without this, a strong conditions score + par price
+  // earns the same "deal" label as a real discount, which makes the label a
+  // mood ring rather than a signal.
+  const solidMinSavings = Math.max(30, typicalPrice * 0.04);
   let label = null;
   if      (final >= 88 && priceRatio <= 0.7  && absSavings >= minSavings) label = "Rare alignment";
   else if (final >= 78 && priceRatio <= strongDealRatio && absSavings >= minSavings) label = "Strong deal";
-  else if (final >= 70)                                                   label = "Solid weekend";
+  else if (final >= 70 && absSavings >= solidMinSavings)                  label = "Solid weekend";
   else if (final >= 60)                                                   label = "Worth a look";
   return {
     score: final, conditions, priceRatio, isEstimate: false, label,
@@ -3030,15 +3035,12 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 }
 
 // ─── search sheet ─────────────────────────────────────────────────────────────
-// 7-day forecast is the product, not a limit. Options >7 days out were dropped
-// 2026-05-07 — we never sell certainty we don't have. "Anytime" defaults to
-// the upcoming Fri (same as "This weekend") since the only horizon we can
-// honestly score is the next 7 days.
-const WHEN_OPTIONS = [
-  { id:"weekend",    label:"This weekend" },
-  { id:"nextweek",   label:"Next 7 days" },
-  { id:"anytime",    label:"Any time" },
-];
+// 7-day forecast is the product, not a limit. We removed the "When" chip row
+// 2026-05-13: three options all computed the same upcoming-Friday date, which
+// was a UI lie. The Dates section below the chips still works for custom date
+// ranges (and they actually filter listings via applyFilters). search.when
+// stays in state as "anytime" for back-compat with hasSearch / chip-summary
+// reads but no longer drives behavior.
 
 function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, setFilters, wishlists, onToggle, onOpenDetail }) {
   const [searchTab, setSearchTab] = useState("filters"); // "filters" | "vibe"
@@ -3376,27 +3378,6 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
         </div>
 
-        {/* ── When (presets) ── */}
-        <div style={{ padding:"12px 20px 0" }}>
-          <SectionLabel>When</SectionLabel>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            {WHEN_OPTIONS.map(opt => {
-              const sel = local.when === opt.id;
-              return (
-                <button key={opt.id} onClick={() => setLocal(l => ({...l, when: opt.id}))} style={{
-                    padding:"6px 12px", borderRadius:16, cursor:"pointer",
-                    background: sel ? "#222" : "#f5f5f5",
-                    color:      sel ? "#fff" : "#555",
-                    border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
-                }}>
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* ── Region ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Region</SectionLabel>
@@ -3497,7 +3478,7 @@ function SearchBar({ search, onOpen }) {
   const actLabel = acts.length > 0
     ? acts.map(a => CATEGORIES.find(c => c.id === a)?.label).join(", ") + " "
     : "";
-  const whenLabel = WHEN_OPTIONS.find(w => w.id === search.when)?.label ?? "Any time";
+  const whenLabel = "This weekend";
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
   return (
@@ -3792,9 +3773,23 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
 // Both share the same dismissal flag so users see at most one nudge.
 function InstallNudge({ wishlistCount }) {
   const { canInstall, trigger } = useInstallPrompt();
-  const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem("peakly_install_dismissed") === "1"; } catch { return false; }
-  });
+  // Time-decay dismissal: a "not now" tap re-prompts after 14 days. Permanent
+  // dismissal was hostile — a user who tapped × on day 1 never saw the nudge
+  // again even after months of engagement. 14d feels like a respectful cycle
+  // (mirrors the Travelpayouts price-staleness threshold elsewhere in the app).
+  const DISMISS_TTL_MS = 14 * 24 * 3600 * 1000;
+  const isDismissedNow = () => {
+    try {
+      const raw = localStorage.getItem("peakly_install_dismissed");
+      if (!raw) return false;
+      // Legacy value "1" = pre-time-decay dismissal — treat as expired so old
+      // dismissers see the nudge once on next eligible mount.
+      if (raw === "1") return false;
+      const ts = parseInt(raw, 10);
+      return Number.isFinite(ts) && (Date.now() - ts) < DISMISS_TTL_MS;
+    } catch { return false; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissedNow);
   const [iosDetected, setIosDetected] = useState(false);
   useEffect(() => { setIosDetected(isIOSSafari()); }, []);
 
@@ -3805,14 +3800,16 @@ function InstallNudge({ wishlistCount }) {
   }, [showIOSTip]);
   if (!showStandard && !showIOSTip) return null;
 
-  const dismissStandard = () => {
+  const recordDismiss = () => {
     setDismissed(true);
-    try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
+    try { localStorage.setItem("peakly_install_dismissed", String(Date.now())); } catch {}
+  };
+  const dismissStandard = () => {
+    recordDismiss();
     logEvent("install_pwa", { stage: "nudge_dismissed" });
   };
   const dismissIOS = () => {
-    setDismissed(true);
-    try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
+    recordDismiss();
     logEvent("install_pwa", { stage: "ios_tip_dismissed" });
   };
   const install = async () => {
@@ -3890,8 +3887,21 @@ function ProfileSyncSection({ cloudSync, profile }) {
   const [email, setEmail]       = useState(profile?.email || "");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy]         = useState(false);
+  // Resend cooldown: after a successful send, the Send button becomes "Resend"
+  // and disables for 30s to prevent rapid-fire taps when the email is slow to
+  // arrive. Without this the user could only hit a disabled button and felt
+  // stranded with no path forward.
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const [now, setNow]               = useState(Date.now());
   useEffect(() => {
-    if (cloudSync.status === "checking_email") setFeedback("Check your email — we sent a magic link to sign in.");
+    if (!lastSentAt) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lastSentAt]);
+  const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
+  const canSend = !busy && email.includes("@") && cooldownMs === 0;
+  useEffect(() => {
+    if (cloudSync.status === "checking_email") setFeedback("Check your email — we sent a magic link. It can take a minute; check spam if it's not there.");
     else if (cloudSync.status === "synced")    setFeedback("");
     else if (cloudSync.status === "error")     setFeedback("Something went wrong. Try again or check your email.");
   }, [cloudSync.status]);
@@ -3900,8 +3910,9 @@ function ProfileSyncSection({ cloudSync, profile }) {
     const r = await cloudSync.signIn(email.trim());
     setBusy(false);
     if (!r.ok) setFeedback(r.error || "Sign-in failed.");
+    else       setLastSentAt(Date.now());
   };
-  const out = async () => { await cloudSync.signOut(); setFeedback(""); };
+  const out = async () => { await cloudSync.signOut(); setFeedback(""); setLastSentAt(0); };
 
   return (
     <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
@@ -3935,11 +3946,16 @@ function ProfileSyncSection({ cloudSync, profile }) {
                 border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222",
               }}
             />
-            <button className="pressable" onClick={send} disabled={busy || !email.includes("@")} style={{
+            <button className="pressable" onClick={send} disabled={!canSend} style={{
               background:"#222", color:"#fff", border:"none", borderRadius:10,
-              padding:"10px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
-              opacity: (busy || !email.includes("@")) ? 0.5 : 1,
-            }}>{busy ? "Sending…" : "Send link"}</button>
+              padding:"10px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor: canSend ? "pointer" : "default",
+              opacity: canSend ? 1 : 0.5,
+            }}>
+              {busy ? "Sending…"
+                : cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs / 1000)}s`
+                : lastSentAt    ? "Resend link"
+                : "Send link"}
+            </button>
           </div>
         </>
       )}
@@ -4093,7 +4109,7 @@ function MapView({ listings, profile, onOpenDetail }) {
   );
 }
 
-function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
+function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, onViewProfile, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
   const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
@@ -4441,6 +4457,31 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           </div>
         )}
 
+        {/* ── Home-airport setup banner ──
+            Auto-detect (~app.jsx:8488) tries geolocation but fails silently
+            on permission-denied. Every flight query falls back to JFK via
+            `homeAirport || "JFK"`. Without this banner the user sees JFK
+            prices without realizing it. Suppress when an airport IS set
+            (covers users who deliberately picked JFK). */}
+        {!loading && !showSaved && !profile?.homeAirport && onViewProfile && (
+          <div onClick={onViewProfile} className="pressable" style={{
+            margin:"12px 14px 0", padding:"10px 14px", background:"#fef3c7",
+            border:"1.5px solid #fde68a", borderRadius:12, cursor:"pointer",
+            display:"flex", alignItems:"center", gap:10,
+          }}>
+            <span style={{ fontSize:16, flexShrink:0 }}>📍</span>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:12, fontWeight:800, color:"#92400e", fontFamily:F, lineHeight:1.2 }}>
+                Showing flights from JFK
+              </div>
+              <div style={{ fontSize:11, color:"#a16207", fontFamily:F, marginTop:1 }}>
+                Tap to set your home airport for accurate prices
+              </div>
+            </div>
+            <span style={{ fontSize:14, color:"#92400e", fontWeight:900, flexShrink:0 }}>›</span>
+          </div>
+        )}
+
         {/* ── Hero moment: Best opportunity right now ── */}
         {!loading && !showSaved && !heroPick && (
           /* Skeleton while weather is still fetching for first venues */
@@ -4741,7 +4782,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                       ? `Quiet for ${catLabel.toLowerCase()} this weekend. Other categories may be firing.`
                       : heroPick
                         ? `But ${heroPick.title} looks promising in the coming weeks and flights are still $${heroPick.flight.price}.`
-                        : "Conditions are quiet across the board right now.";
+                        : "Conditions are quiet across the 7-day forecast window. We won't promise scores beyond what the forecast can back.";
 
                   // Closest-3 venues that DON'T match the active filters but
                   // are firing this weekend. We only show this when the user
@@ -5286,14 +5327,19 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
       pushPlatform,
       homeAirport: profile?.homeAirport || null,
     };
+    // Plausible event tag: include pushPlatform so the dashboard can
+    // distinguish web users (no actual push delivery, pushPlatform = null)
+    // from native users (ios/capacitor). Without this tag, the event count
+    // overstates how many alerts will actually fire a notification.
+    const platformTag = pushPlatform || "web_no_push";
     fetch("https://peakly-api.duckdns.org/api/alerts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json()).then(j => {
-      if (j?.success) logEvent("alert_registered_server", { alertId: alertData.id, hasToken: !!pushToken });
-      else logEvent("alert_register_failed", { alertId: alertData.id, error: j?.error || "unknown" });
-    }).catch(e => logEvent("alert_register_error", { message: String(e?.message || e) }));
+      if (j?.success) logEvent("alert_registered_server", { alertId: alertData.id, hasToken: !!pushToken, platform: platformTag });
+      else logEvent("alert_register_failed", { alertId: alertData.id, error: j?.error || "unknown", platform: platformTag });
+    }).catch(e => logEvent("alert_register_error", { message: String(e?.message || e), platform: platformTag }));
   };
   const delAlert  = id => {
     setUserAlerts(p => p.filter(a => a.id !== id));
@@ -5712,6 +5758,7 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cl
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [shareCopied,    setShareCopied]    = useState(false);
   const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
+  const [showAllSaved,   setShowAllSaved]   = useState(false);
   const { canInstall: canInstallPwa, trigger: triggerInstallPwa } = useInstallPrompt();
 
   const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
@@ -5987,6 +6034,46 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cl
         {namedLists.length > 0 && (
           <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
         )}
+
+        {/* ── Wishlists ── */}
+        {wishlists.length > 0 && (() => {
+          // Saved venues live in Profile only (Wishlists tab is built but
+          // hidden — see CLAUDE.md "keep nav lean"). To avoid orphaning saves
+          // when count > preview limit, show "Show more" instead of capping
+          // silently at 6.
+          const saved = listings.filter(l => wishlists.includes(l.id));
+          const visible = showAllSaved ? saved : saved.slice(0, 6);
+          const hidden = saved.length - visible.length;
+          return (
+            <div style={{ marginBottom:22 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
+                Saved Venues · {saved.length}
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {visible.map(l => (
+                  <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
+                    <div style={{ height:80, background:l.gradient, position:"relative" }}>
+                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
+                        position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
+                      }}>❤️</button>
+                    </div>
+                    <div style={{ padding:"7px 8px" }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {hidden > 0 && (
+                <button onClick={() => setShowAllSaved(true)} className="pressable" style={{
+                  marginTop:10, width:"100%", background:"#fff", border:"1.5px solid #e0e0e0",
+                  borderRadius:12, padding:"10px 0", fontSize:12, fontWeight:700, color:"#222",
+                  fontFamily:F, cursor:"pointer",
+                }}>Show {hidden} more</button>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ── Install Peakly (only when prompt is captured) ── */}
         {canInstallPwa && (
@@ -8015,25 +8102,50 @@ function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
 
 // ─── error boundary ──────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
-  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  constructor(props) { super(props); this.state = { hasError: false, error: null, component: null, ts: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error, ts: Date.now() }; }
   componentDidCatch(error, info) {
-    if (window.__peaklyReport) window.__peaklyReport(error, { type: "react_crash", component: info.componentStack?.split("\n")[1]?.trim() });
+    const component = info.componentStack?.split("\n")[1]?.trim() || null;
+    this.setState({ component });
+    if (window.__peaklyReport) window.__peaklyReport(error, { type: "react_crash", component });
   }
   render() {
     if (this.state.hasError) {
+      // Surface enough detail that the user can give Jack a useful bug report:
+      // timestamp + component + truncated message. Was: blank "something went
+      // wrong" with no context, which made bug triage impossible.
+      const msg = String(this.state.error?.message || this.state.error || "").slice(0, 240);
+      const tsLabel = this.state.ts ? new Date(this.state.ts).toISOString().replace("T", " ").slice(0, 19) + " UTC" : "";
+      const copyDetails = () => {
+        const payload = `Peakly crash\nTime: ${tsLabel}\nComponent: ${this.state.component || "unknown"}\nMessage: ${msg}\nBuild: ${typeof PEAKLY_BUILD !== "undefined" ? PEAKLY_BUILD : "n/a"}`;
+        try { navigator.clipboard?.writeText(payload); } catch {}
+      };
       return React.createElement("div", {
         style: { display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                 height:"100vh", fontFamily:F, padding:32, textAlign:"center", background:"#f5f5f5" }
+                 minHeight:"100vh", fontFamily:F, padding:32, textAlign:"center", background:"#f5f5f5" }
       },
         React.createElement("div", { style:{ fontSize:28, fontWeight:900, color:"#222", marginBottom:12 } }, "Something went wrong"),
-        React.createElement("div", { style:{ fontSize:14, color:"#717171", marginBottom:24, maxWidth:320 } },
-          "Peakly hit an unexpected error. This has been logged automatically."),
-        React.createElement("button", {
-          onClick: () => { this.setState({ hasError:false, error:null }); window.location.reload(); },
-          style: { background:"#0284c7", color:"white", border:"none", borderRadius:14,
-                   padding:"14px 28px", fontSize:14, fontWeight:800, fontFamily:F, cursor:"pointer" }
-        }, "Reload App")
+        React.createElement("div", { style:{ fontSize:14, color:"#717171", marginBottom:16, maxWidth:360, lineHeight:1.5 } },
+          "Peakly hit an unexpected error. Logged automatically — copy the details below if you want to send Jack a report."),
+        React.createElement("div", {
+          style:{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12,
+                  padding:"12px 14px", marginBottom:18, fontSize:11, color:"#555",
+                  fontFamily:"ui-monospace, SFMono-Regular, Menlo, monospace",
+                  textAlign:"left", maxWidth:360, width:"100%",
+                  whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.5 }
+        }, `Time: ${tsLabel}\nComponent: ${this.state.component || "unknown"}\nError: ${msg || "(no message)"}`),
+        React.createElement("div", { style:{ display:"flex", gap:10, flexWrap:"wrap", justifyContent:"center" } },
+          React.createElement("button", {
+            onClick: () => { this.setState({ hasError:false, error:null, component:null, ts:null }); window.location.reload(); },
+            style: { background:"#0284c7", color:"white", border:"none", borderRadius:14,
+                     padding:"12px 22px", fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer" }
+          }, "Reload App"),
+          React.createElement("button", {
+            onClick: copyDetails,
+            style: { background:"#fff", color:"#0284c7", border:"1.5px solid #0284c7", borderRadius:14,
+                     padding:"12px 22px", fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer" }
+          }, "Copy details")
+        )
       );
     }
     return this.props.children;
@@ -8740,6 +8852,7 @@ function App() {
               wishlists={wishlistIds} onToggle={toggleWishlist}
               alertedIds={alertedVenueIds} onAlertToggle={quickToggleAlert}
               onViewAlerts={() => setActiveTab("alerts")}
+              onViewProfile={() => setActiveTab("profile")}
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
               onOpenDetail={openDetail}
