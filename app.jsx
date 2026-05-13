@@ -5972,7 +5972,7 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
         {/* Progress dots — only show on setup steps */}
         {step > 0 && (
           <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-            {[1,2].map(i => (
+            {[1,2,3].map(i => (
               <div key={i} style={{
                 width: step === i ? 20 : 6, height:6, borderRadius:3,
                 background: step >= i ? "#0284c7" : "#e8e8e8",
@@ -6133,6 +6133,60 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
           </div>
         )}
 
+        {/* ── Step 3: How the Weekend Score works ── */}
+        {step === 3 && (
+          <div style={{ padding:"16px 24px 0" }}>
+            <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, marginBottom:4, lineHeight:1.2 }}>
+              How the score works
+            </div>
+            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:20, lineHeight:1.5 }}>
+              Every spot gets a Weekend Score 0–100 — the only number you need to read.
+            </div>
+
+            {/* Sample score chip */}
+            <div style={{
+              display:"flex", alignItems:"center", gap:14,
+              padding:"14px 16px", background:"#f0f9ff", borderRadius:16,
+              border:"1.5px solid #bae6fd", marginBottom:20,
+            }}>
+              <div style={{
+                width:54, height:54, borderRadius:14,
+                background:"linear-gradient(135deg,#16a34a,#22c55e)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                color:"#fff", fontSize:22, fontWeight:900, fontFamily:F,
+                boxShadow:"0 4px 12px rgba(22,163,74,0.35)",
+              }}>92</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>
+                  Fri–Sat · Bluebird powder
+                </div>
+                <div style={{ fontSize:12, color:"#555", fontFamily:F, lineHeight:1.4 }}>
+                  16" fresh · 22°F · clear skies
+                </div>
+              </div>
+            </div>
+
+            {/* Three quick explainers */}
+            {[
+              { title:"Best 2 of 4 days", desc:"Fri–Mon window scored, then we surface the best consecutive pair — one bad day doesn't sink the trip." },
+              { title:"Live conditions, not averages", desc:"Open-Meteo forecasts re-scored every load. Snow depth, sun hours, wind, water temp — the lot." },
+              { title:"Confidence flag", desc:"If the forecast is too far out to trust, we say so instead of selling you a maybe." },
+            ].map(({ title, desc }) => (
+              <div key={title} style={{ display:"flex", gap:12, marginBottom:14 }}>
+                <div style={{
+                  width:22, height:22, borderRadius:11, background:"#0284c7", color:"#fff",
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+                  fontSize:13, fontWeight:900, marginTop:1,
+                }}>✓</div>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:13, color:"#717171", fontFamily:F, lineHeight:1.45 }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Nav buttons */}
         {step === 0 ? (
           <div style={{ padding:"28px 24px 8px" }}>
@@ -6154,8 +6208,8 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               flex:"0 0 52px", background:"#f5f5f5", border:"none", borderRadius:16,
               fontSize:20, cursor:"pointer",
             }}>←</button>
-            {step < 2 ? (
-              <button onClick={() => setStep(2)} className="pressable" style={{
+            {step < 3 ? (
+              <button onClick={() => setStep(s => s + 1)} className="pressable" style={{
                 flex:1, background:"#222", border:"none", borderRadius:16, padding:"17px 0",
                 color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
               }}>
