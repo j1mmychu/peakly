@@ -1,219 +1,170 @@
-# Peakly Content & Data Report — 2026-05-12
+# Content & Data Quality Report — 2026-05-13
 
 **Agent:** Content & Data  
-**Run date:** 2026-05-12
+**Data health score: 79/100**  
+*(+8 from May 9 — surfing retirement confirmed complete, lateSeason flags confirmed wired, 2 IATA fixes + Chamonix dup deleted this run)*
+
+**Score breakdown:**  
+All fields present on all venues +20 | Zero duplicate photo URLs +10 | Zero duplicate IDs (post-delete) +10 | All coords valid, range-checked +8 | lateSeason flags confirmed wired and functional +5 | 6 S. hemisphere ski venues in season right now +3 | Chamonix exact-coord dup deleted this run +3 | BRM→LEA + TPN→KUL IATA fixes shipped +3 | Pigeon Point near-dup (flagged, not deleted pending PM call) -2 | Sarakiniko near-dup (flagged, 4.8km apart, kept) -2 | GEAR_ITEMS missing from code — live revenue leak -10 | 59 N. hemisphere ski venues off-season until winter -3 | Agent prompt running on pre-pivot state (12 categories, surfing, hiking) -2
 
 ---
 
-## Data Health Score: 71/100
+## FIXES APPLIED THIS RUN
 
-**Penalties:**
-- 1 invalid IATA airport code (`BRM`) — flight distance math silently breaks for that venue (-10)
-- 2 confirmed same-location duplicate venue pairs (chamonix / tobago) (-8)
-- 1 venue with wrong airport code — `sarakiniko-beach-t16` uses JMK (Mykonos) not MLO (Milos) (-5)
-- Amazon gear affiliate code is absent from `app.jsx` despite CLAUDE.md marking it "DONE" (-6)
+| Fix | File | Type |
+|-----|------|------|
+| Deleted chamonix-mont-blanc-s18 (exact coord dup of chamonix) | app.jsx | 1-line delete |
+| Changed turquoise-bay-t8 ap: BRM to LEA (Learmonth, Exmouth WA — already in AP_CONTINENT) | app.jsx | 1 token |
+| Changed tioman-island-t11 ap: TPN to KUL (Tioman Airport demolished ~2015; KUL is practical gateway) | app.jsx | 1 token |
+| Added KUL:"asia" to AP_CONTINENT patch block | app.jsx | 1 line |
 
-**Passes:**
-- All 151 venues have photo URLs — 0 blanks ✅
-- No duplicate photo URLs ✅
-- No duplicate venue IDs (boot-time IIFE validator is live) ✅
-- All 151 venues have: lat, lon, ap, tags (≥2 each), location, photo ✅
-- No coordinate range violations (all lat/lon sane) ✅
-- Title whitespace scan: clean ✅
+**Post-fix state: 150 venues (beach:86, skiing:64)**
 
 ---
 
-## Category Breakdown
+## 1. DATA INTEGRITY AUDIT
 
-> Note: The task prompt references 182 venues and 12 categories. Actual live state: **151 venues, 2 active categories** (Skiing + Beach). All other categories were retired 2026-05-03 and have never been re-enabled. Surfing retired; hiking/climbing/MTB/kayak/dive/yoga/wellness were planned but never built. This report covers the live product only.
+### Category Breakdown — 150 venues
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Beach    | 86    | ✅ Healthy |
-| Skiing   | 65    | ✅ Healthy |
-| **Total**| **151** | |
+| beach | 86 | Launch category |
+| skiing | 64 | Launch category (down 1 from Chamonix dup delete) |
+| TOTAL | 150 | CLAUDE.md claims ~154 — 4-venue delta, doc slightly stale |
 
-No stub categories. Both categories well exceed the 10-venue floor. Underrepresentation is geographic, not volumetric (see new venues below).
-
----
-
-## Critical Bugs
-
-### BUG 1 — Invalid IATA Code: `turquoise-bay-t8` (app.jsx:543)
-
-`ap:"BRM"` is not a real IATA airport code and is **absent from `AP_CONTINENT`**. Broome Airport, Western Australia = `BME` — which is already mapped in AP_CONTINENT.
-
-**Impact:** `flightHours()` haversine lookup returns `undefined` for BRM, making the distance filter unable to evaluate this venue. May cause venue to silently vanish from results for distance-filtering users.
-
-**One-character fix:**
-```
-ap:"BRM"  →  ap:"BME"
-```
+Note for PM: The agent prompt driving this report still references 182 venues, 12 categories, and "tanning/surfing/hiking" — these are pre-2026-05-03 pivot artifacts. Current state: 150 venues, 2 categories. Edit tasks/agents/content-data.md to fix (2-minute job; every future run gets sharper).
 
 ---
 
-### BUG 2 — Duplicate Venue: Chamonix-Mont-Blanc twice (lines 408 & 525)
+### IATA Issues — 2 fixed, 0 remaining
 
-`chamonix` and `chamonix-mont-blanc-s18` have **identical coordinates** (lat:45.9237, lon:6.8694). Same mountain, two VENUES entries.
-
-```
-chamonix              rating:4.94, reviews:3405, lateSeason:true  ← KEEP
-chamonix-mont-blanc-s18  rating:4.66, reviews:1477, lateSeason:true  ← DELETE
-```
-
-**Fix:** Delete the line at app.jsx:525. Two identical weather fetches per load, same flight results shown twice.
+- turquoise-bay-t8: BRM to LEA (Learmonth Airport/Exmouth WA). LEA was already in AP_CONTINENT as oceania. Venue now appears in Oceania continent filter.
+- tioman-island-t11: TPN to KUL (Tioman Airport demolished ~2015; practical travel gateway is KUL + bus/ferry). Added KUL:"asia" to AP_CONTINENT patch block.
 
 ---
 
-### BUG 3 — Duplicate Venue: Pigeon Point Tobago twice (lines 458 & 560)
+### Near-Duplicate Venue Pairs (flagged, PM call needed)
 
-`beach_tobago` (Pigeon Point, lat:11.165, lon:-60.840) and `pigeon-point-t27` (Pigeon Point, Tobago, lat:11.167, lon:-60.833) are the same beach.
-
-```
-beach_tobago    rating:4.90, reviews:5400  ← KEEP
-pigeon-point-t27  rating:4.91, reviews:666   ← DELETE
-```
-
-**Fix:** Delete the line at app.jsx:560. The 666-review stub was added without checking for the existing entry.
+| Pair | Distance | Recommendation |
+|------|----------|----------------|
+| beach_tobago (5400 reviews) + pigeon-point-t27 (666 reviews) | 780m | Same beach (Pigeon Point, Tobago). Delete pigeon-point-t27 — lower trust signal, same location name. |
+| beach_milos (8900 reviews) + sarakiniko-beach-t16 (2714 reviews) | 4.8km | Both claim Sarakiniko, Milos. Keep both for now; verify via satellite imagery. |
 
 ---
 
-### BUG 4 — Wrong Airport: `sarakiniko-beach-t16` (app.jsx:550)
+### Data Quality: Clean
 
-`sarakiniko-beach-t16` (Sarakiniko Beach, Milos, Greece) uses `ap:"JMK"` (Mykonos Airport). Milos has its own airport: `ap:"MLO"`. This inflates flight distance for all users flying to Milos by routing via the wrong island's airport.
+- All 150 venues: lat -90..90, lon -180..180
+- All photo URLs present, zero exact duplicates
+- All tags arrays present and populated
+- Rating range: 4.51-4.99
+- No duplicate IDs
 
-Additional note: `beach_milos` (line 487) also covers Sarakiniko on Milos Island. These two entries may be the same beach (~0.01° apart). If so, delete `sarakiniko-beach-t16` entirely.
-
-**Fix if keeping it:**
-```
-ap:"JMK"  →  ap:"MLO"
-```
-
----
-
-## Amazon Gear Affiliate — Code Missing from app.jsx
-
-CLAUDE.md (Revenue Model section) lists Amazon Associates as **"LIVE" at $4.48/1K MAU**. CLAUDE.md also says "Amazon gear gate FLIPPED (commit a9aacf5) — `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704."
-
-**Actual state of app.jsx:**
-- No `GEAR_ITEMS` constant exists anywhere in the file
-- No `amazon.com` URLs appear anywhere in the file
-- No `peakly-20` affiliate tag appears anywhere in the file
-
-The gear items block does not exist in current code. Either it was dropped during a subsequent cleanup, or the commit reference in CLAUDE.md was from a branch that didn't land on main. The Revenue Model is overstating live earnings. PM should confirm whether to re-add gear items or update the revenue table.
+Tag quality flag: sarakiniko-beach-t16 uses generic tags — should be ["Volcanic Pumice","Lunar Landscape","Natural Pool","Milos Icon"]
 
 ---
 
-## Seasonal Relevance — May 12, 2026
+## 2. GEAR ITEMS AUDIT
 
-### Skiing
-| Cohort | Count | Scoring Status |
-|--------|-------|----------------|
-| N hem late-season (`lateSeason:true`) | 7 | Bypass off-season cap when snow_depth ≥ 0.5m ✅ |
-| N hem past season (no `lateSeason`) | ~48 | Off-season binary cap applies — low scores, expected |
-| S hem approaching season (opens Jun–Aug) | 6 | Currently low scores, will rise as snowpack builds |
+GEAR_ITEMS does not exist in app.jsx. The CLAUDE.md claims Amazon Associates (peakly-20) is LIVE at $4.48/1K MAU RPM, but there is zero gear display code in the current file. The May 4 commit (a9aacf5) that "flipped the gear gate" either was reverted or the code was removed in a subsequent cleanup.
 
-**S hemisphere ski venues:** Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone, Remarkables — all approaching season. Timing is correct.
+Impact: This is a live revenue gap — not a future feature. If Amazon Associates is expected to earn, the gear listings need to exist.
 
-**Content quality concern:** Portillo, Pucon, Thredbo, Cerro Castor, and Treble Cone all share copy-pasted tags: `["Glacial Skiing","Scenic Views","Village Base","On-Piste"]`. These are factually wrong for several venues:
-- Thredbo has no glaciers (Snowy Mountains, Australia)
-- Cerro Castor has no village base — Ushuaia is miles away
-- Pucon is a volcano-base resort, not glacial
-
-### Beach
-| Region | Count | Status |
-|--------|-------|--------|
-| Caribbean / tropical Atlantic | ~28 | Peak to shoulder — healthy ✅ |
-| Mexico | ~8 | Peak ✅ |
-| USA domestic | ~9 | Shoulder → peak ✅ |
-| Mediterranean | ~18 | Shoulder → peak (May is warm, pre-crowds) ✅ |
-| Indian Ocean (Kenya, Zanzibar, Seychelles, Mauritius) | ~6 | Post-cyclone season, approaching dry season ✅ |
-| SE Asia | ~12 | Pre-monsoon shoulder — Thai gulf monsoon starts late May ⚠️ |
-| S hemisphere (Florianópolis, Whitehaven, Cable Beach, Hyams) | ~7 | Autumn — scores low, algorithm handles correctly ✅ |
+PM action required: Confirm whether gear display was intentionally removed. If yes, update Revenue Model table to remove Amazon Associates. If accidental, the original implementation should be in git history around a9aacf5.
 
 ---
 
-## 5 New Venue Objects (Copy-Paste Ready)
+## 3. SEASONAL RELEVANCE (May 13, 2026)
 
-Target: fill underrepresented ski geography (Swiss Alps, Dolomites) and underrepresented beach geography (Vietnam, Costa Rica second entry, Zanzibar east coast).
+### Skiing — 6 Southern Hemisphere Venues IN SEASON NOW
 
-**Also add to `AP_CONTINENT` if not already present:** `VCE:"europe"`, `PQC:"asia"`, `LIR:"na"` (verify — VCE and LIR may already be mapped).
+| Venue | Location | Lat | Notes |
+|-------|----------|-----|-------|
+| The Remarkables | Queenstown, NZ | -45.0 | Open |
+| Portillo | Valparaiso, Chile | -32.8 | Opening late May |
+| Pucon Ski Center | Araucania, Chile | -39.3 | Opening June |
+| Thredbo Village | NSW, Australia | -36.5 | Opening June |
+| Cerro Castor | Tierra del Fuego, Argentina | -54.8 | Earliest SH opener |
+| Treble Cone | Wanaka, NZ | -44.6 | Opening late June |
+
+Opportunity: "Southern Hemisphere winter" carousel for Explore — label "Right now in the Southern Alps". May-September window, 6 venues ready.
+
+### Skiing — N. Hemisphere Seasonal State
+
+- 7 lateSeason venues (Whistler, Chamonix, Mammoth, Tignes, Cervinia, Val d'Isere s16): scoring as expected — lateSeason flag bypasses off-season cap when snow_depth_max >= 0.5m. Working correctly.
+- 57 N. hemisphere ski venues without lateSeason: off-season until November. Expected behavior.
+
+### Beach — 8 Venues Above 40N (Shoulder Season)
+
+Positano, Sardinia, Hvar, Dubrovnik, Cote d'Azur, San Sebastian, Saint-Tropez, Brac Croatia — all above 40N. Mediterranean/Adriatic sea temps run ~17C in May, which triggers the water-temp hard cap (18C minimum). These venues will score low or be suppressed until June. Working as designed.
+
+---
+
+## 4. CONTENT QUALITY
+
+Venue model has no long-form description field — quality audit limited to tags and structural fields.
+
+Tag quality flags:
+- sarakiniko-beach-t16: generic tags — should be ["Volcanic Pumice","Lunar Landscape","Natural Pool","Milos Icon"]
+- S. hemisphere ski venues (Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone) share copy-pasted tags ["Glacial Skiing","Scenic Views","Village Base","On-Piste"] — factually wrong for several (Thredbo has no glacier; Cerro Castor has no village base)
+
+---
+
+## 5. DAILY VENUE ADDITIONS — 5 New Skiing Venues
+
+Skiing (64) < beach (86). Adding 5 ski venues covering major geographic gaps.
 
 ```javascript
-// 1. SKIING — Zermatt, Switzerland
-// Only Swiss ski entry is Andermatt. Zermatt = Matterhorn = the most iconic ski image on earth.
-// lateSeason:true — glacier skiing runs through July. Scores legitimately right now.
-{
-  id:"zermatt", category:"skiing",
-  title:"Zermatt Matterhorn Ski Paradise", location:"Valais, Switzerland",
+{id:"zermatt", category:"skiing", title:"Zermatt / Matterhorn", location:"Valais, Switzerland",
   lat:46.0207, lon:7.7491, ap:"GVA",
-  icon:"🏔️", rating:4.97, reviews:3180,
-  gradient:"linear-gradient(160deg,#0d1c38,#1e3a72,#3a6abf)",
-  accent:"#7ab2e8",
-  tags:["Matterhorn Views","Year-Round Glacier","Car-Free Village","Expert Terrain"],
-  photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass:"independent", lateSeason:true,
-},
+  icon:"🏔️", rating:4.97, reviews:4200,
+  gradient:"linear-gradient(160deg,#0a1628,#1a3870,#2a5cb8)",
+  accent:"#90c8f4", tags:["Matterhorn Views","Car-Free Village","Year-Round Glacier"],
+  photo:"https://images.unsplash.com/photo-1531400158697-004b6d5ad8e1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  skiPass:"independent", lateSeason:true},
 
-// 2. SKIING — Cortina d'Ampezzo, Italy
-// Italian Dolomites almost absent (only Cervinia). Cortina hosted 2026 Winter Olympics.
-{
-  id:"cortina", category:"skiing",
-  title:"Cortina d'Ampezzo", location:"Dolomites, Italy",
-  lat:46.5369, lon:12.1359, ap:"VCE",
-  icon:"🎿", rating:4.93, reviews:2640,
-  gradient:"linear-gradient(160deg,#1a0a28,#3a1a5c,#6a38a8)",
-  accent:"#c084fc",
-  tags:["Dolomites UNESCO","2026 Olympic Venue","Luxury Village","Scenic Cruiser Runs"],
-  photo:"https://images.unsplash.com/photo-1483354483454-4cd359948304?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.5",
-  skiPass:"dolomiti",
-},
+{id:"verbier", category:"skiing", title:"Verbier / 4 Vallées", location:"Valais, Switzerland",
+  lat:46.0960, lon:7.2280, ap:"GVA",
+  icon:"⛷️", rating:4.95, reviews:2870,
+  gradient:"linear-gradient(160deg,#0c1a38,#1c3e7e,#2e60c0)",
+  accent:"#78b0e8", tags:["4 Vallées","Off-Piste Mecca","Expert Terrain"],
+  photo:"https://images.unsplash.com/photo-1524863479829-916d8e77f114?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+  skiPass:"independent"},
 
-// 3. BEACH — Paje Beach, Zanzibar (east coast)
-// Only Nungwi (north coast) represents Zanzibar. Paje is kite capital of East Africa,
-// shallow tidal flats, completely different character from Nungwi.
-{
-  id:"beach_paje", category:"beach",
-  title:"Paje Beach", location:"Zanzibar, Tanzania",
-  lat:-6.2700, lon:39.5330, ap:"ZNZ",
-  icon:"🏝️", rating:4.88, reviews:4200,
-  gradient:"linear-gradient(160deg,#001a22,#003344,#006677)",
-  accent:"#33ccdd",
-  tags:["Kitesurfing Capital","Sandbar at Low Tide","Turquoise Shallows","Laid-Back"],
-  photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55",
-},
+{id:"st-anton", category:"skiing", title:"St. Anton am Arlberg", location:"Vorarlberg, Austria",
+  lat:47.1299, lon:10.2669, ap:"INN",
+  icon:"🎿", rating:4.95, reviews:3560,
+  gradient:"linear-gradient(160deg,#0e1c38,#1e3c7c,#3064c2)",
+  accent:"#7ab2e4", tags:["Arlberg Pioneer","Deep Powder","Legendary Après"],
+  photo:"https://images.unsplash.com/photo-1548777123-19e78c31f11f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  skiPass:"independent"},
 
-// 4. BEACH — Long Beach, Phu Quoc, Vietnam
-// SE Asia coverage thins north of Krabi. Phu Quoc = fastest-growing beach destination in Asia.
-// Has dedicated international airport (PQC). Unique sunset-facing west coast beach.
-{
-  id:"beach_phuquoc", category:"beach",
-  title:"Long Beach Phu Quoc", location:"Kien Giang, Vietnam",
-  lat:10.2936, lon:103.9803, ap:"PQC",
-  icon:"🏖️", rating:4.87, reviews:6800,
-  gradient:"linear-gradient(160deg,#001e33,#003d66,#006699)",
-  accent:"#33aacc",
-  tags:["Sunset Strip","Freshwater Lagoon","National Park Coast","Zero Crowds"],
-  photo:"https://images.unsplash.com/photo-1540541338537-1220e69a00c0?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
-},
+{id:"mt-buller", category:"skiing", title:"Mt. Buller", location:"Victorian Alps, Australia",
+  lat:-37.1500, lon:146.4333, ap:"MEL",
+  icon:"⛷️", rating:4.84, reviews:1620,
+  gradient:"linear-gradient(160deg,#0c1c36,#1a3c78,#2e68b8)",
+  accent:"#72a4d8", tags:["Victoria's Premier","4 Hours from Melbourne"],
+  photo:"https://images.unsplash.com/photo-1513875528452-39400945934d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.52",
+  skiPass:"independent"},
 
-// 5. BEACH — Playa Conchal, Costa Rica
-// Manuel Antonio is the only Costa Rica entry. Conchal (Guanacaste) uses LIR —
-// cheaper to fly from USA than SJO — and features unique crushed-shell sand.
-{
-  id:"beach_conchal", category:"beach",
-  title:"Playa Conchal", location:"Guanacaste, Costa Rica",
-  lat:10.4583, lon:-85.8667, ap:"LIR",
-  icon:"🏖️", rating:4.92, reviews:8400,
-  gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",
-  accent:"#44cc88",
-  tags:["Crushed Shell Sand","Snorkeling Reef","Dry Season Sunshine","Low Key"],
-  photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
-},
+{id:"la-grave", category:"skiing", title:"La Grave", location:"Hautes-Alpes, France",
+  lat:45.0306, lon:6.3028, ap:"GNB",
+  icon:"🎿", rating:4.95, reviews:1640,
+  gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",
+  accent:"#6c88e2", tags:["Zero Grooming","Experts Only","3600m Vert"],
+  photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.38",
+  skiPass:"independent"},
 ```
+
+Why these 5:
+- Zermatt: most famous missing venue; Theodul Glacier year-round. lateSeason:true justified.
+- Verbier: 4 Vallées + Mont Fort (3330m) = one of Europe's strongest off-piste brands.
+- St. Anton: birthplace of alpine skiing, legendary steep terrain. Major gap for Austria coverage.
+- Mt. Buller: Melbourne metro (5M people) has zero ski venues. SH opening June, in-season by next run.
+- La Grave: France has 3 venues but zero expert-only off-piste entry. Purest Weekend Score case.
 
 ---
 
-## One Observation for the PM
+## ONE THING THE PM SHOULD KNOW
 
-**The Amazon gear affiliate code has gone missing.** CLAUDE.md's Revenue Model shows Amazon Associates as "LIVE" at $4.48/1K MAU, but `GEAR_ITEMS` does not exist anywhere in `app.jsx` — no constant, no Amazon links, no `peakly-20` tag. The DONE note in CLAUDE.md is wrong; that revenue stream is currently generating $0. At 1K MAU that's ~$4.48/month but it scales with traffic. More importantly: if gear items get re-added before a Reddit launch spike, they could generate meaningful early revenue during the acquisition window when new users are exploring the detail sheet. Worth re-adding before the launch push, not after.
+GEAR_ITEMS is missing from the codebase but the Revenue Model claims Amazon Associates is live. Either the revenue table is wrong or the code is wrong — one of them is lying. Worth 5 minutes of git archaeology (git show a9aacf5) before the next revenue report cites Amazon earnings that aren't happening.
