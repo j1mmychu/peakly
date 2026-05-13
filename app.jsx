@@ -25,6 +25,12 @@ const PEAKLY_BUILD = "20260513h";
 const SUPABASE_URL      = "https://wsoqcfwkvvemtlddcgfc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzb3FjZndrdnZlbXRsZGRjZ2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Mjk3ODQsImV4cCI6MjA5MzUwNTc4NH0.cgmOuuuYOTSmvHThPH3V6veSUn3u64kEFphgSrbYlVA";
 const CLOUD_SYNC_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+// Share-a-list feature flag. Stays false until the `shared_lists` SQL migration
+// is deployed to Supabase — without the table, every share attempt throws and
+// the recipient `?l=<slug>` link 404s. Flip to true after the SQL runs and the
+// Share button + recipient parser both reactivate. (See ~/.claude/plans/
+// effervescent-jumping-hopper.md for the schema + hand-off.)
+const CLOUD_SHARE_ENABLED = false;
 
 // Project ref → Supabase's localStorage session key. Used to detect existing
 // signed-in state without loading the full library.
@@ -2799,6 +2805,11 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
             </span>
           )}
         </div>
+        {listing.weekendConfidence === "medium" && (
+          <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4 }}>
+            5-day forecast — may shift
+          </div>
+        )}
         <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"nowrap", overflow:"hidden" }}>
           {listing.tags.slice(0,3).map(t => (
             <span key={t} style={{
@@ -3008,6 +3019,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
             </>
           )}
         </div>
+        {listing.weekendConfidence === "medium" && (
+          <div style={{ fontSize:9, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:3 }}>
+            5-day fcst
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3938,7 +3954,10 @@ function ProfileSyncSection({ cloudSync, profile }) {
 
 // "My Lists" — share + manage named lists from Profile. Cloud-sync-gated:
 // the Share action requires the sharer to be signed in (so the snapshot row
-// has a real owner_id for referral attribution).
+// has a real owner_id for referral attribution). The component is rendered
+// conditionally on CLOUD_SHARE_ENABLED at its call site — without the
+// shared_lists table the whole thing 500s, so hiding it is cleaner than
+// surfacing a button that always errors.
 function MyListsSection({ namedLists, cloudSync }) {
   const [statusByList, setStatusByList] = useState({}); // {listId: "sharing" | "copied" | "shared" | "error" | "needs_signin"}
   const setListStatus = (id, status) => {
@@ -4475,6 +4494,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                     {hero.title}
                   </div>
                   <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:2 }}>{hero.location}</div>
+                  {hero.weekendConfidence === "medium" && (
+                    <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4, background:"#fef3c7", display:"inline-block", padding:"2px 7px", borderRadius:6 }}>
+                      5-day forecast — may shift
+                    </div>
+                  )}
                 </div>
                 {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
               </div>
@@ -5753,7 +5777,7 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cl
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {cat.label} · {skillLevels[s] || "Intermediate"}
+                      {cat.label}
                     </span>
                   </div>
                 );
@@ -5921,25 +5945,8 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cl
                       display:"flex", alignItems:"center", gap:10, cursor:"pointer",
                     }}>
                       <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color: sel ? "#fff" : "#222", fontFamily:F }}>{cat.label}</span>
-                      {sel && <span style={{ fontSize:11, color:"rgba(255,255,255,0.6)", fontFamily:F }}>{skillLevels[cat.id] || "Intermediate"}</span>}
                       <span style={{ color: sel ? "#0284c7" : "#ccc", fontWeight:900, fontSize:16 }}>{sel ? "✓" : "+"}</span>
                     </button>
-                    {sel && (
-                      <div style={{ display:"flex", gap:5, padding:"7px 4px 2px", flexWrap:"wrap" }}>
-                        {SKILL_LEVELS.map(lv => {
-                          const selLv = skillLevels[cat.id] === lv;
-                          return (
-                            <button key={lv} onClick={() => setProfile(p => ({ ...p, skillLevels: {...(p.skillLevels||{}), [cat.id]:lv} }))} style={{
-                              padding:"5px 11px", borderRadius:16, border:"1.5px solid",
-                              borderColor: selLv ? "#0284c7" : "#e0e0e0",
-                              background: selLv ? "#fff0f2" : "#fff",
-                              color: selLv ? "#0284c7" : "#666",
-                              fontSize:11, fontWeight:700, fontFamily:F, cursor:"pointer",
-                            }}>{lv}</button>
-                          );
-                        })}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -7970,10 +7977,10 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 }
 
 // ─── bottom nav ───────────────────────────────────────────────────────────────
-function BottomNav({ active, setActive, alertCount }) {
+function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
-    { id:"alerts",    label:"Alerts",   icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
+    ...(showAlerts ? [{ id:"alerts", label:"Alerts", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> }] : []),
     { id:"profile",   label:"Profile",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
   return (
@@ -8145,6 +8152,39 @@ function App() {
       }).catch(() => {});
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── APNS readiness probe (gates Alerts tab on native iOS) ───────────────
+  // Until Jack ships the .p8 to the VPS, iOS alerts have no delivery path.
+  // Promising push that never fires breaks user trust harder than hiding the
+  // tab. Web users keep Alerts (in-app filter — works without APNS). Probe
+  // /health on boot; once apns_configured: true comes back, the cached flag
+  // restores the tab automatically on next load — no app redeploy needed.
+  const [apnsConfigured, setApnsConfigured] = useState(() => {
+    try { return localStorage.getItem("peakly_apns_configured") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    const isNative = !!window.Capacitor?.isNativePlatform?.();
+    if (!isNative) return; // Web doesn't need APNS — Alerts tab stays visible
+    if (apnsConfigured) return; // cached positive; nothing to refresh
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const t = setTimeout(() => ctrl?.abort(), 5000);
+    fetch("https://peakly-api.duckdns.org/health", { signal: ctrl?.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (j?.apns_configured === true) {
+          setApnsConfigured(true);
+          try { localStorage.setItem("peakly_apns_configured", "1"); } catch {}
+        }
+      })
+      .catch(() => {})
+      .finally(() => clearTimeout(t));
+    return () => { clearTimeout(t); ctrl?.abort(); };
+  }, [apnsConfigured]);
+  const showAlertsTab = !window.Capacitor?.isNativePlatform?.() || apnsConfigured;
+  // Snap stranded users back to Explore if the tab they're on disappears.
+  useEffect(() => {
+    if (!showAlertsTab && activeTab === "alerts") setActiveTab("explore");
+  }, [showAlertsTab, activeTab]);
 
   // Auto-detect nearest airport for new users who haven't set one yet
   useEffect(() => {
@@ -8347,7 +8387,14 @@ function App() {
     const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
     const estimate   = estimate2 && estimate2.price < estimate1.price ? estimate2 : estimate1;
     const duffelData = duffelPrices[v.id];
-    const flight     = duffelData != null
+    // A "live" fare we last saw >14 days ago is no longer a real-time signal —
+    // the carrier has almost certainly repriced. scoreWeekendDeal already nulls
+    // the deal score for these (~app.jsx:1531); demote the flight object too so
+    // every card surface (hero, ListingCard, CompactCard, FeaturedCard, deal
+    // carousel filter) treats it as an estimate and renders ~$X / no LIVE pill.
+    const duffelStale = duffelData?.foundAt
+      && (Date.now() - new Date(duffelData.foundAt).getTime()) > 14 * 24 * 3600 * 1000;
+    const flight     = duffelData != null && !duffelStale
       ? {
           price:   duffelData.price,
           normal:  estimate.normal,
@@ -8535,7 +8582,10 @@ function App() {
   // Handle shared-list deep link (?l=<slug>&r=<owner_id>)
   // Runs ONCE on mount: fetches snapshot, opens SharedListView, suppresses
   // onboarding so the recipient lands directly on the curated list.
+  // Gated on CLOUD_SHARE_ENABLED — without the shared_lists table the fetch
+  // 404s and the recipient sees a blank app load. Strip the params either way.
   useEffect(() => {
+    if (!CLOUD_SHARE_ENABLED) return;
     try {
       const params = new URLSearchParams(window.location.search);
       const slug = params.get("l");
@@ -8796,7 +8846,7 @@ function App() {
           />
         )}
 
-        <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} />
+        <BottomNav active={activeTab} setActive={(tab) => { setActiveTab(tab); window.plausible && window.plausible('Tab Switch', {props: {tab}}); }} alertCount={firingCount} showAlerts={showAlertsTab} />
       </div>
     </div>
   );
