@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513d";
+const PEAKLY_BUILD = "20260513e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2634,7 +2634,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
-      <div style={{ position:"relative", height:160, overflow:"hidden", borderRadius:16 }}>
+      <div style={{ position:"relative", height:120, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
@@ -2751,31 +2751,32 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
       </div>
 
       {/* Body */}
-      <div style={{ padding:"12px 14px 8px" }}>
-        <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
+      <div style={{ padding:"10px 12px 10px" }}>
+        <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.2 }}>
           {listing.title}
         </div>
-        <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>
-          {listing.location}
-          {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
-        </div>
-        <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
-        {listing.bestWindow && (
-          <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
-            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px" }}>
-              Best: {listing.bestWindow.day} ({listing.bestWindow.score}/100)
-            </span>
+        {/* Location + Best-window pill on one row — collapses three rows of meta */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:3 }}>
+          <div style={{ color:"#717171", fontSize:12, fontFamily:F, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {listing.location}
+            {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
           </div>
-        )}
-        <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
-          {listing.tags.map(t => (
+          {listing.bestWindow && (
+            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>
+              Best: {listing.bestWindow.day} · {listing.bestWindow.score}/100
+            </span>
+          )}
+        </div>
+        <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"nowrap", overflow:"hidden" }}>
+          {listing.tags.slice(0,3).map(t => (
             <span key={t} style={{
-              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:20,
-              padding:"3px 8px", fontSize:11, color:"#444", fontWeight:600, fontFamily:F,
+              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:10,
+              padding:"2px 7px", fontSize:10, color:"#444", fontWeight:700, fontFamily:F,
+              whiteSpace:"nowrap", flexShrink:0,
             }}>{t}</span>
           ))}
         </div>
-        <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
             {listing.flightsLoading && !listing.flight.live ? (
               <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
@@ -2795,7 +2796,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
-              padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4,
+              padding:"7px 12px", minHeight:32, display:"flex", alignItems:"center", gap:4,
             }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
