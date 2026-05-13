@@ -111,7 +111,8 @@ Local-first via localStorage with optional cloud sync via Supabase Postgres (mag
 - Inline styles via `style={{...}}` objects (except animation classes)
 - Font constant: `const F = "'Plus Jakarta Sans', sans-serif"` — use `F` everywhere
 - Primary color: `#0284c7` (sky-600)
-- CTA buttons: `#222` (dark, NOT blue — design decision 2026-03-23)
+- Active state for selection UI (filter pills, tab nav, in-card CTAs like "View Details", install nudge): `#0284c7` (brand blue) — scoped 2026-05-13 after UI cohesion audit
+- True outbound CTAs (external "Book", destructive actions): `#222` (dark — original 2026-03-23 decision retained for these only)
 - Background: `#f5f5f5`
 - Mobile-first with safe area insets
 - Animation classes: `.bounce-in`, `.fade-in`, `.pulse`, `.shimmer`, `.sheet`, `.pill-selected`

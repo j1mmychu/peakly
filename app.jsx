@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260510l";
+const PEAKLY_BUILD = "20260513a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2530,6 +2530,19 @@ let _peaklyInstallPrompt = null;
   } catch {}
 })();
 
+// iOS Safari doesn't fire `beforeinstallprompt` — there's no programmatic install
+// path on iOS, only the Share → "Add to Home Screen" gesture. Detect real iOS
+// Safari (not Chrome iOS / Firefox iOS / Gmail in-app browser / already-installed
+// standalone mode) so we can show a one-time tip in lieu of a real prompt.
+function isIOSSafari() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|GSA/.test(ua);
+  const standalone = window.navigator.standalone === true;
+  return iOS && safari && !standalone;
+}
+
 // React hook: returns whether install can be triggered + a callback to do it
 function useInstallPrompt() {
   const [canInstall, setCanInstall] = useState(!!_peaklyInstallPrompt);
@@ -3722,27 +3735,61 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
   return out;
 }
 
-// One-time install nudge above the Explore carousel. Shows ONLY when:
-//   - the browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet — not iOS Safari)
-//   - user has saved >=2 wishlist items (positive engagement signal)
-//   - user has not previously dismissed the nudge
-// iOS users get the explicit "Install" button in Profile instead.
+// One-time install nudge above the Explore carousel. Two variants:
+//   - Standard: browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet) → one-tap install
+//   - iOS tip:  iOS Safari (no programmatic install) → "Add to Home Screen" instructions
+// Both share the same dismissal flag so users see at most one nudge.
 function InstallNudge({ wishlistCount }) {
   const { canInstall, trigger } = useInstallPrompt();
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem("peakly_install_dismissed") === "1"; } catch { return false; }
   });
-  const visible = canInstall && !dismissed && wishlistCount >= 2;
-  if (!visible) return null;
-  const dismiss = () => {
+  const [iosDetected, setIosDetected] = useState(false);
+  useEffect(() => { setIosDetected(isIOSSafari()); }, []);
+
+  const showStandard = canInstall && !dismissed && wishlistCount >= 1;
+  const showIOSTip   = !canInstall && !dismissed && wishlistCount >= 1 && iosDetected;
+  useEffect(() => {
+    if (showIOSTip) logEvent("install_pwa", { stage: "ios_tip_shown" });
+  }, [showIOSTip]);
+  if (!showStandard && !showIOSTip) return null;
+
+  const dismissStandard = () => {
     setDismissed(true);
     try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
     logEvent("install_pwa", { stage: "nudge_dismissed" });
   };
+  const dismissIOS = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_install_dismissed", "1"); } catch {}
+    logEvent("install_pwa", { stage: "ios_tip_dismissed" });
+  };
   const install = async () => {
     const ok = await trigger();
-    if (!ok) dismiss(); // user declined or prompt errored — don't keep nudging
+    if (!ok) dismissStandard();
   };
+
+  if (showIOSTip) {
+    return (
+      <div style={{
+        margin:"12px 14px 0", padding:"12px 14px", borderRadius:14,
+        background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
+        display:"flex", alignItems:"center", gap:12, boxShadow:"0 2px 12px rgba(2,132,199,0.25)",
+      }}>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13, fontWeight:800, fontFamily:F }}>Add Peakly to Home Screen</div>
+          <div style={{ fontSize:11, fontWeight:600, opacity:0.9, fontFamily:F, marginTop:2 }}>
+            Tap the Share button below, then "Add to Home Screen".
+          </div>
+        </div>
+        <button onClick={dismissIOS} aria-label="Dismiss" style={{
+          background:"none", border:"none", color:"rgba(255,255,255,0.85)",
+          fontSize:18, fontWeight:600, padding:"0 4px", cursor:"pointer", lineHeight:1,
+        }}>×</button>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       margin:"12px 14px 0", padding:"12px 14px", borderRadius:14,
@@ -3757,7 +3804,7 @@ function InstallNudge({ wishlistCount }) {
         background:"#fff", color:"#0284c7", border:"none", borderRadius:10,
         padding:"7px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
       }}>Install</button>
-      <button onClick={dismiss} aria-label="Dismiss" style={{
+      <button onClick={dismissStandard} aria-label="Dismiss" style={{
         background:"none", border:"none", color:"rgba(255,255,255,0.85)",
         fontSize:18, fontWeight:600, padding:"0 4px", cursor:"pointer", lineHeight:1,
       }}>×</button>
@@ -4173,19 +4220,21 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             disabled={loading}
             aria-label="Refresh weekend conditions"
             style={{
-              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8,
+              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6,
               background:"none", border:"none", padding:"4px 0",
               cursor: loading ? "default" : "pointer", textAlign:"left",
             }}
           >
             <span style={{ display:"flex", alignItems:"baseline", gap:8, minWidth:0, overflow:"hidden" }}>
               <span style={{ fontSize:12, fontWeight:800, color:"#0c4a6e", whiteSpace:"nowrap" }}>{weekendLabel}</span>
-              <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
-                {timeAgo ? `Updated ${timeAgo}` : (loading ? "Loading…" : "Tap to refresh")}
-              </span>
+              {!timeAgo && (
+                <span style={{ fontSize:11, color:"#64748b", whiteSpace:"nowrap" }}>
+                  {loading ? "Loading…" : "Tap to refresh"}
+                </span>
+              )}
             </span>
             <span style={{
-              fontSize:14, color:"#0284c7", fontWeight:800, marginLeft:4, flexShrink:0,
+              fontSize:14, color:"#0284c7", fontWeight:800, flexShrink:0,
               transform: pullRefreshing ? "rotate(360deg)" : "none",
               transition:"transform 0.6s ease",
             }}>⟲</span>
@@ -4221,9 +4270,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
               flex: 1, minWidth:0,
               padding:"5px 6px", borderRadius:18, cursor:"pointer",
               whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
-              background: activeCat === c.id ? "#222" : "#f5f5f5",
+              background: activeCat === c.id ? "#0284c7" : "#f5f5f5",
               color: activeCat === c.id ? "#fff" : "#555",
-              border:"1.5px solid", borderColor: activeCat === c.id ? "#222" : "transparent",
+              border:"1.5px solid", borderColor: activeCat === c.id ? "#0284c7" : "transparent",
               fontSize:11, fontWeight:700, fontFamily:F,
           }}>
             {c.label}
@@ -4395,32 +4444,41 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                 {!hero.photo && weatherLoaded && <GoVerdictBadge score={hero.conditionScore} size="lg" />}
               </div>
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
+                <div style={{ background:"#fafafa", borderRadius:10, padding:"10px 12px", flex:1, textAlign:"center" }}>
                   <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Conditions</div>
                   {weatherLoaded ? (
                     <>
-                      <div style={{ fontSize:16, fontWeight:900, color:"#222", fontFamily:F }}>{hero.conditionScore}<span style={{ fontSize:10, color:"#aaa" }}>/100</span></div>
-                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
+                      <div style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1 }}>{hero.conditionScore}<span style={{ fontSize:11, color:"#bbb" }}>/100</span></div>
+                      <div style={{ fontSize:9, fontWeight:600, color:"#717171", fontFamily:F }}>{hero.conditionLabel}</div>
                     </>
                   ) : (
                     <div className="shimmer" style={{ height:12, borderRadius:6, marginTop:6, marginBottom:4 }} />
                   )}
                 </div>
-                <div style={{ background:"#f7f7f7", borderRadius:10, padding:"8px 12px", flex:1, textAlign:"center" }}>
-                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase" }}>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</div>
-                  <div style={{ fontSize:16, fontWeight:900, color:"#0284c7", fontFamily:F }}>
+                <div style={{ background:"#fafafa", borderRadius:10, padding:"10px 12px", flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F, fontWeight:600, textTransform:"uppercase", display:"inline-flex", alignItems:"center", justifyContent:"center", gap:4 }}>
+                    <span>Flights from {AIRPORT_CITY[profile?.homeAirport] || profile?.homeAirport || "New York"}</span>
+                    {getFlightApiStatus() === "down" && (
+                      <span
+                        title="Live pricing offline — showing estimates"
+                        aria-label="Live pricing offline — showing estimates"
+                        style={{ fontSize:9, fontWeight:900, color:"#f59e0b", background:"#fef3c7", borderRadius:8, padding:"1px 5px", lineHeight:1 }}
+                      >!</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize:22, fontWeight:900, color:"#0284c7", fontFamily:F, lineHeight:1.1 }}>
                     {hero.flight.live ? `$${hero.flight.price}` : `~$${hero.flight.price}`}
-                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600 }}> typical</span>}
+                    {!hero.flight.live && <span style={{ fontSize:10, color:"#888", fontWeight:600, marginLeft:4 }}>typical</span>}
                   </div>
                   {hero.flight.live && hero.flight.pct >= 10 && (
-                    <div style={{ fontSize:10, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% below typical</div>
+                    <div style={{ fontSize:9, color:"#16a34a", fontFamily:F, fontWeight:700 }}>{hero.flight.pct}% below typical</div>
                   )}
                 </div>
               </div>
               {/* CTA row */}
               <div style={{ marginTop:12, display:"flex", gap:8 }}>
                 <button className="pressable" onClick={(e) => { e.stopPropagation(); onOpenDetail(hero); }} style={{
-                  flex:1, background:"#0284c7", border:"none", borderRadius:10, padding:"10px 0",
+                  flex:1, background:"#0284c7", border:"none", borderRadius:14, padding:"10px 0",
                   color:"#fff", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer",
                   display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                 }}>
@@ -4430,7 +4488,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                 <button className="pressable" onClick={(e) => { e.stopPropagation(); onToggle(hero.id); haptic("medium"); }} style={{
                   width:42, background: wishlists.includes(hero.id) ? "#fee2e2" : "#f5f5f5",
                   border: wishlists.includes(hero.id) ? "1.5px solid #fca5a5" : "1.5px solid #e8e8e8",
-                  borderRadius:10, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center",
+                  borderRadius:14, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center",
                 }}>{wishlists.includes(hero.id) ? "❤️" : "🤍"}</button>
               </div>
               </div>{/* close padding wrapper */}
@@ -4438,14 +4496,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           );
         })()}
 
-        {/* ── Data freshness + cloud-sync status (the "Updated Xm ago" moved
-              to the sticky weekend strip at top of ExploreTab). ── */}
-        {timeAgo && !loading && (
+        {/* ── Cloud-sync status (the "Updated Xm ago" moved to the sticky weekend
+              strip at top; the "Estimated prices" chip moved to a "!" badge
+              inside the hero card's Flights box). ── */}
+        {timeAgo && !loading && cloudSync?.enabled && (
           <div style={{ padding:"8px 14px 0", display:"flex", justifyContent:"flex-end", gap:8, alignItems:"center" }}>
             <SyncStatusPill cloudSync={cloudSync} />
-            {getFlightApiStatus() === "down" && (
-              <span style={{ fontSize:9, color:"#f59e0b", fontFamily:F, background:"#fef3c7", padding:"2px 6px", borderRadius:4 }}>Estimated prices — live API offline</span>
-            )}
           </div>
         )}
 
