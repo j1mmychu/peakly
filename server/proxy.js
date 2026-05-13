@@ -109,16 +109,75 @@ function currentMonthParam() {
 
 // ─── IATA validation ──────────────────────────────────────────────────────────
 const IATA_RE = /^[A-Z]{3}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
-// Calls Travelpayouts v2/prices/month-matrix
-// Query params: origin (IATA), destination (IATA)
+// If depart_date + return_date are present → v1/prices/cheap for that exact
+// round-trip (used for Fri–Mon weekend pricing). Otherwise falls back to
+// v2/prices/month-matrix (month-cheapest, historical behavior).
+// Query params: origin (IATA), destination (IATA), [depart_date], [return_date]
 // Response: { success, data: { [destination]: { [YYYY-MM]: { price } } }, found_at }
 app.get('/api/flights', async (req, res) => {
-  const { origin, destination } = req.query;
+  const { origin, destination, depart_date, return_date } = req.query;
 
   if (!IATA_RE.test(origin || '') || !IATA_RE.test(destination || '')) {
     return res.status(400).json({ success: false, error: 'origin and destination must be 3-letter IATA codes' });
+  }
+
+  const wantWeekend = typeof depart_date === 'string' && typeof return_date === 'string';
+  if (wantWeekend) {
+    if (!DATE_RE.test(depart_date) || !DATE_RE.test(return_date)) {
+      return res.status(400).json({ success: false, error: 'depart_date / return_date must be YYYY-MM-DD' });
+    }
+    if (new Date(return_date) <= new Date(depart_date)) {
+      return res.status(400).json({ success: false, error: 'return_date must be after depart_date' });
+    }
+    // v1/prices/cheap accepts exact depart_date + return_date and returns the
+    // cheapest fare found for that round-trip. Better than month-matrix when
+    // we know the exact weekend window.
+    const url = `https://api.travelpayouts.com/v1/prices/cheap`
+      + `?origin=${encodeURIComponent(origin)}`
+      + `&destination=${encodeURIComponent(destination)}`
+      + `&depart_date=${encodeURIComponent(depart_date)}`
+      + `&return_date=${encodeURIComponent(return_date)}`
+      + `&currency=usd`
+      + `&token=${TOKEN}`;
+
+    try {
+      const { status, json } = await fetchJson(url);
+      if (status === 429) return res.status(429).json({ success: false, error: 'Rate limited by upstream' });
+      if (status >= 500)  return res.status(502).json({ success: false, error: 'Upstream server error' });
+      if (!json.success)  return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
+
+      // v1/prices/cheap shape: { data: { [destination]: { [stops]: { price, departure_at, return_at, found_at, ... } } } }
+      const destData = json.data?.[destination] || {};
+      const entries = Object.values(destData).filter(e => typeof e?.price === 'number' && e.price > 0);
+
+      if (entries.length === 0) {
+        // No fare on those specific dates — return empty but successful so
+        // the client falls back to BASE_PRICES estimate (caller logic).
+        return res.json({ success: true, data: { [destination]: {} }, found_at: new Date().toISOString() });
+      }
+      const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
+      const dateKey = (cheapest.departure_at || depart_date).slice(0, 7); // YYYY-MM
+      return res.json({
+        success: true,
+        data: {
+          [destination]: {
+            [dateKey]: {
+              price: cheapest.price,
+              depart_date: (cheapest.departure_at || depart_date).slice(0, 10),
+              return_date: (cheapest.return_at || return_date).slice(0, 10),
+              found_at: cheapest.found_at,
+            },
+          },
+        },
+        found_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('[/api/flights weekend] error:', err.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
   }
 
   const month = currentMonthParam();
@@ -234,6 +293,97 @@ app.get('/api/flights/latest', async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ─── Open-Meteo cache proxy ───────────────────────────────────────────────────
+// Free-tier Open-Meteo: 10K calls/day. With Reddit-driven traffic, every
+// visitor loading 50+ venues hits that ceiling fast. Cache here de-dupes
+// across users: 100 simultaneous visitors loading Whistler share one fetch.
+// Cache key rounds lat/lon to 0.1° (~11km) so neighboring venues share too.
+// TTL 30 min — matches what the user perceives as "live" while keeping the
+// cache hit rate high. Memory: bounded by venue count, not user count.
+
+const OPEN_METEO_BASE   = 'https://api.open-meteo.com/v1/forecast';
+const OPEN_METEO_MARINE = 'https://marine-api.open-meteo.com/v1/marine';
+const WX_CACHE_TTL_MS   = 30 * 60 * 1000;
+const WX_CACHE_MAX      = 5000; // hard cap so a malicious flood can't OOM
+
+const _wxProxyCache = new Map(); // key -> { body, contentType, ts }
+
+function _wxProxyCacheKey(kind, latNum, lonNum, qs) {
+  const lat = latNum.toFixed(1);
+  const lon = lonNum.toFixed(1);
+  return `${kind}:${lat}:${lon}:${qs}`;
+}
+
+function _wxProxyEvictIfNeeded() {
+  if (_wxProxyCache.size <= WX_CACHE_MAX) return;
+  // Evict the oldest 10% — Map preserves insertion order, so the first keys
+  // are the oldest. Simple LRU-ish without per-hit bookkeeping cost.
+  const toDrop = Math.ceil(WX_CACHE_MAX * 0.1);
+  let dropped = 0;
+  for (const k of _wxProxyCache.keys()) {
+    _wxProxyCache.delete(k);
+    if (++dropped >= toDrop) break;
+  }
+}
+
+setInterval(() => {
+  const cutoff = Date.now() - WX_CACHE_TTL_MS;
+  for (const [k, v] of _wxProxyCache) if (v.ts < cutoff) _wxProxyCache.delete(k);
+}, 10 * 60 * 1000);
+
+async function serveOpenMeteo(req, res, kind, upstreamBase) {
+  const latNum = Number(req.query.latitude);
+  const lonNum = Number(req.query.longitude);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lonNum) || latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+    return res.status(400).json({ success: false, error: 'latitude and longitude required (numeric)' });
+  }
+
+  // Allow-list of Open-Meteo query keys we forward. Stops query-injection /
+  // exotic-param abuse and keeps the cache key space bounded.
+  const ALLOWED = new Set([
+    'latitude', 'longitude', 'daily', 'hourly', 'current',
+    'temperature_unit', 'wind_speed_unit', 'precipitation_unit',
+    'forecast_days', 'past_days', 'timezone', 'models',
+  ]);
+  const qsParts = [];
+  for (const [k, v] of Object.entries(req.query)) {
+    if (!ALLOWED.has(k) || typeof v !== 'string') continue;
+    if (v.length > 600) continue;
+    qsParts.push([k, v]);
+  }
+  qsParts.sort(([a], [b]) => a.localeCompare(b));
+  const qs = qsParts.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const cacheKey = _wxProxyCacheKey(kind, latNum, lonNum, qs);
+  const hit = _wxProxyCache.get(cacheKey);
+  if (hit && Date.now() - hit.ts < WX_CACHE_TTL_MS) {
+    res.setHeader('Content-Type', hit.contentType);
+    res.setHeader('X-Peakly-Cache', 'HIT');
+    return res.send(hit.body);
+  }
+
+  try {
+    const upstreamUrl = `${upstreamBase}?${qs}`;
+    const r = await fetch(upstreamUrl, { signal: AbortSignal.timeout(8000) });
+    const text = await r.text();
+    const contentType = r.headers.get('content-type') || 'application/json';
+
+    if (r.ok) {
+      _wxProxyCache.set(cacheKey, { body: text, contentType, ts: Date.now() });
+      _wxProxyEvictIfNeeded();
+    }
+    res.status(r.status);
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('X-Peakly-Cache', 'MISS');
+    return res.send(text);
+  } catch (err) {
+    console.error(`[/api/${kind}] upstream error:`, err.message);
+    return res.status(502).json({ success: false, error: 'Open-Meteo upstream error' });
+  }
+}
+
+app.get('/api/weather/forecast', (req, res) => serveOpenMeteo(req, res, 'weather', OPEN_METEO_BASE));
+app.get('/api/marine/marine',    (req, res) => serveOpenMeteo(req, res, 'marine',  OPEN_METEO_MARINE));
 
 // ─── Strike-alerts store + push dispatch ──────────────────────────────────────
 // POST /api/alerts registers an alert. The polling worker (alerts-worker.js)
@@ -431,6 +581,7 @@ app.get('/health', (req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     alerts: _alertsStore.size(),
+    wxCache: _wxProxyCache.size,
     push: {
       vapidConfigured: Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY),
       webpushAvailable: Boolean(webpush),

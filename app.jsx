@@ -832,8 +832,33 @@ const ALL_AIRPORTS = [
 ];
 
 // ─── weather api (Open-Meteo — no key required) ───────────────────────────────
-const METEO  = "https://api.open-meteo.com/v1";
-const MARINE = "https://marine-api.open-meteo.com/v1";
+// Primary path is the VPS proxy (shared cache de-dupes across users — Reddit
+// spike no longer burns Open-Meteo's 10K/day free tier). Falls back to direct
+// Open-Meteo if the proxy is unreachable so the app never goes weather-blind.
+// The proxy URLs map: /api/weather/forecast → Open-Meteo /v1/forecast,
+// /api/marine/marine → Open-Meteo marine /v1/marine. Same query shape both ways.
+const METEO_DIRECT  = "https://api.open-meteo.com/v1";
+const MARINE_DIRECT = "https://marine-api.open-meteo.com/v1";
+let _wxProxyDisabled = false; // flipped after a probe failure for this session
+async function _fetchWeatherJson(kind, query, signal) {
+  // kind: "forecast" (weather) or "marine"
+  const proxyPath = kind === "marine" ? "/api/marine/marine" : "/api/weather/forecast";
+  const directBase = kind === "marine" ? MARINE_DIRECT : METEO_DIRECT;
+  const directPath = kind === "marine" ? "/marine" : "/forecast";
+  if (!_wxProxyDisabled) {
+    try {
+      const r = await fetch(`${FLIGHT_PROXY}${proxyPath}?${query}`, { signal });
+      if (r.ok) return r;
+      // 404 = endpoint not deployed yet on the VPS; disable proxy for the
+      // session so we don't keep adding latency for every venue.
+      if (r.status === 404) _wxProxyDisabled = true;
+      else return r; // 429/5xx — return so caller's retry logic handles it
+    } catch {
+      // Network error / CORS / timeout — fall through to direct
+    }
+  }
+  return fetch(`${directBase}${directPath}?${query}`, { signal });
+}
 const WX_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours — re-fetch threshold
 const WX_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours — hard eviction (catches abandoned tabs)
 
@@ -879,19 +904,28 @@ _wxCacheCleanup();
 const FLIGHT_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const FLIGHT_CACHE_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours — cleanup threshold
 
-function _flightCacheGet(origin, dest) {
+function _flightCacheKey(origin, dest, departDate, returnDate) {
+  // Weekend-specific cache keys include the dates so we don't return last
+  // weekend's price when this weekend rolls around.
+  return departDate && returnDate
+    ? `peakly_flights_${origin}_${dest}_${departDate}_${returnDate}`
+    : `peakly_flights_${origin}_${dest}`;
+}
+
+function _flightCacheGet(origin, dest, departDate, returnDate) {
   try {
-    const raw = localStorage.getItem(`peakly_flights_${origin}_${dest}`);
+    const key = _flightCacheKey(origin, dest, departDate, returnDate);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(`peakly_flights_${origin}_${dest}`); return null; }
+    if (Date.now() - ts > FLIGHT_CACHE_TTL) { localStorage.removeItem(key); return null; }
     return data;
   } catch { return null; }
 }
 
-function _flightCacheSet(origin, dest, data) {
+function _flightCacheSet(origin, dest, data, departDate, returnDate) {
   try {
-    localStorage.setItem(`peakly_flights_${origin}_${dest}`, JSON.stringify({ data, ts: Date.now() }));
+    localStorage.setItem(_flightCacheKey(origin, dest, departDate, returnDate), JSON.stringify({ data, ts: Date.now() }));
   } catch {} // ignore QuotaExceededError
 }
 
@@ -918,8 +952,8 @@ async function fetchWeather(lat, lon) {
   if (cached) return cached;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
-  const url =
-    `${METEO}/forecast?latitude=${lat}&longitude=${lon}` +
+  const query =
+    `latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
     `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,` +
     `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,` +
@@ -927,7 +961,7 @@ async function fetchWeather(lat, lon) {
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const r = await fetch(url, { signal: controller.signal });
+      const r = await _fetchWeatherJson("forecast", query, controller.signal);
       if (r.status === 429 || r.status >= 500) {
         if (attempt < 2) { await new Promise(res => setTimeout(res, (attempt + 1) * 1200)); continue; }
         clearTimeout(timer); return null;
@@ -957,12 +991,12 @@ async function fetchMarine(lat, lon) {
   // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
   // is consumed by scoreVenue (water-temp gate). Wave/swell fields removed
   // to trim Open-Meteo payload.
-  const url =
-    `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
+  const query =
+    `latitude=${lat}&longitude=${lon}` +
     `&daily=ocean_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   try {
-    const r = await fetch(url, { signal: controller.signal });
+    const r = await _fetchWeatherJson("marine", query, controller.signal);
     clearTimeout(timer);
     if (!r.ok) return null;
     const data = await r.json();
@@ -1477,11 +1511,31 @@ function _flightRelease() {
   else { _flightSem.count = Math.max(0, _flightSem.count - 1); }
 }
 
+// Returns YYYY-MM-DD strings for the upcoming Fri / Mon (departure / return)
+// based on the same weekend window the front page uses. Returns null if
+// today is too late in the weekend to flex out — caller skips the weekend
+// query and falls back to month-cheapest.
+function weekendISODates(today) {
+  const todayDate = today || new Date();
+  const indices = weekendDayIndices(todayDate);
+  if (!indices || indices.length < 2) return null;
+  const fri = indices[0];
+  const mon = indices[indices.length - 1];
+  const toISO = (offset) => {
+    const d = new Date(todayDate);
+    d.setDate(d.getDate() + offset);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  return { depart: toISO(fri), return: toISO(mon) };
+}
+
 // Returns price number or null — caller falls back to BASE_PRICES estimate
 // Includes retry with exponential backoff (up to 2 retries)
-// Checks localStorage cache (15-min TTL) before hitting the API
-async function fetchTravelpayoutsPrice(origin, destination) {
-  const cached = _flightCacheGet(origin, destination);
+// Checks localStorage cache (15-min TTL) before hitting the API.
+// If departDate + returnDate are passed, queries the exact weekend round-trip
+// (Fri–Mon); otherwise falls back to month-cheapest.
+async function fetchTravelpayoutsPrice(origin, destination, departDate, returnDate) {
+  const cached = _flightCacheGet(origin, destination, departDate, returnDate);
   if (cached !== null) return cached;
 
   await _flightAcquire();
@@ -1491,9 +1545,13 @@ async function fetchTravelpayoutsPrice(origin, destination) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const url = `${FLIGHT_PROXY}/api/flights`
+        let url = `${FLIGHT_PROXY}/api/flights`
           + `?origin=${encodeURIComponent(origin)}`
           + `&destination=${encodeURIComponent(destination)}`;
+        if (departDate && returnDate) {
+          url += `&depart_date=${encodeURIComponent(departDate)}`
+              +  `&return_date=${encodeURIComponent(returnDate)}`;
+        }
 
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
@@ -1520,8 +1578,12 @@ async function fetchTravelpayoutsPrice(origin, destination) {
 
         if (entries.length === 0) return null;
         const cheapest = entries.reduce((a, b) => a.price <= b.price ? a : b);
-        const result = { price: Math.round(cheapest.price), foundAt: cheapest.found_at || new Date().toISOString() };
-        _flightCacheSet(origin, destination, result);
+        const result = {
+          price: Math.round(cheapest.price),
+          foundAt: cheapest.found_at || new Date().toISOString(),
+          weekendSpecific: !!(departDate && returnDate),
+        };
+        _flightCacheSet(origin, destination, result, departDate, returnDate);
         return result;
       } catch (err) {
         if (attempt < 2 && err.name !== "AbortError") {
@@ -7596,6 +7658,9 @@ function App() {
     if (loading) return;
     let alive = true;
     setFlightsLoading(true);
+    // Quote the actual Fri–Mon weekend window the front-page UI uses. Falls
+    // back to month-cheapest if the helper can't resolve a window.
+    const weekendDates = weekendISODates(new Date());
     (async () => {
       // 1. Build a map of unique airport codes → venue IDs that use them
       const apToVenues = {};
@@ -7632,7 +7697,7 @@ function App() {
           const results = await Promise.allSettled(
             batch.flatMap(ap =>
               origins.map(async origin => {
-                const result = await fetchTravelpayoutsPrice(origin, ap);
+                const result = await fetchTravelpayoutsPrice(origin, ap, weekendDates?.depart, weekendDates?.return);
                 return { ap, result };
               })
             )
