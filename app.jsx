@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513g";
+const PEAKLY_BUILD = "20260513h";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5680,7 +5680,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], onShowOnboarding, savedTrips = [], setSavedTrips, listings = [], onOpenDetail, namedLists = [], setNamedLists, onToggle, cloudSync }) {
+function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cloudSync }) {
   const [airportQuery,      setAirportQuery]      = useState("");
   const [airportFocused,    setAirportFocused]    = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -5710,35 +5710,32 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
 
       {/* ── Social header (logged in) ── */}
       {hasAccount ? (
-        <div style={{ background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)", padding:"40px 24px 24px", position:"relative", overflow:"hidden" }}>
-          {/* Decorative glow blobs */}
-          <div style={{ position:"absolute", top:-50, right:-40, width:200, height:200, borderRadius:"50%", background:avatarHex, opacity:0.14, filter:"blur(50px)", pointerEvents:"none" }} />
-          <div style={{ position:"absolute", bottom:-30, left:-30, width:150, height:150, borderRadius:"50%", background:avatarHex, opacity:0.09, filter:"blur(35px)", pointerEvents:"none" }} />
-          {/* Subtle grid texture */}
-          <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize:"24px 24px", pointerEvents:"none" }} />
-          <div style={{ display:"flex", alignItems:"flex-end", gap:16, marginBottom:16, position:"relative" }}>
-            <div style={{ position:"relative", flexShrink:0 }}>
-              <div style={{
-                width:80, height:80, borderRadius:"50%",
-                background: avatarGrad,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:34, fontWeight:900, color:"white", fontFamily:F,
-                border:"3px solid rgba(255,255,255,0.18)",
-                boxShadow:`0 0 0 5px ${avatarHex}28, 0 6px 24px ${avatarHex}50`,
-              }}>{initials}</div>
-              {/* Online dot */}
-              <div style={{ position:"absolute", bottom:4, right:4, width:14, height:14, borderRadius:"50%", background:"#22c55e", border:"2.5px solid #111" }} />
-            </div>
-            <div style={{ flex:1, minWidth:0, paddingBottom:4 }}>
-              <div style={{ fontSize:22, fontWeight:900, color:"#fff", fontFamily:F, lineHeight:1.1, marginBottom:4 }}>
+        <div style={{ background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)", padding:"24px 24px 18px", position:"relative", overflow:"hidden" }}>
+          <button className="pressable" onClick={() => setEditMode(e => !e)} style={{
+            position:"absolute", top:18, right:18,
+            background: editMode ? avatarHex : "rgba(255,255,255,0.09)",
+            border: editMode ? "none" : "1px solid rgba(255,255,255,0.13)",
+            borderRadius:20, cursor:"pointer", color:"white",
+            fontSize:11, fontWeight:700, fontFamily:F, padding:"6px 12px",
+            transition:"background 0.2s",
+          }}>
+            {editMode ? "✓ Done" : "✏️ Edit"}
+          </button>
+          <div style={{ display:"flex", alignItems:"center", gap:14, position:"relative" }}>
+            <div style={{
+              width:60, height:60, borderRadius:"50%",
+              background: avatarGrad,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:26, fontWeight:900, color:"white", fontFamily:F,
+              border:"2px solid rgba(255,255,255,0.18)",
+              flexShrink:0,
+            }}>{initials}</div>
+            <div style={{ flex:1, minWidth:0, paddingRight:60 }}>
+              <div style={{ fontSize:19, fontWeight:900, color:"#fff", fontFamily:F, lineHeight:1.1, marginBottom:3 }}>
                 {profile.name || "Adventure Seeker"}
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontFamily:F }}>
-                  ✈️ {profile.homeAirport || "No airport set"}
-                </div>
-                <div style={{ width:3, height:3, borderRadius:"50%", background:"rgba(255,255,255,0.25)" }} />
-                <div style={{ fontSize:11, color:avatarHex, fontWeight:700, fontFamily:F }}>● Active</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", fontFamily:F }}>
+                ✈️ {profile.homeAirport || "No airport set"}
               </div>
             </div>
           </div>
@@ -5746,13 +5743,13 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           {/* Sport skill badges — defensive filter: skip any sport id no longer
               in CATEGORIES (e.g. legacy "surfing" survived migration somehow) */}
           {sports.filter(s => CATEGORIES.find(c => c.id === s)).length > 0 && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:16 }}>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:14 }}>
               {sports.filter(s => CATEGORIES.find(c => c.id === s)).map(s => {
                 const cat = CATEGORIES.find(c => c.id === s);
                 return (
                   <div key={s} style={{
                     background:"rgba(255,255,255,0.1)", borderRadius:20,
-                    padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:5,
+                    padding:"4px 11px", display:"inline-flex", alignItems:"center", gap:5,
                     border:"1px solid rgba(255,255,255,0.12)",
                   }}>
                     <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
@@ -5763,28 +5760,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
               })}
             </div>
           )}
-
-          {/* Stats row */}
-          <div style={{ display:"flex", gap:10, position:"relative" }}>
-            <div style={{ background:"rgba(255,255,255,0.07)", borderRadius:14, padding:"12px 0", flex:1, textAlign:"center", border:"1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>{wishlists.length}</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.38)", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>Saved</div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.07)", borderRadius:14, padding:"12px 0", flex:1, textAlign:"center", border:"1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>{sports.length}</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.38)", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>Sports</div>
-            </div>
-            <button className="pressable" onClick={() => setEditMode(e => !e)} style={{
-              flex:1, background: editMode ? avatarHex : "rgba(255,255,255,0.09)",
-              border: editMode ? "none" : "1px solid rgba(255,255,255,0.13)",
-              borderRadius:14, cursor:"pointer", color:"white",
-              fontSize:12, fontWeight:700, fontFamily:F,
-              boxShadow: editMode ? `0 4px 14px ${avatarHex}55` : "none",
-              transition:"background 0.2s",
-            }}>
-              {editMode ? "✓ Done" : "✏️ Edit"}
-            </button>
-          </div>
         </div>
       ) : (
         /* ── Join CTA (no account) ── */
@@ -5823,20 +5798,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
         {/* ── Edit panel (only when hasAccount + editMode) ── */}
         {hasAccount && editMode && (
           <div style={{ marginTop:20, marginBottom:4 }}>
-            {/* Avatar color */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Profile color</div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                {AVATAR_COLORS.map(col => (
-                  <button key={col.id} onClick={() => setProfile(p => ({...p, avatarColor:col.id}))} style={{
-                    width:34, height:34, borderRadius:"50%", background:col.grad, border:"none", cursor:"pointer",
-                    boxShadow: profile.avatarColor === col.id ? `0 0 0 3px white, 0 0 0 5px ${col.hex}` : "none",
-                    transition:"box-shadow 0.2s",
-                  }} />
-                ))}
-              </div>
-            </div>
-
             {/* Name */}
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Name</div>
@@ -6012,152 +5973,25 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           ))}
         </div>
 
-        {/* ── Travel Window ── */}
-        <div style={{ marginBottom:22 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-            Travel Window
-          </div>
-          <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:10 }}>When can you travel? We'll prioritize venues that match.</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-            {[
-              { id:"anytime", label:"Anytime" },
-              { id:"30days",  label:"Next 30 days" },
-              { id:"jan",     label:"January" },
-              { id:"feb",     label:"February" },
-              { id:"mar",     label:"March" },
-              { id:"apr",     label:"April" },
-              { id:"may",     label:"May" },
-              { id:"jun",     label:"June" },
-              { id:"jul",     label:"July" },
-              { id:"aug",     label:"August" },
-              { id:"sep",     label:"September" },
-              { id:"oct",     label:"October" },
-              { id:"nov",     label:"November" },
-              { id:"dec",     label:"December" },
-            ].map(opt => {
-              const sel = (profile.travelWindow || "anytime") === opt.id;
-              return (
-                <button key={opt.id} className="pressable" onClick={() => setProfile(p => ({...p, travelWindow: opt.id}))} style={{
-                  padding:"7px 12px", borderRadius:14, cursor:"pointer",
-                  background: sel ? "#222" : "#f7f7f7",
-                  color: sel ? "#fff" : "#555",
-                  border:"1.5px solid", borderColor: sel ? "#222" : "#e8e8e8",
-                  fontSize:11, fontWeight:700, fontFamily:F,
-                }}>
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
+        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
 
-        {/* ── Default filters ── */}
-        <div style={{ marginBottom:24 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12 }}>Default filters</div>
-          <div style={{ display:"flex", gap:8, marginBottom:14 }}>
-            {[
-              { id:"score", label:"Best conditions" },
-              { id:"price", label:"Cheapest flights" },
-              { id:"value", label:"Best value" },
-            ].map(opt => (
-              <button key={opt.id} className="pressable" onClick={() => setFilters(f => ({...f, sort:opt.id}))} style={{
-                flex:1, padding:"10px 4px", borderRadius:12, cursor:"pointer",
-                background: filters.sort === opt.id ? "#222" : "#f7f7f7",
-                color:      filters.sort === opt.id ? "#fff" : "#222",
-                border:"1.5px solid", borderColor: filters.sort === opt.id ? "#222" : "#e8e8e8",
-                display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-              }}>
-                <span style={{ fontSize:10, fontWeight:700, fontFamily:F, textAlign:"center", lineHeight:1.2 }}>{opt.label}</span>
-              </button>
-            ))}
-          </div>
-          <div style={{ marginBottom:12 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-              <span style={{ fontSize:12, fontWeight:600, color:"#555", fontFamily:F }}>Max flight price</span>
-              <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{filters.maxPrice >= 2000 ? "Any" : `$${filters.maxPrice}`}</span>
-            </div>
-            <input type="range" min={100} max={2000} step={50} value={filters.maxPrice}
-              onChange={e => setFilters(f => ({...f, maxPrice:+e.target.value}))}
-              style={{
-                width:"100%", accentColor:"#0284c7",
-                background:`linear-gradient(to right, #22c55e 0%, #f59e0b ${Math.round(((filters.maxPrice-100)/1900)*100)}%, #0284c7 ${Math.round(((filters.maxPrice-100)/1900)*100)}%, #e5e7eb 100%)`,
-              }}
-            />
-            <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-              <span style={{ fontSize:10, color:"#22c55e", fontWeight:700, fontFamily:F }}>$100 Budget</span>
-              <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F }}>Any price</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Saved Trips ── */}
-        {savedTrips.length > 0 && (
-          <div style={{ marginBottom:22 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-              Saved Trips
-            </div>
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {savedTrips.map(trip => (
-                <div key={trip.id} className="card" style={{
-                  background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, overflow:"hidden",
-                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
-                }}>
-                  <div style={{ height:80, background:trip.venue?.gradient || "linear-gradient(135deg,#0284c7,#38bdf8)" }} />
-                  <div style={{ padding:12 }}>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>{trip.destination}</div>
-                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:3 }}>
-                      {trip.days} days · ${trip.totalCost} total
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* ── My Lists (share + manage) ── */}
+        {namedLists.length > 0 && (
+          <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
         )}
 
-        {/* ── Wishlists ── */}
-        {wishlists.length > 0 && (
-          <div style={{ marginBottom:22 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-              Saved Venues
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {listings.filter(l => wishlists.includes(l.id)).slice(0, 6).map(l => (
-                <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
-                  <div style={{ height:80, background:l.gradient, position:"relative" }}>
-                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
-                      position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
-                    }}>❤️</button>
-                  </div>
-                  <div style={{ padding:"7px 8px" }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* ── Install Peakly (only when prompt is captured) ── */}
+        {canInstallPwa && (
+          <button className="pressable" onClick={triggerInstallPwa} style={{
+            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
+            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
+            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          }}>
+            <span>📲</span> Install Peakly to home screen
+          </button>
         )}
-
-        {/* ── Powered by ── */}
-        <div style={{ marginBottom:20 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"#bbb", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Powered by</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-            {[
-              { icon:"🌤️", name:"Open-Meteo" },
-              { icon:"🌊", name:"Marine API" },
-              { icon:"✈️", name:"Duffel" },
-              { icon:"🛰️", name:"NOAA" },
-              { icon:"🏔️", name:"OpenSnow" },
-              { icon:"🌍", name:"OpenStreetMap" },
-            ].map(s => (
-              <div key={s.name} style={{ background:"#f8f8f8", border:"1px solid #ebebeb", borderRadius:20, padding:"5px 10px", display:"flex", alignItems:"center", gap:5 }}>
-                <span style={{ fontSize:12 }}>{s.icon}</span>
-                <span style={{ fontSize:11, fontWeight:700, color:"#555", fontFamily:F }}>{s.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ── Share & Refer (combined) ── */}
         <div style={{ marginBottom:20 }}>
@@ -6198,35 +6032,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           )}
         </div>
 
-        {/* ── About ── */}
-        <div style={{ background:"#f7f7f7", borderRadius:14, padding:"14px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div>
-            <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F }}>Peakly</div>
-            <div style={{ fontSize:12, color:"#aaa", fontFamily:F, marginTop:2 }}>Version 1.0 · Built for adventure</div>
-          </div>
-          <div style={{ fontSize:11, color:"#ccc", fontFamily:F }}>Open Beta</div>
-        </div>
-
-        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
-        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
-
-        {/* ── My Lists (share + manage) ── */}
-        {namedLists.length > 0 && (
-          <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
-        )}
-
-        {/* ── Install Peakly (only when prompt is captured) ── */}
-        {canInstallPwa && (
-          <button className="pressable" onClick={triggerInstallPwa} style={{
-            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-          }}>
-            <span>📲</span> Install Peakly to home screen
-          </button>
-        )}
-
         {/* ── Sign Out ── */}
         {hasAccount && !signOutConfirm && (
           <button className="pressable" onClick={() => setSignOutConfirm(true)} style={{
@@ -6264,11 +6069,6 @@ function ProfileTab({ profile, setProfile, filters, setFilters, wishlists = [], 
           </div>
         )}
         {!hasAccount && <div style={{ height:32 }} />}
-
-        {/* Build stamp — useful for "did the deploy land?" debugging */}
-        <div style={{ textAlign:"center", padding:"0 0 24px", fontSize:9, color:"#ccc", fontFamily:F, letterSpacing:"0.05em" }}>
-          Build {PEAKLY_BUILD}
-        </div>
       </div>
     </div>
   );
@@ -8910,13 +8710,8 @@ function App() {
           {activeTab === "profile" && (
             <ProfileTab
               profile={profile} setProfile={setProfile}
-              filters={filters} setFilters={setFilters}
-              wishlists={wishlistIds}
               onShowOnboarding={() => setShowOnboarding(true)}
-              savedTrips={savedTrips} setSavedTrips={setSavedTrips}
-              listings={listings} onOpenDetail={openDetail}
-              namedLists={namedLists} setNamedLists={setNamedLists}
-              onToggle={toggleWishlist}
+              namedLists={namedLists}
               cloudSync={cloudSync}
             />
           )}
