@@ -5181,6 +5181,14 @@ const ALERT_TEMPLATES = [
     draft:{ sport:"skiing", condition:"good",   locations:["niseko","nozawa"], region:"AS", priceMax:900 } },
   { id:"cancun-beach",          title:"Beach Weekend",subtitle:"Cancun",        bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
     draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
+  { id:"alps-bluebird",         title:"Bluebird Day", subtitle:"Alps",          bg:"#e0f2fe", accent:"#0369a1", glyph:"mountain",
+    draft:{ sport:"skiing", condition:"great",  locations:["chamonix","tignes"], priceMax:800 } },
+  { id:"caribbean-escape",      title:"Caribbean",    subtitle:"Escape",        bg:"#cffafe", accent:"#0891b2", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_grace","beach_eagle","beach_shoal"], priceMax:700 } },
+  { id:"med-beach",             title:"Med Beach",    subtitle:"Greece + Italy",bg:"#fce7f3", accent:"#be185d", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
+  { id:"spring-skiing",         title:"Spring Skiing",subtitle:"Late Season",   bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
+    draft:{ sport:"skiing", condition:"good",   locations:["tignes","cervinia","val-d-isere-s16"], priceMax:800 } },
   { id:"whistler-fresh-snow",   title:"Fresh Snow",   subtitle:"Whistler",      bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
     draft:{ sport:"skiing", condition:"insane", locations:["whistler"],        priceMax:800 } },
 ];
@@ -5202,34 +5210,7 @@ function TemplateGlyph({ kind, color }) {
   return null;
 }
 
-// Minimalist editorial illustration for the alerts empty state.
-// Three peaks (center tallest) with snow caps, sun upper-left, rain cloud
-// upper-right with two raindrops. No fill on lines — feels editorial, not stock.
-function EmptyAlertsIllustration() {
-  return (
-    <svg width="140" height="90" viewBox="0 0 140 90" fill="none" aria-hidden="true">
-      {/* Sun */}
-      <circle cx="26" cy="22" r="9" stroke="#fbbf24" strokeWidth="1.8" />
-      <g stroke="#fbbf24" strokeWidth="1.6" strokeLinecap="round">
-        <path d="M26 7v4"/><path d="M26 33v4"/>
-        <path d="M11 22h4"/><path d="M37 22h4"/>
-        <path d="M15 11l3 3"/><path d="M34 30l3 3"/>
-      </g>
-      {/* Cloud + rain */}
-      <path d="M101 24c-5 0-7 3-7 5h-2c-3 0-5 2-5 5 0 2 2 4 5 4h17c3 0 5-2 5-4 0-2-2-4-5-4 0-3-3-6-8-6z"
-            stroke="#94a3b8" strokeWidth="1.8" strokeLinejoin="round"/>
-      <path d="M97 44l-2 5M104 44l-2 5" stroke="#0284c7" strokeWidth="1.8" strokeLinecap="round"/>
-      {/* Mountains */}
-      <path d="M8 80l28-38 14 20 10-12 30 30z" stroke="#222" strokeWidth="1.8" strokeLinejoin="round"/>
-      <path d="M30 47l4 4 4-6" stroke="#222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M55 56l3 4 3-5" stroke="#222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Ground line */}
-      <path d="M4 80h132" stroke="#e5e7eb" strokeWidth="1.4"/>
-    </svg>
-  );
-}
-
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
   const [showMore, setShowMore] = useState(false);
@@ -5515,34 +5496,6 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         }}>+ New</button>
       </div>
 
-      {/* Vibe Search — AI feature, lifted with inner stroke + soft shadow */}
-      {onShowVibeSearch && (
-        <div style={{ padding:"0 24px 16px" }}>
-          <button onClick={onShowVibeSearch} className="pressable" style={{
-            width:"100%",
-            background:"linear-gradient(135deg,#1a1a2e 0%,#2d1b69 55%,#0c4a6e 100%)",
-            border:"none", borderRadius:16, padding:"16px 20px", cursor:"pointer",
-            display:"flex", alignItems:"center", gap:12, color:"white",
-            boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10), 0 4px 14px rgba(45,27,105,0.35)",
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 2l1.8 4.6L18.4 8 14 10l-2 5-2-5-4.4-2 4.4-1.4z" fill="#fbbf24"/>
-              <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9z" fill="#fbbf24" opacity="0.85"/>
-              <path d="M5 4l.7 1.6L7.2 6.3l-1.5.7L5 8.6l-.7-1.6L2.8 6.3l1.5-.7z" fill="#fbbf24" opacity="0.7"/>
-            </svg>
-            <div style={{ flex:1, textAlign:"left" }}>
-              <div style={{ fontSize:16, fontWeight:900, fontFamily:F }}>Vibe Search</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontFamily:F, marginTop:2 }}>AI-powered adventure matching</div>
-            </div>
-            <span style={{
-              background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8,
-              padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em",
-              boxShadow:"0 0 14px rgba(124,58,237,0.5)",
-            }}>AI</span>
-          </button>
-        </div>
-      )}
-
       {/* Firing banner */}
       {firing.length > 0 && (
         <div style={{ margin:"0 24px 20px" }}>
@@ -5566,94 +5519,14 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         </div>
       )}
 
-      {/* Empty state — illustration + headline + CTA (only when zero alerts) */}
-      {userAlerts.length === 0 ? (
-        <div style={{ padding:"24px 24px 12px", textAlign:"center" }}>
-          <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
-            <EmptyAlertsIllustration />
-          </div>
-          <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:6 }}>No alerts yet</div>
-          <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20, lineHeight:1.45, maxWidth:280, marginLeft:"auto", marginRight:"auto" }}>
-            Create an alert and we'll tell you when conditions + cheap flights align
-          </div>
-          <button onClick={() => setAdding(true)} className="pressable" style={{
-            background:"#0284c7", border:"none", borderRadius:14,
-            padding:"12px 28px", color:"white", fontSize:13, fontWeight:800,
-            fontFamily:F, cursor:"pointer",
-          }}>Create your first alert</button>
-        </div>
-      ) : (
-        <div style={{ padding:"0 24px" }}>
-          {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
-            const cat    = CATEGORIES.find(c => c.id === a.sport);
-            const active = firing.some(l => {
-              const sportMatch = a.sport === "all" || a.sport === l.category;
-              const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
-              const priceMatch = l.flight.price <= a.priceMax;
-              let scoreMatch = false;
-              if (a.condition === "powder") {
-                scoreMatch = matchesSpecialCondition(l, a.condition);
-              } else {
-                const threshold = getScoreThreshold(a.condition);
-                scoreMatch = l.conditionScore >= threshold;
-              }
-              return sportMatch && locationMatch && priceMatch && scoreMatch;
-            });
-
-            const conditionLabels = {
-              "insane": "Insane (≥95)",
-              "great": "Great (≥85)",
-              "good": "Good (≥70)",
-              "powder": "Powder Day",
-              "custom": `Custom (≥${a.customScore})`
-            };
-
-            return (
-              <div key={a.id} style={{
-                background: active ? "#f0f9ff" : "#f9f9f9",
-                borderLeft: active ? "4px solid #0284c7" : "4px solid #e8e8e8",
-                borderRadius:0, padding:16, marginBottom:12,
-                display:"flex", justifyContent:"space-between", alignItems:"flex-start",
-              }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                    <span style={{ fontWeight:700, fontSize:13, color:"#222", fontFamily:F }}>
-                      {cat?.label || "Any sport"}
-                    </span>
-                    <span style={{
-                      fontSize:10, fontWeight:700, background:"#e8e8e8", color:"#222",
-                      padding:"4px 8px", borderRadius:4, fontFamily:F, textTransform:"uppercase",
-                      letterSpacing:"0.05em"
-                    }}>
-                      {conditionLabels[a.condition] || a.condition}
-                    </span>
-                  </div>
-                  {a.locations.length > 0 && (
-                    <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginBottom:6 }}>
-                      {a.locations.length} location{a.locations.length > 1 ? "s" : ""} selected
-                    </div>
-                  )}
-                  <div style={{ fontSize:11, color:"#aaa", fontFamily:F }}>
-                    Flights ≤ {a.priceMax >= 2100 ? "any price" : `$${a.priceMax}`}
-                  </div>
-                </div>
-                <button onClick={() => delAlert(a.id)} style={{
-                  background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#bbb", padding:0, marginLeft:12,
-                }}>×</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Quick Templates carousel — always visible. Header copy adapts to context. */}
-      <div style={{ padding:"8px 0 24px" }}>
+      {/* Quick Templates carousel — primary action, lifted above saved alerts */}
+      <div style={{ padding:"4px 0 20px" }}>
         <div style={{ padding:"0 24px 10px" }}>
           <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
-            {userAlerts.length === 0 ? "Guided Setup" : "Quick Templates"}
+            {userAlerts.length === 0 ? "Start with a template" : "Quick Templates"}
           </div>
           <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>
-            {userAlerts.length === 0 ? "Try a Quick Template" : "Add another in one tap"}
+            {userAlerts.length === 0 ? "Tap one — we'll set it up" : "Add another in one tap"}
           </div>
         </div>
         <div style={{
@@ -5684,6 +5557,54 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
           ))}
         </div>
       </div>
+
+      {/* Saved alerts — slim one-line rows; firing rows get the blue accent */}
+      {userAlerts.length > 0 && (
+        <div style={{ padding:"0 24px" }}>
+          {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
+            const cat    = CATEGORIES.find(c => c.id === a.sport);
+            const active = firing.some(l => {
+              const sportMatch = a.sport === "all" || a.sport === l.category;
+              const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
+              const priceMatch = l.flight.price <= a.priceMax;
+              let scoreMatch = false;
+              if (a.condition === "powder") {
+                scoreMatch = matchesSpecialCondition(l, a.condition);
+              } else {
+                const threshold = getScoreThreshold(a.condition);
+                scoreMatch = l.conditionScore >= threshold;
+              }
+              return sportMatch && locationMatch && priceMatch && scoreMatch;
+            });
+
+            const conditionLabels = {
+              "insane": "Insane (≥95)",
+              "great": "Great (≥85)",
+              "good": "Good (≥70)",
+              "powder": "Powder Day",
+              "custom": `Custom (≥${a.customScore})`
+            };
+            const priceLabel = a.priceMax >= 2100 ? "Any price" : `≤$${a.priceMax}`;
+
+            return (
+              <div key={a.id} style={{
+                background: active ? "#f0f9ff" : "#f9f9f9",
+                borderLeft: active ? "4px solid #0284c7" : "4px solid #e8e8e8",
+                padding:"12px 14px", marginBottom:8,
+                display:"flex", justifyContent:"space-between", alignItems:"center",
+              }}>
+                <div style={{ flex:1, fontSize:13, color:"#222", fontFamily:F, lineHeight:1.3 }}>
+                  <span style={{ fontWeight:700 }}>{cat?.label || "Any sport"}</span>
+                  <span style={{ color:"#717171" }}> · {conditionLabels[a.condition] || a.condition} · {priceLabel}</span>
+                </div>
+                <button onClick={() => delAlert(a.id)} style={{
+                  background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#bbb", padding:0, marginLeft:12,
+                }}>×</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div style={{ height:32 }} />
     </div>
@@ -8808,7 +8729,6 @@ function App() {
               listings={listings} userAlerts={userAlerts}
               setUserAlerts={setUserAlerts} profile={profile}
               onShowOnboarding={() => setShowOnboarding(true)}
-              onShowVibeSearch={() => setShowVibeSearch(true)}
             />
           )}
           {activeTab === "profile" && (
