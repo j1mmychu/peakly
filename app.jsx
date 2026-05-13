@@ -1027,8 +1027,14 @@ function getBeachSeasonCap(venue, date) {
   const inRange = (off, start, end) =>
     start <= end ? (off >= start && off <= end) : (off >= start || off <= end);
 
+  // Off-season cap raised 25→40 / 20→35: the previous binary ceiling silenced
+  // every other signal — a sunny 75°F February day in Hvar scored identical to
+  // a rainy one. New caps still lose to the 44 "warm but grey" peak-season floor
+  // (so off-season beaches never headline) but let the algorithm rank within
+  // the off-season pool, which is what users searching for shoulder-season
+  // deals actually need.
   if (venue.beachSeason?.offStart && venue.beachSeason?.offEnd) {
-    return inRange(mmdd, venue.beachSeason.offStart, venue.beachSeason.offEnd) ? 25 : null;
+    return inRange(mmdd, venue.beachSeason.offStart, venue.beachSeason.offEnd) ? 40 : null;
   }
 
   const northern = venue.lat > 0;
@@ -1037,13 +1043,13 @@ function getBeachSeasonCap(venue, date) {
     const off = northern
       ? inRange(mmdd, "10-01", "05-31")
       : inRange(mmdd, "04-01", "11-15");
-    return off ? 20 : null;
+    return off ? 35 : null;
   }
   // 30 <= |lat| < 46 — Med, Carolinas, N Africa, S Australia
   const off = northern
     ? inRange(mmdd, "11-01", "04-14")
     : inRange(mmdd, "05-15", "09-30");
-  return off ? 25 : null;
+  return off ? 40 : null;
 }
 
 // ─── condition scoring ────────────────────────────────────────────────────────
@@ -1240,9 +1246,10 @@ function scoreVenue(venue, wx, marine, dayIndex) {
         : `${dIn}" base · ${tempMax}°F${gusts > 45 ? " · high wind" : conditionTag}`;
       const stormFading = ySnow > snow + 8 && snow < 10;
       const bluebird = snow >= 10 && tempMax < 30 && wCode <= 1 && wind < 25;
-      // Bluebird = post-storm clear cold day. Today this only changed the
-      // label; now it actually moves the score so iconic powder days headline.
-      if (bluebird) score += 10;
+      // Bluebird = post-storm clear cold day. +5 nudge (was +10 — too large
+      // a magic-number jump on top of the snow tier; bluebird should sweeten
+      // an already-iconic day, not promote a marginal one to the top tier).
+      if (bluebird) score += 5;
       period = isFreezingRain ? "Freezing rain — DO NOT ski"
              : isThunder ? "Thunderstorm — lifts will close"
              : wetSnow && snow >= 10 ? "Wet snow — heavy & sticky"
@@ -1495,11 +1502,32 @@ function scoreWeekend(venue, wx, marine, todayDate) {
     ? `${days_str} firing · ${badOther.dayName} ${badOther.score < 40 ? 'storms' : 'weak'}`
     : `${days_str} window`;
 
+  // Honesty penalty: a Fri=92/Sat=20/Sun=92 split weekend isn't actually a 92
+  // — Saturday's bust costs you a day of plans, lift tickets, hotel night.
+  // Demote split-weekend headlines by 0.3× the gap-day shortfall (cap −15) so
+  // the front page doesn't sell the average without admitting the bust. For
+  // consecutive pairs, also demote on wide spread (0.2× spread, cap −8) so
+  // Fri=95/Sat=70 reads honestly as "good but uneven" rather than a flat 82.
+  let honestyPenalty = 0;
+  if (splitWeekend && bestPair.length === 2) {
+    const gapDays = days.filter(d => d.di > bestPair[0].di && d.di < bestPair[1].di);
+    if (gapDays.length > 0) {
+      const minGap = Math.min(...gapDays.map(d => d.score));
+      honestyPenalty = Math.min(15, 0.3 * Math.max(0, bestPairAvg - minGap));
+    }
+  } else if (bestPair.length === 2) {
+    const spread = Math.abs(bestPair[0].score - bestPair[1].score);
+    honestyPenalty = Math.min(8, 0.2 * spread);
+  }
+
   // Band: avg the lo/hi of the chosen pair so the propagated uncertainty is
   // actually the uncertainty of the days we're recommending, not all days.
-  const finalScore = Math.round(bestPairAvg);
-  const lo = Math.round(bestPair.reduce((s, d) => s + (d.lo ?? d.score), 0) / bestPair.length);
-  const hi = Math.round(bestPair.reduce((s, d) => s + (d.hi ?? d.score), 0) / bestPair.length);
+  // Shift the band by the same honesty penalty so lo/hi tracks the headline.
+  const finalScore = Math.round(Math.max(0, bestPairAvg - honestyPenalty));
+  const rawLo = bestPair.reduce((s, d) => s + (d.lo ?? d.score), 0) / bestPair.length;
+  const rawHi = bestPair.reduce((s, d) => s + (d.hi ?? d.score), 0) / bestPair.length;
+  const lo = Math.round(Math.max(0, rawLo - honestyPenalty));
+  const hi = Math.round(Math.max(0, rawHi - honestyPenalty));
   const halfWidth = Math.max(hi - finalScore, finalScore - lo);
 
   // Headline day: the iconic single day inside the window. Surfaced separately
@@ -1549,6 +1577,10 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const DEAL_WEIGHT = 0.5;
   const conditionsNorm = conditions.score;
   const priceNorm = clamp(100 * (1.5 - priceRatio), 0, 100);
+  // Medium-confidence (day-5 horizon) discount: 0.92× = ~8% haircut on the
+  // final deal score. Conservative — enough to demote a borderline 80 below
+  // a high-confidence 75, but small enough that a strong medium-confidence
+  // weekend still surfaces. Low confidence is filtered above (returns null).
   const confMult = conditions.confidence === "medium" ? 0.92 : 1;
   const fuse = (cond) => Math.round(clamp(cond * (1 - DEAL_WEIGHT) + priceNorm * DEAL_WEIGHT, 0, 100) * confMult);
   let final = fuse(conditionsNorm);
@@ -3608,7 +3640,9 @@ function scoreVibeMatch(listings, text) {
     words.forEach(w => { if (corpus.includes(w)) s += 7; });
 
     // ── rating quality signal ───────────────────────────────────────────────
-    s += (l.rating - 4.85) * 30;
+    // Halved from ×30 to ×15: a 0.15-star delta was swinging vibe by ±5 points,
+    // too noisy when ratings cluster between 4.6 and 4.9. Still a tiebreaker.
+    s += (l.rating - 4.85) * 15;
 
     return { ...l, vibeScore: Math.round(Math.max(0, s)) };
   });
