@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513a";
+const PEAKLY_BUILD = "20260513b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5070,6 +5070,65 @@ function SharedListView({ snapshot, listings, cloudSync, onImported, onClose }) 
 }
 
 // ─── alerts tab ───────────────────────────────────────────────────────────────
+// Quick Templates for the empty-state "Guided Setup" carousel. Each entry
+// pre-fills the alert form (sport / condition / locations / region / priceMax)
+// — user reviews + taps "Create Alert" to commit. Venue IDs validated against
+// VENUES at write time; if a venue is renamed, update here.
+const ALERT_TEMPLATES = [
+  { id:"powder-mammoth",        title:"Powder Alert", subtitle:"Mammoth",       bg:"#dbeafe", accent:"#0284c7", glyph:"mountain",
+    draft:{ sport:"skiing", condition:"powder", locations:["mammoth"],         priceMax:600 } },
+  { id:"japan-cheap-flight",    title:"Cheap Flight", subtitle:"to Japan",      bg:"#fee2e2", accent:"#ef4444", glyph:"plane",
+    draft:{ sport:"skiing", condition:"good",   locations:["niseko","nozawa"], region:"AS", priceMax:900 } },
+  { id:"cancun-beach",          title:"Beach Weekend",subtitle:"Cancun",        bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
+  { id:"whistler-fresh-snow",   title:"Fresh Snow",   subtitle:"Whistler",      bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
+    draft:{ sport:"skiing", condition:"insane", locations:["whistler"],        priceMax:800 } },
+];
+
+function TemplateGlyph({ kind, color }) {
+  const common = { width:36, height:36, viewBox:"0 0 36 36", fill:"none", stroke:color, strokeWidth:1.8, strokeLinecap:"round", strokeLinejoin:"round" };
+  if (kind === "mountain") return (
+    <svg {...common}><path d="M3 28l9-13 5 7 4-5 12 11z"/><path d="M10 21l2 2 2-3"/><path d="M21 18l1.5 2 1.5-2.5"/></svg>
+  );
+  if (kind === "plane") return (
+    <svg {...common}><path d="M5 20l26-10-7 22-5-9z"/><path d="M19 23l-7 6"/></svg>
+  );
+  if (kind === "palm") return (
+    <svg {...common}><path d="M18 30V14"/><path d="M18 14c-3-5-9-4-12-2"/><path d="M18 14c3-5 9-4 12-2"/><path d="M18 14c-4-3-7-9-6-12"/><path d="M18 14c4-3 7-9 6-12"/></svg>
+  );
+  if (kind === "snow") return (
+    <svg {...common}><path d="M18 6v24M8 12l20 12M28 12L8 24"/><path d="M15 7l3 3 3-3M15 29l3-3 3 3"/></svg>
+  );
+  return null;
+}
+
+// Minimalist editorial illustration for the alerts empty state.
+// Three peaks (center tallest) with snow caps, sun upper-left, rain cloud
+// upper-right with two raindrops. No fill on lines — feels editorial, not stock.
+function EmptyAlertsIllustration() {
+  return (
+    <svg width="140" height="90" viewBox="0 0 140 90" fill="none" aria-hidden="true">
+      {/* Sun */}
+      <circle cx="26" cy="22" r="9" stroke="#fbbf24" strokeWidth="1.8" />
+      <g stroke="#fbbf24" strokeWidth="1.6" strokeLinecap="round">
+        <path d="M26 7v4"/><path d="M26 33v4"/>
+        <path d="M11 22h4"/><path d="M37 22h4"/>
+        <path d="M15 11l3 3"/><path d="M34 30l3 3"/>
+      </g>
+      {/* Cloud + rain */}
+      <path d="M101 24c-5 0-7 3-7 5h-2c-3 0-5 2-5 5 0 2 2 4 5 4h17c3 0 5-2 5-4 0-2-2-4-5-4 0-3-3-6-8-6z"
+            stroke="#94a3b8" strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M97 44l-2 5M104 44l-2 5" stroke="#0284c7" strokeWidth="1.8" strokeLinecap="round"/>
+      {/* Mountains */}
+      <path d="M8 80l28-38 14 20 10-12 30 30z" stroke="#222" strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M30 47l4 4 4-6" stroke="#222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M55 56l3 4 3-5" stroke="#222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Ground line */}
+      <path d="M4 80h132" stroke="#e5e7eb" strokeWidth="1.4"/>
+    </svg>
+  );
+}
+
 function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSearch }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
@@ -5398,32 +5457,42 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
   // ── alerts list ─────────────────────────────────────────────────────────────
   return (
     <div style={{ flex:1, overflowY:"auto" }}>
-      <div style={{ padding:"24px 24px 16px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+      <div style={{ padding:"20px 24px 12px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
-          <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F }}>Alerts</div>
-          <div style={{ fontSize:14, color:"#717171", marginTop:4, fontFamily:F }}>Know the moment conditions fire</div>
+          <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.02em" }}>Alerts</div>
+          <div style={{ fontSize:14, color:"#717171", marginTop:6, fontFamily:F }}>Know the moment conditions fire</div>
         </div>
-        <button onClick={() => setAdding(true)} style={{
-          background:"#222", border:"none", borderRadius:20,
-          padding:"10px 18px", color:"white", fontSize:13, fontWeight:700,
+        <button onClick={() => setAdding(true)} className="pressable" style={{
+          background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:20,
+          padding:"8px 16px", color:"#222", fontSize:13, fontWeight:700,
           fontFamily:F, cursor:"pointer",
         }}>+ New</button>
       </div>
 
-      {/* Vibe Search */}
+      {/* Vibe Search — AI feature, lifted with inner stroke + soft shadow */}
       {onShowVibeSearch && (
         <div style={{ padding:"0 24px 16px" }}>
           <button onClick={onShowVibeSearch} className="pressable" style={{
-            width:"100%", background:"linear-gradient(135deg,#1a1a2e,#302b63)",
+            width:"100%",
+            background:"linear-gradient(135deg,#1a1a2e 0%,#2d1b69 55%,#0c4a6e 100%)",
             border:"none", borderRadius:16, padding:"16px 20px", cursor:"pointer",
             display:"flex", alignItems:"center", gap:12, color:"white",
+            boxShadow:"inset 0 1px 0 rgba(255,255,255,0.10), 0 4px 14px rgba(45,27,105,0.35)",
           }}>
-            <span style={{ fontSize:22 }}>✨</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2l1.8 4.6L18.4 8 14 10l-2 5-2-5-4.4-2 4.4-1.4z" fill="#fbbf24"/>
+              <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9z" fill="#fbbf24" opacity="0.85"/>
+              <path d="M5 4l.7 1.6L7.2 6.3l-1.5.7L5 8.6l-.7-1.6L2.8 6.3l1.5-.7z" fill="#fbbf24" opacity="0.7"/>
+            </svg>
             <div style={{ flex:1, textAlign:"left" }}>
-              <div style={{ fontSize:15, fontWeight:800, fontFamily:F }}>Vibe Search</div>
+              <div style={{ fontSize:16, fontWeight:900, fontFamily:F }}>Vibe Search</div>
               <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontFamily:F, marginTop:2 }}>AI-powered adventure matching</div>
             </div>
-            <span style={{ background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em" }}>AI</span>
+            <span style={{
+              background:"linear-gradient(135deg,#0284c7,#7c3aed)", borderRadius:8,
+              padding:"2px 8px", fontSize:10, fontWeight:800, fontFamily:F, letterSpacing:"0.04em",
+              boxShadow:"0 0 14px rgba(124,58,237,0.5)",
+            }}>AI</span>
           </button>
         </div>
       )}
@@ -5451,19 +5520,59 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowVibeSea
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — illustration + headline + CTA + Guided Setup templates */}
       {userAlerts.length === 0 ? (
-        <div style={{ padding:"40px 24px", textAlign:"center" }}>
-          <div style={{ fontSize:14, fontWeight:700, color:"#222", fontFamily:F, marginBottom:8 }}>No alerts yet</div>
-          <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:24 }}>
-            Create an alert and we'll tell you when conditions + cheap flights align
+        <>
+          <div style={{ padding:"24px 24px 12px", textAlign:"center" }}>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+              <EmptyAlertsIllustration />
+            </div>
+            <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:6 }}>No alerts yet</div>
+            <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginBottom:20, lineHeight:1.45, maxWidth:280, marginLeft:"auto", marginRight:"auto" }}>
+              Create an alert and we'll tell you when conditions + cheap flights align
+            </div>
+            <button onClick={() => setAdding(true)} className="pressable" style={{
+              background:"#0284c7", border:"none", borderRadius:14,
+              padding:"12px 28px", color:"white", fontSize:13, fontWeight:800,
+              fontFamily:F, cursor:"pointer",
+            }}>Create your first alert</button>
           </div>
-          <button onClick={() => setAdding(true)} style={{
-            background:"#0284c7", border:"none", borderRadius:14,
-            padding:"12px 24px", color:"white", fontSize:13, fontWeight:800,
-            fontFamily:F, cursor:"pointer",
-          }}>Create your first alert</button>
-        </div>
+
+          {/* Guided Setup — Quick Templates carousel */}
+          <div style={{ padding:"8px 0 24px" }}>
+            <div style={{ padding:"0 24px 10px" }}>
+              <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>Guided Setup</div>
+              <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>Try a Quick Template</div>
+            </div>
+            <div style={{
+              display:"flex", gap:12, overflowX:"auto", padding:"4px 24px 8px",
+              scrollSnapType:"x mandatory", WebkitOverflowScrolling:"touch",
+            }}>
+              {ALERT_TEMPLATES.map(t => (
+                <button key={t.id} onClick={() => {
+                  setDraft({ sport:"", condition:"great", locations:[], priceMax:500, ...t.draft });
+                  setAdding(true);
+                  haptic();
+                  logEvent("alert_template_applied", { id: t.id });
+                }} className="pressable" style={{
+                  flex:"0 0 152px", scrollSnapAlign:"start",
+                  background:t.bg, border:"none", borderRadius:14,
+                  padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
+                  position:"relative", overflow:"hidden", minHeight:108,
+                  display:"flex", flexDirection:"column", justifyContent:"space-between",
+                }}>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.title}</div>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.subtitle}</div>
+                  </div>
+                  <div style={{ alignSelf:"flex-end" }}>
+                    <TemplateGlyph kind={t.glyph} color={t.accent} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       ) : (
         <div style={{ padding:"0 24px" }}>
           {userAlerts.filter(a => a.sport === "all" || CATEGORIES.find(c => c.id === a.sport)).map(a => {
@@ -8150,29 +8259,28 @@ function BottomNav({ active, setActive, alertCount }) {
   ];
   return (
     <div style={{
-      display:"flex", justifyContent:"space-around",
-      padding:"6px 0 20px", background:"#fff",
+      display:"flex", justifyContent:"space-around", alignItems:"center",
+      padding:"4px 8px 18px", background:"#fff",
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => setActive(t.id)} className="tab-btn" aria-label={t.label} aria-current={active === t.id ? "page" : undefined} style={{
-          background:"none", border:"none",
+          background: active === t.id ? "#e0f2fe" : "none",
+          border:"none",
           display:"flex", flexDirection:"column", alignItems:"center", gap:2,
           color: active === t.id ? "#0284c7" : "#b0b0b0", position:"relative",
-          padding:"8px 0",
+          padding:"6px 18px", borderRadius:14, margin:"2px 0",
+          transition:"background 0.18s ease",
         }}>
           {t.id === "alerts" && alertCount > 0 && (
             <div style={{
-              position:"absolute", top:0, right:2,
+              position:"absolute", top:2, right:6,
               width:8, height:8, background:"#0284c7", borderRadius:"50%",
               border:"1.5px solid white",
             }} />
           )}
           <span style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>{t.icon}</span>
-          <span style={{ fontSize:10, fontWeight:600, fontFamily:F }}>{t.label}</span>
-          {active === t.id && (
-            <div style={{ width:4, height:4, background:"#0284c7", borderRadius:"50%", marginTop:0 }} />
-          )}
+          <span style={{ fontSize:10, fontWeight: active === t.id ? 700 : 600, fontFamily:F }}>{t.label}</span>
         </button>
       ))}
     </div>
