@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513c";
+const PEAKLY_BUILD = "20260513e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2634,7 +2634,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
   const [shareCopied, setShareCopied] = React.useState(false);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
-      <div style={{ position:"relative", height:160, overflow:"hidden", borderRadius:16 }}>
+      <div style={{ position:"relative", height:120, overflow:"hidden", borderRadius:16 }}>
         {listing.photo ? (
           <img src={listing.photo} alt={listing.title} loading="lazy"
             ref={img => { if (img && img.complete) img.style.opacity = 1; }}
@@ -2751,31 +2751,32 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
       </div>
 
       {/* Body */}
-      <div style={{ padding:"12px 14px 8px" }}>
-        <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.3 }}>
+      <div style={{ padding:"10px 12px 10px" }}>
+        <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.2 }}>
           {listing.title}
         </div>
-        <div style={{ color:"#717171", fontSize:13, marginTop:2, fontFamily:F }}>
-          {listing.location}
-          {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
-        </div>
-        <div style={{ color:"#717171", fontSize:13, fontFamily:F }}>{listing.period}</div>
-        {listing.bestWindow && (
-          <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
-            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px" }}>
-              Best: {listing.bestWindow.day} ({listing.bestWindow.score}/100)
-            </span>
+        {/* Location + Best-window pill on one row — collapses three rows of meta */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:3 }}>
+          <div style={{ color:"#717171", fontSize:12, fontFamily:F, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {listing.location}
+            {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
           </div>
-        )}
-        <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
-          {listing.tags.map(t => (
+          {listing.bestWindow && (
+            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>
+              Best: {listing.bestWindow.day} · {listing.bestWindow.score}/100
+            </span>
+          )}
+        </div>
+        <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"nowrap", overflow:"hidden" }}>
+          {listing.tags.slice(0,3).map(t => (
             <span key={t} style={{
-              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:20,
-              padding:"3px 8px", fontSize:11, color:"#444", fontWeight:600, fontFamily:F,
+              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:10,
+              padding:"2px 7px", fontSize:10, color:"#444", fontWeight:700, fontFamily:F,
+              whiteSpace:"nowrap", flexShrink:0,
             }}>{t}</span>
           ))}
         </div>
-        <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
             {listing.flightsLoading && !listing.flight.live ? (
               <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
@@ -2795,7 +2796,7 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
             style={{ textDecoration:"none" }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
-              padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4,
+              padding:"7px 12px", minHeight:32, display:"flex", alignItems:"center", gap:4,
             }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
@@ -6728,7 +6729,7 @@ const AVATAR_COLORS = [
   { id:"night",   grad:"linear-gradient(135deg,#334155,#0f172a)", hex:"#334155" },
 ];
 
-function OnboardingSheet({ profile, setProfile, onClose }) {
+function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
   const [name,        setName]       = useState(profile.name  || "");
   const [email,       setEmail]      = useState(profile.email || "");
@@ -6763,6 +6764,17 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
   const complete = () => {
     setProfile(p => ({ ...p, name, email, sports, homeAirport: airport, hasAccount:true }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
+    // If they gave a valid email and cloud sync is on, this IS their account —
+    // fire the magic link now so there's no second "create account" step in Profile.
+    const trimmed = (email || "").trim();
+    if (trimmed.includes("@") && cloudSync?.enabled && !cloudSync.user) {
+      cloudSync.signIn(trimmed).then(r => {
+        if (r?.ok && setImportToast) {
+          setImportToast("Check your email for a one-tap sign-in link ✉️");
+          setTimeout(() => setImportToast(""), 4500);
+        }
+      });
+    }
     onClose();
   };
 
@@ -6928,9 +6940,14 @@ function OnboardingSheet({ profile, setProfile, onClose }) {
               <input type="text" placeholder="Your name (optional)" value={name} onChange={e => setName(e.target.value)}
                 style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600, marginBottom:10 }}
               />
-              <input type="email" placeholder="Email (optional, for alerts)" value={email} onChange={e => setEmail(e.target.value)}
+              <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}
                 style={{ width:"100%", padding:"13px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa" }}
               />
+              {cloudSync?.enabled && (
+                <div style={{ fontSize:11, color:"#717171", fontFamily:F, marginTop:8, lineHeight:1.45, paddingLeft:4 }}>
+                  Add your email and we'll send a one-tap magic link to sync wishlists & alerts across devices. No password.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -8946,20 +8963,20 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ padding:"52px 24px 12px", background:"#fff", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
-                  <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ display:"flex", alignItems:"center", flexShrink:0 }}>
+                  <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
                     peakly
                   </span>
                 </div>
-                <div style={{ flex:1 }}>
+                <div style={{ flex:1, minWidth:0 }}>
                   <SearchBar search={search} onOpen={() => setShowSearch(true)} />
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ padding:"52px 24px 16px", background:"#fff", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              <span style={{ fontSize:26, fontWeight:900, color:"#0284c7", letterSpacing:"-0.5px", fontFamily:F }}>
+              <span style={{ fontSize:44, fontWeight:900, color:"#0284c7", letterSpacing:"-1.2px", fontFamily:F, lineHeight:1 }}>
                 peakly
               </span>
             </div>
@@ -9040,6 +9057,8 @@ function App() {
           <OnboardingSheet
             profile={profile}
             setProfile={setProfile}
+            cloudSync={cloudSync}
+            setImportToast={setImportToast}
             onClose={() => {
               setShowOnboarding(false);
               // Show airport setup modal after onboarding if not already done
