@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260513f";
+const PEAKLY_BUILD = "20260513g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7037,20 +7037,8 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
 const WX_CODE_MAP = [[99,"⛈️"],[95,"⛈️"],[86,"❄️"],[85,"🌨️"],[82,"⛈️"],[81,"🌧️"],[80,"🌦️"],[77,"❄️"],[75,"❄️"],[73,"🌨️"],[71,"🌨️"],[67,"🌧️"],[65,"🌧️"],[63,"🌧️"],[61,"🌧️"],[57,"🌦️"],[55,"🌧️"],[53,"🌦️"],[51,"🌦️"],[48,"🌫️"],[45,"🌫️"],[3,"🌥️"],[2,"⛅"],[1,"🌤️"],[0,"☀️"]];
 function wxEmoji(code) { for (const [k,v] of WX_CODE_MAP) { if ((code??0) >= k) return v; } return "🌤️"; }
 
-// ─── guided experiences per category ──────────────────────────────────────────
-// Links are generated dynamically based on venue location
-const EXPERIENCES = {
-  skiing: [
-    { name:"Private ski lesson (beginner)",  price:120, duration:"2 hrs" },
-    { name:"Off-piste powder guide",         price:280, duration:"Full day" },
-    { name:"Sunrise first tracks tour",      price:160, duration:"3 hrs" },
-  ],
-  beach: [
-    { name:"Snorkel & beach hopping boat",   price:75,  duration:"4 hrs" },
-    { name:"Beachfront yoga at sunrise",     price:35,  duration:"1 hr" },
-    { name:"Parasailing over the water",     price:89,  duration:"30 min" },
-  ],
-};
+// ─── (Removed: guided-experiences carousel — $0 revenue, no real images.
+//      Restore from git history once GetYourGuide partner_id is approved.) ─────
 
 // ─── Score breakdown — opens the black box ───────────────────────────────────
 // Users see "94 · Strong deal" but no breakdown. Without transparency, trust
@@ -7245,8 +7233,6 @@ function BookingConfirmSheet({ partner, url, label, kind, isEstimate, onConfirm,
 
 // ─── venue detail sheet ────────────────────────────────────────────────────────
 function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
-  const [showListPicker, setShowListPicker] = useState(false);
-  const [newListName,    setNewListName]    = useState("");
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [shareVenueCopied, setShareVenueCopied] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -7324,21 +7310,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         .slice(0, 5)
     : [];
 
-  const inAnyList = namedLists.some(l => l.venueIds.includes(listing.id));
-  const listName  = namedLists.find(l => l.venueIds.includes(listing.id))?.name;
-
-  const addToList = (listId) => {
-    setNamedLists(ls => ls.map(l => l.id === listId ? { ...l, venueIds: l.venueIds.includes(listing.id) ? l.venueIds : [...l.venueIds, listing.id] } : l));
-    setShowListPicker(false);
-  };
-  const removeFromList = (listId) => {
-    setNamedLists(ls => ls.map(l => l.id === listId ? { ...l, venueIds: l.venueIds.filter(id => id !== listing.id) } : l));
-  };
-  const createAndAdd = () => {
-    if (!newListName.trim()) return;
-    setNamedLists(ls => [...ls, { id: Date.now().toString(), name: newListName.trim(), emoji:"🗺️", venueIds:[listing.id] }]);
-    setNewListName(""); setShowListPicker(false);
-  };
   const copyShareLink = (textOverride) => {
     const url = `https://j1mmychu.github.io/peakly/#venue-${listing.id}`;
     const text = textOverride || `Check out ${listing.title} on Peakly — conditions are ${listing.conditionLabel}! ${listing.conditionScore}/100\n${url}`;
@@ -7460,20 +7431,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </div>
 
-          {/* Why this score? — opens the black box */}
-          <ScoreBreakdown listing={listing} />
-
-          {/* Set Alert CTA */}
-          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
-            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
-            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
-            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
-          </button>
-
-          {/* 7-day forecast */}
+          {/* 7-day forecast — promoted above the expander so conditions read at a glance */}
           {forecast.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>7-Day Forecast</div>
@@ -7491,125 +7449,30 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           )}
 
-          {/* Tags */}
-          <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:14, alignItems:"center" }}>
-            {listing.tags.map(t => (
-              <span key={t} style={{ background:"#f0f0f0", borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, color:"#555", fontFamily:F }}>{t}</span>
-            ))}
-          </div>
+          {/* Why this score? — opens the black box */}
+          <ScoreBreakdown listing={listing} />
 
-          {/* 🎟️ Book an experience */}
-          {EXPERIENCES[listing.category] && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>🎟️ Book an experience</div>
-                <span style={{ fontSize:9, color:"#999", fontFamily:F }}>via GetYourGuide</span>
-              </div>
-              <div style={{ display:"flex", gap:9, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-                {EXPERIENCES[listing.category].map((exp, i) => {
-                  const expUrl = (() => {
-                    let u = exp.url || `https://www.getyourguide.com/s/?q=${encodeURIComponent(exp.name + ' ' + listing.location)}`;
-                    if (filters?.startDate) u += `&date_from=${filters.startDate}`;
-                    if (filters?.endDate) u += `&date_to=${filters.endDate}`;
-                    return u;
-                  })();
-                  return (
-                    <a key={i} href={expUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", flexShrink:0, width:148 }}>
-                      <div className="pressable card" style={{ background:"#f7f7f7", borderRadius:14, overflow:"hidden" }}>
-                        <div style={{ height:68, background:listing.gradient, display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
-                          <span style={{ fontSize:32, opacity:0.65 }}>{exp.emoji}</span>
-                          <div style={{ position:"absolute", bottom:5, right:7, background:"rgba(0,0,0,0.45)", borderRadius:8, padding:"2px 6px" }}>
-                            <span style={{ fontSize:9, color:"white", fontWeight:700, fontFamily:F }}>{exp.duration}</span>
-                          </div>
-                        </div>
-                        <div style={{ padding:"8px 9px 10px" }}>
-                          <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3 }}>{exp.name}</div>
-                          <div style={{ fontSize:11, color:"#16a34a", fontWeight:700, fontFamily:F, marginTop:4 }}>from ${exp.price}</div>
-                        </div>
-                      </div>
-                    </a>
-                  );
-                })}
-              </div>
+          {/* Set Alert CTA */}
+          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
+            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+          </button>
+
+          {/* Tags — polished to match Explore-card tag style */}
+          {listing.tags?.length > 0 && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14, alignItems:"center" }}>
+              {listing.tags.slice(0, 4).map(t => (
+                <span key={t} style={{
+                  background:"#f5f5f5", border:"1px solid #ebebeb", borderRadius:10,
+                  padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F,
+                }}>{t}</span>
+              ))}
             </div>
           )}
-
-          {/* 🏨 Stay nearby — Booking.com affiliate */}
-          <a href={(() => {
-            let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(listing.location)}&aid=2311236`;
-            const ci = filters?.startDate;
-            const co = filters?.endDate || (ci ? (() => { const d = new Date(ci); d.setDate(d.getDate() + 7); return d.toISOString().slice(0,10); })() : "");
-            if (ci) url += `&checkin=${ci}`;
-            if (co) url += `&checkout=${co}`;
-            return url;
-          })()} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
-            <div className="pressable" style={{ background:"linear-gradient(135deg,#003580,#0057b8)", borderRadius:14, padding:"13px 15px", display:"flex", alignItems:"center", gap:12, boxShadow:"0 4px 14px rgba(0,53,128,0.28)" }}>
-              <span style={{ fontSize:26 }}>🏨</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:900, color:"white", fontFamily:F }}>Find hotels near {listing.title.split(" ").slice(0,3).join(" ")}</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", fontFamily:F, marginTop:2 }}>Booking.com · Best price guarantee</div>
-              </div>
-              <span style={{ fontSize:15, color:"rgba(255,255,255,0.55)" }}>↗</span>
-            </div>
-          </a>
-
-          {/* 🛡️ Trip insurance — SafetyWing affiliate */}
-          <a href="https://safetywing.com/nomad-insurance/?referenceID=peakly&utm_source=peakly&utm_medium=affiliate" target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none", display:"block", marginBottom:14 }}>
-            <div className="pressable" style={{ background:"#f0fdf4", border:"1.5px solid #bbf7d0", borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:12 }}>
-              <span style={{ fontSize:26 }}>🛡️</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:12, fontWeight:800, color:"#166534", fontFamily:F }}>Adventure travel insurance</div>
-                <div style={{ fontSize:10, color:"#4ade80", fontFamily:F, marginTop:2 }}>SafetyWing · from $45/month · cancel anytime</div>
-              </div>
-              <span style={{ fontSize:14, color:"#16a34a" }}>↗</span>
-            </div>
-          </a>
-
-          {/* Save to named list */}
-          <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>📂 Save to list</div>
-            {!showListPicker ? (
-              <button onClick={() => setShowListPicker(true)} className="pressable" style={{
-                width:"100%", background:"#f7f7f7", border:"2px dashed #d0d0d0", borderRadius:14,
-                padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-              }}>
-                {inAnyList ? `✅ In "${listName}" · Manage lists` : "＋ Add to a list"}
-              </button>
-            ) : (
-              <div className="bounce-in">
-                {namedLists.length > 0 && (
-                  <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:10 }}>
-                    {namedLists.map(l => {
-                      const inThis = l.venueIds.includes(listing.id);
-                      return (
-                        <button key={l.id} onClick={() => inThis ? removeFromList(l.id) : addToList(l.id)} style={{
-                          width:"100%", background: inThis ? "#e8fdf0" : "#f7f7f7",
-                          border:"1.5px solid", borderColor: inThis ? "#22c55e" : "#e8e8e8",
-                          borderRadius:12, padding:"11px 14px", cursor:"pointer",
-                          display:"flex", alignItems:"center", gap:8, fontFamily:F,
-                        }}>
-                          <span style={{ fontSize:18 }}>{l.emoji}</span>
-                          <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color:"#222" }}>{l.name}</span>
-                          <span style={{ fontSize:11, color:"#aaa" }}>{l.venueIds.length} spots</span>
-                          {inThis && <span style={{ color:"#22c55e", fontWeight:900, fontSize:14 }}>✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                <div style={{ display:"flex", gap:8 }}>
-                  <input type="text" placeholder='"Japan Winter 🎿" or "Caribbean Summer 🏖️"'
-                    value={newListName} onChange={e => setNewListName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && createAndAdd()}
-                    style={{ flex:1, padding:"10px 12px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222", background:"#fafafa" }}
-                  />
-                  <button onClick={createAndAdd} style={{ background:"#0284c7", border:"none", borderRadius:12, padding:"10px 14px", color:"white", fontSize:13, fontWeight:800, fontFamily:F, cursor:"pointer" }}>Create</button>
-                </div>
-                <button onClick={() => setShowListPicker(false)} style={{ marginTop:7, background:"none", border:"none", fontSize:12, color:"#bbb", cursor:"pointer", fontFamily:F }}>Cancel</button>
-              </div>
-            )}
-          </div>
 
           {/* You'd also like — similar venues (bottom of sheet) */}
           {similarVenues.length > 0 && (
