@@ -5315,7 +5315,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
     // from native users (ios/capacitor). Without this tag, the event count
     // overstates how many alerts will actually fire a notification.
     const platformTag = pushPlatform || "web_no_push";
-    fetch("https://peakly-api.duckdns.org/api/alerts", {
+    fetch(`${FLIGHT_PROXY}/api/alerts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -5327,7 +5327,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
   const delAlert  = id => {
     setUserAlerts(p => p.filter(a => a.id !== id));
     // Mirror deletion on server (fire-and-forget) so polling stops + push won't fire stale
-    fetch(`https://peakly-api.duckdns.org/api/alerts/${encodeURIComponent(String(id))}`, { method: "DELETE" })
+    fetch(`${FLIGHT_PROXY}/api/alerts/${encodeURIComponent(String(id))}`, { method: "DELETE" })
       .catch(() => {});
   };
 
@@ -8479,7 +8479,7 @@ function App() {
     const existing = userAlerts.find(a => a.venueId === listing.id);
     if (existing) {
       setUserAlerts(p => p.filter(a => a.id !== existing.id));
-      fetch(`https://peakly-api.duckdns.org/api/alerts/${encodeURIComponent(String(existing.id))}`,
+      fetch(`${FLIGHT_PROXY}/api/alerts/${encodeURIComponent(String(existing.id))}`,
         { method: "DELETE" }).catch(() => {});
       logEvent("alert_quick_remove", { venue: listing.title });
       return;
@@ -8503,7 +8503,7 @@ function App() {
                    : window.Capacitor?.isNativePlatform?.() ? "capacitor"
                    : "web";
     }
-    fetch("https://peakly-api.duckdns.org/api/alerts", {
+    fetch(`${FLIGHT_PROXY}/api/alerts`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         alertId: String(id),
