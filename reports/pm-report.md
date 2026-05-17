@@ -1,17 +1,22 @@
-# Peakly PM Report — 2026-05-16 (v35)
+# Peakly PM Report — 2026-05-17 (v35)
 
 > Latest report. Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
 
-**Status:** RED. T-4 days to Reddit hard edge (May 20). Zero commits overnight. VPS P0 is now Day 12 — 12 consecutive PM reports have listed the same 3-command SSH. GEAR_ITEMS P0 is Day 4. Both are execution gaps, not design questions. Nothing about the product improves today unless Jack opens a terminal.
+**Status:** RED. Zero commits in 48 hours. Every P0 from the May 15 report is still open. Reddit window closes May 22 — that is 5 days. The May 15 report said "45 min of Jack-keyboard = launch-ready." 48 hours passed and none of those 45 minutes happened. This is no longer a PM problem; it is an execution problem.
 
 ---
 
-## Shipped Since Last Report (2026-05-15 → 2026-05-16)
+## Shipped Since Last Report (2026-05-15 → 2026-05-17)
 
-**Nothing shipped.** The last code commit was `4d16e3d` on 2026-05-15 14:13 UTC (DevOps: surf meta + hardcoded URL fixes). No overnight commits from any agent or manual session.
+| What | Right call? |
+|------|-------------|
+| **Nothing.** Zero commits. | — |
 
-**Was the cadence right?**
-The DevOps and Content agents filed accurate reports. The PM report correctly identified VPS + GEAR_ITEMS as the only blockers. None of that matters if the P0s don't close. Reporting quality is high. Execution velocity is zero.
+**Honest assessment of prior shipped work (May 13–15):**
+
+The front-page redesign (eb03498: stacked header, merged toolbar, slim hero) and the redesigned splash rotating teasers (e37223c) were directionally correct — the hero was cluttered. The Alerts redesign (86b5b6b) was contested: the correct call was to freeze Alerts UI until push actually works end-to-end. We shipped a third Alerts polish pass while the VPS is offline. That is energy misallocated.
+
+The scoring honesty pass (18606a7) is the commit that worries me most. It changed variance penalty + caps + weights. Per CLAUDE.md, scoring changes require a written algorithm critique in `~/.claude/plans/` before the commit. That did not happen. I cannot audit whether those changes helped or hurt without a critique document. Process debt is on the board.
 
 ---
 
@@ -21,56 +26,59 @@ The DevOps and Content agents filed accurate reports. The PM report correctly id
 |-------|--------|
 | Sentry DSN | ✅ CLOSED — live at app.jsx:7 |
 | Peakly Pro $9/mo vs $79/yr | ✅ CLOSED — Pro UI removed, CUT for v1 |
-| SEO surf/adventure copy | ✅ CLOSED — 6 locations fixed 2026-05-15 |
-| APNS App Store blocker | ✅ CLOSED — Capacitor gate live at app.jsx:8158 |
-| Cache buster | ✅ CURRENT — `20260513j` aligned. No new code = no new bump needed. |
+| SEO surf/adventure copy | ✅ CLOSED — cleaned 05-15 |
+| APNS App Store gate | ✅ CLOSED — `showAlertsTab` at app.jsx:8158 |
+| Cache buster alignment | ⚠️ STALE — `20260513j` across all 3 files. Today is 05-17. Not broken, but 4 days since last bump; next ship must update. |
 
 ---
 
-## Active Bug Triage — May 16
+## Active Bug Triage — May 17
 
-| Bug | Severity | Days Open | Jack action required? |
-|-----|----------|-----------|-----------------------|
-| **VPS proxy redeploy** | **P0** | **12** | ✅ YES. `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"`. 5 min. This is day 12. Weekend pricing is wrong, weather cache is offline, alerts polling is not running. |
-| **GEAR_ITEMS missing from app.jsx** | **P0** | **4** | ✅ YES. Amazon earns $0. Content report has paste-ready code. CLAUDE.md Revenue Model claims $4.48/1K MAU — this is false. 15 min. |
-| **4 venue duplicates not deleted** | **P1** | **3** | ✅ YES (or code agent). Approved May 13–15, never shipped. (1) `pigeon-point-t27` — 190m from `beach_tobago`, 666 vs 5400 reviews. (2) `sarakiniko-beach-t16` — same beach as `beach_milos`, wrong ap:"JMK". (3) `val-d-isere-s16` — same ski domain as Tignes, weaker stats, lateSeason tag already on Tignes. (4) `chamonix-mont-blanc-s18` — dup of chamonix. Batch delete, one commit. |
-| **outer-banks-nags-head-t7 wrong IATA** | **P1** | **3** | Code: `ap:"OAJ"` (Jacksonville NC, 70mi away). Correct: `ap:"ORF"` (Norfolk). Breaks flight pricing for this venue. One field change. |
-| **MapView not gated** | **P2** | **5** | Decided May 12 to gate behind `MAPVIEW_ENABLED = false`. Never shipped. MapView still loads when `viewMode === "map"`. Leaflet renders unconditionally. No user has validated MapView. Low urgency but a broken decision. |
-| **BookingConfirmSheet friction on flights** | **P2** | **5** | May 12 decision: keep on hotels, remove on flights. Still present. Medium-intent friction on highest-converting CTA. |
-| **Ski season thinning — no seasonal copy** | **P2** | **2** | By June 1, N-hem ski venues disappear from front page (low confidence). Grid looks empty/broken with no explanation. 10-min copy fix. Should ship before Reddit. |
+| Bug | Severity | Status | Jack action? |
+|-----|----------|--------|-------------|
+| **VPS proxy redeploy — NOT VERIFIED** | **P0** | ❌ Day 13 | ✅ YES — 3-command SSH, 10 min. `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy && curl localhost:3001/health"`. Weekend-specific pricing dead. Weather cache/dedupe offline. Alerts polling not running. If this is not done by Monday May 19, the Reddit post cannot credibly claim live conditions + pricing. |
+| **GEAR_ITEMS missing from app.jsx** | **P0** | ❌ Day 5 | ✅ YES — `grep -n GEAR_ITEMS app.jsx` returns nothing. Amazon Associates earns $0. CLAUDE.md Revenue Model claims $4.48/1K MAU — that number is false. Content report has paste-ready code. 15 min. |
+| **3 venue duplicates + 1 wrong IATA** | **P1** | ❌ Day 5 | Approved in May 13 report, never shipped. (1) pigeon-point-t27: 666 reviews, 780m from beach_tobago (5400 reviews) — delete; (2) sarakiniko-beach-t16: `ap:"JMK"` wrong (Mykonos for Milos — 87mi off) — fix ap to `"MLO"` or delete if beach_milos is already there; (3) val-d-isere-s16: same ski domain as Tignes, weaker stats — delete; (4) outer-banks-nags-head-t7: `ap:"OAJ"` wrong (70mi away) — fix to `ap:"ORF"`. Wrong IATA codes break flight pricing. One batch commit, ~15 min. |
+| **BookingConfirmSheet on flight CTAs** | **P2** | ❌ Day 6 | May 12 PM: remove from flights, keep on hotels. Still fires on flights at app.jsx:7311. Adds an unnecessary confirmation step before the highest-intent action. Code change: wrap `setBookConfirm` on the flight button in a direct `window.open` instead. 5 min. |
+| **MapView loads Leaflet unconditionally** | **P2** | ❌ Day 6 | MAPVIEW_ENABLED gate never shipped. MapView renders at app.jsx:4384 on every Explore tab. Zero user validation. Gate it: `const MAPVIEW_ENABLED = false;` at the constants block, `{MAPVIEW_ENABLED && <MapView .../>}` at render. 3 min. |
+| **Ski seasonal empty-state copy** | **P2** | ❌ NEW | When ski venues thin from the front page in late May, the grid silently shrinks with no explanation. See product risk section. |
 
-**Net open P0/P1: 6 items. Combined execution time: ~55 min.**
+**Net open P0/P1:** 3 items, ~40 min of keyboard time. They have been open for 5–13 days.
 
 ---
 
-## Explicit Product Decisions — May 16
+## Explicit Product Decisions — May 17
 
-**Decision 1: VPS diagnosis — escalate from "redeploy" to "confirm it's alive."**
+**Decision 1: BookingConfirmSheet on flights — CUT. Ship the removal.**
 
-Twelve PM reports have listed the same 3-command SSH. Something is preventing this from happening — credentials lost, VPS unreachable, or it's genuinely being deprioritized. Before report 36 writes "VPS Day 13," we need an answer to: *is the VPS actually accessible?* Minimum test: `ping 198.199.80.21` or `curl -s https://peakly-api.duckdns.org/health`. If it's down or unreachable, the entire proxy infrastructure (weekend pricing + weather cache + alerts) needs a recovery path, not just a `pm2 restart`. **PM decision: before the end of today, Jack runs the connectivity check and reports back. If unreachable, that's a P0 infrastructure outage — not a redeploy ticket.**
+The booking confirm sheet made sense for an unfamiliar affiliate partner. Aviasales is the action: user tapped "Book Flight," they mean it. The sheet adds friction at the highest-intent moment and gives the impression Peakly doesn't trust its own CTA. For hotels (Booking.com), the confirm sheet is acceptable — it's a category switch, user needs a moment. For flights: direct `window.open`. Ship the removal this weekend. It is a 5-line change that has been "decided" for 6 days.
 
-**Decision 2: Venue data batch commit — SHIP TODAY. No more deferral.**
+**Decision 2: MapView — GATE behind `MAPVIEW_ENABLED = false` before Reddit.**
 
-Four duplicate venues and one wrong IATA code have been approved for 3 days. Each day they stay: (a) users in Tobago, Milos, Val d'Isère, and Outer Banks see duplicate or mispriced venues, (b) flight pricing for Outer Banks fails, (c) data health score stays at 65. This is a code agent task, not a Jack task. The diffs are not complex. **VERDICT: SHIP in today's session. This is the last PM report that will list these as open.**
+MapView has never been seen by a real user. It is loading Leaflet (external CSS/JS) unconditionally on every Explore render, adding load time to the most important screen in the app. The correct MVP move was always "ship it behind a flag, validate with Reddit users, then remove the gate." The flag never shipped. Gate it now. If the Reddit post drives 1K sessions and 0 users request a map, we cut it in v2 and remove the dead code. If 200 users request it, we enable the flag and ship a known-working feature. This is not a close call. **VERDICT: GATE this weekend, 3 min, not optional.**
 
-**Decision 3: Reddit launch — May 20 is the ceiling, not the target.**
+**Decision 3: Reddit launch by May 20. Non-negotiable.**
 
-Today is May 16. May 20 is a Tuesday. Memorial Day weekend (May 24–26) is when spontaneous travel search peaks. The ideal post timing is **Saturday May 17 or Sunday May 18** — weekend morning, peak Reddit traffic, before the Memorial Day news cycle crowds it out. That means VPS + GEAR_ITEMS need to close today, venue batch needs to ship today, and a 5-minute human smoke test happens tonight. If VPS is genuinely broken (see Decision 1), the post still goes out without live flight pricing — we label prices as estimates (~$X) and the copy leads with conditions, not deals. **The post cannot slip past May 22. May 17–18 is the target.**
+The ski-tail × Memorial Day overlap window is the widest organic launch moment this product will have in 2026. After May 22, ski venues thin, beach has to compete against peak-season established apps, and the Hacker News / r/travel seasonal cycle has moved on. The 90-day 8K ceiling requires May 20. The 5K floor is May 22. After that the trajectory drops ~150 users per day of delay.
+
+VPS + GEAR_ITEMS must close by Sunday May 18. Human click-through (5 min) on Monday May 19. Reddit post: Monday May 19 or Tuesday May 20 at latest.
+
+**If VPS is still not verified by Sunday evening:** post to Reddit anyway with a note in comments that flight prices are "updated weekly" — softer claim, doesn't oversell the live-proxy feature that isn't live. The VPS is a quality amplifier, not a launch blocker. Don't let infrastructure perfectionism kill the launch window.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. VPS: connectivity check + redeploy or declare infrastructure failure.**
-Not "redeploy when you get to it." A diagnostic answer by EOD today. If it's alive: `git pull && pm2 restart`, done. If it's not: escalate to recovery plan. The ambiguity is the problem.
+**1. VPS redeploy — Jack SSH, 10 min, by Sunday May 18.**
+3 commands. The pricing and weather cache features are dark in production. If it slips past Sunday, launch without it (see Decision 3 — it's quality, not a blocker).
 
-**2. GEAR_ITEMS + venue batch commit — code agent can do both.**
-Paste-ready code in content report for GEAR_ITEMS. Four 1-line deletes + one field change for venue batch. One commit, one cache bump, done. Amazon earns $0 until GEAR_ITEMS ships — at projected 5K users that's $22/mo sitting unearned.
+**2. GEAR_ITEMS restore — paste code, 15 min, by Sunday May 18.**
+Amazon earns $0. The content report has paste-ready code. This is not a design decision. The shared brain is lying about revenue. Fix it.
 
-**3. Reddit post draft — write it today, post it this weekend.**
-Not a feature. Not a code change. Write 300 words in r/solotravel or r/skiing draft format. Lead with the score transparency angle ("it tells you *when not to go*"). Include one screenshot of ScoreBreakdown. This should exist before the weekend, not after.
+**3. Batch data commit (P1 venues + BookingConfirmSheet + MapView gate) — by Monday May 19.**
+Four data fixes + two code fixes = one commit. 25 min. Cleans data health from 65 → ~75, removes friction on the highest-intent CTA, stops Leaflet loading on every Explore render.
 
-**Everything else is explicitly blocked until these three close.**
+**Everything else is noise until these three close. Feature freeze is in effect.**
 
 ---
 
@@ -78,53 +86,50 @@ Not a feature. Not a code change. Write 300 words in r/solotravel or r/skiing dr
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Any new app.jsx features | **HARD BLOCK** | 8,837 lines. Feature freeze until Reddit posted + first 48h of user feedback reviewed. |
-| Venue catalog expansion | **DEFER post-Reddit** | 150 venues (146 post-batch-delete) is clean. Adding pre-Reddit = adding potential data bugs. |
-| SH skiing carousel | **DEFER 4–6 weeks** | Right idea, wrong timing. S. hemisphere season opens in June. |
-| Map clustering / satellite / filter-on-map | **DEFER post-launch** | Zero user validation of MapView. Gate it first. |
+| Any new app.jsx feature | **HARD BLOCK** | Feature freeze until Reddit posted and first 48h of data exists. 8,837 lines, zero user validation on 14 days of changes. |
+| Additional Alerts UI polish | **CUT pre-launch** | Third pass shipped without push working end-to-end. No more Alerts UI changes until VPS is live and a push actually delivers. |
+| Southern Hemisphere skiing carousel | **DEFER 6 weeks** | Correct timing: when NZ/AUS season opens in June, post-Reddit. |
+| Venue catalog expansion | **DEFER post-Reddit** | 150 venues (post-deletes: ~147) is clean. Adding pre-Reddit = adding data bugs to an unvalidated dataset. |
+| Venue description fields | **DEFER post-launch** | 0/150 have them. Explore grid doesn't render them. Needs UX design before it adds value. |
+| MapView features (clustering, satellite) | **CUT to v2** | Zero real-user validation. Gate it first, validate demand, then build features on a validated base. |
 | Wishlists / Trips tab reveal | **DEFER** | 1K MAU gate. Hard lock. |
-| Hotels in deal score | **CUT to v2** | Confirmed 05-07, 05-12, 05-13, 05-15. Not reopening. |
-| Peakly Pro resurrection | **CUT for v1** | Post-1K MAU. Formally dead for now. |
-| Venue description fields | **DEFER post-launch** | 0/150 have them. UX work needed before it adds value. |
-| Onboarding scoring explainer | **DEFER** | ScoreBreakdown handles trust inline. Needs Reddit feedback to know what to explain. |
+| Hotels in deal score | **CUT to v2** | Confirmed 05-07, repeated. Done. |
+| Peakly Pro resurrection | **CUT for v1** | Post-1K MAU if revenue data warrants. |
+| JSON-LD structured data | **DEFER post-launch** | SEO gap (~10-15% lift estimate), medium effort, zero urgency before first traffic spike. |
 
 ---
 
-## Success Criteria — May 16
+## Success Criteria — May 17
 
-**Pre-launch checklist (unchanged from May 15, because nothing shipped):**
+**Pre-launch checklist:**
 
-1. ✅ **SEO meta clean** — zero "surf"/"adventure" in index.html. Done 05-15.
+1. ✅ **SEO meta clean** — zero "surf"/"adventure" strings. Done 05-15.
 2. ✅ **APNS gate shipped** — `showAlertsTab` at app.jsx:8158. Done 05-13.
-3. ✅ **Cache buster aligned** — `20260513j` across all 3 files.
-4. ❌ **VPS redeploy verified** — Day 12. `/health` must show `wxCache.size > 0`.
-5. ❌ **GEAR_ITEMS restored** — Amazon earns $0 until this lands.
-6. ❌ **Venue batch commit** — 4 dups deleted + outer-banks IATA fixed. Data health 65 → ~75.
-7. ❌ **Live 5-min human smoke test** — Explore from JFK/LAX, ScoreBreakdown, flight price, empty-state CTA, Booking.com link.
+3. ✅ **Cache buster aligned** — `20260513j` across all 3 files. (Needs bump on next ship.)
+4. ❌ **VPS proxy verified** — Day 13. Must show `wxCache.size > 0` at `/health`. Soft deadline: Sunday May 18. Hard deadline: launch anyway.
+5. ❌ **GEAR_ITEMS restored** — Day 5. Amazon earns $0 until this lands.
+6. ❌ **3 venue deletes + 2 IATA fixes** — Day 5. Data health <70 is pre-launch liability.
+7. ❌ **BookingConfirmSheet removed from flights** — Day 6. Highest-intent CTA is gated behind friction.
+8. ❌ **MapView gated** — Day 6. Leaflet loads unconditionally on every Explore render.
+9. ❌ **Live 5-min smoke test** — Human click-through: Explore from JFK/LAX, deal score, ScoreBreakdown open/close, flight CTA (no confirm sheet), Booking.com link, filter empty state.
+10. ❌ **Reddit post drafted** — Subreddit: r/skiing, r/solotravel, or r/digitalnomad. Screenshot: Explore grid with 2-3 strong weekend scores + flight prices.
 
-**3 of 7 done. 4 of 7 = ~1 hour of execution.**
+**Items 4–9 = ~55 min combined. None require design decisions. All are pure execution.**
 
-**90-day projection:**
-
-| Scenario | Users | Condition |
-|----------|-------|-----------|
-| Post by May 18 (this weekend) | **8K–12K** | VPS live, GEAR_ITEMS in, strong first impression, ski-tail × Memorial Day overlap |
-| Post by May 22 | **6K–8K** | Partial window capture, ski venues start thinning |
-| Post by June 1 | **4K–5K** | Ski tail gone, competing as beach-only vs established apps at Memorial Day peak |
-| Post after June 1 | **<4K** | Window closed |
-
-The delta between May 18 and June 1 is 4K–8K users — purely a function of execution speed on two P0s.
+**90-day projection (updated):**
+- **8K ceiling**: Reddit by May 20. Requires VPS + GEAR_ITEMS this weekend.
+- **6K floor**: Reddit May 22. Ski-tail effect partially captured; Memorial Day beach traffic included.
+- **<4K**: Reddit after May 25. Ski season over, peak beach already crowded with established apps, the window closed.
+- **Honest current trajectory**: If the same velocity as the last 48 hours (zero commits) holds through the weekend, Reddit doesn't happen before May 22, and the ceiling drops to 5K.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The five UX redesigns that shipped May 12–15 have never been tested together as a single flow.**
+**The scoring honesty pass (commit 18606a7) changed algorithm weights without a required critique document. Nobody knows if the scores got better or worse.**
 
-In the span of 4 days: the splash screen got a new value prop (a470b32), the front page got a stack-header redesign (eb03498), the Alerts page was simplified (e37223c), the Profile was condensed (08d0b9d), and the VenueDetailSheet was consolidated (8161fc3). Each change was individually defensible. No one has walked through the full cold-start → explore → detail → alert → profile flow since all five landed.
+The commit modified variance penalty, soft caps, and tiebreaker weights. CLAUDE.md is explicit: "Do not modify scoring without an algorithm critique." The critique didn't happen. What this means in practice: the current deal scores on the front page may be ranking venues differently than the original algorithm intended, and there is no documented baseline to compare against. If a user posts to Reddit "why is [obviously bad venue] ranked #1?" the answer is "we don't know, we changed the weights without writing down why."
 
-The risk: a transition break, a missing prop, a z-index collision, or a state management issue that only surfaces across multiple tabs. The smoke test catches "does it render." It does not catch "does tapping Set Alert from a detail sheet still open the right Alerts tab, or does it open a blank screen because the Profile condensation changed state shape?"
+Before the Reddit post, someone needs to manually check the Explore grid from JFK, LAX, and LHR and confirm the top 5 venues in each category make intuitive sense. If they do, file a retroactive critique in `~/.claude/plans/` and close the debt. If they don't, revert to the pre-18606a7 weights and do the critique before re-applying changes.
 
-Plausible shows events — it does not show whether the event sequence makes sense. The only real guard here is a human walking the full flow on a phone before the Reddit post goes out. This is the QA call the May 13 report identified and every report since has echoed. It's still not done. If the Reddit post goes out before this happens, the first negative comment will identify something in this stack that 4 days of agent reports missed.
-
-**PM call: this is the gate condition for the Reddit post. Walk the full flow first.**
+**The fix is 10 minutes of human eyeballing the app. It is not optional before a Reddit launch where every comment will be a user questioning why their airport's results look weird.**
