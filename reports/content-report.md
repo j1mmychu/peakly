@@ -252,7 +252,7 @@ No inflation concern. Lowest: kicking-horse-s10 (4.51), laguna-beach-t24 (4.51).
 
 ---
 
-## 5. DAILY VENUE ADDITIONS
+## 5. DAILY VENUE ADDITIONS — 5 new venues
 
 5 new venues targeting geographic gaps. None of the May 15 recommendations were merged — these are fresh picks:
 
