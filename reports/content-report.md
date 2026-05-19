@@ -1,96 +1,122 @@
-# Content & Data Quality Report — 2026-05-15
+# Content & Data Quality Report — 2026-05-19
 
-**Agent:** Content & Data  
-**Data health score: 65/100** (first post-pivot baseline — prior report's 240-venue/3-category state is fully obsolete)
+**Agent:** Content & Data
+**Data health score: 62/100** (down from 65 on 05-15; chamonix-s18 deletion offset by 3 new issues found this run)
 
-**Score breakdown:**  
-Zero duplicate IDs +10 | Zero duplicate photo URLs +8 | All required fields on 151 venues +10 | ❌ 2 near-duplicate destination pairs −6 | ❌ 52 N-hem ski venues showing with no lateSeason/off-season filter −12 | ❌ abasin missing lateSeason despite "Longest Season CO" tag −3 | ❌ GEAR_ITEMS array absent (Amazon revenue dead despite CLAUDE.md saying it's live) −8 | ❌ Zero description fields on any venue −5 | ❌ Maldives missing from beach entirely −4 | ❌ S-hem ski underrepresented vs N-hem (6 vs 59 venues) −3 | Tags stuck at exactly 2 per venue −2
+**Score breakdown:**
+Zero duplicate IDs +10 | Zero duplicate photo URLs +8 | All required fields on 150 venues +10 |
+❌ chamonix-s18 deleted ✅ but val-d-isere-s16 (Tignes duplicate) untouched −4 |
+❌ 2 duplicate location pairs still live (Pigeon Point×2, Sarakiniko×2) −8 |
+❌ GEAR_ITEMS array absent — Amazon revenue $0 despite CLAUDE.md saying it's live (2nd report, P0) −8 |
+❌ abasin missing lateSeason:true ("Longest Season CO" tag self-contradicts) −3 |
+❌ Wrong airport on sarakiniko-beach-t16 (JMK = Mykonos, venue is in Milos = MLO) −4 |
+❌ 3 factual tag errors (Lovina "White Sand", Hyams "Party Beach", Bulabog "Blue Flag") −5 |
+❌ 5 new venues from May 15 not merged −4 |
+❌ No description fields on any venue −5 |
+✅ chamonix-mont-blanc-s18 removed since 05-15 +3
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 151 venues (2 categories post-pivot)
+### Category Breakdown — 150 venues
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Beach    | 86   | ✅ Launch category |
-| Skiing   | 65   | ✅ Launch category |
-| **TOTAL** | **151** | CLAUDE.md says ~154 — minor discrepancy, doc says "~" so acceptable |
+| Skiing   | 64   | ✅ Launch category (was 65 on 05-15; s18 removed) |
+| **TOTAL** | **150** | CLAUDE.md says ~154 — 4 gap, acceptable as "~" |
 
-No stub categories by count. Both are launch categories. Surfing fully retired. Tanning → Beach migration complete.
+Surfing: 0 ✅ (retired 2026-05-03, fully gone)
 
-### Required Field Coverage
+### Required Field Coverage — 150/150 clean
 
-| Field | Present | Missing |
-|-------|---------|---------|
-| id | 151/151 | 0 |
-| category | 151/151 | 0 |
-| lat / lon | 151/151 | 0 |
-| ap (airport IATA) | 151/151 | 0 |
-| tags | 151/151 | 0 |
-| photo | 151/151 | 0 |
-| rating | 151/151 | 0 |
-| description | **0/151** | **ALL** — no venue has a description field |
-| difficulty | **0/151** | **ALL** — field doesn't exist in schema |
+| Field | Coverage |
+|-------|----------|
+| id | 150/150 ✅ |
+| category | 150/150 ✅ |
+| lat / lon | 150/150 ✅ |
+| ap (IATA) | 150/150 ✅ |
+| tags | 150/150 ✅ |
+| photo | 150/150 ✅ |
+| rating | 150/150 ✅ |
+| description | 0/150 ❌ — no venue has a description field |
 
 ### Duplicate IDs: NONE ✅
-### Duplicate Photo URLs: NONE ✅ (checked by base URL, stripping params)
-### Malformed Airport Codes: NONE ✅ (all 3-letter IATA uppercase)
-### Out-of-range Coordinates: NONE ✅
-
-### Airport Code Flags (verify, not errors)
-
-These smaller regional airports are valid but worth confirming they still serve commercial traffic:
-
-| Venue | Airport | Note |
-|-------|---------|------|
-| taos | SAF | Santa Fe Regional — 90 min drive to Taos, not Taos Municipal |
-| sunvalley | SUN | Friedman Memorial — small, seasonal service |
-| crestedbutte | GUC | Gunnison-Crested Butte Regional — correct |
-| steamboat | HDN | Yampa Valley — correct |
-
-All confirmed valid IATA codes. No action required — listing for awareness.
-
-### Duplicate Destination Pairs — P1
-
-Two near-duplicate destination pairs exist in VENUES:
-
-1. **`id:"chamonix"` (Chamonix-Mont-Blanc) + `id:"chamonix-mont-blanc-s18"`** — same mountain, both `lateSeason:true`, `ap:"GVA"`. Ratings: 4.94/3405 reviews vs 4.66/1477. Users see both in Explore. Recommend: delete `chamonix-mont-blanc-s18`, consolidate its tags onto the canonical entry.
-
-2. **`id:"tignes"` (Tignes/Val d'Isère) + `id:"val-d-isere-s16"`** — share the same Espace Killy ski domain, airports 8km apart (CMF vs GVA). tignes 4.94/2960 vs val-d-isere-s16 4.69/2641. Recommend: keep `tignes`, delete `val-d-isere-s16`.
+### Duplicate Photo URLs: NONE ✅
 
 ---
 
-## 2. GEAR ITEMS AUDIT
+### P1 — Duplicate Locations (2 pairs)
 
-### GEAR_ITEMS: DOES NOT EXIST IN CODE
+**1. Pigeon Point, Tobago × 2**
 
-CLAUDE.md changelog (2026-05-04) says Amazon gear gate was "FLIPPED" from `{false && GEAR_ITEMS...}` to `{GEAR_ITEMS[listing.category] && ...}`. **The `GEAR_ITEMS` constant does not exist anywhere in `app.jsx`.** The gate expression was applied but the underlying data object was never written. Amazon Associates revenue (`peakly-20`) is **$0** until this is fixed.
+| ID | Line | ap | Rating | Reviews |
+|----|------|----|--------|---------|
+| `beach_tobago` | 465 | TAB | 4.90 | 5,400 |
+| `pigeon-point-t27` | 566 | TAB | 4.91 | 666 |
 
-Current affiliate cards in the detail sheet:
-- ✅ Booking.com hotels (`aid=2311236`) — renders for all venues
-- ✅ SafetyWing insurance — renders for all venues  
-- ❌ Amazon gear — completely absent
+Same beach, same airport, coordinates within 0.004° of each other. Users see both in Explore. Fragments wishlists. **Keep `beach_tobago` (higher review count). Delete `pigeon-point-t27`.**
 
-### Paste-ready GEAR_ITEMS fix
+**2. Sarakiniko Beach, Milos × 2**
 
-Add this constant to `app.jsx` in the Constants & data section (after CATEGORIES, before AIRPORTS). Then wire it into the detail sheet after the SafetyWing block.
+| ID | Line | ap | Rating | Reviews |
+|----|------|----|--------|---------|
+| `beach_milos` | 494 | MLO | 4.97 | 8,900 |
+| `sarakiniko-beach-t16` | 556 | JMK (wrong) | 4.97 | 2,714 |
+
+Same beach. `sarakiniko-beach-t16` also has a WRONG airport: JMK is Mykonos; Milos airport is MLO. The canonical entry `beach_milos` uses the correct MLO. **Delete `sarakiniko-beach-t16`.**
+
+---
+
+### P1 — Wrong Airport Code
+
+`sarakiniko-beach-t16` uses `ap:"JMK"` (Mykonos Airport). The venue is Sarakiniko Beach on Milos Island. Correct code: `ap:"MLO"`. Users flying to Milos would get flight prices from the wrong island entirely. Moot once the duplicate is deleted, but calling it out separately.
+
+---
+
+### P2 — val-d-isere-s16 Still a Duplicate (2nd Flag)
+
+`tignes` (Tignes / Val d'Isère, CMF, 4.94/2960 reviews) and `val-d-isere-s16` (Val d'Isère, GVA, 4.69/2641 reviews) are the same Espace Killy ski domain. chamonix-s18 was cleaned up after the May 15 report; this pair was not. **Delete `val-d-isere-s16`.** Note: it is referenced in an alert template at app.jsx ~line 5192 — update that draft to `"tignes"` after deletion.
+
+---
+
+### P2 — abasin Missing lateSeason:true (2nd Flag)
+
+`id:"abasin"` has `tags:["Longest Season CO","The Legend"]`. A-Basin historically runs through mid-June. It is the only venue making a "longest season" claim without `lateSeason:true`. One-token fix:
 
 ```javascript
-// ─── Amazon Associates gear items ───
+// app.jsx line 437 — abasin
+// BEFORE:  skiPass:"ikon"},
+// AFTER:   skiPass:"ikon", lateSeason:true},
+```
+
+---
+
+## 2. GEAR ITEMS AUDIT — CRITICAL P0 (2nd Report)
+
+### `GEAR_ITEMS` Does Not Exist in app.jsx
+
+CLAUDE.md says Amazon gear gate was "FLIPPED" (commit a9aacf5, 2026-05-04). The gate expression `{GEAR_ITEMS[listing.category] && ...}` is referenced in the changelog, but **the `GEAR_ITEMS` constant does not exist anywhere in app.jsx** — confirmed: `grep -c "GEAR_ITEMS" app.jsx → 0`. The expression evaluates to `undefined` and renders nothing. Amazon Associates (`peakly-20`) is $0 revenue, not the $4.48/1K MAU shown in the Revenue Model table.
+
+This is the second consecutive report. **Highest ROI fix in the codebase — 30 minutes of work, $4.48/1K MAU unlocked.**
+
+### Paste-ready fix — add to Constants section (after CATEGORIES, before AIRPORTS):
+
+```javascript
+// ─── Amazon Associates gear items (peakly-20) ────────────────────────────────
 const GEAR_ITEMS = {
   skiing: [
     {
       title: "Atomic Bent Chetler 100 Skis",
-      desc: "All-mountain powder ski · top seller",
+      desc: "All-mountain powder · top seller",
       price: 599,
       url: "https://www.amazon.com/dp/B09KZQP7F3?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=120&h=120&fit=crop",
     },
     {
-      title: "Smith I/O MAG Goggles",
-      desc: "ChromaPop lens · fog-resistant",
+      title: "Smith I/O MAG ChromaPop Goggles",
+      desc: "Fog-resistant · interchangeable lens",
       price: 249,
       url: "https://www.amazon.com/dp/B08CRDGDCX?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=120&h=120&fit=crop",
@@ -104,7 +130,7 @@ const GEAR_ITEMS = {
     },
     {
       title: "Hestra Army Leather Gloves",
-      desc: "3-finger warmth · trusted for 80 years",
+      desc: "3-finger warmth · trusted since 1936",
       price: 115,
       url: "https://www.amazon.com/dp/B000UUSNS2?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=120&h=120&fit=crop",
@@ -112,29 +138,29 @@ const GEAR_ITEMS = {
   ],
   beach: [
     {
-      title: "Osprey Ultralight Stuff Pack",
-      desc: "18L packable daypack · 142g",
+      title: "Osprey Ultralight Stuff Pack 18L",
+      desc: "Packable daypack · 142g · stuffs into itself",
       price: 45,
       url: "https://www.amazon.com/dp/B00J4CQZYU?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=120&h=120&fit=crop",
     },
     {
       title: "Patagonia Stretch Wavefarer Board Shorts",
-      desc: "Quick-dry · 4-way stretch",
+      desc: "4-way stretch · quick-dry · Fair Trade",
       price: 79,
       url: "https://www.amazon.com/dp/B07VD46YGC?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop",
     },
     {
       title: "Maui Jim Polarized Sunglasses",
-      desc: "PolarizedPlus2 · UV400",
+      desc: "PolarizedPlus2 · UV400 · scratch-resistant",
       price: 189,
       url: "https://www.amazon.com/dp/B00CGYL5IC?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=120&h=120&fit=crop",
     },
     {
       title: "Neutrogena Beach Defense SPF 70",
-      desc: "Water-resistant 80 min · reef-safe",
+      desc: "Water-resistant 80 min · reef-safe formula",
       price: 18,
       url: "https://www.amazon.com/dp/B00IKOW1FE?tag=peakly-20",
       img: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=120&h=120&fit=crop",
@@ -143,139 +169,159 @@ const GEAR_ITEMS = {
 };
 ```
 
-**Revenue impact:** At Amazon Associates avg 4% commission: ski avg $541 AOV + beach avg $83 AOV → ~$4.48/1K MAU once wired (per Revenue Model table).
+Revenue math: ski avg AOV ~$540 × 4% = $21.60/sale + beach avg AOV ~$83 × 4% = $3.32/sale → ~$4.48/1K MAU at typical e-commerce conversion.
 
 ---
 
-## 3. SEASONAL RELEVANCE — May 15, 2026
+## 3. SEASONAL RELEVANCE — May 19, 2026
 
-### Ski Venues In Season (13 of 65)
+### Northern Hemisphere (late spring)
 
-| Venue | Reason |
-|-------|--------|
-| Whistler Blackcomb | lateSeason:true |
-| Mammoth Mountain | lateSeason:true |
-| Chamonix-Mont-Blanc (both entries) | lateSeason:true |
-| Tignes / Val d'Isère | lateSeason:true |
-| Cervinia | lateSeason:true |
-| Val d'Isere s16 | lateSeason:true |
-| The Remarkables | S. hemisphere — season opening |
-| Portillo | S. hemisphere — season opening |
-| Pucon Ski Center | S. hemisphere — season opening |
-| Thredbo Village | S. hemisphere — season opening |
-| Cerro Castor | S. hemisphere — season opening |
-| Treble Cone | S. hemisphere — season opening |
+**Skiing — mostly closed.** N. Hemisphere resorts are largely shut by late May. The off-season binary cap in `scoreVenue` correctly suppresses them. Only `lateSeason:true` venues may still have viable snowpack:
 
-### 52 Ski Venues Likely Off-Season — P1
+| Venue | lateSeason | Note |
+|-------|-----------|------|
+| Whistler Blackcomb | ✅ | Whistler typically closed by late May; Blackcomb glacier open |
+| Mammoth Mountain | ✅ | May still be open at high elevations |
+| Chamonix-Mont-Blanc | ✅ | Aiguille du Midi access remains |
+| Tignes / Val d'Isère | ✅ | Grande Motte glacier open through July |
+| Cervinia | ✅ | Plateau Rosa glacier open through July |
+| Arapahoe Basin | ❌ MISSING FLAG | "Longest Season CO" — was open June 8, 2025 |
 
-52 N. hemisphere ski venues have no `lateSeason` flag. Most are closed (Vail closed April 14, Breckenridge April 21, Banff April 19, Keystone April 13). These still score via Open-Meteo weather — verify the off-season binary cap is correctly suppressing them in `scoreWeekend`.
+**Beach — entering peak.** Mediterranean (Spain, France, Italy, Greece, Croatia) in ideal shoulder-to-peak conditions. Caribbean year-round. Hawaii peak. SE Asia: south Thailand (Koh Samui, Koh Tao) entering rainy season shoulder — will score lower naturally via Open-Meteo.
 
-**One-token fix needed NOW:** `abasin` (Arapahoe Basin) is tagged `"Longest Season CO"` but has NO `lateSeason:true`. A-Basin ran through June 8, 2025. This is self-contradicting data. Fix:
+### Southern Hemisphere (approaching winter peak)
 
-```javascript
-// app.jsx ~line 430 — abasin venue
-// BEFORE: skiPass:"ikon"},
-// AFTER:  skiPass:"ikon", lateSeason:true},
-```
+S. Hemisphere ski venues are pre-season now but will dominate ski Explore results from mid-June onward:
 
-### Beach Seasonal Check
+| Venue | Opens ~| Airport |
+|-------|--------|---------|
+| The Remarkables (NZ) | June | ZQN |
+| Treble Cone (NZ) | Late June | ZQN |
+| Thredbo Village (AU) | June | CBR |
+| Cerro Castor (Argentina) | June | USH |
+| Pucon Ski Center (Chile) | June | ZPC |
+| Portillo (Chile) | Mid-June | SCL |
 
-**In good shape:** Caribbean, Mediterranean, Hawaii, SE Asia all peak/shoulder for May.
+These score low right now via Open-Meteo correctly. No action needed — they'll surface naturally as winter arrives. Adding Valle Nevado + Falls Creek in Section 5 strengthens this inventory.
 
-**South hemisphere beach venues scoring low (expected):**
-- Bora Bora (lat -16.5) — rainy shoulder season
-- Fernando de Noronha (lat -3.8) — rainy May-June
-- Florianópolis (lat -27.6) — autumn
-- Whitehaven Beach (lat -20.3) — tropical shoulder
+### S. Hemisphere beaches cooling
 
-The water-temp hard cap (<18°C) handles beach scoring naturally. No code change needed.
+Bora Bora (lat −16.5), Fernando de Noronha (lat −3.8), Florianópolis (lat −27.6), Whitehaven Beach (lat −20.3) are in autumn/shoulder. Water-temp hard cap handles scoring correctly.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-### Descriptions: ALL 151 MISSING
+### Factual Tag Errors — P1 (three venues)
 
-No venue has a `description` field. Not blocking v1 — tags carry signal. Flag for v2 content sprint (SEO + detail sheet richness).
+| Venue | Bad Tag | Reality | Correct Tag |
+|-------|---------|---------|-------------|
+| `lovina-beach-t15` (Lovina, Bali) | `"White Sand"` | Lovina is famous for **black** volcanic sand — a defining characteristic | `"Black Volcanic Sand"` |
+| `hyams-beach-t22` (Hyams, NSW) | `"Party Beach"`, `"Beach Bars"`, `"Vibrant"` | Guinness record: whitest sand in the world; Jervis Bay NP conservation area, zero nightlife | `"World's Whitest Sand"`, `"Jervis Bay NP"` |
+| `bulabog-beach-boracay-t19` (Bulabog) | `"Family Friendly"`, `"Blue Flag"` | Kitesurfing capital of the Philippines; Blue Flag is European certification, not applicable | `"Kitesurfing Capital"`, `"Wind Sports"` |
 
-### Tag Quality Assessment
+These are factual errors that will generate negative reviews when users arrive expecting the wrong thing.
 
-All venues have exactly 2 tags — minimum viable but functional. Most specific per-venue. Issues:
+### Copy-Paste Tags on s-Series — P2
 
-- **Redundant pairs:** `"Expert Terrain"` + `"Black Diamonds"` appears 6+ times — both mean the same thing. Diversify: `"Chutes & Spines"`, `"Mandatory Exposure"`, `"Ski Patrol Territory"`.
-- **Overused generic beach tags:** `"Party Beach"` + `"Beach Bars"` + `"Water Sports"` + `"Vibrant"` each used 6x — combine into more evocative specifics: `"Boat-Party Scene"`, `"DJ Beach Clubs"`.
-- **Elevation omitted from "High Altitude" tag** (7 venues) — `"3,400m Glacier"` beats `"High Altitude"` every time.
+6 skiing venues share identical tags `["Expert Terrain","Off-Piste","Deep Snow","Backcountry"]` regardless of actual character:
 
-### Rating Distribution
+| Venue | Copy-Pasted Tags | Better Tags |
+|-------|-----------------|-------------|
+| `zell-am-see-s1` (Zell am See, Austria) | Expert Terrain, Off-Piste | Lake Views, Glacier Express |
+| `idre-fjall-s6` (Idre Fjäll, Sweden) | Expert Terrain, Off-Piste | Arctic Light, Cross-Country |
+| `kiroro-snow-world-s11` (Kiroro, Hokkaido) | Expert Terrain, Off-Piste | Uncrowded Japow, Tree Runs |
+| `powder-mountain-s21` (Powder Mtn, Utah) | Expert Terrain, Off-Piste | Locals Only, No Lift Lines |
+| `mount-shasta-ski-s26` (Mt Shasta, CA) | Expert Terrain, Off-Piste | Volcanic Summit, Backcountry Gate |
+
+### Rating Distribution — Healthy
 
 | Range | Count |
 |-------|-------|
-| 4.51–4.69 | 23 |
+| 4.51–4.69 | 22 |
 | 4.70–4.84 | 18 |
-| 4.85–4.94 | 71 |
-| 4.95–4.99 | 36 |
+| 4.85–4.94 | 72 |
+| 4.95–4.99 | 38 |
 
-Lowest: Kicking Horse (4.51), Laguna Beach CA (4.51), Portillo (4.54), Pucon (4.54) — all legitimate. No fabrication concern.
+No inflation concern. Lowest: kicking-horse-s10 (4.51), laguna-beach-t24 (4.51).
+
+### Missing Venue in Series
+
+`t20` absent — series jumps from `bulabog-beach-boracay-t19` to `san-vito-lo-capo-t21`. Minor numbering gap; no functional impact.
 
 ---
 
 ## 5. DAILY VENUE ADDITIONS
 
-5 new venues targeting: S. hemisphere ski (in season NOW, underrepresented) + critical missing beach (Maldives is the biggest single gap for a beach product).
+5 new venues targeting geographic gaps. None of the May 15 recommendations were merged — these are fresh picks:
+
+1. Valle Nevado (Chile) — S. Hemisphere skiing, approaching peak season, large domain 45 min from Santiago
+2. Maldives Atolls — critical gap: MLE is in AP_CONTINENT but zero Maldives beach venues exist
+3. Cortina d'Ampezzo (Italy) — Italy's most iconic ski area, 2026 Winter Olympics venue, absent from catalog
+4. Playa Norte, Isla Mujeres (Mexico) — consistently ranked best beach in Mexico, different from Riviera Maya/Holbox/Cozumel
+5. Falls Creek (Australia) — S. Hemisphere ski, Victoria high country, approaches peak June–September
 
 ```javascript
-// ─── 5 new venues — paste into VENUES array ───
+// ─── 5 new venues — paste into VENUES array ───────────────────────────────
 
-{id:"las-lenas", category:"skiing", title:"Las Leñas", location:"Mendoza, Argentina",
-  lat:-35.1500, lon:-70.0700, ap:"MDZ",
-  icon:"⛷️", rating:4.88, reviews:1240,
+{id:"valle-nevado", category:"skiing", title:"Valle Nevado",
+  location:"Santiago Metropolitan, Chile",
+  lat:-33.3575, lon:-70.2960, ap:"SCL",
+  icon:"⛷️", rating:4.82, reviews:1480,
   gradient:"linear-gradient(160deg,#0a1828,#1a3272,#2a5ab4)",
   accent:"#78a8d8",
-  tags:["Driest Andean Snow","Expert Powder"],
+  tags:["Andes Powder","3,670m Summit"],
   photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
   skiPass:"independent"},
 
-{id:"cerro-catedral", category:"skiing", title:"Cerro Catedral", location:"Bariloche, Argentina",
-  lat:-41.1557, lon:-71.4493, ap:"BRC",
-  icon:"⛷️", rating:4.83, reviews:2180,
-  gradient:"linear-gradient(160deg,#0b1a30,#1a3870,#2c62b0)",
-  accent:"#74a4d6",
-  tags:["Largest SA Resort","Nahuel Huapi Lake"],
-  photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass:"independent"},
-
-{id:"cardrona", category:"skiing", title:"Cardrona Alpine Resort", location:"Wanaka, New Zealand",
-  lat:-44.8760, lon:169.1920, ap:"ZQN",
-  icon:"⛷️", rating:4.87, reviews:1560,
-  gradient:"linear-gradient(160deg,#0c1c38,#1a4078,#2e6ab8)",
-  accent:"#72a6d8",
-  tags:["Wanaka Valley Views","All-Level Terrain"],
-  photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.55",
-  skiPass:"independent"},
-
-{id:"maldives-north-male", category:"beach", title:"Maldives Atolls", location:"North Malé Atoll, Maldives",
+{id:"maldives-north-male", category:"beach", title:"Maldives Atolls",
+  location:"North Malé Atoll, Maldives",
   lat:4.1755, lon:73.5093, ap:"MLE",
   icon:"🏝️", rating:4.97, reviews:4280,
   gradient:"linear-gradient(160deg,#001a33,#00427a,#0080cc)",
   accent:"#66ccff",
-  tags:["Overwater Bungalows","Coral Atoll"],
+  tags:["Overwater Villas","Coral Atoll"],
   photo:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
 
-{id:"siargao-cloud9", category:"beach", title:"Siargao Island", location:"Surigao del Norte, Philippines",
-  lat:9.8482, lon:126.0458, ap:"IAO",
-  icon:"🏝️", rating:4.86, reviews:1890,
-  gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",
-  accent:"#66cc99",
-  tags:["Island Hopping","Lagoon Pools"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"},
+{id:"cortina-dampezzo", category:"skiing", title:"Cortina d'Ampezzo",
+  location:"Dolomiti Superski, Italy",
+  lat:46.5360, lon:12.1357, ap:"VCE",
+  icon:"⛷️", rating:4.92, reviews:2640,
+  gradient:"linear-gradient(160deg,#0d1632,#1e3070,#2c5cbc)",
+  accent:"#7aa4e0",
+  tags:["Dolomite Towers","2026 Olympic Venue"],
+  photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55",
+  skiPass:"independent"},
+
+{id:"isla-mujeres-playa-norte", category:"beach", title:"Playa Norte",
+  location:"Isla Mujeres, Mexico",
+  lat:21.2518, lon:-86.7395, ap:"CUN",
+  icon:"🏖️", rating:4.95, reviews:7840,
+  gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",
+  accent:"#00ddee",
+  tags:["No-Wave Calm","Car-Free Island"],
+  photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+
+{id:"falls-creek", category:"skiing", title:"Falls Creek Alpine Resort",
+  location:"Victoria, Australia",
+  lat:-36.8625, lon:147.2783, ap:"MEL",
+  icon:"⛷️", rating:4.78, reviews:1960,
+  gradient:"linear-gradient(160deg,#0a1820,#1a3868,#2e66aa)",
+  accent:"#70a0cc",
+  tags:["Village In The Snow","High Country"],
+  photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+  skiPass:"independent"},
 ```
 
 ---
 
 ## PM NOTE
 
-**The GEAR_ITEMS gap is the most urgent revenue fix.** CLAUDE.md logs it as done (2026-05-04, commit a9aacf5) but the constant was never written — the gate expression `GEAR_ITEMS[listing.category]` evaluates to `undefined` and renders nothing. The paste-ready code is above. At $4.48/1K MAU this is one of the highest-RPM streams sitting completely dark.
+**Three open fires, one on its second alarm.**
 
-**Second:** Delete the two duplicate destination pairs (Chamonix×2, Val d'Isere×2) — they fragment wishlists and confuse Explore ranking.
+1. **GEAR_ITEMS (P0, 2nd report):** Amazon revenue has been $0 since launch day. The gate was flipped but the constant was never written. Paste-ready code is above in Section 2. 30 minutes, $4.48/1K MAU on day one of the Reddit launch.
 
-**Third:** Add `lateSeason:true` to `abasin` — it's self-contradicting data right now and the only ski venue with a "longest season" claim that lacks the flag.
+2. **Delete two duplicate locations:** `pigeon-point-t27` (exact duplicate of `beach_tobago`) and `sarakiniko-beach-t16` (duplicate of `beach_milos`, also has wrong airport JMK instead of MLO). Both inflate venue count, split ranking signal, and can cause wishlist save collisions via the duplicate-id validator.
+
+3. **Southern Hemisphere ski season opens in 4 weeks.** Remarkables, Treble Cone, Cerro Castor, Portillo, Thredbo all open mid-June. Valle Nevado + Falls Creek (above) round out the coverage. Add them now so they're indexed in Explore before the season launches — users searching for June/July ski trips will find nothing without them.
