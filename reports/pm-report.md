@@ -1,18 +1,18 @@
-# Peakly PM Report — 2026-05-20 (v35)
+# Peakly PM Report — 2026-05-21 (v36)
 
 > Latest report. Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
 
-**Status: RED. Reddit window closes in 48 hours. Zero code commits in 5 days. Every P0 from May 15 is still open.**
+**Status: RED. Today is the last day of the May Reddit window. Zero code commits in 8 days. VPS is Day 17. GEAR_ITEMS is Day 8. Two new P1s surfaced today (AP_CONTINENT string mismatch + invalid Pucon IATA). The gap between 8K and 4K users closes tonight.**
 
 ---
 
-## Shipped Since Last Report (2026-05-15 → 2026-05-20)
+## Shipped Since Last Report (2026-05-15 → 2026-05-21)
 
 | What | Right call? |
 |------|-------------|
-| **Nothing.** Zero code commits in 5 days. | ❌ Not acceptable with Reddit window closing May 22. |
+| **Nothing.** Zero code commits in 8 days. | ❌ Not acceptable. Both P0s required paste-and-ship, not product decisions. |
 
-The last meaningful commit was the DevOps P1 fix on 2026-05-15 (4d16e3d). Since then: one PM report, one content report. Both identified the same open P0s. Neither triggered a code response. That pattern ends today.
+The last meaningful commit was the DevOps P1 fix on 2026-05-15 (4d16e3d). The May 20 PM report flagged the same P0s. Neither triggered a code response. That pattern ends today.
 
 ---
 
@@ -28,63 +28,62 @@ The last meaningful commit was the DevOps P1 fix on 2026-05-15 (4d16e3d). Since 
 
 ---
 
-## Active Bug Triage — May 20
+## Active Bug Triage — May 21
 
 | Bug | Severity | Days Open | Jack action? |
 |-----|----------|-----------|-------------|
-| **VPS proxy not verified live** | **P0** | **Day 16** | ✅ YES — `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"`. One command. Weekend pricing, weather cache, alerts polling: all dead until this runs. |
-| **GEAR_ITEMS missing from app.jsx** | **P0** | **Day 5** | Code agent: paste-ready code is in `reports/content-report.md:82–155`. Add after CATEGORIES in Constants section. Amazon earns $0 until it's in the file. CLAUDE.md says LIVE at $4.48/1K MAU — that is false. |
-| **Cache buster 7 days stale** | **P1** | **Day 7** | DevOps fix 05-15 changed app.jsx but never bumped the cache. Users on SW `peakly-20260513j` are not seeing the hardcoded-URL fix. Bump to `20260520a` across app.jsx / sw.js / index.html on next commit. |
-| **3 venue duplicates approved but never deleted** | **P1** | **Day 5–7** | One batch commit: delete `pigeon-point-t27` (line 566), `sarakiniko-beach-t16` (line 556), `val-d-isere-s16` (line 530). All approved since May 13–15. |
-| **outer-banks-nags-head-t7 wrong airport** | **P1** | **Day 5** | `ap:"OAJ"` (Jacksonville NC, 70mi away) → `ap:"ORF"` (Norfolk). Line 548. Breaks flight pricing for this venue. |
-| **Ski-thinning empty state — no copy** | **P2** | **Day 5** | Identified May 15. Still not shipped. Reddit users in late May see a thin ski grid with no explanation. 10-min fix. See decision #3. |
-| **BookingConfirmSheet on flights** | **P2** | **Day 8** | Decided May 12: remove on flights, keep on hotels. Still in place. Unnecessary friction on highest-intent CTA. |
+| **VPS proxy not verified live** | **P0** | **Day 17** | ✅ YES. `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy && curl localhost:3001/health"`. Open-Meteo breaks at **43 DAU** without the proxy cache (DevOps 05-21 corrected math: 154 venues × ~231 calls/user ÷ 10K daily free tier = 43 users). Reddit sends 200+ in the first hour. |
+| **GEAR_ITEMS missing from app.jsx** | **P0** | **Day 8** | ✅ YES (paste-ready). Code in `reports/content-report.md §2`. Amazon earns $0. CLAUDE.md says LIVE at $4.48/1K MAU — false for 8 days. |
+| **AP_CONTINENT string mismatch — continent filter broken** | **P1** | **NEW** | `PDX` overridden to `"north_america"` (wrong) after a correct `"na"` definition — JS last-write-wins. `SNA` same bug. Mt Hood Meadows + Laguna Beach invisible when continent filter is active. 10 airports also map to `"south_america"` — any future S. America venue will silently vanish. Fix: patch the two offenders in the AP_CONTINENT block (see Content 05-21 report). |
+| **ZPC not a real IATA code (Pucon venue)** | **P1** | **Day 2** | Pucon ski venue uses `ap:"ZPC"` — not a real IATA code. Flight pricing returns nothing; deal score is miscalibrated. Correct airport: `PMC` (Temuco/Maquehue, 110km, only commercial option) or remove the venue. |
+| **3 venue duplicates approved but never deleted** | **P1** | **Day 6–8** | One batch commit: delete `pigeon-point-t27` (line 566), `sarakiniko-beach-t16` (line 556), `val-d-isere-s16` (line 530). All approved since May 13–15. |
+| **outer-banks-nags-head-t7 wrong airport** | **P1** | **Day 8** | `ap:"OAJ"` (Jacksonville NC, 70mi away) → `ap:"ORF"` (Norfolk). Line 548. Breaks flight pricing. |
+| **Ski-thinning empty state — no copy** | **P1** | **Day 6** | June 1 is 11 days away. Grid thins with no explanation. 10-min fix. See decision #3. Elevated from P2 — Reddit timing makes this pre-launch now. |
+| **BookingConfirmSheet on flights** | **P2** | **Day 9** | Decided May 12: remove on flights, keep on hotels. Still in place. |
 
-**Net P0/P1:** 5. Combined keyboard time: ~35 min. Reddit is in 48 hours.
+**Net P0/P1:** 7. Combined code time: ~45 min. VPS is Jack-only.
 
 ---
 
-## Explicit Product Decisions — May 20
+## Explicit Product Decisions — May 21
 
-**Decision 1: GEAR_ITEMS ships TODAY. Non-negotiable.**
+**Decision 1: GEAR_ITEMS ships TODAY. Day 8. Final warning.**
 
-Five days. The code is paste-ready in `reports/content-report.md`. The Revenue Model table has been lying about Amazon Associates being LIVE since May 15. At 5K MAU post-Reddit that's $22/mo sitting dark. At 100K MAU it's $448/mo. This is not a design question. It's a paste operation. If it doesn't ship before Reddit, update the Revenue Model to show $0 — don't launch with a false shared brain.
+Eight days. The code is paste-ready in `reports/content-report.md §2`. Amazon Associates has been "LIVE" in the shared brain while earning $0. At 5K MAU post-Reddit that's $22/mo dark. Not a design question — a paste operation. If it doesn't ship before Reddit, update CLAUDE.md Revenue Model to $0 for Amazon. Don't run a post-launch revenue audit against a shared brain that's been lying for 9 days.
 
-**VERDICT: SHIP today. Paste `reports/content-report.md:82–155` into app.jsx Constants section. Bump cache.**
+**VERDICT: SHIP today. Code agent pastes `content-report.md §2` into app.jsx Constants section. Bump cache to `20260521a`.**
 
-**Decision 2: Batch data commit — all 5 fixes in one push.**
+**Decision 2: Batch data commit — 5 fixes + AP_CONTINENT patch + seasonal copy in one push.**
 
-pigeon-point-t27 was approved on May 13. It's May 20. val-d-isere-s16 and sarakiniko-beach-t16 were approved May 15. outer-banks-nags-head-t7 IATA fix was called out May 15. None of these are design debates. They are execution gaps. Combine with cache bump (`20260520a`) and GEAR_ITEMS in one commit.
+Add to the batch: AP_CONTINENT string fix (PDX `"north_america"` → `"na"`, SNA same) and ZPC → PMC for Pucon. All five previously approved items still unshipped. Combine with GEAR_ITEMS paste, cache bump to `20260521a`, and seasonal ski-thin copy. One commit closes 7 open items.
 
-**VERDICT: SHIP as one commit today. 3 venue line-deletes + 1 IATA fix + GEAR_ITEMS paste + cache bump across 3 files.**
+**VERDICT: Code agent ships this now. Venue count goes 150 → 147 after 3 deletes. Update index.html venue count accordingly.**
 
-**Decision 3: Ski-thinning seasonal copy — SHIP before Reddit. 10 minutes.**
+**Decision 3: Ski-thinning copy — elevated to pre-launch required. 10 minutes.**
 
-By Memorial Day weekend (the exact launch moment), most N-hemisphere ski venues score `confidence: "low"` and disappear from the front page. A new user sees a thin, beach-heavy grid with half the skiing section missing and no explanation. They bounce. They post "skiing section is empty?" in the same Reddit thread we used to launch.
+June 1 is 11 days away. Reddit is today. Memorial Day travelers will check Peakly this weekend and see a visibly thin ski grid. The filter-aware empty state handles "no results for your filters" — it does NOT handle "it's May and N-hem ski season is ending." Without seasonal copy, the Explore grid just looks incomplete.
 
-The fix is one `if` block before the generic empty-state in the Explore grid. When `activeCat === "skiing"` AND grid returns < 6 cards:
+When `activeCat === "skiing"` AND sorted grid returns < 6 cards AND month is May–Oct:
 - Heading: "Ski season winding down"
-- Sub: "Southern Alps and late-season resorts still firing. Try Beach, or check back in November."
+- Sub: "Southern Alps and late-season resorts still open. Try Beach, or check back in November."
 - CTA: "Switch to Beach"
 
-This makes the thinning look designed, not broken.
-
-**VERDICT: SHIP before Reddit post. 10 min. Not optional if launching before June 1.**
+**VERDICT: SHIP in the same batch commit. 10 min. Not optional for a May Reddit launch.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. One batch commit: GEAR_ITEMS + 3 venue deletes + outer-banks IATA fix + cache bump to 20260520a.**
-~30 min. Code agent can do it. GEAR_ITEMS code is paste-ready in content-report.md. Venue deletions are 3 line deletes. Cache bump is 3 file edits. This single commit closes 3 P0/P1 items and makes the shared brain honest.
+**1. Mega batch commit: GEAR_ITEMS + AP_CONTINENT fix + 3 venue deletes + outer-banks IATA + ZPC fix + seasonal ski copy + cache bump to `20260521a`.**
+~45 min. Code agent executes. Paste-ready code in content-report.md. Closes 7 open items. One commit. This is the entire pre-Reddit code checklist (minus VPS which is Jack-only).
 
-**2. VPS redeploy — one SSH command. Jack must do this.**
-`ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"`. Then `curl https://peakly-api.duckdns.org/health`. Day 16. Weekend pricing + weather cache + alerts polling are all dead without it. Not a code problem. A keyboard problem.
+**2. VPS redeploy — Jack SSH, 10 min, today.**
+`ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"`. Then `curl https://peakly-api.duckdns.org/health`. Day 17. Break-even is 43 DAU. Reddit sends 200+ in the first hour. The app goes dark without this.
 
-**3. Write the Reddit post. Today.**
-The post doesn't exist. Reddit window closes May 22. Treat the post as a product artifact: story hook (1 paragraph) → what it does (2 sentences, no jargon) → Whistler screenshot with firing score → deal price → link. Post in r/skiing + r/solotravel + r/frugaltravel between 9–11am PST on a Tuesday or Wednesday.
+**3. Post to Reddit today or defer to June 5.**
+Today is the last day of the May window (ski-tail × Memorial Day overlap). If VPS + batch commit are done before noon PST, post today: r/skiing + r/solotravel + r/frugaltravel, 9–11am PST. Story-first post: "I got tired of checking OnTheSnow AND Google Flights separately..." → screenshot of a firing Whistler card with a deal price → link. If VPS isn't up by noon: defer to June 5 (beach-season window, 6K ceiling). Don't post with a broken proxy.
 
-**After these three: nothing else ships until we have Reddit feedback.**
+**After these three: zero new features until 100 users are in Plausible.**
 
 ---
 
@@ -104,36 +103,39 @@ The post doesn't exist. Reddit window closes May 22. Treat the post as a product
 
 ---
 
-## Success Criteria — May 20
+## Success Criteria — May 21
 
 **Pre-launch checklist:**
 
 1. ✅ SEO meta clean — zero "surf"/"adventure" strings.
 2. ✅ APNS Capacitor gate — `showAlertsTab` at app.jsx:8158.
 3. ✅ Sentry DSN live.
-4. ⚠️ Cache buster — was 20260513j; stale since 05-15 DevOps fix. Must bump to 20260520a today.
-5. ❌ **VPS proxy redeploy verified** — Day 16. `/health` must show `wxCache.size > 0`.
-6. ❌ **GEAR_ITEMS restored** — Amazon earns $0. Paste-ready. No excuse.
-7. ❌ **Venue data health** — 3 approved duplicates + wrong IATA still in code. Pre-Reddit liability.
-8. ❌ **Ski-thinning seasonal copy** — thin grid looks broken without explanation.
-9. ❌ **Live human smoke test** — Explore from JFK, ScoreBreakdown, flight price, empty state, Booking.com link. Not a script.
-10. ❌ **Reddit post written and queued.**
+4. ✅ Cache buster `20260513j` — aligned app.jsx / sw.js / index.html (DevOps 05-21 confirmed ✅).
+5. ❌ **VPS proxy redeploy verified** — Day 17. `/health` must return `weather_cache` + `poll_stats`. Without it: app dark at 43 DAU.
+6. ❌ **GEAR_ITEMS restored** — Day 8. Amazon earns $0. Paste-ready code in content-report.md.
+7. ❌ **AP_CONTINENT fix** — NEW today. PDX/SNA venues broken on continent filter.
+8. ❌ **Venue data cleanup** — 3 duplicates + outer-banks IATA + ZPC invalid code. Batch commit.
+9. ❌ **Ski-thinning seasonal copy** — 11 days to June 1. Ship before Reddit.
+10. ❌ **Live 5-min human smoke test** — Explore from JFK, ScoreBreakdown, flight price, filter CTA, Booking.com link. Jack's fingers, not Playwright.
+11. ❌ **Reddit post written.** Today or defer to June 5.
 
 **90-day projection:**
-- **8K users**: Reddit by May 22, ski-tail × Memorial Day overlap. Requires VPS + GEAR_ITEMS TODAY.
-- **5K–6K users**: Reddit late May, ski grid thinning, no peak-overlap boost.
-- **<4K users**: Reddit in June. N-hem ski season over. No moat.
+- **8K users**: Reddit today + VPS up. Ski-tail × Memorial Day overlap. Barely achievable — today is the day.
+- **6K users**: Reddit June 5. Beach-season carry. Acceptable.
+- **4K users**: Reddit after June 15. Ski tail gone, no moat angle. Don't let this happen.
 
-The gap between 8K and 4K is this weekend.
+The gap between 8K and 4K is resolved by the end of today.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Reddit launch post doesn't exist, and a bad Reddit launch is worse than no Reddit launch.**
+**The VPS has been P0 for 17 days and we don't know if it's even running.**
 
-A Reddit launch is not: post link, get users. It's: (1) right subreddits (r/skiing, r/solotravel, r/frugaltravel, r/travel — NOT r/webdev); (2) a story post, not a product link; (3) a specific use case lead ("I built this because I was last-minute checking Whistler and couldn't find one place that combined snow conditions AND cheap flights"); (4) screenshots showing the confidence flag and a real deal price — not just the app icon; (5) posted 9–11am PST Tuesday–Wednesday for best upvote velocity.
+Every PM and DevOps report since May 4 has flagged `git pull && pm2 restart` as the fix. It takes 10 minutes. It has not shipped. That's not a priority problem — that's a pattern problem. At some point the question stops being "when will this get done?" and becomes "is the process manager still alive?"
 
-Posting without these elements doesn't get 5K users. It gets 12 upvotes and a "cool, but why would I use this over Google Flights?" comment that buries the thread. Once a Reddit thread dies, it doesn't come back.
+We don't know. The `/health` endpoint might be returning 502. The Let's Encrypt cert might have expired. The Node process might have crashed on startup from a bug in the polling worker. The DuckDNS record might have lapsed. None of these states are impossible after 17 days of no verification.
 
-**PM call: write the post today, treat it as a product artifact. The copy matters as much as the code.**
+If Jack runs the SSH today and it goes wrong — `pm2 list` shows the process crashed, or the HTTPS cert is expired, or `git pull` fails on a conflict — there's time to debug before the post. That buffer closes the moment the Reddit post goes live.
+
+**PM call: SSH before the Reddit post is written, not after. Verify `/health` responds correctly before any other pre-launch step. If the VPS is broken, the timeline moves to June 5 regardless of everything else being ready.**
