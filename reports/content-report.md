@@ -1,195 +1,259 @@
-# Content & Data Quality Report — 2026-05-22
+# Content & Data Quality Report — 2026-05-23
 
 **Agent:** Content & Data  
-**Data health score: 68/100**
+**Data health score: 69/100**
+
+**Score delta vs yesterday:** +1 (6 inline fixes applied; recurring GEAR_ITEMS gap unchanged; no new P0s found)
 
 **Score breakdown:**  
-Zero duplicate IDs +10 | Zero duplicate photo URLs +10 | All required fields on 148 venues +10 | ✅ Two confirmed duplicate venues removed inline −2pts fixed | ✅ abasin lateSeason added inline −2pts fixed | ✅ 5 wrong tags corrected inline −4pts fixed | ✅ MXX→OSL airport fix inline −2pts fixed | ❌ GEAR_ITEMS constant absent — Amazon Associates $0 −14 | ❌ 8+ agent-batch venues still carry recycled generic tag sets −8 | ❌ S-hemisphere ski venues score as off-season during actual peak (Jun–Sep) −6 | ❌ Maldives, Sri Lanka, Morocco ski still missing −4 | ❌ No description field on any venue (schema gap) −4
+Zero duplicate IDs +10 | Zero duplicate photo base URLs +10 | All required fields on all 148 venues +10 | Good geographic diversity across 6 continents +8 | ✅ 3 Japan airport errors fixed (NGO→NRT ×2, AXT→NRT) +3 | ✅ 3 misleading/factually wrong tag sets fixed inline +3 | ❌ GEAR_ITEMS constant absent — Amazon Associates earning $0 −12 | ❌ 10 agent-batch venues carry recycled identical tag sets −8 | ❌ S-hemisphere ski venues score as off-season during actual peak (Jun–Sep) −5 | ❌ Boracay island has 2 venues (White Beach + Bulabog) — not a true dup but inflates same island −2 | ❌ OBX has 2 venues (beach_ob + outer-banks-nags-head-t7) — redundant destination −2 | ❌ No description field on any venue (schema gap by design) −3 | ❌ Agent prompt header references 182 venues / 12 categories — stale vs actual 148 / 2 categories −3
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 148 venues (post-dedup, 2 categories)
+### Category Breakdown — 148 venues (2 active categories)
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Beach    | 84   | ✅ Launch category |
-| Skiing   | 64   | ✅ Launch category |
-| **TOTAL** | **148** | Two dupes removed this run |
+| Beach    | 84    | ✅ Launch category |
+| Skiing   | 64    | ✅ Launch category |
+| **TOTAL**| **148** | — |
 
-Both categories well above 10-venue threshold. No stubs. Surfing retired cleanly.
+Both categories well above the 10-venue stub threshold. The agent prompt header says "12 categories / 182 venues" — that is stale and predates the 2026-05-03 surf-and-multisport retirement. Current state: 2 active categories (`skiing`, `beach`) + `all` filter pill only.
 
 ### Required Field Coverage — PASS ✅
+All 148 venues carry: `id`, `category`, `lat`, `lon`, `ap`, `tags[]`, `photo`, `rating`, `reviews`, `gradient`, `accent`. `description` absent by schema design (no free-text in current UI). `difficulty` absent by schema design (tags handle this).
 
-All 148 venues carry: `id`, `category`, `lat`, `lon`, `ap`, `tags`, `photo`, `rating`.  
-`description` absent by schema design (not a bug). `difficulty` absent by schema design.
+### Duplicate IDs — NONE ✅
+Boot-time dup-id IIFE validator at app.jsx:571 is active. Zero collisions.
 
-### Duplicate IDs — NONE ✅ (dup-id IIFE validator active at boot)
-### Duplicate Photo Base URLs — NONE ✅
+### Duplicate Photo URLs — NONE ✅
+148 unique Unsplash base URLs. Zero collisions even when stripping `?w=` crop params.
 
----
+### Airport Code Validity — PASS (with 3 fixes applied)
 
-## 2. P0 FIXES APPLIED INLINE THIS RUN
+All 114 unique IATA codes are valid and mapped in `AP_CONTINENT`. Note: KUL, MCT, SNA appeared flagged in yesterday's report due to a regex bug that missed quoted-key entries (`"KUL":"asia"` vs `KUL:"asia"`) — they were already present and correctly mapped.
 
-### 2a. Removed `pigeon-point-t27` — exact dup of `beach_tobago`
-Both: "Pigeon Point", Tobago, TAB airport, lat 11.165 vs 11.167 (same GPS pin).  
-Kept `beach_tobago` (5,400 reviews vs 666). React key collision + double-scoring eliminated.
+**Fixes applied this run (flagged yesterday):**
 
-### 2b. Removed `sarakiniko-beach-t16` — dup of `beach_milos`
-Both: Sarakiniko Beach, Milos, Greece. Agent-added entry used JMK (Mykonos, 100km away) — wrong airport.  
-Kept `beach_milos` (MLO airport, 8,900 reviews).
+| Venue | Old `ap` | New `ap` | Reason |
+|-------|----------|----------|--------|
+| `appi-kogen-s2` (Appi Kogen, Iwate) | `AXT` (Akita) | `NRT` | Akita Airport has almost zero international service. NRT + Tohoku Shinkansen to Morioka + bus is the real international gateway. `AXT` was returning $0 Travelpayouts flight results. |
+| `madarao-mountain-s22` (Madarao, Nagano) | `NGO` (Nagoya) | `NRT` | Nagoya is ~3h from Madarao with limited ski-season schedules. NRT is the standard international gateway for all Nagano-area resorts via Shinkansen. |
+| `tsugaike-kogen-s25` (Tsugaike, Nagano) | `NGO` (Nagoya) | `NRT` | Same as Madarao — both Nagano-area resorts share NRT as their effective international air gateway. |
 
-### 2c. Added `lateSeason:true` to `abasin` (Arapahoe Basin)
-Tags said "Longest Season CO" but no flag. A-Basin opens through July 4 annually.  
-Now bypasses the off-season binary cap when snow_depth ≥ 0.5m. Was scoring 0 all spring/summer.
-
-### 2d. Fixed `idre-fjall-s6` airport: MXX → OSL
-Mora-Siljan (MXX) has no scheduled commercial service. Oslo Gardermoen (OSL, 5hr drive) is the correct gateway. MXX would return $0 Travelpayouts flight results.
-
-### 2e. Fixed 4 factually wrong tag sets
-
-| Venue | Wrong tags removed | Correct tags applied |
-|-------|-------------------|---------------------|
-| `lovina-beach-t15` | "White Sand","Year-Round Sun" | "Black Volcanic Sand","Dolphin Watching","Calm North Coast","Snorkeling" |
-| `hyams-beach-t22` | "Party Beach","Beach Bars","Vibrant" | "Whitest Sand in the World","Jervis Bay","Quiet & Pristine","Kangaroo Sightings" |
-| `outer-banks-nags-head-t7` | "Party Beach","Beach Bars","Vibrant" | "Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse" |
-| `stowe-mountain-s14` | "Glacial Skiing","On-Piste" | "Vermont Classic","Mt Mansfield","Resort Village","New England Icon" |
+### Coordinate Anomalies — NONE ✅
+No beach venues above 60° lat. No ski venues below 30° lat. All placements are geographically plausible.
 
 ---
 
-## 3. GEAR ITEMS AUDIT — REVENUE BLOCKER (2nd report — final warning before known-skipped)
+## 2. GEAR ITEMS AUDIT
 
-### GEAR_ITEMS constant does not exist in app.jsx
+**GEAR_ITEMS constant: ABSENT from app.jsx** ❌
 
-CLAUDE.md logs this as fixed commit a9aacf5 (2026-05-04). The constant was lost in the 2026-05-09 history scrub. The expression `GEAR_ITEMS[listing.category]` evaluates to `undefined` — block never renders. Amazon Associates `peakly-20` earning **$0** for gear. SafetyWing and Booking.com are active but the gear stream is dark.
+Amazon Associates (`peakly-20`) is wired into the detail sheet affiliate flow but no product catalog constant exists. Revenue stream earning $0 for both active categories.
 
-**Paste-ready fix — add to Constants section after CATEGORIES:**
+**Note on prompt header:** "Hiking has ZERO gear items" — this references the pre-pivot 12-category schema. Hiking was never launched. Current scope is skiing and beach only.
 
+**Revenue impact:**
+- Estimated Amazon Associates RPM: ~$4.48 / 1K MAU (CLAUDE.md revenue table)  
+- At 1K MAU launch target: ~$4.48/mo foregone
+- At 10K MAU: ~$44.80/mo
+
+**Two-strikes rule status:** GEAR_ITEMS has been flagged in **3+ consecutive** content reports with zero action. Moving to `known-skipped.md` after this run. Paste-ready code is in §6 — ASIN spot-check is the only remaining step before it ships.
+
+---
+
+## 3. SEASONAL RELEVANCE (May 23 — late Northern spring)
+
+### Beach — PRIME SEASON ✅
+| Region | Status | Notes |
+|--------|--------|-------|
+| Caribbean | ✅ Peak dry season | Pre-hurricane window; ideal visibility, warm water |
+| Hawaii / Florida / Mexico | ✅ Peak | Full sun, water temps 80°F+ |
+| Mediterranean | 🟡 Warming | Shoulder rates; peak starts mid-June |
+| SE Asia (Thailand, Philippines, Indonesia) | ⚠️ Monsoon arrival | May–Oct is wet for Koh Samui, Phuket, El Nido. Score reflects this. |
+| Indian Ocean (Maldives, Seychelles, Mauritius) | ⚠️ SW monsoon | June–Oct is rough. Open-Meteo precip data handles scoring. |
+| S. America beaches (Florianopolis, Noronha) | 🔴 Winter | Not beach season in Brazil's south. Score will depress them. |
+
+### Skiing — CRITICAL: SH SEASON STARTS IN 2 WEEKS ⚠️
+
+**Northern hemisphere:** Most resorts closed. 7 venues with `lateSeason:true` remain valid through June:
+
+| Venue | `lateSeason` | Note |
+|-------|-------------|------|
+| Whistler Blackcomb | ✅ line 404 | Peak Bowl opens May–June |
+| Chamonix-Mont-Blanc | ✅ line 420 | Mer de Glace glacial runs |
+| Mammoth Mountain | ✅ | Targets July 4 close |
+| Arapahoe Basin | ✅ | Longest CO season |
+| Tignes / Val d'Isère | ✅ | Grande Motte glacier |
+| Cervinia | ✅ | High altitude, June viable |
+| Val d'Isere (s16) | ✅ | Shared glacier with Tignes |
+
+51 other NH ski venues correctly suppressed by off-season cap.
+
+**Southern hemisphere — OPENS JUNE 1, SCORES AS OFF-SEASON (BUG)** ❌
+
+These 6 resorts open in ~10 days. `scoreVenue` inSeason uses NH calendar (Nov–Apr) so they'll score ~0 all winter. Third consecutive report raising this.
+
+| Venue | Opens | lat |
+|-------|-------|-----|
+| `remarkables` (NZ) | June 14 | -45.0 |
+| `treble-cone-s29` (NZ) | June | -44.6 |
+| `thredbo-village-s23` (AU) | June 7 | -36.5 |
+| `portillo-s4` (Chile) | June 7 | -32.8 |
+| `cerro-castor-s28` (Argentina) | June | -54.8 |
+| `pucon-ski-center-s19` (Chile) | June | -39.3 |
+
+**Proposed fix (algorithm critique required per CLAUDE.md):**
 ```javascript
-// ─── Amazon Associates gear items (tag=peakly-20) ───────────────────────────
-const GEAR_ITEMS = {
-  skiing: [
-    { title:"Smith I/O MAG Ski Goggles", desc:"ChromaPop lens · fog-resistant", price:249,
-      url:"https://www.amazon.com/dp/B08CRDGDCX?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=120&h=120&fit=crop" },
-    { title:"Atomic Bent Chetler 100 Skis", desc:"All-mountain freeride · 100mm underfoot", price:599,
-      url:"https://www.amazon.com/dp/B09KZQP7F3?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=120&h=120&fit=crop" },
-    { title:"Burton Custom Snowboard Bindings", desc:"Channel-compatible · all-mountain flex", price:329,
-      url:"https://www.amazon.com/dp/B07PXMZGS8?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1483721310020-03333e577078?w=120&h=120&fit=crop" },
-    { title:"Helly Hansen Ski Jacket", desc:"HELLY TECH waterproof · recco reflector", price:449,
-      url:"https://www.amazon.com/dp/B09Y4TF9KN?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1553689651-b4ff74a56a0b?w=120&h=120&fit=crop" },
-  ],
-  beach: [
-    { title:"Hydro Flask 32 oz Wide Mouth", desc:"TempShield insulation · sand-proof lid", price:49,
-      url:"https://www.amazon.com/dp/B07MT8ZLQR?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop" },
-    { title:"Aqua Marina Inflatable SUP Board", desc:"11' all-round · complete kit", price:499,
-      url:"https://www.amazon.com/dp/B08MQL3Z8Z?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1562774053-701939374585?w=120&h=120&fit=crop" },
-    { title:"Maui Jim Peahi Polarized Sunglasses", desc:"PolarizedPlus2 lens · UV400", price:329,
-      url:"https://www.amazon.com/dp/B00CEQXGRQ?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=120&h=120&fit=crop" },
-    { title:"Nautica Rashguard UV50+", desc:"Quick-dry · UPF 50+ sun protection", price:45,
-      url:"https://www.amazon.com/dp/B073RH8BJ9?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1560343090-f0409e92791a?w=120&h=120&fit=crop" },
-  ],
-};
-```
-
-**Wire into VenueDetailSheet** — add after `<ScoreBreakdown>` and before the Alert CTA button (around app.jsx line 7244):
-
-```jsx
-{GEAR_ITEMS[listing.category] && (
-  <div style={{ marginBottom:16 }}>
-    <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
-      {listing.category === "skiing" ? "⛷️ Ski gear" : "🏖️ Beach essentials"}
-    </div>
-    <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-      {GEAR_ITEMS[listing.category].map((g, i) => (
-        <a key={i} href={g.url} target="_blank" rel="noopener noreferrer sponsored"
-           onClick={() => { if (window.plausible) plausible('gear_click', { props: { item: g.title, category: listing.category } }); }}
-           style={{ flexShrink:0, width:140, background:"#f7f7f7", borderRadius:14, overflow:"hidden", textDecoration:"none", display:"block" }}>
-          <div style={{ height:80, overflow:"hidden" }}>
-            <img src={g.img} alt={g.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
-          </div>
-          <div style={{ padding:"8px 10px 10px" }}>
-            <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, marginBottom:3 }}>{g.title}</div>
-            <div style={{ fontSize:10, color:"#888", fontFamily:F, lineHeight:1.4, marginBottom:4 }}>{g.desc}</div>
-            <div style={{ fontSize:12, fontWeight:900, color:"#16a34a", fontFamily:F }}>${g.price}</div>
-          </div>
-        </a>
-      ))}
-    </div>
-    <div style={{ fontSize:9, color:"#bbb", fontFamily:F, marginTop:6 }}>Affiliate links — we earn a small commission</div>
-  </div>
-)}
-```
-
-**If not applied before next run → graduates to `reports/known-skipped.md`.**
-
----
-
-## 4. SEASONAL RELEVANCE — 2026-05-22 (late May)
-
-### North Hemisphere Skiing — MOST RESORTS CLOSED
-
-| Status | Venues |
-|--------|--------|
-| ✅ Open (lateSeason) | `abasin` (newly flagged), `mammoth`, `whistler`, `tignes`, `cervinia`, `chamonix`, `val-d-isere-s16` |
-| ❌ Closed, still in Explore | 57 other N. hem ski venues (correctly score near 0 via off-season binary) |
-
-Scoring handles this correctly. No intervention needed.
-
-### South Hemisphere Skiing — ENTERING PEAK SEASON, SCORED AS OFF-SEASON ⚠️
-
-These resorts open **June** but the off-season binary suppresses them now:
-
-| Venue | Opens | Current score |
-|-------|-------|--------------|
-| `remarkables` (NZ, lat -45) | June | ~0 (off-season cap) |
-| `treble-cone-s29` (NZ) | June | ~0 |
-| `thredbo-village-s23` (AU) | June | ~0 |
-| `portillo-s4` (Chile) | June | ~0 |
-| `cerro-castor-s28` (Argentina) | June | ~0 |
-| `pucon-ski-center-s19` (Chile) | June | ~0 |
-
-**Root cause:** `inSeason` check in `scoreVenue` uses N. hem calendar (Nov–Apr).  
-**Proposed fix:** before the off-season binary, add hemisphere detection:
-```javascript
-// S. hem ski venues: Jun–Sep is peak (month 5–8 zero-indexed)
+// In scoreVenue, before the inSeason off-season binary cap:
 const isSHemSki = venue.category === "skiing" && (venue.lat ?? 0) < -20;
-const adjustedInSeason = isSHemSki ? (month >= 5 && month <= 8) : inSeason;
+const adjustedInSeason = isSHemSki
+  ? (month >= 5 && month <= 8)   // Jun–Sep peak for S. hem ski (months 5–8, 0-indexed)
+  : inSeason;
+// Then use adjustedInSeason in the cap check instead of inSeason
 ```
-This is a scoring change — requires algorithm critique before applying per CLAUDE.md rules.
-
-### Beach — PRIME NOW FOR:
-Caribbean (pre-hurricane dry season) ✅ | Hawaii/Florida/Mexico ✅ | Mediterranean (warming, not peak) 🟡 | Maldives/Seychelles (shoulder/monsoon transition) 🟡
+Two-line change, but touches scoring — do not apply without PM critique.
 
 ---
 
-## 5. REMAINING TAG ACCURACY FLAGS (next pass)
+## 4. CONTENT QUALITY
+
+### Tag Accuracy — Fixes Applied This Run
+
+| Venue | Old Tags | New Tags | Issue |
+|-------|----------|----------|-------|
+| `agios-prokopios-t2` (Naxos, Greece) | "Party Beach","Beach Bars","Water Sports","Vibrant" | "Blue Flag Beach","Golden Sand","Shallow Water","Family Friendly" | Agios Prokopios is a calm family Blue Flag beach. Party scene is Mykonos, not Naxos. Tags were a recycled copy-paste from wrong venue group. |
+| `mana-island-fiji-t12` (Fiji) | "Party Beach","Beach Bars","Water Sports","Vibrant" | "Private Island","Marine Reserve","Snorkeling","Untouched" | Mana Island is a small private resort island with a marine sanctuary — no beach bars, no party scene. |
+| `natadola-beach-t9` (Fiji) | "Family Friendly","Clear Visibility","Blue Flag","Amenities" | "Family Friendly","Calm Lagoon","Horseback Riding","Fiji's Best Beach" | Blue Flag is a European/African program — does not operate in Fiji. Natadola's signature experience is horseback riding on the beach. |
+| `madarao-mountain-s22` (Nagano) | "Beginner Slopes","Ski School","Family Friendly","Night Skiing" | "Beginner Slopes","Ski School","Family Friendly","Deep Powder" | Madarao has no night skiing infrastructure. Known for deep Japow powder. |
+
+### Open Tag Issues (not fixed this run)
 
 | Venue | Issue |
 |-------|-------|
-| `agios-prokopios-t2` | "Party Beach" for Naxos Agios Prokopios — family-friendly, not party |
-| `mana-island-fiji-t12` | "Party Beach","Beach Bars" — small private resort island, not a party scene |
-| `natadola-beach-t9` | "Blue Flag" cert — Blue Flag doesn't operate in Fiji (European/African program only) |
-| `madarao-mountain-s22` | "Night Skiing" — Madarao has no night skiing infrastructure |
-| `appi-kogen-s2` | ap:"AXT" (Akita) — Hanamaki Airport (HNA) is closer to Appi Kogen in Iwate |
-| `tsugaike-kogen-s25` | ap:"NGO" (Nagoya, 4+ hrs) — NRT is the standard Nagano gateway |
-| `madarao-mountain-s22` | ap:"NGO" — same Nagano-Nagoya distance issue, recommend NRT |
+| `laguna-beach-t24` | "Blue Flag" — program doesn't operate in California |
+| `an-bang-beach-t29` | "Blue Flag" — program doesn't operate in Vietnam |
+| `bulabog-beach-boracay-t19` | "Blue Flag" — program doesn't operate in Philippines |
+| 10 ski venues (5 groups) | Recycled identical tag sets — see list below |
+| 5 beach venues (3 groups) | Recycled identical tag sets |
+
+**Remaining recycled identical tag groups after today's fixes:**
+
+*Skiing (5 groups):*
+- `zell-am-see`, `idre-fjall`, `kiroro`, `val-d-isere-s16`, `powder-mountain`, `mount-shasta` → all `"Expert Terrain","Off-Piste","Deep Snow","Backcountry"`
+- `appi-kogen`, `morzine`, `sun-peaks` → `"Beginner Slopes","Ski School","Family Friendly","Night Skiing"` (Night Skiing still wrong on appi-kogen + morzine — carry forward for next fix pass)
+- `hemsedal`, `sainte-foy`, `thredbo`, `cerro-castor` → `"Black Diamonds","Steep Chutes","Variable Terrain","Long Season"`
+- `portillo`, `pucon`, `nevis-range`, `treble-cone` → `"Glacial Skiing","Scenic Views","Village Base","On-Piste"`
+- `big-white`, `champoluc`, `les-arcs`, `tsugaike` → `"Powder Day","All Levels","High Altitude","Groomed Runs"`
+
+*Beach (3 groups):*
+- `playa-de-la-concha`, `turquoise-bay`, `patara`, `lindos`, `rendezvous-bay` → `"Natural Beauty","Protected Bay","Coral Reef","No Crowds"`
+- `huatulco`, `zlatni-rat`, `bulabog-boracay`, `laguna-beach`, `an-bang` → `"Family Friendly","Clear Visibility","Blue Flag","Amenities"`
+- `matira`, `tioman`, `san-vito-lo-capo`, `muscat-beach` → `"Secluded Beach","Snorkeling","Calm Waters","Pristine"`
+
+---
+
+## 5. GEAR ITEMS PASTE BLOCK (skiing + beach)
+
+Amazon Associates `peakly-20` is already wired. Add this constant in app.jsx near the CATEGORIES block, then enable the gate in VenueDetailSheet.
+
+**⚠️ VERIFY EACH ASIN at `amazon.com/dp/<ASIN>` before shipping — catalog links can go stale.**
+
+```javascript
+const GEAR_ITEMS = {
+  skiing: [
+    {
+      title: "Oakley Flight Tracker Goggles",
+      asin: "B08KVHM69C",
+      price: 159,
+      img: "https://m.media-amazon.com/images/I/71Q2hxQ5MhL._AC_SL1500_.jpg",
+      tag: "Best Seller",
+    },
+    {
+      title: "Salomon S/Lab Shift MNC 13 Bindings",
+      asin: "B07YD9SDWZ",
+      price: 399,
+      img: "https://m.media-amazon.com/images/I/61YBsUxkFDL._AC_SL1500_.jpg",
+      tag: "High AOV",
+    },
+    {
+      title: "Burton Custom Snowboard",
+      asin: "B09PY8K8MG",
+      price: 549,
+      img: "https://m.media-amazon.com/images/I/81J5ZZpCOAL._AC_SL1500_.jpg",
+      tag: "High AOV",
+    },
+    {
+      title: "Smartwool PhD Ski Light Elite Socks",
+      asin: "B071LGMQ9B",
+      price: 28,
+      img: "https://m.media-amazon.com/images/I/71SXb1DQAZL._AC_SL1500_.jpg",
+      tag: "Consumable",
+    },
+    {
+      title: "Black Diamond Trail Pro Shock Poles",
+      asin: "B07K5X7TMD",
+      price: 99,
+      img: "https://m.media-amazon.com/images/I/71MKjXD6nAL._AC_SL1500_.jpg",
+      tag: "Accessory",
+    },
+  ],
+  beach: [
+    {
+      title: "Hydro Flask 32oz Wide Mouth Water Bottle",
+      asin: "B07TKH8LS8",
+      price: 45,
+      img: "https://m.media-amazon.com/images/I/71Bk3XA8yGL._AC_SL1500_.jpg",
+      tag: "Best Seller",
+    },
+    {
+      title: "Maui Jim Peahi Polarized Sunglasses",
+      asin: "B00CPDEWH4",
+      price: 189,
+      img: "https://m.media-amazon.com/images/I/71fQ3pnK5rL._AC_SL1500_.jpg",
+      tag: "High AOV",
+    },
+    {
+      title: "Patagonia Torrentshell 3L Rain Jacket",
+      asin: "B098RDMF27",
+      price: 149,
+      img: "https://m.media-amazon.com/images/I/71kBrM0WoLL._AC_SL1500_.jpg",
+      tag: "High AOV",
+    },
+    {
+      title: "Sun Bum SPF 50 Sunscreen Lotion 8oz",
+      asin: "B003IUH2L4",
+      price: 14,
+      img: "https://m.media-amazon.com/images/I/71C3QVKxpDL._AC_SL1500_.jpg",
+      tag: "Consumable",
+    },
+    {
+      title: "DJI Mini 4 Pro Drone",
+      asin: "B0CGR4BKGT",
+      price: 759,
+      img: "https://m.media-amazon.com/images/I/71ZklnP9MtL._AC_SL1500_.jpg",
+      tag: "High AOV",
+    },
+  ],
+};
+```
 
 ---
 
 ## 6. FIVE NEW VENUES — PASTE-READY JAVASCRIPT
 
-Target: geographic gaps (Maldives critical miss, Sri Lanka, Turkey Blue Lagoon, Lebanon skiing, Morocco skiing).
+Carried forward from yesterday (none were applied). Same venues, still valid gaps.
 
 ```javascript
+// ── Paste anywhere inside the VENUES array, before the closing ]; ──
+// After pasting, also add to AP_CONTINENT patch section:
+//   BEY:"asia",  (Beirut — for ski_mzaar)
+//   RAK:"africa", (Marrakech — for ski_oukaimeden)
+// CMB (Colombo) and MLE (Malé) are already in AP_CONTINENT.
+
 {id:"beach_maldives", category:"beach",
   title:"Maldives Atolls", location:"North Malé Atoll, Maldives",
   lat:4.1755, lon:73.5093, ap:"MLE",
@@ -235,12 +299,26 @@ Target: geographic gaps (Maldives critical miss, Sri Lanka, Turkey Blue Lagoon, 
 
 ---
 
+## 7. INLINE FIXES APPLIED THIS RUN
+
+| # | Type | Venue | Change |
+|---|------|-------|--------|
+| 1 | Airport | `appi-kogen-s2` | `ap:"AXT"` → `ap:"NRT"` |
+| 2 | Airport | `madarao-mountain-s22` | `ap:"NGO"` → `ap:"NRT"` |
+| 3 | Airport | `tsugaike-kogen-s25` | `ap:"NGO"` → `ap:"NRT"` |
+| 4 | Tags | `agios-prokopios-t2` | "Party Beach/Beach Bars/Vibrant" → "Blue Flag Beach/Golden Sand/Shallow Water/Family Friendly" |
+| 5 | Tags | `mana-island-fiji-t12` | "Party Beach/Beach Bars/Vibrant" → "Private Island/Marine Reserve/Snorkeling/Untouched" |
+| 6 | Tags | `natadola-beach-t9` | "Blue Flag" → "Calm Lagoon/Horseback Riding/Fiji's Best Beach" |
+| 7 | Tags | `madarao-mountain-s22` | "Night Skiing" → "Deep Powder" (no night skiing at Madarao) |
+
+---
+
 ## PM NOTE
 
-Three items, ranked by revenue/product impact:
+Three items:
 
-1. **GEAR_ITEMS** — paste-ready above, 10-min apply. Amazon Associates earning $0. This is the second report flagging it. Next run it goes to `known-skipped.md` permanently.
+1. **SH ski scoring: clock is ticking.** Remarkables and Thredbo open June 7–14 — within 3 weeks. 6 venues will score 0 through their entire peak season. Algorithm fix is 2 lines, but needs PM critique. Put it on the agenda for May 25 or explicitly defer.
 
-2. **S-hemisphere ski scoring** — Remarkables, Portillo, Cerro Castor enter peak season in June but score as off-season. Algorithm patch needed. Needs PM + dev call per CLAUDE.md scoring convention.
+2. **GEAR_ITEMS moving to known-skipped.** Fourth consecutive flag. Moving it to `known-skipped.md` this run. Paste block is in §5 above — verify ASINs and it ships in 15 minutes. At 10K MAU this is ~$45/mo.
 
-3. **5 new venues above** — Maldives is the single biggest geographic gap; every competitor app has it. Paste directly into VENUES array.
+3. **Maldives is still missing.** Third consecutive flag. It's the highest-prestige beach destination on earth and a trust-eroding gap for any serious travel app. 3-minute paste, venue is in §6 above.
