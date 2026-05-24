@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260522a";
+const PEAKLY_BUILD = "20260524a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -250,6 +250,40 @@ const CATEGORIES = [
   { id:"skiing",  label:"Skiing" },
   { id:"beach", label:"Beach" },
 ];
+
+// ─── Amazon Associates gear items (tag=peakly-20) ────────────────────────────
+// Gate: GEAR_ITEMS[listing.category] — renders in VenueDetailSheet only when
+// category has items. Lost in 2026-05-09 history scrub; restored 2026-05-24.
+const GEAR_ITEMS = {
+  skiing: [
+    { title:"Smith I/O MAG Ski Goggles", desc:"ChromaPop lens · fog-resistant", price:249,
+      url:"https://www.amazon.com/dp/B08CRDGDCX?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=120&h=120&fit=crop" },
+    { title:"Atomic Bent Chetler 100 Skis", desc:"All-mountain freeride · 100mm underfoot", price:599,
+      url:"https://www.amazon.com/dp/B09KZQP7F3?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=120&h=120&fit=crop" },
+    { title:"Burton Custom Snowboard Bindings", desc:"Channel-compatible · all-mountain flex", price:329,
+      url:"https://www.amazon.com/dp/B07PXMZGS8?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1483721310020-03333e577078?w=120&h=120&fit=crop" },
+    { title:"Helly Hansen Ski Jacket", desc:"HELLY TECH waterproof · recco reflector", price:449,
+      url:"https://www.amazon.com/dp/B09Y4TF9KN?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1553689651-b4ff74a56a0b?w=120&h=120&fit=crop" },
+  ],
+  beach: [
+    { title:"Hydro Flask 32 oz Wide Mouth", desc:"TempShield insulation · sand-proof lid", price:49,
+      url:"https://www.amazon.com/dp/B07MT8ZLQR?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop" },
+    { title:"Aqua Marina Inflatable SUP Board", desc:"11' all-round · complete kit", price:499,
+      url:"https://www.amazon.com/dp/B08MQL3Z8Z?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1562774053-701939374585?w=120&h=120&fit=crop" },
+    { title:"Maui Jim Peahi Polarized Sunglasses", desc:"PolarizedPlus2 lens · UV400", price:329,
+      url:"https://www.amazon.com/dp/B00CEQXGRQ?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=120&h=120&fit=crop" },
+    { title:"Nautica Rashguard UV50+", desc:"Quick-dry · UPF 50+ sun protection", price:45,
+      url:"https://www.amazon.com/dp/B073RH8BJ9?tag=peakly-20",
+      img:"https://images.unsplash.com/photo-1560343090-f0409e92791a?w=120&h=120&fit=crop" },
+  ],
+};
 
 // ─── continents for filtering ─────────────────────────────────────────────────
 const CONTINENTS = [
@@ -7294,6 +7328,30 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             </div>
           )}
+        {/* ─── Gear picks (Amazon Associates) ────────────────────────────── */}
+        {GEAR_ITEMS[listing.category] && (
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
+              Gear for your trip
+            </div>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+              {GEAR_ITEMS[listing.category].map((item, i) => (
+                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer sponsored"
+                  onClick={() => logEvent('gear_click', { venue: listing.title, category: listing.category, item: item.title })}
+                  style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, textDecoration:"none", overflow:"hidden", display:"block" }}>
+                  <div style={{ height:80, overflow:"hidden", borderRadius:"14px 14px 0 0", background:"#eee" }}>
+                    <img src={item.img} alt={item.title} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                  </div>
+                  <div style={{ padding:"7px 9px 9px" }}>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.title}</div>
+                    <div style={{ fontSize:9, color:"#888", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{item.desc}</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#0284c7", fontFamily:F, marginTop:4 }}>${item.price}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
         </div>{/* end scrollRef */}
         {/* ─── Sticky CTA bar ─────────────────────────────────────── */}
