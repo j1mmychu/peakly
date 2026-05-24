@@ -1,112 +1,96 @@
-# Peakly PM Report — 2026-05-24 (Memorial Day Saturday)
+# Peakly PM Report — 2026-05-23 (v38)
 
 > Latest report. Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
 
-**Status: 🔴 RED — Reddit window is open RIGHT NOW. Two P0s unshipped. VPS status unknown.**
-
-Today is the day. The May 22 report set a binary gate: VPS verified by Friday noon → post Saturday morning. Saturday morning is here. This report assesses where things actually stand.
-
----
-
-## Shipped Since Last Report (May 22)
-
-**Nothing shipped.** Zero code commits since `43f2466` (May 22 PM report). The following were explicitly called out as "ships today in code session" on May 22 — none landed:
-
-| Item | Status | Days Open |
-|------|--------|-----------|
-| GEAR_ITEMS const + wire into VenueDetailSheet | ❌ Not in app.jsx at all | 11 days |
-| val-d-isere-s16 deletion | ❌ Still live at app.jsx:530 | 12 days |
-| outer-banks-nags-head-t7 ap: OAJ → ORF | ❌ Still OAJ at app.jsx:548 | Day 3 |
-| Seasonal ski empty-state copy | ❌ Not confirmed | Unknown |
-| VPS proxy redeploy | ❌ Jack-only — status unknown | 20 days |
-| Reddit post | ❌ Status unknown | — |
+**Status: ORANGE → RED if VPS doesn't ship today.**
+Reddit post is 24 hours out. The pre-launch code block from May 22 didn't ship. VPS is Day 19. If those two items don't close today, posting tomorrow means launching with broken deal scores, $0 Amazon revenue, and a stale venue duplicate. That's a one-shot subreddit post wasted.
 
 ---
 
-## Blocked
+## Shipped Since Last Report (2026-05-22 → 2026-05-23)
 
-| Blocker | What it stops | Owner |
-|---------|---------------|-------|
-| VPS SSH (3 commands, 10 min) | Weekend pricing + proxy cache + Reddit launch | **Jack** |
-| GEAR_ITEMS code paste (~45 min) | Amazon Associates earning $0 | AI code session |
-| val-d-isere-s16 one-line delete | Duplicate venue + stale alerts template | AI code session |
-| outer-banks OAJ → ORF one-field fix | Broken flight pricing for OBX | AI code session |
-| LLC approval | REI + Backcountry + GetYourGuide affiliate links | Jack |
-| Apple Dev Console ($99 + APNS keys) | Strike alerts on iOS | Jack |
+| What | Commit | Right call? |
+|------|--------|-------------|
+| Cache buster `20260513j` → `20260522a` | DevOps agent, 16fec21 | ✅ Critical — 9 days stale, users were seeing the old front-page and the profile crash bug |
+| Content data fixes | 1aa1148 | ✅ Correct — data accuracy matters more pre-Reddit than post |
+| PM report (May 22) | 43f2466 | ✅ |
+
+**Zero Jack commits since May 22.** The code-agent task block from the May 22 PM report — GEAR_ITEMS, val-d-isere-s16 delete, outer-banks OAJ→ORF, seasonal ski copy — is unshipped. These were called "ships today." They didn't. Today is the last day before the Reddit post window.
 
 ---
 
 ## Bug Triage
 
-### Peakly Pro price discrepancy ($9/mo vs $79/yr)
-**Severity: IRRELEVANT.** Pro UI was removed April 2026. `PEAKLY_PRO` is not referenced anywhere in app.jsx. If `$9/mo` is appearing, it's a CDN cache artifact from a stale service worker serving old code — a hard-refresh clears it. Not a P0. Not a P1. Not on the board.
-
-### Sentry DSN empty
-**False alarm.** DSN is present and non-empty at app.jsx:8. Error monitoring is live. ✅
-
-### Cache buster stale
-**False alarm.** `PEAKLY_BUILD = "20260522a"` synced across app.jsx, sw.js, index.html. Aligned. DevOps agent fixed May 22. ✅
-
-### GEAR_ITEMS — Amazon earning $0
-**Severity: P0.** `GEAR_ITEMS` constant doesn't exist in app.jsx. Not defined, not wired. Amazon Associates earns $0. Revenue model table claims `$4.48/1K MAU` — that's a lie until this lands. At 5K post-Reddit this is $22/month leaving on the table. Paste-ready code sitting in `reports/content-report.md §2` since May 15. Eleven days.
-
-### VPS proxy — Open-Meteo rate limit at 43 DAU
-**Severity: P0.** Weather cache proxy not running. 148 venues × ~1.5 Open-Meteo calls per user = ~222 calls/user. Free tier: 10,000/day. Break-even: **45 concurrent users**. Reddit sends 200+ in hour 1. Every venue scores 0 past that ceiling. Users see blank cards. The app looks broken. This has been open 20 days.
+| Bug | Severity | Status | Days Open |
+|-----|----------|--------|-----------|
+| **VPS proxy not deployed** — weekend pricing + weather cache dead in prod | **P0** | ❌ | **19** |
+| **GEAR_ITEMS missing** — Amazon Associates = $0 active earnings despite "LIVE" in revenue table | **P1** | ❌ | 19+ |
+| **val-d-isere-s16 duplicate** — same location as tignes, approved delete May 13 | **P2** | ❌ | 10 |
+| **outer-banks-nags-head-t7 ap:"OAJ"** — wrong IATA, flight pricing broken | **P2** | ❌ | 10 |
+| **val-d-isere-s16 in Quick Templates** (line 5192) | **P2** | ❌ | 10 |
+| **Plausible domain validation** — untested, unknown if events fire correctly pre-Reddit | **P1** | ❌ | First flagged May 22 |
+| Cache buster stale | ~~P0~~ | ✅ CLOSED (May 22) | — |
+| Sentry DSN empty | ~~P0~~ | ✅ CLOSED | — |
+| Peakly Pro $9/mo | ~~P1~~ | ✅ CLOSED (Pro CUT) | — |
+| APNS gate on iOS | ~~P0~~ | ✅ CLOSED (`showAlertsTab` at :8158) | — |
+| pigeon-point-t27 duplicate | ~~P2~~ | ✅ CLOSED (deleted) | — |
+| abasin lateSeason:true | ~~P1~~ | ✅ CLOSED | — |
+| SEO meta surf/adventure strings | ~~P1~~ | ✅ CLOSED | — |
 
 ---
 
-## Known Blockers
+## Explicit Product Decisions — May 23
 
-### LLC approval
-Unblocks REI (18 links, +$6.16/1K MAU), Backcountry, GetYourGuide. Jack action. **Revenue ceiling is $11.98/1K MAU until resolved.** Not launch-blocking.
+**Decision 1: GEAR_ITEMS — SHIP TODAY. This is not a decision, it's a bug.**
 
-### Venue deep links
-Deferred post-Reddit. Correct call. ✅
+Amazon Associates is listed "LIVE at $4.48/1K MAU" in the revenue table. It is earning $0. The gear gate was flipped May 4 (a9aacf5) but the `GEAR_ITEMS` constant itself is absent from app.jsx (`grep GEAR_ITEMS app.jsx` returns nothing). Restore the object from git history around a9aacf5 and ship it in today's commit. No redesign, no new items — exact restore. If code agent can't close this today: strike Amazon Associates from "LIVE" in CLAUDE.md. The shared brain cannot lie.
 
-### JSON-LD structured data
-**Already live.** `index.html:34–59` has valid JSON-LD schema (WebSite + WebApplication + Organization). SEO concern closed. ✅
+**Decision 2: val-d-isere-s16 — DELETE TODAY. Decision is 10 days old.**
 
-### Static h1 fallback
-**Already live.** `index.html:391`. SEO concern closed. ✅
+PM approved this delete on May 13. The venue is still in app.jsx (line 530) and referenced in Quick Templates (line 5192 → change to `"tignes"`). Tignes (id:"tignes") covers the same terrain, better ratings, more reviews. One line delete + one reference update. Goes in the same commit as GEAR_ITEMS. This is not open for re-debate.
+
+**Decision 3: Reddit post May 24 — CONDITIONAL GO.**
+
+The Memorial Day weekend ski-tail window is real. Miss it and the next natural hook is June 1 (beach season). But the GO requires all three of:
+1. VPS health check shows `{"weather_cache":...}` 
+2. GEAR_ITEMS in app.jsx
+3. Plausible fires for incognito visit at `j1mmychu.github.io/peakly`
+
+If any one of these fails by Friday evening: post June 1. No exceptions. A broken product launch on Reddit does more damage than a 1-week slip — the community memory is longer than the algorithm window.
+
+---
+
+## Blocked
+
+| Item | Blocker | Who |
+|------|---------|-----|
+| VPS redeploy | Jack SSH — 90 seconds, 1 command | Jack only |
+| Reddit post | VPS verified + GEAR_ITEMS shipped + Plausible validated | Jack + code agent |
+| REI affiliate (18 links) | LLC approval | External |
+| Backcountry, GetYourGuide | LLC approval | External |
+| APNS / push delivery | Deferred to v1.1 | — |
+| peakly.app domain | Registration pending | External |
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-### 1. VPS proxy — Jack SSH today (10 min)
+**1. Code agent: commit block today (~45 min)**
+- Restore GEAR_ITEMS constant to app.jsx (from git a9aacf5 area)
+- Delete val-d-isere-s16 from VENUES array (line 530)
+- Update Quick Templates ref line 5192: `"val-d-isere-s16"` → `"tignes"`
+- Fix outer-banks-nags-head-t7 `ap:"OAJ"` → `ap:"ORF"`
+- Cache bump `20260522a` → `20260523a` across app.jsx, sw.js, index.html
+
+**2. Jack: Plausible validation (5 min — do this before anything else)**
+Open `https://j1mmychu.github.io/peakly/` incognito → click 3–4 venues → check Plausible realtime dashboard. If events register: ✅ proceed. If nothing shows: `data-domain` in index.html needs to match the exact string in Plausible site config. Fix before the Reddit post or day-1 traffic data is worthless. 5 minutes. No excuse not to.
+
+**3. Jack: VPS SSH (90 seconds — binary gate for the Reddit post)**
 ```bash
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy && curl localhost:3001/health | head -3"
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy"
+curl https://peakly-api.duckdns.org/health
 ```
-If this isn't done before posting to Reddit, the live site breaks at 45 concurrent users. First "app is broken" comment kills the thread. Jack only. No workaround.
-
-### 2. GEAR_ITEMS + val-d-isere-s16 + OAJ→ORF — one code session (45 min)
-Three items. One commit. Zero design decisions required. Paste-ready code in `reports/content-report.md §2`. Cache bump: `20260522a` → `20260524a`. Amazon earns $0 until this lands.
-
-### 3. Reddit post — today or Sunday morning (VPS gate applies)
-**Today is Memorial Day weekend Saturday.** This is the optimal ski-tail × beach overlap window for 2026.
-- r/skiing (3.2M members)
-- r/solotravel (3.4M members)
-- r/frugaltravel (1.9M members)
-
-Post format: story-first, first-person. "I got tired of opening OnTheSnow and Google Flights separately every Thursday wondering if it's worth booking..." → screenshot of a firing beach or ski venue with deal price → link. Jack writes this — it needs his voice.
-
-**If VPS not done by 11am PST today → post moves to Sunday morning.** Still Memorial Day weekend. Acceptable. Does NOT move to June 5. Waiting 10 days loses the ski-tail angle entirely.
-
----
-
-## Explicit Product Decisions — May 24
-
-**Decision 1: GEAR_ITEMS does NOT graduate to known-skipped.md.**
-
-Content agent policy says "third flag → known-skipped." That policy exists to stop debated features from clogging the queue. It doesn't apply to "here is the exact code, paste it in." GEAR_ITEMS is a revenue item with paste-ready code that unlocks ~$22/mo at 5K MAU. Graduating it to known-skipped because a human didn't run a code session is a process failure masquerading as a product decision.
-
-**VERDICT: GEAR_ITEMS stays P0 until it ships. No graduation. Apply in the next code session.**
-
-**Decision 2: val-d-isere-s16 deletion ships in the next code session. Also replace `"val-d-isere-s16"` in the Alerts Quick Template draft (app.jsx:5192) with `"tignes"`. Twelve days. Done.**
-
-**Decision 3: S-hemisphere ski scoring fix — DEFER to June 3.**
-
-Six S-hem venues (Remarkables, Portillo, Thredbo, Cerro Castor, etc.) open in June but score ~0 due to N-hem calendar logic. The fix is right, the timing is right (opens June 1–15), but per CLAUDE.md, scoring changes require an algorithm critique. **Scheduled for June 3 code session** — 2 weeks before peak S-hem season. If not done by June 3, escalate to P0.
+Must return a JSON object with `weather_cache` key. Day 19. No new features touch this — it's 1 command. If this slips again, we post June 1.
 
 ---
 
@@ -114,72 +98,61 @@ Six S-hem venues (Remarkables, Portillo, Thredbo, Cerro Castor, etc.) open in Ju
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| New venues (Maldives, Mirissa, Ölüdeniz, Mzaar, Oukaimeden) | **DEFER post-Reddit** | 148 venues sufficient for launch. Adding pre-Reddit risks new data bugs mid-smoke. |
-| SRI hashes on CDN scripts | **DEFER** | Zero user-facing value. Post-launch hardening. |
-| CSP meta tag | **DEFER** | Same. |
-| Eager Supabase deletion | **DEFER** | TTI matters at 100K users. Not at 148 DAU. |
-| Tag accuracy fixes (agios-prokopios, mana-island, madarao, etc.) | **DEFER to June** | Not launch-blocking. Not why anyone bounces. |
-| APNS .p8 key setup | **DEFER** | Capacitor gate hides Alerts tab on iOS. Not web-launch-blocking. |
-| Wishlists/Trips tab reveal | **CUT to 1K MAU** | Hard lock. |
-| Peakly Pro | **CUT for v1** | Confirmed dead five times. Not on the board until 1K MAU. |
-| Hotels in deal score | **CUT to v2** | Sixth rejection. Removing from future decision tables permanently. |
-| Airport IATA fixes (AXT→HNA, NGO→NRT for JP resorts) | **DEFER to June** | Not launch-blocking. |
+| Any new app.jsx feature | **HARD BLOCK** | Feature freeze until 100 Plausible users analyzed post-Reddit |
+| Venue count expansion | **DEFER post-Reddit** | 148 clean venues > 160 with data bugs |
+| S. hemisphere ski venues | **DEFER post-Reddit** | June timing is correct — not before the post |
+| Maldives beach venue | **DEFER** | Right idea, wrong week |
+| MapView improvements | **DEFER post-launch** | Gate first, validate later |
+| SRI hashes on CDN scripts | **DEFER 2 weeks** | Not user-facing. Do after launch stabilizes |
+| CSP meta tag | **DEFER 2 weeks** | Same reason |
+| Alert persistence (Supabase) | **DEFER v2** | In-memory is fine at current scale |
+| Wishlists / Trips tab reveal | **DEFER** | Hard lock at 1K MAU |
+| Venue descriptions | **DEFER** | Content sprint post-Reddit when feedback tells you what to say |
+| Hotels in deal score | **CUT v2** | Dead five times. Gone from future reports |
+
+---
+
+## Pre-Launch Checklist — May 23
+
+1. ✅ SEO meta — zero "surf"/"adventure" strings
+2. ✅ APNS gate — `showAlertsTab` at app.jsx:8158
+3. ✅ Cache buster — `20260522a` aligned across 3 files
+4. ✅ pigeon-point-t27 + sarakiniko-beach-t16 deleted
+5. ✅ abasin lateSeason:true
+6. ❌ **GEAR_ITEMS** — code agent ships today → `20260523a`
+7. ❌ **val-d-isere-s16 deleted** — code agent ships today
+8. ❌ **outer-banks ap OAJ → ORF** — code agent ships today
+9. ❌ **VPS proxy verified** — Jack SSH. Binary gate.
+10. ❌ **Plausible validation** — Jack incognito test. 5 minutes.
+11. ❌ **Reddit post written** — Jack's voice. Saturday 9–11am PST. Story-first. Screenshot of real firing venue.
+
+Items 6–8: one code commit, ~45 min. Items 9–11: Jack only.
 
 ---
 
 ## Success Criteria
 
-**Today's binary:**
-
-| Scenario | 90-day projection |
-|----------|------------------|
-| VPS verified + Reddit today | **8K ceiling** |
-| VPS verified + Reddit Sunday | **7K ceiling** |
-| Reddit without VPS | **Catastrophic. Don't.** |
-| No Reddit this weekend | **6K ceiling** (June beach-only, ski angle gone) |
+**Metrics that define success:**
+- Week 1: ≥500 Plausible unique visitors, median ≥1 pageview/session
+- Week 2: ≥2% wishlist save rate (signals intent to return)
+- Month 1: ≥50 returning visitors (second visit within 30 days)
+- 90 days: 5K–8K unique visitors
 
 **What has to be true for 8K, not 5K:**
+- Reddit post goes up this Saturday (May 24) — Memorial Day ski tail + early beach-season overlap
+- Post has a real screenshot of a "Firing this weekend" venue with a live flight price (not an estimate `~$X`)
+- VPS is live so deal scores are backed by actual weekend fares
+- Cross-post r/skiing + r/solotravel same day (not sequential — same-day engagement drives the algo)
+- Plausible data is correct from minute one
 
-| Metric | 5K path | 8K path |
-|--------|---------|---------|
-| Reddit upvotes day 1 | 100–200 | 400+ |
-| Plausible DAU week 2 | 40–60 | 120+ |
-| Bounce rate on Explore scroll | <65% | <50% |
-| Alert set rate | >3% of visitors | >5% |
-| Return visit rate (week 2) | >12% | >20% |
-
-The 8K path requires the Reddit post to hit r/skiing AND r/frugaltravel in the same weekend. One subreddit without the other is the 5K path.
-
-**Plausible validation — do before posting:** Open `https://j1mmychu.github.io/peakly/` incognito, click around, check Plausible realtime. If nothing registers, the `data-domain` attribute (index.html:32) needs to match your Plausible dashboard config exactly. 5 minutes. Non-negotiable before going live.
+**What narrows to 4K:** posting June 1+, posting with estimate prices, posting without a ski hook, sequential cross-posting.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The ski category looks broken on Memorial Day weekend — and no copy explains why.**
+**The 6hr default flight filter will show new users with no home airport a near-empty Explore grid.**
 
-148 venues are live. ~11 N-hem ski venues score ~0 correctly (off-season binary). 6 S-hem ski venues score ~0 incorrectly (hemisphere bug, deferred to June 3). On a Saturday in late May from a New York IP, a user opens the app, filters to Skiing, and sees almost nothing. No explanation. The app looks broken — not seasonal.
+On first load with no stored airport and failed geolocation, `maxFlightHrs: 6` is active. From a data center IP (which Reddit users frequently hit via VPN or mobile carrier), this could produce 2–4 visible venues instead of 8+. A Reddit commenter clicks the link, sees "Not much firing this weekend" — and that becomes the comment thread. "Tried it, only showed me 2 places." Brutal first impression on launch day.
 
-The copy fix is one sentence in the skiing empty state: **"Ski season is winding down in the Northern Hemisphere — check back in November, or explore beach deals now."** This is the difference between a Reddit comment that says "app is broken" and a comment that says "ah, makes sense."
-
-The ski angle is the Memorial Day hook in the copy ("final powder days vs. first beach days"). If users can't find ski results, that hook dies on impact. Either fix the empty-state copy before the post, or strip ski from the Reddit narrative and go pure beach. Don't do both — pick one.
-
----
-
-## Pre-Reddit Checklist (Current State)
-
-1. ✅ SEO meta — no surf/adventure strings
-2. ✅ APNS Capacitor gate — `showAlertsTab` wired
-3. ✅ Cache buster — `20260522a` across all 3 files
-4. ✅ Sentry DSN — configured
-5. ✅ JSON-LD structured data — live in index.html
-6. ✅ h1 fallback — live in index.html
-7. ❌ **GEAR_ITEMS** — not in app.jsx (AI code session)
-8. ❌ **val-d-isere-s16 deleted** — still at app.jsx:530 (AI code session)
-9. ❌ **outer-banks ap OAJ → ORF** — still wrong at app.jsx:548 (AI code session)
-10. ❌ **Ski empty-state copy** — "Season winding down" explanation (AI code session)
-11. ❌ **VPS proxy redeployed** — Jack SSH (status unknown)
-12. ❌ **Plausible realtime validated** — Jack incognito test
-13. ❌ **Reddit post** — Jack's voice, 9–11am PST today or Sunday
-
-Items 7–10 = one code session, ~50 min. Items 11–13 = Jack only.
+**The fix (20 minutes, ships in today's commit block):** If `homeAirport` is null AND geolocation hasn't returned yet, set `maxFlightHrs: null` (show all venues). The 6hr default only kicks in once a home airport is confirmed. This is one conditional check — worth doing before 500 people see the app for the first time.
