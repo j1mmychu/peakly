@@ -1,8 +1,183 @@
-# Peakly PM Report — 2026-05-27 (v40)
+# Peakly PM Report — 2026-05-28 (v41)
 
-> Latest report. Supersedes v39 (May 26). Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
+> Latest report. Supersedes v40 (May 27). Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
 
-**Status: ORANGE → YELLOW. GEAR_ITEMS live today — Amazon now earning. Cache buster fixed. 153 venues. VPS Day 23 (Jack-only gate). val-d-isere-s16 + outer-banks OAJ: FINAL FLAG — ships by May 29 or known-skipped. June 7 launch.**
+**Status: YELLOW. Code is in the best shape it's been. Three P1 code fixes remain (val-d-isere-s16, outer-banks OAJ, BookingConfirmSheet on flights). VPS is Day 24 — it is the only thing between a good Reddit launch and a catastrophic one. June 7 is the date.**
+
+---
+
+## Shipped Since Last Report (2026-05-27 → 2026-05-28)
+
+| What | Verdict |
+|------|---------|
+| **Cache buster 20260527a → 20260528a** (DevOps) | ✅ Daily reset. Clean. |
+| **Supabase 2.106.0 → 2.106.2** (DevOps) | ✅ 2-patch maintenance bump. |
+| **Babel 7.29.4 → 7.29.7** (DevOps) | ✅ JSX parse correctness fixes. |
+
+### Content Agent Report — Flagged as Inaccurate
+
+Today's content report scored GEAR_ITEMS as absent (−14 pts) and reported 148 venues. Both are wrong.
+
+**Code verification (2026-05-28 app.jsx):**
+- `GEAR_ITEMS` is defined at app.jsx:257 with 4 skiing items + 4 beach items. Amazon Associates `tag=peakly-20` present. Gate renders in VenueDetailSheet at lines 7321 and 7398. ✅
+- Venue count: 153 (5 added in May 27 content commit: beach_maldives, beach_mirissa, beach_oludeniz, ski_mzaar, ski_oukaimeden). ✅
+
+The content agent is analyzing stale code or a cached version. Its GEAR_ITEMS finding is a false positive. If GEAR_ITEMS is flagged a 4th time without code basis, it moves to known-skipped.
+
+---
+
+## Active Bug Triage — May 28
+
+| Bug | Severity | Days Open | Action |
+|-----|----------|-----------|--------|
+| **VPS proxy not redeployed** — weather cache + weekend pricing dead | **P0** | **Day 24** | Jack only. SSH command below. Binary gate for June 7. Open-Meteo breaks at 44 DAU. Reddit sends 200+/hr in hour 1. |
+| **SafetyWing CTA not in app.jsx** | **P0** | **Day 3** | Binary: ships in May 29 commit OR removed from Revenue Model same day. No half-states. |
+| **val-d-isere-s16 still in VENUES** | **P1** | **Day 15 — FINAL FLAG #2** | app.jsx:566. Delete line. Update line 5266: `"val-d-isere-s16"` → `"tignes"`. Next report = known-skipped. |
+| **outer-banks-nags-head-t7 ap:"OAJ"** | **P1** | **Day 15 — FINAL FLAG #2** | app.jsx:584. `"OAJ"` → `"ORF"`. Next report = known-skipped. |
+| **BookingConfirmSheet on flights** | **P1** | **Day 17** | app.jsx:7435. Remove `setBookConfirm` for Aviasales. Open URL directly. Keep modal on Booking.com hotel only. Ships May 29. |
+| **Bora Bora airport inconsistency** | **P2** | **Day 1** | `borabora` uses PPT, `matira-beach-t6` uses BOB. Standardize both to PPT (intercontinental gateway). May 29 commit. |
+| **Seasonal ski empty state** | **P2** | **Day 14** | Not a June 7 gate (N-hem users default to beach). Post-launch fix. |
+| **DevOps/Content buster race condition** | **P2** | **Recurring** | Reschedule DevOps cron 14:00 → 17:45. One cron edit. Structural fix. |
+
+**VPS SSH command (3 minutes, copy-paste):**
+```bash
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && curl localhost:3001/health"
+```
+Expected `/health` response includes `weather_cache`, `poll_stats`, `apns_configured`. If those keys are missing, old binary is still running — check `pm2 list`.
+
+---
+
+## Revenue Model — May 28 Code-Verified
+
+| Stream | Code Status | RPM |
+|--------|-------------|-----|
+| Booking.com (`aid=2311236`) | ✅ app.jsx:7450 | $6.90 |
+| Amazon Associates (`peakly-20`) | ✅ app.jsx:257 `GEAR_ITEMS` live | $4.48 |
+| Travelpayouts (`TP_MARKER=710303`) | ✅ app.jsx:1962 | $0.14 |
+| SafetyWing (`referenceID=peakly`) | ❌ NOT in app.jsx | $0 |
+| REI (Avantlink) | LLC pending | $0 |
+| Backcountry / GetYourGuide | LLC pending | $0 |
+
+**Actual live RPM: $11.52/1K MAU.** SafetyWing ships tomorrow or the table drops it.
+
+---
+
+## Explicit Product Decisions — May 28
+
+**Decision 1: June 7. Final. No slip.**
+
+Beach-season hook is the right angle. N-hemisphere `seasonalDefaultCat` returns "beach" in May–August — users open on the correct tab automatically. June 7–8 is prime beach post window before summer competition peaks (r/travel and r/solotravel get flooded July 4 week). r/frugaltravel → r/solotravel → r/travel. 9–11am PST. Jack writes it. Not agent-drafted copy.
+
+Code-complete deadline: June 4 EOD. VPS verified: June 4 noon PST. If VPS isn't verified by noon June 4, post slips to June 14. Binary. No extensions.
+
+---
+
+**Decision 2: SafetyWing — ships May 29 or removed from revenue table same day.**
+
+Third report in a row with SafetyWing LIVE in CLAUDE.md and $0 in code. One anchor tag in VenueDetailSheet near Booking.com. Link: `https://safetywing.com/?referenceID=peakly`. Label: "Travel Insurance — SafetyWing". If the May 29 commit doesn't include it, CLAUDE.md Revenue Model removes it that same day. No more half-states.
+
+---
+
+**Decision 3: BookingConfirmSheet removed from flight CTA. Ships May 29.**
+
+17 days since the decision. The confirm modal fires when a user taps "Book Flights" on Aviasales — the highest-intent action in the app. Removing the friction here has zero downside and converts that intent directly to clicks. Booking.com (hotel) keeps the modal — larger purchase decision. Aviasales: direct open. One code change, ships May 29.
+
+---
+
+## This Week's Top 3 Priorities Only
+
+**1. May 29 code commit.** SafetyWing CTA + BookingConfirmSheet flight removal + val-d-isere-s16 delete + outer-banks OAJ→ORF + Bora Bora PPT alignment. Cache bump 20260528a → 20260529a. After this commit, code checklist is 100% green.
+
+**2. Jack: VPS SSH by June 4 noon.** Day 24. Without it: 44 DAU trips the rate limit, Explore shows an empty grid, the Reddit post fails in hour 1. Three minutes of SSH.
+
+**3. Jack: Plausible validation + smoke test by June 5.** Incognito → browse → Plausible realtime → confirm events fire. Then: JFK → venue → ScoreBreakdown → "Book Flights" (confirm no modal after May 29 commit). 15 minutes. Don't post Saturday without this.
+
+---
+
+## Pre-Launch Checklist — June 7 Gate
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | SEO meta clean | ✅ |
+| 2 | APNS Capacitor gate | ✅ app.jsx:8158 |
+| 3 | Duplicate venues deleted | ✅ |
+| 4 | abasin lateSeason:true | ✅ |
+| 5 | GEAR_ITEMS live | ✅ app.jsx:257 |
+| 6 | Cache buster 20260528a | ✅ |
+| 7 | Seasonal default "beach" N-hem | ✅ app.jsx:2150 |
+| 8 | S-hemisphere ski scoring correct | ✅ scoreVenue:1224 |
+| 9 | **SafetyWing CTA** | ❌ May 29 or removed |
+| 10 | **val-d-isere-s16 deleted** | ❌ May 29. FINAL FLAG #2. |
+| 11 | **outer-banks ap OAJ → ORF** | ❌ May 29. FINAL FLAG #2. |
+| 12 | **BookingConfirmSheet removed from flights** | ❌ May 29 |
+| 13 | **Bora Bora PPT alignment** | ❌ May 29 |
+| 14 | **VPS proxy verified** | ❌ Jack, June 4 noon |
+| 15 | **Plausible domain validated** | ❌ Jack, June 5 |
+| 16 | **Smoke test** | ❌ Jack, June 5 |
+| 17 | **Reddit post written** | ❌ Jack's voice, June 6 draft |
+
+**8 of 17 green. Items 9–13 = one code commit May 29 (~45 min). Items 14–17 = Jack-only.**
+
+---
+
+## Features REJECTED This Week
+
+| Feature | Decision | Reason |
+|---------|----------|--------|
+| Any new functionality | **HARD BLOCK** | Feature freeze until after June 7 post and first 100 Plausible sessions |
+| S-hemisphere ski scoring patch | **REJECTED** | Code is correct. Content agent finding was wrong. Verified against live scoreVenue:1224. |
+| Venue count expansion | **DEFER to June 15** | 153 is clean. New venues = new data bugs at launch. |
+| Seasonal ski empty state | **DEFER post-launch** | Not on critical path. Default is beach for N-hem users. |
+| MapView improvements | **DEFER** | Gate first, measure demand, cut if nobody asks. |
+| Hotels in deal score | **CUT** | Dead permanently. Off all future reports. |
+| Peakly Pro | **CUT for v1** | Post-1K MAU. Hard stop. |
+| Wishlists / Trips tab | **LOCKED** | 1K MAU gate. Will not revisit before that. |
+| JSON-LD structured data | **DEFER week 2 post-launch** | 6–12 week SEO compounding. Not a launch gate. |
+
+---
+
+## Success Criteria — May 28
+
+**90-day projection (June 7 post):**
+
+| Scenario | Users | Gate |
+|----------|-------|------|
+| **Best case** | **6K–7K** | VPS live + cross-post r/frugaltravel + r/solotravel same morning |
+| **Base case** | 4K–5K | VPS live + single sub post |
+| **Worst case** | <2K | VPS down during spike → blank Explore grid → "doesn't work" pins top comment |
+
+**For 7K not 4K:** cross-post on June 7 morning to r/frugaltravel AND r/solotravel with different framings (frugaltravel: price angle; solotravel: spontaneity angle). Not sequential days — same morning.
+
+---
+
+## Permanent Bug Triage
+
+| Issue | Status |
+|-------|--------|
+| Sentry DSN empty | ✅ CLOSED |
+| Peakly Pro $9/mo vs $79/yr | ✅ CLOSED — Pro UI removed |
+| GEAR_ITEMS absent | ✅ CLOSED — live at app.jsx:257 (May 24) |
+| Cache buster stale | ✅ CLOSED — 20260528a today |
+| SEO surf copy | ✅ CLOSED |
+| APNS Capacitor gate | ✅ CLOSED |
+| pigeon-point + sarakiniko dupes | ✅ CLOSED |
+| abasin lateSeason missing | ✅ CLOSED |
+| S-hemisphere ski scoring "bug" | ✅ CLOSED — not a bug |
+| idre-fjall MXX→OSL | ✅ CLOSED |
+| appi-kogen AXT→HNA | ✅ CLOSED |
+| madarao/tsugaike NGO→NRT | ✅ CLOSED |
+
+---
+
+## One Product Risk Nobody Is Talking About
+
+**The content agent is producing systematically inaccurate reports and we're building habit around trusting them.**
+
+Today's content report asserted GEAR_ITEMS is absent (−14 pts) when it's been live since May 24. It reported 148 venues when the actual count is 153. These aren't edge cases — they're the two most prominent findings, and both are verifiably wrong from a single grep.
+
+The risk is structural: if the PM report corrects the content agent every week, PM reports become content agent QA instead of product direction. If we stop correcting, inaccurate issue logs accumulate and code agents spend time fixing bugs that don't exist while real bugs sit.
+
+**The fix:** The content agent prompt needs an explicit code-verification step before asserting any constant is missing: `grep -n "const GEAR_ITEMS" app.jsx`. One tool call. If it returns a result, the agent reads the constant and audits its contents instead of declaring it absent. Until this is fixed, every content report requires a PM-level accuracy check — which is waste at a time when the only thing that matters is getting to June 7 clean.
 
 ---
 
