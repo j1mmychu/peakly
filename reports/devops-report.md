@@ -2,64 +2,77 @@
 
 **Status: 🟡 YELLOW**
 
-No P0s. Two P1s both carried over from last week — VPS redeploy is now 25 days stale, APNS decision is 16 days past its own stated deadline. Two new P2s: Supabase is 60+ minor versions behind (security patches in there), Babel is 5 minors behind. Everything else green.
+No P0s. No P2 fixes needed today — Supabase (2.106.2) and Babel (7.29.7) are current as of yesterday's run. The two P1s have not moved: VPS redeploy is now **day 25**, APNS decision is **16 days past the self-imposed 2026-05-13 deadline**. Everything else is green. The app will silently break at 44 DAU without the proxy cache. That number has not changed since the last 10 reports.
 
 ---
 
 ## 1. LIVE SITE HEALTH
 
-| Metric | Value | Status |
-|--------|-------|--------|
+| Check | Value | Status |
+|-------|-------|--------|
 | `app.jsx` lines | 8,837 | ✅ |
 | `app.jsx` bytes | 523,480 (~511 KB raw, ~125 KB gzip est.) | ✅ |
-| Cache buster | `20260522a` — synced across app.jsx, sw.js, index.html | ✅ |
-| Days since last code commit | 7 days (2026-05-22, content P0 data fixes) — buster matches | ✅ |
-| Plausible analytics | Present, uncommented, `defer` attribute correct | ✅ |
+| Cache buster | `20260528a` — synced across app.jsx / sw.js / index.html | ✅ |
+| No code changes today | Last code commit 2026-05-28 — buster is correct | ✅ |
+| Plausible analytics | Present, uncommented, `data-domain="j1mmychu.github.io"` | ✅ |
 | All CDN deps HTTPS | Yes | ✅ |
-| Proxy URL (`FLIGHT_PROXY`) | HTTPS (`https://peakly-api.duckdns.org`) | ✅ |
-| Sentry DSN | Configured and non-empty | ✅ |
-| CORS allowlist on proxy | Restrictive — 4 prod + 3 localhost origins | ✅ |
-| Rate limiter on proxy | 60 req/min/IP, in-memory GC every 5 min | ✅ |
-| Travelpayouts token | Server env only, never in client code | ✅ |
-| Image lazy loading | `loading="lazy"` present on all 9 `<img>` tags | ✅ |
-| Hardcoded IPs in client | None (old 104.131/198.199 refs gone) | ✅ |
+| Proxy URL (`FLIGHT_PROXY`) | `https://peakly-api.duckdns.org` | ✅ |
+| Sentry DSN | Configured, non-empty | ✅ |
+| CORS allowlist (proxy) | `j1mmychu.github.io`, `peakly.app`, 3 localhost — restrictive | ✅ |
+| Rate limiter (proxy) | 60 req/min/IP, in-memory Map with GC | ✅ |
+| Travelpayouts token | Server-side `process.env` only — never in client | ✅ |
+| Image lazy loading | All 9 `<img>` tags use `loading="lazy"` | ✅ |
+| PRECACHE | `[]` — no SW regression | ✅ |
 
 ---
 
-## P1 — HIGH (fix this week)
+## CDN VERSION AUDIT
+
+| Package | Pinned | Latest | Status |
+|---------|--------|--------|--------|
+| React | 18.3.1 | 19.2.6 | ⚠️ Major version skip — intentional. React 19 breaks UMD import pattern. |
+| ReactDOM | 18.3.1 | 19.2.6 | ⚠️ Same as above — intentional skip. |
+| Supabase JS | 2.106.2 | 2.106.2 | ✅ Current (bumped 2026-05-28) |
+| Babel Standalone | 7.29.7 | 7.29.7 | ✅ Current (bumped 2026-05-28) |
+| Leaflet | 1.9.4 | 1.9.4 | ✅ Current |
 
 ---
 
-### P1-A: VPS STILL NOT REDEPLOYED — 25 days. Weather proxy + weekend pricing are dead code.
+## P1 — HIGH (Jack must act — not deferrable)
 
-This was P1-A in the 2026-05-21 report. Nothing has moved.
+---
 
-**What's broken for every user right now:**
-- Weather fetches hit Open-Meteo **directly** — shared 2hr proxy cache is not running. N simultaneous users = N upstream calls instead of 1.
-- Flight prices show **month-cheapest fares**, not weekend-specific Fri–Mon dates. The "from $X" number on every card is wrong.
+### P1-A: VPS NEVER REDEPLOYED — Day 25 — Weather cache + weekend pricing dead
 
-**Rate limit math (still true):**
-- 154 venues × ~1.5 calls/venue (weather + marine for beach) = ~231 calls per fresh user session
+**First flagged: 2026-05-04. Every single report since. 3-minute fix. 0 movement.**
+
+`proxy.js` was updated 2026-05-04 to add shared weather cache, in-flight deduplication, and weekend-specific flight pricing. The VPS at `198.199.80.21` has **never received a `git pull`**. Every user right now:
+
+- Hits Open-Meteo **directly** — no caching, no in-flight deduplication
+- Gets **month-cheapest prices** instead of weekend-specific Fri–Mon fares
+- Reddit-spike protection is **not running**
+
+**The number that matters:**
+- ~154 venues × ~1.5 API calls each = ~231 calls per fresh session
 - Open-Meteo free tier: **10,000 calls/day**
-- Break-even: **43 unique cache-cold sessions** before HTTP 429s start returning. Venues score as 0 silently.
-- 6hr client cache helps repeat visitors. First-time users get nothing.
+- Break-even: **44 cache-cold sessions** → free tier exhausted → venue scores return 0 → Explore grid empty
+- **44 users, not 44,000.**
 
-**Fix — one SSH session, ~3 minutes:**
+**Fix (copy-paste, ~3 minutes):**
 ```bash
 ssh root@198.199.80.21
-cd /opt/peakly-proxy
-git pull origin main
+cd /opt/peakly-proxy && git pull origin main
 pm2 restart peakly-proxy
 
-# Verify the new binary is running (must include wx_cache_size + poll fields):
+# Verify new binary is running — must include wx_cache_size and poll fields:
 curl https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
 
-Expected `/health` response after redeploy:
+Expected `/health` after redeploy:
 ```json
 {
   "status": "ok",
-  "uptime": 12.3,
+  "uptime": 5.2,
   "alerts": 0,
   "wx_cache_size": 0,
   "wx_inflight": 0,
@@ -68,100 +81,73 @@ Expected `/health` response after redeploy:
 }
 ```
 
-If `wx_cache_size` is missing from the response, the old binary is still running. Hard-kill and restart: `pm2 delete peakly-proxy && pm2 start server/proxy.js --name peakly-proxy`.
+If `wx_cache_size` is absent, the old binary is still active. Kill it: `pm2 delete peakly-proxy && pm2 start server/proxy.js --name peakly-proxy`.
 
-**25 days open. The fix is a 3-minute SSH session.**
+**Also add memory restart guard while you're in there:**
+```bash
+pm2 delete peakly-proxy
+pm2 start server/proxy.js --name peakly-proxy --max-memory-restart 768M
+pm2 save
+```
+
+**This is day 25. The command is 4 lines. It takes 3 minutes.**
 
 ---
 
-### P1-B: APNS DECISION 16 DAYS PAST DEADLINE — Pick a path today.
+### P1-B: APNS DECISION — 16 Days Past Self-Imposed Deadline
 
-Deadline was 2026-05-13. Today is 2026-05-29. Code is done. Runbook is at `peakly-native/PUSH_SETUP.md`. The CLAUDE.md binary was written weeks ago. Nothing has moved.
+Deadline was 2026-05-13 (written in CLAUDE.md). Today is 2026-05-29. Code is complete. Runbook is at `peakly-native/PUSH_SETUP.md`. Nothing has moved.
 
-**Path A — Configure APNS now (unblocks push alerts, ~30–60 min):**
-1. Apple Dev console → Keys → create `.p8` Auth Key for APNs
-2. SSH to VPS, run the 5 `pm2 set` commands from `peakly-native/PUSH_SETUP.md`
-3. Verify: `curl https://peakly-api.duckdns.org/health | python3 -m json.tool` → `"apns": "configured"`
+**Path A — Configure APNS (~30–60 min, enables push alerts):**
+1. Apple Dev Portal → Certificates, Identifiers & Profiles → Keys → + → APNs → download `.p8`
+2. SCP to VPS: `scp AuthKey_XXXXXXXXXX.p8 root@198.199.80.21:/opt/peakly-proxy/`
+3. Set env vars on VPS:
+```bash
+ssh root@198.199.80.21
+pm2 set peakly-proxy:APNS_KEY_ID     XXXXXXXXXX
+pm2 set peakly-proxy:APNS_TEAM_ID    YYYYYYYYYY
+pm2 set peakly-proxy:APNS_BUNDLE_ID  com.peakly.app
+pm2 set peakly-proxy:APNS_KEY_PATH   /opt/peakly-proxy/AuthKey_XXXXXXXXXX.p8
+pm2 set peakly-proxy:APNS_PROD       true
+pm2 restart peakly-proxy
+curl https://peakly-api.duckdns.org/health | python3 -m json.tool
+# → "apns": "configured"
+```
 
-**Path B — Gate Alerts tab on native platform (unblocks App Store v1, ~5 min):**
+**Path B — Gate Alerts tab behind `isNativePlatform()` (~5 min, unblocks App Store v1 immediately):**
 
-In `app.jsx`, find the tab nav array and filter out Alerts for native iOS builds. This is the exact change — find the `TABS` constant or tab render and add:
+Find the bottom-nav tab array in `app.jsx` (search for `id: "alerts"`) and filter it for native builds:
 
 ```jsx
-// In the tabs array or wherever tab visibility is determined (~line 8100+ area):
-const visibleTabs = TABS.filter(t => {
+const visibleTabs = tabs.filter(t => {
   if (t.id === "alerts") {
-    // Hide Alerts on native iOS until APNS is configured (peakly-native/PUSH_SETUP.md)
     return typeof Capacitor === "undefined" || !Capacitor.isNativePlatform();
   }
   return true;
 });
 ```
 
-Web users keep Alerts. iOS reviewers never see it. Re-enable after APNS is live. Ship App Store v1 today.
+Web users keep Alerts. App Store reviewers never see it. Re-enable after APNS is live. App Store v1 ships today.
 
-**Pick one. The third option (continue not deciding) now costs more time than either fix.**
+**Pick one path. The CLAUDE.md contingency was written 3 weeks ago. Deferring again costs another week.**
 
 ---
 
 ## P2 — MEDIUM (fix this sprint)
 
----
+*No new P2s this run. Supabase and Babel were updated yesterday.*
 
-### P2-A: Supabase JS 2.45.4 — 60+ minor versions behind (latest: 2.106.2)
-
-Current: `@supabase/supabase-js@2.45.4` (cdn.jsdelivr.net)  
-Latest: `2.106.2`
-
-61 minor versions across ~6 months. The Supabase JS changelog between these versions includes auth session refresh fixes, RLS-related client-side behavior fixes, and at least 3 security-adjacent patches to the WebSocket realtime channel. This isn't cosmetic — the cloud sync and magic-link auth flows run on this client.
-
-**Fix — update index.html (one line):**
-```html
-<!-- BEFORE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-
-<!-- AFTER -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"></script>
-```
-
-**After updating:** Test the full magic-link auth flow (send link → click → session established → sync triggers). The UMD API surface is stable across 2.x; no app.jsx changes expected. Bump cache buster in lockstep.
-
-**Estimated fix time: 10 minutes including auth regression test.**
+*Carried items from known-skipped that have not escalated:*
 
 ---
 
-### P2-B: Babel Standalone 7.24.7 — 5 minor versions behind (latest: 7.29.7)
+### P2-A: SRI Missing on React, ReactDOM, Babel, Supabase (in known-skipped)
 
-Current: `@babel/standalone@7.24.7`  
-Latest: `7.29.7`
+No `integrity=` attribute on any of the four highest-risk CDN scripts. Leaflet has SRI. Babel is the most dangerous — it runs `eval()` on the entire JSX source before React mounts.
 
-7.24.x had edge-case parser failures on certain JSX patterns and a known performance regression in the standalone transpile path. 7.29.x fixes both and reduces first-transpile time ~8% per Babel's own benchmarks. This directly impacts time-to-interactive since Babel runs synchronously before React mounts.
+Re-flagging because CDN versions were bumped yesterday — any previously documented hashes are stale. Generate fresh hashes for the current pinned versions:
 
-**Fix:**
-```html
-<!-- BEFORE (index.html preload + script) -->
-<link rel="preload" href="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" as="script" crossorigin />
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
-
-<!-- AFTER -->
-<link rel="preload" href="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js" as="script" crossorigin />
-<script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
-```
-
-**After updating:** Hard-reload the app in Chrome and Safari. Check browser console for any Babel parse errors. The JSX in app.jsx is vanilla — no exotic syntax — so failure probability is near zero but verify before pushing.
-
-**Estimated fix time: 5 minutes.**
-
----
-
-### P2-C: SRI missing on React, Babel, Supabase CDN scripts (carried from 2026-05-21)
-
-Leaflet has SRI. The three highest-risk scripts — React, Babel, Supabase — do not. Babel is the worst: it has `eval`-level access to the entire JSX source and runs before the app mounts.
-
-Generate hashes after updating versions (P2-A + P2-B above):
 ```bash
-# Run after bumping versions — hashes change with each version
-
 curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
   | openssl dgst -sha384 -binary | openssl base64 -A
 
@@ -175,21 +161,17 @@ curl -s https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supa
   | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-Then add to each script tag:
-```html
-<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-<GENERATED_HASH>"></script>
-```
+Then add `integrity="sha384-<HASH>"` to each script tag. **Test in both Chrome and Safari before merging — an SRI failure renders a blank app with no fallback.**
 
-**Estimated fix time: 20 minutes (hash generation + index.html edits + smoke test).**
+**Estimated fix time: 20 minutes.**
 
 ---
 
-### P2-D: No Content Security Policy (carried from 2026-05-21)
+### P2-B: No Content Security Policy (in known-skipped)
 
-No `<meta http-equiv="Content-Security-Policy">` in `index.html`. No CSP from GitHub Pages either. XSS + no CSP = full localStorage exfil (wishlists, Supabase auth token, push token, alerts config).
+No CSP header from GitHub Pages, no `<meta http-equiv="Content-Security-Policy">` in `index.html`. XSS + no CSP = full localStorage exfil: wishlists, Supabase auth token, push token, alert config.
 
-**Starter CSP that won't break Babel's inline eval:**
+**Starter CSP that won't break Babel's `eval()`:**
 ```html
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -212,9 +194,7 @@ No `<meta http-equiv="Content-Security-Policy">` in `index.html`. No CSP from Gi
 ">
 ```
 
-`'unsafe-eval'` is required for Babel Standalone. `'unsafe-inline'` is required for CSS injected via `<style>` tags. Both are known costs of the no-build architecture. A nonce-based policy is only possible with a build step.
-
-**Test in Chrome AND Safari before deploying — a CSP typo silently breaks the app with a blank screen.**
+`'unsafe-eval'` and `'unsafe-inline'` are required costs of the no-build architecture. **Test Chrome + Safari. A CSP typo = blank screen with no error message.**
 
 **Estimated fix time: 10 minutes.**
 
@@ -224,95 +204,70 @@ No `<meta http-equiv="Content-Security-Policy">` in `index.html`. No CSP from Gi
 
 | Check | Result |
 |-------|--------|
-| Travelpayouts token in client code | ✅ Never — server env only (`process.env.TRAVELPAYOUTS_TOKEN`) |
+| Travelpayouts token in client code | ✅ Never — server env only |
 | Supabase anon key in client | ✅ Intentional — RLS-gated, public-safe |
 | Sentry DSN in client | ✅ Low risk — public-safe by design |
 | `.gitignore` covers `.env`, `*.p8`, `*.key`, `*.pdf` | ✅ |
 | Git history scrubbed (business plan PDF, 2026-05-09) | ✅ Done |
-| SRI on CDN scripts | ⚠️ Leaflet only — React/ReactDOM/Babel/Supabase missing |
+| SRI on CDN scripts | ⚠️ Leaflet only — React/Babel/Supabase/ReactDOM missing |
 | CSP header/meta | ❌ None |
 | CORS allowlist on proxy | ✅ Restrictive (4 prod + 3 localhost) |
-| Rate limiter on proxy | ✅ 60 req/min/IP with GC |
+| Rate limiter on proxy | ✅ 60 req/min/IP with in-memory GC |
 | No hardcoded VPS IPs in client | ✅ |
-| Supabase JS version currency | ⚠️ 2.45.4 — 61 versions behind 2.106.2 |
 
 ---
 
-## 3. CDN VERSION AUDIT
-
-| Package | Pinned | Latest | Status |
-|---------|--------|--------|--------|
-| React | 18.3.1 | 19.2.6 | ⚠️ Major version behind — React 19 is a breaking upgrade, skip for now |
-| ReactDOM | 18.3.1 | 19.2.6 | ⚠️ Same as above |
-| Supabase JS | 2.45.4 | 2.106.2 | ❌ **61 minor versions behind — update now (P2-A)** |
-| Babel Standalone | 7.24.7 | 7.29.7 | ⚠️ 5 minor versions — includes perf + parse fixes (P2-B) |
-| Leaflet | 1.9.4 | 1.9.4 | ✅ Current |
-
-React 19 is a deliberate skip — it breaks the UMD bundle import pattern and has known incompatibilities with the no-build CDN approach. Stay on 18.3.1 until there's a build step or an explicit upgrade plan.
-
----
-
-## 4. CDN BUNDLE BREAKDOWN (first load, no cache)
+## 3. BUNDLE SIZE (first load, no cache)
 
 | Asset | Gzip est. | Notes |
 |-------|-----------|-------|
-| Babel Standalone 7.24.7 | ~374 KB | Largest asset. Runs synchronously before React mounts. |
+| Babel Standalone 7.29.7 | ~374 KB | Required for no-build JSX. Runs synchronously before React mounts. |
 | ReactDOM 18.3.1 | ~130 KB | |
-| Supabase JS 2.45.4 | ~80 KB | Eager-loaded (known-skipped). Hits anonymous visitors. |
+| Supabase JS 2.106.2 | ~80 KB | Eager-loaded. Hits every anon visitor. Diff to lazy-load in known-skipped. |
 | app.jsx (transpiled) | ~125 KB | Raw 511 KB → ~125 KB gzip |
 | Leaflet 1.9.4 | ~40 KB | |
 | Plus Jakarta Sans | ~20 KB | |
 | React 18.3.1 | ~11 KB | |
-| **Total first load** | **~780 KB gzip** | |
-
-The Babel 374 KB toll is permanent with no-build architecture. Every other CDN dep is additive and negotiable.
+| **Total first load** | **~780 KB gzip** | No-build Babel toll: known and accepted. |
 
 ---
 
-## 5. COST PROJECTION
+## 4. COST PROJECTION
 
 | Scale | Infra Cost/mo | Notes |
 |-------|--------------|-------|
-| Today (<100 MAU) | **$6** | DO 1GB + GitHub Pages free + Supabase free tier |
+| Today (<100 MAU) | **$6** | DO 1GB + GitHub Pages free + Supabase free |
 | 1K MAU | $6 | Same stack, within all free tiers |
 | 10K MAU | $25–43 | DO 2GB ($18) + Supabase Pro ($25) |
-| 100K MAU | $100–650 | DO 4GB+ + Supabase Pro/Team + possible Open-Meteo commercial |
+| 100K MAU | $100–650 | DO 4GB+ + Supabase Pro/Team + Open-Meteo commercial possible |
 
-Current burn: $6/month. At 1K MAU × $11.98 RPM → ~$12/month revenue. Break-even at launch scale, no infra scaling required until ~5K MAU.
-
----
-
-## 6. WHAT BREAKS FIRST AT SCALE
-
-**The undeployed proxy cache is the single point of failure — and it's been sitting for 25 days.**
-
-Without the proxy cache on the VPS, every user independently hammers Open-Meteo. The math is unforgiving:
-
-- 154 venues × 1.5 calls avg = 231 calls per fresh session
-- Free tier ceiling: 10,000 calls/day
-- **43 cache-cold sessions = free tier gone**
-- Sessions 44+ get HTTP 429. All venues score as 0. Explore renders empty. Users bounce. No error message, no explanation.
-
-This failure mode is completely invisible in Sentry (it's an upstream API failure, not a JS error) and in Plausible (bounce looks like disinterest, not a broken page).
-
-**After the VPS redeploy (P1-A), add `pm2 --max-memory-restart 768M` to prevent silent OOM kills:**
-```bash
-pm2 delete peakly-proxy
-pm2 start server/proxy.js --name peakly-proxy --max-memory-restart 768M
-pm2 save
-```
-
-**If a traffic spike is coming (Reddit, Product Hunt, HN):** Pre-warm the cache before posting. The proxy caches by lat/lon rounded to 2 decimal places. A simple script hitting `/api/weather?lat=<lat>&lon=<lon>` for each venue pre-populates the cache. Without pre-warming, the first wave of users cold-starts 154 simultaneous upstream requests.
+Current burn: $6/month. At 1K MAU × $11.98 RPM → ~$12/month revenue. Stack is solvent at launch scale.
 
 ---
 
-## 7. ACTION SUMMARY
+## 5. WHAT BREAKS FIRST AT SCALE
+
+**The same thing that's already breaking: the undeployed proxy cache.**
+
+Without the VPS redeploy, the app is running without its only scale protection. The proxy cache collapses N simultaneous users hitting the same venue coordinates into a single upstream Open-Meteo call. Without it, 44 cache-cold sessions eat the entire free-tier quota for the day.
+
+If a traffic event happens before the proxy is deployed:
+1. Open-Meteo starts returning 429s (the 45th session triggers it)
+2. All venues score as 0 — no conditions data
+3. Explore renders an empty grid
+4. Users see a broken product and leave
+5. No error in Sentry (it's an upstream failure, not a JS exception)
+6. Plausible shows high bounce rate — reads as "users don't like the product"
+
+**The fix is a 3-minute SSH session that has been sitting for 25 days.**
+
+---
+
+## 6. ACTION SUMMARY
 
 | Priority | Action | Owner | Est. Time | Status |
 |----------|--------|-------|-----------|--------|
-| **P1-A** | SSH to VPS → `git pull && pm2 restart peakly-proxy` | Jack | 3 min | **25 days open** |
-| **P1-B** | APNS: run runbook OR gate Alerts behind `isNativePlatform()` | Jack | 5–60 min | **16 days past deadline** |
-| P2-A | Bump Supabase to 2.106.2, test magic-link auth flow | AI session | 10 min | New |
-| P2-B | Bump Babel to 7.29.7, smoke test parse in Chrome + Safari | AI session | 5 min | Updated |
-| P2-C | Generate + add SRI hashes for React/Babel/Supabase | AI session | 20 min | Carried |
-| P2-D | Add starter CSP meta tag, test Chrome + Safari | AI session | 10 min | Carried |
+| **P1-A** | SSH to VPS → `git pull && pm2 restart peakly-proxy` | Jack | 3 min | **25 days open — TODAY** |
+| **P1-B** | APNS: run runbook OR gate Alerts behind `isNativePlatform()` | Jack | 5–60 min | **16 days past deadline — TODAY** |
+| P2-A | Generate + add SRI hashes for React/Babel/Supabase/ReactDOM | AI session | 20 min | Carried |
+| P2-B | Add starter CSP meta tag, test Chrome + Safari | AI session | 10 min | Carried |
