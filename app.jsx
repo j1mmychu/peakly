@@ -416,9 +416,10 @@ const AP_CONTINENT = {
   // Europe
   EAS:"europe", JNX:"europe", PMI:"europe", RHO:"europe", TPS:"europe",
   DLM:"europe", OSL:"europe", MXX:"europe", KRK:"europe",
+  TBS:"europe", SOF:"europe",
   // Asia-Pacific
   AXT:"asia", HNA:"asia", NGO:"asia", GMP:"asia", MNL:"asia", VRC:"asia",
-  DAD:"asia", PQC:"asia", IAO:"asia", TOD:"asia",
+  DAD:"asia", PQC:"asia", IAO:"asia", TOD:"asia", GOI:"asia",
   // Oceania
   BNK:"oceania", TRG:"oceania", LEA:"oceania", BOB:"oceania",
   // Africa
@@ -578,7 +579,7 @@ const VENUES = [
   {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"agios-prokopios-t2",category:"beach",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Quiet & Pristine","Family Friendly","Shallow Clear Water","Naxos Old Town"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"playa-de-la-concha-t3",category:"beach",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["National Park Bay","Snorkeling Reefs","Blue Flag","Calm Pacific"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"OAJ",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -587,7 +588,7 @@ const VENUES = [
   {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"tioman-island-t11",category:"beach",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"KUL",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"mana-island-fiji-t12",category:"beach",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Private Resort Island","Snorkeling Reef","Palm-Fringed Lagoon","Remote Getaway"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"zlatni-rat-t14",category:"beach",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Clear Visibility","Blue Flag","Amenities"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"zlatni-rat-t14",category:"beach",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Shifting Pebble Cape","Kitesurfing","Blue Flag","Adriatic Icon"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"lovina-beach-t15",category:"beach",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Black Volcanic Sand","Dolphin Watching","Calm North Coast","Snorkeling"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
 
   {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["5-Star Resorts","Calm Bay","Family Friendly","Reef Snorkeling"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -639,7 +640,41 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0a00,#4d2a00,#8c5000)",accent:"#cc8844",
     tags:["Africa's Highest Ski Resort","Atlas Mountain Views","Berber Villages","Rope Tow Adventure"],
     photo:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-    skiPass:"independent"}
+    skiPass:"independent"},
+
+  {id:"beach_phuquoc",category:"beach",
+    title:"Long Beach Phú Quốc",location:"Kiên Giang, Vietnam",
+    lat:10.2273,lon:103.9673,ap:"PQC",
+    icon:"🏝️",rating:4.81,reviews:3140,
+    gradient:"linear-gradient(160deg,#001e14,#003d28,#006644)",accent:"#44cc88",
+    tags:["Sunset West-Facing","Calm Gulf Waters","Island Town","Budget Friendly"],
+    photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+
+  {id:"beach_goa",category:"beach",
+    title:"Palolem Beach",location:"Goa, India",
+    lat:15.0098,lon:74.0233,ap:"GOI",
+    icon:"🏝️",rating:4.79,reviews:4620,
+    gradient:"linear-gradient(160deg,#1a0a00,#4d2200,#8c5000)",accent:"#ffaa44",
+    tags:["Crescent Bay","Hippie Heritage","Yoga on the Sand","Warm Arabian Sea"],
+    photo:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+
+  {id:"ski_gudauri",category:"skiing",
+    title:"Gudauri Ski Resort",location:"Kazbegi Region, Georgia",
+    lat:42.4833,lon:44.4833,ap:"TBS",
+    icon:"🏔️",rating:4.73,reviews:2210,
+    gradient:"linear-gradient(160deg,#1a0d2e,#3d2080,#6040c0)",accent:"#9980e0",
+    tags:["Caucasus Powder","Off-Piste Backcountry","High Altitude","Value Pick"],
+    photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent"},
+
+  {id:"ski_bansko",category:"skiing",
+    title:"Bansko Ski Resort",location:"Blagoevgrad, Bulgaria",
+    lat:41.8376,lon:23.4886,ap:"SOF",
+    icon:"⛷️",rating:4.68,reviews:3780,
+    gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",
+    tags:["Budget Ski Europe","Après-Ski Village","Beginner Friendly","Long Season"],
+    photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    skiPass:"independent"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves

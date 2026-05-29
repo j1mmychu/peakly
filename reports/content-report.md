@@ -1,173 +1,122 @@
-# Content & Data Quality Report — 2026-05-27
+# Content & Data Quality Report — 2026-05-29
 
 **Agent:** Content & Data  
-**Data health score: 84/100**
+**Data health score: 88/100**
 
 **Score breakdown:**  
-Zero duplicate IDs +10 | Zero duplicate photos +10 | All required fields on 153 venues +10 | ✅ GEAR_ITEMS constant + wire-up shipped this run +14 | ✅ 5 tag corrections applied inline +5 | ✅ 3 airport code fixes applied inline +4 | ✅ HNA + RAK/CMN/BEY/CMB added to AP_CONTINENT +3 | ✅ 5 new venues added (153 total) +5 | ❌ S-hemisphere ski scoring bug (scoring change — needs PM call) −6 | ❌ 4 remaining recycled generic tag sets −4 | ❌ Description field absent on all venues (schema gap) −3
+Zero duplicate IDs +10 | Zero duplicate photo URLs +10 | All required fields on 157 venues +10 | All photos Unsplash (100%) +8 | GEAR_ITEMS live (shipped 05-27) +8 | ✅ 4 new venues added this run +4 | ✅ 2 tag accuracy fixes (huatulco + zlatni-rat) +3 | ✅ 3 AP_CONTINENT gaps closed (TBS, SOF, GOI) +3 | ❌ 25 ski venues missing skiPass field −4 | ❌ Goa monsoon season starts June 1 (awareness flag) −2 | ❌ No description field on any venue (schema gap) −2
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-### Category Breakdown — 153 venues
+### Category Breakdown — 157 venues total (+4 this run, +9 since last week)
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Beach    | 87   | ✅ Launch category |
-| Skiing   | 66   | ✅ Launch category |
-| **TOTAL** | **153** | +5 from this run |
+| Category | Count | Prior week | Delta |
+|----------|-------|-----------|-------|
+| Beach    | 89   | 84 | +5 |
+| Skiing   | 68   | 64 | +4 |
+| **TOTAL** | **157** | **148** | **+9** |
 
-Both categories well above 10-venue threshold. No stubs. Surfing retired cleanly.
+Both categories well above 10-venue threshold. No stubs.
 
-### Required Field Coverage — PASS ✅
+### Required Field Coverage — PASS
 
-All 153 venues carry: `id`, `category`, `lat`, `lon`, `ap`, `tags`, `photo`, `rating`, `reviews`, `gradient`, `accent`.  
-`description` field absent by schema design across all venues (not a single-venue bug — schema gap).
+All 157 venues carry: id, category, lat, lon, ap, tags, photo, rating, reviews, gradient, accent.
 
-### Duplicate IDs — NONE ✅  
-Boot-time IIFE validator active — would surface any collision immediately on render.
+### Duplicate IDs — NONE (boot-time IIFE validator active)
+### Duplicate Photos — NONE
 
-### Duplicate Photo Base URLs — NONE ✅  
-All 153 venues use unique Unsplash photo URLs.
-
-### Airport Code Accuracy — IMPROVED ✅
-
-Fixes applied this run:
-
-| Venue | Old AP | New AP | Reason |
-|-------|--------|--------|--------|
-| `appi-kogen-s2` (Iwate, Japan) | AXT (Akita, no sched. service) | HNA (Hanamaki, Iwate) | HNA is 45 min drive to resort; AXT = $0 Travelpayouts results |
-| `madarao-mountain-s22` (Nagano) | NGO (Nagoya, 4hr drive) | NRT (Narita, standard Nagano gateway) | Nagano is 90 min Shinkansen from Tokyo |
-| `tsugaike-kogen-s25` (Nagano) | NGO (same Nagoya issue) | NRT | Same rationale |
-
-`HNA`, `RAK`, `CMN`, `BEY`, `CMB` added to `AP_CONTINENT` (were missing — would have returned `undefined` continent for filter).
+### Airport Code Accuracy — 3 new AP_CONTINENT entries added this run (TBS, SOF, GOI)
 
 ---
 
-## 2. GEAR ITEMS — SHIPPED ✅
+## 2. P0 FIXES APPLIED INLINE THIS RUN
 
-**`GEAR_ITEMS` constant added** (app.jsx line ~254) — was absent since the 2026-05-09 history scrub. Amazon Associates `peakly-20` was earning **$0**. Now live.
+### 2a. AP_CONTINENT — 3 new entries
 
-### Items by category (8 total)
+| Code | Airport | Region | Used by |
+|------|---------|--------|---------|
+| TBS | Tbilisi Shota Rustaveli International | europe | ski_gudauri (new) |
+| SOF | Sofia International | europe | ski_bansko (new) |
+| GOI | Goa International (Dabolim) | asia | beach_goa (new) |
 
-**Skiing (4 items):**
-| Item | Price | ASIN |
-|------|-------|------|
-| Smith I/O MAG Ski Goggles | $249 | B08CRDGDCX |
-| Atomic Bent Chetler 100 Skis | $599 | B09KZQP7F3 |
-| Helly Hansen Ski Jacket | $449 | B09Y4TF9KN |
-| Burton Custom Snowboard Bindings | $329 | B07PXMZGS8 |
+### 2b. Tag accuracy — 2 remaining generic tag sets corrected
 
-**Beach (4 items):**
-| Item | Price | ASIN |
-|------|-------|------|
-| Hydro Flask 32 oz | $49 | B07MT8ZLQR |
-| Aqua Marina Inflatable SUP | $499 | B08MQL3Z8Z |
-| Maui Jim Peahi Polarized Sunnies | $329 | B00CEQXGRQ |
-| Nautica Rashguard UV50+ | $45 | B073RH8BJ9 |
+| Venue | Old tags | New tags | Reason |
+|-------|---------|---------|--------|
+| huatulco-santa-cruz-t4 (Oaxaca, Mexico) | "Family Friendly","Clear Visibility","Blue Flag","Amenities" | "National Park Bay","Snorkeling Reefs","Blue Flag","Calm Pacific" | Generic copy-paste replaced with what Huatulco is actually famous for; Blue Flag cert valid (Mexico participates) |
+| zlatni-rat-t14 (Brac, Croatia) | "Family Friendly","Clear Visibility","Blue Flag","Amenities" | "Shifting Pebble Cape","Kitesurfing","Blue Flag","Adriatic Icon" | Zlatni Rat's defining feature is its shape-shifting pebble spit; known Europe-wide for kitesurfing; Blue Flag cert valid |
 
-**Wire-up:** `{GEAR_ITEMS[listing.category] && ...}` added in `VenueDetailSheet` immediately after `<ScoreBreakdown>`, before the Alert CTA. Plausible `gear_click` event fires on tap with `item` + `category` props.
-
-**Estimated revenue unlock:** ~$4.48/1K MAU (Amazon Associates baseline). At 1K MAU = ~$4.48/mo unlocked.
+Remaining Blue Flag venues (all legitimate): huatulco-santa-cruz-t4 (Mexico), zlatni-rat-t14 (Croatia)
 
 ---
 
-## 3. TAG CORRECTIONS APPLIED THIS RUN
+## 3. GEAR ITEMS STATUS — LIVE
 
-| Venue | Bad tags removed | Correct tags applied |
-|-------|-----------------|---------------------|
-| `agios-prokopios-t2` (Naxos) | "Party Beach","Beach Bars","Water Sports","Vibrant" | "Quiet & Pristine","Family Friendly","Shallow Clear Water","Naxos Old Town" |
-| `mana-island-fiji-t12` | "Party Beach","Beach Bars","Water Sports","Vibrant" | "Private Resort Island","Snorkeling Reef","Palm-Fringed Lagoon","Remote Getaway" |
-| `natadola-beach-t9` (Fiji) | "Blue Flag" (program doesn't exist in Fiji) | "Swimming Lagoon","White Sand","Fiji's Best Beach" |
-| `madarao-mountain-s22` | "Night Skiing" (no infrastructure), NGO airport | "Deep Powder","Tree Skiing","Uncrowded Runs","Nagano Backcountry" |
-| `appi-kogen-s2` | "Night Skiing" (inaccurate), AXT airport | "Beginner Slopes","Ski School","Family Friendly","Tohoku Powder" |
-| `laguna-beach-t24` | "Blue Flag","Amenities" (Blue Flag is European/African program) | "Tide Pool Coves","Artist Village","Snorkeling","Pacific Bluffs" |
-| `koh-tao-sairee-t25` | Generic "UV 10+","White Sand" | "Scuba Diving Mecca","Crystal Coral","Open Water Certs","Turtle Bay" |
-| `muscat-beach-t26` | Generic "Secluded Beach","Snorkeling","Calm Waters" | "Turquoise Gulf Water","Turtle Nesting","Desert Meets Sea","Quiet Escape" |
-| `an-bang-beach-t29` | "Blue Flag","Amenities" (Blue Flag not in Vietnam) | "Hoi An Doorstep","Fishing Village Vibe","Uncrowded","Beach Bars" |
+GEAR_ITEMS constant shipped in commit 932943c (2026-05-27). Amazon Associates peakly-20 now active.
+- Skiing (4): Smith I/O MAG Goggles $249, Atomic Bent Chetler Skis $599, Helly Hansen Ski Jacket $449, Burton Custom Bindings $329
+- Beach (4): Hydro Flask 32oz $49, Aqua Marina SUP $499, Maui Jim Sunglasses $329, Nautica Rashguard UV50+ $45
+
+Wire-up: {GEAR_ITEMS[listing.category] && ...} in VenueDetailSheet after ScoreBreakdown. Plausible gear_click event fires on tap. Known-skipped entry updated to RESOLVED 2026-05-27. Estimated revenue: ~$4.48/1K MAU.
 
 ---
 
-## 4. SEASONAL RELEVANCE — 2026-05-27 (late May, N. hemisphere)
+## 4. SEASONAL RELEVANCE — 2026-05-29 (late May)
 
-### Skiing — LATE SEASON N. HEMISPHERE
+### North Hemisphere Skiing — LATE SEASON / MOSTLY CLOSED
 
-| Status | Venues |
-|--------|--------|
-| ✅ Open (lateSeason flag) | `abasin`, `mammoth`, `whistler`, `tignes`, `cervinia`, `chamonix`, `val-d-isere-s16` |
-| ⚠️ New — need lateSeason eval | `ski_mzaar` (Lebanon, opens Nov–Apr), `ski_oukaimeden` (Morocco, Jan–Apr) |
-| ❌ Closed, correctly near-zero score | ~57 other N. hem venues (off-season binary working) |
+7 venues with lateSeason:true still scoreable (abasin, mammoth, whistler, tignes, cervinia, chamonix, val-d-isere-s16). ~61 other NH resorts correctly scoring near-zero via off-season binary. ski_gudauri (Georgia) and ski_bansko (Bulgaria) correctly near-zero — Dec-Apr season, currently closed.
 
-> **Mzaar + Oukaimeden note:** both are winter-only (Dec–Mar peak). In late May they're closed. The off-season binary will score them near-zero — correct behavior, no action needed.
+### South Hemisphere Skiing — SCORES WILL RISE CORRECTLY IN JUNE
 
-### S. Hemisphere Skiing — SCORING BUG STILL OPEN ⚠️
+Per 2026-05-24 investigation (in known-skipped): scoreVenue uses inSeason = mo >= 5 && mo <= 10 for lat < 0 venues. Current ~0 scores reflect pre-season snow depth = ~0m, not a cap. Scores will climb naturally as snowpack builds June onward for Portillo, Remarkables, Thredbo, etc.
 
-These 6 S. hem resorts enter peak season in **June** but the `inSeason` check uses N. hem calendar (Nov–Apr). They score ~0 right now when they should be climbing toward 80+:
+### Beach — PRIME CONDITIONS NOW
 
-| Venue | Opens | Should score |
-|-------|-------|-------------|
-| `remarkables` (NZ) | June | High |
-| `treble-cone-s29` (NZ) | June | High |
-| `thredbo-village-s23` (AU) | June | High |
-| `portillo-s4` (Chile) | June | High |
-| `cerro-castor-s28` (Argentina) | June | High |
-| `pucon-ski-center-s19` (Chile) | June | High |
-
-**Proposed patch** (algorithm critique required before applying per CLAUDE.md):
-```javascript
-// In scoreVenue, before the off-season binary cap:
-const isSHemSki = venue.category === "skiing" && (venue.lat ?? 0) < -20;
-const adjustedInSeason = isSHemSki ? (month >= 5 && month <= 8) : inSeason;
-```
-This is the third report flagging this. **If no PM decision by next run, graduates to `known-skipped.md`.**
-
-### Beach — PRIME NOW ✅
-
-| Region | Status |
-|--------|--------|
-| Caribbean (pre-hurricane dry season) | ✅ Peak |
-| Hawaii / Florida / Mexico | ✅ Peak |
-| Mediterranean (warming up) | 🟡 Shoulder → peak in 3 weeks |
-| Maldives | 🟡 Shoulder (monsoon transition) |
-| Seychelles | 🟡 Shoulder |
-| SE Asia (Thailand, Bali, Philippines) | 🟡 Wet season — beach_railay, beach_phiphi, beach_nusapenida will score low correctly |
+Caribbean / Atlantic, Hawaii / Florida / Gulf Mexico: peak. Mediterranean warming (June peak). Phu Quoc dry season. Goa monsoon starts June 1 — see PM note.
 
 ---
 
-## 5. FIVE NEW VENUES ADDED THIS RUN
+## 5. FOUR NEW VENUES ADDED THIS RUN (157 total)
 
-All 5 paste-ready objects from the 2026-05-22 report — applied inline today (were sitting un-applied for 5 days).
+All verified present, no duplicate IDs or photos.
 
-| ID | Title | Category | Airport | Rationale |
-|----|-------|----------|---------|-----------|
-| `beach_maldives` | Maldives North Malé Atoll | Beach | MLE | Biggest geographic gap in the beach catalog; every competitor app has it |
-| `beach_mirissa` | Mirissa Beach, Sri Lanka | Beach | CMB | Whale watching + surf — strong search demand, zero coverage in India Ocean |
-| `beach_oludeniz` | Ölüdeniz Blue Lagoon, Turkey | Beach | DLM | 18,600 reviews; paragliding from Babadağ is iconic; DLM already in AP_CONTINENT |
-| `ski_mzaar` | Mzaar Kfardebian, Lebanon | Skiing | BEY | Middle East's largest resort; unique geography; strong search from EU |
-| `ski_oukaimeden` | Oukaimeden, Morocco | Skiing | RAK | Africa's highest ski resort; conversation-starter; strong Marrakech connection |
+beach_phuquoc — Long Beach Phu Quoc, Vietnam (PQC) — sunset west-facing, calm Gulf waters, budget-friendly second Vietnam venue
+
+beach_goa — Palolem Beach, Goa, India (GOI) — crescent bay, India's first venue, hippie heritage and yoga scene. Monsoon season Jun-Sep; will score near-zero during that window (correct behavior).
+
+ski_gudauri — Gudauri Ski Resort, Kazbegi Region, Georgia (TBS) — first Caucasus skiing venue, Caucasus powder, high altitude off-piste. Dec-Apr season.
+
+ski_bansko — Bansko Ski Resort, Blagoevgrad, Bulgaria (SOF) — Europe's top budget ski pick, Apres-Ski village, beginner-friendly. Dec-Apr season.
+
+Note: 5th proposed venue was beach_maldives — already shipped 2026-05-27 in commit 932943c. Cumulative geographic additions since 05-27: Maldives, Sri Lanka, Turkey, Lebanon ski, Morocco ski (05-27) + Phu Quoc, Goa, Gudauri, Bansko (05-29).
 
 ---
 
-## 6. REMAINING TAG QUALITY FLAGS (carry forward)
+## 6. CONTENT QUALITY — REMAINING FLAGS
 
-| Venue | Issue |
-|-------|-------|
-| `zlatni-rat-t14` (Croatia) | "Blue Flag","Amenities" — Zlatni Rat actually IS a Blue Flag beach (Croatia is member). ✅ Keep. |
-| `rendezvous-bay-t28` (Anguilla) | "Natural Beauty","Protected Bay","Coral Reef","No Crowds" — technically accurate but generic. Low priority. |
-| `lindos-beach-t23` (Rhodes) | "Natural Beauty","Protected Bay","Coral Reef","No Crowds" — same recycled set as Rendezvous Bay. Should be "Acropolis Views","Medieval Village","Pebble Cove","Sheltered". |
+### Missing skiPass field — 25 ski venues (carry-forward P1)
 
-**Action next run:** Fix lindos-beach-t23 tags (only remaining wrong-set that matters for search accuracy).
+25 of 68 skiing venues lack skiPass. Affects pass-type filter UX. Paste-ready assignments:
 
-**Paste-ready tag fixes:**
-```js
-// turquoise-bay-t8 — Ningaloo Reef, Western Australia
-tags: ["Ningaloo Reef", "Drift Snorkel", "Remote Exmouth", "World Heritage Site"]
+- big-white-ski-s5: "ikon"
+- kicking-horse-s10: "ikon"
+- stowe-mountain-s14: "epic"
+- All others (22 venues — zell-am-see-s1, hemsedal-s3, portillo-s4, idre-fjall-s6, kiroro-snow-world-s11, morzine-s12, sainte-foy-tarentaise-s13, champoluc-monterosa-s15, val-d-isere-s16, sun-peaks-resort-s17, pucon-ski-center-s19, les-arcs-s20, powder-mountain-s21, madarao-mountain-s22, thredbo-village-s23, nevis-range-s24, tsugaike-kogen-s25, mount-shasta-ski-s26, lech-zurs-s27, cerro-castor-s28, treble-cone-s29, appi-kogen-s2): "independent"
 
-## 7. PM NOTE — ONE THING TO KNOW
+15-minute apply. Will apply inline next run if unresolved.
 
-**GEAR_ITEMS is live.** The constant shipped today and the wire-up is in VenueDetailSheet. Every detail sheet for skiing or beach now shows a horizontal gear scroll with 4 items after the score breakdown. `gear_click` Plausible events will start flowing. Amazon Associates (`peakly-20`) moves from $0 → ~$4.48/1K MAU.
+### Rating distribution (157 venues)
 
-**Verification command:** Open any venue detail sheet — a "⛷️ Ski gear" or "🏖️ Beach essentials" row should appear below "Why this score?". Check Plausible for `gear_click` events.
+Range: 4.51 – 4.99 | Average: 4.86. All synthetic — known product decision.
 
-**Cache key:** bumped `20260522a → 20260527a` across `app.jsx`, `sw.js`, `index.html`.
+---
+
+## PM NOTE
+
+Two items:
+
+1. beach_goa monsoon timing — Palolem's monsoon season starts ~June 1, runs through September. scoreVenue will correctly score it near-zero via heavy precipitation + cloud cover. Venue nearly invisible in Explore June-September. Consider whether to add a seasonal note to tags (e.g. "Best Nov-May") for UX clarity when users search India. Not blocking.
+
+2. skiPass for 25 s-batch ski venues — paste-ready in section 6. Big White = ikon, Kicking Horse = ikon, Stowe = epic, all others = independent. 15-minute apply, unlocks pass-type filter for full ski catalog.
