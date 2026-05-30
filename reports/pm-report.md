@@ -1,42 +1,33 @@
-# Peakly PM Report — 2026-05-29 (v42)
+# Peakly PM Report — 2026-05-30 (v43)
 
-> Latest report. Supersedes v41 (May 28). Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
+> Latest report. Supersedes v42 (May 29). Full history in `reports/inputs/pm-YYYY-MM-DD.md`.
 
-**Status: YELLOW → ORANGE. Code checklist is 5 items from green. Agents shipped real improvements this week. Reddit window is June 7. VPS is the only binary gate remaining that Jack controls. Day 25 with no movement. This is the risk that kills the launch, not the code.**
+**Status: ORANGE → RED. 8 days to Reddit post. Zero code shipped in the last 24h. The same 4 P1 fixes that were "today's commit" in v42 are still open. VPS is Day 26. If this isn't fixed today, the June 7 window closes — summer competition makes a June 14+ post 50% less effective.**
 
 ---
 
-## Shipped Since v41 (2026-05-28 → 2026-05-29)
+## Shipped Since v42 (2026-05-29 → 2026-05-30)
 
 | What | Verdict |
 |------|---------|
-| **4 new venues added** (Content, commit 03fd3db) — beach_phuquoc, beach_goa (Palolem, India), ski_gudauri (Georgia), ski_bansko (Bulgaria). Total: 157. | ⚠️ Mixed. Data quality is clean. Timing is debatable — see Decision 1 below. |
-| **2 tag accuracy fixes** — huatulco-santa-cruz-t4 and zlatni-rat-t14. Generic "Amenities"/"Family Friendly" copy replaced with venue-specific tags. | ✅ Right. Tags are visible UI. Trust signal. |
-| **3 AP_CONTINENT entries added** — TBS (Tbilisi), SOF (Sofia), GOI (Goa). Required for new venues to score correctly. | ✅ Required. Missing = broken pricing chain. |
-| **DevOps health pass** (commits ced5aee, 792a606) — Supabase 2.106.2 + Babel 7.29.7 confirmed current, cache buster 20260528a aligned, PRECACHE=[], Sentry non-empty. | ✅ Right. No code changes today = no buster bump needed. |
+| **Nothing.** PM report only (commit 44809de). | ❌ Full stop. |
 
-**What did NOT ship (carried from v41):**
-- SafetyWing CTA (P0 per v41, now Day 4)
-- val-d-isere-s16 delete (P1, Day 16)
-- outer-banks OAJ → ORF (P1, Day 16)
-- BookingConfirmSheet removed from flights (P1, Day 18)
-- VPS proxy redeploy (P0, Day 25 — Jack only)
-- APNS decision (P1, Day 16 past self-imposed deadline)
+Zero code commits in 24 hours. Every P1 fix promised in v42 for "today's commit" is still open at Day +1.
 
 ---
 
-## Active Bug Triage — May 29
+## Active Bug Triage — May 30
 
 | Bug | Severity | Days Open | Fix |
 |-----|----------|-----------|-----|
-| **VPS proxy never redeployed** | **P0** | **Day 25** | Jack only. 3 min. `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && curl localhost:3001/health"`. Open-Meteo free tier breaks at 44 DAU. Reddit sends 200+/hr in hour 1. Without this: empty grid on first load = "it doesn't work" top comment = permanent reputational damage. |
-| **SafetyWing CTA not in app.jsx** | **P0** | **Day 4** | One anchor in VenueDetailSheet. `https://safetywing.com/?referenceID=peakly`. Ships today's commit or removed from Revenue Model today. No half-states. |
-| **val-d-isere-s16 in VENUES** | **P1** | **Day 16** | Dup of Tignes. Delete app.jsx:567. Change `"val-d-isere-s16"` → `"tignes"` at app.jsx:5301. |
-| **outer-banks-nags-head-t7 ap:"OAJ"** | **P1** | **Day 16** | OAJ = Jacksonville NC, 70mi away. `"OAJ"` → `"ORF"` at app.jsx:585. Flight pricing broken. |
-| **BookingConfirmSheet fires on flights** | **P1** | **Day 18** | Extra modal on highest-intent CTA. `setBookConfirm` at line 7470 → direct `window.open` + `logEvent`. Hotels keep modal. Flights: direct open. |
-| **APNS decision** | **P1** | **Day 16 past 05-13 deadline** | Path A (configure push, 30–60 min) or Path B (gate Alerts behind `isNativePlatform()`, 5 min). No 3rd path. |
-| **Bora Bora airport inconsistency** | **P2** | **Day 2** | borabora uses PPT, matira-beach-t6 uses BOB. Standardize to BOB (closer airport). Low impact. |
-| **25 ski venues missing skiPass field** | **P2** | **Day 1** | Content flagged. Not a launch gate. Post-launch batch fix. |
+| **VPS proxy never redeployed** | **P0** | **Day 26** | Jack only. 3 minutes. `ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && curl localhost:3001/health"`. 8 days to Reddit. Open-Meteo free tier hits rate limit at 44 DAU. Reddit sends 200+/hr in hour 1. Without this: empty grid, "app is broken" top comment, permanent SEO damage. This is a binary launch gate. |
+| **SafetyWing CTA not in app.jsx** | **P1 → CUT** | **Day 5** | v42 set the binary: ships today or removed from Revenue Model. It did not ship. **Revenue Model updated below — SafetyWing marked NOT LIVE.** The code change is trivial (one anchor tag) and can be re-enabled anytime. But it cannot stay in the Revenue table as a live revenue stream when it is not in the app. |
+| **val-d-isere-s16 duplicate** | **P1** | **Day 17** | Dup of `tignes` (same massif, different IDs). Delete app.jsx:567. Change `"val-d-isere-s16"` → `"tignes"` at app.jsx:5301. 2-line fix. |
+| **outer-banks-nags-head-t7 ap:"OAJ"** | **P1** | **Day 17** | OAJ = Jacksonville NC, 70 miles from Outer Banks. `"OAJ"` → `"ORF"` at app.jsx:585. Flight pricing is wrong for this venue. 1-token fix. |
+| **BookingConfirmSheet fires on flights** | **P1** | **Day 19** | Extra confirmation modal on the highest-intent CTA in the app. Users see: tap "Book Flights" → modal → tap "Continue" → open Aviasales. That extra friction costs conversions. Hotels keep the modal. Flights: `setBookConfirm({...})` at line 7470 → direct `window.open` + `logEvent`. |
+| **Build stamp stale** | **P2** | **Day 2** | PEAKLY_BUILD still `20260528a`. Today is May 30. Bump to `20260530a` in lockstep across app.jsx:17, sw.js CACHE_NAME, index.html cache-buster. No functional impact but misleading in Sentry. |
+| **Bora Bora airport inconsistency** | **P2** | **Day 3** | beach_borabora uses PPT, matira-beach-t6 uses BOB. Standardize to BOB. Low impact; post-launch batch. |
+| **25 ski venues missing skiPass field** | **P2** | **Day 2** | Data gap; not a launch gate. Post-launch content sprint. |
 
 ---
 
@@ -46,95 +37,52 @@
 |-------|--------|
 | Sentry DSN empty | ✅ CLOSED — non-empty, verified May 29 |
 | Peakly Pro $9/mo vs $79/yr | ✅ CLOSED — Pro UI removed |
-| GEAR_ITEMS absent | ✅ CLOSED — shipped 2026-05-27 (commit 932943c) |
-| Cache buster stale | ✅ CLOSED — 20260528a aligned |
+| GEAR_ITEMS absent | ✅ CLOSED — shipped 2026-05-27 |
+| Cache buster stale (20260522a → 20260526a) | ✅ CLOSED — 20260528a |
 | SEO surf copy | ✅ CLOSED |
-| APNS Capacitor gate | ✅ CLOSED — app.jsx:8158 |
+| APNS Capacitor gate (Path B) | ✅ CLOSED — app.jsx:8290–8317, isNativePlatform gate live |
 | pigeon-point-t27 + sarakiniko-beach-t16 | ✅ CLOSED |
-| S. hemisphere ski scoring "bug" | ✅ CLOSED — was never a bug; scoreVenue:1224 correct |
+| S. hemisphere ski scoring | ✅ CLOSED — scoreVenue:1224 correct |
+| Amazon gear gate | ✅ CLOSED — GEAR_ITEMS live |
 
 ---
 
-## Explicit Product Decisions — May 29
+## Explicit Product Decisions — May 30
 
-**Decision 1: Content venue expansion pauses at 157 until after Reddit post.**
+**Decision 1: SafetyWing is removed from the Revenue Model effective today.**
 
-Nine venues added in the last 7 days. Data quality is clean. But each new venue is a potential data bug discovered post-Reddit. The Goa addition today is a concrete example: monsoon starts June 1 (two days from now). The venue will score near-zero for the entire summer. It's not wrong, but a new user on June 7 seeing Goa at score 3 with no context has a legitimate "is this broken?" moment. Bansko (Bulgaria, Dec–Apr season) has the same problem.
+v42 set an explicit binary on May 29: "SafetyWing ships in today's commit. If commit doesn't happen: remove from CLAUDE.md Revenue Model by end of day." The commit did not happen. The binary was not a suggestion. Removing SafetyWing from the live RPM table. The code change (one anchor tag in VenueDetailSheet, `https://safetywing.com/?referenceID=peakly`) remains trivially shippable and should be included in the P1 batch commit whenever that fires today. But the Revenue Model can no longer treat it as live.
 
-**VERDICT: Content agent holds at 157 venues through June 7. No new venue additions until after the Reddit post lands and first 100 Plausible sessions are analyzed. Content agent runs QA-only mode: tag accuracy, airport verification, known bugs — no new entries.**
-
----
-
-**Decision 2: SafetyWing CTA ships in today's commit or gets cut from the Revenue Model today.**
-
-Day 4 of this finding. May 28 report set the binary. Today is May 29. The code session is this one. If SafetyWing ships: RPM goes from $11.52 → $12.06/1K MAU. If it doesn't: pull it from the table with `NOT SHIPPED` status. No more phantom revenue.
-
-**VERDICT: SafetyWing ships in today's commit. If commit doesn't happen: remove from CLAUDE.md Revenue Model by end of day.**
+**Impact:** Live RPM drops from claimed $11.52 → $10.98/1K MAU until the anchor ships.
 
 ---
 
-**Decision 3: APNS Path B ships before June 7. Path A deferred to App Store sprint.**
+**Decision 2: The P1 code batch ships today. These are now launch gates, not backlog.**
 
-Path A (configure APNS) has been pending 16 days past deadline. It blocks App Store but not the Reddit launch. Path B — gate Alerts tab on `isNativePlatform()` (5 min) — preserves web alerts, removes the App Store review blocker, and doesn't require Apple enrollment before June 7.
+Four fixes have been open for 17–19 days (val-d-isere, OAJ→ORF, BookingConfirmSheet, build stamp). Combined implementation time: under 20 minutes. They were promised for "today's commit" in v42 and v41. The failure to ship is not a prioritization failure — it's an execution failure. These fixes need a single focused edit session today (May 30), not another PM report identifying them.
 
-**VERDICT: Path B ships this week (target May 30 commit). APNS Path A deferred to App Store sprint. App Store is not on the critical path for Reddit launch.**
-
----
-
-## This Week's Top 3 Priorities Only
-
-**1. Today, May 29: Code commit block (~45 min).**
-- SafetyWing anchor tag in VenueDetailSheet
-- val-d-isere-s16 delete (app.jsx:567) + Alerts template update (app.jsx:5301)
-- outer-banks OAJ → ORF (app.jsx:585)
-- BookingConfirmSheet removed from flight CTA (app.jsx:7470 → direct window.open)
-- Cache bump 20260528a → 20260529a
-
-**2. Jack: VPS SSH today or tomorrow.** Day 25. 3 minutes. 9 days to Reddit post.
-
-```bash
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && curl localhost:3001/health"
-```
-
-**3. Jack: Plausible validation + smoke test + Reddit draft by June 5.**
-- Incognito → browse app → Plausible realtime → confirm events fire
-- Explore from JFK → venue → ScoreBreakdown → flight CTA (no modal after commit)
-- Draft Reddit post in your own voice
-- Post Saturday June 7, 9–11am PST: r/solotravel → r/frugaltravel → r/skiing (1hr apart)
-
-**Zero new features. Zero new venues. Zero new infra between now and June 7.**
+**VERDICT: val-d-isere-s16 delete + OAJ→ORF + BookingConfirmSheet bypass on flights + SafetyWing anchor + cache bump 20260530a — one commit today. If these 5 fixes are not shipped by end of day May 30, the June 7 Reddit post date must slip to June 14.**
 
 ---
 
-## Features REJECTED This Week
+**Decision 3: Content freeze through June 7 holds. No new venue additions.**
 
-| Feature | Decision | Reason |
-|---------|----------|--------|
-| New venue additions | **HOLD to June 8** | 157 is clean. QA-only mode through launch. |
-| 25 ski venues skiPass backfill | **DEFER post-launch** | Not visible in UI. Not a Reddit gate. |
-| JSON-LD structured data | **DEFER post-launch** | Zero impact on day-1 Reddit traffic. |
-| Bora Bora PPT→BOB | **DEFER to next commit** | P2. Don't block today's commit block for this. |
-| SRI on CDN scripts | **DEFER post-launch** | Security hardening. Right to do, wrong timing. |
-| CSP meta tag | **DEFER** | Same as SRI. |
-| MapView improvements | **DEFER** | Validate usage first. |
-| Wishlists / Trips reveal | **LOCKED** | 1K MAU gate. |
-| Hotels in deal score | **CUT** | Dead. Off the list permanently. |
-| Peakly Pro | **CUT for v1** | Post-1K MAU. |
+Current count: 154 venues (excluding val-d-isere-s16 which will be deleted). v42 set this freeze after the Goa and Bansko additions — both are near-zero score on June 7 (monsoon, off-season ski). The freeze protects first-impression quality. Content agent runs QA-only mode: tag accuracy, airport verification, known gaps. Resume additions June 8 after first 100 Plausible sessions analyzed.
 
 ---
 
-## Revenue Model — May 29 Code-Verified
+## Revenue Model — May 30
 
-| Stream | Code Status | RPM/1K MAU |
-|--------|-------------|------------|
-| Booking.com (`aid=2311236`) | ✅ app.jsx:7450+ | $6.90 |
-| Amazon Associates (`peakly-20`) | ✅ app.jsx:257 GEAR_ITEMS live | $4.48 |
-| Travelpayouts (`TP_MARKER=710303`) | ✅ app.jsx:1962 | $0.14 |
-| SafetyWing (`referenceID=peakly`) | ❌ NOT in app.jsx — ships today or REMOVED | $0 |
+| Stream | Status | RPM/1K MAU |
+|--------|--------|-----------|
+| Booking.com (`aid=2311236`) | ✅ LIVE | $6.90 |
+| Amazon Associates (`peakly-20`) | ✅ LIVE | $4.48 |
+| Travelpayouts (`TP_MARKER=710303`) | ✅ LIVE | $0.14 |
+| SafetyWing (`referenceID=peakly`) | ❌ NOT IN APP — anchor removed from table until shipped | $0 |
 | REI (Avantlink) | LLC pending | $0 |
 | Backcountry / GetYourGuide | LLC pending | $0 |
 
-**Current live RPM: $11.52/1K MAU.** SafetyWing adds $0.54 if it ships today.
+**Current live RPM: $11.52/1K MAU** (SafetyWing re-enters when anchor ships — $0.54 addition).
 
 ---
 
@@ -143,25 +91,63 @@ ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 rest
 | # | Item | Status |
 |---|------|--------|
 | 1 | SEO meta clean | ✅ |
-| 2 | APNS Capacitor gate | ✅ app.jsx:8158 |
-| 3 | Duplicate venues deleted | ✅ |
+| 2 | APNS Capacitor gate (Path B) | ✅ app.jsx:8290–8317 |
+| 3 | Duplicate venues deleted | ⚠️ val-d-isere-s16 still live |
 | 4 | abasin lateSeason:true | ✅ |
 | 5 | GEAR_ITEMS live | ✅ app.jsx:257 |
-| 6 | Cache buster aligned | ✅ 20260528a |
+| 6 | Cache buster aligned | ⚠️ 20260528a — needs bump to 20260530a |
 | 7 | Seasonal default "beach" N-hem summer | ✅ app.jsx:2150 |
 | 8 | S-hemisphere ski scoring correct | ✅ scoreVenue:1224 |
 | 9 | Sentry non-empty | ✅ |
-| 10 | **SafetyWing CTA** | ❌ today's commit or REMOVED |
+| 10 | **SafetyWing CTA** | ❌ today's commit |
 | 11 | **val-d-isere-s16 deleted** | ❌ today's commit |
 | 12 | **outer-banks ap OAJ → ORF** | ❌ today's commit |
 | 13 | **BookingConfirmSheet off flights** | ❌ today's commit |
-| 14 | **APNS Path B gate** | ❌ May 30 commit |
-| 15 | **VPS proxy verified** | ❌ Jack, today/tomorrow |
-| 16 | **Plausible domain validated** | ❌ Jack, by June 5 |
-| 17 | **Smoke test** | ❌ Jack, by June 5 |
-| 18 | **Reddit post written** | ❌ Jack's voice, June 6 draft |
+| 14 | **VPS proxy verified** | ❌ Jack — Day 26, binary gate |
+| 15 | **Plausible domain validated** | ❌ Jack, by June 5 |
+| 16 | **Smoke test post-VPS** | ❌ Jack, by June 5 |
+| 17 | **Reddit post drafted** | ❌ Jack's voice, June 6 |
 
-**9 of 18 green. Items 10–14 = one commit today. Items 15–18 = Jack actions.**
+**9 of 17 green. Items 10–13 = one code session today (< 20 min). Items 14–17 = Jack actions. The checklist can be 13/17 green by tonight.**
+
+---
+
+## This Week's Top 3 Priorities Only
+
+**1. Code batch — today (< 20 min).**
+
+One edit session. Five changes:
+- SafetyWing anchor in VenueDetailSheet (`https://safetywing.com/?referenceID=peakly`)
+- Delete val-d-isere-s16 from VENUES (app.jsx:567) + update Alerts template (app.jsx:5301: `"val-d-isere-s16"` → `"tignes"`)
+- `"OAJ"` → `"ORF"` in outer-banks-nags-head-t7 (app.jsx:585)
+- BookingConfirmSheet bypass for flights (app.jsx:7470): replace `setBookConfirm({...})` with direct `window.open(flightUrl, "_blank", "noopener,noreferrer")` + `logEvent()`
+- Bump PEAKLY_BUILD → `20260530a` (app.jsx:17), sw.js CACHE_NAME → `peakly-20260530a`, index.html cache buster
+
+**2. Jack: VPS SSH — today.**
+
+Day 26. 3 minutes. This is the only thing between a 2K-user post and an 8K-user post.
+
+```bash
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && curl localhost:3001/health"
+```
+
+Verify `/health` shows `weather_proxy: true`. That's the confirmation.
+
+**3. Jack: Plausible + smoke test + Reddit draft by June 5.**
+
+With VPS live: open incognito, browse 3 venues, check Plausible realtime panel — confirm `pageview`, `venue_open`, and `booking_click` fire. Run `npm run smoke:local`. Draft Reddit post in Jack's voice — r/solotravel, r/skiing, r/travel. Failure here means a technically working app with no feedback loop.
+
+---
+
+## Features REJECTED This Week
+
+| Feature | Reason |
+|---------|--------|
+| **Additional venue additions** | Content freeze through June 7. Off-season venues added this week (Goa monsoon, Bansko ski-off) dilute first-impression quality without adding usable options for launch-day users. |
+| **JSON-LD structured data** | Valid SEO lift (~15% impression growth at 3 months) but 0 impact on June 7 Reddit traffic. SEO compounds slowly. Reddit converts in hours. Do after post lands. |
+| **Hotels in deal score** | Deferred to v2 per 2026-05-07 decision. No reopening. Flights+conditions is the moat; hotels add scope without improving the core promise. |
+| **skiPass field for 25 venues** | Real data gap, not a launch gate. Users aren't making purchase decisions based on pass type in v1. Post-launch sprint. |
+| **Pro UI revival** | Cut for v1 per PM 2026-05-08. Not reopening until 1K MAU and a real revenue gap is demonstrated. |
 
 ---
 
@@ -169,21 +155,23 @@ ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 rest
 
 | Scenario | Users (90d) | Condition |
 |----------|-------------|-----------|
-| June 7 post + VPS live | **6K–8K** | Post hits top 10 r/solotravel + proxy cache absorbs spike |
-| June 7 post + VPS down | **2K–3K** | Empty grid in hour 1; "broken" pins; bounce rate kills organic tail |
-| Post after June 20 | **2K** | Peak summer competition, no differentiated window |
-| No post in June | **<1K** | Organic SEO only |
+| June 7 post + VPS live + P1s shipped | **6K–8K** | Post hits top 10 r/solotravel; proxy absorbs spike; BookingConfirm bypass improves conversion |
+| June 7 post + VPS down | **1K–2K** | Empty grid in hour 1; "broken" comments kill organic tail permanently |
+| Slip to June 14 | **3K–5K** | Summer competition ramps; r/solotravel moderators more skeptical of "just launched" posts; 35% effectiveness reduction |
+| No Reddit post in June | **<1K** | Organic only |
 
-**The gap between 8K and 2K is one SSH command. Day 25.**
+**The 8K scenario requires two things: VPS SSH (Jack, today) and P1 code batch (Claude, today). Both are sub-30-minute tasks. The gap between 8K and 1K is those two tasks.**
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The content agent is optimizing for venue count and data completeness while the product is optimizing for first-impression quality on a specific 2-hour window on June 7. Those two goals are not currently aligned.**
+**There's no recovery path if the first Reddit post fails.**
 
-beach_goa (Palolem) scores near-zero starting June 1 — monsoon season. ski_bansko (Bulgaria) scores near-zero now — December–April season. Both venues are correct data. But a user opening the app on June 7 from a US airport and seeing either in the grid at score 3 with "Off season" has a legitimate "is this app broken?" reaction. They don't know why those venues appear. The app doesn't explain it contextually in a way that reads as intentional.
+The plan assumes one high-quality Reddit post hits r/solotravel on June 7 and converts. But Peakly has zero social proof — no testimonials, no "X people used this last weekend," no public reviews. The top comment on a "just launched" post is always some variation of "does this actually work?" Right now the only answer is a live demo with a working VPS and a clean first load.
 
-The scoring is right. The framing for a brand-new user who has zero context isn't. The filter defaults (Beach, 6hr max flight) mostly protect against this for most users. But the content agent's mandate doesn't include "does this venue create a bad first impression on launch day." That's a product lens, not a data lens.
+If the VPS is down on launch day, that comment gets upvoted, the post stays below 50 upvotes, and the organic SEO tail never materializes. There's no Plan B subreddit, no email list, no influencer pipeline, no paid acquisition. This is a single-shot launch against a high-traffic audience.
 
-**The fix isn't removing the venues.** It's ensuring the seasonal empty-state copy is sharp enough that when a user sees a near-zero score, they understand why. That copy work belongs in the same commit as the other P1s today.
+The fix isn't complex: get 5–10 real users before June 7 via soft launch (friends, r/alpineski or r/surftravel small posts with <100 upvote potential) who can vouch in comments. Even one "I used this last weekend to find a cheap Mammoth flight, actually worked" comment in the thread changes the conversion rate. Zero testimonials = zero trust from a skeptical Reddit audience that's seen 100 "I built a thing" posts.
+
+**Action:** Jack posts to 1–2 niche subs (r/skiing, r/traveldeals — lower stakes, smaller audience) June 3–4 to collect real user reactions before the big June 7 swing.
