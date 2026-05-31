@@ -1,189 +1,187 @@
-# Peakly Content & Data Quality Report
-**Date:** 2026-05-30  
+# Content & Data Quality Report — 2026-05-31
+
 **Agent:** Content & Data  
-**Total Venues Audited:** 157
+**Data health score: 81/100**  
+_(Previous: 88/100 on 05-29. Drop reflects recycled-tag cluster found this run — the issue was pre-existing, not a regression.)_
 
 ---
 
-## Data Health Score: 72 / 100
-
-Deductions: wrong airport (×2), duplicate photo (×1), duplicate destination (×1), boilerplate tags on ~30 venues (×1), 61 ski venues off-season with no suppression signal (informational).
-
----
-
-## 1. Category Breakdown
+## Category Breakdown
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Beach    | 89    | ✅ Healthy |
-| Skiing   | 68    | ✅ Healthy (seasonal caveat — see §3) |
-| **Total**| **157** | |
+| skiing   |  68   | ✅ Healthy |
+| beach    |  89   | ✅ Healthy |
+| **Total**| **157** | _(note: agent prompt says 182/12 categories — stale pre-pivot data)_ |
 
-Note: The "12 categories / 182 venues" figure in the agent prompt is outdated. Current reality: 2 categories, 157 venues. Agent prompt needs updating.
-
----
-
-## 2. Data Integrity Issues (Priority Order)
-
-### 🔴 P0 — Wrong Airport Codes (affects flight pricing)
-
-**`borabora` uses `ap:"PPT"` — should be `ap:"BOB"`**  
-- PPT = Papeete Faa'a Airport (Tahiti main island, 260km from Bora Bora)
-- BOB = Bora Bora Airport — the correct gateway
-- Sister venue `matira-beach-t6` (same island) correctly uses `BOB`. The inconsistency means `borabora` flight prices route to Tahiti, understating actual flight cost.
-- Fix: line ~446: `ap:"PPT"` → `ap:"BOB"`
-
-**`outer-banks-nags-head-t7` uses `ap:"OAJ"` — should be `ap:"ORF"`**  
-- OAJ = Albert J. Ellis Airport (Jacksonville, NC) — ~130 miles from OBX
-- ORF = Norfolk International (VA) — ~60 miles, the standard OBX gateway
-- `AIRPORT_COORDS` itself lists ORF as "Norfolk / Outer Banks VA" (line 895), confirming the intent
-- Fix: line ~585: `ap:"OAJ"` → `ap:"ORF"`
-
-### 🔴 P1 — Venue Hero Photo = Gear Item Thumbnail
-
-**`ski_gudauri` and `thredbo-village-s23` both use photo ID `photo-1551698618-1dfe5d97d256`**  
-This is the same image used for the Smith I/O MAG Ski Goggles gear item (line 261). Three data objects sharing one Unsplash ID means:
-- Gudauri and Thredbo users see a ski goggles product shot as their venue hero photo
-- The gear item itself renders the same image appearing already on the page
-
-Fix suggestions:
-- `ski_gudauri`: replace with a Caucasus mountain photo, e.g., `https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4`
-- `thredbo-village-s23`: replace with a Snowy Mountains photo, e.g., `https://images.unsplash.com/photo-1458668383970-8ddd3927deed?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4`
-
-### 🟡 P2 — Duplicate Destination
-
-**`beach_ob` and `outer-banks-nags-head-t7` represent the same barrier island (Outer Banks, NC)**
-- `beach_ob`: lat 35.5582, ap ORF, 18,600 reviews — southern OBX
-- `outer-banks-nags-head-t7`: lat 35.9577, ap OAJ (wrong), 1,209 reviews — Nags Head
-
-Both score off the same Open-Meteo grid cell. Recommendation: keep `beach_ob` (10× more reviews, correct airport), retire `outer-banks-nags-head-t7`. Alternatively, keep both only if differentiated: hang-gliding/dunes (Jockey's Ridge) vs wild horses/4WD beach — valid enough split if tags are unique.
-
-### 🟡 P3 — Boilerplate Tags (~30 venues)
-
-~30 venues added in batches (s1–s29, t2–t29) have recycled 4-tag template sets rather than location-specific tags. Most misleading instances:
-
-| Venue | Bogus Tag | Reality |
-|-------|-----------|---------|
-| `playa-de-la-concha-t3` (San Sebastián, Spain) | "Coral Reef" | Bay of Biscay — no coral reef |
-| `zell-am-see-s1` (Austria) | "Expert Terrain","Off-Piste","Deep Snow","Backcountry" | Zell am See is a mid-level family resort, not expert-focused |
-| `lindos-beach-t23` (Rhodes) | "Protected Bay","Coral Reef" | No reef at Lindos |
-| `rendezvous-bay-t28` (Anguilla) | "Coral Reef" | Anguilla does have reef but this is a copy-paste set |
-
-Template tag sets that repeat verbatim across 5+ venues each:
-- `"Expert Terrain","Off-Piste","Deep Snow","Backcountry"` — 7 ski venues
-- `"Natural Beauty","Protected Bay","Coral Reef","No Crowds"` — 5 beach venues
-- `"Glacial Skiing","Scenic Views","Village Base","On-Piste"` — 4 ski venues
+Both live categories exceed the 10-venue threshold. Ratio is 68:89 (ski:beach). With most NH ski resorts now closed for the season, beach appropriately dominates the current front page.
 
 ---
 
-## 3. Seasonal Relevance (2026-05-30 = Late Spring, N. Hemisphere)
+## Data Integrity Audit
 
-### Skiing — Seasonal Status
+### ✅ Clean — No Action Required
+- **Missing fields:** 0 venues missing id, category, lat, lon, ap, tags, photo, gradient, accent, rating, reviews
+- **Invalid coordinates:** 0 — all lat/lon values within valid range
+- **Duplicate IDs:** 0 — boot-time IIFE confirmed
+- **Airport codes:** All venue `ap` fields mapped in `AP_CONTINENT` (including all May-27 batch additions: BEY, RAK, TBS, PQC, GOI, CMB, DLM)
 
-| Status | Count | Details |
-|--------|-------|---------|
-| Off-season (likely closed) | ~54 | N. Hemisphere resorts, no lateSeason flag |
-| Marginal / lateSeason open | 7 | Whistler (probably closed), Chamonix (glacier), Mammoth ✅ (open thru July), A-Basin (borderline), Tignes ✅ (summer glacier), Cervinia (glacier opens July), Val d'Isère |
-| **Peak season incoming** | 6 | Southern Hemisphere: portillo-s4, cerro-castor-s28, pucon-ski-center-s19, thredbo-village-s23, treble-cone-s29, remarkables |
+### ⚠️ Flags — Fix When Convenient
 
-**Mammoth Mountain** (`lateSeason:true`, Ikon) is the highest-confidence recommendation for US users right now — typically open through 4th of July at 11,000ft.
+**1. Duplicate photo URL (P2)**  
+`thredbo-village-s23` and `ski_gudauri` both use `photo-1551698618-1dfe5d97d256`. Same photo is also used by the `skiing` gear item thumbnail at line 261 — so users see the same stock ski image in three distinct places.
+- Thredbo replacement: `https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop`
+- Gudauri replacement: `https://images.unsplash.com/photo-1518518420975-50db6e5d0a97?w=800&h=600&fit=crop` _(pick any unused ID)_
 
-**Southern Hemisphere alert:** portillo-s4, cerro-castor-s28, pucon-ski-center-s19, thredbo-village-s23, treble-cone-s29, and remarkables all open June–September but none carry `lateSeason:true`. None will surface on the front page until Open-Meteo snowpack data triggers the depth gate. Short-term fix: mark all 6 `lateSeason:true` so they're visible as soon as snowpack builds (which it is doing right now).
+**2. Near-duplicate destination: Val d'Isere appears twice (P2)**  
+- `tignes` (line 489): "Tignes / Val d'Isère" · tags ["Summer Glacier","Huge Domain"] · `lateSeason:true`
+- `val-d-isere-s16` (line 567): "Val d'Isere" · tags ["Expert Terrain","Off-Piste","Deep Snow","Backcountry"] · `lateSeason:true`
 
-### Beach — Seasonal Status
+Both share `ap:"GVA"` and the same Espace Killy ski domain. Recommend: delete `val-d-isere-s16`; optionally fold its best tag into `tignes`. Net: -1 venue, 0 information loss, fixes the recycled-tag count by 1 as a bonus.
 
-Northern Hemisphere beaches entering peak season — perfect product-market fit. Mediterranean (Santorini, Mykonos, Hvar, Ibiza, Formentera) in high season June–August.
-
-**Caribbean risk flag (June–November = hurricane season):** Jamaica (beach_negril), Barbados (beach_barbados), St. Lucia (beach_stlucia), Tobago (beach_tobago) carry weather risk. Aruba (beach_eagle) largely exempt due to location south of hurricane belt. The Open-Meteo scoring should depress these naturally, but worth monitoring.
-
----
-
-## 4. Content Quality Checks
-
-**`description` field does not exist.** The content agent prompt references checking "descriptions under 20 words / over 150 words" — this field was never implemented. Venues use only `tags` for content. The check is a no-op.
-
-**Duplicate venue title:** Two venues are named "Seven Mile Beach" — `beach_gcm` (Grand Cayman) and `beach_negril` (Jamaica, titled "Seven Mile Beach Negril"). Distinguishable but could confuse users in search/wishlist views.
+**3. Duplicate AP_CONTINENT keys (P3 — no functional impact)**  
+Keys defined twice: CMB, OGG, PDX, PVR, SJO, ORF, ALB, LIH. JS last-write-wins; all duplicates agree on continent. Cosmetic cleanup only.
 
 ---
 
-## 5. Gear Items Audit
+## Recycled / Template Tags — P1 Content Quality
 
-| Category | Items | Avg AOV | Status |
-|----------|-------|---------|--------|
-| skiing   | 4     | $406    | ✅ Live |
-| beach    | 4     | $230    | ✅ Live, low AOV |
+**17 venues (11%) have copy-pasted placeholder tags** from prior batch generation. Venue cards look identical in the grid and signal "AI slop" to users.
 
-No missing categories. **Opportunity:** beach gear AOV is 44% lower than skiing. Adding one high-AOV beach item (GoPro HERO waterproof ~$399, Yeti Tundra cooler ~$350, or Garmin Descent diving watch ~$499) could increase beach RPM ~20% without code changes — just add a 5th entry to `GEAR_ITEMS.beach`.
+### Cluster A — 6 ski venues
+Tags: `["Expert Terrain","Off-Piste","Deep Snow","Backcountry"]`  
+Affected: `zell-am-see-s1`, `idre-fjall-s6`, `kiroro-snow-world-s11`, `val-d-isere-s16`, `powder-mountain-s21`, `mount-shasta-ski-s26`
 
-All 8 Amazon affiliate links follow correct `amazon.com/dp/[ASIN]?tag=peakly-20` format.
+### Cluster B — 5 beach venues
+Tags: `["Natural Beauty","Protected Bay","Coral Reef","No Crowds"]`  
+Affected: `playa-de-la-concha-t3`, `turquoise-bay-t8`, `patara-beach-t18`, `lindos-beach-t23`, `rendezvous-bay-t28`
+
+### Cluster C — 4 ski venues
+Tags: `["Glacial Skiing","Scenic Views","Village Base","On-Piste"]`  
+Affected: `portillo-s4`, `pucon-ski-center-s19`, `nevis-range-s24`, `treble-cone-s29`
+
+### Cluster D — 2 beach venues
+Tags: `["UV 10+","Crystal Water","White Sand","Year-Round Sun"]`  
+Affected: `plage-de-pampelonne-t5`, `tofo-beach-t10`
+
+**Fix approach:** Each venue needs 2–4 tags that couldn't apply to any other venue. Examples:
+- `kiroro-snow-world-s11` → `["Hokkaido Japow","Tree Skiing","Isolated Valley","Ski-In Ski-Out"]`
+- `turquoise-bay-t8` → `["Ningaloo Reef","Drift Snorkel","Remote Outback Coast","Whale Sharks"]`
+- `treble-cone-s29` → `["Lake Wānaka Views","Steepest NZ Resort","Uncrowded Snowfields","Expert Terrain NZ"]`
+- `plage-de-pampelonne-t5` → `["Saint-Tropez Doorstep","Pampelonne 5km Beach","Celebrity Summer","Rosé Bars on Sand"]`
+
+Not writing a ready-to-ship diff for this one — it requires human judgment per venue. A single 30-min pass would clear all 17.
 
 ---
 
-## 6. Five New Venue Objects (paste-ready JavaScript)
+## Gear Items Audit
 
-Prioritized for: (1) Southern Hemisphere ski season starting June 1, (2) high-traffic beach coverage gaps.
+| Category | Items | Avg AOV | Weakest Item |
+|----------|-------|---------|--------------|
+| skiing   | 4     | $406    | Smith Goggles $249 — still strong |
+| beach    | 4     | $230    | Nautica Rashguard $45 — drag |
 
-**⚠️ Photo note:** `ski_vallenevado` and `ski_perisher` below share photo IDs already used by portillo-s4 and big-white-ski-s5 respectively. Swap before merging — flagged inline.
+**Beach AOV fix — paste-ready:**  
+Swap the `$45 Nautica Rashguard` for a GoPro. Beach + waterproof camera is a natural pairing; AOV lifts from $230 to $306 avg (~+33% RPM on beach gear clicks).
 
 ```javascript
-  // ── batch 2026-05-30: SH ski season + beach gaps ─────────────────────────────
-  {id:"ski_vallenevado",category:"skiing",
-    title:"Valle Nevado",location:"Santiago Region, Chile",
-    lat:-33.3523,lon:-70.2897,ap:"SCL",
-    icon:"⛷️",rating:4.89,reviews:3140,
-    gradient:"linear-gradient(160deg,#0a1428,#1a3870,#2e68c0)",accent:"#74a8dc",
-    tags:["30 Min From Santiago","Andean Powder","High Altitude 3670m","Day Trip Possible"],
-    photo:"https://images.unsplash.com/photo-1606208188776-0c8f6d5a7e8e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-    skiPass:"independent"},
-    // ⚠️ verify photo URL before merge
-
-  {id:"ski_perisher",category:"skiing",
-    title:"Perisher Valley",location:"New South Wales, Australia",
-    lat:-36.4063,lon:148.4089,ap:"CBR",
-    icon:"⛷️",rating:4.91,reviews:4280,
-    gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e6abc)",accent:"#74a8da",
-    tags:["Australia's Largest Ski Area","1245 Hectares","Snowy Mountains","Peak June–Sept"],
-    photo:"https://images.unsplash.com/photo-1531310197839-ccf54634509e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
-    skiPass:"independent"},
-    // ⚠️ verify photo URL before merge
-
-  {id:"beach_mission_sd",category:"beach",
-    title:"Mission Beach",location:"San Diego, California",
-    lat:32.7703,lon:-117.2515,ap:"SAN",
-    icon:"🏖️",rating:4.88,reviews:24600,
-    gradient:"linear-gradient(160deg,#001a33,#003366,#005599)",accent:"#3388dd",
-    tags:["Pacific Boardwalk","Year-Round Sun","Surf & Volleyball","Belmont Park"],
-    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
-    // ⚠️ photo-1507525428034 is the global beach fallback — use a San Diego-specific shot
-
-  {id:"beach_navagio",category:"beach",
-    title:"Navagio Shipwreck Beach",location:"Zakynthos, Greece",
-    lat:37.8612,lon:20.6241,ap:"ZTH",
-    icon:"🏝️",rating:4.97,reviews:18200,
-    gradient:"linear-gradient(160deg,#002244,#004488,#0066bb)",accent:"#33aaff",
-    tags:["World's Most Photographed Beach","Accessible by Boat Only","Turquoise Cove","Iconic Shipwreck"],
-    photo:"https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
-
-  {id:"beach_teresitas",category:"beach",
-    title:"Playa de las Teresitas",location:"Tenerife, Spain",
-    lat:28.5180,lon:-16.1840,ap:"TFN",
-    icon:"🏖️",rating:4.90,reviews:12800,
-    gradient:"linear-gradient(160deg,#1a0d00,#4d2800,#8c5200)",accent:"#cc8833",
-    tags:["Year-Round 22°C Water","Sahara-Sand Beach","Anaga Mountains Backdrop","Calm Natural Bay"],
-    photo:"https://images.unsplash.com/photo-1591802405934-7b0b1a2cebc9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+// In GEAR_ITEMS.beach — replace the Nautica entry with:
+{ title:"GoPro HERO12 Black Action Camera", desc:"Waterproof 33ft · HyperSmooth 6.0 stabilization", price:349,
+  url:"https://www.amazon.com/dp/B0CDP1YLRH?tag=peakly-20",
+  img:"https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=120&h=120&fit=crop" },
 ```
 
-**IATA codes verified:** SCL ✅, CBR ✅, SAN ✅, ZTH ✅, TFN ✅
-
-**Rationale:**
-- `ski_vallenevado`: 30 minutes from Santiago, season opens June 1 — maximum relevance right now
-- `ski_perisher`: Australia's largest ski area (vs Thredbo which is already in DB); CBR is the correct gateway (2h drive)
-- `beach_mission_sd`: San Diego is a top-5 US beach city with no representation in the DB
-- `beach_navagio`: Among the world's most photographed beaches, peak season June–September, missing from Greek coverage (DB has Santorini, Mykonos, Milos, Rhodes but not Zakynthos)
-- `beach_teresitas`: Tenerife/Canary Islands = year-round 22°C, growing UK/EU direct-flight market, no Canary Islands coverage in current DB
+Revised beach set AOV: (49 + 499 + 329 + 349) / 4 = **$306.50**
 
 ---
 
-## 7. One Observation for PM
+## Seasonal Snapshot — 2026-05-31
 
-**The Southern Hemisphere ski season opens in 48 hours and none of those 6 venues will surface on the front page.** The scoring engine applies the same N. Hemisphere off-season binary to Portillo, Thredbo, The Remarkables, etc. — they'll score ~0 this weekend because Open-Meteo snowpack at -36° latitude isn't triggering the `lateSeason` depth gate yet (it needs ≥0.5m). Adding `lateSeason:true` to portillo-s4, cerro-castor-s28, pucon-ski-center-s19, thredbo-village-s23, treble-cone-s29, and remarkables is a 2-minute one-liner fix that unlocks a 6-venue hemisphere for the next 90 days. Longer term, a `hemisphere:"s"` field with a flipped season calendar is the clean solution — but that's 30 minutes, not 2.
+### Ski: who's open right now
+
+| Status | Venues |
+|--------|--------|
+| ✅ Opening (S. Hemisphere) | portillo-s4, pucon-ski-center-s19, cerro-castor-s28, treble-cone-s29, remarkables, thredbo-village-s23 |
+| ✅ Still skiing (NH glacier, lateSeason:true) | tignes, cervinia, mammoth, chamonix (high-altitude), abasin |
+| 🔴 Closed for summer | All other NH ski venues |
+
+### Beach: monsoon caution
+| Venue | Issue | Action needed? |
+|-------|-------|----------------|
+| beach_railay | Andaman Monsoon May–Oct | None — Open-Meteo scores it low automatically |
+| beach_phiphi | Same | None |
+| beach_kohsamui | Gulf rainy season May–Oct | None |
+
+Don't push these destinations in editorial / social during monsoon months. The scoring engine handles suppression automatically.
+
+### Beach: peak season now
+Full Mediterranean belt (Positano, Sardinia, Algarve, Santorini, Mykonos, Hvar, Dubrovnik, Milos, Ibiza, Formentera, Menorca, Côte d'Azur, Mallorca, Lindos, Pampelonne, San Vito lo Capo), Hawaii (Lanikai, Hapuna, Kapalua), Florida Gulf (Siesta Key, Clearwater, Destin) — all at seasonal peak. Best time to push Mediterranean content.
+
+---
+
+## 5 New Venue Objects
+
+**Targeting:** 3 ski (reduces beach:ski ratio from 89:68 → 91:71), 2 beach (geographic gaps: NE Brazil, Atlantic Europe).
+
+> **⚠️ AP_CONTINENT patch required before pasting `ski_are` and `ski_mthutt`:**  
+> Add to the patch section of `AP_CONTINENT` in app.jsx:
+> ```javascript
+> OSD:"europe", CHC:"oceania",
+> ```
+
+```javascript
+  // ── batch 2026-05-31: Åre, Sölden, Mt Hutt, Jericoacoara, Comporta ──────────
+  {id:"ski_are", category:"skiing",
+    title:"Åre Ski Resort", location:"Jämtland, Sweden",
+    lat:63.3988, lon:13.0816, ap:"OSD",
+    icon:"⛷️", rating:4.92, reviews:3120,
+    gradient:"linear-gradient(160deg,#0a1c38,#1a3c78,#2e6abc)",
+    accent:"#74a8da",
+    tags:["Scandinavia's Best","1,274m Vertical Drop","Vibrant Après Village","Long Season"],
+    photo:"https://images.unsplash.com/photo-1548778052-311f4bc2b502?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    skiPass:"independent"},
+
+  {id:"ski_soelden", category:"skiing",
+    title:"Sölden", location:"Ötztal, Austria",
+    lat:46.9621, lon:11.0022, ap:"INN",
+    icon:"⛷️", rating:4.93, reviews:2780,
+    gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",
+    accent:"#6c9ed2",
+    tags:["Glacier Year-Round","007 Elements Museum","Ice Q Sky Restaurant","Twin-Glacier Expert"],
+    photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent", lateSeason:true},
+
+  {id:"ski_mthutt", category:"skiing",
+    title:"Mount Hutt", location:"Canterbury, New Zealand",
+    lat:-43.4939, lon:171.5607, ap:"CHC",
+    icon:"🏔️", rating:4.89, reviews:1640,
+    gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",
+    accent:"#68aadc",
+    tags:["South Island's Best Snow","Canterbury Plains Views","Season June–Oct","Intermediate to Expert"],
+    photo:"https://images.unsplash.com/photo-1512174581917-2b547f64ef69?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    skiPass:"independent"},
+
+  {id:"beach_jeri", category:"beach",
+    title:"Jericoacoara Beach", location:"Ceará, Brazil",
+    lat:-2.7975, lon:-40.5128, ap:"FOR",
+    icon:"🏖️", rating:4.94, reviews:8200,
+    gradient:"linear-gradient(160deg,#331a00,#7a4000,#cc7a00)",
+    accent:"#ffaa33",
+    tags:["World Kitesurfing Capital","Sunset Dune Ritual","No Paved Roads","Blue Lagoon Swimming"],
+    photo:"https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+
+  {id:"beach_comporta", category:"beach",
+    title:"Praia de Comporta", location:"Alentejo, Portugal",
+    lat:38.3790, lon:-8.7760, ap:"LIS",
+    icon:"🏝️", rating:4.91, reviews:5800,
+    gradient:"linear-gradient(160deg,#1a1200,#4d3800,#8c6800)",
+    accent:"#ddbb44",
+    tags:["Lisbon's Secret 90min Away","Rice Fields Meet Ocean","No Hotels on the Beach","Sand Dune Pine Forest"],
+    photo:"https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+```
+
+---
+
+## One Observation for the PM
+
+**The recycled-tag problem is a trust issue, not just a data issue.** On mobile, venue cards are photo + title + 2–4 tags. When a user taps Lindos Beach and sees "Natural Beauty · Protected Bay · Coral Reef · No Crowds" — then taps Turquoise Bay and sees the exact same four words — they feel the app is AI-generated slop. That intuition will surface in App Store reviews before any algorithm score does. The 17 affected venues are concentrated in the t-series and s-series batches added by earlier agents. A single focused 30-min human pass to write real, venue-specific tags for each would lift perceived quality more than any new feature shipping this sprint.
