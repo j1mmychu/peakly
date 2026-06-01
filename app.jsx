@@ -443,7 +443,7 @@ const VENUES = [
   {
     id:"borabora",  category:"beach",
     title:"Bora Bora Lagoon", location:"French Polynesia",
-    lat:-16.5004, lon:-151.7415, ap:"PPT",
+    lat:-16.5004, lon:-151.7415, ap:"BOB",
     icon:"🏝️", rating:4.96, reviews:988,
     gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
     accent:"#a5d6a7", tags:["UV 11","Crystal Water"], photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57",
@@ -564,7 +564,6 @@ const VENUES = [
   {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"val-d-isere-s16",category:"skiing",title:"Val d'Isere",location:"Savoie, France",lat:45.4483,lon:6.98,ap:"GVA",icon:"🏔️",rating:4.69,reviews:2641,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1567468080289-0f4a3e02dce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", lateSeason:true},
   {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZCO",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"les-arcs-s20",category:"skiing",title:"Les Arcs",location:"Savoie, France",lat:45.5,lon:6.8333,ap:"GVA",icon:"🏔️",rating:4.76,reviews:1688,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -582,7 +581,7 @@ const VENUES = [
   {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["National Park Bay","Snorkeling Reefs","Blue Flag","Calm Pacific"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"OAJ",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"ORF",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"natadola-beach-t9",category:"beach",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Swimming Lagoon","White Sand","Fiji's Best Beach"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -5298,7 +5297,7 @@ const ALERT_TEMPLATES = [
   { id:"med-beach",             title:"Med Beach",    subtitle:"Greece + Italy",bg:"#fce7f3", accent:"#be185d", glyph:"palm",
     draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
   { id:"spring-skiing",         title:"Spring Skiing",subtitle:"Late Season",   bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
-    draft:{ sport:"skiing", condition:"good",   locations:["tignes","cervinia","val-d-isere-s16"], priceMax:800 } },
+    draft:{ sport:"skiing", condition:"good",   locations:["tignes","cervinia","les-arcs-s20"], priceMax:800 } },
   { id:"whistler-fresh-snow",   title:"Fresh Snow",   subtitle:"Whistler",      bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
     draft:{ sport:"skiing", condition:"insane", locations:["whistler"],        priceMax:800 } },
 ];
@@ -7453,6 +7452,17 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
             </div>
           </div>
         )}
+        {/* Travel insurance — SafetyWing (referenceID=peakly) */}
+        <a href="https://safetywing.com/?referenceID=peakly" target="_blank" rel="noopener noreferrer sponsored"
+           onClick={() => { if (window.plausible) plausible('insurance_click', { props: { venue: listing.title, category: listing.category } }); }}
+           style={{ display:"flex", alignItems:"center", gap:10, background:"#f7f7f7", borderRadius:14, padding:"12px 14px", marginBottom:16, textDecoration:"none" }}>
+          <span style={{ fontSize:20 }}>🛡️</span>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Travel insurance</div>
+            <div style={{ fontSize:11, color:"#888", fontFamily:F }}>SafetyWing — from $1.50/day</div>
+          </div>
+          <span style={{ fontSize:12, color:"#0284c7", fontWeight:700, fontFamily:F }}>Get covered →</span>
+        </a>
         </div>
         </div>{/* end scrollRef */}
         {/* ─── Sticky CTA bar ─────────────────────────────────────── */}
@@ -7467,7 +7477,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
         }}>
           <button onClick={() => {
             logEvent('flight_click', {venue: listing.title, origin: listing.flight.from});
-            setBookConfirm({ partner: "Aviasales", url: flightUrl, label: `Flights · from $${listing.flight.price}`, kind: "flight" });
+            try { window.open(flightUrl, "_blank", "noopener,noreferrer"); } catch (_) {}
           }} className="pressable" style={{
             flex:2, background:"#222", borderRadius:14, padding:"15px 0", border:"none",
             display:"flex", alignItems:"center", justifyContent:"center", gap:7, cursor:"pointer",
