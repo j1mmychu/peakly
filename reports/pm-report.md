@@ -1,40 +1,39 @@
-# Peakly PM Report — 2026-06-04 (v48)
+# Peakly PM Report — 2026-06-05 (v49)
 
-> Supersedes v47 (June 3). **Status: YELLOW — T-3 days to Reddit launch. Code is clean. VPS is the only binary gate. Jack has 5 minutes of work standing between "launch" and "hope it doesn't melt."**
+> Supersedes v48 (June 4). **Status: YELLOW — T-2 to Reddit launch. Code is frozen and clean. 5 Jack-only items remain on the pre-launch checklist. None require code. VPS is the only binary gate for launch quality.**
 
 ---
 
-## Shipped Since v47 (2026-06-03 → 2026-06-04)
+## Shipped Since v48 (2026-06-04 → 2026-06-05)
 
 | What | Verdict |
 |------|---------|
 | **No app.jsx changes** — code freeze held overnight. | ✅ Correct. |
-| **DevOps June 3 audit** — confirmed cache 20260602a, 9,006 lines, no new secrets. Clean hold. | ✅ Clean. |
-| **PM v47 published** — summer beach-only product risk formally named. | ✅ Filed. |
+| **DevOps June 4 audit** — cache bumped 20260602a → 20260604a. 9,006 lines. No new bugs. | ✅ Clean. |
+| **Content June 4 audit** — 156 venues confirmed (67 ski / 89 beach). Outer Banks duplicate flagged. | ✅ Filed. |
 
-**Code state June 4:** app.jsx 9,006 lines. Cache 20260602a aligned across sw.js + index.html. PEAKLY_BUILD = "20260602a". Sentry DSN non-empty. Plausible wired to `j1mmychu.github.io`. 157 venues (89 beach / 68 skiing). 6 lateSeason ski venues. JSON-LD structured data present. Static H1 fallback present.
-
-Zero code regressions. Zero new bugs introduced.
+**Code state June 5:** app.jsx 9,006 lines. Cache 20260604a (DevOps will bump to 20260605a in its run today). Sentry DSN non-empty. Plausible wired to `j1mmychu.github.io`. 156 venues (67 skiing / 89 beach). 6 lateSeason ski venues. JSON-LD present. Static H1 present. Zero code regressions.
 
 ---
 
-## Bug Triage — June 4
+## Bug Triage — June 5
 
 | Bug | Severity | Days Open | Status |
 |-----|----------|-----------|--------|
-| **VPS proxy unredeployed** | **P0** | **Day 31** | Jack only. SSH → verify → restart. 5 minutes. |
-| SRI on 4 CDN scripts | P1 | Day 36+ | DEFER post-launch. Final. |
-| 16–25 ski venues missing skiPass field | P2 | Day 7 | DEFER post-launch. |
-| CSP meta tag | P2 | Day 36+ | DEFER post-launch. Final. |
-| South America beach underrepresented (2 venues) | P3 | Day 8 | DEFER post-launch. |
-| Africa beach underrepresented (6 venues) | P3 | Day 8 | DEFER post-launch. |
-| Eager Supabase `<script>` (80KB on every anon load) | P2 | Day 26 | DEFER post-launch. Diff exists at `reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff`. Apply week of June 10. |
+| **VPS proxy unredeployed** | **P0** | **Day 32** | Jack only. Same SSH command. Same 5 minutes. |
+| SRI on 4 CDN scripts | P1 | Day 37 | DEFER post-launch. Final. |
+| Outer Banks duplicate (2 venues, same ORF airport) | P2 | Day 1 | DEFER post-launch. Non-blocking. |
+| 16–25 ski venues missing skiPass field | P2 | Day 8 | DEFER post-launch. Filter works correctly without field. |
+| CSP meta tag | P2 | Day 37 | DEFER post-launch. Final. |
+| South America beach underrepresented (2 venues) | P3 | Day 9 | DEFER post-launch. |
+| Africa beach underrepresented (6 venues) | P3 | Day 9 | DEFER post-launch. |
+| Eager Supabase `<script>` (80KB on every anon load) | P2 | Day 27 | DEFER post-launch. Diff ready at `reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff`. |
 
 **Peakly Pro $9/mo vs $79/yr:** Not a bug. Pro UI was removed April 16. No price appears in the live product.
 
-**Sentry DSN empty:** Not a bug. DSN confirmed non-empty at `app.jsx:8`.
+**Sentry DSN empty:** Not a bug. Confirmed active at `app.jsx:8`.
 
-**Cache buster stale:** Not a bug. 20260602a is current and consistent.
+**Cache buster stale:** Not a bug. DevOps bumped yesterday (20260604a). Today's DevOps run will bump again.
 
 ---
 
@@ -42,65 +41,65 @@ Zero code regressions. Zero new bugs introduced.
 
 | Blocker | What It Unlocks | ETA |
 |---------|----------------|-----|
-| VPS SSH + pm2 restart | Weather proxy cache, reddit spike survival, correct weekend pricing | Today (5 min) |
-| LLC approval | REI ($6.16/1K MAU), Backcountry ($0.64), GetYourGuide ($1.20) = +$8/1K | External |
+| **VPS SSH + pm2 restart** | Weather proxy cache, Reddit spike survival, weekend-specific pricing | Jack, today |
+| LLC approval | REI (+$6.16/1K MAU), Backcountry (+$0.64), GetYourGuide (+$1.20) | External |
 | Apple Developer enrollment ($99) | App Store submission | Post-launch |
-| Venue deep links (individual venue pages) | SEO long-tail, direct bookmarking | Post-Reddit-launch, not before |
+| Venue deep links | SEO long-tail, direct bookmarking | Post-Reddit-launch |
 
 ---
 
-## Explicit Product Decisions — June 4
+## Explicit Product Decisions — June 5
 
-**Decision 1: skiPass field gap is P2. DEFER post-launch. No backfill before June 7.**
+**Decision 1: Outer Banks duplicate — DEFER post-launch. Final.**
 
-16–25 ski venues are missing the `skiPass` field. The skiPass filter in SearchSheet already handles this correctly — venues without the field simply don't appear when a specific pass is selected, and appear in "any" results. This is a content gap, not a broken filter. It doesn't affect launch-day experience. Backfill lands in the June 10 sprint alongside the summer beach audit.
+Content flagged two OBX beach venues (`beach_ob` + `outer-banks-nags-head-t7`), both served by ORF, 45km apart. A user from the northeast sees two cards for the same region. This is P2, not P0. Both venues have distinct coordinates, distinct tags, distinct IDs — the filter logic treats them correctly. Merging or deleting requires touching VENUES array 48 hours before launch. Not happening. Post-launch content sprint, week of June 10.
 
-**Action:** Content agent produces a ready-to-ship diff of skiPass additions for all 67+ ski venues by June 9. One commit, one review.
+**Decision 2: CLAUDE.md venue count and lateSeason count — correct in place now, before stale docs cause further agent confusion.**
 
----
+CLAUDE.md says "~154 entries" and "7 lateSeason venues." Code has 156 venues and 6 lateSeason flags. Content confirmed both. Every agent run cites stale numbers and wastes a finding slot. Correcting docs is 5 minutes and doesn't touch app.jsx. Doing it in this commit.
 
-**Decision 2: June 7 Reddit launch is a Sunday. The app will show NEXT weekend (June 12–15) to all new users.**
+**Decision 3: If VPS is not confirmed live by June 6 EOD, launch anyway on June 7 — but change the launch framing.**
 
-On Sunday June 7, `upcomingFridayISO()` returns Friday June 12. That's day 8 from today. Open-Meteo 7-day window ends at day 6 roughly, meaning some venues will show `confidence: "low"` — which the front page filters out. The grid may be thinner than expected.
+This decision needed to be explicit. Day 32 of a 5-minute task. The product works without VPS (direct Open-Meteo fallback, estimates instead of weekend-specific pricing). It degrades at >67 DAU. If the Reddit post hits top 10 in r/solotravel, we'll blow past 67 DAU within the first hour. Without the proxy cache, Open-Meteo will 429, venue scores will go null, and users will see empty grids.
 
-This is not new information — we've known the 7-day window is the product's honest constraint. But nobody has stress-tested "what does the app show on Sunday when the next weekend is day 8 out?" The front-page `scoreWeekend` already drops `confidence: "low"` results. That's correct behavior. But the beach-dominant summer grid + low-confidence filtering could produce a sparse carousel on June 7 specifically.
+Options:
+- **Option A (preferred):** Jack does the VPS today. Launch June 7. Full product.
+- **Option B (acceptable):** Jack doesn't do VPS. Launch June 14 instead. One week delay. Still peak summer. Avoids a broken-looking grid on launch day.
+- **Option C (not acceptable):** Launch June 7 without VPS. Grid empties at 67 concurrent DAU. "Broken" becomes the thread narrative. Hard to undo first impressions on Reddit.
 
-**Action before June 7 (Jack, 10 minutes):** Open the live app on incognito Sunday or set device clock to June 7. Count visible cards in the carousel. If <5, the fallback carousel (`bestRightNowFallback`, floor 65) should kick in. Confirm it does. This is part of the smoke test in item #16 of the pre-launch checklist. Not a code change. Just a verify.
-
----
-
-**Decision 3: Summer beach audit is the first post-launch sprint. Commits no earlier than June 10.**
-
-v47 named this risk. It's real. The June N-hemisphere ski grid empties out by late June. The beach-only summer experience hasn't been audited for carousel copy, filter defaults, or whether the empty state feels intentional vs. sparse.
-
-**Scope for June 10 sprint:**
-- Beach-only Explore audit (carousel header, filter defaults, empty state copy)
-- skiPass field backfill (Content agent diff)
-- Eager Supabase script deletion (diff exists, 30-sec apply)
-- Unsplash photo optimization (sed block exists in devops-2026-05-06.md)
-- SRI + CSP (week of June 10, not day one — needs browser testing)
-
-**None of this ships before Reddit launch. Code freeze holds through June 7.**
+**Call:** Option A or B. Option C is off the table. Jack decides which by EOD June 5 — not June 6.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: VPS today (Day 31).** Same command as yesterday. Same 5 minutes. Same binary gate.
+**1. Jack: VPS or slip decision — today, not tomorrow.**
+
+Option A (ship today, launch June 7):
 ```bash
-ssh root@198.199.80.21 "pm2 status && curl -s localhost:3001/health | head -30"
-# If proxy stale or down:
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && git pull origin main && pm2 restart peakly-proxy && pm2 save"
-# Confirm:
-curl -s https://peakly-api.duckdns.org/health
+curl -s https://peakly-api.duckdns.org/health | jq .
 ```
-Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new binary.
+Expected JSON includes `"wx_cache_size"` key. Any 5xx or timeout = proxy not running new binary.
 
-**2. Jack: Smoke test June 5–6.** Incognito, set home airport (pick SFO or JFK), open Explore. Confirm: (a) carousel shows ≥5 cards, (b) flight CTA goes direct to Aviasales — no modal, (c) Hotels CTA opens Booking.com modal, (d) ScoreBreakdown taps open, (e) Plausible realtime shows events. If any of (a)–(e) fail, tell me immediately — it's a code fix, not a content fix. Clock to Sunday June 7 if you can to pre-validate the day-8 grid.
+Option B (slip to June 14): Tell me now so I can update the checklist and the Reddit timing.
 
-**3. Jack: Reddit post written by June 6.** First person. Real airport. Real venue. Real number. "I built a thing" not "introducing Peakly." Post 9–11am PST June 7: r/solotravel first, then r/frugaltravel, then r/skiing. 1hr apart. Don't cross-post simultaneously.
+**2. Jack: Smoke test today (June 5) and again June 6.**
 
-**Zero new code between now and June 7.**
+Open incognito. Home airport = SFO. Confirm:
+- (a) Carousel shows ≥5 cards
+- (b) Click any flight CTA → goes direct to Aviasales, no modal
+- (c) Hotels CTA → opens Booking.com modal
+- (d) ScoreBreakdown taps open
+- (e) Plausible realtime shows events in dashboard
+
+**Also set device clock to June 7 and reopen.** Count visible cards again. Confirm fallback "Looking ahead" carousel shows if primary is sparse. This is the day-8 confidence validation from v48 Decision 2. If <3 cards visible without fallback, that's a code fix — tell me today, not June 6.
+
+**3. Jack: Reddit post written and account validated by June 6.**
+
+Check Reddit account age + karma before writing the post. If account is <60 days old or <100 karma, the June 7 plan changes (see v48: post in existing thread vs. top-level). First-person, real airport, real venue, real number. One subreddit per hour, not simultaneous. No cross-posting.
+
+**Zero new code between now and June 7 unless smoke test reveals a blocker.**
 
 ---
 
@@ -108,16 +107,18 @@ Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| skiPass backfill (16–25 venues) | **DEFER to June 10** | Not visible blocker. Content agent produces diff post-launch. |
-| New venue additions | **DEFER to June 8 batch** | Code freeze. No venue changes touch app.jsx before Reddit launch. |
-| South America / Africa beach venues | **DEFER to June 10** | Geographic balance improves over time; doesn't affect launch quality. |
-| Venue deep links / individual pages | **DEFER post-launch** | Already decided. Reddit traffic doesn't need SEO pages on day 1. |
-| JSON-LD structured data improvements | **DEFER post-launch** | Existing schema is solid. SEO gains take weeks. Not a Day 1 lever. |
-| SRI + CSP | **DEFER to June 10 sprint** | Requires regression testing Babel unsafe-eval. Not a launch week task. |
-| Hotels in deal score | **CUT. Final.** | v2 if demand validates. |
-| Peakly Pro | **CUT for v1. Final.** | Post-1K MAU. |
-| Wishlists / Trips tab | **LOCKED at 1K MAU gate** | No change. |
-| App Store submission | **DEFER** | Post-launch. Not on June 7 path. |
+| Outer Banks venue merge | **DEFER to June 10** | P2, code freeze, 48 hours to launch |
+| skiPass field backfill | **DEFER to June 10** | Content agent diff, not a launch blocker |
+| New venue additions | **DEFER to June 8 batch** | Code freeze holds through June 7 |
+| Val Thorens + Verbier as new lateSeason venues | **DEFER to June 10** | Content flagged, not in VENUES yet, not a launch blocker |
+| South America / Africa beach venues | **DEFER to June 10** | Geographic balance improves post-launch |
+| Venue deep links / individual pages | **DEFER post-launch** | Already decided. Final. |
+| SRI + CSP | **DEFER to June 10 sprint** | Regression risk with Babel unsafe-eval |
+| Hotels in deal score | **CUT. Final.** | v2 if demand validates |
+| Peakly Pro | **CUT for v1. Final.** | Post-1K MAU |
+| Wishlists / Trips tab | **LOCKED at 1K MAU gate** | No change |
+| App Store submission | **DEFER** | Post-launch |
+| Auto-bump cache buster in auto-push.sh | **SHIP in June 10 sprint** | DevOps flagged 10x. 10-min fix. Not touching deploy scripts 48h before launch. |
 
 ---
 
@@ -127,8 +128,8 @@ Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new
 |---|------|--------|
 | 1 | SEO meta clean | ✅ |
 | 2 | APNS Capacitor gate (Path B) | ✅ app.jsx:8317 |
-| 3 | val-d-isere-s16 deleted (157 venues) | ✅ June 1 |
-| 4 | outer-banks ap ORF | ✅ app.jsx:584 |
+| 3 | val-d-isere-s16 deleted (156 venues) | ✅ June 1 |
+| 4 | Outer Banks ap ORF | ✅ app.jsx:584 |
 | 5 | BookingConfirmSheet off flights | ✅ June 1 |
 | 6 | SafetyWing CTA live | ✅ app.jsx:7455 |
 | 7 | Bora Bora BOB standardized | ✅ June 1 |
@@ -136,21 +137,21 @@ Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new
 | 9 | Sentry DSN non-empty | ✅ app.jsx:8 |
 | 10 | Seasonal default beach N-hem June | ✅ |
 | 11 | lateSeason flags (6 ski venues) | ✅ |
-| 12 | Cache 20260602a | ✅ sw.js + app.jsx + index.html |
+| 12 | Cache 20260604a | ✅ sw.js + app.jsx + index.html |
 | 13 | Coral reef tag fixes (3 venues) | ✅ June 2 |
 | 14 | JSON-LD structured data | ✅ index.html:35 |
 | 15 | Static H1 fallback | ✅ index.html:391 |
-| 16 | **VPS proxy verified live** | ❌ Jack, today June 4 |
+| 16 | **VPS proxy verified live** | ❌ Jack, today June 5 |
 | 17 | **Plausible domain validated** | ❌ Jack, by June 5 |
-| 18 | **Human smoke test (incognito)** | ❌ Jack, by June 6 |
-| 19 | **Reddit post written** | ❌ Jack's voice, by June 6 |
+| 18 | **Human smoke test (incognito, including June 7 clock)** | ❌ Jack, by June 6 |
+| 19 | **Reddit post written + account karma validated** | ❌ Jack's voice, by June 6 |
 | 20 | **Agent crontab installed** | ❌ Jack, by June 5 |
 
 **15 of 20 green. All 5 remaining items are Jack-only. No code work left for launch.**
 
 ---
 
-## Revenue Model — June 4
+## Revenue Model — June 5
 
 | Stream | Code Status | RPM/1K MAU |
 |--------|-------------|------------|
@@ -161,7 +162,7 @@ Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new
 | REI (Avantlink) | LLC pending | +$6.16 unlocked |
 | Backcountry / GetYourGuide | LLC pending | +$1.84 unlocked |
 
-**Live RPM: $12.06/1K MAU.** LLC approval jumps this to ~$20/1K MAU. At 5K MAU post-launch (90-day conservative), that's $60/month vs. $100/month — real money only past 10K MAU. No action on revenue this sprint.
+**Live RPM: $12.06/1K MAU.** LLC approval jumps to ~$20/1K MAU. No action on revenue before launch.
 
 ---
 
@@ -170,27 +171,44 @@ Expected: JSON with `"wx_cache_size"` key. Anything else = proxy not running new
 | Scenario | Users (90d) | What Has to Be True |
 |----------|-------------|---------------------|
 | VPS live + post in top 10 + June 7 | **6K–8K** | Proxy absorbs spike. Day-8 grid has ≥5 good cards. Post gets karma, not removed. |
-| VPS down on launch day | **1K–2K** | Grid empties under 66-user load. "Broken" pins the thread. |
-| Launch slips to June 14 | **4K–6K** | Still peak summer. Lose the "catching peak diversity" window. |
+| VPS live + slip to June 14 | **4K–6K** | Still peak summer. Lose the early-June diversity window. |
+| VPS down on launch day | **1K–2K** | Grid empties under 67-DAU load. "Broken" pins the thread. |
 | No June launch | **<1K** | Organic SEO only. 100K goal slips to 2027. |
 
-**For 8K not 5K:** VPS confirmed (Jack, today), post reaches top 10 in r/solotravel within 6 hours, flight CTA direct (confirmed). Two of three already done. One is still the same 5-minute SSH command on Day 31.
+**For 8K not 5K:** VPS confirmed today, smoke test passes, Reddit account karma is real, post reaches top 10 in first 6 hours. Three of four still unconfirmed.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Reddit account posting this hasn't been established as a credible voice in these subreddits.**
+**Zero web re-engagement mechanism. Reddit traffic decays in 48 hours. We have no way to pull users back next week.**
 
-Every Reddit launch strategy implicitly assumes the account won't be shadowbanned or removed for spam. r/solotravel, r/frugaltravel, and r/skiing all have mods who are aggressive about "I built a thing" posts from accounts with no karma or posting history in the sub.
+The app's core value proposition is weekly — this weekend's conditions. A user who discovers Peakly on Reddit, thinks it's cool, does NOT install the PWA and does NOT sign in, has zero mechanism to see it again in 7 days. No push notification (APNS gated on Apple enrollment). No email (Supabase magic-link exists but there's no trigger to get a first-time visitor to sign in). No RSS. No "check back next Friday" nudge anywhere in the UI.
 
-If the account is new or has no activity in these communities, the post can be:
-1. Removed by automod before humans see it (common for accounts <30 days old with <100 karma)
-2. Shadowbanned silently (poster sees the post, nobody else does)
-3. Downvoted immediately as spam even if the content is good
+Reddit launch drives a spike on June 7. Natural decay brings it to near-zero by June 9. Without re-engagement, the 90-day projection assumes organic SEO growth fills the gap — and SEO takes weeks to months for a new domain.
 
-The technical product is launch-ready. The distribution channel has not been validated.
+The one lever we have that requires no new code: **an "Email me next Friday's best spots" input field** on the Explore page, above the carousel. Collect an email, store in Supabase, send a weekly magic-link email with the top 3 venues. This is:
+- No native push required
+- Supabase already wired for email
+- Captures the intent of "I liked this, remind me" from first-time visitors who won't install a PWA
 
-**What needs to happen before June 7:** Jack checks his Reddit account age and karma. If karma < 100 or account < 60 days old, the plan needs to be "post in comments of an existing thread" or "find a sub that allows new accounts" — not top-level post. r/travel tends to be more forgiving than r/skiing for first-time posters. r/Flights is moderated but allows flight deal posts. A failure here doesn't kill the product — it means week 1 is slower — but nobody has named this risk out loud.
+This is post-launch scope (week of June 10), not before. But it needs to be on the roadmap or the 90-day projection above 5K relies entirely on SEO + word of mouth, not product retention.
 
-This is fixable in 10 minutes of research and potentially changes which subreddit goes first.
+**Decision needed (not today, but before June 14):** Does the June 10 sprint include the email nudge, or do we bet on PWA install rate?
+
+---
+
+## Post-Launch Sprint Scope (Week of June 10)
+
+Locked. Nothing before June 7.
+
+| Item | Who | Effort |
+|------|-----|--------|
+| Beach-only Explore audit (carousel header, filter defaults, empty state) | Claude | 1h |
+| Outer Banks venue merge or differentiate | Claude | 30min |
+| skiPass field backfill (67 ski venues) | Claude/Content | 2h |
+| Eager Supabase script deletion | Claude | 30-sec apply |
+| Auto-bump cache buster in auto-push.sh | Claude | 10min |
+| Email nudge / weekly digest input | Decision needed first | TBD |
+| Val Thorens + Verbier venue additions | Claude | 30min |
+| CLAUDE.md venue count cleanup (156, 6 lateSeason) | ✅ Doing in this commit | Done |
