@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260605a";
+const PEAKLY_BUILD = "20260606a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -58,7 +58,7 @@ function ensureSupabase() {
   _supabaseLoadPromise = new Promise((resolve, reject) => {
     if (typeof supabase !== "undefined" && supabase.createClient) { resolve(); return; }
     const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js";
     s.async = true;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("Failed to load Supabase JS"));
