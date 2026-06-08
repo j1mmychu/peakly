@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607k";
+const PEAKLY_BUILD = "20260607l";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2188,6 +2188,56 @@ const AIRPORT_COORDS = {
   BOI:{lat:43.5644,lon:-116.2228}, GEG:{lat:47.6199,lon:-117.5338}, ABQ:{lat:35.0402,lon:-106.6090},
   OKC:{lat:35.3931,lon:-97.6007},  TUL:{lat:36.1984,lon:-95.8881},  MHT:{lat:42.9326,lon:-71.4357},
   ALB:{lat:42.7483,lon:-73.8019},  SYR:{lat:43.1112,lon:-76.1063},  BDL:{lat:41.9389,lon:-72.6832},
+  // US ski/beach gateways referenced by VENUES
+  ASE:{lat:39.2232,lon:-106.8687}, BTV:{lat:44.4719,lon:-73.1533},  BZN:{lat:45.7775,lon:-111.1530},
+  EGE:{lat:39.6426,lon:-106.9177}, EYW:{lat:24.5561,lon:-81.7595},  FCA:{lat:48.3105,lon:-114.2560},
+  GUC:{lat:38.5340,lon:-106.9332}, HDN:{lat:40.4811,lon:-107.2178}, JAC:{lat:43.6073,lon:-110.7377},
+  KOA:{lat:19.7388,lon:-156.0457}, MTJ:{lat:38.5098,lon:-107.8941}, MYR:{lat:33.6797,lon:-78.9283},
+  OGG:{lat:20.8987,lon:-156.4305}, RDD:{lat:40.5090,lon:-122.2934}, SAF:{lat:35.6171,lon:-106.0883},
+  SNA:{lat:33.6757,lon:-117.8682}, SRQ:{lat:27.3954,lon:-82.5544},  SUN:{lat:43.5044,lon:-114.2965},
+  VPS:{lat:30.4832,lon:-86.5254},
+  // Canada
+  YKA:{lat:50.7022,lon:-120.4441}, YLW:{lat:49.9561,lon:-119.3779}, YVR:{lat:49.1939,lon:-123.1844},
+  YYC:{lat:51.1138,lon:-114.0203},
+  // Caribbean / Mexico / Central America
+  AUA:{lat:12.5014,lon:-70.0152},  AXA:{lat:18.2048,lon:-63.0551},  BGI:{lat:13.0746,lon:-59.4925},
+  BOC:{lat:9.3408,lon:-82.2508},   CUN:{lat:21.0365,lon:-86.8771},  CZM:{lat:20.5224,lon:-86.9285},
+  GCM:{lat:19.2929,lon:-81.3577},  HUX:{lat:15.7754,lon:-96.2625},  MBJ:{lat:18.5037,lon:-77.9133},
+  PLS:{lat:21.7736,lon:-72.2659},  PVR:{lat:20.6801,lon:-105.2543}, SJD:{lat:23.1518,lon:-109.7211},
+  SJO:{lat:9.9939,lon:-84.2088},   STT:{lat:18.3373,lon:-64.9734},  SXM:{lat:18.0410,lon:-63.1099},
+  TAB:{lat:11.1497,lon:-60.8322},  UVF:{lat:13.7332,lon:-60.9526},
+  // South America
+  FEN:{lat:-3.8541,lon:-32.4233},  FLN:{lat:-27.6703,lon:-48.5527}, SCL:{lat:-33.3930,lon:-70.7858},
+  USH:{lat:-54.8433,lon:-68.2958}, ZCO:{lat:-38.9263,lon:-72.6517},
+  // Europe — ski gateways
+  CMF:{lat:45.6381,lon:5.8800},    GVA:{lat:46.2381,lon:6.1090},    INN:{lat:47.2603,lon:11.3438},
+  INV:{lat:57.5425,lon:-4.0475},   KRK:{lat:50.0777,lon:19.7848},   OSL:{lat:60.1939,lon:11.1004},
+  SOF:{lat:42.6967,lon:23.4114},   SZG:{lat:47.7933,lon:13.0043},   TBS:{lat:41.6694,lon:44.9547},
+  TRN:{lat:45.2008,lon:7.6496},    ZRH:{lat:47.4647,lon:8.5492},
+  // Europe — beach gateways
+  CAG:{lat:39.2515,lon:9.0543},    DBV:{lat:42.5614,lon:18.2683},   DLM:{lat:36.7131,lon:28.7925},
+  EAS:{lat:43.3565,lon:-1.7906},   FAO:{lat:37.0144,lon:-7.9659},   IBZ:{lat:38.8729,lon:1.3731},
+  JMK:{lat:37.4351,lon:25.3481},   JNX:{lat:37.0811,lon:25.3683},   JTR:{lat:36.3992,lon:25.4793},
+  MAH:{lat:39.8626,lon:4.2186},    MLO:{lat:36.6967,lon:24.4769},   NAP:{lat:40.8860,lon:14.2908},
+  NCE:{lat:43.6584,lon:7.2159},    PMI:{lat:39.5517,lon:2.7388},    RHO:{lat:36.4054,lon:28.0862},
+  SPU:{lat:43.5389,lon:16.2980},   TPS:{lat:37.9114,lon:12.4881},
+  // Asia
+  BEY:{lat:33.8208,lon:35.4884},   CMB:{lat:7.1808,lon:79.8841},    CTS:{lat:42.7752,lon:141.6923},
+  DAD:{lat:16.0439,lon:108.1992},  DPS:{lat:-8.7482,lon:115.1672},  ENI:{lat:11.2024,lon:119.4154},
+  GOI:{lat:15.3808,lon:73.8314},   HKT:{lat:8.1132,lon:98.3169},    HNA:{lat:39.4286,lon:141.1351},
+  KBV:{lat:8.0991,lon:98.9862},    KUL:{lat:2.7456,lon:101.7099},   LOP:{lat:-8.7572,lon:116.2769},
+  MCT:{lat:23.5933,lon:58.2844},   MLE:{lat:4.1918,lon:73.5290},    MPH:{lat:11.9244,lon:121.9534},
+  NRT:{lat:35.7720,lon:140.3929},  PQC:{lat:10.2270,lon:103.9670},  USM:{lat:9.5479,lon:100.0617},
+  // Middle East / North Africa
+  RAK:{lat:31.6068,lon:-8.0363},
+  // Oceania
+  AIT:{lat:-18.8309,lon:-159.7641}, BME:{lat:-17.9447,lon:122.2317}, BOB:{lat:-16.4444,lon:-151.7510},
+  CBR:{lat:-35.3069,lon:149.1947},  CNS:{lat:-16.8858,lon:145.7553}, LEA:{lat:-22.2356,lon:114.0889},
+  NAN:{lat:-17.7553,lon:177.4413},  PPP:{lat:-20.4950,lon:148.5524}, SYD:{lat:-33.9461,lon:151.1772},
+  ZQN:{lat:-45.0211,lon:168.7392},
+  // Sub-Saharan Africa + Indian Ocean
+  INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
+  PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
 };
 
 // ─── Great-circle flight time estimate ────────────────────────────────────────
