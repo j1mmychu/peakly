@@ -20,6 +20,7 @@ dist/
 build/
 .next/
 out/
+.vendor-cache/
 
 # macOS / OS
 .DS_Store
