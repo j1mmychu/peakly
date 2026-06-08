@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607n";
+const PEAKLY_BUILD = "20260607o";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3988,6 +3988,71 @@ function InstallNudge({ wishlistCount }) {
 
 // Tiny pill showing cloud-sync status. Hidden when sync is disabled
 // (placeholder constants) so existing users see no change.
+// Diagnostic pill — surfaces VPS proxy + flight + APNS state at a glance.
+// Polls /health on mount + every 60s. Renders three dots; tap to expand.
+function ServiceStatusPill() {
+  const [health, setHealth] = useState(null);
+  const [flightStatus, setFlightStatus] = useState("unknown");
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 5000);
+        const r = await fetch("https://peakly-api.duckdns.org/health", { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!alive) return;
+        if (r.ok) setHealth(await r.json());
+        else setHealth({ status: "down" });
+      } catch { if (alive) setHealth({ status: "down" }); }
+      if (alive) setFlightStatus(getFlightApiStatus());
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+  const wx = !health ? "unknown" : health.status === "ok" ? "live" : "down";
+  const fl = flightStatus;
+  const ap = !health ? "unknown" : (health.apns === "configured" || health.apns_configured === true ? "live" : "off");
+  const dot = s => s === "live" ? "#16a34a" : s === "down" ? "#ef4444" : s === "off" ? "#f59e0b" : "#bbb";
+  const Dot = ({ icon, state }) => (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+      <span style={{ fontSize: 12 }}>{icon}</span>
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: dot(state) }} />
+    </span>
+  );
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12 }}>
+      <button onClick={() => setOpen(o => !o)} className="pressable" style={{
+        width: "100%", background: "#f9f9f9", border: "1px solid #ececec", borderRadius: 12,
+        padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        cursor: "pointer", fontFamily: F,
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Service status</span>
+        <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Dot icon="🌤" state={wx} />
+          <Dot icon="✈️" state={fl} />
+          <Dot icon="🔔" state={ap} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ marginTop: 6, padding: "10px 14px", background: "#fff", border: "1px solid #ececec", borderRadius: 12, fontFamily: F, fontSize: 11, color: "#555", lineHeight: 1.7 }}>
+          <div>🌤 Weather proxy: {wx === "live" ? "live ✓" : "down — direct Open-Meteo fallback"}</div>
+          <div>✈️ Flight pricing: {fl === "live" ? "live ✓" : fl === "down" ? "down — showing estimates" : "no calls yet"}</div>
+          <div>🔔 iOS push (APNS): {ap === "live" ? "configured ✓" : "not configured"}</div>
+          {health && health.wx_cache_size != null && (
+            <div style={{ marginTop: 4, color: "#888" }}>
+              Weather cache: {health.wx_cache_size} · alerts: {health.alerts || 0} · poll errors: {health.poll?.errors ?? "n/a"}
+            </div>
+          )}
+          <div style={{ marginTop: 4, color: "#888", fontSize: 10 }}>Build {PEAKLY_BUILD}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SyncStatusPill({ cloudSync }) {
   if (!cloudSync || !cloudSync.enabled) return null;
   const map = {
