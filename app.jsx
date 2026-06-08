@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607z";
+const PEAKLY_BUILD = "20260607aa";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4974,7 +4974,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                             }}>Set an alert</button>
                           )}
                           {hasActiveFilters && (
-                            <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
+                            <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
                               background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
                               color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
                             }}>Clear all filters</button>
