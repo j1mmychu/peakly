@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608a";
+const PEAKLY_BUILD = "20260608b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4359,8 +4359,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       .filter(l => {
         if (l.weekendScore < 75) return false;
         if (l.weekendConfidence === "low") return false;
-        if (!l.flight?.price) return true;
-        if (!l.flight.live) return true;   // estimates don't drive deal filtering
+        if (l.flight?.live !== true) return false; // exact-fares-only mode
         return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
       })
       .sort(sortByVal).slice(0, 10);
