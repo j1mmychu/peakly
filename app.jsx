@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607f";
+const PEAKLY_BUILD = "20260607g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8968,11 +8968,11 @@ function App() {
             onOpenDetail={openDetail}
             filters={filters}
             search={search}
-            onAlert={(venue) => {
+            onAlert={showAlertsTab ? (venue) => {
               setDetailVenue(null);
               try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {}
               setActiveTab("alerts");
-            }}
+            } : undefined}
           />
         )}
 
