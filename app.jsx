@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607ac";
+const PEAKLY_BUILD = "20260607ad";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8542,10 +8542,10 @@ function App() {
           from:    profile.homeAirport || "JFK",
           live:    true,
           foundAt: duffelData.foundAt || null,
-          depDate: filters.startDate || null,
-          retDate: filters.endDate   || null,
+          depDate: duffelData.departDate || null,
+          retDate: duffelData.returnDate || null,
         }
-      : { ...estimate, from: estimate.from || profile.homeAirport || "JFK", live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
+      : { ...estimate, from: estimate.from || profile.homeAirport || "JFK", live: false, foundAt: null, depDate: null, retDate: null };
     // Find best window in the 7-day forecast
     let bestDay = 0, bestScore = score;
     const vWx = wxData[v.id], vMar = marData[v.id];
