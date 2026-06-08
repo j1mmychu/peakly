@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607d";
+const PEAKLY_BUILD = "20260607e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7378,14 +7378,16 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           )}
 
           {/* Set Alert CTA */}
-          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
-            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
-            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
-            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
-          </button>
+          {onAlert && (
+            <button onClick={() => onAlert(listing)} className="pressable" style={{
+              background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+              padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+              gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+            </button>
+          )}
 
           {/* Tags — polished to match Explore-card tag style */}
           {listing.tags?.length > 0 && (
