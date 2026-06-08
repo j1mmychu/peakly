@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607l";
+const PEAKLY_BUILD = "20260607m";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1063,12 +1063,14 @@ async function fetchMarine(lat, lon) {
   if (fromProxy) { _wxCacheSet(cacheKey, fromProxy); return fromProxy; }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
-  // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
+  // Beach-only after 2026-05-03 surf retirement — only sea_surface_temperature_max
   // is consumed by scoreVenue (water-temp gate). Wave/swell fields removed
-  // to trim Open-Meteo payload.
+  // to trim Open-Meteo payload. Field was 'ocean_temperature_max' until
+  // 2026-06-07 — Open-Meteo never had that name; marine fetch had been failing
+  // silently and beach venues were scoring without water-temp data.
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=ocean_temperature_max` +
+    `&daily=sea_surface_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
