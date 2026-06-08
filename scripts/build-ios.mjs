@@ -104,7 +104,14 @@ async function main() {
   for (const v of VENDOR_FILES) {
     const cached = path.join(CACHE, v.name);
     await download(v.url, cached);
-    fs.copyFileSync(cached, path.join(VENDOR, v.name));
+    let body = fs.readFileSync(cached, "utf8");
+    // Strip the jsDelivr build-tool header comment from the Supabase bundle —
+    // not part of the MIT license; leaving it would leak the substring
+    // "jsdelivr" into the bundle and trip the offline-bundle grep.
+    if (v.name === "supabase.min.js") {
+      body = body.replace(/^\/\*\*[\s\S]*?\*\/\s*/, "");
+    }
+    fs.writeFileSync(path.join(VENDOR, v.name), body);
   }
   for (const img of LEAFLET_IMAGES) {
     const url = `https://unpkg.com/leaflet@${LEAFLET_VER}/dist/images/${img}`;
