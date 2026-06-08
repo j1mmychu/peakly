@@ -1,202 +1,171 @@
-# Peakly PM Report — 2026-06-07 (v51)
+# Peakly PM Report — 2026-06-08 (v52)
 
-> Supersedes v50 (June 6). **Status: RED → GO pending VPS. Launch day. One binary gate remaining.**
+> Supersedes v51 (June 7). **Status: RED — Launch day was yesterday. 50+ auto: commits shipped since v51, including a P0 revenue regression (GEAR_ITEMS removed) and a critical bug fix (beach water-temp field was wrong since launch). VPS still Day 35.**
 
 ---
 
-## Shipped Since v50 (2026-06-06 → 2026-06-07)
+## Shipped Since v51 (2026-06-07 → 2026-06-08)
 
 | What | Verdict |
 |------|---------|
-| **DevOps June 7** — cache bumped 20260606a → 20260607a, CORS localhost origins flagged | ✅ Cache is current. CORS fix deferred — see below. |
-| **Content June 7** — 156 venues healthy, ID typo flagged (`beach_gilit`), Bora Bora soft-dups re-evaluated as *defensible* | ✅ Filed. Triage below. |
-| **Zero app.jsx logic changes** — code freeze held for 3 days | ✅ Exactly right. |
-
-**Code state June 7:** app.jsx 9,006 lines. Cache 20260607a consistent. PEAKLY_BUILD = "20260607a". Sentry DSN active. Plausible wired. 156 venues (67 skiing + 89 beach). APNS Capacitor gate live at app.jsx:8327.
+| **`ocean_temperature_max` → `sea_surface_temperature_max` fix** | ✅ **Critical bug fix.** Beach venues had been scoring WITHOUT water-temp data since the May 3 launch. Open-Meteo's field was never named `ocean_temperature_max` — that name doesn't exist in their API. Silent failure for 36 days. Beach scoring is now correct for the first time. |
+| **Date range filter removed from SearchSheet** | ✅ Correct. Product is 7-day only. Custom date pickers were dead UI. |
+| **Exact-fare-only mode in `applyFilters`** | ⚠️ Correct intent, UX risk. Once all flight fetches complete, grid collapses to live-fare-only venues. See Decision 2. |
+| **ServiceStatusPill on Profile tab** | ⚠️ Good transparency tool, but exposes "APNS: not configured" to end users. See Decision 3. |
+| **AIRPORT_COORDS expanded** (20+ new entries: ASE, BTV, BZN, EYW, KOA, OGG, YKA, YLW, etc.) | ✅ Correct. Prevents silent `NaN` in `flightHours()` for venues using these airports. |
+| **CORS moved before rate limiter in proxy.js** | ✅ Correct. 429 responses now include CORS headers. Without this, rate-limit errors looked like CORS errors to the browser. |
+| **Rate limit bumped 60 → 600 req/min in proxy.js** | ✅ **Critical fix.** A single cold Peakly load fires ~235 calls in 5s. The 60/min cap was rate-limiting normal usage, not abuse. Was undeployed anyway, but the fix is correct. |
+| **iOS build pipeline created** (`scripts/build-ios.mjs`, `scripts/build-ios.sh`) | ✅ Necessary for App Store Guideline 2.5.2 (offline requirement). Pre-transpiles JSX, vendors all CDN deps locally. Right code; timing (during code freeze) was grey area. |
+| **DevOps June 8** — cache bumped `20260607ae` → `20260608a` | ✅ Cache is current. |
+| **`GEAR_ITEMS` removed from app.jsx** | ❌ **P0 REVENUE REGRESSION.** Amazon Associates ($4.48/1K MAU) is dead. All 8 gear items gone. No warning, no flag in the commit message. |
 
 ---
 
-## Bug Triage — June 7
+## Bug Triage — June 8
 
 | Bug | Severity | Days Open | Status |
 |-----|----------|-----------|--------|
-| **VPS proxy unredeployed** | **P0** | **Day 34** | ❌ Jack. Today. Hard gate. |
-| CORS localhost origins in production proxy.js | **P1** | Day 1 | Fix in June 10 sprint (same SSH session as VPS redeploy, trivial) |
-| `beach_gilit` ID typo (should be `beach_gili`) | **P2** | Day 1 | Defer to June 10. Functionally harmless, needs localStorage migration guard. |
-| OBX near-dup (`beach_ob` + `outer-banks-nags-head-t7`) | **P2** | Day 3 | Defer to June 10. Confirmed same destination, needs ID merge + localStorage guard. |
-| Thredbo airport `SYD→CBR` | **P2** | Day 3 | Defer to June 10. Content has the diff. |
-| Gudauri photo duplicate | **P2** | Day 3 | Defer to June 10. |
-| 4 s-series ski venues wrong tags | **P2** | Day 3 | Defer to June 10. Off-season, not visible. |
-| skiPass backfill (16–25 venues missing) | **P2** | Day 10 | Defer to June 10 batch. |
-| Cache-buster auto-bump still manual | **P2** | Day 11 | June 10 — DevOps has the 5-line script fix. |
-| Eager Supabase script (80KB anon load) | **P2** | Day 28 | June 10 — diff exists, `git apply`. |
+| **GEAR_ITEMS removed — Amazon Associates dead** | **P0** | **Day 1** | Restore immediately. Revenue regression introduced in `12ebc13` (Jack, June 7 18:42). |
+| **VPS proxy unredeployed** | **P0** | **Day 35** | Jack. `ssh root@198.199.80.21 && cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy`. 3 minutes. |
+| CORS localhost origins in prod proxy.js | P1 | Day 2 | Bundle with VPS redeploy SSH session. Same 3-minute window. |
+| `ski_gudauri` + `thredbo-village-s23` duplicate photo | P1 | Day 1 | Content has ready replacement. Ship June 10. |
+| OBX near-dup (`beach_ob` + `outer-banks-nags-head-t7`) | P2 | Day 5 | June 10. Needs localStorage migration guard. |
+| `beach_gilit` ID typo | P2 | Day 2 | June 10. Functionally harmless, needs migration guard. |
+| `borabora` "UV 11" tag leaking | P2 | Day 5 | June 10. Replace with `"Overwater Bungalows"`. |
+| ICN not in `AP_CONTINENT` | P2 | Day 1 | June 10. Preemptive fix. |
+| Cache-buster auto-bump not in auto-push.sh | P2 | Day 14 | June 10. DevOps has the 5-line script. |
+| Eager Supabase script (80KB anon load) | P2 | Day 35 | June 10. Diff exists. |
+| 34 ski venues with only 2 tags | P3 | Day 1 | Defer. |
+| skiPass backfill (16–25 venues missing) | P3 | Day 11 | June 10. |
 
-**Resolved since v50:** Bora Bora dedup decision reversed — see Decision 2 below.
-
-**Confirmed closed (permanently):**
-- Sentry DSN empty: ✅ Active at app.jsx:8
-- Peakly Pro $9/mo: ✅ UI removed. Not visible.
-- APNS Capacitor gate: ✅ Live at app.jsx:8327. Tab hides on iOS native when `apnsConfigured = false`.
-
----
-
-## Explicit Product Decisions — June 7
-
-**Decision 1: Sunday launch timing — accept the "next weekend" frame, ship today anyway.**
-
-`weekendDayIndices()` on June 7 (Sunday) returns [0, 1] (Sun+Mon). Confidence is `high`. But a user discovering Peakly at noon on Sunday can't book a flight for Sunday evening. The genuinely actionable window for launch-day users is June 12–15 (the NEXT weekend). This is not a bug — the front page shows what's firing *now*, which is correct product behavior. It's a distribution timing observation, not a code issue.
-
-The fix is not code. The Reddit post should acknowledge this in the first paragraph: *"If you're seeing this Sunday, the next window to actually book is Friday June 12."* That's honest, creates urgency for next weekend, and signals the product is thinking about the user's real situation. Jack writes this into the post copy. No code change.
-
-**Decision 2: Bora Bora soft-dup — REVERSAL. KEEP BOTH.**
-
-v50 (June 6) decided to CUT `matira-beach-t6` in the June 10 sprint. June 7 content agent made the case that `borabora` (overwater bungalow framing) and `matira-beach-t6` (walkable public beach) are genuinely different use cases and will surface differently for different travelers. This is correct. They're not the same trip. The earlier decision was wrong — it treated proximity as identity. KEEP BOTH. `matira-beach-t6` stays. Remove from June 10 sprint task list.
-
-**Decision 3: CORS localhost fix — June 10, not today, same SSH session as VPS.**
-
-DevOps flagged localhost origins (`http://localhost:8000`, `http://localhost:3000`, `http://127.0.0.1:8000`) allowed in production CORS. This is a real attack surface — any local dev server can call the production proxy and exhaust rate limits. The fix is 3 lines. It does NOT require a VPS redeploy to ship separately — bundle it with the VPS redeploy SSH session. Not launch-blocking because the Travelpayouts token stays server-side and the blast radius is rate-limit exhaustion, not credential exposure. Do it today when Jack does the VPS redeploy.
+**Confirmed closed since v51:**
+- ✅ APNS Capacitor gate: live at app.jsx:8327. Tab hides on iOS native when APNS unconfigured. Option B chosen — correct decision.
+- ✅ Beach water-temp data: fixed (`sea_surface_temperature_max`). 36-day silent failure closed.
+- ✅ Cache buster: `20260608a` — current.
+- ✅ Sentry DSN: active.
+- ✅ Peakly Pro: UI removed, no price visible.
 
 ---
 
-## Launch Go / No-Go — June 7
+## Known Blockers
 
-| Gate | Status |
-|------|--------|
-| Cache 20260607a aligned | ✅ |
-| Sentry DSN active | ✅ |
-| GEAR_ITEMS live | ✅ |
-| APNS Capacitor gate (app.jsx:8327) | ✅ |
-| SEO meta clean | ✅ |
-| Flight CTA direct (no modal) | ✅ |
-| JSON-LD + H1 fallback | ✅ |
-| GEAR_ITEMS Amazon spot-check | ⚠️ 10 min, Jack |
-| **VPS proxy verified live** | ❌ **BINARY BLOCKER** |
-| Plausible domain validated | ❌ Jack (2 min) |
-| Human smoke test incognito | ❌ Jack (5 min) |
-| Reddit post written (Jack's voice) | ❌ Jack |
-
-**If VPS `/health` returns `"wx_cache_size"` key before post time → GO.**
-**If VPS is still unreachable → slip to June 14. No exception.**
-
-At the Reddit spike rate (200–500 simultaneous cold-cache users, conservatively), the Open-Meteo ceiling of 10K/day blows at 67 concurrent sessions. Venues score null. Grid looks empty. First comments say "broken." Post dies. No retry on Reddit launch reputation.
-
-```bash
-ssh root@198.199.80.21
-cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy && pm2 save
-# Bundle CORS fix in same session:
-# In proxy.js lines 52-54: gate localhost origins behind NODE_ENV !== 'production'
-curl https://peakly-api.duckdns.org/health | jq .
-```
-
-Expected: `"wx_cache_size": 0, "poll_interval_min": 30`. If that returns → post the thread.
+| Blocker | What It Unlocks | ETA |
+|---------|----------------|-----|
+| Restore GEAR_ITEMS | Amazon revenue stream ($4.48/1K MAU) | Today |
+| VPS SSH + pm2 restart | Weather proxy cache (67 DAU ceiling), CORS fix, correct weekend pricing | Today |
+| LLC approval | REI + Backcountry + GetYourGuide = +$8.00/1K MAU (67% revenue uplift) | External |
+| Apple Developer enrollment ($99) | App Store iOS submission | Post-launch |
 
 ---
 
-## This Week's Top 3 Priorities Only
+## Explicit Product Decisions — June 8
 
-**1. Jack: VPS SSH + CORS fix — today. Launch gate.**
-Same session, <5 minutes total. Commands above. Everything else is conditional on this.
+### Decision 1: Restore GEAR_ITEMS today. This is not negotiable.
 
-**2. Jack: Update Reddit post copy to acknowledge Sunday timing.**
-Add one sentence: *"If you're reading this Sunday, the window to book is this Friday June 12."* Converts "I'm too late" readers into next-weekend bookings. Takes 30 seconds.
+Amazon Associates was working. It was removed in a Jack auto-commit at 18:42 PDT on June 7 — **launch day** — in a 26-line deletion with no note in the commit message. This is exactly the kind of silent regression auto: commits enable: no code review, no feature context, no flag.
 
-**3. June 10 sprint planning: OBX merge + beach_gilit rename + Thredbo fix + CORS confirmed + 5 new venues.**
-Package the backlog into one clean commit. Each fix needs a localStorage migration guard. Content agent has all the diffs ready. This is the first real post-launch engineering session.
+The constant and all 8 items (4 skiing, 4 beach) need to be restored verbatim. The last clean version is in `a676725` (June 7, before the deletion). One `git show a676725:app.jsx | grep -A 40 "const GEAR_ITEMS"` retrieves it.
+
+**Revenue math:** At 5K MAU (conservative 90-day target), Amazon earns $22.40/month. Not life-changing, but it was **working** and got removed on launch day. That's not a product call — that's an accident.
+
+**Action:** Restore GEAR_ITEMS and all render code before any other app.jsx changes today.
+
+---
+
+### Decision 2: Exact-fare-only mode is correct but needs a loading guard.
+
+The new `applyFilters` logic collapses the grid to live-fare-only venues once all 156 flight fetches complete. This is the right product behavior — we shouldn't rank a $400 estimate alongside a confirmed $180 live fare. But the UX is jarring: after 30–60 seconds of loading, the grid can visibly shrink from 89 beach venues to whatever subset returned live fares.
+
+**Two options:**
+
+Option A (preferred): Add a transition state. While `anyFlightLoading === true`, show a subtle "Live prices loading…" indicator in the grid header. When it switches to false and the grid collapses, animate it. Users who see the context don't bounce.
+
+Option B: Keep as-is. The grid collapsing is honest product behavior and most users won't notice a 5-second load window. Ship now; polish after launch feedback.
+
+**Decision: Option B for now. Option A in June 10 sprint.** Don't block launch on animation polish.
+
+---
+
+### Decision 3: ServiceStatusPill stays but location is correct (Profile tab only).
+
+The pill is on the Profile tab — not Explore. Users who open Profile will see "Weather proxy: down" and "iOS push: not configured" until the VPS deploys. This is useful for Jack during debugging and not visible to most casual users (Explore and Alerts are the primary tabs). 
+
+However: "not configured" for APNS is confusing to anyone who has set an alert and wonders why they haven't gotten a push. The label should be "web-only mode" (alerts work, push delivery to iOS native doesn't). Low priority — change if user confusion shows up.
+
+**Decision: KEEP. No changes. Revisit if Profile tab generates support questions.**
+
+---
+
+## This Week's Top 3 Priorities
+
+1. **Restore GEAR_ITEMS** — Amazon Associates dead since June 7. 15-min fix. Do today.
+2. **VPS redeploy** — Day 35. 3-min SSH. Bundle CORS localhost fix in same session.
+3. **Confirm Reddit launch status** — Did the post go live June 7? Check Plausible for traffic. If not posted, post today.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Decision | Reason |
-|---------|----------|--------|
-| Bora Bora dedup (CUT matira-beach-t6) | **REVERSED — KEEP BOTH** | Different use cases: overwater bungalows vs public beach. Content agent call is correct. |
-| 5 new venues (Verbier, Val Thorens, Yongpyong, Tenerife, Byron Bay, + 4 from June 7 content) | **DEFER June 10** | Code freeze. 156 is defensible. |
-| Ski empty-state summer copy | **DEFER June 8** | Right fix, wrong day. First post-launch commit. |
-| pool-Primary flag on any venue | **DEFER** | No launch impact. |
-| SRI + CSP | **DEFER July** | Requires regression test with Babel unsafe-eval. |
-| Hotels in deal score | **CUT** | v2 if demand validates. Final. |
-| Peakly Pro | **CUT for v1** | Post-1K MAU. No action needed. |
-| Wishlists / Trips tab | **LOCKED — 1K MAU gate** | Hard. |
-| App Store submission | **DEFER post-launch** | Post-Reddit. |
+| Feature | Reason |
+|---------|--------|
+| Hotels in deal score | CUT for v1. Final. |
+| Peakly Pro revival | CUT for v1. Post-1K MAU conversation only. |
+| Trips / Wishlists tab unhide | Hard lock at 1K MAU gate. |
+| 7-day window expansion (30/60/90d) | Product principle: 7-day is the moat. No. |
+| Climbing / MTB / hiking re-enable | Never unlocked. Needs explicit product call + algorithm audit. |
+| Venue deep links / individual pages | Post-launch SEO sprint, not now. |
+| `poolPrimary: true` flag on venues | No live impact. Defer indefinitely. |
 
 ---
 
-## Success Criteria — June 7
+## Success Criteria
 
-**90-day projection:**
+**North star:** 100K downloads.
+**90-day projection:** 5K–8K users.
 
-| Scenario | 90d Users | Critical Variable |
-|----------|-----------|-------------------|
-| VPS live + top-10 Reddit post + June 7 | **6K–8K** | Proxy absorbs spike; day-8 grid has ≥5 good cards for next weekend |
-| VPS down at launch | **<500** | Grid empty in hour 1. Thread dies. |
-| Launch slips to June 14 | **4K–6K** | Still peak summer. Next-weekend timing is actually better. |
+**For 8K, not 5K:**
 
-**For 8K, not 5K:** VPS confirmed (today), post reaches top 10 within 6 hours, Reddit account has >100 karma. Two are done; the VPS is the one remaining variable.
+| Condition | Status |
+|-----------|--------|
+| GEAR_ITEMS restored | ❌ Regressed June 7 |
+| VPS proxy live before DAU > 67 | ❌ Day 35 |
+| Reddit post reached top 10 | Unknown |
+| Beach scoring correct (`sea_surface_temperature_max`) | ✅ Fixed June 7 |
+| APNS gate live on iOS | ✅ Done (Option B) |
+| ≥2% day-1 visitors return within 7 days | Not yet measurable |
 
-**What to measure in 48 hours:**
-
-| Metric | Target | Tool |
-|--------|--------|------|
-| Unique visitors (hour 1) | >200 | Plausible |
-| `venue_detail_open` events | >15% of visitors | Plausible |
-| `install_pwa` events | >5% of visitors | Plausible |
-| Sentry new error classes | 0 in hour 1 | Sentry |
-| Plausible mobile bounce rate | <70% | Plausible |
-
-If Sentry shows a new crash class in hour 1, hotfix before the thread hits 50 comments.
+The beach scoring fix is the most significant unheralded improvement in weeks. Beach venues were scoring as if water temperature didn't exist. That's now correct for the first time since launch. Don't let this get lost in the noise of the GEAR_ITEMS regression.
 
 ---
 
-## Pre-Launch Checklist — June 7 Final
+## Live RPM Tracker — June 8
 
-| # | Item | Status |
-|---|------|--------|
-| 1 | SEO meta clean | ✅ |
-| 2 | APNS Capacitor gate (app.jsx:8327) | ✅ Live — tab hides on iOS native when APNS unconfigured |
-| 3 | 156 venues (67 ski / 89 beach) | ✅ |
-| 4 | Outer Banks ap ORF | ✅ |
-| 5 | BookingConfirmSheet off flights | ✅ |
-| 6 | SafetyWing CTA live | ✅ |
-| 7 | Bora Bora BOB standardized | ✅ |
-| 8 | GEAR_ITEMS live (app.jsx:257) | ✅ |
-| 9 | Sentry DSN non-empty | ✅ |
-| 10 | Seasonal default beach N-hem June | ✅ |
-| 11 | lateSeason flags (6 ski venues) | ✅ |
-| 12 | Cache 20260607a aligned | ✅ |
-| 13 | Supabase lazy-load 2.106.2 | ✅ |
-| 14 | JSON-LD structured data | ✅ |
-| 15 | Static H1 fallback | ✅ |
-| 16 | **VPS proxy verified live** | ❌ Jack — hard gate |
-| 17 | **Plausible domain validated** | ❌ Jack — 2 min |
-| 18 | **Amazon ASIN spot-check** | ❌ Jack — 10 min |
-| 19 | **Reddit post written (Sunday timing note added)** | ❌ Jack |
-| 20 | **Human smoke test incognito** | ❌ Jack — 5 min |
-
-**15 of 20 green. 5 remaining are Jack-only. Zero technical work left before launch.**
-
----
-
-## Revenue Model — June 7
-
-| Stream | Code Status | RPM/1K MAU |
-|--------|-------------|------------|
-| Booking.com (`aid=2311236`) | ✅ | $6.90 |
-| Amazon Associates (`peakly-20`) | ✅ GEAR_ITEMS live | $4.48 |
-| SafetyWing (`referenceID=peakly`) | ✅ | $0.54 |
-| Travelpayouts (`TP_MARKER=710303`) | ✅ | $0.14 |
+| Stream | Status | RPM/1K MAU |
+|--------|--------|------------|
+| Booking.com | ✅ LIVE | $6.90 |
+| ~~Amazon Associates~~ | ❌ **DEAD — GEAR_ITEMS removed** | ~~$4.48~~ → $0 |
+| SafetyWing | ✅ LIVE | $0.54 |
+| Travelpayouts | ✅ LIVE (weekend pricing inactive until VPS) | $0.14 |
 | REI (Avantlink) | LLC pending | +$6.16 |
-| Backcountry / GetYourGuide | LLC pending | +$1.84 |
+| Backcountry + GetYourGuide | LLC pending | +$1.84 |
+| **Current live total** | | **$7.58/1K MAU** (was $11.98) |
+| **With GEAR_ITEMS restored** | | **$12.06/1K MAU** |
+| **With LLC affiliates** | | **$20.12/1K MAU** |
 
-**Live RPM: $12.06/1K MAU.** Not the constraint. Users are the constraint. Ship.
+Restoring GEAR_ITEMS is the highest-leverage 15 minutes available today.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The skiing filter is useless in summer and there's no explanation.**
+**The exact-fare-only filter has no loading state. A new user on launch day may see the grid load fully, then collapse.**
 
-Through September, 61 of 67 ski venues score near-zero. `seasonalDefaultCat` correctly opens to Beach. But a skier who taps the Skiing filter — especially one who finds Peakly through the Reddit launch — sees a near-empty list with no context. Not "off-season" in the UI. Not "6 southern resorts still open." Just a sparse grid that reads as broken.
+The flow: user opens Peakly → 156 venues render with condition scores → flight fetches run in background → 30–60 seconds later, all fetches complete → if only 20 venues returned live fares, grid instantly collapses to 20. No animation. No explanation. First-time Reddit users who were just browsing the full list suddenly see it shrink, with no context.
 
-These are Peakly's highest-LTV users. Skiers book flights, spend on gear, return in December. Losing them silently in June because of missing copy is a preventable failure with a 30-minute fix.
+This is the same UX cliff as a slow paginated list suddenly hiding 80% of results after a network call completes. It reads as broken, not as "showing you only confirmed prices."
 
-The ski empty-state copy change is the first post-launch commit, June 8. It's already on the plan. The risk is it doesn't happen because launch adrenaline pivots to "what's next." Name it as a contract: v52 (June 8) ships the empty-state copy or it moves to June 10 sprint and gets done then. No longer deferrable past June 10.
+The fix is one line: show a "Confirming live prices..." badge in the grid header while `anyFlightLoading === true`. When it disappears, users understand the list refined. Without it, the collapse is confusing.
+
+With the VPS proxy down (Day 35), Travelpayouts calls fail silently and no live fares return. So today, `liveOnly.length === 0` → fallback shows all estimates. The exact-fare cliff only triggers when the proxy IS live and flights load successfully. This means: the cliff appears on the same day the VPS redeploy fixes the 67-DAU ceiling. Both problems surface simultaneously on launch day.
+
+Fix this in the June 10 sprint alongside the other UX items. But name it now so it doesn't get buried.
