@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607s";
+const PEAKLY_BUILD = "20260607t";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3857,21 +3857,6 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
       const hrs = flightHours(homeAirport, l.ap);
       if (hrs == null) return true;
       return hrs <= filters.maxFlightHrs || (l.weekendScore || 0) >= 95;
-    });
-  }
-  // Date range filter
-  if (filters.startDate) {
-    const start = new Date(filters.startDate);
-    if (!isNaN(start)) out = out.filter(l => {
-      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
-      return !dep || dep >= start;
-    });
-  }
-  if (filters.endDate) {
-    const end = new Date(filters.endDate);
-    if (!isNaN(end)) out = out.filter(l => {
-      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
-      return !dep || dep <= end;
     });
   }
   if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
