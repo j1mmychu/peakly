@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607ad";
+const PEAKLY_BUILD = "20260607ae";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7263,7 +7263,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
   })) : [];
 
   const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
-    startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
+    startDate: listing.flight.depDate, endDate: listing.flight.retDate, whenId: search?.when,
   });
 
   // Similar venues: same category, excluding current, sorted by score
