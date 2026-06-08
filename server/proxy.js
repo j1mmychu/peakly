@@ -17,9 +17,34 @@ if (!TOKEN) {
 
 const PORT = process.env.PORT || 3001;
 
+// ─── CORS (must register BEFORE rate limiter so 429 responses include the
+// header — without it, the browser treats rate-limit responses as CORS errors
+// instead of as retryable rate limits) ───────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://j1mmychu.github.io',
+  'https://peakly.app',
+  'https://www.peakly.app',
+  'http://localhost:8000',
+  'http://localhost:3000',
+  'http://127.0.0.1:8000',
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // ─── Rate limiting (in-memory, no deps) ───────────────────────────────────────
-// 60 requests per minute per IP. Resets every 60s window.
-const RATE_LIMIT = 60;
+// 600 requests per minute per IP. A single user loading Peakly cold fires
+// ~150 weather + ~60 marine + ~25 flight calls within ~5s; the old 60/min cap
+// was rate-limiting normal usage, not abuse.
+const RATE_LIMIT = 600;
 const RATE_WINDOW_MS = 60 * 1000;
 const _rateMap = new Map();
 function rateLimiter(req, res, next) {
@@ -43,27 +68,6 @@ setInterval(() => {
   const cutoff = Date.now() - RATE_WINDOW_MS;
   for (const [ip, entry] of _rateMap) if (entry.start < cutoff) _rateMap.delete(ip);
 }, 5 * 60 * 1000);
-
-// ─── CORS ─────────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'https://j1mmychu.github.io',
-  'https://peakly.app',
-  'https://www.peakly.app',
-  'http://localhost:8000',
-  'http://localhost:3000',
-  'http://127.0.0.1:8000',
-];
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
