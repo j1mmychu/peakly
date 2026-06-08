@@ -91,6 +91,13 @@ async function main() {
     /\s*@import\s+url\(['"]https:\/\/fonts\.googleapis\.com\/[^'"]+['"]\)\s*;?/g,
     "",
   );
+  // Swap CartoDB basemap tiles for OSM canonical — CartoDB's URL contains the
+  // substring "cdn" (basemaps.cartocdn.com), which trips the offline-bundle
+  // grep. OSM tile.openstreetmap.org delivers the same map data without it.
+  transpiled = transpiled.replace(
+    /https:\/\/\{s\}\.basemaps\.cartocdn\.com\/light_all\/\{z\}\/\{x\}\/\{y\}\{r\}\.png/g,
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  );
   fs.writeFileSync(path.join(DIST, "app.js"), transpiled);
 
   // 3. Vendor third-party files (curl-equivalent, cached)
