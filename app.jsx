@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607r";
+const PEAKLY_BUILD = "20260607s";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3890,6 +3890,15 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
     if (aLive !== bLive) return aLive ? -1 : 1;
     return (b.dealScore || 0) - (a.dealScore || 0);
   });
+  // Exact-fare-only mode: 7-day spontaneous-trip product can't show venues
+  // without a confirmed same-day price. Filter to live fares once they've
+  // loaded; degrade gracefully if Travelpayouts returns nothing for ANY
+  // venue (proxy/upstream down) by showing the full list with estimates.
+  const anyFlightLoading = out.some(l => l.flightsLoading);
+  if (!anyFlightLoading) {
+    const liveOnly = out.filter(l => l.flight?.live === true);
+    if (liveOnly.length > 0) out = liveOnly;
+  }
   return out;
 }
 
