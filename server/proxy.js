@@ -345,7 +345,7 @@ async function _proxyWeather(req, res, kind) {
           + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
           + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`
         : `https://marine-api.open-meteo.com/v1/marine?latitude=${latR}&longitude=${lonR}`
-          + `&daily=ocean_temperature_max&forecast_days=7&timezone=auto`;
+          + `&daily=sea_surface_temperature_max&forecast_days=7&timezone=auto`;
       const { status, json } = await fetchJson(url);
       if (status === 429 || status >= 500 || (json && json.error)) {
         throw new Error(`upstream ${status} ${json?.reason || ''}`);
