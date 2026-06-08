@@ -84,6 +84,13 @@ async function main() {
     /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@[\d.]+\/dist\/umd\/supabase\.min\.js/g,
     "./vendor/supabase.min.js",
   );
+  // Strip the Google Fonts @import line from the injected stylesheet — system
+  // fonts (San Francisco on iOS) handle the fallback. Keeping it would leave
+  // an offline fetch that delays initial paint by ~3s.
+  transpiled = transpiled.replace(
+    /\s*@import\s+url\(['"]https:\/\/fonts\.googleapis\.com\/[^'"]+['"]\)\s*;?/g,
+    "",
+  );
   fs.writeFileSync(path.join(DIST, "app.js"), transpiled);
 
   // 3. Vendor third-party files (curl-equivalent, cached)
