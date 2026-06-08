@@ -60,20 +60,30 @@ async function main() {
   fs.mkdirSync(path.join(VENDOR, "images"), { recursive: true });
   fs.mkdirSync(CACHE, { recursive: true });
 
-  // 1. Copy non-JSX static files
-  const staticFiles = ["sw.js", "manifest.json", "privacy.html", "terms.html", "robots.txt", "sitemap.xml"];
+  // 1. Copy non-JSX static files. privacy.html / terms.html intentionally
+  // omitted — App Store metadata references them via the public web URL, so
+  // they don't need to live inside the iOS bundle (and they pull Google Fonts
+  // from a CDN, which would fail offline).
+  const staticFiles = ["sw.js", "manifest.json", "robots.txt", "sitemap.xml"];
   for (const f of staticFiles) {
     fs.copyFileSync(path.join(ROOT, f), path.join(DIST, f));
   }
 
-  // 2. Pre-transpile app.jsx → dist/app.js (no Babel runtime on device)
+  // 2. Pre-transpile app.jsx → dist/app.js (no Babel runtime on device).
+  // Also redirect the runtime Supabase lazy-loader URL to the local vendored
+  // copy — the vendored <script> preloads supabase so the lazy path is dead
+  // code on iOS, but rewriting kills the CDN string from the bundle.
   const babel = (await import("@babel/standalone")).default;
   const src = fs.readFileSync(path.join(ROOT, "app.jsx"), "utf8");
-  const transpiled = babel.transform(src, {
+  let transpiled = babel.transform(src, {
     presets: ["react"],
     filename: "app.jsx",
     compact: false,
   }).code;
+  transpiled = transpiled.replace(
+    /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@[\d.]+\/dist\/umd\/supabase\.min\.js/g,
+    "./vendor/supabase.min.js",
+  );
   fs.writeFileSync(path.join(DIST, "app.js"), transpiled);
 
   // 3. Vendor third-party files (curl-equivalent, cached)
