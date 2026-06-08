@@ -104,18 +104,73 @@ const IATA_RE = /^[A-Z]{3}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
-// Calls Travelpayouts v2/prices/month-matrix
 // Query params: origin (IATA), destination (IATA),
 //   optional depart_date (YYYY-MM-DD), optional return_date (YYYY-MM-DD)
 //
-// Without dates: cheapest fare per month (legacy behavior).
-// With depart_date: filter month-matrix to entries on that exact depart date.
-//   When return_date also given, filter to that round-trip too. Picks cheapest
-//   matching entry. Used for weekend-specific pricing — answers "what does
-//   THIS Fri-Mon trip actually cost" instead of "what's the cheapest fare
-//   anyone found in this month."
+// Without dates: cheapest fare per month (legacy).
+// With depart_date: queries two TP cached endpoints in parallel:
+//   1. /v1/prices/calendar — per-day cheapest. Dense for popular routes.
+//   2. /v2/prices/month-matrix — sparse but sometimes covers dates calendar
+//      misses. flight_search (real-time) requires partner-tier access; this
+//      affiliate token only has cached endpoints.
+//   Returned fare is flagged `exact: true` when its depart_date matches the
+//   requested one, otherwise the nearest fare within ±7 days is returned with
+//   `exact: false` so the client can label "for Sat Jun 13" vs the requested
+//   date. Caller falls back to a typical-price estimate when both are empty.
 //
-// Response: { success, data: { [destination]: { [YYYY-MM]: { price, ... } } } }
+// Response (specific-date): { success, data: { [destination]: { [YYYY-MM]: {
+//   price, depart_date, return_date, found_at, requested_depart_date, exact
+// } } }, mode: 'specific', source: 'calendar'|'month-matrix'|'nearest' }
+
+async function _fetchCalendarEntries(origin, destination, month) {
+  // /v1/prices/calendar returns { [YYYY-MM-DD]: {price, departure_at, return_at, ...} }
+  const url = `https://api.travelpayouts.com/v1/prices/calendar`
+    + `?origin=${encodeURIComponent(origin)}`
+    + `&destination=${encodeURIComponent(destination)}`
+    + `&depart_date=${month}`
+    + `&calendar_type=departure_date`
+    + `&currency=usd`
+    + `&token=${TOKEN}`;
+  try {
+    const { status, json } = await fetchJson(url);
+    if (status >= 400 || !json || !json.success || !json.data) return [];
+    return Object.entries(json.data)
+      .filter(([, e]) => e && typeof e.price === 'number' && e.price > 0)
+      .map(([d, e]) => ({
+        depart_date: d,
+        return_date: (e.return_at || '').slice(0, 10) || null,
+        price: e.price,
+        found_at: e.expires_at || null,
+        source: 'calendar',
+      }));
+  } catch { return []; }
+}
+
+async function _fetchMonthMatrixEntries(origin, destination, month) {
+  const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
+    + `?origin=${encodeURIComponent(origin)}`
+    + `&destination=${encodeURIComponent(destination)}`
+    + `&month=${month}`
+    + `&show_to_affiliates=true`
+    + `&currency=usd`
+    + `&token=${TOKEN}`;
+  try {
+    const { status, json } = await fetchJson(url);
+    if (status >= 400 || !json || !json.success) return [];
+    // Upstream returns fare as `value`; normalize to `price`.
+    return (Array.isArray(json.data) ? json.data : [])
+      .map(e => ({ ...e, price: e.price ?? e.value }))
+      .filter(e => typeof e.price === 'number' && e.price > 0 && e.depart_date)
+      .map(e => ({
+        depart_date: e.depart_date,
+        return_date: e.return_date || null,
+        price: e.price,
+        found_at: e.found_at || null,
+        source: 'month-matrix',
+      }));
+  } catch { return []; }
+}
+
 app.get('/api/flights', async (req, res) => {
   const { origin, destination, depart_date, return_date } = req.query;
 
@@ -129,45 +184,53 @@ app.get('/api/flights', async (req, res) => {
     return res.status(400).json({ success: false, error: 'return_date must be YYYY-MM-DD' });
   }
 
-  // When depart_date is specified, query the month containing that date.
-  // Otherwise default to current/next month.
-  const month = depart_date ? `${depart_date.slice(0, 7)}-01` : currentMonthParam();
-  const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
-    + `?origin=${encodeURIComponent(origin)}`
-    + `&destination=${encodeURIComponent(destination)}`
-    + `&month=${month}`
-    + `&show_to_affiliates=true`
-    + `&currency=usd`
-    + `&token=${TOKEN}`;
+  const month = depart_date ? depart_date.slice(0, 7) : currentMonthParam().slice(0, 7);
 
   try {
-    const { status, json } = await fetchJson(url);
+    // Always pull both caches in parallel — they index different fares and the
+    // union maximizes coverage.
+    const [calEntries, mmEntries] = await Promise.all([
+      _fetchCalendarEntries(origin, destination, month),
+      _fetchMonthMatrixEntries(origin, destination, `${month}-01`),
+    ]);
+    const all = [...calEntries, ...mmEntries];
 
-    if (status === 429) {
-      return res.status(429).json({ success: false, error: 'Rate limited by upstream' });
-    }
-    if (status >= 500) {
-      return res.status(502).json({ success: false, error: 'Upstream server error' });
-    }
-    if (!json.success) {
-      return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
-    }
-
-    // Travelpayouts returns fare as `value`, not `price`. Normalize at parse
-    // time so the downstream code (which uses .price throughout) keeps working.
-    // Fallback to e.price preserves backward-compat if the API ever flips.
-    const prices = Array.isArray(json.data)
-      ? json.data.map(e => ({ ...e, price: e.price ?? e.value }))
-      : [];
-
-    // Specific-date branch: filter to the requested depart (and optionally return)
+    // Specific-date branch
     if (depart_date) {
-      const matches = prices.filter(e =>
-        typeof e.price === 'number' && e.price > 0 &&
-        e.depart_date === depart_date &&
-        (!return_date || e.return_date === return_date)
-      );
-      if (matches.length === 0) {
+      const matchReturn = e => !return_date || e.return_date === return_date;
+
+      // 1. Try exact-date hit (calendar first, then month-matrix)
+      const exactCal = calEntries.find(e => e.depart_date === depart_date && matchReturn(e));
+      const exactMm  = !exactCal ? mmEntries.find(e => e.depart_date === depart_date && matchReturn(e)) : null;
+      const exact = exactCal || exactMm;
+
+      if (exact) {
+        const dateKey = depart_date.slice(0, 7);
+        return res.json({
+          success: true,
+          data: { [destination]: { [dateKey]: {
+            price: exact.price,
+            depart_date: exact.depart_date,
+            return_date: exact.return_date || return_date || null,
+            found_at: exact.found_at,
+            requested_depart_date: depart_date,
+            exact: true,
+          }}},
+          found_at: new Date().toISOString(),
+          mode: 'specific',
+          source: exact.source,
+        });
+      }
+
+      // 2. Date-bracket fallback: cheapest fare within ±7 days of requested
+      const target = Date.parse(depart_date + 'T00:00:00Z');
+      const WEEK_MS = 7 * 86400000;
+      const candidates = all.filter(e => {
+        const t = Date.parse(e.depart_date + 'T00:00:00Z');
+        return !Number.isNaN(t) && Math.abs(t - target) <= WEEK_MS;
+      });
+
+      if (candidates.length === 0) {
         return res.json({
           success: true,
           data: { [destination]: {} },
@@ -176,26 +239,29 @@ app.get('/api/flights', async (req, res) => {
           requested: { depart_date, return_date: return_date || null },
         });
       }
-      const cheapest = matches.reduce((a, b) => a.price <= b.price ? a : b);
-      const dateKey = depart_date.slice(0, 7); // keep month-keyed shape for client compat
+
+      const cheapest = candidates.reduce((a, b) => a.price <= b.price ? a : b);
+      const dateKey = depart_date.slice(0, 7);
       return res.json({
         success: true,
         data: { [destination]: { [dateKey]: {
           price: cheapest.price,
           depart_date: cheapest.depart_date,
           return_date: cheapest.return_date || null,
-          found_at: cheapest.found_at || null,
+          found_at: cheapest.found_at,
+          requested_depart_date: depart_date,
+          exact: false,
         }}},
         found_at: new Date().toISOString(),
         mode: 'specific',
+        source: 'nearest',
       });
     }
 
-    // Legacy month-cheapest branch
+    // Legacy month-cheapest branch (no depart_date provided)
     const byMonth = {};
-    for (const entry of prices) {
-      if (typeof entry.price !== 'number' || entry.price <= 0) continue;
-      const dateKey = (entry.depart_date || entry.found_at || '').slice(0, 7); // YYYY-MM
+    for (const entry of all) {
+      const dateKey = (entry.depart_date || '').slice(0, 7);
       if (!dateKey) continue;
       if (!byMonth[dateKey] || entry.price < byMonth[dateKey].price) {
         byMonth[dateKey] = { price: entry.price, depart_date: entry.depart_date };
