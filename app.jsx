@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607ab";
+const PEAKLY_BUILD = "20260607ac";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8518,7 +8518,7 @@ function App() {
   }, [loading, profile.homeAirport, profile.homeAirport2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
-  const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
+  const scoreDayIndex = 0;
 
   // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
   const listings = VENUES.map(v => {
