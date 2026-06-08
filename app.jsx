@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607y";
+const PEAKLY_BUILD = "20260607z";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4417,7 +4417,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
-  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || filters.maxFlightHrs || search.skiPass;
+  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.maxFlightHrs || search.skiPass;
 
   // Last checked timestamp
   const timeAgo = wxLastUpdated ? (() => {
