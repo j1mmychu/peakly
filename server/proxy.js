@@ -213,8 +213,6 @@ app.get('/api/flights', async (req, res) => {
             depart_date: exact.depart_date,
             return_date: exact.return_date || return_date || null,
             found_at: exact.found_at,
-            requested_depart_date: depart_date,
-            exact: true,
           }}},
           found_at: new Date().toISOString(),
           mode: 'specific',
@@ -222,39 +220,16 @@ app.get('/api/flights', async (req, res) => {
         });
       }
 
-      // 2. Date-bracket fallback: cheapest fare within ±7 days of requested
-      const target = Date.parse(depart_date + 'T00:00:00Z');
-      const WEEK_MS = 7 * 86400000;
-      const candidates = all.filter(e => {
-        const t = Date.parse(e.depart_date + 'T00:00:00Z');
-        return !Number.isNaN(t) && Math.abs(t - target) <= WEEK_MS;
-      });
-
-      if (candidates.length === 0) {
-        return res.json({
-          success: true,
-          data: { [destination]: {} },
-          found_at: new Date().toISOString(),
-          mode: 'specific',
-          requested: { depart_date, return_date: return_date || null },
-        });
-      }
-
-      const cheapest = candidates.reduce((a, b) => a.price <= b.price ? a : b);
-      const dateKey = depart_date.slice(0, 7);
+      // No exact-date match: return empty. Client treats this as "no live fare"
+      // and the venue is hidden from listings (only cards with confirmed
+      // same-day prices ship — the 7-day spontaneous-trip product can't fudge
+      // dates without misleading users).
       return res.json({
         success: true,
-        data: { [destination]: { [dateKey]: {
-          price: cheapest.price,
-          depart_date: cheapest.depart_date,
-          return_date: cheapest.return_date || null,
-          found_at: cheapest.found_at,
-          requested_depart_date: depart_date,
-          exact: false,
-        }}},
+        data: { [destination]: {} },
         found_at: new Date().toISOString(),
         mode: 'specific',
-        source: 'nearest',
+        requested: { depart_date, return_date: return_date || null },
       });
     }
 
