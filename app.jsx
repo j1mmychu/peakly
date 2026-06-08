@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607u";
+const PEAKLY_BUILD = "20260607v";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4544,13 +4544,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           {filters.maxFlightHrs && (
             <FilterChip label={`≤ ${filters.maxFlightHrs}hr flight`} onRemove={() => setFilters(f => ({...f, maxFlightHrs:null}))} />
           )}
-          {(filters.startDate || filters.endDate) && (
-            <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
-          )}
           {search.skiPass && (
             <FilterChip label={search.skiPass.charAt(0).toUpperCase() + search.skiPass.slice(1) + " Pass"} onRemove={() => setSearch(s => ({...s, skiPass:""}))} />
           )}
-          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
