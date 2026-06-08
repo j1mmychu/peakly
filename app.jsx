@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607t";
+const PEAKLY_BUILD = "20260607u";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3468,21 +3468,10 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           )}
         </div>
 
-        {/* ── Travel dates + Budget (compact row) ── */}
+        {/* ── Budget (date picker removed — pricing always for upcoming Friday) ── */}
         <div style={{ padding:"14px 20px 0" }}>
           <div style={{ display:"flex", gap:10 }}>
             <div style={{ flex:1 }}>
-              <SectionLabel>Dates</SectionLabel>
-              <div style={{ display:"flex", gap:6 }}>
-                <input type="date" value={local.startDate || ""}
-                  onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.startDate ? "#0c4a6e" : "#aaa", background: local.startDate ? "#f0f9ff" : "#fafafa", fontWeight: local.startDate ? 700 : 400, minWidth:0 }} />
-                <input type="date" value={local.endDate || ""}
-                  onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.endDate ? "#0c4a6e" : "#aaa", background: local.endDate ? "#f0f9ff" : "#fafafa", fontWeight: local.endDate ? 700 : 400, minWidth:0 }} />
-              </div>
-            </div>
-            <div style={{ width:100 }}>
               <SectionLabel>Budget</SectionLabel>
               <div style={{ background:"#fafafa", border:"1.5px solid #e8e8e8", borderRadius:8, padding:"8px 10px", textAlign:"center" }}>
                 <span style={{ fontSize:13, fontWeight:800, color: local.maxPrice >= 2000 ? "#999" : "#0284c7", fontFamily:F }}>
