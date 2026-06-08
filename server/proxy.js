@@ -153,7 +153,12 @@ app.get('/api/flights', async (req, res) => {
       return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
     }
 
-    const prices = Array.isArray(json.data) ? json.data : [];
+    // Travelpayouts returns fare as `value`, not `price`. Normalize at parse
+    // time so the downstream code (which uses .price throughout) keeps working.
+    // Fallback to e.price preserves backward-compat if the API ever flips.
+    const prices = Array.isArray(json.data)
+      ? json.data.map(e => ({ ...e, price: e.price ?? e.value }))
+      : [];
 
     // Specific-date branch: filter to the requested depart (and optionally return)
     if (depart_date) {
