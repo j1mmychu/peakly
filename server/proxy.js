@@ -199,13 +199,19 @@ app.get('/api/flights', async (req, res) => {
     ]);
     const all = [...calEntries, ...mmEntries];
 
-    // Specific-date branch
+    // Specific-date branch — round-trip only. Travelpayouts month-matrix often
+    // returns one-way fares (empty return_date), which would show ~half the
+    // real round-trip fare and confuse users when they click through to
+    // Aviasales. Filter to entries with a real round-trip return_date so the
+    // price on a Peakly card matches the cheapest round-trip on the booking
+    // page. If no round-trip cache exists, the venue is hidden.
     if (depart_date) {
+      const isRoundTrip = e => e.return_date && /^\d{4}-\d{2}-\d{2}$/.test(e.return_date);
       const matchReturn = e => !return_date || e.return_date === return_date;
 
       // 1. Try exact-date hit (calendar first, then month-matrix)
-      const exactCal = calEntries.find(e => e.depart_date === depart_date && matchReturn(e));
-      const exactMm  = !exactCal ? mmEntries.find(e => e.depart_date === depart_date && matchReturn(e)) : null;
+      const exactCal = calEntries.find(e => e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e));
+      const exactMm  = !exactCal ? mmEntries.find(e => e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e)) : null;
       const exact = exactCal || exactMm;
 
       if (exact) {
