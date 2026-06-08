@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607x";
+const PEAKLY_BUILD = "20260607y";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3266,7 +3266,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:6, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:6 })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
