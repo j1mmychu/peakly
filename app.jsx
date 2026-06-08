@@ -4336,13 +4336,14 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const ACTIVE_CATS = new Set(["skiing", "beach"]);
   const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
   const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
-  const heroPick = [...bestPool]
+  // Exact-fares-only mode: prefer live-priced venues for the hero; fall back
+  // to estimate-priced venues only when no live ones are available (cold load
+  // / proxy down / TP coverage gap) so the front page never goes blank.
+  const heroPickFiltered = [...bestPool]
     .filter(l => l.conditionLabel !== "Checking conditions…")
-    .sort((a, b) => {
-      const aBoost = 0;
-      const bBoost = 0;
-      return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-    })[0] || null;
+    .sort((a, b) => b.conditionScore - a.conditionScore);
+  const heroLive = heroPickFiltered.filter(l => l.flight?.live === true);
+  const heroPick = (heroLive.length > 0 ? heroLive[0] : heroPickFiltered[0]) || null;
 
   // "Firing this weekend" carousel — Fri–Mon best-2-of-4 score >= 75 with
   // medium-or-better forecast confidence. Excludes "low" confidence (next
