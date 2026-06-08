@@ -128,10 +128,14 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 async function _fetchCalendarEntries(origin, destination, month) {
   // /v1/prices/calendar returns { [YYYY-MM-DD]: {price, departure_at, return_at, ...} }
+  // Passing both depart_date and return_date forces RT-only entries. Without
+  // the return_date constraint TP returns the cheapest fare per depart day,
+  // which is usually one-way and half the real round-trip price.
   const url = `https://api.travelpayouts.com/v1/prices/calendar`
     + `?origin=${encodeURIComponent(origin)}`
     + `&destination=${encodeURIComponent(destination)}`
     + `&depart_date=${month}`
+    + `&return_date=${month}`
     + `&calendar_type=departure_date`
     + `&currency=usd`
     + `&token=${TOKEN}`;
