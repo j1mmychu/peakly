@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607m";
+const PEAKLY_BUILD = "20260607n";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1182,7 +1182,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
   // ─── Marine data (beach only — water temp) ──────────────────────────────
   const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
-  const waterTemp = atM(md?.ocean_temperature_max);     // null if no marine
+  const waterTemp = atM(md?.sea_surface_temperature_max); // null if no marine
   const ySnow     = (di > 0 && Array.isArray(d?.snowfall_sum)  && d.snowfall_sum[di-1] != null)
                     ? d.snowfall_sum[di-1] : 0;
 
