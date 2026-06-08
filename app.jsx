@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607i";
+const PEAKLY_BUILD = "20260607j";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7316,32 +7316,6 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
 
           {/* Why this score? — opens the black box */}
           <ScoreBreakdown listing={listing} />
-
-          {/* Gear / Essentials — Amazon Associates peakly-20 */}
-          {GEAR_ITEMS[listing.category] && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
-                {listing.category === "skiing" ? "⛷️ Ski gear" : "🏖️ Beach essentials"}
-              </div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x" }}>
-                {GEAR_ITEMS[listing.category].map((g, i) => (
-                  <a key={i} href={g.url} target="_blank" rel="noopener noreferrer sponsored"
-                     onClick={() => { if (window.plausible) plausible('gear_click', { props: { item: g.title, category: listing.category } }); }}
-                     style={{ flexShrink:0, width:140, background:"#f7f7f7", borderRadius:14, overflow:"hidden", textDecoration:"none", display:"block" }}>
-                    <div style={{ height:80, overflow:"hidden" }}>
-                      <img src={g.img} alt={g.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
-                    </div>
-                    <div style={{ padding:"8px 10px 10px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, marginBottom:3 }}>{g.title}</div>
-                      <div style={{ fontSize:10, color:"#888", fontFamily:F, lineHeight:1.4, marginBottom:4 }}>{g.desc}</div>
-                      <div style={{ fontSize:12, fontWeight:900, color:"#16a34a", fontFamily:F }}>${g.price}</div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-              <div style={{ fontSize:9, color:"#bbb", fontFamily:F, marginTop:6 }}>Affiliate links — we earn a small commission</div>
-            </div>
-          )}
 
           {/* Set Alert CTA */}
           {onAlert && (
