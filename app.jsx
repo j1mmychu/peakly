@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607b";
+const PEAKLY_BUILD = "20260607c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8301,34 +8301,10 @@ function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── APNS readiness probe (gates Alerts tab on native iOS) ───────────────
-  // Until Jack ships the .p8 to the VPS, iOS alerts have no delivery path.
-  // Promising push that never fires breaks user trust harder than hiding the
-  // tab. Web users keep Alerts (in-app filter — works without APNS). Probe
-  // /health on boot; once apns_configured: true comes back, the cached flag
-  // restores the tab automatically on next load — no app redeploy needed.
-  const [apnsConfigured, setApnsConfigured] = useState(() => {
-    try { return localStorage.getItem("peakly_apns_configured") === "1"; } catch { return false; }
-  });
-  useEffect(() => {
-    const isNative = !!window.Capacitor?.isNativePlatform?.();
-    if (!isNative) return; // Web doesn't need APNS — Alerts tab stays visible
-    if (apnsConfigured) return; // cached positive; nothing to refresh
-    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const t = setTimeout(() => ctrl?.abort(), 5000);
-    fetch("https://peakly-api.duckdns.org/health", { signal: ctrl?.signal })
-      .then(r => r.ok ? r.json() : null)
-      .then(j => {
-        if (j?.apns_configured === true) {
-          setApnsConfigured(true);
-          try { localStorage.setItem("peakly_apns_configured", "1"); } catch {}
-        }
-      })
-      .catch(() => {})
-      .finally(() => clearTimeout(t));
-    return () => { clearTimeout(t); ctrl?.abort(); };
-  }, [apnsConfigured]);
-  const showAlertsTab = !window.Capacitor?.isNativePlatform?.() || apnsConfigured;
+  // Hide the Alerts tab on native iOS until APNS is live (see APNS_LIVE
+  // constant above BottomNav). Web — including iOS Safari PWA — stays visible.
+  // Android Capacitor builds aren't gated; FCM ships separately.
+  const showAlertsTab = window.Capacitor?.getPlatform?.() !== "ios" || APNS_LIVE;
   // Snap stranded users back to Explore if the tab they're on disappears.
   useEffect(() => {
     if (!showAlertsTab && activeTab === "alerts") setActiveTab("explore");
