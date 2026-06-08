@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260607w";
+const PEAKLY_BUILD = "20260607x";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3234,7 +3234,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   const apply = () => {
     const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
-    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs, startDate: local.startDate, endDate: local.endDate });
+    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs });
     onApply(next);
     onClose();
   };
