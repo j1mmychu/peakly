@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608c";
+const PEAKLY_BUILD = "20260608d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1487,6 +1487,17 @@ function upcomingFridayISO(today) {
   const fri = new Date(today);
   fri.setDate(fri.getDate() + daysToFri);
   return fri.toISOString().slice(0, 10);
+}
+
+// "2026-06-19" → "Fri Jun 19". Renders the actual TP-returned round-trip
+// dates under live prices so users see the exact window they're booking.
+const _SD_DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const _SD_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function shortDate(iso) {
+  if (!iso || typeof iso !== "string") return "";
+  const d = new Date(iso + "T12:00:00Z");
+  if (Number.isNaN(d.getTime())) return "";
+  return `${_SD_DAYS[d.getUTCDay()]} ${_SD_MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
 }
 
 function weekendDayIndices(today) {
