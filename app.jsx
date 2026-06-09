@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608x";
+const PEAKLY_BUILD = "20260608y";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3914,6 +3914,52 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
 //   - Standard: browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet) → one-tap install
 //   - iOS tip:  iOS Safari (no programmatic install) → "Add to Home Screen" instructions
 // Both share the same dismissal flag so users see at most one nudge.
+// One-line account nudge above Explore once the user shows intent (3+ saves
+// and no account yet). Reuses the 14-day time-decay dismissal pattern from
+// InstallNudge — a stale "not now" tap shouldn't silence the nudge forever.
+function AccountNudgeBanner({ wishlistCount, cloudSync, onGoToProfile }) {
+  const DISMISS_TTL_MS = 14 * 24 * 3600 * 1000;
+  const isDismissedNow = () => {
+    try {
+      const raw = localStorage.getItem("peakly_account_nudge_dismissed");
+      if (!raw) return false;
+      const ts = parseInt(raw, 10);
+      return Number.isFinite(ts) && (Date.now() - ts) < DISMISS_TTL_MS;
+    } catch { return false; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissedNow);
+  if (!cloudSync?.enabled || cloudSync.user) return null;
+  if (wishlistCount < 3 || dismissed) return null;
+  const recordDismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_account_nudge_dismissed", String(Date.now())); } catch {}
+  };
+  return (
+    <div style={{ padding:"0 20px 14px" }}>
+      <div style={{
+        background:"#fff", border:"1.5px solid #e0f2fe", borderRadius:14,
+        padding:"12px 14px", display:"flex", alignItems:"center", gap:12,
+        boxShadow:"0 2px 12px rgba(2,132,199,0.10)",
+      }}>
+        <button onClick={() => onGoToProfile && onGoToProfile()} className="pressable" style={{
+          flex:1, background:"none", border:"none", textAlign:"left", padding:0, cursor:"pointer", fontFamily:F,
+          display:"flex", alignItems:"center", gap:10,
+        }}>
+          <span style={{ fontSize:22 }}>🔔</span>
+          <div>
+            <div style={{ fontSize:13, fontWeight:800, color:"#222" }}>Save these for next time</div>
+            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>Create an account — get push when conditions hit.</div>
+          </div>
+        </button>
+        <button onClick={recordDismiss} aria-label="Dismiss" style={{
+          background:"none", border:"none", color:"#bbb", fontSize:18, fontWeight:700,
+          cursor:"pointer", padding:"4px 6px", lineHeight:1,
+        }}>×</button>
+      </div>
+    </div>
+  );
+}
+
 function InstallNudge({ wishlistCount }) {
   const { canInstall, trigger } = useInstallPrompt();
   // Time-decay dismissal: a "not now" tap re-prompts after 14 days. Permanent
