@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608z";
+const PEAKLY_BUILD = "20260608aa";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8342,7 +8342,10 @@ function App() {
   // Default ≤6hr flight: aligns "spontaneous weekend" with realistic flight
   // times. Globe-spanning results from a "this weekend" app defeat the brand
   // promise. Power users override via the chip's × button or Clear all.
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:6 });
+  // Default to no filters applied (matches "Clear all" baseline). Users
+  // explicitly opt into a max-price / max-flight-hours cap via the search sheet
+  // instead of seeing a silently filtered grid on cold load.
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, maxFlightHrs:null });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
