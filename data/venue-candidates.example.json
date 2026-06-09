@@ -1,0 +1,36 @@
+[
+  {
+    "id": "sample-valid-ski",
+    "category": "skiing",
+    "title": "Sample Resort",
+    "location": "Sample Range, Switzerland",
+    "lat": 46.6,
+    "lon": 8.6,
+    "ap": "ZRH",
+    "icon": "🏔️",
+    "rating": 4.7,
+    "reviews": 1240,
+    "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+    "accent": "#6db3f2",
+    "tags": ["Powder Day", "All Levels"],
+    "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+    "lateSeason": true,
+    "skiPass": "epic"
+  },
+  {
+    "id": "sample-rejected-too-far",
+    "category": "beach",
+    "title": "Wrong Airport Demo",
+    "location": "Hawaii, USA",
+    "lat": 21.31,
+    "lon": -157.85,
+    "ap": "JFK",
+    "icon": "🏖️",
+    "rating": 4.8,
+    "reviews": 500,
+    "gradient": "linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
+    "accent": "#66bb6a",
+    "tags": ["Tropical"],
+    "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+  }
+]
