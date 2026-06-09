@@ -349,7 +349,7 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 | Backcountry / GetYourGuide | $0 | +$1.84 |
 | Peakly Pro | UI REMOVED 2026-04-16 — decision pending (kill or ship) | TBD |
 
-**Live RPM:** was ~$12.06/1K MAU (4 streams earning) → **dropped to ~$7.58/1K MAU (−37%) on 2026-06-07** when GEAR_ITEMS was silently deleted, killing the Amazon stream (Open #13). Restore GEAR_ITEMS to recover the $4.48, or formally cut Amazon for v1 and keep this table at $7.58. **With GYG partner_id added:** +~$1.68. *(PM v52 Decision 1: pick one before launch — the shared brain cannot keep claiming revenue from code that doesn't exist.)*
+**Live RPM:** **~$7.58/1K MAU** (3 streams: Booking $6.90 + SafetyWing $0.54 + Travelpayouts $0.14). **Amazon formally CUT for v1 on 2026-06-09** (Jack) — GEAR_ITEMS stays out, this is the real v1 number, no phantom $4.48. **With GYG partner_id added:** +~$1.68. Revisit Amazon post-launch if a real revenue gap appears.
 
 ## Competitive Edge
 
