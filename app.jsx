@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaq";
+const PEAKLY_BUILD = "20260608aar";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2653,7 +2653,7 @@ function useCloudSync() {
     };
   }, [user, pushNow]);
 
-  const signIn = useCallback(async (email) => {
+  const signIn = useCallback(async (email, profileMeta) => {
     if (!CLOUD_SYNC_CONFIGURED) return { ok: false, error: "Cloud sync disabled" };
     if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid email" };
     setStatus("syncing");
@@ -2671,9 +2671,18 @@ function useCloudSync() {
         });
         useCloudSync._authListenerAttached = true;
       }
+      // Optional name + phone get attached to auth.users.user_metadata so the
+      // info is recoverable from Supabase even if the user_data jsonb gets
+      // wiped. They also live in localStorage peakly_profile and sync that way.
+      const data = {};
+      if (profileMeta?.name)  data.full_name = profileMeta.name;
+      if (profileMeta?.phone) data.phone     = profileMeta.phone;
       const { error } = await client.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin + "/peakly/" },
+        options: {
+          emailRedirectTo: window.location.origin + "/peakly/",
+          ...(Object.keys(data).length ? { data } : {}),
+        },
       });
       if (error) throw error;
       setStatus("checking_email");
