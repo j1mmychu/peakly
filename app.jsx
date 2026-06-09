@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608o";
+const PEAKLY_BUILD = "20260608p";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6958,20 +6958,6 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
               })}
             </div>
 
-            {/* Email — magic link sign-in. Optional; if filled the magic link sends on Finish. */}
-            <div>
-              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase", marginBottom:8 }}>
-                Stay synced (optional)
-              </div>
-              <input type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
-              {cloudSync?.enabled && (
-                <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
-                  We'll send a one-tap magic link so your wishlists and alerts sync across devices. No password, no spam.
-                </div>
-              )}
-            </div>
           </div>
         )}
 
