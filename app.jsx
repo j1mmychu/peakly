@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ay";
+const PEAKLY_BUILD = "20260608az";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2956,18 +2956,19 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
         <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.2 }}>
           {listing.title}
         </div>
-        {/* Location + Best-window pill on one row — collapses three rows of meta */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:3 }}>
-          <div style={{ color:"#717171", fontSize:12, fontFamily:F, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {listing.location}
-            {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
-          </div>
-          {listing.bestWindow && (
-            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>
+        {/* Location — own row so long names like "Kelingking Secret Beach"
+            wrap cleanly without truncation */}
+        <div style={{ color:"#717171", fontSize:12, fontFamily:F, marginTop:3, lineHeight:1.35, wordBreak:"break-word" }}>
+          {listing.location}
+          {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
+        </div>
+        {listing.bestWindow && (
+          <div style={{ marginTop:5 }}>
+            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", display:"inline-block" }}>
               Best: {listing.bestWindow.day} · {listing.bestWindow.score}/100
             </span>
-          )}
-        </div>
+          </div>
+        )}
         {listing.weekendConfidence === "medium" && (
           <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4 }}>
             5-day forecast — may shift
