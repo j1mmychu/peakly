@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aau";
+const PEAKLY_BUILD = "20260608aav";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6144,30 +6144,16 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
             Be first when<br/>conditions are firing.
           </div>
           <div style={{ fontSize:15, color:"#555", fontFamily:F, marginTop:12, lineHeight:1.5 }}>
-            Drop your email. We'll push you the moment your spots peak — no password, no spam.
+            Push alerts the moment your spots peak. Wishlists synced across devices. No password.
           </div>
-          <div style={{ display:"flex", gap:8, marginTop:22 }}>
-            <input type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
-              value={email} onChange={e => setEmail(e.target.value)} disabled={busy}
-              onKeyDown={e => { if (e.key === "Enter") send(); }}
-              style={{
-                flex:1, minWidth:0, padding:"14px 14px", borderRadius:14,
-                border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa",
-              }}
-            />
-            <button onClick={send} disabled={!canSend} className="pressable" style={{
-              background: canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
-              borderRadius:14, padding:"14px 18px", fontSize:13, fontWeight:800, fontFamily:F,
-              cursor: canSend ? "pointer" : "default", flexShrink:0,
-            }}>
-              {busy ? "Sending…" : cooldownMs > 0 ? `${Math.ceil(cooldownMs/1000)}s` : lastSentAt ? "Resend" : "Notify me"}
-            </button>
-          </div>
-          {feedback && (
-            <div style={{ fontSize:12, color: feedback.startsWith("Check") ? "#0284c7" : "#ef4444", fontFamily:F, marginTop:10 }}>
-              {feedback}
-            </div>
-          )}
+          <button onClick={() => openAccountModal && openAccountModal({ intent: "alert" })} className="pressable" style={{
+            width:"100%", marginTop:22,
+            background:"#0284c7", color:"#fff", border:"none", borderRadius:14,
+            padding:"15px 18px", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
+            boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
+          }}>
+            Create account
+          </button>
         </>
       )}
 
