@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608av";
+const PEAKLY_BUILD = "20260608aw";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3142,11 +3142,10 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
           filter: saved ? "none" : "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
         }}>{saved ? "❤️" : "🤍"}</button>
 
-        {/* Go/No-Go verdict + UV index */}
+        {/* Go/No-Go verdict */}
         {listing.conditionLabel !== "Checking conditions…" && (
-          <div style={{ position:"absolute", top:5, left:5, display:"flex", gap:4 }}>
+          <div style={{ position:"absolute", top:5, left:5 }}>
             <GoVerdictBadge score={listing.conditionScore} />
-            {listing.uv != null && <UVBadge uv={listing.uv} />}
           </div>
         )}
 
