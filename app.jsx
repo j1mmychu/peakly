@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608l";
+const PEAKLY_BUILD = "20260608m";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3136,12 +3136,13 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Condition label */}
         <div style={{
-          position:"absolute", bottom:5, left:5,
+          position:"absolute", bottom:5, left:5, right:5,
         }}>
           <span style={{
-            color:"#fff", fontSize:10, fontWeight:600, fontFamily:F,
+            color:"#fff", fontSize:10, fontWeight:600, fontFamily:F, lineHeight:1.25,
             textShadow:"0 1px 3px rgba(0,0,0,0.8)",
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"100%",
+            display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+            overflow:"hidden", wordBreak:"break-word",
           }}>{listing.conditionLabel}</span>
         </div>
       </div>
