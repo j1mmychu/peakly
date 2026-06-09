@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaa";
+const PEAKLY_BUILD = "20260608aab";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -92,6 +92,27 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
     _peaklyReloadGuard = true;
     window.location.reload();
   });
+  // Proactive: poke the SW on boot so a stuck install/waiting state actually
+  // checks for a new version. Without this, sw.js can sit in "waiting" for
+  // days and the page keeps serving the old cached app.jsx.
+  navigator.serviceWorker.getRegistration().then(reg => { reg && reg.update(); }).catch(() => {});
+}
+
+// Forces a clean reload — unregisters every SW + nukes every cache + reloads
+// the page. Surfaced via the "Refresh" link in Profile so users can rescue
+// themselves out of a stuck PWA cache without needing DevTools.
+async function forceCleanReload() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (_) {}
+  window.location.reload();
 }
 
 (() => {
