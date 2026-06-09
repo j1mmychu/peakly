@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608y";
+const PEAKLY_BUILD = "20260608z";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4847,6 +4847,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
         {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
         <InstallNudge wishlistCount={wishlists.length} />
+
+        {/* ── Account nudge — surfaces after 3+ wishlists when not signed in ── */}
+        <AccountNudgeBanner wishlistCount={wishlists.length} cloudSync={cloudSync} onGoToProfile={onViewProfile} />
 
         {/* ── Front-page carousel — primary or fallback, never blank ── */}
         {!loading && carouselReady && (
