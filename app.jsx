@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaad";
+const PEAKLY_BUILD = "20260608aaae";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8373,13 +8373,21 @@ function App() {
 
   const fetchInitialWeather = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
-    // Only fetch top 100 venues — covers initial view + "Best Right Now"
-    const initial = VENUES.slice(0, 100);
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < initial.length; i += BATCH_SIZE) {
-      const batch = initial.slice(i, i + BATCH_SIZE);
+    // Priority tier — top 200 venues cover hero + carousel + first-grid view.
+    // VPS /api/weather has a shared 2hr cache so simultaneous coord dedup
+    // absorbs the larger batch. Open-Meteo free tier is 10K calls/day; even
+    // at 1000 venues every 10 minutes that's 144K/day theoretical, but the
+    // 2hr proxy cache means real upstream traffic is ~12 cold + 0 warm per
+    // hour. Plenty of headroom.
+    const BATCH_SIZE = 100;
+    const THROTTLE_MS = 500;
+    const PRIORITY_COUNT = Math.min(200, VENUES.length);
+    const priority  = VENUES.slice(0, PRIORITY_COUNT);
+    const remaining = VENUES.slice(PRIORITY_COUNT);
+
+    const runBatch = async (batchSlice) => {
       const results = await Promise.allSettled(
-        batch.map(async v => {
+        batchSlice.map(async v => {
           const needsMarine = v.category === "beach";
           const [wxR, marR] = await Promise.allSettled([
             fetchWeather(v.lat, v.lon),
@@ -8394,20 +8402,42 @@ function App() {
           marRef.current[r.value.id] = r.value.marine;
         }
       });
+    };
+
+    // ── Priority tier (blocks loading state) ──
+    for (let i = 0; i < priority.length; i += BATCH_SIZE) {
+      await runBatch(priority.slice(i, i + BATCH_SIZE));
       if (i === 0) {
         setWxData({...wxRef.current});
         setMarData({...marRef.current});
         setLoading(false);
         setWxLastUpdated(new Date());
       }
-      // Throttle batches to stay within Open-Meteo free tier (10K calls/day)
-      if (i + BATCH_SIZE < initial.length) {
-        await new Promise(res => setTimeout(res, 1000));
+      if (i + BATCH_SIZE < priority.length) {
+        await new Promise(res => setTimeout(res, THROTTLE_MS));
       }
     }
     setWxData({...wxRef.current});
     setMarData({...marRef.current});
     setWxLastUpdated(new Date());
+
+    // ── Background tail (non-blocking) ──
+    // Fire-and-forget; user already sees Explore. State setter hydrates the
+    // remaining cards as their data arrives — they re-render from `~$X` to `$X`
+    // and shimmer-to-real-score in place. Throttled identically to priority.
+    if (remaining.length > 0) {
+      (async () => {
+        for (let i = 0; i < remaining.length; i += BATCH_SIZE) {
+          await runBatch(remaining.slice(i, i + BATCH_SIZE));
+          setWxData({...wxRef.current});
+          setMarData({...marRef.current});
+          if (i + BATCH_SIZE < remaining.length) {
+            await new Promise(res => setTimeout(res, THROTTLE_MS));
+          }
+        }
+        setWxLastUpdated(new Date());
+      })();
+    }
   }, []);
 
   useEffect(() => {
