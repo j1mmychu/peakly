@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608s";
+const PEAKLY_BUILD = "20260608t";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4126,14 +4126,14 @@ function ProfileSyncSection({ cloudSync, profile }) {
     <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase" }}>
-          Sync your data
+          Get notified when conditions hit
         </div>
         <SyncStatusPill cloudSync={cloudSync} />
       </div>
       {cloudSync.user ? (
         <>
           <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10 }}>
-            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Wishlists, alerts, trips and profile sync automatically.
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Your alerts, wishlists and profile sync across every device.
           </div>
           <button className="pressable" onClick={out} style={{
             background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
@@ -4143,7 +4143,7 @@ function ProfileSyncSection({ cloudSync, profile }) {
       ) : (
         <>
           <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10, lineHeight:1.45 }}>
-            Sign in with email to sync your wishlists across devices and recover them if you clear your browser. We send a one-tap link — no password.
+            Create an account to set Strike Alerts. We'll push you the moment your spots are firing — no password, just a one-tap email link.
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <input
