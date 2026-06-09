@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaae";
+const PEAKLY_BUILD = "20260608aaaf";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -441,7 +441,7 @@ const VENUES = [
     lat:45.9237, lon:6.8694, ap:"GVA",
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
-    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent", lateSeason:true,
+    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"ikon", lateSeason:true,
   },
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"ikon"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
@@ -661,6 +661,519 @@ const VENUES = [
     tags:["Budget Ski Europe","Après-Ski Village","Beginner Friendly","Long Season"],
     photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
     skiPass:"independent"},
+  // ── Ikon Pass batch (added 2026-06-08) ──
+    {
+      "id": "winter-park",
+      "category": "skiing",
+      "title": "Winter Park",
+      "location": "Colorado, USA",
+      "lat": 39.8918,
+      "lon": -105.7625,
+      "ap": "DEN",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1820,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "copper-mountain",
+      "category": "skiing",
+      "title": "Copper Mountain",
+      "location": "Colorado, USA",
+      "lat": 39.5022,
+      "lon": -106.1497,
+      "ap": "EGE",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1410,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "palisades-tahoe",
+      "category": "skiing",
+      "title": "Palisades Tahoe",
+      "location": "California, USA",
+      "lat": 39.1969,
+      "lon": -120.2356,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 2240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "snowbird",
+      "category": "skiing",
+      "title": "Snowbird",
+      "location": "Utah, USA",
+      "lat": 40.5829,
+      "lon": -111.6553,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "brighton",
+      "category": "skiing",
+      "title": "Brighton",
+      "location": "Utah, USA",
+      "lat": 40.6017,
+      "lon": -111.5836,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 920,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "solitude",
+      "category": "skiing",
+      "title": "Solitude",
+      "location": "Utah, USA",
+      "lat": 40.6212,
+      "lon": -111.5919,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 740,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "deer-valley",
+      "category": "skiing",
+      "title": "Deer Valley",
+      "location": "Park City, Utah, USA",
+      "lat": 40.6303,
+      "lon": -111.4781,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.9,
+      "reviews": 2630,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "crystal-mountain-wa",
+      "category": "skiing",
+      "title": "Crystal Mountain",
+      "location": "Washington, USA",
+      "lat": 46.9285,
+      "lon": -121.5039,
+      "ap": "SEA",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "mt-bachelor",
+      "category": "skiing",
+      "title": "Mt. Bachelor",
+      "location": "Oregon, USA",
+      "lat": 43.9786,
+      "lon": -121.6884,
+      "ap": "PDX",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "sugar-bowl",
+      "category": "skiing",
+      "title": "Sugar Bowl",
+      "location": "California, USA",
+      "lat": 39.3082,
+      "lon": -120.3322,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 580,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "killington",
+      "category": "skiing",
+      "title": "Killington",
+      "location": "Vermont, USA",
+      "lat": 43.6045,
+      "lon": -72.821,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 1640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "loon-mountain",
+      "category": "skiing",
+      "title": "Loon Mountain",
+      "location": "New Hampshire, USA",
+      "lat": 44.0517,
+      "lon": -71.6231,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 720,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "sunday-river",
+      "category": "skiing",
+      "title": "Sunday River",
+      "location": "Maine, USA",
+      "lat": 44.4717,
+      "lon": -70.8569,
+      "ap": "BOS",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 880,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "sugarloaf",
+      "category": "skiing",
+      "title": "Sugarloaf",
+      "location": "Maine, USA",
+      "lat": 45.0317,
+      "lon": -70.3133,
+      "ap": "BOS",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 690,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "revelstoke",
+      "category": "skiing",
+      "title": "Revelstoke Mountain",
+      "location": "British Columbia, Canada",
+      "lat": 51.0021,
+      "lon": -118.1958,
+      "ap": "YKA",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 940,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "lake-louise",
+      "category": "skiing",
+      "title": "Lake Louise",
+      "location": "Alberta, Canada",
+      "lat": 51.4419,
+      "lon": -116.1656,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1880,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "cypress-mountain",
+      "category": "skiing",
+      "title": "Cypress Mountain",
+      "location": "British Columbia, Canada",
+      "lat": 49.3953,
+      "lon": -123.2058,
+      "ap": "YVR",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 510,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "zermatt",
+      "category": "skiing",
+      "title": "Zermatt",
+      "location": "Valais, Switzerland",
+      "lat": 46.0207,
+      "lon": 7.7491,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.9,
+      "reviews": 3120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Iconic",
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "engelberg",
+      "category": "skiing",
+      "title": "Engelberg-Titlis",
+      "location": "Central Switzerland",
+      "lat": 46.8189,
+      "lon": 8.4006,
+      "ap": "ZRH",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "crans-montana",
+      "category": "skiing",
+      "title": "Crans-Montana",
+      "location": "Valais, Switzerland",
+      "lat": 46.3167,
+      "lon": 7.4833,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 690,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "st-anton-am-arlberg",
+      "category": "skiing",
+      "title": "St. Anton am Arlberg",
+      "location": "Tyrol, Austria",
+      "lat": 47.1306,
+      "lon": 10.2658,
+      "ap": "INN",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "saalbach-hinterglemm",
+      "category": "skiing",
+      "title": "Saalbach Hinterglemm",
+      "location": "Salzburg, Austria",
+      "lat": 47.3953,
+      "lon": 12.6347,
+      "ap": "SZG",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "hakuba-happo-one",
+      "category": "skiing",
+      "title": "Hakuba Happo-One",
+      "location": "Nagano, Japan",
+      "lat": 36.7,
+      "lon": 137.8333,
+      "ap": "NRT",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1340,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "furano",
+      "category": "skiing",
+      "title": "Furano",
+      "location": "Hokkaido, Japan",
+      "lat": 43.35,
+      "lon": 142.3833,
+      "ap": "CTS",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 820,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "coronet-peak",
+      "category": "skiing",
+      "title": "Coronet Peak",
+      "location": "Queenstown, New Zealand",
+      "lat": -44.9333,
+      "lon": 168.7333,
+      "ap": "ZQN",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 620,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "valle-nevado",
+      "category": "skiing",
+      "title": "Valle Nevado",
+      "location": "Andes, Chile",
+      "lat": -33.3525,
+      "lon": -70.2517,
+      "ap": "SCL",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
