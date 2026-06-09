@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaj";
+const PEAKLY_BUILD = "20260608aak";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5634,9 +5634,16 @@ function TemplateGlyph({ kind, color }) {
   return null;
 }
 
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboarding, cloudSync, onGoToProfile }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboarding, cloudSync, requireAccount }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
+  // Wrap any action that creates/edits an alert. Signed-in users get the
+  // action immediately; everyone else gets the central AccountModal — no
+  // second prompt, no tab bounce.
+  const gate = (action) => () => {
+    if (!cloudSync?.user) { requireAccount && requireAccount(); return; }
+    action();
+  };
   const [showMore, setShowMore] = useState(false);
 
   // Helper to get condition score threshold
