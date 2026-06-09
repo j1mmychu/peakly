@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608am";
+const PEAKLY_BUILD = "20260608an";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4002,7 +4002,7 @@ function AccountNudgeBanner({ wishlistCount, cloudSync, onGoToProfile }) {
           <span style={{ fontSize:22 }}>🔔</span>
           <div>
             <div style={{ fontSize:13, fontWeight:800, color:"#222" }}>Save these for next time</div>
-            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>Create an account — get push when conditions hit.</div>
+            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>Get pushed the moment conditions are firing.</div>
           </div>
         </button>
         <button onClick={recordDismiss} aria-label="Dismiss" style={{
@@ -5953,141 +5953,111 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, onShowSearch }) {
+function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
-  const hasAccount = !!profile.hasAccount;
-  const signedIn   = !!cloudSync?.user;
-  const initials   = profile.name ? profile.name.trim()[0].toUpperCase() : "?";
-  const avatarGrad = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.grad || AVATAR_COLORS[0].grad;
+  const [email, setEmail]         = useState(profile?.email || "");
+  const [busy, setBusy]           = useState(false);
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const [now, setNow]             = useState(Date.now());
+  const [feedback, setFeedback]   = useState("");
+  useEffect(() => {
+    if (!lastSentAt) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lastSentAt]);
+  const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
+  const canSend = !busy && email.includes("@") && cooldownMs === 0 && cloudSync?.enabled;
+  const send = async () => {
+    if (!canSend) return;
+    setBusy(true); setFeedback("");
+    const r = await cloudSync.signIn(email.trim());
+    setBusy(false);
+    if (!r?.ok) setFeedback(r?.error || "Couldn't send. Try again.");
+    else { setLastSentAt(Date.now()); setFeedback("Check your email for a one-tap link."); }
+  };
+  const signedIn = !!cloudSync?.user;
 
   return (
-    <div style={{ flex:1, overflowY:"auto" }}>
-      {/* ── Hero — single coherent pitch ── */}
-      <div style={{
-        background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)",
-        padding:"40px 24px 32px", position:"relative", overflow:"hidden", color:"#fff",
-      }}>
-        <div style={{ position:"absolute", top:-40, right:-30, width:180, height:180, borderRadius:"50%", background:"#0284c7", opacity:0.14, filter:"blur(50px)", pointerEvents:"none" }} />
-        <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize:"24px 24px", pointerEvents:"none" }} />
-
-        {signedIn ? (
-          <div style={{ display:"flex", alignItems:"center", gap:14, position:"relative" }}>
-            <div style={{
-              width:60, height:60, borderRadius:"50%", background: avatarGrad,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:26, fontWeight:900, color:"white", fontFamily:F,
-              border:"2px solid rgba(255,255,255,0.18)", flexShrink:0,
-            }}>{initials}</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:19, fontWeight:900, fontFamily:F, lineHeight:1.1, marginBottom:3 }}>You're all set</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", fontFamily:F }}>
-                Signed in as <strong style={{ color:"#fff" }}>{cloudSync.user.email}</strong>
+    <div style={{ flex:1, overflowY:"auto", padding:"40px 24px 32px", display:"flex", flexDirection:"column" }}>
+      {signedIn ? (
+        <>
+          <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            ✨ You're set.
+          </div>
+          <div style={{ fontSize:15, color:"#555", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
+            We'll push you the moment conditions are firing at your spots.
+          </div>
+          <div style={{ fontSize:12, color:"#888", fontFamily:F, marginTop:18 }}>
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>
+          </div>
+          {!signOutConfirm ? (
+            <button onClick={() => setSignOutConfirm(true)} className="pressable" style={{
+              alignSelf:"flex-start", marginTop:24, background:"none", border:"none",
+              fontSize:12, fontWeight:700, color:"#888", fontFamily:F, cursor:"pointer",
+              textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+            }}>Sign out</button>
+          ) : (
+            <div style={{ marginTop:20, padding:"14px 16px", background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:14 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F, marginBottom:10 }}>Sign out?</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => setSignOutConfirm(false)} style={{
+                  flex:1, background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
+                  padding:"10px", color:"#555", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
+                }}>Cancel</button>
+                <button onClick={() => {
+                  cloudSync.signOut && cloudSync.signOut();
+                  setProfile(p => ({ ...p, hasAccount:false }));
+                  setSignOutConfirm(false);
+                }} style={{
+                  flex:1, background:"#0284c7", border:"none", borderRadius:10,
+                  padding:"10px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
+                }}>Sign out</button>
               </div>
             </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            Be first when<br/>conditions are firing.
           </div>
-        ) : (
-          <div style={{ position:"relative" }}>
-            <div style={{
-              display:"inline-flex", alignItems:"center", gap:8, padding:"4px 10px",
-              background:"rgba(255,255,255,0.08)", borderRadius:20, marginBottom:14,
-              border:"1px solid rgba(255,255,255,0.12)",
+          <div style={{ fontSize:15, color:"#555", fontFamily:F, marginTop:12, lineHeight:1.5 }}>
+            Drop your email. We'll push you the moment your spots peak — no password, no spam.
+          </div>
+          <div style={{ display:"flex", gap:8, marginTop:22 }}>
+            <input type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
+              value={email} onChange={e => setEmail(e.target.value)} disabled={busy}
+              onKeyDown={e => { if (e.key === "Enter") send(); }}
+              style={{
+                flex:1, minWidth:0, padding:"14px 14px", borderRadius:14,
+                border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa",
+              }}
+            />
+            <button onClick={send} disabled={!canSend} className="pressable" style={{
+              background: canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
+              borderRadius:14, padding:"14px 18px", fontSize:13, fontWeight:800, fontFamily:F,
+              cursor: canSend ? "pointer" : "default", flexShrink:0,
             }}>
-              <span style={{ fontSize:13 }}>🔔</span>
-              <span style={{ fontSize:11, fontWeight:800, color:"#e0f2fe", letterSpacing:"0.04em", textTransform:"uppercase", fontFamily:F }}>
-                Don't miss the next firing weekend
-              </span>
-            </div>
-            <div style={{ fontSize:30, fontWeight:900, fontFamily:F, lineHeight:1.05, letterSpacing:"-0.6px", marginBottom:10 }}>
-              Make Peakly<br/>remember you.
-            </div>
-            <div style={{ fontSize:14, color:"rgba(255,255,255,0.72)", fontFamily:F, lineHeight:1.5 }}>
-              Save your spots, trips, and filters. Get a push the moment conditions hit. Pick up where you left off on every device.
-            </div>
+              {busy ? "Sending…" : cooldownMs > 0 ? `${Math.ceil(cooldownMs/1000)}s` : lastSentAt ? "Resend" : "Notify me"}
+            </button>
           </div>
-        )}
-      </div>
-
-      {/* ── Body ── */}
-      <div style={{ padding:"22px 18px 28px", background:"#f5f5f5", minHeight:"calc(100% - 280px)" }}>
-        {!signedIn && (
-          <div style={{ marginBottom:18 }}>
-            {[
-              { icon:"🔔", title:"Push alerts when conditions fire",  desc:"We watch your spots — you get the notification the moment they peak." },
-              { icon:"🧳", title:"Trips & searches saved",            desc:"Filters, dates, wishlists — kept across phone, browser, devices." },
-              { icon:"📍", title:"Preferences travel with you",       desc:"Home airport, sport, skill level — once, then everywhere." },
-              { icon:"❤️", title:"Wishlists synced",                  desc:"Save now on web, finish booking on your phone later." },
-            ].map(b => (
-              <div key={b.title} style={{
-                background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-                padding:"14px 14px", marginBottom:10,
-                display:"flex", gap:12, alignItems:"flex-start",
-              }}>
-                <div style={{
-                  width:34, height:34, borderRadius:10, background:"#f0f9ff",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:18, flexShrink:0,
-                }}>{b.icon}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>{b.title}</div>
-                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, lineHeight:1.45 }}>{b.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Account form — magic link send + status. Heart of this page. */}
-        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
-
-        {/* Edit preferences — small link, lets users re-run onboarding */}
-        <button onClick={onShowOnboarding} className="pressable" style={{
-          width:"100%", background:"transparent", border:"none", marginTop:10, marginBottom:18,
-          padding:"10px", color:"#555", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
-          textDecoration:"underline", textDecorationColor:"#bbb", textUnderlineOffset:"3px",
-        }}>
-          {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport"}` : "Set home airport & sports"}
-        </button>
-
-        {/* Sign Out — only when there's an actual session to end */}
-        {signedIn && !signOutConfirm && (
-          <button className="pressable" onClick={() => setSignOutConfirm(true)} style={{
-            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:18,
-          }}>
-            Sign out
-          </button>
-        )}
-        {signedIn && signOutConfirm && (
-          <div style={{ background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:16, padding:"18px 16px", marginBottom:18 }}>
-            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:4, textAlign:"center" }}>
-              Sign out of Peakly?
+          {feedback && (
+            <div style={{ fontSize:12, color: feedback.startsWith("Check") ? "#0284c7" : "#ef4444", fontFamily:F, marginTop:10 }}>
+              {feedback}
             </div>
-            <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:16, textAlign:"center" }}>
-              Your wishlists, alerts and preferences stay saved locally.
-            </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button onClick={() => setSignOutConfirm(false)} style={{
-                flex:1, background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:12,
-                padding:"12px", cursor:"pointer", color:"#555",
-                fontSize:13, fontWeight:700, fontFamily:F,
-              }}>Cancel</button>
-              <button onClick={() => {
-                cloudSync.signOut && cloudSync.signOut();
-                setProfile(p => ({ ...p, hasAccount:false }));
-                setSignOutConfirm(false);
-              }} style={{
-                flex:1, background:"#0284c7", border:"none", borderRadius:12,
-                padding:"12px", cursor:"pointer", color:"white",
-                fontSize:13, fontWeight:700, fontFamily:F,
-              }}>Sign out</button>
-            </div>
-          </div>
-        )}
+          )}
+        </>
+      )}
 
-        {/* Service status — small diagnostic at the very bottom */}
-        <ServiceStatusPill />
-      </div>
+      {/* Tiny preferences link — sits at the very bottom */}
+      <div style={{ flex:1 }} />
+      <button onClick={onShowOnboarding} className="pressable" style={{
+        alignSelf:"flex-start", marginTop:32, background:"none", border:"none",
+        fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+        textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+      }}>
+        {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport set"}` : "Set home airport & sport"}
+      </button>
     </div>
   );
 }
