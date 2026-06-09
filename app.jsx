@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ad";
+const PEAKLY_BUILD = "20260608ae";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2928,6 +2928,11 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
               ) : (
                 <div style={{ ...PILL, background: "rgba(0,0,0,0.35)", flexShrink: 0 }}>
                   <span className="shimmer" style={{ width: 28, height: 9, borderRadius: 4, display: "inline-block" }} />
+                </div>
+              )}
+              {ready && listing.uv != null && (
+                <div style={{ flexShrink: 0 }}>
+                  <UVBadge uv={listing.uv} />
                 </div>
               )}
               <div style={{ ...PILL, background: "rgba(255,255,255,0.92)", color: "#0284c7", flexShrink: 0 }}>
