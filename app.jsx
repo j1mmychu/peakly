@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ak";
+const PEAKLY_BUILD = "20260608al";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8274,10 +8274,10 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 }
 
 // ─── bottom nav ───────────────────────────────────────────────────────────────
-// Flip APNS_LIVE to true once the VPS reports `apns_configured: true` and the
-// .p8 is in place — restores the Alerts tab on native iOS. Until then App
-// Store v1 ships without push to avoid promising delivery we can't make.
-const APNS_LIVE = true;
+// v1: false until VPS has the APNS .p8 — flip to true after setup-apns.sh runs.
+// Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
+// App Store regression where users see Alerts but push never delivers.
+const APNS_LIVE = false;
 function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
