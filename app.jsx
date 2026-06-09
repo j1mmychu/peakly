@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aag";
+const PEAKLY_BUILD = "20260608aah";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8623,6 +8623,12 @@ function App() {
   // have the full Alerts tab. Mirrors to the server polling worker so push
   // can fire when conditions hit.
   const quickToggleAlert = useCallback(listing => {
+    // Alerts require an account — push delivery is impossible without one.
+    // Show the central modal instead of silently saving to localStorage.
+    if (!cloudSync?.user) {
+      setAccountModal({ intent: "alert" });
+      return;
+    }
     const existing = userAlerts.find(a => a.venueId === listing.id);
     if (existing) {
       setUserAlerts(p => p.filter(a => a.id !== existing.id));
