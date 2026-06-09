@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aao";
+const PEAKLY_BUILD = "20260608aap";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5599,22 +5599,34 @@ function SharedListView({ snapshot, listings, cloudSync, onImported, onClose }) 
 // — user reviews + taps "Create Alert" to commit. Venue IDs validated against
 // VENUES at write time; if a venue is renamed, update here.
 const ALERT_TEMPLATES = [
-  { id:"powder-mammoth",        title:"Powder Alert", subtitle:"Mammoth",       bg:"#dbeafe", accent:"#0284c7", glyph:"mountain",
+  { id:"powder-mammoth",        title:"Powder Day",     subtitle:"Mammoth",         bg:"#dbeafe", accent:"#0284c7", glyph:"mountain",
     draft:{ sport:"skiing", condition:"powder", locations:["mammoth"],         priceMax:600 } },
-  { id:"japan-cheap-flight",    title:"Cheap Flight", subtitle:"to Japan",      bg:"#fee2e2", accent:"#ef4444", glyph:"plane",
-    draft:{ sport:"skiing", condition:"good",   locations:["niseko","nozawa"], region:"AS", priceMax:900 } },
-  { id:"cancun-beach",          title:"Beach Weekend",subtitle:"Cancun",        bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
-  { id:"alps-bluebird",         title:"Bluebird Day", subtitle:"Alps",          bg:"#e0f2fe", accent:"#0369a1", glyph:"mountain",
+  { id:"pow-day-tahoe",         title:"Pow Day",        subtitle:"Tahoe",           bg:"#e0f2fe", accent:"#0369a1", glyph:"mountain",
+    draft:{ sport:"skiing", condition:"powder", locations:["tahoe","heavenly"], priceMax:700 } },
+  { id:"japan-first-tracks",    title:"First Tracks",   subtitle:"Japan pow",       bg:"#fee2e2", accent:"#ef4444", glyph:"plane",
+    draft:{ sport:"skiing", condition:"powder", locations:["niseko","nozawa","rusutsu"], region:"AS", priceMax:1100 } },
+  { id:"alps-bluebird",         title:"Bluebird",       subtitle:"Alps",            bg:"#dbeafe", accent:"#1e40af", glyph:"mountain",
     draft:{ sport:"skiing", condition:"great",  locations:["chamonix","tignes"], priceMax:800 } },
-  { id:"caribbean-escape",      title:"Caribbean",    subtitle:"Escape",        bg:"#cffafe", accent:"#0891b2", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_grace","beach_eagle","beach_shoal"], priceMax:700 } },
-  { id:"med-beach",             title:"Med Beach",    subtitle:"Greece + Italy",bg:"#fce7f3", accent:"#be185d", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
-  { id:"spring-skiing",         title:"Spring Skiing",subtitle:"Late Season",   bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
+  { id:"spring-skiing",         title:"Spring Skiing",  subtitle:"Late Season",     bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
     draft:{ sport:"skiing", condition:"good",   locations:["tignes","cervinia","les-arcs-s20"], priceMax:800 } },
-  { id:"whistler-fresh-snow",   title:"Fresh Snow",   subtitle:"Whistler",      bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
+  { id:"whistler-fresh-snow",   title:"Fresh Snow",     subtitle:"Whistler",        bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
     draft:{ sport:"skiing", condition:"insane", locations:["whistler"],        priceMax:800 } },
+  { id:"cancun-beach",          title:"Beach Weekend",  subtitle:"Cancun",          bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
+  { id:"tulum-heat",            title:"Tulum Heat",     subtitle:"Riviera Maya",    bg:"#fed7aa", accent:"#c2410c", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_tulum","beach_rivmaya","beach_holbox"], priceMax:600 } },
+  { id:"caribbean-escape",      title:"Caribbean",      subtitle:"Escape",          bg:"#cffafe", accent:"#0891b2", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_grace","beach_eagle","beach_shoal"], priceMax:700 } },
+  { id:"calm-seas",             title:"Calm Seas",      subtitle:"Sayulita + Bocas",bg:"#d1fae5", accent:"#047857", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_sayulita","beach_bocas"], priceMax:600 } },
+  { id:"med-beach",             title:"Med Beach",      subtitle:"Greece + Italy",  bg:"#fce7f3", accent:"#be185d", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
+  { id:"hawaii-deal",           title:"Hawaii Deal",    subtitle:"under $700",      bg:"#fef3c7", accent:"#b45309", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_hapuna","beach_kapalua"], priceMax:700 } },
+  { id:"sub-300-rt",            title:"Sub-$300 RT",    subtitle:"any spot",        bg:"#dcfce7", accent:"#15803d", glyph:"plane",
+    draft:{ sport:"all",    condition:"good",   locations:[],                  priceMax:300 } },
+  { id:"anywhere-firing",       title:"Anywhere Firing",subtitle:"conditions 90+",  bg:"#ffe4e6", accent:"#9f1239", glyph:"plane",
+    draft:{ sport:"all",    condition:"insane", locations:[],                  priceMax:1000 } },
 ];
 
 function TemplateGlyph({ kind, color }) {
