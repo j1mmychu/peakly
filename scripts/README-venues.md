@@ -19,7 +19,13 @@ Nothing — uses Node's built-in `fetch`, no npm deps.
    node scripts/validate-venues.mjs
    ```
 
-3. Read `data/venue-rejected.md` for any rejected candidates + warnings.
+   Or run in watch mode so it auto-re-runs as you fix things:
+
+   ```
+   node scripts/validate-venues.mjs --watch
+   ```
+
+3. Read `data/venue-rejected.md` for any rejected candidates + warnings. Rejections are grouped by rule so you can fix all R4s (missing airports) in one pass before re-running.
 
 4. Open `data/venue-accepted.json` — that's the cleaned set. Copy the array contents (without the outer brackets) and paste into the VENUES array in `app.jsx`.
 
