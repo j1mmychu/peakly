@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaag";
+const PEAKLY_BUILD = "20260608aaah";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -474,7 +474,7 @@ const VENUES = [
   {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
-  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"epic"},
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
@@ -545,11 +545,11 @@ const VENUES = [
   {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OSL",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
   {id:"kiroro-snow-world-s11",category:"skiing",title:"Kiroro Snow World",location:"Hokkaido, Japan",lat:43.0558,lon:140.9656,ap:"CTS",icon:"🏔️",rating:4.58,reviews:3869,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"morzine-s12",category:"skiing",title:"Morzine",location:"Haute-Savoie, France",lat:46.1786,lon:6.7069,ap:"GVA",icon:"🏔️",rating:4.91,reviews:3064,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
   {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZCO",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -1173,6 +1173,456 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
       "skiPass": "ikon"
+    },
+  // ── Epic Pass batch (added 2026-06-08) ──
+    {
+      "id": "beaver-creek",
+      "category": "skiing",
+      "title": "Beaver Creek",
+      "location": "Colorado, USA",
+      "lat": 39.6042,
+      "lon": -106.5167,
+      "ap": "EGE",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 2160,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly",
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "park-city-mountain",
+      "category": "skiing",
+      "title": "Park City Mountain",
+      "location": "Park City, Utah, USA",
+      "lat": 40.6514,
+      "lon": -111.5083,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 3120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "northstar-california",
+      "category": "skiing",
+      "title": "Northstar California",
+      "location": "Truckee, California, USA",
+      "lat": 39.2747,
+      "lon": -120.1211,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "kirkwood",
+      "category": "skiing",
+      "title": "Kirkwood",
+      "location": "California, USA",
+      "lat": 38.685,
+      "lon": -120.0656,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "stevens-pass",
+      "category": "skiing",
+      "title": "Stevens Pass",
+      "location": "Washington, USA",
+      "lat": 47.7461,
+      "lon": -121.0867,
+      "ap": "SEA",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mount-snow",
+      "category": "skiing",
+      "title": "Mount Snow",
+      "location": "Vermont, USA",
+      "lat": 42.9628,
+      "lon": -72.9211,
+      "ap": "ALB",
+      "icon": "🏔️",
+      "rating": 4.4,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "hunter-mountain",
+      "category": "skiing",
+      "title": "Hunter Mountain",
+      "location": "New York, USA",
+      "lat": 42.1947,
+      "lon": -74.2233,
+      "ap": "ALB",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 1640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mt-sunapee",
+      "category": "skiing",
+      "title": "Mt. Sunapee",
+      "location": "New Hampshire, USA",
+      "lat": 43.3261,
+      "lon": -72.0786,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "wilmot-mountain",
+      "category": "skiing",
+      "title": "Wilmot Mountain",
+      "location": "Wisconsin, USA",
+      "lat": 42.4992,
+      "lon": -88.1839,
+      "ap": "ORD",
+      "icon": "🏔️",
+      "rating": 4.1,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "afton-alps",
+      "category": "skiing",
+      "title": "Afton Alps",
+      "location": "Minnesota, USA",
+      "lat": 44.8453,
+      "lon": -92.7842,
+      "ap": "MSP",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 720,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mad-river-mountain-oh",
+      "category": "skiing",
+      "title": "Mad River Mountain",
+      "location": "Ohio, USA",
+      "lat": 40.4514,
+      "lon": -83.6722,
+      "ap": "CMH",
+      "icon": "🏔️",
+      "rating": 4,
+      "reviews": 380,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "liberty-mountain",
+      "category": "skiing",
+      "title": "Liberty Mountain",
+      "location": "Pennsylvania, USA",
+      "lat": 39.7392,
+      "lon": -77.3672,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 560,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "roundtop-mountain",
+      "category": "skiing",
+      "title": "Roundtop Mountain",
+      "location": "Pennsylvania, USA",
+      "lat": 40.1306,
+      "lon": -76.9333,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4,
+      "reviews": 410,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "whitetail-resort",
+      "category": "skiing",
+      "title": "Whitetail Resort",
+      "location": "Pennsylvania, USA",
+      "lat": 39.7547,
+      "lon": -77.9072,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 480,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "jack-frost",
+      "category": "skiing",
+      "title": "Jack Frost Big Boulder",
+      "location": "Pennsylvania, USA",
+      "lat": 41.1311,
+      "lon": -75.5336,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.1,
+      "reviews": 520,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "fernie",
+      "category": "skiing",
+      "title": "Fernie Alpine Resort",
+      "location": "British Columbia, Canada",
+      "lat": 49.4642,
+      "lon": -115.0867,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1180,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "kimberley",
+      "category": "skiing",
+      "title": "Kimberley Alpine Resort",
+      "location": "British Columbia, Canada",
+      "lat": 49.675,
+      "lon": -116.0306,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "nakiska",
+      "category": "skiing",
+      "title": "Nakiska",
+      "location": "Kananaskis, Alberta, Canada",
+      "lat": 50.9286,
+      "lon": -115.1456,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 420,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "verbier",
+      "category": "skiing",
+      "title": "Verbier 4 Vallées",
+      "location": "Valais, Switzerland",
+      "lat": 46.0972,
+      "lon": 7.2289,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 2340,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Off-Piste",
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "val-thorens",
+      "category": "skiing",
+      "title": "Val Thorens",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.2986,
+      "lon": 6.5803,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 2840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "meribel",
+      "category": "skiing",
+      "title": "Méribel",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.3953,
+      "lon": 6.5678,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1860,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "les-menuires",
+      "category": "skiing",
+      "title": "Les Menuires",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.3239,
+      "lon": 6.5331,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "perisher",
+      "category": "skiing",
+      "title": "Perisher",
+      "location": "New South Wales, Australia",
+      "lat": -36.4042,
+      "lon": 148.4111,
+      "ap": "SYD",
+      "icon": "🏔️",
+      "rating": 4.4,
+      "reviews": 780,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
     },
 ];
 
