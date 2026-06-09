@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aal";
+const PEAKLY_BUILD = "20260608aam";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5926,27 +5926,6 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
           fontFamily:F, cursor:"pointer",
         }}>+ New</button>
       </div>
-
-      {/* Account prompt — alerts are way more useful with a signed-in account
-          (push delivery, cross-device). Surfaces here, not buried in Profile. */}
-      {cloudSync?.enabled && !cloudSync.user && (
-        <div style={{ margin:"0 24px 18px" }}>
-          <button onClick={() => onGoToProfile && onGoToProfile()} className="pressable" style={{
-            width:"100%", textAlign:"left",
-            background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:16, padding:"14px 16px", cursor:"pointer",
-            boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
-            display:"flex", alignItems:"center", gap:12,
-          }}>
-            <span style={{ fontSize:24 }}>🔔</span>
-            <div style={{ flex:1, color:"white", fontFamily:F }}>
-              <div style={{ fontSize:14, fontWeight:900, marginBottom:2 }}>Create an account for push alerts</div>
-              <div style={{ fontSize:12, fontWeight:600, opacity:0.92 }}>We'll push you when conditions are firing.</div>
-            </div>
-            <span style={{ color:"white", fontSize:18, fontWeight:900 }}>→</span>
-          </button>
-        </div>
-      )}
 
       {/* Firing banner */}
       {firing.length > 0 && (
