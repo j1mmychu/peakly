@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aac";
+const PEAKLY_BUILD = "20260608aad";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4193,6 +4193,103 @@ function SyncStatusPill({ cloudSync }) {
     <span style={{ fontSize:9, color:m.color, fontFamily:F, background:m.bg, padding:"2px 6px", borderRadius:4, fontWeight:700 }}>
       {m.label}
     </span>
+  );
+}
+
+// Single account-conversion modal surfaced from every save/alert tap when the
+// user isn't signed in yet. Bottom-sheet pattern (same look as OnboardingSheet
+// / SearchSheet) but compact — sized to its own content, never full-height.
+// Reuses cloudSync.signIn (magic link) so the auth path is identical to the
+// Profile flow; just shown contextually at the moment the user shows intent.
+function AccountModal({ open, intent, onClose, cloudSync }) {
+  const [email, setEmail]         = useState("");
+  const [busy, setBusy]           = useState(false);
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const [now, setNow]             = useState(Date.now());
+  const [feedback, setFeedback]   = useState("");
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  useEffect(() => {
+    if (!lastSentAt) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lastSentAt]);
+  if (!open) return null;
+  const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
+  const canSend = !busy && email.includes("@") && cooldownMs === 0 && cloudSync?.enabled;
+  const send = async () => {
+    if (!canSend) return;
+    setBusy(true); setFeedback("");
+    const r = await cloudSync.signIn(email.trim());
+    setBusy(false);
+    if (!r?.ok) setFeedback(r?.error || "Couldn't send. Try again.");
+    else { setLastSentAt(Date.now()); setFeedback("Check your email for a one-tap link."); }
+  };
+  // Context-aware copy so a 🔔 tap doesn't say "Save it" and a heart tap
+  // doesn't say "Set the alert".
+  const headline = intent === "save"  ? "Save it."
+                 : intent === "alert" ? "Get the alert."
+                 :                      "Save it. Get the alert.";
+  const sub      = intent === "save"  ? "Drop your email and we'll remember it across every device."
+                 : intent === "alert" ? "Drop your email — we'll push you the moment conditions are firing."
+                 :                      "Drop your email. We'll save your spots and push you when conditions are firing.";
+  return (
+    <>
+      <div onClick={onClose} className="backdrop" style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:200 }} />
+      <div className="sheet" style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
+        zIndex:201, maxHeight:"60vh", overflowY:"auto",
+        paddingBottom:"max(env(safe-area-inset-bottom,0px),24px)",
+      }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 4px" }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
+        </div>
+        <div style={{ padding:"14px 24px 12px" }}>
+          <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            {headline}
+          </div>
+          <div style={{ fontSize:13, color:"#555", fontFamily:F, marginTop:8, lineHeight:1.5 }}>
+            {sub}
+          </div>
+          <div style={{ display:"flex", gap:8, marginTop:18 }}>
+            <input type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
+              value={email} onChange={e => setEmail(e.target.value)} disabled={busy}
+              autoFocus
+              onKeyDown={e => { if (e.key === "Enter") send(); }}
+              style={{
+                flex:1, minWidth:0, padding:"13px 14px", borderRadius:14,
+                border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa",
+              }}
+            />
+            <button onClick={send} disabled={!canSend} className="pressable" style={{
+              background: canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
+              borderRadius:14, padding:"13px 18px", fontSize:13, fontWeight:800, fontFamily:F,
+              cursor: canSend ? "pointer" : "default", flexShrink:0,
+            }}>
+              {busy ? "Sending…" : cooldownMs > 0 ? `${Math.ceil(cooldownMs/1000)}s` : lastSentAt ? "Resend" : "Create account"}
+            </button>
+          </div>
+          {feedback && (
+            <div style={{ fontSize:12, color: feedback.startsWith("Check") ? "#0284c7" : "#ef4444", fontFamily:F, marginTop:10 }}>
+              {feedback}
+            </div>
+          )}
+          <button onClick={onClose} className="pressable" style={{
+            marginTop:16, background:"none", border:"none", padding:0,
+            fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
