@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aak";
+const PEAKLY_BUILD = "20260608aal";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5920,7 +5920,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
           <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.02em" }}>Alerts</div>
           <div style={{ fontSize:14, color:"#717171", marginTop:6, fontFamily:F }}>Know the moment conditions are firing</div>
         </div>
-        <button onClick={() => setAdding(true)} className="pressable" style={{
+        <button onClick={gate(() => setAdding(true))} className="pressable" style={{
           background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:20,
           padding:"8px 16px", color:"#222", fontSize:13, fontWeight:700,
           fontFamily:F, cursor:"pointer",
