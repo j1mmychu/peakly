@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608as";
+const PEAKLY_BUILD = "20260608at";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8491,7 +8491,7 @@ function App() {
         return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
     });
-  }, [wishlistIds, setWishlists, setNamedLists]);
+  }, [wishlistIds, setWishlists, setNamedLists, cloudSync, setImportToast, setActiveTab]);
 
   // Set of venueIds that have an active alert — drives the 🔔 badge on cards
   const alertedVenueIds = React.useMemo(
