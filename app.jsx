@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aj";
+const PEAKLY_BUILD = "20260608ak";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3660,6 +3660,30 @@ function SearchBar({ search, onOpen, compact = false }) {
   const whenLabel = "This weekend";
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
+  // Compact mode renders inline next to the wordmark — single line, no
+  // subtitle, lighter shadow. Used in the Explore header to free up vertical
+  // space for the first carousel.
+  if (compact) {
+    return (
+      <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
+        display:"flex", alignItems:"center",
+        background:"#f5f5f5", borderRadius:24,
+        border:"1.5px solid #ebebeb",
+        padding:"8px 6px 8px 14px", gap:8, cursor:"pointer",
+      }}>
+        <div style={{ flex:1, minWidth:0, fontSize:13, fontWeight:700, color: hasSearch ? "#222" : "#888", fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {hasSearch ? topLine : "Search venues"}
+        </div>
+        <div style={{
+          background: hasSearch ? "#222" : "#0284c7",
+          borderRadius:18, width:30, height:30, flexShrink:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <span style={{ fontSize:13 }}>🔍</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
       display:"flex", alignItems:"center",
