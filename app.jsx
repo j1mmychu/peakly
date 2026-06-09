@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608n";
+const PEAKLY_BUILD = "20260608o";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6765,19 +6765,11 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
   };
 
   const complete = () => {
-    setProfile(p => ({ ...p, email, sports, homeAirport: airport, hasAccount:true }));
+    // Email is collected in the account-creation flow (Alerts tab / nudge banner),
+    // not in onboarding. Onboarding stays friction-free: airport + sports + done.
+    // onboarded_at lets the account-nudge banner know when to first prompt.
+    setProfile(p => ({ ...p, sports, homeAirport: airport, hasAccount:true, onboarded_at: Date.now() }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
-    // If they gave a valid email and cloud sync is on, this IS their account —
-    // fire the magic link now so there's no second "create account" step in Profile.
-    const trimmed = (email || "").trim();
-    if (trimmed.includes("@") && cloudSync?.enabled && !cloudSync.user) {
-      cloudSync.signIn(trimmed).then(r => {
-        if (r?.ok && setImportToast) {
-          setImportToast("Check your email for a one-tap sign-in link ✉️");
-          setTimeout(() => setImportToast(""), 4500);
-        }
-      });
-    }
     onClose();
   };
 
