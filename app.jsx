@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aab";
+const PEAKLY_BUILD = "20260608aac";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6056,15 +6056,24 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync }) {
         </>
       )}
 
-      {/* Tiny preferences link — sits at the very bottom */}
+      {/* Tiny footer links — sit at the very bottom */}
       <div style={{ flex:1 }} />
-      <button onClick={onShowOnboarding} className="pressable" style={{
-        alignSelf:"flex-start", marginTop:32, background:"none", border:"none",
-        fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
-        textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
-      }}>
-        {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport set"}` : "Set home airport & sport"}
-      </button>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:8, marginTop:32 }}>
+        <button onClick={onShowOnboarding} className="pressable" style={{
+          background:"none", border:"none",
+          fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+          textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+        }}>
+          {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport set"}` : "Set home airport & sport"}
+        </button>
+        <button onClick={forceCleanReload} className="pressable" style={{
+          background:"none", border:"none",
+          fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F, cursor:"pointer",
+          textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+        }}>
+          App v{PEAKLY_BUILD} · Refresh
+        </button>
+      </div>
     </div>
   );
 }
