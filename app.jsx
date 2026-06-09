@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608d";
+const PEAKLY_BUILD = "20260608e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2962,18 +2962,25 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
           ))}
         </div>
         <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            {listing.flightsLoading && !listing.flight.live ? (
-              <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
-            ) : listing.flight.live ? (
-              <>
-                <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
-                {listing.flight.pct >= 10 && (
-                  <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
-                )}
-              </>
-            ) : (
-              <span style={{ fontSize:14, fontWeight:700, color:"#717171", fontFamily:F }}>~${listing.flight.price} typical</span>
+          <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
+              {listing.flightsLoading && !listing.flight.live ? (
+                <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
+              ) : listing.flight.live ? (
+                <>
+                  <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                  {listing.flight.pct >= 10 && (
+                    <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+                  )}
+                </>
+              ) : (
+                <span style={{ fontSize:14, fontWeight:700, color:"#717171", fontFamily:F }}>~${listing.flight.price} typical</span>
+              )}
+            </div>
+            {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap" }}>
+                {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+              </div>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
