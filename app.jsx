@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ah";
+const PEAKLY_BUILD = "20260608ai";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8991,18 +8991,18 @@ function App() {
           }}>{importToast}</div>
         )}
         {/* Top header — hidden on map tab so map fills screen edge-to-edge.
-            Explore: stacked rows so the wordmark and the search bar each get
-            their own breathing room instead of fighting for width on one line. */}
+            Explore: wordmark + search bar on a SINGLE row so the first
+            carousel sits right under the spotlight instead of below the fold. */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ background:"#fff", flexShrink:0 }}>
-              <div style={{ padding:"52px 20px 0" }}>
-                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1 }}>
+              <div style={{ padding:"48px 16px 12px", display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1, flexShrink:0 }}>
                   peakly
                 </span>
-              </div>
-              <div style={{ padding:"10px 16px 14px" }}>
-                <SearchBar search={search} onOpen={() => setShowSearch(true)} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <SearchBar search={search} onOpen={() => setShowSearch(true)} compact />
+                </div>
               </div>
             </div>
           ) : (
