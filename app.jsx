@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608h";
+const PEAKLY_BUILD = "20260608i";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7418,6 +7418,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>
                 {listing.flight.live ? `from $${listing.flight.price}` : `~$${listing.flight.price}`}
               </div>
+              {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+                <div style={{ fontSize:11, fontWeight:700, color:"#16a34a", fontFamily:F, marginTop:2, whiteSpace:"nowrap" }}>
+                  {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+                </div>
+              )}
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>
                 {listing.flight.live
                   ? (listing.flight.pct >= 10 ? `typical $${listing.flight.normal} · ${listing.flight.pct}% below` : "current price")
