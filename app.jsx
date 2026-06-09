@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608m";
+const PEAKLY_BUILD = "20260608n";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7480,6 +7480,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span key={t} style={{
                   background:"#f5f5f5", border:"1px solid #ebebeb", borderRadius:10,
                   padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F,
+                  whiteSpace:"nowrap", flexShrink:0,
                 }}>{t}</span>
               ))}
             </div>
