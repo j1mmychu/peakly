@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608q";
+const PEAKLY_BUILD = "20260608r";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6735,7 +6735,6 @@ const AVATAR_COLORS = [
 
 function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
-  const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
