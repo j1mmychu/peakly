@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aad";
+const PEAKLY_BUILD = "20260608aae";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8222,6 +8222,9 @@ function App() {
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
   const [sharedListView, setSharedListView] = useState(null); // snapshot from ?l=<slug>
   const [importToast,    setImportToast]    = useState("");
+  // Single conversion modal surfaced from every save/alert action when the user
+  // isn't signed in. `null` = closed; `{intent: "save"|"alert"}` = open.
+  const [accountModal,   setAccountModal]   = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
