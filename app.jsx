@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aat";
+const PEAKLY_BUILD = "20260608aau";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6095,28 +6095,8 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync }) {
+function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAccountModal }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
-  const [email, setEmail]         = useState(profile?.email || "");
-  const [busy, setBusy]           = useState(false);
-  const [lastSentAt, setLastSentAt] = useState(0);
-  const [now, setNow]             = useState(Date.now());
-  const [feedback, setFeedback]   = useState("");
-  useEffect(() => {
-    if (!lastSentAt) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, [lastSentAt]);
-  const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
-  const canSend = !busy && email.includes("@") && cooldownMs === 0 && cloudSync?.enabled;
-  const send = async () => {
-    if (!canSend) return;
-    setBusy(true); setFeedback("");
-    const r = await cloudSync.signIn(email.trim());
-    setBusy(false);
-    if (!r?.ok) setFeedback(r?.error || "Couldn't send. Try again.");
-    else { setLastSentAt(Date.now()); setFeedback("Check your email for a one-tap link."); }
-  };
   const signedIn = !!cloudSync?.user;
 
   return (
