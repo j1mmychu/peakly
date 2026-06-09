@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608r";
+const PEAKLY_BUILD = "20260608s";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4073,12 +4073,12 @@ function ServiceStatusPill() {
 function SyncStatusPill({ cloudSync }) {
   if (!cloudSync || !cloudSync.enabled) return null;
   const map = {
-    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not synced" },
+    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not signed in" },
     checking_email: { color:"#a16207",  bg:"#fef3c7", label:"Check email" },
     syncing:        { color:"#0284c7",  bg:"#e0f2fe", label:"Syncing…" },
-    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Synced ✓" },
+    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Signed in ✓" },
     offline:        { color:"#888",     bg:"#f5f5f5", label:"Offline" },
-    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sync error" },
+    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sign-in error" },
   };
   const m = map[cloudSync.status] || map.signed_out;
   return (
