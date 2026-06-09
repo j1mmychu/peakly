@@ -22,6 +22,11 @@ build/
 out/
 .vendor-cache/
 
+# Venue validator working files (the .example.json + script stay tracked)
+data/venue-candidates.json
+data/venue-accepted.json
+data/venue-rejected.md
+
 # macOS / OS
 .DS_Store
 Thumbs.db
