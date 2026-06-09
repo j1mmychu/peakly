@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ab";
+const PEAKLY_BUILD = "20260608ac";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8674,9 +8674,10 @@ function App() {
     const deal = scoreWeekendDeal(v, vWx, vMar, new Date(), profile.homeAirport || "JFK", flight);
     const wknd = deal.conditions;
 
+    const uv = wxData[v.id]?.daily?.uv_index_max?.[scoreDayIndex] ?? null;
     return {
       ...v,
-      conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading,
+      conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading, uv,
       weekendScore: wknd.score,
       weekendLabel: wknd.label,
       weekendPeriod: wknd.period,
