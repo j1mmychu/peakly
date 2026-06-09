@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608ac";
+const PEAKLY_BUILD = "20260608ad";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -2752,6 +2752,28 @@ function getGoVerdict(score) {
   if (score >= 80) return { label:"GO", color:"#22c55e", bg:"#dcfce7" };
   if (score >= 55) return { label:"MAYBE", color:"#eab308", bg:"#fef9c3" };
   return { label:"WAIT", color:"#ef4444", bg:"#fee2e2" };
+}
+
+// Small UV index pill (☀️ UV N) — tinted by intensity. Renders next to the
+// verdict pill on every card so users can see at a glance how sunny it is.
+function UVBadge({ uv, size = "sm" }) {
+  if (uv == null || !Number.isFinite(uv)) return null;
+  const u = Math.round(uv);
+  const tint = u >= 8 ? { bg:"#fee2e2", fg:"#b91c1c" }   // very high — red
+             : u >= 6 ? { bg:"#ffedd5", fg:"#c2410c" }   // high — orange
+             : u >= 3 ? { bg:"#fef3c7", fg:"#a16207" }   // moderate — amber
+             :          { bg:"#f1f5f9", fg:"#475569" };  // low — gray
+  const isSm = size === "sm";
+  return (
+    <div style={{
+      display:"inline-flex", alignItems:"center", gap:3,
+      background: tint.bg, borderRadius: isSm ? 6 : 8,
+      padding: isSm ? "2px 6px" : "3px 10px",
+    }}>
+      <span style={{ fontSize: isSm ? 10 : 12 }}>☀️</span>
+      <span style={{ fontSize: isSm ? 9 : 11, fontWeight:800, color: tint.fg, fontFamily:F }}>UV {u}</span>
+    </div>
+  );
 }
 
 function GoVerdictBadge({ score, size = "sm" }) {
