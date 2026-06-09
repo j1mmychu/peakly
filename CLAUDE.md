@@ -341,7 +341,7 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 
 | Stream | Status | RPM (per 1K MAU) |
 |--------|--------|------------------|
-| Amazon Associates (`peakly-20`) | ⚠️ REGRESSED 2026-06-07 — GEAR_ITEMS deleted from app.jsx, now earns **$0** (see Open #13) | $4.48 (claimed, not earning) |
+| Amazon Associates (`peakly-20`) | ❌ CUT for v1 (2026-06-09, Jack) — GEAR_ITEMS stays removed; revisit post-launch | $0 (not in v1) |
 | Booking.com (`aid=2311236`) | LIVE | $6.90 |
 | SafetyWing (`referenceID=peakly`) | LIVE | $0.54 |
 | Travelpayouts (HTTPS proxy, TP_MARKER=710303) | LIVE | $0.14 |
