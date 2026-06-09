@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608p";
+const PEAKLY_BUILD = "20260608q";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6859,19 +6859,27 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
 
             {navigator.geolocation && (
               <button onClick={detectAirport} disabled={detecting} className="pressable" style={{
-                width:"100%", padding:"13px 14px", marginBottom:10, borderRadius:14,
-                border:"1.5px solid #0284c7", background:"#f0f9ff", color:"#0284c7",
-                fontSize:14, fontWeight:800, fontFamily:F, cursor: detecting ? "default" : "pointer",
+                width:"100%", padding:"16px 14px", marginBottom:14, borderRadius:14,
+                border:"none", background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
+                fontSize:15, fontWeight:900, fontFamily:F, cursor: detecting ? "default" : "pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                 opacity: detecting ? 0.7 : 1,
+                boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
               }}>
-                <span style={{ fontSize:16 }}>📍</span>
+                <span style={{ fontSize:18 }}>📍</span>
                 <span>{detecting ? "Detecting your nearest airport…" : "Use my current location"}</span>
               </button>
             )}
+            {navigator.geolocation && (
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, color:"#bbb" }}>
+                <div style={{ flex:1, height:1, background:"#ececec" }} />
+                <span style={{ fontSize:11, fontWeight:700, fontFamily:F, letterSpacing:"0.08em" }}>OR</span>
+                <div style={{ flex:1, height:1, background:"#ececec" }} />
+              </div>
+            )}
             <div style={{ position:"relative", marginBottom:14 }}>
               <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Or search any airport worldwide…"
+              <input type="text" placeholder="Search any airport worldwide…"
                 value={apQuery} onChange={e => setApQuery(e.target.value)}
                 onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
