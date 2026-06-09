@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aae";
+const PEAKLY_BUILD = "20260608aaf";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8568,14 +8568,10 @@ function App() {
   const firingCount = listings.filter(l => l.conditionScore >= 90).length;
 
   const toggleWishlist = useCallback(id => {
-    // Saves are gated on an actual signed-in account. Unsigned users get a
-    // toast + a nudge to the Profile tab where they can create an account.
-    // Removing a save when not signed in shouldn't happen (the heart shouldn't
-    // be filled to begin with), but we still gate the toggle to be safe.
+    // Saves require a signed-in account. Unsigned users get the central
+    // AccountModal — no tab bounce, no secondary prompts.
     if (!cloudSync?.user) {
-      setImportToast("Create an account to save spots ✨");
-      setTimeout(() => setImportToast(""), 3500);
-      setActiveTab("profile");
+      setAccountModal({ intent: "save" });
       return;
     }
     const isCurrentlySaved = wishlistIds.includes(id);
