@@ -17,19 +17,20 @@ Peakly is a **single-file React SPA** for finding the best ski or beach spot to 
 ```
 peakly/
 ├── index.html               # Entry point — React 18, ReactDOM, Babel via CDN
-├── app.jsx                  # Entire application (~7K lines of JSX)
+├── app.jsx                  # Entire application (~9.1K lines of JSX as of 2026-06-08)
 ├── CLAUDE.md                # THIS FILE — shared brain
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
 ├── manifest.json            # PWA manifest
-├── sw.js                    # Service worker (peakly-20260507e, push + caching)
+├── sw.js                    # Service worker (peakly-20260608z, push + caching — cache stamp now auto-bumped by auto-push.sh)
 ├── sitemap.xml / robots.txt # SEO
 ├── capacitor.config.json    # iOS/Android wrapper config
 ├── package.json             # Capacitor CLI deps only
 ├── .github/workflows/deploy.yml  # Pages auto-deploy on push to main+master
 ├── server/                  # Node.js VPS proxy source (Travelpayouts + alerts)
 ├── peakly-native/           # Capacitor native project files
-├── scripts/                 # auto-push.sh + status.sh (ship pipeline)
+├── scripts/                 # auto-push.sh + status.sh (ship pipeline) + validate-venues.mjs + build-ios.mjs/.sh
+├── data/                    # venue-candidates.example.json (input for validate-venues.mjs)
 ├── tasks/agents/            # 5 input agents + daily-briefing (canonical prompts)
 └── reports/
     ├── briefings/           # ONE file/day from daily-briefing agent — read this first
@@ -144,22 +145,38 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 12. **Pre-deploy smoke test** runs automatically via `scripts/auto-push.sh` → Playwright headless against the live URL after each push that touches app.jsx/sw.js/index.html. If you see `❌ DEPLOY SMOKE FAILED` in the auto-push output (or `/tmp/peakly-smoke.log`), the live site likely has a runtime error — diagnose before more pushes. Manual run: `npm run smoke` (live) or `npm run smoke:local` (dist/ on :8002). Catches "parses but throws on first render" bugs (TDZ, undefined refs).
 
-## Current State (2026-05-09)
+## Current State (2026-06-08)
+
+> Launch status per PM v52 (2026-06-08): **RED.** Still gated on the VPS redeploy (Day 35) — the one binary blocker — plus a fresh overnight revenue regression (GEAR_ITEMS, see Open #13). Code itself is healthy: 156 venues, cache stamps aligned, security clean, smoke passing. The product runs fine live on direct Open-Meteo + legacy pricing; the open items below are enhancements + manual Jack-only actions, with two exceptions (GEAR_ITEMS restore + the VPS gate for Reddit-scale traffic).
 
 ### What's Broken / Open (Priority Order)
+
+13. **GEAR_ITEMS (Amazon) silently removed overnight 2026-06-07 — Amazon stream now earns $0.** `grep -c GEAR_ITEMS app.jsx` → **0**. Dropped 6→4→2→0 across three unlabeled `auto:` commits (`9656c6b`→`f8e9a51`→`12ebc13`) on June 7, ~9h after PM v51 green-lit it. Clean removal (braces balance, no crash, passes smoke) so it's pure revenue loss, not a render bug. **This is the second time it's vanished** (removed pre-05-24, restored `932943c`/`450891b` on 05-27 — now gone again). Live RPM drops **$12.06 → $7.58/1K MAU (−37%)**; the Revenue Model table below is now wrong. PM Decision (v52): RESTORE before launch (clean git restore from `9656c6b~1` tree) OR formally cut Amazon for v1 and fix the Revenue Model — "we'll see" not allowed. Root cause: the auto-push pipeline ships unreviewed logic changes with no diff review or paper trail (see Open #14).
+14. **Auto-push pipeline ships unreviewed logic changes to prod** (PM v52 risk) — every Edit commits as `auto: app.jsx` with no message/diff-review/report. GEAR_ITEMS dying across three of those commits is the proof. Smoke test won't catch revenue/logic regressions that still render. Minimum mitigation before launch: auto-push hook should refuse to commit `app.jsx` if `grep -c GEAR_ITEMS` / cache-stamp / brace-balance invariants regress, or at least label logic-bearing commits.
+15. **GitHub PAT expires 2026-06-15** (~1 week out as of 06-08) — `peakly-token-renewal` weekly watch is tracking it. Renew before expiry or SSH/HTTPS push breaks.
 
 1. ~~**Repo divergence — 18 days no commits** (last: a9a01e3, 2026-04-15). Working tree had real fixes (proxy.js dedupe + state notes) sitting unshipped.~~ **DONE 2026-05-03** (commits 6e964e9 + 35e60c2 shipped).
 2. ~~**Amazon gear gate `{false && ...}` at app.jsx:5728** — leaks ~$11/mo/1K MAU. Open since 2026-04-10 (Day 23+).~~ **DONE 2026-05-04** — Revenue agent flipped to `{GEAR_ITEMS[listing.category] && ...}` at app.jsx:5704; merged via a9aacf5. Day-25 finding finally closed.
 3. ~~**Marine batch loader at app.jsx:6748** — `needsMarine` only checks surfing; tanning venues score without water-temp data on Explore list. One-token fix. Open since 2026-04-10.~~ **DONE 2026-05-03** — closed alongside surf removal in pivot commit bb56aaf (`needsMarine` now checks `category === "beach"`).
 4. ~~**`lateSeason: true` flag never wired up on any ski venue**~~ **DONE 2026-05-04 (expanded through 2026-05-05)** — 6 venues carry the flag (confirmed June 5 via grep): Whistler-area, Chamonix-area, Mammoth, Tignes/Val d'Isère, Cervinia, Arapahoe Basin. Note: CLAUDE.md previously said 7 — val-d-isere-s16 was deleted June 1 as a duplicate, reducing count to 6. Val Thorens and Verbier don't exist in VENUES yet; flagged for June 10 content sprint.
 5. ~~**Active venue duplicates**~~ **DONE 2026-05-04** — only aruba-eagle-beach-t1 was a live dup (the other 4 cleared in 2026-05-03 surf retirement); deleted + boot-time dup-id validator IIFE added (app.jsx:528). PM report finding was stale.
-6. ~~**Travelpayouts weekend-specific dates not wired**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — `proxy.js` now accepts `depart_date`/`return_date`; client `fetchTravelpayoutsPrice` passes upcoming Fri date via `upcomingFridayISO()`. Backward-compatible (no-args → legacy month-cheapest). Jack must SSH to 198.199.80.21, `cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` (or `npm install` if deps changed — they didn't this round).
-7. ~~**Open-Meteo weather cache still unbuilt**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — proxy now exposes `/api/weather` + `/api/marine` with shared in-memory 2hr cache + in-flight dedupe. Client `fetchWeather`/`fetchMarine` try proxy first, fall back to direct Open-Meteo. Reddit-spike protection: N simultaneous users hitting the same (lat,lon) trigger 1 upstream call. Same redeploy path as #6.
+6. ~~**Travelpayouts weekend-specific dates not wired**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — `proxy.js` now accepts `depart_date`/`return_date`; client `fetchTravelpayoutsPrice` passes upcoming Fri date via `upcomingFridayISO()`. Backward-compatible (no-args → legacy month-cheapest). Jack must SSH to 198.199.80.21, `cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` (or `npm install` if deps changed — they didn't this round). **PARKED 2026-06-08 (Day 35) — graduated to `reports/known-skipped.md` per two-strikes rule.** Site runs fine on direct Open-Meteo + legacy month-cheapest pricing; redeploy is an enhancement at <10 MAU. Re-flags the moment MAU crosses 100 (weather cache becomes Reddit-spike protection — see #7) or a user reports wrong/stale weekend fares. Still the stated **launch gate** for any Reddit/HN post (PM v52 Decision 3).
+7. ~~**Open-Meteo weather cache still unbuilt**~~ **CODE DONE 2026-05-04, AWAITING VPS REDEPLOY** — proxy now exposes `/api/weather` + `/api/marine` with shared in-memory 2hr cache + in-flight dedupe. Client `fetchWeather`/`fetchMarine` try proxy first, fall back to direct Open-Meteo. Reddit-spike protection: N simultaneous users hitting the same (lat,lon) trigger 1 upstream call. Same redeploy path as #6. **PARKED 2026-06-08 alongside #6 (known-skipped).** Per DevOps 06-08: "what breaks first at scale" is still Open-Meteo's free-tier rate ceiling (~66+ concurrent DAU on the same venue set throttles) — this cache is the prevention, and the instant a Reddit/HN post lands it jumps from enhancement back to P0.
 8. **No onboarding scoring explanation** — new users dumped into Explore without context for how conditions + "window" scoring works.
-9. ~~**Strike alerts server polling**~~ **CODE DONE 2026-05-07, AWAITING APNS .p8 + VPS REDEPLOY** — proxy.js now has 30-min polling worker, conservative heuristic matcher, native APNS sender (HTTP/2 + JWT via crypto, no deps). Client posts pushToken + venue lat/lon to `/api/alerts`. Test-fire endpoint guarded by `ALERTS_TEST_ENABLED=true` for App Store review. Setup runbook: `peakly-native/PUSH_SETUP.md`. Persistence still in-memory (Phase 2C deferred to v2 — see plan). Required env: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH`, `APNS_PROD=true`.
+9. ~~**Strike alerts server polling**~~ **CODE DONE 2026-05-07, AWAITING APNS .p8 + VPS REDEPLOY** — proxy.js now has 30-min polling worker, conservative heuristic matcher, native APNS sender (HTTP/2 + JWT via crypto, no deps). Client posts pushToken + venue lat/lon to `/api/alerts`. Test-fire endpoint guarded by `ALERTS_TEST_ENABLED=true` for App Store review. Setup runbook: `peakly-native/PUSH_SETUP.md`. Persistence still in-memory (Phase 2C deferred to v2 — see plan). Required env: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH`, `APNS_PROD=true`. **PARKED 2026-06-08 (~23d past the 05-13 deadline) — graduated to `reports/known-skipped.md`.** `apns_configured: false` until Jack runs the 5 `pm2 set` calls. The #12 fallback is now SHIPPED: `Capacitor.isNativePlatform()` gate is live in app.jsx (3 sites), so iOS v1 can ship without push. Web product unaffected. Re-flags only if an App Store submission is actually queued.
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 11. **Auto-push pipeline orphans scheduled-task agent writes** — `scripts/auto-push.sh` fires from Claude Code's PostToolUse hook on Edit/Write inside `~/peakly` (hook now live in `~/.claude/settings.json` as of 2026-05-09 late evening). Catches Jack's local Claude sessions only — scheduled-task agents (devops/pm/content/revenue/ux daily runs) execute outside the hook's catchment, so their writes silently never commit until the next manual edit. Recommended supplement: add `45 17 * * * cd ~/peakly && bash scripts/auto-push.sh` to local crontab after the 17:30 daily-briefing slot. Two-minute install. Without it, every report after today reads stale state and re-surfaces findings the previous run already closed.
-12. **APNS configuration deadline 2026-05-13** (PM call 2026-05-09) — Strike Alerts code is shipped but `apns_configured: false` until Jack runs the Apple Dev console + 5 `pm2 set` calls (runbook: `peakly-native/PUSH_SETUP.md`). 72h on the critical path with no movement. PM forcing function: by end-of-day Wednesday 2026-05-13, either APNS is live (`/health` shows `apns_configured: true`) OR add `Capacitor.isNativePlatform()` gate to hide the Alerts tab on iOS specifically and ship App Store v1 without push. Web product preserved either way; polling worker preserved for future native re-enable.
+12. **APNS configuration deadline 2026-05-13** (PM call 2026-05-09) — Strike Alerts code is shipped but `apns_configured: false` until Jack runs the Apple Dev console + 5 `pm2 set` calls (runbook: `peakly-native/PUSH_SETUP.md`). 72h on the critical path with no movement. PM forcing function: by end-of-day Wednesday 2026-05-13, either APNS is live (`/health` shows `apns_configured: true`) OR add `Capacitor.isNativePlatform()` gate to hide the Alerts tab on iOS specifically and ship App Store v1 without push. Web product preserved either way; polling worker preserved for future native re-enable. **RESOLVED via fallback 2026-06-08** — the `Capacitor.isNativePlatform()` gate shipped (3 sites in app.jsx); iOS v1 can launch without APNS. APNS itself remains parked in known-skipped (see #9). The deadline is moot; the fallback path is the decision.
+
+### Recently Fixed (2026-06-05 → 2026-06-08)
+
+- ✅ **Cache-buster auto-bump is now STRUCTURAL** (`scripts/auto-push.sh` lines ~40–86) — the hook self-bumps `PEAKLY_BUILD` whenever any of `app.jsx`/`sw.js`/`index.html` change: resets to `${TODAY}a` if the stamp is from a prior day, else increments the suffix (`a→…→z→aa`), rewriting all three files in lockstep via `perl -pi`. DevOps recommended this for three runs (05-26/05-31/06-04); now live. **The recurring "stale cache buster" P0 class is structurally dead — stop reporting it.** Current stamp: `20260608z`. (The high suffix letters reflect ~30 auto-pushes/day from the per-Edit hook — expected noise, not a bug.)
+- ✅ **APNS `Capacitor.isNativePlatform()` gate live** (app.jsx, 3 sites) — the CLAUDE.md #12 fallback shipped; iOS v1 can launch without push. Alerts tab gated on native iOS where APNS isn't configured. Web product unaffected.
+- ✅ **Venue-expansion validation pipeline added** (`scripts/validate-venues.mjs` + `scripts/README-venues.md` + `data/venue-candidates.example.json`) — vets new venues against 10 consistency rules (required fields, dup IDs, coord bounds, AP-in-`AP_CONTINENT`, etc.) before they're hand-pasted into the hardcoded VENUES array. Drop candidates in `data/venue-candidates.json`, run `node scripts/validate-venues.mjs`, read `data/venue-rejected.md`, paste `data/venue-accepted.json`. No npm deps (built-in `fetch`). Keeps the no-build single-file constraint while making venue adds accurate.
+- ✅ **iOS build tooling** (`scripts/build-ios.mjs` + `scripts/build-ios.sh`, June 7) — Capacitor iOS build/vendor-cache scaffolding. `.vendor-cache/` gitignored as build artifact (commit `a7f10c1`).
+- ✅ **5 venues added 2026-05-27** (commit `932943c`): `beach_maldives`, `beach_mirissa`, `beach_oludeniz`, `ski_mzaar`, `ski_oukaimeden`. Net VENUES count holds at **156** (67 ski + 89 beach) after offsetting deletions/dedup. GEAR_ITEMS was also restored in this commit (since regressed — see Open #13).
+- ✅ **Supabase lazy-load fix** (commit `961a246`, 2026-06-06) — re-aligned eager-`<script>` lazy-load behavior per the documented contract.
+- ✅ **Two-strikes graduations 2026-06-08** — VPS proxy redeploy (Day 35) + APNS keys both moved to `reports/known-skipped.md` after appearing unchanged in 05-31 + 06-04. Both are Jack-only manual actions; neither blocks the live web product. See Open #6/#7/#9.
 
 ### Recently Fixed (2026-05-09 late evening — branch hygiene + history scrub + hook live)
 
@@ -285,7 +302,7 @@ directly — edit the repo file.
 
 ### Output flow
 
-- Input agents write to `reports/inputs/<role>-YYYY-MM-DD.md`
+- Input agents write to `reports/inputs/<role>-YYYY-MM-DD.md` — **NOTE (2026-06-08): paths have drifted.** PM, DevOps, and Content now write rolling single files (`reports/pm-report.md`, `reports/devops-report.md`, `reports/content-report.md`) rather than dated `inputs/` files (PM's been doing this since v44 to keep the briefing pipeline stable). Dated `inputs/` files still appear sporadically (e.g. `reports/inputs/devops-2026-06-08.md`). Read the rolling files first for current state.
 - Daily briefing reads all of today's inputs + yesterday's briefing,
   emits one ~50-line digest to `reports/briefings/YYYY-MM-DD.md`
 - Sub-15-min one-line fixes (gear-gate flips, color swaps, etc.) get
@@ -324,7 +341,7 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 
 | Stream | Status | RPM (per 1K MAU) |
 |--------|--------|------------------|
-| Amazon Associates (`peakly-20`) | LIVE | $4.48 |
+| Amazon Associates (`peakly-20`) | ⚠️ REGRESSED 2026-06-07 — GEAR_ITEMS deleted from app.jsx, now earns **$0** (see Open #13) | $4.48 (claimed, not earning) |
 | Booking.com (`aid=2311236`) | LIVE | $6.90 |
 | SafetyWing (`referenceID=peakly`) | LIVE | $0.54 |
 | Travelpayouts (HTTPS proxy, TP_MARKER=710303) | LIVE | $0.14 |
@@ -332,7 +349,7 @@ data-enrichment, growth-lead, qa-agent, scale-guardian, seo-analytics.
 | Backcountry / GetYourGuide | $0 | +$1.84 |
 | Peakly Pro | UI REMOVED 2026-04-16 — decision pending (kill or ship) | TBD |
 
-**Live RPM:** ~$11.98/1K MAU (4 of 6 streams earning — gear gate flipped 2026-05-04, Amazon now active). **With GYG partner_id added:** ~$13.66 (+14%).
+**Live RPM:** was ~$12.06/1K MAU (4 streams earning) → **dropped to ~$7.58/1K MAU (−37%) on 2026-06-07** when GEAR_ITEMS was silently deleted, killing the Amazon stream (Open #13). Restore GEAR_ITEMS to recover the $4.48, or formally cut Amazon for v1 and keep this table at $7.58. **With GYG partner_id added:** +~$1.68. *(PM v52 Decision 1: pick one before launch — the shared brain cannot keep claiming revenue from code that doesn't exist.)*
 
 ## Competitive Edge
 
