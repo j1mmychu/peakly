@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aax";
+const PEAKLY_BUILD = "20260608aay";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8570,9 +8570,9 @@ function App() {
       dealPriceRatio: deal.priceRatio,
       dealIsEstimate: deal.isEstimate,
     };
-  });
+  }), [wxData, marData, duffelPrices, profile.homeAirport, profile.homeAirport2, scoreDayIndex, flightsLoading]);
 
-  const firingCount = listings.filter(l => l.conditionScore >= 90).length;
+  const firingCount = React.useMemo(() => listings.filter(l => l.conditionScore >= 90).length, [listings]);
 
   const toggleWishlist = useCallback(id => {
     // Saves require a signed-in account. Unsigned users get the central
