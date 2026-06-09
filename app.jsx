@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aay";
+const PEAKLY_BUILD = "20260608aaz";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4685,7 +4685,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   })();
   const dealCarouselReady = dealCarousel.length >= 3;
 
-  const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
+  const filtered = React.useMemo(
+    () => applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport),
+    [activeListings, activeCat, filters, search, profile?.homeAirport]
+  );
   // Exclude hero + carousel venues from the grid to avoid duplicates
   const heroAndBestIds = new Set([
     heroPick?.id,
