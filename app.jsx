@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608al";
+const PEAKLY_BUILD = "20260608am";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5953,403 +5953,118 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cloudSync, wishlists = [], listings = [], onOpenDetail, onToggle }) {
-  const [airportQuery,      setAirportQuery]      = useState("");
-  const [airportFocused,    setAirportFocused]    = useState(false);
-  const [detectingLocation, setDetectingLocation] = useState(false);
-  const [editMode,          setEditMode]          = useState(false);
+function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, onShowSearch }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
-  const [shareCopied,    setShareCopied]    = useState(false);
-  const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
-  const [showAllSaved,   setShowAllSaved]   = useState(false);
-  const { canInstall: canInstallPwa, trigger: triggerInstallPwa } = useInstallPrompt();
-
-  const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
-  const toggleSport = id => setProfile(p => ({
-    ...p,
-    sports: (p.sports || []).includes(id)
-      ? p.sports.filter(s => s !== id)
-      : [...(p.sports || []), id],
-  }));
-
-  const hasAccount  = !!profile.hasAccount;
-  const sports      = profile.sports || [];
-  const skillLevels = profile.skillLevels || {};
-  const initials    = profile.name ? profile.name.trim()[0].toUpperCase() : "?";
-  const avatarGrad  = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.grad || AVATAR_COLORS[0].grad;
-  const avatarHex   = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.hex  || AVATAR_COLORS[0].hex;
+  const hasAccount = !!profile.hasAccount;
+  const signedIn   = !!cloudSync?.user;
+  const initials   = profile.name ? profile.name.trim()[0].toUpperCase() : "?";
+  const avatarGrad = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.grad || AVATAR_COLORS[0].grad;
 
   return (
     <div style={{ flex:1, overflowY:"auto" }}>
+      {/* ── Hero — single coherent pitch ── */}
+      <div style={{
+        background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)",
+        padding:"40px 24px 32px", position:"relative", overflow:"hidden", color:"#fff",
+      }}>
+        <div style={{ position:"absolute", top:-40, right:-30, width:180, height:180, borderRadius:"50%", background:"#0284c7", opacity:0.14, filter:"blur(50px)", pointerEvents:"none" }} />
+        <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize:"24px 24px", pointerEvents:"none" }} />
 
-      {/* ── Social header (logged in) ── */}
-      {hasAccount ? (
-        <div style={{ background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)", padding:"24px 24px 18px", position:"relative", overflow:"hidden" }}>
-          <button className="pressable" onClick={() => setEditMode(e => !e)} style={{
-            position:"absolute", top:18, right:18,
-            background: editMode ? avatarHex : "rgba(255,255,255,0.09)",
-            border: editMode ? "none" : "1px solid rgba(255,255,255,0.13)",
-            borderRadius:20, cursor:"pointer", color:"white",
-            fontSize:11, fontWeight:700, fontFamily:F, padding:"6px 12px",
-            transition:"background 0.2s",
-          }}>
-            {editMode ? "✓ Done" : "✏️ Edit"}
-          </button>
+        {signedIn ? (
           <div style={{ display:"flex", alignItems:"center", gap:14, position:"relative" }}>
             <div style={{
-              width:60, height:60, borderRadius:"50%",
-              background: avatarGrad,
+              width:60, height:60, borderRadius:"50%", background: avatarGrad,
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:26, fontWeight:900, color:"white", fontFamily:F,
-              border:"2px solid rgba(255,255,255,0.18)",
-              flexShrink:0,
+              border:"2px solid rgba(255,255,255,0.18)", flexShrink:0,
             }}>{initials}</div>
-            <div style={{ flex:1, minWidth:0, paddingRight:60 }}>
-              <div style={{ fontSize:19, fontWeight:900, color:"#fff", fontFamily:F, lineHeight:1.1, marginBottom:3 }}>
-                {profile.name || "Adventure Seeker"}
-              </div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", fontFamily:F }}>
-                ✈️ {profile.homeAirport || "No airport set"}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:19, fontWeight:900, fontFamily:F, lineHeight:1.1, marginBottom:3 }}>You're all set</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", fontFamily:F }}>
+                Signed in as <strong style={{ color:"#fff" }}>{cloudSync.user.email}</strong>
               </div>
             </div>
           </div>
-
-          {/* Sport skill badges — defensive filter: skip any sport id no longer
-              in CATEGORIES (e.g. legacy "surfing" survived migration somehow) */}
-          {sports.filter(s => CATEGORIES.find(c => c.id === s)).length > 0 && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:14 }}>
-              {sports.filter(s => CATEGORIES.find(c => c.id === s)).map(s => {
-                const cat = CATEGORIES.find(c => c.id === s);
-                return (
-                  <div key={s} style={{
-                    background:"rgba(255,255,255,0.1)", borderRadius:20,
-                    padding:"4px 11px", display:"inline-flex", alignItems:"center", gap:5,
-                    border:"1px solid rgba(255,255,255,0.12)",
-                  }}>
-                    <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {cat.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
-        /* ── Join CTA (no account) ── */
-        <div style={{ background:"linear-gradient(160deg,#0d0d0d,#1a1a1a)", padding:"36px 24px 28px", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-40, right:-30, width:160, height:160, borderRadius:"50%", background:"#0284c7", opacity:0.1, filter:"blur(40px)", pointerEvents:"none" }} />
-          <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize:"24px 24px", pointerEvents:"none" }} />
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:18, position:"relative" }}>
+        ) : (
+          <div style={{ position:"relative" }}>
             <div style={{
-              width:64, height:64, borderRadius:"50%",
-              background:"linear-gradient(135deg,rgba(2,132,199,0.2),rgba(2,132,199,0.08))",
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:28,
-              border:"2px solid rgba(2,132,199,0.32)",
-              boxShadow:"0 0 30px rgba(2,132,199,0.18)",
-              flexShrink:0,
-            }}>P</div>
-            <div>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Never miss your window</div>
-              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3, lineHeight:1.4 }}>
-                We'll tell you when conditions peak and flights drop
-              </div>
+              display:"inline-flex", alignItems:"center", gap:8, padding:"4px 10px",
+              background:"rgba(255,255,255,0.08)", borderRadius:20, marginBottom:14,
+              border:"1px solid rgba(255,255,255,0.12)",
+            }}>
+              <span style={{ fontSize:13 }}>🔔</span>
+              <span style={{ fontSize:11, fontWeight:800, color:"#e0f2fe", letterSpacing:"0.04em", textTransform:"uppercase", fontFamily:F }}>
+                Don't miss the next firing weekend
+              </span>
             </div>
-          </div>
-          <button className="pressable" onClick={onShowOnboarding} style={{
-            width:"100%", background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:16, padding:"15px 0",
-            color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-            boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
-          }}>
-            🚀 Create my adventure profile
-          </button>
-        </div>
-      )}
-
-      <div style={{ padding:"0 24px" }}>
-
-        {/* ── Edit panel (only when hasAccount + editMode) ── */}
-        {hasAccount && editMode && (
-          <div style={{ marginTop:20, marginBottom:4 }}>
-            {/* Name */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Name</div>
-              <input type="text" value={profile.name || ""} placeholder="First name"
-                onChange={e => setProfile(p => ({...p, name:e.target.value}))}
-                style={{ width:"100%", padding:"13px 16px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
+            <div style={{ fontSize:30, fontWeight:900, fontFamily:F, lineHeight:1.05, letterSpacing:"-0.6px", marginBottom:10 }}>
+              Make Peakly<br/>remember you.
             </div>
-
-            {/* Home airports (up to 3) */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
-                {navigator.geolocation && (
-                  <button className="pressable" onClick={() => setGeoPromptOpen(true)} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
-                    {detectingLocation ? "Detecting…" : "📍 Detect"}
-                  </button>
-                )}
-                {/* Geo permission explainer */}
-                {geoPromptOpen && (
-                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => setGeoPromptOpen(false)}>
-                    <div onClick={e => e.stopPropagation()} style={{ width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 36px", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
-                      <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 20px" }} />
-                      <div style={{ fontSize:28, textAlign:"center", marginBottom:8 }}>📍</div>
-                      <div style={{ fontSize:17, fontWeight:800, color:"#222", fontFamily:F, textAlign:"center", marginBottom:8 }}>Find your nearest airport</div>
-                      <div style={{ fontSize:13, color:"#666", fontFamily:F, textAlign:"center", lineHeight:1.5, marginBottom:24 }}>
-                        To find cheap flights from your nearest airport, Peakly needs your location. Your location is only used to match you with the closest airport — it's never stored or shared.
-                      </div>
-                      <button className="pressable" onClick={() => {
-                        setGeoPromptOpen(false);
-                        setDetectingLocation(true);
-                        navigator.geolocation.getCurrentPosition(
-                          pos => {
-                            const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-                            const already = (profile.homeAirports || []).includes(code);
-                            if (!already && (profile.homeAirports || []).length < 3) {
-                              setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-                            }
-                            setDetectingLocation(false);
-                          },
-                          () => setDetectingLocation(false),
-                          { timeout: 2000, maximumAge: 300000 }
-                        );
-                      }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
-                        Allow Location Access
-                      </button>
-                      <button onClick={() => setGeoPromptOpen(false)} style={{ width:"100%", background:"none", border:"1.5px solid #e8e8e8", borderRadius:14, padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F }}>
-                        Skip — I'll enter manually
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
-                {(profile.homeAirports || []).map((code, idx) => {
-                  const airport = ALL_AIRPORTS.find(a => a.code === code);
-                  return (
-                    <div key={idx} style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, background:"#222", color:"#fff" }}>
-                      <span style={{ fontSize:11, fontWeight:600, fontFamily:F }}>{code}</span>
-                      <button onClick={() => setProfile(p => ({ ...p, homeAirports: (p.homeAirports || []).filter((_, i) => i !== idx) }))} style={{ background:"none", border:"none", color:"#fff", cursor:"pointer", fontSize:14, padding:"0", marginLeft:4 }}>×</button>
-                    </div>
-                  );
-                })}
-              </div>
-              {(!profile.homeAirports || profile.homeAirports.length < 3) && (
-                <div style={{ position:"relative" }}>
-                  <input type="text" placeholder="Add airport…" value={airportQuery}
-                    onChange={e => setAirportQuery(e.target.value)}
-                    onFocus={() => setAirportFocused(true)}
-                    onBlur={() => setTimeout(() => setAirportFocused(false), 150)}
-                    style={{ width:"100%", padding:"10px 14px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222" }}
-                  />
-                  {airportFocused && airportQuery.length >= 2 && (() => {
-                    const q = airportQuery.toLowerCase();
-                    const results = ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)).slice(0, 6);
-                    return results.length > 0 ? (
-                      <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12, marginTop:4, overflow:"hidden", boxShadow:"0 6px 20px rgba(0,0,0,0.12)", zIndex:10 }}>
-                        {results.map((ap, i) => {
-                          const alreadyAdded = (profile.homeAirports || []).includes(ap.code);
-                          return (
-                            <button key={ap.code} onMouseDown={() => {
-                              if (!alreadyAdded && (profile.homeAirports || []).length < 3) {
-                                setProfile(p => ({ ...p, homeAirports: [...(p.homeAirports || []), ap.code] }));
-                                setAirportQuery("");
-                                setAirportFocused(false);
-                              }
-                            }} style={{
-                              width:"100%", padding:"10px 14px",
-                              background: alreadyAdded ? "#f0f0f0" : "#fff",
-                              border:"none", borderBottom: i < results.length - 1 ? "1px solid #f0f0f0" : "none",
-                              textAlign:"left", cursor: alreadyAdded ? "default" : "pointer", fontFamily:F, display:"flex", alignItems:"center", gap:10,
-                              opacity: alreadyAdded ? 0.6 : 1,
-                            }}>
-                              <span style={{ fontSize:15 }}>{ap.flag}</span>
-                              <div style={{ flex:1 }}>
-                                <span style={{ fontSize:13, fontWeight:700, color:"#222" }}>{ap.code}</span>
-                                <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
-                              </div>
-                              {alreadyAdded && <span style={{ color:"#999", fontSize:14 }}>✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : <div style={{ background:"#f9f9f9", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"10px 14px", marginTop:4, fontSize:12, color:"#aaa", fontFamily:F }}>No airports found</div>;
-                  })()}
-                </div>
-              )}
-            </div>
-
-            {/* Sports + skill levels */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your sports</div>
-              {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
-                const sel = sports.includes(cat.id);
-                return (
-                  <div key={cat.id} style={{ marginBottom:8 }}>
-                    <button onClick={() => toggleSport(cat.id)} style={{
-                      width:"100%", padding:"11px 14px", borderRadius:12,
-                      background: sel ? "#222" : "#f7f7f7", border:"1.5px solid",
-                      borderColor: sel ? "#222" : "#e8e8e8",
-                      display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-                    }}>
-                      <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color: sel ? "#fff" : "#222", fontFamily:F }}>{cat.label}</span>
-                      <span style={{ color: sel ? "#0284c7" : "#ccc", fontWeight:900, fontSize:16 }}>{sel ? "✓" : "+"}</span>
-                    </button>
-                  </div>
-                );
-              })}
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.72)", fontFamily:F, lineHeight:1.5 }}>
+              Save your spots, trips, and filters. Get a push the moment conditions hit. Pick up where you left off on every device.
             </div>
           </div>
         )}
+      </div>
 
-        {/* ── Notifications ── */}
-        <div style={{ marginTop:22, marginBottom:22 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-            Notifications
-          </div>
-          {[
-            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"Conditions 90+ AND cheap flights from your airport" },
-            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"Price drops on venues you've saved or alerted" },
-            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Best windows this week — conditions + flights combined" },
-          ].map(({ key, label, desc }) => (
-            <div key={key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid #f7f7f7" }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:600, color:"#222", fontFamily:F }}>{label}</div>
-                <div style={{ fontSize:12, color:"#bbb", fontFamily:F }}>{desc}</div>
-              </div>
-              <div onClick={() => toggle(key)} style={{
-                width:44, height:26, borderRadius:13, cursor:"pointer",
-                background: profile[key] ? "#0284c7" : "#e0e0e0",
-                position:"relative", transition:"background 0.2s", flexShrink:0,
+      {/* ── Body ── */}
+      <div style={{ padding:"22px 18px 28px", background:"#f5f5f5", minHeight:"calc(100% - 280px)" }}>
+        {!signedIn && (
+          <div style={{ marginBottom:18 }}>
+            {[
+              { icon:"🔔", title:"Push alerts when conditions fire",  desc:"We watch your spots — you get the notification the moment they peak." },
+              { icon:"🧳", title:"Trips & searches saved",            desc:"Filters, dates, wishlists — kept across phone, browser, devices." },
+              { icon:"📍", title:"Preferences travel with you",       desc:"Home airport, sport, skill level — once, then everywhere." },
+              { icon:"❤️", title:"Wishlists synced",                  desc:"Save now on web, finish booking on your phone later." },
+            ].map(b => (
+              <div key={b.title} style={{
+                background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
+                padding:"14px 14px", marginBottom:10,
+                display:"flex", gap:12, alignItems:"flex-start",
               }}>
-                <div style={{ position:"absolute", top:3, width:20, height:20, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.22)", transition:"left 0.2s", left: profile[key] ? 21 : 3 }} />
+                <div style={{
+                  width:34, height:34, borderRadius:10, background:"#f0f9ff",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:18, flexShrink:0,
+                }}>{b.icon}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:2 }}>{b.title}</div>
+                  <div style={{ fontSize:12, color:"#717171", fontFamily:F, lineHeight:1.45 }}>{b.desc}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
+        {/* Account form — magic link send + status. Heart of this page. */}
         <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
 
-        {/* ── My Lists (share + manage) ── */}
-        {namedLists.length > 0 && (
-          <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
-        )}
+        {/* Edit preferences — small link, lets users re-run onboarding */}
+        <button onClick={onShowOnboarding} className="pressable" style={{
+          width:"100%", background:"transparent", border:"none", marginTop:10, marginBottom:18,
+          padding:"10px", color:"#555", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
+          textDecoration:"underline", textDecorationColor:"#bbb", textUnderlineOffset:"3px",
+        }}>
+          {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport"}` : "Set home airport & sports"}
+        </button>
 
-        {/* ── Wishlists ── */}
-        {wishlists.length > 0 && (() => {
-          // Saved venues live in Profile only (Wishlists tab is built but
-          // hidden — see CLAUDE.md "keep nav lean"). To avoid orphaning saves
-          // when count > preview limit, show "Show more" instead of capping
-          // silently at 6.
-          const saved = listings.filter(l => wishlists.includes(l.id));
-          const visible = showAllSaved ? saved : saved.slice(0, 6);
-          const hidden = saved.length - visible.length;
-          return (
-            <div style={{ marginBottom:22 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-                Saved Venues · {saved.length}
-              </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                {visible.map(l => (
-                  <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
-                    <div style={{ height:80, background:l.gradient, position:"relative" }}>
-                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
-                        position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
-                      }}>❤️</button>
-                    </div>
-                    <div style={{ padding:"7px 8px" }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {hidden > 0 && (
-                <button onClick={() => setShowAllSaved(true)} className="pressable" style={{
-                  marginTop:10, width:"100%", background:"#fff", border:"1.5px solid #e0e0e0",
-                  borderRadius:12, padding:"10px 0", fontSize:12, fontWeight:700, color:"#222",
-                  fontFamily:F, cursor:"pointer",
-                }}>Show {hidden} more</button>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* ── Install Peakly (only when prompt is captured) ── */}
-        {canInstallPwa && (
-          <button className="pressable" onClick={triggerInstallPwa} style={{
-            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-          }}>
-            <span>📲</span> Install Peakly to home screen
-          </button>
-        )}
-
-        {/* ── Service status (weather / flights / APNS) ── */}
-        <ServiceStatusPill />
-
-        {/* ── Share & Refer (combined) ── */}
-        <div style={{ marginBottom:20 }}>
-          <button className="pressable" onClick={() => {
-            const msg = "Check out Peakly — find ski & beach spots firing this weekend, with cheap flights aligned. https://j1mmychu.github.io/peakly";
-            const doCopy = () => {
-              try {
-                if (navigator.clipboard?.writeText) {
-                  navigator.clipboard.writeText(msg).then(() => {
-                    setShareCopied(true);
-                    setTimeout(() => setShareCopied(false), 3000);
-                  }).catch(() => { setShareCopied(true); setTimeout(() => setShareCopied(false), 3000); });
-                } else {
-                  setShareCopied(true);
-                  setTimeout(() => setShareCopied(false), 3000);
-                }
-              } catch (_) {}
-            };
-            if (navigator.share) {
-              navigator.share({ title:"Peakly", text:msg, url:"https://j1mmychu.github.io/peakly" }).catch(doCopy);
-            } else { doCopy(); }
-          }} style={{
-            width:"100%",
-            background: shareCopied ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:14,
-            padding:"15px 12px", cursor:"pointer", color:"white", fontSize:14, fontWeight:800, fontFamily:F,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            boxShadow: shareCopied ? "0 4px 18px rgba(34,197,94,0.35)" : "0 4px 18px rgba(2,132,199,0.32)",
-            transition:"background 0.35s, box-shadow 0.35s",
-          }}>
-            <span style={{ fontSize:18 }}>{shareCopied ? "✓" : "📤"}</span>
-            {shareCopied ? "Link copied! Send to a friend 🎁" : "Share Peakly · Invite Friends 🎁"}
-          </button>
-          {shareCopied && (
-            <div style={{ textAlign:"center", fontSize:12, color:"#22c55e", fontWeight:600, fontFamily:F, marginTop:6 }}>
-              Paste it anywhere to invite a friend!
-            </div>
-          )}
-        </div>
-
-        {/* ── Sign Out ── */}
-        {hasAccount && !signOutConfirm && (
+        {/* Sign Out — only when there's an actual session to end */}
+        {signedIn && !signOutConfirm && (
           <button className="pressable" onClick={() => setSignOutConfirm(true)} style={{
             width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
             padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:32,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:18,
           }}>
-            Sign Out
+            Sign out
           </button>
         )}
-        {hasAccount && signOutConfirm && (
-          <div style={{ background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:16, padding:"18px 16px", marginBottom:32 }}>
+        {signedIn && signOutConfirm && (
+          <div style={{ background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:16, padding:"18px 16px", marginBottom:18 }}>
             <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:4, textAlign:"center" }}>
               Sign out of Peakly?
             </div>
             <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:16, textAlign:"center" }}>
-              Your wishlists and alerts stay saved locally.
+              Your wishlists, alerts and preferences stay saved locally.
             </div>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={() => setSignOutConfirm(false)} style={{
@@ -6358,17 +6073,20 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cl
                 fontSize:13, fontWeight:700, fontFamily:F,
               }}>Cancel</button>
               <button onClick={() => {
-                setProfile(p => ({ ...p, name:"", email:"", hasAccount:false, sports:[], skillLevels:{}, avatarColor:"sunset" }));
+                cloudSync.signOut && cloudSync.signOut();
+                setProfile(p => ({ ...p, hasAccount:false }));
                 setSignOutConfirm(false);
               }} style={{
                 flex:1, background:"#0284c7", border:"none", borderRadius:12,
                 padding:"12px", cursor:"pointer", color:"white",
                 fontSize:13, fontWeight:700, fontFamily:F,
-              }}>Sign Out</button>
+              }}>Sign out</button>
             </div>
           </div>
         )}
-        {!hasAccount && <div style={{ height:32 }} />}
+
+        {/* Service status — small diagnostic at the very bottom */}
+        <ServiceStatusPill />
       </div>
     </div>
   );
@@ -9069,12 +8787,7 @@ function App() {
             <ProfileTab
               profile={profile} setProfile={setProfile}
               onShowOnboarding={() => setShowOnboarding(true)}
-              namedLists={namedLists}
               cloudSync={cloudSync}
-              wishlists={wishlistIds}
-              listings={listings}
-              onOpenDetail={openDetail}
-              onToggle={toggleWishlist}
             />
           )}
         </div>
