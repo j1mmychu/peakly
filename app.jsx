@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aap";
+const PEAKLY_BUILD = "20260608aaq";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5962,19 +5962,21 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
         </div>
       )}
 
-      {/* Quick Templates carousel — primary action, lifted above saved alerts */}
+      {/* Quick Templates — 2-column grid that scrolls with the page so all
+          14 templates are visible (the old horizontal carousel clipped the
+          third tile at the right edge and felt sloppy). */}
       <div style={{ padding:"4px 0 20px" }}>
-        <div style={{ padding:"0 24px 10px" }}>
+        <div style={{ padding:"0 20px 10px" }}>
           <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
-            {userAlerts.length === 0 ? "Start with a template" : "Quick Templates"}
+            {userAlerts.length === 0 ? "Start with a template" : "Add another in one tap"}
           </div>
           <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>
-            {userAlerts.length === 0 ? "Tap one — we'll set it up" : "Add another in one tap"}
+            Tap one — we'll set it up
           </div>
         </div>
         <div style={{
-          display:"flex", gap:12, overflowX:"auto", padding:"4px 24px 8px",
-          scrollSnapType:"x mandatory", WebkitOverflowScrolling:"touch",
+          display:"grid", gridTemplateColumns:"1fr 1fr", gap:10,
+          padding:"4px 16px 8px",
         }}>
           {ALERT_TEMPLATES.map(t => (
             <button key={t.id} onClick={gate(() => {
@@ -5983,17 +5985,16 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
               haptic();
               logEvent("alert_template_applied", { id: t.id });
             })} className="pressable" style={{
-              flex:"0 0 152px", scrollSnapAlign:"start",
               background:t.bg, border:"none", borderRadius:14,
-              padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
-              position:"relative", overflow:"hidden", minHeight:108,
+              padding:"12px 12px 10px", textAlign:"left", cursor:"pointer",
+              position:"relative", overflow:"hidden", minHeight:96,
               display:"flex", flexDirection:"column", justifyContent:"space-between",
             }}>
-              <div>
-                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.title}</div>
-                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.subtitle}</div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.2, wordBreak:"break-word" }}>{t.title}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:"#444", fontFamily:F, lineHeight:1.3, marginTop:2, wordBreak:"break-word" }}>{t.subtitle}</div>
               </div>
-              <div style={{ alignSelf:"flex-end" }}>
+              <div style={{ alignSelf:"flex-end", marginTop:6 }}>
                 <TemplateGlyph kind={t.glyph} color={t.accent} />
               </div>
             </button>
