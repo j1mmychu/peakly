@@ -209,14 +209,37 @@ app.get('/api/flights', async (req, res) => {
     // Aviasales. Filter to entries with a real round-trip return_date so the
     // price on a Peakly card matches the cheapest round-trip on the booking
     // page. If no round-trip cache exists, the venue is hidden.
+    //
+    // Trip-length preference: this is a spontaneous-weekend product so we
+    // prefer 2–4 day RTs (Fri→Sun/Mon) over 5–7 day RTs (Fri→Fri). If only a
+    // 7-day fare is cached for the route, fall back to it rather than hide
+    // the venue — better to show a longer trip than no price at all.
     if (depart_date) {
       const isRoundTrip = e => e.return_date && /^\d{4}-\d{2}-\d{2}$/.test(e.return_date);
       const matchReturn = e => !return_date || e.return_date === return_date;
+      const tripDays = e => {
+        if (!e.return_date || !e.depart_date) return null;
+        const d1 = Date.parse(e.depart_date + 'T00:00:00Z');
+        const d2 = Date.parse(e.return_date + 'T00:00:00Z');
+        if (Number.isNaN(d1) || Number.isNaN(d2)) return null;
+        return Math.round((d2 - d1) / 86400000);
+      };
+      const isWeekendLength = e => {
+        const d = tripDays(e);
+        return d != null && d >= 2 && d <= 4;
+      };
 
-      // 1. Try exact-date hit (calendar first, then month-matrix)
-      const exactCal = calEntries.find(e => e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e));
-      const exactMm  = !exactCal ? mmEntries.find(e => e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e)) : null;
-      const exact = exactCal || exactMm;
+      // 1. Try exact-date hit (calendar first, then month-matrix). Prefer
+      // weekend-length entries; fall back to any RT if no weekend match.
+      const findHit = (entries, weekendOnly) => entries.find(e =>
+        e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e)
+        && (weekendOnly ? isWeekendLength(e) : true)
+      );
+      const exactCalWk = findHit(calEntries, true);
+      const exactMmWk  = !exactCalWk ? findHit(mmEntries, true) : null;
+      const exactCalAny = !exactCalWk && !exactMmWk ? findHit(calEntries, false) : null;
+      const exactMmAny  = !exactCalWk && !exactMmWk && !exactCalAny ? findHit(mmEntries, false) : null;
+      const exact = exactCalWk || exactMmWk || exactCalAny || exactMmAny;
 
       if (exact) {
         const dateKey = depart_date.slice(0, 7);
