@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608az";
+const PEAKLY_BUILD = "20260608aaa";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3000,17 +3000,18 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
               )}
             </div>
             {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
-              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap" }}>
+              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, lineHeight:1.35 }}>
                 {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
               </div>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
-            style={{ textDecoration:"none" }}>
+            style={{ textDecoration:"none", flexShrink:0 }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
               padding:"7px 12px", minHeight:32, display:"flex", alignItems:"center", gap:4,
+              whiteSpace:"nowrap",
             }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
