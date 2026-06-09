@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609a";
+const PEAKLY_BUILD = "20260609b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1623,6 +1623,2553 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
       "skiPass": "epic"
+    },
+  // ── Global beach batch (added 2026-06-08) ──
+    {
+      "id": "meads-bay-anguilla",
+      "category": "beach",
+      "title": "Meads Bay",
+      "location": "Anguilla",
+      "lat": 18.1853,
+      "lon": -63.1031,
+      "ap": "AXA",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 400,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "maundays-bay-anguilla",
+      "category": "beach",
+      "title": "Maundays Bay",
+      "location": "Anguilla",
+      "lat": 18.1719,
+      "lon": -63.1483,
+      "ap": "AXA",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 437,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Water",
+        "St-Barths Vibes"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "crane-beach-barbados",
+      "category": "beach",
+      "title": "Crane Beach",
+      "location": "Barbados",
+      "lat": 13.1058,
+      "lon": -59.4528,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 474,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "Coral Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mullins-beach-barbados",
+      "category": "beach",
+      "title": "Mullins Beach",
+      "location": "Barbados",
+      "lat": 13.2386,
+      "lon": -59.6442,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 511,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm North Coast",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bathsheba-barbados",
+      "category": "beach",
+      "title": "Bathsheba",
+      "location": "Barbados",
+      "lat": 13.2122,
+      "lon": -59.5219,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 548,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Sea Cave Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "smith-cove-grand-cayman",
+      "category": "beach",
+      "title": "Smith Cove",
+      "location": "Grand Cayman, Cayman Islands",
+      "lat": 19.2658,
+      "lon": -81.395,
+      "ap": "GCM",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 585,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling",
+        "Calm Bay"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "stingray-sandbar-cayman",
+      "category": "beach",
+      "title": "Stingray City Sandbar",
+      "location": "Grand Cayman",
+      "lat": 19.3736,
+      "lon": -81.325,
+      "ap": "GCM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 622,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Wildlife Everywhere",
+        "Shallow Clear Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bambarra-beach-tci",
+      "category": "beach",
+      "title": "Bambarra Beach",
+      "location": "Middle Caicos, Turks & Caicos",
+      "lat": 21.77,
+      "lon": -71.79,
+      "ap": "PLS",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 659,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Uncrowded",
+        "Turquoise Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "long-bay-providenciales",
+      "category": "beach",
+      "title": "Long Bay Beach",
+      "location": "Providenciales, Turks & Caicos",
+      "lat": 21.7556,
+      "lon": -72.1986,
+      "ap": "PLS",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 696,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kiteboarding Capital",
+        "Shallow Clear Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "trunk-bay-st-john",
+      "category": "beach",
+      "title": "Trunk Bay",
+      "location": "St. John, USVI",
+      "lat": 18.3528,
+      "lon": -64.7592,
+      "ap": "STT",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 733,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Reef",
+        "Voted #1 USA Beach"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "honeymoon-beach-stj",
+      "category": "beach",
+      "title": "Honeymoon Beach",
+      "location": "St. John, USVI",
+      "lat": 18.3358,
+      "lon": -64.7836,
+      "ap": "STT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 770,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "boston-bay-jamaica",
+      "category": "beach",
+      "title": "Boston Bay",
+      "location": "Port Antonio, Jamaica",
+      "lat": 18.1717,
+      "lon": -76.3358,
+      "ap": "MBJ",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 807,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Caribbean Soul"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "treasure-beach-jamaica",
+      "category": "beach",
+      "title": "Treasure Beach",
+      "location": "St. Elizabeth, Jamaica",
+      "lat": 17.8867,
+      "lon": -77.7847,
+      "ap": "MBJ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 844,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Fishing Village Vibe",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "baby-beach-aruba",
+      "category": "beach",
+      "title": "Baby Beach",
+      "location": "Aruba",
+      "lat": 12.4275,
+      "lon": -69.8794,
+      "ap": "AUA",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 881,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "arashi-beach-aruba",
+      "category": "beach",
+      "title": "Arashi Beach",
+      "location": "Aruba",
+      "lat": 12.58,
+      "lon": -70.0533,
+      "ap": "AUA",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 918,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Snorkeling"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "sugar-beach-st-lucia",
+      "category": "beach",
+      "title": "Sugar Beach",
+      "location": "St. Lucia",
+      "lat": 13.8439,
+      "lon": -61.0653,
+      "ap": "UVF",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 955,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Piton Views",
+        "Luxury"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "reduit-beach-st-lucia",
+      "category": "beach",
+      "title": "Reduit Beach",
+      "location": "Rodney Bay, St. Lucia",
+      "lat": 14.0697,
+      "lon": -60.955,
+      "ap": "UVF",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 992,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Beach Bars",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mullet-bay-sxm",
+      "category": "beach",
+      "title": "Mullet Bay",
+      "location": "Sint Maarten",
+      "lat": 18.0489,
+      "lon": -63.1281,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1029,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "maho-beach-sxm",
+      "category": "beach",
+      "title": "Maho Beach",
+      "location": "Sint Maarten",
+      "lat": 18.0392,
+      "lon": -63.1136,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1066,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Iconic",
+        "Plane Spotting"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "simpson-bay-sxm",
+      "category": "beach",
+      "title": "Simpson Bay",
+      "location": "Sint Maarten",
+      "lat": 18.0344,
+      "lon": -63.1058,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1103,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Beach Bars",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pirates-bay-tobago",
+      "category": "beach",
+      "title": "Pirate's Bay",
+      "location": "Charlotteville, Tobago",
+      "lat": 11.3194,
+      "lon": -60.5536,
+      "ap": "TAB",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1140,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Secluded Beach",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "englishmans-bay-tobago",
+      "category": "beach",
+      "title": "Englishman's Bay",
+      "location": "Tobago",
+      "lat": 11.3,
+      "lon": -60.6614,
+      "ap": "TAB",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1177,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crescent Bay",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "playa-maroma-mexico",
+      "category": "beach",
+      "title": "Playa Maroma",
+      "location": "Riviera Maya, Mexico",
+      "lat": 20.7244,
+      "lon": -86.9764,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1214,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Caribbean",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "akumal-bay-mexico",
+      "category": "beach",
+      "title": "Akumal Bay",
+      "location": "Quintana Roo, Mexico",
+      "lat": 20.3962,
+      "lon": -87.3178,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1251,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Turtle Nesting",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "isla-mujeres-norte",
+      "category": "beach",
+      "title": "Playa Norte Isla Mujeres",
+      "location": "Quintana Roo, Mexico",
+      "lat": 21.2483,
+      "lon": -86.7406,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1288,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Crystal Caribbean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "playa-paraiso-tulum",
+      "category": "beach",
+      "title": "Playa Paraiso Tulum",
+      "location": "Tulum, Mexico",
+      "lat": 20.2147,
+      "lon": -87.4253,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1325,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Mayan Ruins Backdrop",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "xpu-ha-beach",
+      "category": "beach",
+      "title": "Xpu-Ha Beach",
+      "location": "Quintana Roo, Mexico",
+      "lat": 20.4972,
+      "lon": -87.2378,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1362,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Caribbean",
+        "Calm Bay"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "punta-mita-mexico",
+      "category": "beach",
+      "title": "Punta Mita Beach",
+      "location": "Nayarit, Mexico",
+      "lat": 20.7706,
+      "lon": -105.55,
+      "ap": "PVR",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1399,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Luxury"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "san-pancho-mexico",
+      "category": "beach",
+      "title": "San Pancho",
+      "location": "Nayarit, Mexico",
+      "lat": 20.9039,
+      "lon": -105.4664,
+      "ap": "PVR",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1436,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Bohemian Beach Town",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mazunte-mexico",
+      "category": "beach",
+      "title": "Mazunte",
+      "location": "Oaxaca, Mexico",
+      "lat": 15.6678,
+      "lon": -96.55,
+      "ap": "HUX",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1473,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Turtle Nesting",
+        "Bohemian Beach Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "zipolite-mexico",
+      "category": "beach",
+      "title": "Zipolite",
+      "location": "Oaxaca, Mexico",
+      "lat": 15.6647,
+      "lon": -96.5147,
+      "ap": "HUX",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1510,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Naturist Area",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cabo-pulmo",
+      "category": "beach",
+      "title": "Cabo Pulmo",
+      "location": "Baja California Sur, Mexico",
+      "lat": 23.4283,
+      "lon": -109.4244,
+      "ap": "SJD",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1547,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Coral Reef",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tamarindo-cr",
+      "category": "beach",
+      "title": "Tamarindo Beach",
+      "location": "Guanacaste, Costa Rica",
+      "lat": 10.3022,
+      "lon": -85.8408,
+      "ap": "SJO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1584,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "santa-teresa-cr",
+      "category": "beach",
+      "title": "Santa Teresa",
+      "location": "Puntarenas, Costa Rica",
+      "lat": 9.6431,
+      "lon": -85.1614,
+      "ap": "SJO",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1621,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Yoga on the Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hanauma-bay-oahu",
+      "category": "beach",
+      "title": "Hanauma Bay",
+      "location": "Oahu, Hawaii",
+      "lat": 21.2693,
+      "lon": -157.6938,
+      "ap": "HNL",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1658,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Reef",
+        "Marine Preserve"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "waimea-bay-oahu",
+      "category": "beach",
+      "title": "Waimea Bay",
+      "location": "North Shore Oahu, Hawaii",
+      "lat": 21.6411,
+      "lon": -158.0656,
+      "ap": "HNL",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1695,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "makena-big-beach",
+      "category": "beach",
+      "title": "Makena Big Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.6353,
+      "lon": -156.4453,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1732,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Golden Sand",
+        "Pacific Bluffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "wailea-beach-maui",
+      "category": "beach",
+      "title": "Wailea Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.6892,
+      "lon": -156.4439,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1769,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Luxury",
+        "Calm Pacific"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kaanapali-beach-maui",
+      "category": "beach",
+      "title": "Ka'anapali Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.9244,
+      "lon": -156.6936,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1806,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliff Dive",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coronado-beach-sd",
+      "category": "beach",
+      "title": "Coronado Beach",
+      "location": "San Diego, California",
+      "lat": 32.685,
+      "lon": -117.1839,
+      "ap": "SAN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1843,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pacific Bluffs",
+        "Hotel del Coronado"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "la-jolla-cove",
+      "category": "beach",
+      "title": "La Jolla Cove",
+      "location": "San Diego, California",
+      "lat": 32.8508,
+      "lon": -117.2719,
+      "ap": "SAN",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1880,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Coves",
+        "Sea Lions"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "manhattan-beach-ca",
+      "category": "beach",
+      "title": "Manhattan Beach",
+      "location": "Los Angeles, California",
+      "lat": 33.8847,
+      "lon": -118.4109,
+      "ap": "LAX",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1917,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pier 60 Sunsets",
+        "Beach Volleyball"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "big-sur-pfeiffer",
+      "category": "beach",
+      "title": "Pfeiffer Beach Big Sur",
+      "location": "California, USA",
+      "lat": 36.2378,
+      "lon": -121.8175,
+      "ap": "SFO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1954,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Purple Sand",
+        "Sea Cave Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-goloritze-sardinia",
+      "category": "beach",
+      "title": "Cala Goloritzé",
+      "location": "Sardinia, Italy",
+      "lat": 40.1119,
+      "lon": 9.67,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1991,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "spiaggia-rosa-budelli",
+      "category": "beach",
+      "title": "Spiaggia Rosa Budelli",
+      "location": "Sardinia, Italy",
+      "lat": 41.2944,
+      "lon": 9.3458,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2028,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "UNESCO Protected"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "costa-smeralda-sardinia",
+      "category": "beach",
+      "title": "Costa Smeralda",
+      "location": "Sardinia, Italy",
+      "lat": 41.1056,
+      "lon": 9.535,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2065,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Billionaire Yachts",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "capri-marina-piccola",
+      "category": "beach",
+      "title": "Capri Marina Piccola",
+      "location": "Capri, Italy",
+      "lat": 40.5447,
+      "lon": 14.2342,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2102,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Faraglioni Rocks",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "procida-italy",
+      "category": "beach",
+      "title": "Procida Pozzo Vecchio",
+      "location": "Procida, Italy",
+      "lat": 40.7556,
+      "lon": 14.0306,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2139,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pastel Houses",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "amalfi-beach",
+      "category": "beach",
+      "title": "Amalfi Town Beach",
+      "location": "Amalfi Coast, Italy",
+      "lat": 40.6342,
+      "lon": 14.6022,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2176,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Amalfi Drive",
+        "Pastel Cliff Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "scala-dei-turchi-sicily",
+      "category": "beach",
+      "title": "Scala dei Turchi",
+      "location": "Agrigento, Sicily",
+      "lat": 37.2914,
+      "lon": 13.4683,
+      "ap": "TPS",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2213,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "White Marl Cliffs",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "plage-mala-cap-dail",
+      "category": "beach",
+      "title": "Plage Mala Cap d'Ail",
+      "location": "French Riviera, France",
+      "lat": 43.7275,
+      "lon": 7.4067,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2250,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hidden Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "eze-beach-france",
+      "category": "beach",
+      "title": "Eze Beach",
+      "location": "French Riviera, France",
+      "lat": 43.7281,
+      "lon": 7.3622,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2287,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Belle Époque",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pointe-st-hospice",
+      "category": "beach",
+      "title": "Pointe Saint-Hospice",
+      "location": "Saint-Jean-Cap-Ferrat",
+      "lat": 43.68,
+      "lon": 7.3408,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2324,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine Forest Path",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-salada-ibiza",
+      "category": "beach",
+      "title": "Cala Salada Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9783,
+      "lon": 1.2375,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2361,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-comte-ibiza",
+      "category": "beach",
+      "title": "Cala Comte Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9614,
+      "lon": 1.2161,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2398,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Legendary Sunsets",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-bassa-ibiza",
+      "category": "beach",
+      "title": "Cala Bassa Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9569,
+      "lon": 1.2547,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2435,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-pregonda-menorca",
+      "category": "beach",
+      "title": "Cala Pregonda",
+      "location": "Menorca, Spain",
+      "lat": 40.0517,
+      "lon": 4.0911,
+      "ap": "MAH",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2472,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Red Volcanic Sand",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-mitjana-menorca",
+      "category": "beach",
+      "title": "Cala Mitjana",
+      "location": "Menorca, Spain",
+      "lat": 39.9275,
+      "lon": 4.0078,
+      "ap": "MAH",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2509,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Turquoise Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-saona-formentera",
+      "category": "beach",
+      "title": "Cala Saona Formentera",
+      "location": "Formentera, Spain",
+      "lat": 38.7022,
+      "lon": 1.4011,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2546,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ses-illetes-formentera",
+      "category": "beach",
+      "title": "Ses Illetes Formentera",
+      "location": "Formentera, Spain",
+      "lat": 38.7517,
+      "lon": 1.4233,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2583,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "World's Finest Sand",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-mondrago-mallorca",
+      "category": "beach",
+      "title": "Cala Mondragó",
+      "location": "Mallorca, Spain",
+      "lat": 39.35,
+      "lon": 3.19,
+      "ap": "PMI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2620,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Natural Park Beach",
+        "Pine Forest"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-tuent-mallorca",
+      "category": "beach",
+      "title": "Cala Tuent Mallorca",
+      "location": "Mallorca, Spain",
+      "lat": 39.8472,
+      "lon": 2.7853,
+      "ap": "PMI",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2657,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Tramuntana Cliffs",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-do-carvalho-algarve",
+      "category": "beach",
+      "title": "Praia do Carvalho",
+      "location": "Algarve, Portugal",
+      "lat": 37.0902,
+      "lon": -8.5256,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2694,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Cave Access",
+        "Limestone Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-da-falesia-algarve",
+      "category": "beach",
+      "title": "Praia da Falésia",
+      "location": "Algarve, Portugal",
+      "lat": 37.0822,
+      "lon": -8.17,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2731,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Red Cliffs",
+        "6km Pristine Beach"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-da-rocha-algarve",
+      "category": "beach",
+      "title": "Praia da Rocha",
+      "location": "Algarve, Portugal",
+      "lat": 37.1167,
+      "lon": -8.5375,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2768,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "stiniva-beach-vis",
+      "category": "beach",
+      "title": "Stiniva Beach",
+      "location": "Vis Island, Croatia",
+      "lat": 43.0367,
+      "lon": 16.1322,
+      "ap": "SPU",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 405,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliff-Locked Cove",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "punta-rata-brela",
+      "category": "beach",
+      "title": "Punta Rata Brela",
+      "location": "Makarska, Croatia",
+      "lat": 43.3656,
+      "lon": 16.9189,
+      "ap": "SPU",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 442,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pasjaca-beach-croatia",
+      "category": "beach",
+      "title": "Pasjača Beach",
+      "location": "Konavle, Croatia",
+      "lat": 42.5275,
+      "lon": 18.4528,
+      "ap": "DBV",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 479,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliffside Stairs",
+        "Hidden Cove"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "plaka-beach-naxos",
+      "category": "beach",
+      "title": "Plaka Beach Naxos",
+      "location": "Naxos, Greece",
+      "lat": 37.0364,
+      "lon": 25.3725,
+      "ap": "JNX",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 516,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "4km of Sand",
+        "Dune-Backed"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mikri-vigla-naxos",
+      "category": "beach",
+      "title": "Mikri Vigla Naxos",
+      "location": "Naxos, Greece",
+      "lat": 37.0072,
+      "lon": 25.4131,
+      "ap": "JNX",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 553,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kitesurfing",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tsambika-beach-rhodes",
+      "category": "beach",
+      "title": "Tsambika Beach",
+      "location": "Rhodes, Greece",
+      "lat": 36.2306,
+      "lon": 28.1825,
+      "ap": "RHO",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 590,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Monastery Backdrop",
+        "Golden Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "firiplaka-milos",
+      "category": "beach",
+      "title": "Firiplaka Beach",
+      "location": "Milos, Greece",
+      "lat": 36.68,
+      "lon": 24.4536,
+      "ap": "MLO",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 627,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Volcanic Pumice",
+        "Crystal Aegean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "amoudi-bay-santorini",
+      "category": "beach",
+      "title": "Amoudi Bay",
+      "location": "Santorini, Greece",
+      "lat": 36.4664,
+      "lon": 25.3658,
+      "ap": "JTR",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 664,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Caldera Views",
+        "Cliffside Tavernas"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "perissa-beach-santorini",
+      "category": "beach",
+      "title": "Perissa Beach",
+      "location": "Santorini, Greece",
+      "lat": 36.3539,
+      "lon": 25.475,
+      "ap": "JTR",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 701,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Black Volcanic Sand",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "super-paradise-mykonos",
+      "category": "beach",
+      "title": "Super Paradise Mykonos",
+      "location": "Mykonos, Greece",
+      "lat": 37.4047,
+      "lon": 25.3372,
+      "ap": "JMK",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 738,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Party Sunset",
+        "See & Be Seen"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "elia-beach-mykonos",
+      "category": "beach",
+      "title": "Elia Beach Mykonos",
+      "location": "Mykonos, Greece",
+      "lat": 37.44,
+      "lon": 25.3997,
+      "ap": "JMK",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 775,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Longest Beach",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kaputas-beach-turkey",
+      "category": "beach",
+      "title": "Kaputaş Beach",
+      "location": "Antalya, Turkey",
+      "lat": 36.1944,
+      "lon": 29.3536,
+      "ap": "DLM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 812,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Cove",
+        "Limestone Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "iztuzu-beach-turkey",
+      "category": "beach",
+      "title": "İztuzu Beach",
+      "location": "Dalyan, Turkey",
+      "lat": 36.7869,
+      "lon": 28.6175,
+      "ap": "DLM",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 849,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turtle Nesting",
+        "4km of Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "patong-beach-phuket",
+      "category": "beach",
+      "title": "Patong Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.9028,
+      "lon": 98.2972,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 886,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Non-Stop Party Beach",
+        "Nightlife"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "karon-beach-phuket",
+      "category": "beach",
+      "title": "Karon Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.8467,
+      "lon": 98.295,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 923,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Squeaky Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kata-beach-phuket",
+      "category": "beach",
+      "title": "Kata Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.82,
+      "lon": 98.2967,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 960,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "freedom-beach-phuket",
+      "category": "beach",
+      "title": "Freedom Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.8531,
+      "lon": 98.2625,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 997,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hidden Cove",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "nai-harn-phuket",
+      "category": "beach",
+      "title": "Nai Harn Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.7747,
+      "lon": 98.3056,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1034,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ao-nang-beach-krabi",
+      "category": "beach",
+      "title": "Ao Nang Beach",
+      "location": "Krabi, Thailand",
+      "lat": 8.0322,
+      "lon": 98.8255,
+      "ap": "KBV",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1071,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Long-Tail Boat Hub"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "phra-nang-beach-krabi",
+      "category": "beach",
+      "title": "Phra Nang Beach",
+      "location": "Krabi, Thailand",
+      "lat": 8,
+      "lon": 98.8378,
+      "ap": "KBV",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1108,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "lamai-beach-koh-samui",
+      "category": "beach",
+      "title": "Lamai Beach",
+      "location": "Koh Samui, Thailand",
+      "lat": 9.4744,
+      "lon": 100.0517,
+      "ap": "USM",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1145,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calmer Than Chaweng",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "haad-rin-koh-phangan",
+      "category": "beach",
+      "title": "Haad Rin Beach",
+      "location": "Koh Phangan, Thailand",
+      "lat": 9.6722,
+      "lon": 100.0644,
+      "ap": "USM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1182,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Full Moon Parties",
+        "Nightlife"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "sao-beach-phu-quoc",
+      "category": "beach",
+      "title": "Sao Beach",
+      "location": "Phu Quoc, Vietnam",
+      "lat": 10.0322,
+      "lon": 104.0436,
+      "ap": "PQC",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1219,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bai-khem-phu-quoc",
+      "category": "beach",
+      "title": "Bai Khem (Kem) Beach",
+      "location": "Phu Quoc, Vietnam",
+      "lat": 10.0383,
+      "lon": 104.0289,
+      "ap": "PQC",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1256,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "my-khe-beach-danang",
+      "category": "beach",
+      "title": "My Khe Beach",
+      "location": "Da Nang, Vietnam",
+      "lat": 16.0667,
+      "lon": 108.2456,
+      "ap": "DAD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1293,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "20km Coastline",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cua-dai-hoi-an",
+      "category": "beach",
+      "title": "Cua Dai Beach",
+      "location": "Hoi An, Vietnam",
+      "lat": 15.9067,
+      "lon": 108.3878,
+      "ap": "DAD",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1330,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hoi An Doorstep",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "padang-padang-bali",
+      "category": "beach",
+      "title": "Padang Padang Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.8108,
+      "lon": 115.1057,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1367,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Cave Coves",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kuta-beach-bali",
+      "category": "beach",
+      "title": "Kuta Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.7194,
+      "lon": 115.17,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1404,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bingin-beach-bali",
+      "category": "beach",
+      "title": "Bingin Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.8053,
+      "lon": 115.1322,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1441,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Reef Break",
+        "Cliffside Cafes"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "dreamland-beach-bali",
+      "category": "beach",
+      "title": "Dreamland Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.7917,
+      "lon": 115.1244,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1478,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tanjung-aan-lombok",
+      "category": "beach",
+      "title": "Tanjung Aan",
+      "location": "Lombok, Indonesia",
+      "lat": -8.8961,
+      "lon": 116.3122,
+      "ap": "LOP",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1515,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pepper Sand",
+        "Twin Bays"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pink-beach-lombok",
+      "category": "beach",
+      "title": "Pink Beach Lombok",
+      "location": "Lombok, Indonesia",
+      "lat": -8.8919,
+      "lon": 116.6042,
+      "ap": "LOP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1552,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "nacpan-beach-palawan",
+      "category": "beach",
+      "title": "Nacpan Beach",
+      "location": "El Nido, Palawan",
+      "lat": 11.2917,
+      "lon": 119.4042,
+      "ap": "ENI",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1589,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "4km of Sand",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "las-cabanas-elnido",
+      "category": "beach",
+      "title": "Las Cabanas Beach",
+      "location": "El Nido, Palawan",
+      "lat": 11.175,
+      "lon": 119.3997,
+      "ap": "ENI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1626,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Island-Hopping Hub",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "puka-shell-boracay",
+      "category": "beach",
+      "title": "Puka Shell Beach",
+      "location": "Boracay, Philippines",
+      "lat": 11.9839,
+      "lon": 121.9203,
+      "ap": "MPH",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1663,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Puka Shells",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "diniwid-boracay",
+      "category": "beach",
+      "title": "Diniwid Beach",
+      "location": "Boracay, Philippines",
+      "lat": 11.9711,
+      "lon": 121.9117,
+      "ap": "MPH",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1700,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Quiet Side",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "unawatuna-sri-lanka",
+      "category": "beach",
+      "title": "Unawatuna Beach",
+      "location": "Galle, Sri Lanka",
+      "lat": 6.0103,
+      "lon": 80.2497,
+      "ap": "CMB",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1737,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crescent Bay",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hikkaduwa-sri-lanka",
+      "category": "beach",
+      "title": "Hikkaduwa Beach",
+      "location": "Sri Lanka",
+      "lat": 6.1392,
+      "lon": 80.1014,
+      "ap": "CMB",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1774,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Coral Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anjuna-beach-goa",
+      "category": "beach",
+      "title": "Anjuna Beach",
+      "location": "Goa, India",
+      "lat": 15.5736,
+      "lon": 73.74,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1811,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hippie Heritage",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "calangute-beach-goa",
+      "category": "beach",
+      "title": "Calangute Beach",
+      "location": "Goa, India",
+      "lat": 15.5444,
+      "lon": 73.7553,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1848,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Beach Shacks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "vagator-beach-goa",
+      "category": "beach",
+      "title": "Vagator Beach",
+      "location": "Goa, India",
+      "lat": 15.5972,
+      "lon": 73.74,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1885,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliffside Views",
+        "Bohemian Beach Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "veligandu-maldives",
+      "category": "beach",
+      "title": "Veligandu Island Beach",
+      "location": "Maldives",
+      "lat": 4.35,
+      "lon": 72.795,
+      "ap": "MLE",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1922,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Overwater Bungalows",
+        "Crystal Caribbean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "baros-island-maldives",
+      "category": "beach",
+      "title": "Baros Island Beach",
+      "location": "Maldives",
+      "lat": 4.2842,
+      "lon": 73.4264,
+      "ap": "MLE",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1959,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Resort Island",
+        "House Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "qantab-beach-oman",
+      "category": "beach",
+      "title": "Qantab Beach",
+      "location": "Muscat, Oman",
+      "lat": 23.5642,
+      "lon": 58.6311,
+      "ap": "MCT",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1996,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Desert Meets Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bondi-beach-sydney",
+      "category": "beach",
+      "title": "Bondi Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.8908,
+      "lon": 151.2742,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2033,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Iconic",
+        "Coastal Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "manly-beach-sydney",
+      "category": "beach",
+      "title": "Manly Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.7969,
+      "lon": 151.2856,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2070,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Ferry From CBD",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bronte-beach-sydney",
+      "category": "beach",
+      "title": "Bronte Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.9036,
+      "lon": 151.2664,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2107,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Ocean Pool",
+        "Local Vibe"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tamarama-sydney",
+      "category": "beach",
+      "title": "Tamarama Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.8997,
+      "lon": 151.2697,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2144,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Compact Cove",
+        "Bronte Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "palm-beach-sydney",
+      "category": "beach",
+      "title": "Palm Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.5961,
+      "lon": 151.3253,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2181,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Headland Drives",
+        "Lighthouse Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coogee-beach-sydney",
+      "category": "beach",
+      "title": "Coogee Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.9203,
+      "lon": 151.2581,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2218,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Ocean Pools"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hill-inlet-lookout",
+      "category": "beach",
+      "title": "Hill Inlet Lookout",
+      "location": "Whitsundays, Australia",
+      "lat": -20.2625,
+      "lon": 149.0533,
+      "ap": "PPP",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2255,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hill Inlet Swirl",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "langford-island-spit",
+      "category": "beach",
+      "title": "Langford Island Spit",
+      "location": "Whitsundays, Australia",
+      "lat": -20.1158,
+      "lon": 148.8689,
+      "ap": "PPP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2292,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sandspit",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "yasawa-fiji",
+      "category": "beach",
+      "title": "Yasawa Islands",
+      "location": "Fiji",
+      "lat": -16.8,
+      "lon": 177.3667,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2329,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Castaway Vibe",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mamanucas-fiji",
+      "category": "beach",
+      "title": "Mamanuca Islands",
+      "location": "Fiji",
+      "lat": -17.6667,
+      "lon": 177.1167,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2366,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Reef Snorkeling",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coral-coast-fiji",
+      "category": "beach",
+      "title": "Coral Coast",
+      "location": "Fiji",
+      "lat": -18.1722,
+      "lon": 177.5667,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2403,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Coral Reef",
+        "Family Resorts"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "muri-beach-rarotonga",
+      "category": "beach",
+      "title": "Muri Beach",
+      "location": "Rarotonga, Cook Islands",
+      "lat": -21.2583,
+      "lon": -159.7392,
+      "ap": "AIT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2440,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Lagoon",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "trou-aux-biches-mauritius",
+      "category": "beach",
+      "title": "Trou aux Biches",
+      "location": "Mauritius",
+      "lat": -20.0344,
+      "lon": 57.5478,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2477,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Lagoon",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "le-morne-mauritius",
+      "category": "beach",
+      "title": "Le Morne Beach",
+      "location": "Mauritius",
+      "lat": -20.46,
+      "lon": 57.3128,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2514,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "UNESCO Protected",
+        "Kitesurfing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "flic-en-flac-mauritius",
+      "category": "beach",
+      "title": "Flic en Flac",
+      "location": "Mauritius",
+      "lat": -20.2839,
+      "lon": 57.3631,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2551,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Lagoon"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ile-aux-cerfs-mauritius",
+      "category": "beach",
+      "title": "Île aux Cerfs",
+      "location": "Mauritius",
+      "lat": -20.27,
+      "lon": 57.7783,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2588,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Day Trip Island",
+        "Crystal Lagoon"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-georgette-praslin",
+      "category": "beach",
+      "title": "Anse Georgette",
+      "location": "Praslin, Seychelles",
+      "lat": -4.3167,
+      "lon": 55.7,
+      "ap": "PRI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2625,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Granite Boulders",
+        "Quiet & Pristine"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-volbert-praslin",
+      "category": "beach",
+      "title": "Anse Volbert",
+      "location": "Praslin, Seychelles",
+      "lat": -4.3147,
+      "lon": 55.7392,
+      "ap": "PRI",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2662,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Long Curve",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "beau-vallon-mahe",
+      "category": "beach",
+      "title": "Beau Vallon Beach",
+      "location": "Mahé, Seychelles",
+      "lat": -4.62,
+      "lon": 55.4297,
+      "ap": "SEZ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2699,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-severe-la-digue",
+      "category": "beach",
+      "title": "Anse Severe",
+      "location": "La Digue, Seychelles",
+      "lat": -4.3492,
+      "lon": 55.8294,
+      "ap": "SEZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2736,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Reef",
+        "Bicycle Access"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kendwa-zanzibar",
+      "category": "beach",
+      "title": "Kendwa Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -5.7228,
+      "lon": 39.2942,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2773,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Tides"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "matemwe-zanzibar",
+      "category": "beach",
+      "title": "Matemwe Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -5.8333,
+      "lon": 39.3667,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 410,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pristine",
+        "Mnemba Atoll Dives"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "paje-zanzibar",
+      "category": "beach",
+      "title": "Paje Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -6.2625,
+      "lon": 39.5333,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 447,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kitesurfing",
+        "Powdery White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "jambiani-zanzibar",
+      "category": "beach",
+      "title": "Jambiani Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -6.3033,
+      "lon": 39.5478,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 484,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Village Vibe",
+        "Low Tide Walks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "watamu-kenya",
+      "category": "beach",
+      "title": "Watamu Beach",
+      "location": "Kenya",
+      "lat": -3.3567,
+      "lon": 40.0197,
+      "ap": "MBA",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 521,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Marine Park",
+        "Tide Pool Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
 ];
 
@@ -3967,15 +6514,6 @@ function ListingCardImpl({ listing, wishlists, onToggle, onOpen, alertedIds, onA
             5-day forecast — may shift
           </div>
         )}
-        <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"nowrap", overflow:"hidden" }}>
-          {listing.tags.slice(0,3).map(t => (
-            <span key={t} style={{
-              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:10,
-              padding:"2px 7px", fontSize:10, color:"#444", fontWeight:700, fontFamily:F,
-              whiteSpace:"nowrap", flexShrink:0,
-            }}>{t}</span>
-          ))}
-        </div>
         <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
             <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
@@ -7396,12 +9934,6 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                           )}
                         </div>
 
-                        {/* First tag */}
-                        {l.tags?.[0] && (
-                          <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:6, fontStyle:"italic" }}>
-                            "{l.tags[0]}"
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
