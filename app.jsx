@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608k";
+const PEAKLY_BUILD = "20260608l";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4735,7 +4735,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                           <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1 }}>{hero.conditionScore}</span>
                           <span style={{ fontSize:11, color:"#bbb", fontFamily:F }}>/100</span>
                         </div>
-                        <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{hero.conditionLabel}</div>
+                        <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", wordBreak:"break-word" }}>{hero.conditionLabel}</div>
                       </>
                     ) : (
                       <div className="shimmer" style={{ height:14, borderRadius:6, width:"60%" }} />
