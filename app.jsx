@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608e";
+const PEAKLY_BUILD = "20260608f";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3060,14 +3060,19 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           {listing.location} · {listing.period}
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div>
+          <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
             {listing.flightsLoading && !listing.flight.live ? (
               <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
             ) : (
-              <>
+              <div>
                 <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
                 <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
-              </>
+              </div>
+            )}
+            {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap" }}>
+                {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+              </div>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
