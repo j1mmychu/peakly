@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608f";
+const PEAKLY_BUILD = "20260608g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3173,6 +3173,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
             </>
           )}
         </div>
+        {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+          <div style={{ fontSize:9, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap", marginTop:2 }}>
+            {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+          </div>
+        )}
         {listing.weekendConfidence === "medium" && (
           <div style={{ fontSize:9, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:3 }}>
             5-day fcst
