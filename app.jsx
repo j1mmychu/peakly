@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aaaa";
+const PEAKLY_BUILD = "20260608aaab";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -3052,9 +3052,13 @@ function ListingCardImpl({ listing, wishlists, onToggle, onOpen, alertedIds, onA
     </div>
   );
 }
+// React.memo so a parent re-render (search keystroke, modal open) doesn't
+// re-render 400+ cards. Stable listing refs come from the useMemo on the
+// listings array in App.
+const ListingCard = React.memo(ListingCardImpl);
 
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
-function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
+function FeaturedCardImpl({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
