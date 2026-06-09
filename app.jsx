@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260608aas";
+const PEAKLY_BUILD = "20260608aat";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8970,6 +8970,8 @@ function App() {
           open={!!accountModal}
           intent={accountModal?.intent}
           cloudSync={cloudSync}
+          profile={profile}
+          setProfile={setProfile}
           onClose={() => setAccountModal(null)}
         />
 
