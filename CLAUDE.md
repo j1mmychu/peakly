@@ -145,9 +145,9 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 12. **Pre-deploy smoke test** runs automatically via `scripts/auto-push.sh` → Playwright headless against the live URL after each push that touches app.jsx/sw.js/index.html. If you see `❌ DEPLOY SMOKE FAILED` in the auto-push output (or `/tmp/peakly-smoke.log`), the live site likely has a runtime error — diagnose before more pushes. Manual run: `npm run smoke` (live) or `npm run smoke:local` (dist/ on :8002). Catches "parses but throws on first render" bugs (TDZ, undefined refs).
 
-## Current State (2026-06-08)
+## Current State (2026-06-09)
 
-> Launch status per PM v52 (2026-06-08): **RED.** Still gated on the VPS redeploy (Day 35) — the one binary blocker — plus a fresh overnight revenue regression (GEAR_ITEMS, see Open #13). Code itself is healthy: 156 venues, cache stamps aligned, security clean, smoke passing. The product runs fine live on direct Open-Meteo + legacy pricing; the open items below are enhancements + manual Jack-only actions, with two exceptions (GEAR_ITEMS restore + the VPS gate for Reddit-scale traffic).
+> Launch status (2026-06-09): code healthy. **290 venues** (134-venue beach batch shipped + validated), cache aligned (`20260609c`), security clean. **VPS is NOT a blocker — verified live 2026-06-09** (`/health` shows `wx_cache_size` populated + poll worker running; `/api/weather` returns `success:true`). Weather cache (#7), weekend pricing (#6), alerts polling (#9) are all deployed and serving. Only APNS remains unconfigured (#9, iOS push only — the `isNativePlatform()` gate already lets iOS ship without it). **Amazon CUT for v1** (#13), so revenue is honest at $7.58/1K MAU. Remaining real items are Jack-only manual actions (PAT renewal #15) + post-launch enhancements. The old "VPS Day 35/36 binary blocker" framing in prior PM reports is STALE — stop re-flagging it; the endpoints are live.
 
 ### What's Broken / Open (Priority Order)
 
