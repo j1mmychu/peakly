@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609u";
+const PEAKLY_BUILD = "20260609v";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5782,7 +5782,7 @@ const AIRPORT_COORDS = {
   AIT:{lat:-18.8309,lon:-159.7641}, BME:{lat:-17.9447,lon:122.2317}, BOB:{lat:-16.4444,lon:-151.7510},
   CBR:{lat:-35.3069,lon:149.1947},  CNS:{lat:-16.8858,lon:145.7553}, LEA:{lat:-22.2356,lon:114.0889},
   NAN:{lat:-17.7553,lon:177.4413},  PPP:{lat:-20.4950,lon:148.5524}, SYD:{lat:-33.9461,lon:151.1772},
-  ZQN:{lat:-45.0211,lon:168.7392},
+  ZQN:{lat:-45.0211,lon:168.7392},  CHC:{lat:-43.4894,lon:172.5320}, MEL:{lat:-37.6690,lon:144.8410},
   // Sub-Saharan Africa + Indian Ocean
   INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
   PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
