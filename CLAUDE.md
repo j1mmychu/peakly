@@ -170,6 +170,11 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 
 ### Recently Fixed (2026-06-09)
 
+- ✅ **UX sweep (evening, Jack's 4 asks):**
+  1. **Explore top decluttered** — removed the ❤️ saved-venues pill + collapsible "Saved venues" strip from the toolbar; **category pills enlarged** (font 11→13, weight 700→800, padding 4px→9px, gap 4→8) so Skiing/Beach are easier to see + tap. Saved venues **relocated to the Profile tab** (new "Saved venues" carousel — `ProfileTab` now takes `listings`/`wishlists`/`onToggle`/`onOpenDetail`); hearts still work, nothing lost. `showSaved` state removed.
+  2. **+14 Southern-hemisphere ski venues** (see Current State) — summer ski inventory.
+  3. **Grid ranks by Weekend Score** — `applyFilters` default "score" sort now keys on `weekendScore` (the Fri–Mon moat the hero + carousel already use) with a stable `dealScore→price→id` tiebreak (kills order jitter on ties); the other sorts got the `id` tiebreak too. `SORT_OPTIONS` "Best conditions" → **"Best weekend"**.
+  4. **Plan-a-Trip (`SearchSheet`) polish** — airports row now shows **all 16** `US_AIRPORTS` (added IAH+PHL) in an even 4×4 grid (was 10-of-14, ragged); **Region bubbles** enlarged/rounded (padding 6→10px, radius 16→20, font 11→13, selected lift-shadow). **"Sort by" verified already functional** — no change needed.
 - ✅ **Auto-push invariant guard live** (commit `948680b`) — closes Open #14. Brace-balance + cache-stamp-lockstep + venue-count-floor checks before any app.jsx commit; diffstat commit bodies for app.jsx. See Open #14 for the residual gap (venue check still greps → blind to JSON-format batch entries; baseline 156 vs real 339 — swap in the eval counter).
 - ✅ **`<ScoringExplainer>` shipped** (commit `948680b`) — closes Open #8. One-time dismissible scoring-education card in Explore. Cache stamp → `20260609d`.
 - ✅ **`status.sh` venue count now eval-based** (commit `b2520ae`) — embeds the node bracket-walker one-liner, prints `339 (116 skiing / 223 beach)`. The grep-undercount class is dead in status output; auto-push guard still needs the same fix.
