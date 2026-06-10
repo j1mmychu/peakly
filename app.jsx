@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609x";
+const PEAKLY_BUILD = "20260609y";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4171,6 +4171,286 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
+  {
+    "id": "cardrona-nz",
+    "category": "skiing",
+    "title": "Cardrona Alpine Resort",
+    "location": "Otago, New Zealand",
+    "lat": -44.87,
+    "lon": 168.95,
+    "ap": "ZQN",
+    "icon": "🏔️",
+    "rating": 4.6,
+    "reviews": 1180,
+    "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+    "accent": "#6db3f2",
+    "tags": [
+      "All Levels",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65"
+  },
+  {
+    "id": "mt-hutt-nz",
+    "category": "skiing",
+    "title": "Mt Hutt",
+    "location": "Canterbury, New Zealand",
+    "lat": -43.47,
+    "lon": 171.53,
+    "ap": "CHC",
+    "icon": "🎿",
+    "rating": 4.5,
+    "reviews": 940,
+    "gradient": "linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
+    "accent": "#90caf9",
+    "tags": [
+      "High Altitude",
+      "Off-Piste",
+      "Long Season"
+    ],
+    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47"
+  },
+  {
+    "id": "falls-creek-au",
+    "category": "skiing",
+    "title": "Falls Creek",
+    "location": "Victoria, Australia",
+    "lat": -36.87,
+    "lon": 147.28,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 1320,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",
+    "accent": "#7eb3e8",
+    "tags": [
+      "All Levels",
+      "Village Base",
+      "Groomed Runs"
+    ],
+    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61"
+  },
+  {
+    "id": "mt-buller-au",
+    "category": "skiing",
+    "title": "Mt Buller",
+    "location": "Victoria, Australia",
+    "lat": -37.14,
+    "lon": 146.44,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.3,
+    "reviews": 1510,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",
+    "accent": "#82b4e8",
+    "tags": [
+      "Family Friendly",
+      "Groomed Runs",
+      "Village Base"
+    ],
+    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39"
+  },
+  {
+    "id": "mt-hotham-au",
+    "category": "skiing",
+    "title": "Mt Hotham",
+    "location": "Victoria, Australia",
+    "lat": -36.98,
+    "lon": 147.13,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 870,
+    "gradient": "linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",
+    "accent": "#78ace4",
+    "tags": [
+      "Off-Piste",
+      "Expert Terrain",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "charlotte-pass-au",
+    "category": "skiing",
+    "title": "Charlotte Pass",
+    "location": "New South Wales, Australia",
+    "lat": -36.43,
+    "lon": 148.33,
+    "ap": "CBR",
+    "icon": "🏔️",
+    "rating": 4.2,
+    "reviews": 410,
+    "gradient": "linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",
+    "accent": "#76aedf",
+    "tags": [
+      "High Altitude",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "nevados-de-chillan-cl",
+    "category": "skiing",
+    "title": "Nevados de Chillán",
+    "location": "Ñuble, Chile",
+    "lat": -36.91,
+    "lon": -71.4,
+    "ap": "SCL",
+    "icon": "⛷️",
+    "rating": 4.6,
+    "reviews": 760,
+    "gradient": "linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",
+    "accent": "#74aadc",
+    "tags": [
+      "Off-Piste",
+      "Backcountry",
+      "Long Season"
+    ],
+    "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46"
+  },
+  {
+    "id": "la-parva-cl",
+    "category": "skiing",
+    "title": "La Parva",
+    "location": "Santiago, Chile",
+    "lat": -33.33,
+    "lon": -70.28,
+    "ap": "SCL",
+    "icon": "🏔️",
+    "rating": 4.5,
+    "reviews": 690,
+    "gradient": "linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",
+    "accent": "#72a8dc",
+    "tags": [
+      "High Altitude",
+      "Expert Terrain",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67"
+  },
+  {
+    "id": "el-colorado-cl",
+    "category": "skiing",
+    "title": "El Colorado",
+    "location": "Santiago, Chile",
+    "lat": -33.35,
+    "lon": -70.3,
+    "ap": "SCL",
+    "icon": "⛷️",
+    "rating": 4.3,
+    "reviews": 880,
+    "gradient": "linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",
+    "accent": "#7aacdc",
+    "tags": [
+      "All Levels",
+      "High Altitude",
+      "Groomed Runs"
+    ],
+    "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "corralco-cl",
+    "category": "skiing",
+    "title": "Corralco",
+    "location": "Araucanía, Chile",
+    "lat": -38.3,
+    "lon": -71.58,
+    "ap": "ZCO",
+    "icon": "🏔️",
+    "rating": 4.7,
+    "reviews": 350,
+    "gradient": "linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",
+    "accent": "#78aada",
+    "tags": [
+      "Backcountry",
+      "Scenic Views",
+      "Off-Piste"
+    ],
+    "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49"
+  },
+  {
+    "id": "cerro-catedral-ar",
+    "category": "skiing",
+    "title": "Cerro Catedral",
+    "location": "Bariloche, Argentina",
+    "lat": -41.17,
+    "lon": -71.44,
+    "ap": "BRC",
+    "icon": "⛷️",
+    "rating": 4.6,
+    "reviews": 1420,
+    "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+    "accent": "#6db3f2",
+    "tags": [
+      "Expert Terrain",
+      "Village Base",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47"
+  },
+  {
+    "id": "las-lenas-ar",
+    "category": "skiing",
+    "title": "Las Leñas",
+    "location": "Mendoza, Argentina",
+    "lat": -35.15,
+    "lon": -70.08,
+    "ap": "MDZ",
+    "icon": "🏔️",
+    "rating": 4.7,
+    "reviews": 980,
+    "gradient": "linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
+    "accent": "#90caf9",
+    "tags": [
+      "Steep Chutes",
+      "Off-Piste",
+      "Expert Terrain"
+    ],
+    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61"
+  },
+  {
+    "id": "chapelco-ar",
+    "category": "skiing",
+    "title": "Chapelco",
+    "location": "Neuquén, Argentina",
+    "lat": -40.2,
+    "lon": -71.3,
+    "ap": "CPC",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 520,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",
+    "accent": "#7eb3e8",
+    "tags": [
+      "All Levels",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39"
+  },
+  {
+    "id": "caviahue-ar",
+    "category": "skiing",
+    "title": "Caviahue",
+    "location": "Neuquén, Argentina",
+    "lat": -37.85,
+    "lon": -71.05,
+    "ap": "NQN",
+    "icon": "🏔️",
+    "rating": 4.2,
+    "reviews": 280,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",
+    "accent": "#82b4e8",
+    "tags": [
+      "Backcountry",
+      "Off-Piste",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop"
+  },
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
