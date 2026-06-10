@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609d";
+const PEAKLY_BUILD = "20260609u";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4208,6 +4208,8 @@ const US_AIRPORTS = [
   { code:"PHX", label:"Phoenix",       flag:"🌵" },
   { code:"MSP", label:"Minneapolis",   flag:"❄️" },
   { code:"DTW", label:"Detroit",       flag:"🚗" },
+  { code:"IAH", label:"Houston",       flag:"🚀" },
+  { code:"PHL", label:"Philadelphia",  flag:"🔔" },
 ];
 
 // ─── full searchable airport list ─────────────────────────────────────────────
@@ -5753,6 +5755,8 @@ const AIRPORT_COORDS = {
   // South America
   FEN:{lat:-3.8541,lon:-32.4233},  FLN:{lat:-27.6703,lon:-48.5527}, SCL:{lat:-33.3930,lon:-70.7858},
   USH:{lat:-54.8433,lon:-68.2958}, ZCO:{lat:-38.9263,lon:-72.6517},
+  BRC:{lat:-41.1512,lon:-71.1575}, MDZ:{lat:-32.8317,lon:-68.7928}, CPC:{lat:-40.0754,lon:-71.1373},
+  NQN:{lat:-38.9490,lon:-68.1557},
   // Europe — ski gateways
   CMF:{lat:45.6381,lon:5.8800},    GVA:{lat:46.2381,lon:6.1090},    INN:{lat:47.2603,lon:11.3438},
   INV:{lat:57.5425,lon:-4.0475},   KRK:{lat:50.0777,lon:19.7848},   OSL:{lat:60.1939,lon:11.1004},
@@ -6635,7 +6639,7 @@ function FeaturedCardImpl({ listing, wishlists, onToggle, onOpen }) {
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
+            onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
@@ -6905,18 +6909,18 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               ))}
             </div>
           )}
-          {/* Top 10 popular airports */}
+          {/* Popular airports — full even grid (16 = 4×4, no ragged row) */}
           {!apFocus && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
-              {US_AIRPORTS.slice(0, 10).map(ap => {
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:6, marginBottom:6 }}>
+              {US_AIRPORTS.map(ap => {
                 const sel1 = local.fromAirport === ap.code;
                 return (
                   <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                      padding:"8px 6px", borderRadius:12, cursor:"pointer", textAlign:"center",
                       background: sel1 ? "#222" : "#f5f5f5",
                       color:      sel1 ? "#fff" : "#555",
                       border:"none",
-                      fontSize:11, fontWeight:700, fontFamily:F,
+                      fontSize:12, fontWeight:700, fontFamily:F,
                   }}>{ap.code}</button>
                 );
               })}
@@ -7084,16 +7088,18 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
         {/* ── Region ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Region</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
             {CONTINENTS.map(cont => {
               const sel = local.continent === cont.id;
               return (
                 <button key={cont.id} onClick={() => toggleContinent(cont.id)} style={{
-                    padding:"6px 12px", borderRadius:16, cursor:"pointer",
+                    padding:"10px 16px", borderRadius:20, cursor:"pointer",
                     background: sel ? "#0284c7" : "#f5f5f5",
                     color:      sel ? "#fff" : "#555",
                     border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
+                    fontSize:13, fontWeight:800, fontFamily:F,
+                    boxShadow: sel ? "0 3px 10px rgba(2,132,199,0.28)" : "none",
+                    transition:"transform 0.12s ease, box-shadow 0.12s ease",
                 }}>
                   {cont.label}
                 </button>
@@ -7269,7 +7275,7 @@ function AlertBanner({ count, onView }) {
 
 // ─── filter sheet ─────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
-  { id:"score",  label:"Best conditions" },
+  { id:"score",  label:"Best weekend" },
   { id:"price",  label:"Cheapest flights" },
   { id:"value",  label:"Best value" },
   { id:"deal",   label:"Best Deal" },
@@ -7460,12 +7466,23 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
       return hrs <= filters.maxFlightHrs || (l.weekendScore || 0) >= 95;
     });
   }
-  if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
-  if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price   - b.flight.price);
+  // Stable tiebreak by id so equal-score venues never jitter between renders.
+  const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  // Default "score" = Best weekend: rank by the Fri–Mon Weekend Score (the
+  // product/moat the hero + "Firing this weekend" carousel also use), tie-broken
+  // by live deal score → cheaper fare → id. Keeps the grid consistent with the
+  // front page instead of ranking by today-only conditions.
+  if (filters.sort === "score") out = [...out].sort((a, b) =>
+    (b.weekendScore || 0) - (a.weekendScore || 0)
+    || (b.dealScore || 0) - (a.dealScore || 0)
+    || (a.flight.price || 0) - (b.flight.price || 0)
+    || byId(a, b)
+  );
+  if (filters.sort === "price") out = [...out].sort((a,b) => (a.flight.price - b.flight.price) || byId(a, b));
   if (filters.sort === "value") out = [...out].sort((a,b) => {
     const valA = a.conditionScore / (a.flight.price || 1);
     const valB = b.conditionScore / (b.flight.price || 1);
-    return valB - valA;
+    return (valB - valA) || byId(a, b);
   });
   // "Best Deal" — gated on flight.live (estimates / no-deal-score venues sink
   // to the bottom rather than disappearing, so the list still feels populated
@@ -7474,7 +7491,7 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
     const aLive = a.flight?.live === true && a.dealScore != null;
     const bLive = b.flight?.live === true && b.dealScore != null;
     if (aLive !== bLive) return aLive ? -1 : 1;
-    return (b.dealScore || 0) - (a.dealScore || 0);
+    return ((b.dealScore || 0) - (a.dealScore || 0)) || byId(a, b);
   });
   // Exact-fare-only mode: 7-day spontaneous-trip product can't show venues
   // without a confirmed same-day price. Filter to live fares once they've
@@ -8110,7 +8127,6 @@ function ScoringExplainer() {
 
 function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, onViewProfile, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
-  const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
@@ -8269,9 +8285,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
     return `${fmt(fri)} → ${fmt(last)}`;
   })();
 
-  // Saved count for quick-access
-  const savedCount = wishlists.length;
-
   // Only expose 2 active categories: Skiing, Beach (surfing retired 2026-05-03)
   const VISIBLE_CAT_IDS = ["all", "skiing", "beach"];
   const visibleCats = CATEGORIES.filter(c => VISIBLE_CAT_IDS.includes(c.id))
@@ -8307,7 +8320,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
               transition:"transform 0.6s ease",
             }}>⟲</span>
           </button>
-          <div style={{ display:"flex", gap:4, flex:1, minWidth:0 }}>
+          <div style={{ display:"flex", gap:8, flex:1, minWidth:0 }}>
             {visibleCats.map(c => (
               <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
                 onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
@@ -8315,27 +8328,17 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                 aria-pressed={activeCat === c.id}
                 style={{
                   flex: 1, minWidth:0,
-                  padding:"4px 4px", borderRadius:14, cursor:"pointer",
+                  padding:"9px 8px", borderRadius:14, cursor:"pointer",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
                   background: activeCat === c.id ? "#0284c7" : "#f5f5f5",
                   color: activeCat === c.id ? "#fff" : "#555",
                   border:"1.5px solid", borderColor: activeCat === c.id ? "#0284c7" : "transparent",
-                  fontSize:11, fontWeight:700, fontFamily:F,
+                  fontSize:13, fontWeight:800, fontFamily:F,
               }}>
                 {c.label}
               </button>
             ))}
           </div>
-          {savedCount > 0 && (
-            <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-              flexShrink:0, padding:"4px 8px", borderRadius:14, cursor:"pointer",
-              background: showSaved ? "#fee2e2" : "#f5f5f5",
-              border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-              fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
-            }}>
-              ❤️ {savedCount}
-            </button>
-          )}
         </div>
       )}
 
@@ -8403,34 +8406,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           </div>
         )}
 
-        {/* ── Saved venues inline (replaces wishlists tab) ── */}
-        {showSaved && (
-          <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
-            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
-              {listings.filter(l => wishlists.includes(l.id)).map(l => (
-                <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
-                  minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
-                  border:"1.5px solid #fecaca",
-                }}>
-                  <div style={{ height:70, background:l.gradient, position:"relative" }}>
-                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                      position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:12,
-                      width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
-                    }}>❤️</button>
-                  </div>
-                  <div style={{ padding:"6px 8px" }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
-                  </div>
-                </div>
-              ))}
-              {wishlists.length === 0 && (
-                <div style={{ fontSize:12, color:"#999", fontFamily:F, padding:"10px 0" }}>Tap the heart on any venue to save it</div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Saved venues relocated to the Profile tab (2026-06-09) — keeps the
+            Explore top a clean category-selection surface. */}
 
         {/* ── Home-airport setup banner ──
             Auto-detect (~app.jsx:8488) tries geolocation but fails silently
@@ -8438,7 +8415,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             `homeAirport || "JFK"`. Without this banner the user sees JFK
             prices without realizing it. Suppress when an airport IS set
             (covers users who deliberately picked JFK). */}
-        {!loading && !showSaved && !profile?.homeAirport && onViewProfile && (
+        {!loading && !profile?.homeAirport && onViewProfile && (
           <div onClick={onViewProfile} className="pressable" style={{
             margin:"12px 14px 0", padding:"10px 14px", background:"#fef3c7",
             border:"1.5px solid #fde68a", borderRadius:12, cursor:"pointer",
@@ -8458,7 +8435,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && !showSaved && !heroPick && (
+        {!loading && !heroPick && (
           /* Skeleton while weather is still fetching for first venues */
           <div style={{ margin:"10px 12px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
             <div className="shimmer" style={{ height:170 }} />
@@ -8469,7 +8446,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </div>
           </div>
         )}
-        {!loading && heroPick && !showSaved && (() => {
+        {!loading && heroPick && (() => {
           const hero = heroPick;
           const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
@@ -9648,9 +9625,10 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAccountModal }) {
+function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAccountModal, listings, wishlists, onToggle, onOpenDetail }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const signedIn = !!cloudSync?.user;
+  const savedListings = (listings || []).filter(l => (wishlists || []).includes(l.id));
 
   return (
     <div style={{ flex:1, overflowY:"auto", padding:"40px 24px 32px", display:"flex", flexDirection:"column" }}>
@@ -9710,6 +9688,34 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
         </>
       )}
 
+      {/* ── Saved venues (relocated here from the Explore top 2026-06-09) ── */}
+      {savedListings.length > 0 && (
+        <div style={{ marginTop:28 }}>
+          <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>
+            Saved venues
+          </div>
+          <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
+            {savedListings.map(l => (
+              <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{
+                minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
+                border:"1.5px solid #eee", flexShrink:0, cursor:"pointer",
+              }}>
+                <div style={{ height:70, background:l.gradient, position:"relative" }}>
+                  <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); haptic("medium"); }} style={{
+                    position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:12,
+                    width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                  }}>❤️</button>
+                </div>
+                <div style={{ padding:"6px 8px" }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tiny footer links — sit at the very bottom */}
       <div style={{ flex:1 }} />
       <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:8, marginTop:32 }}>
@@ -9727,6 +9733,17 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
         }}>
           App v{PEAKLY_BUILD} · Refresh
         </button>
+        {/* Legal links — App Store review requires reachable ToS + Privacy pages */}
+        <div style={{ display:"flex", gap:14 }}>
+          <a href="terms.html" target="_blank" rel="noopener" style={{
+            fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>Terms of Service</a>
+          <a href="privacy.html" target="_blank" rel="noopener" style={{
+            fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>Privacy Policy</a>
+        </div>
       </div>
     </div>
   );
@@ -12477,6 +12494,8 @@ function App() {
               onShowOnboarding={() => setShowOnboarding(true)}
               cloudSync={cloudSync}
               openAccountModal={(opts) => setAccountModal(opts || { intent: "alert" })}
+              listings={listings} wishlists={wishlistIds}
+              onToggle={toggleWishlist} onOpenDetail={openDetail}
             />
           )}
         </div>
