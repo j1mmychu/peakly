@@ -17,7 +17,7 @@ Peakly is a **single-file React SPA** for finding the best ski or beach spot to 
 ```
 peakly/
 ├── index.html               # Entry point — React 18, ReactDOM, Babel via CDN
-├── app.jsx                  # Entire application (~9.1K lines of JSX as of 2026-06-08)
+├── app.jsx                  # Entire application (~12.5K lines of JSX as of 2026-06-09)
 ├── CLAUDE.md                # THIS FILE — shared brain
 ├── CHANGELOG.md             # Historical shipped log + decisions
 ├── README.md                # User-facing docs
