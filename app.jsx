@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609w";
+const PEAKLY_BUILD = "20260609x";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -414,7 +414,7 @@ const AP_CONTINENT = {
   // Middle East / Asia
   BEY:"asia", CMB:"asia", AMM:"asia",
   // Latin America
-  MDZ:"latam", ZCO:"latam", USH:"latam",
+  MDZ:"latam", ZCO:"latam", USH:"latam", BRC:"latam", CPC:"latam", NQN:"latam",
 };
 
 // ─── venues with real coordinates ────────────────────────────────────────────
