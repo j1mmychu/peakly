@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609v";
+const PEAKLY_BUILD = "20260609w";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -317,7 +317,7 @@ const AP_CONTINENT = {
   KTM:"asia", KBV:"asia", HKT:"asia", USM:"asia", ENI:"asia", MPH:"asia",
   LOP:"asia", PBH:"asia", AMM:"asia", PKR:"asia", LUA:"asia",
   // Oceania / Pacific
-  ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania",
+  ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania", CHC:"oceania", MEL:"oceania",
   MEL:"oceania", OOL:"oceania", PER:"oceania", AKL:"oceania",
   NAN:"oceania", MLE:"oceania", PPT:"oceania",
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
