@@ -45,6 +45,17 @@ echo "local         : ${LOCAL}"
 echo "origin/main   : ${REMOTE}"
 echo "state         : ${STATE}"
 echo "build         : ${BUILD}"
+# Authoritative venue count — eval the VENUES array (NEVER grep category:, it
+# undercounts the JSON-formatted batch entries to 156; real count is ~339).
+VENUE_COUNT=$(node -e '
+const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
+const m=s.match(/const\s+VENUES\s*=\s*\[/);if(!m){console.log("?");process.exit(0);}
+let i=m.index+m[0].length-1,d=0,start=i;
+while(i<s.length){const c=s[i];if(c==="[")d++;else if(c==="]"){d--;if(d===0){i++;break;}}else if(c==="\""||c==="'"'"'"||c==="`"){const q=c;i++;while(i<s.length&&s[i]!==q){if(s[i]==="\\")i++;i++;}}i++;}
+const a=eval("("+s.slice(start,i)+")");const b={};a.forEach(v=>b[v.category]=(b[v.category]||0)+1);
+console.log(a.length+" ("+Object.entries(b).map(([k,n])=>n+" "+k).join(" / ")+")");
+' 2>/dev/null || echo "?")
+echo "venues        : ${VENUE_COUNT}"
 echo "live          : https://j1mmychu.github.io/peakly/  (${BUILD})"
 
 # Uncommitted

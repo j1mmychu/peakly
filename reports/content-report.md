@@ -1,209 +1,186 @@
-# Peakly Daily Content Report — 2026-06-04
+# Peakly Daily Content Report — 2026-06-09
 
 ---
 
-## Data Health Score: 91 / 100
+## Data Health Score: 92 / 100
 
 **Total venues:** 156 (67 skiing · 89 beach)  
 **Categories:** 2 active (skiing, beach — post-2026-05-03 pivot; surfing retired)  
-**Photos:** 155 unique Unsplash URLs · 0 duplicates  
+**Photos:** 156 unique Unsplash URLs · 0 duplicates  
 **Duplicate IDs:** 0  
-**Coordinate errors:** 0
+**Coordinate errors:** 0  
+**AP codes unmapped:** 0
 
 ---
 
 ## Category Breakdown
 
-| Category | Count | Status      |
-|----------|-------|-------------|
-| Beach    | 89    | ✅ Healthy   |
-| Skiing   | 67    | ✅ Healthy   |
+| Category | Count | Status    | June Season    |
+|----------|-------|-----------|----------------|
+| Beach    | 89    | ✅ Healthy | N.Hem 67 PEAK · S.Hem 22 off |
+| Skiing   | 67    | ✅ Healthy | S.Hem 6 IN SEASON · N.Hem 61 off (6 lateSeason bypass) |
 
-> Note: Task prompt references 182 venues and 12 categories — that reflects a pre-pivot state. Current codebase has 2 categories only. Surfing (53 venues) was retired 2026-05-03. No stub categories exist.
+> Task prompt references 182 venues and 12 categories — that reflects a pre-pivot state. Current codebase has 2 categories only. Surfing (53 venues) was retired 2026-05-03. No stub categories exist.
 
 ---
 
 ## Data Integrity Audit
 
-### ✅ Clean
-- All 156 venues have: `id`, `category`, `lat`, `lon`, `ap`, `title`, `location`, `tags`, `photo`
+### ✅ All-Clear
+- All 156 venues have `id`, `category`, `lat`, `lon`, `ap`, `title`, `location`, `tags`, `photo`
 - No duplicate IDs
-- No duplicate photo URLs
-- No out-of-range coordinates (all lat within ±90, lon within ±180)
-- All venue AP codes resolve in `AP_CONTINENT` (earlier audit found KUL/SNA/MCT as missing — **false alarm**: those codes are present in the quoted-key section of `AP_CONTINENT` starting at line 373)
+- No duplicate photo URLs (156 unique Unsplash URLs)
+- All coordinates within valid ranges (lat ±90, lon ±180)
+- All venue AP codes resolve in `AP_CONTINENT` (268 codes mapped)
+- All venues have ≥ 2 tags
+- No venue with rating < 4.5
 
-### ⚠️ Flagged
+### ✅ GEAR_ITEMS Status — PRESENT (contradicts CLAUDE.md Open #13)
 
-**1. Near-duplicate: Outer Banks appears twice**
-- `beach_ob` — "Outer Banks OBX" · lat 35.558, ap: ORF · 2 tags
-- `outer-banks-nags-head-t7` — "Outer Banks Nags Head" · lat 35.957, ap: ORF · 4 tags
-- Both are North Carolina barrier islands served by the same airport (ORF). A user searching OBX gets two results ~45km apart. Consider merging into one authoritative entry or explicitly differentiating the second as "Nags Head" only.
+`grep -c GEAR_ITEMS app.jsx` returns **6** — not 0.  
+GEAR_ITEMS array at line 257 contains full `skiing` and `beach` arrays:
+- **skiing**: 4 items (Smith goggles $249, Atomic skis $599, Burton bindings $329, Helly Hansen jacket $449)
+- **beach**: 4 items (Hydro Flask $49, Aqua Marina SUP $499, Maui Jim sunglasses $329, Nautica rashguard $45)
 
-**2. Anguilla / St. Martin cluster — 3 venues within 15km**
-- `beach_shoal` (Shoal Bay, Anguilla), `beach_orient` (Orient Bay, St-Martin), `rendezvous-bay-t28` (Rendezvous Bay, Anguilla)
-- All served by nearby airports (AXA / SXM). Different islands, different vibes — keep, but worth noting for Caribbean density.
+Both high-AOV and low-AOV items present. Amazon tag `peakly-20` confirmed in all 8 URLs.  
+**PM action needed:** CLAUDE.md Open #13 states GEAR_ITEMS was deleted in June 7 `auto:` commits — current codebase scan contradicts this. Git log shows most recent commit is June 4; those June 7 commits don't appear in this repo's history. Either the deletion happened on a branch never merged to `main`, or CLAUDE.md was updated prematurely. Verify against live site before declaring a revenue regression.
 
-**3. `lateSeason: true` missing from two clearly qualifying resorts not yet in dataset**
-- **Val Thorens** — Europe's highest resort (2300m), reliably skiable June–July
-- **Verbier** — high-altitude Swiss resort, long season, glacier access
-- Both suggested as new venues below; add `lateSeason:true` when inserting.
-- Among existing 6 flagged venues, all are correct. CLAUDE.md says 7 — discrepancy is stale documentation.
+### ⚠️ Flagged Items
 
-**4. `poolPrimary: true` unused on all 89 beach venues**
-- Architectural provision exists to bypass the 18°C water-temp hard cap. Zero venues carry this flag. Candidate: `muscat-beach-t26` (Gulf of Oman, warm but low wave activity — the draw is calm clear water, not surf). Low priority until a pool-resort venue is added.
+**1. Near-duplicate: Bora Bora — two venues 3.8km apart**
+- `borabora` — "Bora Bora Lagoon" · lat -16.5004 · ap: BOB · 2 tags
+- `matira-beach-t6` — "Matira Beach" · lat -16.5333 · ap: BOB · 4 tags
+- Both on same island — different beach experiences (lagoon overwater vs. shoreline). Acceptable differentiation, but a user discovering one may dismiss the other as a duplicate. Low-urgency consolidation candidate.
 
-**5. Tag depth inconsistency — 34 ski venues have only 2 tags**
-- High-profile resorts like Whistler (`["Powder Day","All Levels"]`) and Aspen (`["Expert Terrain","Luxury Village"]`) use generic 2-tag entries while newer additions have 4. Not critical but affects filter surface area and detail-sheet richness.
-- `borabora` has `["UV 11","Crystal Water"]` — "UV 11" as a tag is atypical; "Overwater Bungalows" or "Turquoise Lagoon" would be more scan-friendly.
+**2. Near-duplicate: Boracay — two venues 1.3km apart**
+- `beach_boracay` — "White Beach Boracay" · lat 11.9674 · ap: MPH
+- `bulabog-beach-boracay-t19` — "Bulabog Beach Boracay" · lat 11.96 · ap: MPH
+- Genuinely distinct: White Beach = resorts/swimming; Bulabog = kite surfing hub. Keep both.
+
+**3. Outer Banks — two venues 45km apart, same AP**
+- `beach_ob` — "Outer Banks OBX" · lat 35.558 · ap: ORF
+- `outer-banks-nags-head-t7` — "Outer Banks Nags Head" · lat 35.957 · ap: ORF
+- Far enough to be distinct, different scoring micro-climates. Keep but ensure card titles are clearly differentiated.
 
 ---
 
 ## Gear Items Audit
 
-| Category | Status |
-|----------|--------|
-| skiing   | ✅ 4 items — goggles $249, skis $599, bindings $329, jacket $449 · avg AOV ~$457 |
-| beach    | ✅ 4 items — Hydro Flask $49, SUP board $499, sunglasses $329, rashguard $45 · avg AOV ~$230 |
+| Category | Items | Status | Avg AOV |
+|----------|-------|--------|---------|
+| Skiing   | 4     | ✅     | $407    |
+| Beach    | 4     | ✅     | $230    |
 
-**No gaps.** Both categories covered.
+**No missing categories.** Both active categories have gear items.
 
-**Potential dead link risk:** Amazon ASIN-based links age out when products are discontinued. The ski jacket (B09Y4TF9KN) and snowboard bindings (B07PXMZGS8) are older ASINs — recommend a spot-check for 404s before the next Reddit push. Soft-404s (redirects to search page) won't throw an error but will drop conversion to zero.
-
----
-
-## Seasonal Relevance (June 4, 2026 — Northern Hemisphere Early Summer)
-
-### Skiing
-
-| Hemisphere | Venue Count | June Status |
-|-----------|-------------|-------------|
-| N. hemisphere | 61 | ❌ OFF SEASON — summer; will score near-zero |
-| S. hemisphere | 6  | ✅ IN SEASON — southern winter just starting |
-
-**S. hemisphere venues currently firing:** The Remarkables (NZ), Portillo (Chile), Pucon Ski Center (Chile), Thredbo Village (Australia), Cerro Castor (Argentina), Treble Cone (NZ).
-
-### Beach
-
-| Hemisphere | Count | June Status |
-|-----------|-------|-------------|
-| N. hemisphere | 67 | ✅ PEAK SEASON — June through August prime time |
-| S. hemisphere | 22 | 19 tropical (year-round) · 3 genuinely seasonal |
-
-**Seasonal misfire risk for 3 S. hemisphere beach venues:**
-- Praia Mole Florianópolis (lat -27.6°) — Brazilian winter, cold water likely
-- Tofo Beach Mozambique (lat -23.9°) — cooler, possible below-cap water temp
-- Hyams Beach NSW (lat -35.1°) — Australian winter, definitely cold
-
-The scoring engine applies the 18°C hard cap via `fetchMarine`, so these should self-suppress. Worth a manual spot-check on the live site to confirm they're not surfacing with inflated scores.
+**AOV improvement opportunity:** Beach avg AOV ($230) is dragged down by Nautica rashguard ($45). Consider swapping for a higher-margin item:
+- Drop Nautica rashguard ($45) → add GoPro HERO12 Black ($399)
+- Beach avg AOV would rise $230 → ~$444, roughly doubling expected Amazon RPM for beach sessions
 
 ---
 
-## Content Quality
+## Seasonal Relevance (June 9, 2026 — Northern Hemisphere Early Summer)
 
-- **Empty descriptions:** 0 (venues use `tags` arrays rather than free text)
-- **Empty tag arrays:** 0
-- **Rating range:** 4.51–4.99 across 156 venues — realistic distribution
-- **Ratings at 4.97+:** 20 venues — concentration is high but not implausible for a curated list
-- **ID scheme:** Mixed (`aspen`, `beach_gcm` for originals; `<name>-t##`, `<name>-s##` for newer additions). All unique. No typos detected in venue names or country fields via spot-check.
+### IN SEASON — Venues scoring well right now
+
+| Category | Region | Count | Notes |
+|----------|--------|-------|-------|
+| Beach | N. Hemisphere | 67 | **PEAK.** Caribbean, Med, Hawaii, US East/Gulf, Japan coast, SE Asia all scoring high |
+| Skiing | S. Hemisphere | 6 | **IN SEASON** — NZ (Remarkables, Treble Cone), Chile (Portillo, Pucon), Argentina (Cerro Castor), Australia (Thredbo) |
+| Beach | Equatorial | 26 | Year-round. Maldives, Seychelles, Bali, Caribbean nearline |
+
+### ⚠️ OFF SEASON — Suppressed scoring
+
+| Category | Region | Count | Notes |
+|----------|--------|-------|-------|
+| Skiing | N. Hemisphere | 61 | Off-season cap active. 6 with `lateSeason:true` bypass (Whistler, Chamonix, Mammoth, Abasin, Tignes, Cervinia) |
+| Beach | S. Hemisphere | 22 | Cooler water temps, reduced UV — scoring suppressed |
+
+**June opportunity gap:** S.Hemisphere ski season peaks June–August but we have only **6 venues** covering NZ/Australia/Chile/Argentina. Entire N.Hem ski catalog (61 venues) is dead weight right now. S.Hem ski should dominate the Explore feed in June — but 6 venues vs 89 beach = almost no ski representation at peak ski season.
 
 ---
 
-## 5 New Venue Objects — Geographic Gap Fill
+## Content Quality Check
 
-Targeting: Swiss Alps (Verbier: iconic, glaring omission), French Alps highest resort (Val Thorens), East Asia ski (South Korea = 0 venues), Canary Islands beach (year-round, 0 venues), SE Australian coast (Byron Bay, 0 venues).
+- **Title length:** All titles 5–35 chars ✅
+- **Tags:** All 156 venues have ≥ 2 tags. No empty tags detected ✅
+- **Ratings range:** 4.54–4.99. One venue below 4.7: `pucon-ski-center-s19` (4.54 — legitimate)
+- **Duplicate locations:** 8 location strings shared by multiple venues (Colorado×8, British Columbia×4 etc.) — expected for ski clusters, not flagged as errors
+
+### Minor Flags
+- `beach_rivmaya`: "Riviera Maya" — title is generic for a 100km stretch. May read as near-duplicate of `beach_holbox`/`beach_tulum` to first-time users. Low priority.
+- `beach_myrtle` (rating 4.82): Lowest-rated beach venue. Myrtle Beach is a legitimately polarising destination — rating is accurate, not an error.
+
+---
+
+## Geographic Coverage Gaps
+
+| Region | Beach | Skiing | Notes |
+|--------|-------|--------|-------|
+| N. America | 32 | 33 | ✅ Good |
+| Europe | 21 | 19 | ✅ Good |
+| Asia | 17 | 8 | ✅ OK |
+| Oceania | 11 | 3 (all SH) | ⚠️ Only 3 ski venues (Remarkables, Thredbo, Treble Cone) |
+| S. America | **2** | 3 | ❌ Beach critically thin |
+| Africa | 6 | 1 | ⚠️ Skiing = Oukaimeden only |
+
+**Critical gap:** Latin America beach = 2 venues (Fernando de Noronha + Florianópolis only). Brazil has globally ranked beaches completely unrepresented: Jericoacoara, Praia do Espelho, Lençóis Maranhenses. Colombia Tayrona — zero coverage. Ecuador, Uruguay — zero coverage.
+
+---
+
+## 5 New Venue Objects — June Priority: S.Hemisphere Ski + Latam Beach
+
+Targeting the two biggest active-season gaps: S.Hem ski depth (peak season NOW) and S.Latam beach (near-zero coverage). All AP codes verified present in `AP_CONTINENT`.
+
+Paste into the `VENUES` array in `app.jsx` (e.g. after the last `ski_oukaimeden` or `beach_goa` entry):
 
 ```javascript
-// ── 1. VERBIER — Swiss Alps icon, 4 Vallées domain ───────────────────────────
-{
-  id:"verbier",
-  category:"skiing",
-  title:"Verbier",
-  location:"Valais, Switzerland",
-  lat:46.0961, lon:7.2273, ap:"GVA",
-  icon:"🎿", rating:4.95, reviews:2890,
-  gradient:"linear-gradient(160deg,#0a1830,#192e6a,#2856be)",
-  accent:"#78aee2",
-  tags:["4 Vallées Domain","Expert Off-Piste","Après-Ski Hub","World Cup Venue"],
-  photo:"https://images.unsplash.com/photo-1548484352-ea579e5233a8?w=800&h=600&fit=crop",
-  skiPass:"independent",
-  lateSeason:true,
-},
+  // ─── NEW VENUES 2026-06-09 ─────────────────────────────────────────────────
 
-// ── 2. VAL THORENS — Europe's highest resort, snow-guaranteed ─────────────────
-{
-  id:"val-thorens",
-  category:"skiing",
-  title:"Val Thorens",
-  location:"Savoie, France",
-  lat:45.2970, lon:6.5825, ap:"CMF",
-  icon:"⛷️", rating:4.94, reviews:3160,
-  gradient:"linear-gradient(160deg,#0c1a36,#1a3676,#2c60ba)",
-  accent:"#7aaede",
-  tags:["Europe's Highest Resort","Trois Vallées","Snow-Guaranteed","Late-Season Glacier"],
-  photo:"https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=800&h=600&fit=crop",
-  skiPass:"independent",
-  lateSeason:true,
-},
+  {id:"ski_cardrona",category:"skiing",title:"Cardrona Alpine Resort",location:"Wanaka, Otago, New Zealand",
+    lat:-44.8750,lon:169.0530,ap:"ZQN",icon:"🏔️",rating:4.91,reviews:1640,
+    gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",
+    accent:"#68aadc",tags:["Terrain Parks","Family-Friendly","Reliable Snow"],
+    photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop",
+    skiPass:"independent"},
 
-// ── 3. YONGPYONG — South Korea, 2018 Winter Olympics alpine venue ─────────────
-// ap: GMP (Seoul Gimpo, in AP_CONTINENT as "asia"). Also add ICN:"asia" to the
-// AP_CONTINENT patch section for future Korean venues using Incheon international.
-{
-  id:"yongpyong",
-  category:"skiing",
-  title:"Yongpyong Resort",
-  location:"Pyeongchang, South Korea",
-  lat:37.6597, lon:128.6645, ap:"GMP",
-  icon:"🎿", rating:4.87, reviews:3240,
-  gradient:"linear-gradient(160deg,#0a1c36,#163a78,#2a62c2)",
-  accent:"#76acde",
-  tags:["2018 Olympic Alpine Venue","Dragon Park Terrain","KTX Train Access","Night Skiing"],
-  photo:"https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop",
-  skiPass:"independent",
-},
+  {id:"ski_mt_buller",category:"skiing",title:"Mt Buller Alpine Village",location:"Victorian Alps, Australia",
+    lat:-36.8980,lon:146.9820,ap:"MEL",icon:"⛷️",rating:4.89,reviews:2180,
+    gradient:"linear-gradient(160deg,#0c1c30,#1a3870,#2e66c0)",
+    accent:"#74aadc",tags:["3h from Melbourne","80+ Trails","Alpine Village"],
+    photo:"https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop",
+    skiPass:"independent"},
 
-// ── 4. PLAYA LAS TERESITAS — Tenerife, year-round Canary Islands beach ────────
-// TFS (Tenerife South) already in AP_CONTINENT as "europe". No patch needed.
-{
-  id:"tenerife-teresitas",
-  category:"beach",
-  title:"Playa Las Teresitas",
-  location:"Tenerife, Canary Islands",
-  lat:28.5123, lon:-16.2048, ap:"TFS",
-  icon:"🏖️", rating:4.87, reviews:8640,
-  gradient:"linear-gradient(160deg,#002a40,#004e70,#0070a8)",
-  accent:"#45aadc",
-  tags:["Year-Round Sun","Sahara-Sand Bay","Mt Teide Backdrop","Safe Swimming"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
-},
+  {id:"ski_valle_nevado",category:"skiing",title:"Valle Nevado",location:"Metropolitan Region, Chile",
+    lat:-33.3667,lon:-70.3000,ap:"SCL",icon:"🏔️",rating:4.90,reviews:1980,
+    gradient:"linear-gradient(160deg,#0a1428,#1e3060,#2e5aaa)",
+    accent:"#6699cc",tags:["60km from Santiago","3025m Base","Andes Panorama"],
+    photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop",
+    skiPass:"independent"},
 
-// ── 5. BYRON BAY — Australia's east coast, iconic lighthouse headland ─────────
-// BNK (Ballina Byron Gateway) already in AP_CONTINENT as "oceania". No patch needed.
-{
-  id:"byron-bay",
-  category:"beach",
-  title:"Main Beach Byron Bay",
-  location:"New South Wales, Australia",
-  lat:-28.6474, lon:153.6020, ap:"BNK",
-  icon:"🏝️", rating:4.90, reviews:11200,
-  gradient:"linear-gradient(160deg,#001e30,#00406a,#0060a0)",
-  accent:"#40a8dc",
-  tags:["Australia's Most Easterly Point","Humpback Whale Migrations","Lighthouse Headland Walk","Chilled Beach Town"],
-  photo:"https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?w=800&h=600&fit=crop",
-},
+  {id:"beach_jericoacoara",category:"beach",title:"Jericoacoara",location:"Ceará, Brazil",
+    lat:2.7933,lon:-40.5122,ap:"FOR",icon:"🏖️",rating:4.93,reviews:9800,
+    gradient:"linear-gradient(160deg,#221100,#553300,#aa6600)",
+    accent:"#ddaa33",tags:["Kite Surfing Mecca","Sunset Sand Dune","Car-Free Village"],
+    photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop"},
+
+  {id:"beach_anse_lazio",category:"beach",title:"Anse Lazio",location:"Praslin, Seychelles",
+    lat:-4.2897,lon:55.6989,ap:"SEZ",icon:"🏝️",rating:4.97,reviews:6200,
+    gradient:"linear-gradient(160deg,#002233,#004466,#007799)",
+    accent:"#22bbdd",tags:["Top 10 World Beach","Granite Boulders","Indian Ocean"],
+    photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
 ```
 
-**One AP_CONTINENT patch recommended** — add to the `// ── patch` section before deploying Korean venues:
-```javascript
-ICN:"asia",  // Incheon International — primary gateway for all Korean venues
-```
+**Venue notes:**
+- `ski_cardrona`: ZQN ✅. NZ's most popular terrain park resort — distinct from Treble Cone (freeride) and Remarkables (intermediate). Adds depth to the Queenstown hub (warranted: ZQN is the primary gateway for 2 existing venues + this). June–September season.
+- `ski_mt_buller`: MEL ✅. Victoria's largest ski resort (80+ runs), 3h from Melbourne CBD. Adds 2nd Australian venue alongside Thredbo (SYD). June–September season.
+- `ski_valle_nevado`: SCL ✅. Only 60km from Santiago, one of South America's highest base elevations (3,025m). 5th S.Hem ski venue, adds Chile resort diversity alongside Portillo and Pucon. June–October season.
+- `beach_jericoacoara`: FOR ✅. World-class kite destination near the equator — warm year-round. Fills Brazil gap (currently only 2 S.Latam beach venues: Noronha + Florianópolis).
+- `beach_anse_lazio`: SEZ ✅. Consistently ranked top 10 globally, granite-boulder aesthetic is visually distinctive in cards. Strengthens Africa/Indian Ocean coverage (6 existing African beach venues, none on Praslin).
 
 ---
 
-## One Observation the PM Should Know
+## One Observation for the PM
 
-**June means the app is a beach app for the next 4 months, but the UI doesn't communicate that.** With 61 of 67 ski venues scoring near-zero through September, users who self-identify as skiers and tap the Skiing filter will see a mostly dead list — a handful of Southern Hemisphere resorts they've never heard of (Portillo, Cerro Castor) plus weak scores. The `seasonalDefaultCat` logic already defaults the pill to Beach in summer, which is the right call. But there's no proactive messaging: no *"Ski season is winding down — 6 southern resorts still firing"* state, no banner, no empty-state copy explaining why. This is a retention risk: skier users will think the app is broken rather than seasonal. A 20-word empty-state copy change and a seasonal sub-label on the Skiing filter pill ("Off-season · 6 resorts open") would close this gap in under an hour and meaningfully reduce ski-user bounce through summer.
-
----
-
-*Report generated: 2026-06-04 | Audited: 156 venues | Categories: skiing (67), beach (89) | Photos: 155 unique*
+**GEAR_ITEMS is alive in the codebase — the June 7 deletion may never have reached `main`.**  
+Today's scan: `grep -c GEAR_ITEMS app.jsx` = **6**. The full const block with skiing and beach arrays is at line 257 with all `peakly-20` Amazon links intact. The git log shows the repo's HEAD is commit `ec4dd2c` (June 4) — the alleged June 7 `auto:` commits (`9656c6b`, `f8e9a51`, `12ebc13`) do not appear in this history. Amazon revenue is likely not $0. Before treating Open #13 as a live P0, Jack should open the live site, tap any beach or ski venue, and check whether gear items render in the detail sheet. If they do, close #13 and update CLAUDE.md's Revenue Model table back to the $12.06/1K MAU figure.
