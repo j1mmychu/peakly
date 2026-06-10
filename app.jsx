@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260609c";
+const PEAKLY_BUILD = "20260609d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8068,6 +8068,46 @@ function MapView({ listings, profile, onOpenDetail }) {
   );
 }
 
+// ─── scoring explainer — one-time education card (CLAUDE.md Open #8) ─────────
+// New users were dumped into Explore with zero context for what the scores
+// mean. One dismissible card, shows until "Got it", then never again.
+// Onboarding itself stays friction-free per the 2026-05 contract — this lives
+// in the feed where the scores actually are.
+function ScoringExplainer() {
+  const isDismissed = () => {
+    try { return !!localStorage.getItem("peakly_scoring_explainer_dismissed"); } catch { return true; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissed);
+  if (dismissed) return null;
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_scoring_explainer_dismissed", String(Date.now())); } catch {}
+    logEvent("scoring_explainer", { stage: "dismissed" });
+  };
+  return (
+    <div style={{ padding:"12px 14px 0" }}>
+      <div style={{
+        background:"#fff", border:"1.5px solid #e0f2fe", borderRadius:14,
+        padding:"14px 16px", boxShadow:"0 2px 12px rgba(2,132,199,0.10)",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+          <span style={{ fontSize:18 }}>🎯</span>
+          <span style={{ fontSize:13.5, fontWeight:800, color:"#222", fontFamily:F, flex:1 }}>How Peakly scores your weekend</span>
+        </div>
+        <div style={{ fontSize:12.5, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:10 }}>
+          Every spot gets a 0–100 score for the <b>Fri–Mon window</b> — live weather
+          for the best 2 days, weighted with real flight prices from your airport.
+          If the 7-day forecast can't back a weekend, we say so instead of guessing.
+        </div>
+        <button onClick={dismiss} className="pressable" style={{
+          background:"#0284c7", border:"none", borderRadius:10, padding:"9px 18px",
+          color:"#fff", fontSize:12.5, fontWeight:800, fontFamily:F, cursor:"pointer",
+        }}>Got it</button>
+      </div>
+    </div>
+  );
+}
+
 function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, onViewProfile, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
   const [showSaved, setShowSaved] = useState(false);
@@ -8552,6 +8592,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             <SyncStatusPill cloudSync={cloudSync} />
           </div>
         )}
+
+        {/* ── Scoring explainer — one-time education for new users (Open #8) ── */}
+        {!loading && <ScoringExplainer />}
 
         {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
         <InstallNudge wishlistCount={wishlists.length} />

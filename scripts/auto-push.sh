@@ -79,6 +79,42 @@ if cache_files_changed; then
   fi
 fi
 
+# ─── Invariant guard (CLAUDE.md Open #14) ───────────────────────────────────
+# Refuse to commit app.jsx if structural invariants regress. This is the
+# defense against the GEAR_ITEMS class of bug: clean-looking commits that
+# silently delete logic. Fails loud, keeps changes in the working tree so
+# nothing is lost — just not shipped.
+guard_fail() {
+  echo "[auto-push] ❌ INVARIANT GUARD: $1 — COMMIT REFUSED, changes left in working tree" | tee -a /tmp/peakly-auto-push.log >&2
+  exit 0
+}
+
+if git status --porcelain | awk '{print $2}' | grep -q '^app\.jsx$'; then
+  # 1. Brace balance
+  OPEN=$(grep -o '{' app.jsx | wc -l | tr -d ' ')
+  CLOSE=$(grep -o '}' app.jsx | wc -l | tr -d ' ')
+  [ "$OPEN" = "$CLOSE" ] || guard_fail "brace imbalance ($OPEN open / $CLOSE close)"
+
+  # 2. Cache stamp lockstep across all three load-bearing files
+  S_APP=$(grep -E 'const PEAKLY_BUILD = "' app.jsx | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+  S_SW=$(grep -E 'const CACHE_NAME = "peakly-' sw.js | head -1 | sed -E 's/.*peakly-([^"]+)".*/\1/')
+  S_IDX=$(grep -oE 'app\.jsx\?v=[a-z0-9]+' index.html | head -1 | sed 's/.*v=//')
+  { [ -n "$S_APP" ] && [ "$S_APP" = "$S_SW" ] && [ "$S_APP" = "$S_IDX" ]; } \
+    || guard_fail "cache stamp drift (app=$S_APP sw=$S_SW idx=$S_IDX)"
+
+  # 3. Venue count can't crater. Baseline persisted in scripts/.venue-baseline;
+  # grows automatically, but a drop of >5 in one commit means something ate the
+  # VENUES array. Legit big deletions: update the baseline file by hand first.
+  VCOUNT=$(grep -cE 'category: *"(skiing|beach)"' app.jsx)
+  BASEFILE="$REPO/scripts/.venue-baseline"
+  BASELINE=$(cat "$BASEFILE" 2>/dev/null || echo 0)
+  if [ "$VCOUNT" -lt $((BASELINE - 5)) ]; then
+    guard_fail "venue count dropped $BASELINE → $VCOUNT (limit: -5/commit)"
+  fi
+  [ "$VCOUNT" -gt "$BASELINE" ] && echo "$VCOUNT" > "$BASEFILE"
+fi
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Compose a commit message from the touched files.
 CHANGED=$(git status --porcelain | awk '{print $2}' | head -6 | tr '\n' ' ')
 if [ -z "$CHANGED" ]; then exit 0; fi
@@ -88,7 +124,14 @@ git add -A
 # Skip if the only change ended up being whitespace / nothing real
 if git diff --cached --quiet; then exit 0; fi
 
-git commit -m "auto: ${SHORT}" --quiet || exit 0
+# Paper trail for logic-bearing commits: app.jsx commits carry a diffstat body
+# so `git log` shows the blast radius instead of a bare "auto: app.jsx".
+if echo "$CHANGED" | grep -q 'app.jsx'; then
+  STAT=$(git diff --cached --stat -- app.jsx | tail -1 | sed 's/^ *//')
+  git commit -m "auto: ${SHORT}" -m "app.jsx: ${STAT}" --quiet || exit 0
+else
+  git commit -m "auto: ${SHORT}" --quiet || exit 0
+fi
 
 # Pull-rebase any concurrent commits before pushing. If conflicts, abort the
 # push and leave the commit local — the next edit will retry, and visible
