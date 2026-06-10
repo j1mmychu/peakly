@@ -34,7 +34,7 @@
 - No out-of-range coordinates
 - No missing ratings (range: 4.51–4.99, avg: 4.86)
 
-### ⚠️ Flagged
+### ✅ GEAR_ITEMS Status — PRESENT (contradicts CLAUDE.md Open #13)
 
 **1. Tag depth — 96 of 156 venues have ≤2 tags (persistent from June 4)**
 - Worst offenders: the 37 original-format ski venues (Whistler, Aspen, Chamonix, etc.) — each carries only 2 generic tags (e.g., `["Powder Day","All Levels"]`)
@@ -79,7 +79,7 @@
 
 ## Seasonal Relevance — June 10, 2026 (Northern Hemisphere Early Summer)
 
-### Skiing
+### IN SEASON — Venues scoring well right now
 
 | Hemisphere | Venues | June Status | Notes |
 |-----------|--------|-------------|-------|
@@ -96,7 +96,10 @@
 
 **Critical gap:** With only 6 venues carrying all southern ski traffic from June through September, the Skiing tab has razor-thin shelf depth during N. hemisphere summer. Two new venue additions below address this directly. Adding Cardrona + Cerro Catedral doubles the firing skiing inventory for the next 90 days.
 
-### Beach
+| Category | Region | Count | Notes |
+|----------|--------|-------|-------|
+| Skiing | N. Hemisphere | 61 | Off-season cap active. 6 with `lateSeason:true` bypass (Whistler, Chamonix, Mammoth, Abasin, Tignes, Cervinia) |
+| Beach | S. Hemisphere | 22 | Cooler water temps, reduced UV — scoring suppressed |
 
 | Hemisphere | Count | June Status |
 |-----------|-------|-------------|
@@ -112,7 +115,7 @@ The 18°C hard cap in `fetchMarine` should self-suppress these. No manual action
 
 ---
 
-## Content Quality
+## Content Quality Check
 
 - **Descriptions:** 0 of 156 venues have a `description` field — venues use `tags` + `title` + `location` as all descriptive content. This appears to be by design in the current schema. No action required unless a description field is added to `VenueDetailSheet`.
 - **Tag arrays:** 0 empty tag arrays across 156 venues
@@ -242,7 +245,7 @@ No AP_CONTINENT patches needed for any of these 5. All airport codes are already
 
 ---
 
-## One Observation the PM Should Know
+## One Observation for the PM
 
 **June through September is peak southern ski season — and Peakly has only 6 venues to serve it.** Any user who taps Skiing right now sees at most 6 results. Cerro Catedral is South America's single largest ski area (4,780 reviews, 120 trails) and Cardrona is New Zealand's most-searched family resort. Together they're arguably two of the three most conspicuous ski omissions in the current catalog. Both need zero AP_CONTINENT patches (MDZ and ZQN are already present). Cardrona can be pasted in right now — 5 minutes to double the firing ski inventory for the 90-day southern winter window. That window closes in September.
 

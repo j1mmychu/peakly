@@ -17,9 +17,34 @@ if (!TOKEN) {
 
 const PORT = process.env.PORT || 3001;
 
+// ─── CORS (must register BEFORE rate limiter so 429 responses include the
+// header — without it, the browser treats rate-limit responses as CORS errors
+// instead of as retryable rate limits) ───────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://j1mmychu.github.io',
+  'https://peakly.app',
+  'https://www.peakly.app',
+  'http://localhost:8000',
+  'http://localhost:3000',
+  'http://127.0.0.1:8000',
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // ─── Rate limiting (in-memory, no deps) ───────────────────────────────────────
-// 60 requests per minute per IP. Resets every 60s window.
-const RATE_LIMIT = 60;
+// 600 requests per minute per IP. A single user loading Peakly cold fires
+// ~150 weather + ~60 marine + ~25 flight calls within ~5s; the old 60/min cap
+// was rate-limiting normal usage, not abuse.
+const RATE_LIMIT = 600;
 const RATE_WINDOW_MS = 60 * 1000;
 const _rateMap = new Map();
 function rateLimiter(req, res, next) {
@@ -43,27 +68,6 @@ setInterval(() => {
   const cutoff = Date.now() - RATE_WINDOW_MS;
   for (const [ip, entry] of _rateMap) if (entry.start < cutoff) _rateMap.delete(ip);
 }, 5 * 60 * 1000);
-
-// ─── CORS ─────────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'https://j1mmychu.github.io',
-  'https://peakly.app',
-  'https://www.peakly.app',
-  'http://localhost:8000',
-  'http://localhost:3000',
-  'http://127.0.0.1:8000',
-];
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -104,18 +108,77 @@ const IATA_RE = /^[A-Z]{3}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ─── GET /api/flights ─────────────────────────────────────────────────────────
-// Calls Travelpayouts v2/prices/month-matrix
 // Query params: origin (IATA), destination (IATA),
 //   optional depart_date (YYYY-MM-DD), optional return_date (YYYY-MM-DD)
 //
-// Without dates: cheapest fare per month (legacy behavior).
-// With depart_date: filter month-matrix to entries on that exact depart date.
-//   When return_date also given, filter to that round-trip too. Picks cheapest
-//   matching entry. Used for weekend-specific pricing — answers "what does
-//   THIS Fri-Mon trip actually cost" instead of "what's the cheapest fare
-//   anyone found in this month."
+// Without dates: cheapest fare per month (legacy).
+// With depart_date: queries two TP cached endpoints in parallel:
+//   1. /v1/prices/calendar — per-day cheapest. Dense for popular routes.
+//   2. /v2/prices/month-matrix — sparse but sometimes covers dates calendar
+//      misses. flight_search (real-time) requires partner-tier access; this
+//      affiliate token only has cached endpoints.
+//   Returned fare is flagged `exact: true` when its depart_date matches the
+//   requested one, otherwise the nearest fare within ±7 days is returned with
+//   `exact: false` so the client can label "for Sat Jun 13" vs the requested
+//   date. Caller falls back to a typical-price estimate when both are empty.
 //
-// Response: { success, data: { [destination]: { [YYYY-MM]: { price, ... } } } }
+// Response (specific-date): { success, data: { [destination]: { [YYYY-MM]: {
+//   price, depart_date, return_date, found_at, requested_depart_date, exact
+// } } }, mode: 'specific', source: 'calendar'|'month-matrix'|'nearest' }
+
+async function _fetchCalendarEntries(origin, destination, month) {
+  // /v1/prices/calendar returns { [YYYY-MM-DD]: {price, departure_at, return_at, ...} }
+  // Passing both depart_date and return_date forces RT-only entries. Without
+  // the return_date constraint TP returns the cheapest fare per depart day,
+  // which is usually one-way and half the real round-trip price.
+  const url = `https://api.travelpayouts.com/v1/prices/calendar`
+    + `?origin=${encodeURIComponent(origin)}`
+    + `&destination=${encodeURIComponent(destination)}`
+    + `&depart_date=${month}`
+    + `&return_date=${month}`
+    + `&calendar_type=departure_date`
+    + `&currency=usd`
+    + `&token=${TOKEN}`;
+  try {
+    const { status, json } = await fetchJson(url);
+    if (status >= 400 || !json || !json.success || !json.data) return [];
+    return Object.entries(json.data)
+      .filter(([, e]) => e && typeof e.price === 'number' && e.price > 0)
+      .map(([d, e]) => ({
+        depart_date: d,
+        return_date: (e.return_at || '').slice(0, 10) || null,
+        price: e.price,
+        found_at: e.expires_at || null,
+        source: 'calendar',
+      }));
+  } catch { return []; }
+}
+
+async function _fetchMonthMatrixEntries(origin, destination, month) {
+  const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
+    + `?origin=${encodeURIComponent(origin)}`
+    + `&destination=${encodeURIComponent(destination)}`
+    + `&month=${month}`
+    + `&show_to_affiliates=true`
+    + `&currency=usd`
+    + `&token=${TOKEN}`;
+  try {
+    const { status, json } = await fetchJson(url);
+    if (status >= 400 || !json || !json.success) return [];
+    // Upstream returns fare as `value`; normalize to `price`.
+    return (Array.isArray(json.data) ? json.data : [])
+      .map(e => ({ ...e, price: e.price ?? e.value }))
+      .filter(e => typeof e.price === 'number' && e.price > 0 && e.depart_date)
+      .map(e => ({
+        depart_date: e.depart_date,
+        return_date: e.return_date || null,
+        price: e.price,
+        found_at: e.found_at || null,
+        source: 'month-matrix',
+      }));
+  } catch { return []; }
+}
+
 app.get('/api/flights', async (req, res) => {
   const { origin, destination, depart_date, return_date } = req.query;
 
@@ -129,68 +192,88 @@ app.get('/api/flights', async (req, res) => {
     return res.status(400).json({ success: false, error: 'return_date must be YYYY-MM-DD' });
   }
 
-  // When depart_date is specified, query the month containing that date.
-  // Otherwise default to current/next month.
-  const month = depart_date ? `${depart_date.slice(0, 7)}-01` : currentMonthParam();
-  const url = `https://api.travelpayouts.com/v2/prices/month-matrix`
-    + `?origin=${encodeURIComponent(origin)}`
-    + `&destination=${encodeURIComponent(destination)}`
-    + `&month=${month}`
-    + `&show_to_affiliates=true`
-    + `&currency=usd`
-    + `&token=${TOKEN}`;
+  const month = depart_date ? depart_date.slice(0, 7) : currentMonthParam().slice(0, 7);
 
   try {
-    const { status, json } = await fetchJson(url);
+    // Always pull both caches in parallel — they index different fares and the
+    // union maximizes coverage.
+    const [calEntries, mmEntries] = await Promise.all([
+      _fetchCalendarEntries(origin, destination, month),
+      _fetchMonthMatrixEntries(origin, destination, `${month}-01`),
+    ]);
+    const all = [...calEntries, ...mmEntries];
 
-    if (status === 429) {
-      return res.status(429).json({ success: false, error: 'Rate limited by upstream' });
-    }
-    if (status >= 500) {
-      return res.status(502).json({ success: false, error: 'Upstream server error' });
-    }
-    if (!json.success) {
-      return res.status(502).json({ success: false, error: 'Upstream returned failure', upstream: json });
-    }
-
-    const prices = Array.isArray(json.data) ? json.data : [];
-
-    // Specific-date branch: filter to the requested depart (and optionally return)
+    // Specific-date branch — round-trip only. Travelpayouts month-matrix often
+    // returns one-way fares (empty return_date), which would show ~half the
+    // real round-trip fare and confuse users when they click through to
+    // Aviasales. Filter to entries with a real round-trip return_date so the
+    // price on a Peakly card matches the cheapest round-trip on the booking
+    // page. If no round-trip cache exists, the venue is hidden.
+    //
+    // Trip-length preference: this is a spontaneous-weekend product so we
+    // prefer 2–4 day RTs (Fri→Sun/Mon) over 5–7 day RTs (Fri→Fri). If only a
+    // 7-day fare is cached for the route, fall back to it rather than hide
+    // the venue — better to show a longer trip than no price at all.
     if (depart_date) {
-      const matches = prices.filter(e =>
-        typeof e.price === 'number' && e.price > 0 &&
-        e.depart_date === depart_date &&
-        (!return_date || e.return_date === return_date)
+      const isRoundTrip = e => e.return_date && /^\d{4}-\d{2}-\d{2}$/.test(e.return_date);
+      const matchReturn = e => !return_date || e.return_date === return_date;
+      const tripDays = e => {
+        if (!e.return_date || !e.depart_date) return null;
+        const d1 = Date.parse(e.depart_date + 'T00:00:00Z');
+        const d2 = Date.parse(e.return_date + 'T00:00:00Z');
+        if (Number.isNaN(d1) || Number.isNaN(d2)) return null;
+        return Math.round((d2 - d1) / 86400000);
+      };
+      const isWeekendLength = e => {
+        const d = tripDays(e);
+        return d != null && d >= 2 && d <= 4;
+      };
+
+      // 1. Try exact-date hit (calendar first, then month-matrix). Prefer
+      // weekend-length entries; fall back to any RT if no weekend match.
+      const findHit = (entries, weekendOnly) => entries.find(e =>
+        e.depart_date === depart_date && isRoundTrip(e) && matchReturn(e)
+        && (weekendOnly ? isWeekendLength(e) : true)
       );
-      if (matches.length === 0) {
+      const exactCalWk = findHit(calEntries, true);
+      const exactMmWk  = !exactCalWk ? findHit(mmEntries, true) : null;
+      const exactCalAny = !exactCalWk && !exactMmWk ? findHit(calEntries, false) : null;
+      const exactMmAny  = !exactCalWk && !exactMmWk && !exactCalAny ? findHit(mmEntries, false) : null;
+      const exact = exactCalWk || exactMmWk || exactCalAny || exactMmAny;
+
+      if (exact) {
+        const dateKey = depart_date.slice(0, 7);
         return res.json({
           success: true,
-          data: { [destination]: {} },
+          data: { [destination]: { [dateKey]: {
+            price: exact.price,
+            depart_date: exact.depart_date,
+            return_date: exact.return_date || return_date || null,
+            found_at: exact.found_at,
+          }}},
           found_at: new Date().toISOString(),
           mode: 'specific',
-          requested: { depart_date, return_date: return_date || null },
+          source: exact.source,
         });
       }
-      const cheapest = matches.reduce((a, b) => a.price <= b.price ? a : b);
-      const dateKey = depart_date.slice(0, 7); // keep month-keyed shape for client compat
+
+      // No exact-date match: return empty. Client treats this as "no live fare"
+      // and the venue is hidden from listings (only cards with confirmed
+      // same-day prices ship — the 7-day spontaneous-trip product can't fudge
+      // dates without misleading users).
       return res.json({
         success: true,
-        data: { [destination]: { [dateKey]: {
-          price: cheapest.price,
-          depart_date: cheapest.depart_date,
-          return_date: cheapest.return_date || null,
-          found_at: cheapest.found_at || null,
-        }}},
+        data: { [destination]: {} },
         found_at: new Date().toISOString(),
         mode: 'specific',
+        requested: { depart_date, return_date: return_date || null },
       });
     }
 
-    // Legacy month-cheapest branch
+    // Legacy month-cheapest branch (no depart_date provided)
     const byMonth = {};
-    for (const entry of prices) {
-      if (typeof entry.price !== 'number' || entry.price <= 0) continue;
-      const dateKey = (entry.depart_date || entry.found_at || '').slice(0, 7); // YYYY-MM
+    for (const entry of all) {
+      const dateKey = (entry.depart_date || '').slice(0, 7);
       if (!dateKey) continue;
       if (!byMonth[dateKey] || entry.price < byMonth[dateKey].price) {
         byMonth[dateKey] = { price: entry.price, depart_date: entry.depart_date };
@@ -345,7 +428,7 @@ async function _proxyWeather(req, res, kind) {
           + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
           + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`
         : `https://marine-api.open-meteo.com/v1/marine?latitude=${latR}&longitude=${lonR}`
-          + `&daily=ocean_temperature_max&forecast_days=7&timezone=auto`;
+          + `&daily=sea_surface_temperature_max&forecast_days=7&timezone=auto`;
       const { status, json } = await fetchJson(url);
       if (status === 429 || status >= 500 || (json && json.error)) {
         throw new Error(`upstream ${status} ${json?.reason || ''}`);

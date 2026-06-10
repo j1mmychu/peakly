@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260604a";
+const PEAKLY_BUILD = "20260610a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -58,7 +58,7 @@ function ensureSupabase() {
   _supabaseLoadPromise = new Promise((resolve, reject) => {
     if (typeof supabase !== "undefined" && supabase.createClient) { resolve(); return; }
     const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js";
     s.async = true;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("Failed to load Supabase JS"));
@@ -92,6 +92,27 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
     _peaklyReloadGuard = true;
     window.location.reload();
   });
+  // Proactive: poke the SW on boot so a stuck install/waiting state actually
+  // checks for a new version. Without this, sw.js can sit in "waiting" for
+  // days and the page keeps serving the old cached app.jsx.
+  navigator.serviceWorker.getRegistration().then(reg => { reg && reg.update(); }).catch(() => {});
+}
+
+// Forces a clean reload — unregisters every SW + nukes every cache + reloads
+// the page. Surfaced via the "Refresh" link in Profile so users can rescue
+// themselves out of a stuck PWA cache without needing DevTools.
+async function forceCleanReload() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (_) {}
+  window.location.reload();
 }
 
 (() => {
@@ -252,8 +273,9 @@ const CATEGORIES = [
 ];
 
 // ─── Amazon Associates gear items (tag=peakly-20) ────────────────────────────
-// Gate: GEAR_ITEMS[listing.category] — renders in VenueDetailSheet only when
-// category has items. Lost in 2026-05-09 history scrub; restored 2026-05-24.
+// Gate: GEAR_ITEMS[listing.category] renders in VenueDetailSheet only when
+// category has items. INVARIANT: grep -c "GEAR_ITEMS" app.jsx must be >= 4.
+// Deleted by auto: commits twice (2026-05-09 scrub, 2026-06-07). Do not remove.
 const GEAR_ITEMS = {
   skiing: [
     { title:"Smith I/O MAG Ski Goggles", desc:"ChromaPop lens · fog-resistant", price:249,
@@ -278,10 +300,10 @@ const GEAR_ITEMS = {
       img:"https://images.unsplash.com/photo-1562774053-701939374585?w=120&h=120&fit=crop" },
     { title:"Maui Jim Peahi Polarized Sunglasses", desc:"PolarizedPlus2 lens · UV400", price:329,
       url:"https://www.amazon.com/dp/B00CEQXGRQ?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=120&h=120&fit=crop" },
-    { title:"Nautica Rashguard UV50+", desc:"Quick-dry · UPF 50+ sun protection", price:45,
+      img:"https://images.unsplash.com/photo-1508296695146-257a814070b4?w=120&h=120&fit=crop" },
+    { title:"Rash Guard Long Sleeve UPF 50+", desc:"Quick-dry · reef-safe", price:35,
       url:"https://www.amazon.com/dp/B073RH8BJ9?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1560343090-f0409e92791a?w=120&h=120&fit=crop" },
+      img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=120&h=120&fit=crop" },
   ],
 };
 
@@ -330,7 +352,7 @@ const AP_CONTINENT = {
   KTM:"asia", KBV:"asia", HKT:"asia", USM:"asia", ENI:"asia", MPH:"asia",
   LOP:"asia", PBH:"asia", AMM:"asia", PKR:"asia", LUA:"asia",
   // Oceania / Pacific
-  ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania",
+  ZQN:"oceania", CNS:"oceania", CBR:"oceania", SYD:"oceania", CHC:"oceania", MEL:"oceania",
   MEL:"oceania", OOL:"oceania", PER:"oceania", AKL:"oceania",
   NAN:"oceania", MLE:"oceania", PPT:"oceania",
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
@@ -427,7 +449,7 @@ const AP_CONTINENT = {
   // Middle East / Asia
   BEY:"asia", CMB:"asia", AMM:"asia",
   // Latin America
-  MDZ:"latam", ZCO:"latam", USH:"latam",
+  MDZ:"latam", ZCO:"latam", USH:"latam", BRC:"latam", CPC:"latam", NQN:"latam",
 };
 
 // ─── venues with real coordinates ────────────────────────────────────────────
@@ -454,7 +476,7 @@ const VENUES = [
     lat:45.9237, lon:6.8694, ap:"GVA",
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
-    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent", lateSeason:true,
+    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"ikon", lateSeason:true,
   },
   {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"ikon"},
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
@@ -481,15 +503,15 @@ const VENUES = [
   {id:"whitefish",   category:"skiing",title:"Whitefish Mountain",      location:"Montana, USA",             lat:48.4825,lon:-114.3487,ap:"FCA",icon:"⛷️",rating:4.92,reviews:1840,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Glacier NP Gateway","3,000 Acres"], photo:"https://images.unsplash.com/photo-1631779202803-42c151ef761a?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.41", skiPass:"independent"},
   {id:"mthood",      category:"skiing",title:"Mt Hood Meadows",         location:"Oregon, USA",              lat:45.3311,lon:-121.6648,ap:"PDX",icon:"⛷️",rating:4.90,reviews:2060,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Pacific NW","2,150 Acres"], photo:"https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32", skiPass:"independent"},
   {id:"alyeska",     category:"skiing",title:"Alyeska Resort",          location:"Alaska, USA",              lat:60.9697,lon:-149.0989,ap:"ANC",icon:"⛷️",rating:4.93,reviews:1320,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Alaska's Largest","Glacier Views"], photo:"https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59", skiPass:"independent"},
-  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
-  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"epic"},
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
   {id:"beach_gcm",      category:"beach",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
   {id:"beach_grace",    category:"beach",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
@@ -558,11 +580,11 @@ const VENUES = [
   {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OSL",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
   {id:"kiroro-snow-world-s11",category:"skiing",title:"Kiroro Snow World",location:"Hokkaido, Japan",lat:43.0558,lon:140.9656,ap:"CTS",icon:"🏔️",rating:4.58,reviews:3869,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"morzine-s12",category:"skiing",title:"Morzine",location:"Haute-Savoie, France",lat:46.1786,lon:6.7069,ap:"GVA",icon:"🏔️",rating:4.91,reviews:3064,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
   {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZCO",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -674,6 +696,3796 @@ const VENUES = [
     tags:["Budget Ski Europe","Après-Ski Village","Beginner Friendly","Long Season"],
     photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
     skiPass:"independent"},
+  // ── Ikon Pass batch (added 2026-06-08) ──
+    {
+      "id": "winter-park",
+      "category": "skiing",
+      "title": "Winter Park",
+      "location": "Colorado, USA",
+      "lat": 39.8918,
+      "lon": -105.7625,
+      "ap": "DEN",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1820,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "copper-mountain",
+      "category": "skiing",
+      "title": "Copper Mountain",
+      "location": "Colorado, USA",
+      "lat": 39.5022,
+      "lon": -106.1497,
+      "ap": "EGE",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1410,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "palisades-tahoe",
+      "category": "skiing",
+      "title": "Palisades Tahoe",
+      "location": "California, USA",
+      "lat": 39.1969,
+      "lon": -120.2356,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 2240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "snowbird",
+      "category": "skiing",
+      "title": "Snowbird",
+      "location": "Utah, USA",
+      "lat": 40.5829,
+      "lon": -111.6553,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "brighton",
+      "category": "skiing",
+      "title": "Brighton",
+      "location": "Utah, USA",
+      "lat": 40.6017,
+      "lon": -111.5836,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 920,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "solitude",
+      "category": "skiing",
+      "title": "Solitude",
+      "location": "Utah, USA",
+      "lat": 40.6212,
+      "lon": -111.5919,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 740,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "deer-valley",
+      "category": "skiing",
+      "title": "Deer Valley",
+      "location": "Park City, Utah, USA",
+      "lat": 40.6303,
+      "lon": -111.4781,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.9,
+      "reviews": 2630,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "crystal-mountain-wa",
+      "category": "skiing",
+      "title": "Crystal Mountain",
+      "location": "Washington, USA",
+      "lat": 46.9285,
+      "lon": -121.5039,
+      "ap": "SEA",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "mt-bachelor",
+      "category": "skiing",
+      "title": "Mt. Bachelor",
+      "location": "Oregon, USA",
+      "lat": 43.9786,
+      "lon": -121.6884,
+      "ap": "PDX",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "sugar-bowl",
+      "category": "skiing",
+      "title": "Sugar Bowl",
+      "location": "California, USA",
+      "lat": 39.3082,
+      "lon": -120.3322,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 580,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "killington",
+      "category": "skiing",
+      "title": "Killington",
+      "location": "Vermont, USA",
+      "lat": 43.6045,
+      "lon": -72.821,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 1640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "loon-mountain",
+      "category": "skiing",
+      "title": "Loon Mountain",
+      "location": "New Hampshire, USA",
+      "lat": 44.0517,
+      "lon": -71.6231,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 720,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "sunday-river",
+      "category": "skiing",
+      "title": "Sunday River",
+      "location": "Maine, USA",
+      "lat": 44.4717,
+      "lon": -70.8569,
+      "ap": "BOS",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 880,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "sugarloaf",
+      "category": "skiing",
+      "title": "Sugarloaf",
+      "location": "Maine, USA",
+      "lat": 45.0317,
+      "lon": -70.3133,
+      "ap": "BOS",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 690,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "revelstoke",
+      "category": "skiing",
+      "title": "Revelstoke Mountain",
+      "location": "British Columbia, Canada",
+      "lat": 51.0021,
+      "lon": -118.1958,
+      "ap": "YKA",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 940,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "lake-louise",
+      "category": "skiing",
+      "title": "Lake Louise",
+      "location": "Alberta, Canada",
+      "lat": 51.4419,
+      "lon": -116.1656,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1880,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day",
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "cypress-mountain",
+      "category": "skiing",
+      "title": "Cypress Mountain",
+      "location": "British Columbia, Canada",
+      "lat": 49.3953,
+      "lon": -123.2058,
+      "ap": "YVR",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 510,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "zermatt",
+      "category": "skiing",
+      "title": "Zermatt",
+      "location": "Valais, Switzerland",
+      "lat": 46.0207,
+      "lon": 7.7491,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.9,
+      "reviews": 3120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Iconic",
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "engelberg",
+      "category": "skiing",
+      "title": "Engelberg-Titlis",
+      "location": "Central Switzerland",
+      "lat": 46.8189,
+      "lon": 8.4006,
+      "ap": "ZRH",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "crans-montana",
+      "category": "skiing",
+      "title": "Crans-Montana",
+      "location": "Valais, Switzerland",
+      "lat": 46.3167,
+      "lon": 7.4833,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 690,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "st-anton-am-arlberg",
+      "category": "skiing",
+      "title": "St. Anton am Arlberg",
+      "location": "Tyrol, Austria",
+      "lat": 47.1306,
+      "lon": 10.2658,
+      "ap": "INN",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 1980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "saalbach-hinterglemm",
+      "category": "skiing",
+      "title": "Saalbach Hinterglemm",
+      "location": "Salzburg, Austria",
+      "lat": 47.3953,
+      "lon": 12.6347,
+      "ap": "SZG",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "hakuba-happo-one",
+      "category": "skiing",
+      "title": "Hakuba Happo-One",
+      "location": "Nagano, Japan",
+      "lat": 36.7,
+      "lon": 137.8333,
+      "ap": "NRT",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1340,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "furano",
+      "category": "skiing",
+      "title": "Furano",
+      "location": "Hokkaido, Japan",
+      "lat": 43.35,
+      "lon": 142.3833,
+      "ap": "CTS",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 820,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+    {
+      "id": "coronet-peak",
+      "category": "skiing",
+      "title": "Coronet Peak",
+      "location": "Queenstown, New Zealand",
+      "lat": -44.9333,
+      "lon": 168.7333,
+      "ap": "ZQN",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 620,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "ikon",
+      "lateSeason": true
+    },
+    {
+      "id": "valle-nevado",
+      "category": "skiing",
+      "title": "Valle Nevado",
+      "location": "Andes, Chile",
+      "lat": -33.3525,
+      "lon": -70.2517,
+      "ap": "SCL",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "ikon"
+    },
+  // ── Epic Pass batch (added 2026-06-08) ──
+    {
+      "id": "beaver-creek",
+      "category": "skiing",
+      "title": "Beaver Creek",
+      "location": "Colorado, USA",
+      "lat": 39.6042,
+      "lon": -106.5167,
+      "ap": "EGE",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 2160,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly",
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "park-city-mountain",
+      "category": "skiing",
+      "title": "Park City Mountain",
+      "location": "Park City, Utah, USA",
+      "lat": 40.6514,
+      "lon": -111.5083,
+      "ap": "SLC",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 3120,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "northstar-california",
+      "category": "skiing",
+      "title": "Northstar California",
+      "location": "Truckee, California, USA",
+      "lat": 39.2747,
+      "lon": -120.1211,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.6,
+      "reviews": 1840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "kirkwood",
+      "category": "skiing",
+      "title": "Kirkwood",
+      "location": "California, USA",
+      "lat": 38.685,
+      "lon": -120.0656,
+      "ap": "RNO",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 980,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "stevens-pass",
+      "category": "skiing",
+      "title": "Stevens Pass",
+      "location": "Washington, USA",
+      "lat": 47.7461,
+      "lon": -121.0867,
+      "ap": "SEA",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mount-snow",
+      "category": "skiing",
+      "title": "Mount Snow",
+      "location": "Vermont, USA",
+      "lat": 42.9628,
+      "lon": -72.9211,
+      "ap": "ALB",
+      "icon": "🏔️",
+      "rating": 4.4,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "hunter-mountain",
+      "category": "skiing",
+      "title": "Hunter Mountain",
+      "location": "New York, USA",
+      "lat": 42.1947,
+      "lon": -74.2233,
+      "ap": "ALB",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 1640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mt-sunapee",
+      "category": "skiing",
+      "title": "Mt. Sunapee",
+      "location": "New Hampshire, USA",
+      "lat": 43.3261,
+      "lon": -72.0786,
+      "ap": "BTV",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 640,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "wilmot-mountain",
+      "category": "skiing",
+      "title": "Wilmot Mountain",
+      "location": "Wisconsin, USA",
+      "lat": 42.4992,
+      "lon": -88.1839,
+      "ap": "ORD",
+      "icon": "🏔️",
+      "rating": 4.1,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "afton-alps",
+      "category": "skiing",
+      "title": "Afton Alps",
+      "location": "Minnesota, USA",
+      "lat": 44.8453,
+      "lon": -92.7842,
+      "ap": "MSP",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 720,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "mad-river-mountain-oh",
+      "category": "skiing",
+      "title": "Mad River Mountain",
+      "location": "Ohio, USA",
+      "lat": 40.4514,
+      "lon": -83.6722,
+      "ap": "CMH",
+      "icon": "🏔️",
+      "rating": 4,
+      "reviews": 380,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "liberty-mountain",
+      "category": "skiing",
+      "title": "Liberty Mountain",
+      "location": "Pennsylvania, USA",
+      "lat": 39.7392,
+      "lon": -77.3672,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 560,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "roundtop-mountain",
+      "category": "skiing",
+      "title": "Roundtop Mountain",
+      "location": "Pennsylvania, USA",
+      "lat": 40.1306,
+      "lon": -76.9333,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4,
+      "reviews": 410,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "whitetail-resort",
+      "category": "skiing",
+      "title": "Whitetail Resort",
+      "location": "Pennsylvania, USA",
+      "lat": 39.7547,
+      "lon": -77.9072,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.2,
+      "reviews": 480,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "jack-frost",
+      "category": "skiing",
+      "title": "Jack Frost Big Boulder",
+      "location": "Pennsylvania, USA",
+      "lat": 41.1311,
+      "lon": -75.5336,
+      "ap": "PHL",
+      "icon": "🏔️",
+      "rating": 4.1,
+      "reviews": 520,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+    {
+      "id": "fernie",
+      "category": "skiing",
+      "title": "Fernie Alpine Resort",
+      "location": "British Columbia, Canada",
+      "lat": 49.4642,
+      "lon": -115.0867,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1180,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Powder Day"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "kimberley",
+      "category": "skiing",
+      "title": "Kimberley Alpine Resort",
+      "location": "British Columbia, Canada",
+      "lat": 49.675,
+      "lon": -116.0306,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 540,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "nakiska",
+      "category": "skiing",
+      "title": "Nakiska",
+      "location": "Kananaskis, Alberta, Canada",
+      "lat": 50.9286,
+      "lon": -115.1456,
+      "ap": "YYC",
+      "icon": "🏔️",
+      "rating": 4.3,
+      "reviews": 420,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "verbier",
+      "category": "skiing",
+      "title": "Verbier 4 Vallées",
+      "location": "Valais, Switzerland",
+      "lat": 46.0972,
+      "lon": 7.2289,
+      "ap": "GVA",
+      "icon": "🏔️",
+      "rating": 4.8,
+      "reviews": 2340,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Off-Piste",
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "val-thorens",
+      "category": "skiing",
+      "title": "Val Thorens",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.2986,
+      "lon": 6.5803,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 2840,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "Late Season"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "meribel",
+      "category": "skiing",
+      "title": "Méribel",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.3953,
+      "lon": 6.5678,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.7,
+      "reviews": 1860,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "les-menuires",
+      "category": "skiing",
+      "title": "Les Menuires",
+      "location": "Les 3 Vallées, France",
+      "lat": 45.3239,
+      "lon": 6.5331,
+      "ap": "CMF",
+      "icon": "🏔️",
+      "rating": 4.5,
+      "reviews": 1240,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "skiPass": "epic",
+      "lateSeason": true
+    },
+    {
+      "id": "perisher",
+      "category": "skiing",
+      "title": "Perisher",
+      "location": "New South Wales, Australia",
+      "lat": -36.4042,
+      "lon": 148.4111,
+      "ap": "SYD",
+      "icon": "🏔️",
+      "rating": 4.4,
+      "reviews": 780,
+      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+      "accent": "#6db3f2",
+      "tags": [
+        "All Levels"
+      ],
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "skiPass": "epic"
+    },
+  // ── Global beach batch (added 2026-06-08) ──
+    {
+      "id": "meads-bay-anguilla",
+      "category": "beach",
+      "title": "Meads Bay",
+      "location": "Anguilla",
+      "lat": 18.1853,
+      "lon": -63.1031,
+      "ap": "AXA",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 400,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "maundays-bay-anguilla",
+      "category": "beach",
+      "title": "Maundays Bay",
+      "location": "Anguilla",
+      "lat": 18.1719,
+      "lon": -63.1483,
+      "ap": "AXA",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 437,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Water",
+        "St-Barths Vibes"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "crane-beach-barbados",
+      "category": "beach",
+      "title": "Crane Beach",
+      "location": "Barbados",
+      "lat": 13.1058,
+      "lon": -59.4528,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 474,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "Coral Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mullins-beach-barbados",
+      "category": "beach",
+      "title": "Mullins Beach",
+      "location": "Barbados",
+      "lat": 13.2386,
+      "lon": -59.6442,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 511,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm North Coast",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bathsheba-barbados",
+      "category": "beach",
+      "title": "Bathsheba",
+      "location": "Barbados",
+      "lat": 13.2122,
+      "lon": -59.5219,
+      "ap": "BGI",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 548,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Sea Cave Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "smith-cove-grand-cayman",
+      "category": "beach",
+      "title": "Smith Cove",
+      "location": "Grand Cayman, Cayman Islands",
+      "lat": 19.2658,
+      "lon": -81.395,
+      "ap": "GCM",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 585,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling",
+        "Calm Bay"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "stingray-sandbar-cayman",
+      "category": "beach",
+      "title": "Stingray City Sandbar",
+      "location": "Grand Cayman",
+      "lat": 19.3736,
+      "lon": -81.325,
+      "ap": "GCM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 622,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Wildlife Everywhere",
+        "Shallow Clear Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bambarra-beach-tci",
+      "category": "beach",
+      "title": "Bambarra Beach",
+      "location": "Middle Caicos, Turks & Caicos",
+      "lat": 21.77,
+      "lon": -71.79,
+      "ap": "PLS",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 659,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Uncrowded",
+        "Turquoise Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "long-bay-providenciales",
+      "category": "beach",
+      "title": "Long Bay Beach",
+      "location": "Providenciales, Turks & Caicos",
+      "lat": 21.7556,
+      "lon": -72.1986,
+      "ap": "PLS",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 696,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kiteboarding Capital",
+        "Shallow Clear Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "trunk-bay-st-john",
+      "category": "beach",
+      "title": "Trunk Bay",
+      "location": "St. John, USVI",
+      "lat": 18.3528,
+      "lon": -64.7592,
+      "ap": "STT",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 733,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Reef",
+        "Voted #1 USA Beach"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "honeymoon-beach-stj",
+      "category": "beach",
+      "title": "Honeymoon Beach",
+      "location": "St. John, USVI",
+      "lat": 18.3358,
+      "lon": -64.7836,
+      "ap": "STT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 770,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "boston-bay-jamaica",
+      "category": "beach",
+      "title": "Boston Bay",
+      "location": "Port Antonio, Jamaica",
+      "lat": 18.1717,
+      "lon": -76.3358,
+      "ap": "MBJ",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 807,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Caribbean Soul"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "treasure-beach-jamaica",
+      "category": "beach",
+      "title": "Treasure Beach",
+      "location": "St. Elizabeth, Jamaica",
+      "lat": 17.8867,
+      "lon": -77.7847,
+      "ap": "MBJ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 844,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Fishing Village Vibe",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "baby-beach-aruba",
+      "category": "beach",
+      "title": "Baby Beach",
+      "location": "Aruba",
+      "lat": 12.4275,
+      "lon": -69.8794,
+      "ap": "AUA",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 881,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "arashi-beach-aruba",
+      "category": "beach",
+      "title": "Arashi Beach",
+      "location": "Aruba",
+      "lat": 12.58,
+      "lon": -70.0533,
+      "ap": "AUA",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 918,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Snorkeling"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "sugar-beach-st-lucia",
+      "category": "beach",
+      "title": "Sugar Beach",
+      "location": "St. Lucia",
+      "lat": 13.8439,
+      "lon": -61.0653,
+      "ap": "UVF",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 955,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Piton Views",
+        "Luxury"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "reduit-beach-st-lucia",
+      "category": "beach",
+      "title": "Reduit Beach",
+      "location": "Rodney Bay, St. Lucia",
+      "lat": 14.0697,
+      "lon": -60.955,
+      "ap": "UVF",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 992,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Beach Bars",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mullet-bay-sxm",
+      "category": "beach",
+      "title": "Mullet Bay",
+      "location": "Sint Maarten",
+      "lat": 18.0489,
+      "lon": -63.1281,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1029,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "maho-beach-sxm",
+      "category": "beach",
+      "title": "Maho Beach",
+      "location": "Sint Maarten",
+      "lat": 18.0392,
+      "lon": -63.1136,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1066,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Iconic",
+        "Plane Spotting"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "simpson-bay-sxm",
+      "category": "beach",
+      "title": "Simpson Bay",
+      "location": "Sint Maarten",
+      "lat": 18.0344,
+      "lon": -63.1058,
+      "ap": "SXM",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1103,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Beach Bars",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pirates-bay-tobago",
+      "category": "beach",
+      "title": "Pirate's Bay",
+      "location": "Charlotteville, Tobago",
+      "lat": 11.3194,
+      "lon": -60.5536,
+      "ap": "TAB",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1140,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Secluded Beach",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "englishmans-bay-tobago",
+      "category": "beach",
+      "title": "Englishman's Bay",
+      "location": "Tobago",
+      "lat": 11.3,
+      "lon": -60.6614,
+      "ap": "TAB",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1177,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crescent Bay",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "playa-maroma-mexico",
+      "category": "beach",
+      "title": "Playa Maroma",
+      "location": "Riviera Maya, Mexico",
+      "lat": 20.7244,
+      "lon": -86.9764,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1214,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Caribbean",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "akumal-bay-mexico",
+      "category": "beach",
+      "title": "Akumal Bay",
+      "location": "Quintana Roo, Mexico",
+      "lat": 20.3962,
+      "lon": -87.3178,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1251,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Turtle Nesting",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "isla-mujeres-norte",
+      "category": "beach",
+      "title": "Playa Norte Isla Mujeres",
+      "location": "Quintana Roo, Mexico",
+      "lat": 21.2483,
+      "lon": -86.7406,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1288,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Waters",
+        "Crystal Caribbean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "playa-paraiso-tulum",
+      "category": "beach",
+      "title": "Playa Paraiso Tulum",
+      "location": "Tulum, Mexico",
+      "lat": 20.2147,
+      "lon": -87.4253,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1325,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Mayan Ruins Backdrop",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "xpu-ha-beach",
+      "category": "beach",
+      "title": "Xpu-Ha Beach",
+      "location": "Quintana Roo, Mexico",
+      "lat": 20.4972,
+      "lon": -87.2378,
+      "ap": "CUN",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1362,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crystal Caribbean",
+        "Calm Bay"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "punta-mita-mexico",
+      "category": "beach",
+      "title": "Punta Mita Beach",
+      "location": "Nayarit, Mexico",
+      "lat": 20.7706,
+      "lon": -105.55,
+      "ap": "PVR",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1399,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Luxury"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "san-pancho-mexico",
+      "category": "beach",
+      "title": "San Pancho",
+      "location": "Nayarit, Mexico",
+      "lat": 20.9039,
+      "lon": -105.4664,
+      "ap": "PVR",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1436,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Bohemian Beach Town",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mazunte-mexico",
+      "category": "beach",
+      "title": "Mazunte",
+      "location": "Oaxaca, Mexico",
+      "lat": 15.6678,
+      "lon": -96.55,
+      "ap": "HUX",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1473,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Turtle Nesting",
+        "Bohemian Beach Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "zipolite-mexico",
+      "category": "beach",
+      "title": "Zipolite",
+      "location": "Oaxaca, Mexico",
+      "lat": 15.6647,
+      "lon": -96.5147,
+      "ap": "HUX",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1510,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Naturist Area",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cabo-pulmo",
+      "category": "beach",
+      "title": "Cabo Pulmo",
+      "location": "Baja California Sur, Mexico",
+      "lat": 23.4283,
+      "lon": -109.4244,
+      "ap": "SJD",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1547,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Coral Reef",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tamarindo-cr",
+      "category": "beach",
+      "title": "Tamarindo Beach",
+      "location": "Guanacaste, Costa Rica",
+      "lat": 10.3022,
+      "lon": -85.8408,
+      "ap": "SJO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1584,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "santa-teresa-cr",
+      "category": "beach",
+      "title": "Santa Teresa",
+      "location": "Puntarenas, Costa Rica",
+      "lat": 9.6431,
+      "lon": -85.1614,
+      "ap": "SJO",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1621,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Yoga on the Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hanauma-bay-oahu",
+      "category": "beach",
+      "title": "Hanauma Bay",
+      "location": "Oahu, Hawaii",
+      "lat": 21.2693,
+      "lon": -157.6938,
+      "ap": "HNL",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1658,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Reef",
+        "Marine Preserve"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "waimea-bay-oahu",
+      "category": "beach",
+      "title": "Waimea Bay",
+      "location": "North Shore Oahu, Hawaii",
+      "lat": 21.6411,
+      "lon": -158.0656,
+      "ap": "HNL",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1695,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "makena-big-beach",
+      "category": "beach",
+      "title": "Makena Big Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.6353,
+      "lon": -156.4453,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1732,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Golden Sand",
+        "Pacific Bluffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "wailea-beach-maui",
+      "category": "beach",
+      "title": "Wailea Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.6892,
+      "lon": -156.4439,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1769,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Luxury",
+        "Calm Pacific"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kaanapali-beach-maui",
+      "category": "beach",
+      "title": "Ka'anapali Beach",
+      "location": "Maui, Hawaii",
+      "lat": 20.9244,
+      "lon": -156.6936,
+      "ap": "OGG",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1806,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliff Dive",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coronado-beach-sd",
+      "category": "beach",
+      "title": "Coronado Beach",
+      "location": "San Diego, California",
+      "lat": 32.685,
+      "lon": -117.1839,
+      "ap": "SAN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1843,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pacific Bluffs",
+        "Hotel del Coronado"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "la-jolla-cove",
+      "category": "beach",
+      "title": "La Jolla Cove",
+      "location": "San Diego, California",
+      "lat": 32.8508,
+      "lon": -117.2719,
+      "ap": "SAN",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1880,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Snorkeling Coves",
+        "Sea Lions"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "manhattan-beach-ca",
+      "category": "beach",
+      "title": "Manhattan Beach",
+      "location": "Los Angeles, California",
+      "lat": 33.8847,
+      "lon": -118.4109,
+      "ap": "LAX",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1917,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pier 60 Sunsets",
+        "Beach Volleyball"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "big-sur-pfeiffer",
+      "category": "beach",
+      "title": "Pfeiffer Beach Big Sur",
+      "location": "California, USA",
+      "lat": 36.2378,
+      "lon": -121.8175,
+      "ap": "SFO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1954,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Purple Sand",
+        "Sea Cave Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-goloritze-sardinia",
+      "category": "beach",
+      "title": "Cala Goloritzé",
+      "location": "Sardinia, Italy",
+      "lat": 40.1119,
+      "lon": 9.67,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1991,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "spiaggia-rosa-budelli",
+      "category": "beach",
+      "title": "Spiaggia Rosa Budelli",
+      "location": "Sardinia, Italy",
+      "lat": 41.2944,
+      "lon": 9.3458,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2028,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "UNESCO Protected"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "costa-smeralda-sardinia",
+      "category": "beach",
+      "title": "Costa Smeralda",
+      "location": "Sardinia, Italy",
+      "lat": 41.1056,
+      "lon": 9.535,
+      "ap": "CAG",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2065,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Billionaire Yachts",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "capri-marina-piccola",
+      "category": "beach",
+      "title": "Capri Marina Piccola",
+      "location": "Capri, Italy",
+      "lat": 40.5447,
+      "lon": 14.2342,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2102,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Faraglioni Rocks",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "procida-italy",
+      "category": "beach",
+      "title": "Procida Pozzo Vecchio",
+      "location": "Procida, Italy",
+      "lat": 40.7556,
+      "lon": 14.0306,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2139,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pastel Houses",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "amalfi-beach",
+      "category": "beach",
+      "title": "Amalfi Town Beach",
+      "location": "Amalfi Coast, Italy",
+      "lat": 40.6342,
+      "lon": 14.6022,
+      "ap": "NAP",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2176,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Amalfi Drive",
+        "Pastel Cliff Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "scala-dei-turchi-sicily",
+      "category": "beach",
+      "title": "Scala dei Turchi",
+      "location": "Agrigento, Sicily",
+      "lat": 37.2914,
+      "lon": 13.4683,
+      "ap": "TPS",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2213,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "White Marl Cliffs",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "plage-mala-cap-dail",
+      "category": "beach",
+      "title": "Plage Mala Cap d'Ail",
+      "location": "French Riviera, France",
+      "lat": 43.7275,
+      "lon": 7.4067,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2250,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hidden Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "eze-beach-france",
+      "category": "beach",
+      "title": "Eze Beach",
+      "location": "French Riviera, France",
+      "lat": 43.7281,
+      "lon": 7.3622,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2287,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Belle Époque",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pointe-st-hospice",
+      "category": "beach",
+      "title": "Pointe Saint-Hospice",
+      "location": "Saint-Jean-Cap-Ferrat",
+      "lat": 43.68,
+      "lon": 7.3408,
+      "ap": "NCE",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2324,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine Forest Path",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-salada-ibiza",
+      "category": "beach",
+      "title": "Cala Salada Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9783,
+      "lon": 1.2375,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2361,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-comte-ibiza",
+      "category": "beach",
+      "title": "Cala Comte Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9614,
+      "lon": 1.2161,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2398,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Legendary Sunsets",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-bassa-ibiza",
+      "category": "beach",
+      "title": "Cala Bassa Ibiza",
+      "location": "Ibiza, Spain",
+      "lat": 38.9569,
+      "lon": 1.2547,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2435,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-pregonda-menorca",
+      "category": "beach",
+      "title": "Cala Pregonda",
+      "location": "Menorca, Spain",
+      "lat": 40.0517,
+      "lon": 4.0911,
+      "ap": "MAH",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2472,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Red Volcanic Sand",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-mitjana-menorca",
+      "category": "beach",
+      "title": "Cala Mitjana",
+      "location": "Menorca, Spain",
+      "lat": 39.9275,
+      "lon": 4.0078,
+      "ap": "MAH",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2509,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Turquoise Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-saona-formentera",
+      "category": "beach",
+      "title": "Cala Saona Formentera",
+      "location": "Formentera, Spain",
+      "lat": 38.7022,
+      "lon": 1.4011,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2546,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ses-illetes-formentera",
+      "category": "beach",
+      "title": "Ses Illetes Formentera",
+      "location": "Formentera, Spain",
+      "lat": 38.7517,
+      "lon": 1.4233,
+      "ap": "IBZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2583,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "World's Finest Sand",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-mondrago-mallorca",
+      "category": "beach",
+      "title": "Cala Mondragó",
+      "location": "Mallorca, Spain",
+      "lat": 39.35,
+      "lon": 3.19,
+      "ap": "PMI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2620,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Natural Park Beach",
+        "Pine Forest"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cala-tuent-mallorca",
+      "category": "beach",
+      "title": "Cala Tuent Mallorca",
+      "location": "Mallorca, Spain",
+      "lat": 39.8472,
+      "lon": 2.7853,
+      "ap": "PMI",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2657,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Tramuntana Cliffs",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-do-carvalho-algarve",
+      "category": "beach",
+      "title": "Praia do Carvalho",
+      "location": "Algarve, Portugal",
+      "lat": 37.0902,
+      "lon": -8.5256,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2694,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Cave Access",
+        "Limestone Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-da-falesia-algarve",
+      "category": "beach",
+      "title": "Praia da Falésia",
+      "location": "Algarve, Portugal",
+      "lat": 37.0822,
+      "lon": -8.17,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2731,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Red Cliffs",
+        "6km Pristine Beach"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "praia-da-rocha-algarve",
+      "category": "beach",
+      "title": "Praia da Rocha",
+      "location": "Algarve, Portugal",
+      "lat": 37.1167,
+      "lon": -8.5375,
+      "ap": "FAO",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2768,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "stiniva-beach-vis",
+      "category": "beach",
+      "title": "Stiniva Beach",
+      "location": "Vis Island, Croatia",
+      "lat": 43.0367,
+      "lon": 16.1322,
+      "ap": "SPU",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 405,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliff-Locked Cove",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "punta-rata-brela",
+      "category": "beach",
+      "title": "Punta Rata Brela",
+      "location": "Makarska, Croatia",
+      "lat": 43.3656,
+      "lon": 16.9189,
+      "ap": "SPU",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 442,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pine-Lined Cove",
+        "Crystal Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pasjaca-beach-croatia",
+      "category": "beach",
+      "title": "Pasjača Beach",
+      "location": "Konavle, Croatia",
+      "lat": 42.5275,
+      "lon": 18.4528,
+      "ap": "DBV",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 479,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliffside Stairs",
+        "Hidden Cove"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "plaka-beach-naxos",
+      "category": "beach",
+      "title": "Plaka Beach Naxos",
+      "location": "Naxos, Greece",
+      "lat": 37.0364,
+      "lon": 25.3725,
+      "ap": "JNX",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 516,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "4km of Sand",
+        "Dune-Backed"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mikri-vigla-naxos",
+      "category": "beach",
+      "title": "Mikri Vigla Naxos",
+      "location": "Naxos, Greece",
+      "lat": 37.0072,
+      "lon": 25.4131,
+      "ap": "JNX",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 553,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kitesurfing",
+        "White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tsambika-beach-rhodes",
+      "category": "beach",
+      "title": "Tsambika Beach",
+      "location": "Rhodes, Greece",
+      "lat": 36.2306,
+      "lon": 28.1825,
+      "ap": "RHO",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 590,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Monastery Backdrop",
+        "Golden Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "firiplaka-milos",
+      "category": "beach",
+      "title": "Firiplaka Beach",
+      "location": "Milos, Greece",
+      "lat": 36.68,
+      "lon": 24.4536,
+      "ap": "MLO",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 627,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Volcanic Pumice",
+        "Crystal Aegean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "amoudi-bay-santorini",
+      "category": "beach",
+      "title": "Amoudi Bay",
+      "location": "Santorini, Greece",
+      "lat": 36.4664,
+      "lon": 25.3658,
+      "ap": "JTR",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 664,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Caldera Views",
+        "Cliffside Tavernas"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "perissa-beach-santorini",
+      "category": "beach",
+      "title": "Perissa Beach",
+      "location": "Santorini, Greece",
+      "lat": 36.3539,
+      "lon": 25.475,
+      "ap": "JTR",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 701,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Black Volcanic Sand",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "super-paradise-mykonos",
+      "category": "beach",
+      "title": "Super Paradise Mykonos",
+      "location": "Mykonos, Greece",
+      "lat": 37.4047,
+      "lon": 25.3372,
+      "ap": "JMK",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 738,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Party Sunset",
+        "See & Be Seen"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "elia-beach-mykonos",
+      "category": "beach",
+      "title": "Elia Beach Mykonos",
+      "location": "Mykonos, Greece",
+      "lat": 37.44,
+      "lon": 25.3997,
+      "ap": "JMK",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 775,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Longest Beach",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kaputas-beach-turkey",
+      "category": "beach",
+      "title": "Kaputaş Beach",
+      "location": "Antalya, Turkey",
+      "lat": 36.1944,
+      "lon": 29.3536,
+      "ap": "DLM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 812,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Cove",
+        "Limestone Cliffs"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "iztuzu-beach-turkey",
+      "category": "beach",
+      "title": "İztuzu Beach",
+      "location": "Dalyan, Turkey",
+      "lat": 36.7869,
+      "lon": 28.6175,
+      "ap": "DLM",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 849,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turtle Nesting",
+        "4km of Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "patong-beach-phuket",
+      "category": "beach",
+      "title": "Patong Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.9028,
+      "lon": 98.2972,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 886,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Non-Stop Party Beach",
+        "Nightlife"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "karon-beach-phuket",
+      "category": "beach",
+      "title": "Karon Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.8467,
+      "lon": 98.295,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 923,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Squeaky Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kata-beach-phuket",
+      "category": "beach",
+      "title": "Kata Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.82,
+      "lon": 98.2967,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 960,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "freedom-beach-phuket",
+      "category": "beach",
+      "title": "Freedom Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.8531,
+      "lon": 98.2625,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 997,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hidden Cove",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "nai-harn-phuket",
+      "category": "beach",
+      "title": "Nai Harn Beach",
+      "location": "Phuket, Thailand",
+      "lat": 7.7747,
+      "lon": 98.3056,
+      "ap": "HKT",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1034,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ao-nang-beach-krabi",
+      "category": "beach",
+      "title": "Ao Nang Beach",
+      "location": "Krabi, Thailand",
+      "lat": 8.0322,
+      "lon": 98.8255,
+      "ap": "KBV",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1071,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Long-Tail Boat Hub"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "phra-nang-beach-krabi",
+      "category": "beach",
+      "title": "Phra Nang Beach",
+      "location": "Krabi, Thailand",
+      "lat": 8,
+      "lon": 98.8378,
+      "ap": "KBV",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1108,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "lamai-beach-koh-samui",
+      "category": "beach",
+      "title": "Lamai Beach",
+      "location": "Koh Samui, Thailand",
+      "lat": 9.4744,
+      "lon": 100.0517,
+      "ap": "USM",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1145,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calmer Than Chaweng",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "haad-rin-koh-phangan",
+      "category": "beach",
+      "title": "Haad Rin Beach",
+      "location": "Koh Phangan, Thailand",
+      "lat": 9.6722,
+      "lon": 100.0644,
+      "ap": "USM",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1182,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Full Moon Parties",
+        "Nightlife"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "sao-beach-phu-quoc",
+      "category": "beach",
+      "title": "Sao Beach",
+      "location": "Phu Quoc, Vietnam",
+      "lat": 10.0322,
+      "lon": 104.0436,
+      "ap": "PQC",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1219,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bai-khem-phu-quoc",
+      "category": "beach",
+      "title": "Bai Khem (Kem) Beach",
+      "location": "Phu Quoc, Vietnam",
+      "lat": 10.0383,
+      "lon": 104.0289,
+      "ap": "PQC",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1256,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Powdery White Sand",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "my-khe-beach-danang",
+      "category": "beach",
+      "title": "My Khe Beach",
+      "location": "Da Nang, Vietnam",
+      "lat": 16.0667,
+      "lon": 108.2456,
+      "ap": "DAD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1293,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "20km Coastline",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "cua-dai-hoi-an",
+      "category": "beach",
+      "title": "Cua Dai Beach",
+      "location": "Hoi An, Vietnam",
+      "lat": 15.9067,
+      "lon": 108.3878,
+      "ap": "DAD",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1330,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hoi An Doorstep",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "padang-padang-bali",
+      "category": "beach",
+      "title": "Padang Padang Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.8108,
+      "lon": 115.1057,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1367,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sea Cave Coves",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kuta-beach-bali",
+      "category": "beach",
+      "title": "Kuta Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.7194,
+      "lon": 115.17,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1404,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bingin-beach-bali",
+      "category": "beach",
+      "title": "Bingin Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.8053,
+      "lon": 115.1322,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1441,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Reef Break",
+        "Cliffside Cafes"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "dreamland-beach-bali",
+      "category": "beach",
+      "title": "Dreamland Beach",
+      "location": "Bali, Indonesia",
+      "lat": -8.7917,
+      "lon": 115.1244,
+      "ap": "DPS",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1478,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Limestone Cliffs",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tanjung-aan-lombok",
+      "category": "beach",
+      "title": "Tanjung Aan",
+      "location": "Lombok, Indonesia",
+      "lat": -8.8961,
+      "lon": 116.3122,
+      "ap": "LOP",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1515,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pepper Sand",
+        "Twin Bays"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "pink-beach-lombok",
+      "category": "beach",
+      "title": "Pink Beach Lombok",
+      "location": "Lombok, Indonesia",
+      "lat": -8.8919,
+      "lon": 116.6042,
+      "ap": "LOP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1552,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pink Sand",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "nacpan-beach-palawan",
+      "category": "beach",
+      "title": "Nacpan Beach",
+      "location": "El Nido, Palawan",
+      "lat": 11.2917,
+      "lon": 119.4042,
+      "ap": "ENI",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1589,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "4km of Sand",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "las-cabanas-elnido",
+      "category": "beach",
+      "title": "Las Cabanas Beach",
+      "location": "El Nido, Palawan",
+      "lat": 11.175,
+      "lon": 119.3997,
+      "ap": "ENI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1626,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Island-Hopping Hub",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "puka-shell-boracay",
+      "category": "beach",
+      "title": "Puka Shell Beach",
+      "location": "Boracay, Philippines",
+      "lat": 11.9839,
+      "lon": 121.9203,
+      "ap": "MPH",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1663,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Puka Shells",
+        "Uncrowded"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "diniwid-boracay",
+      "category": "beach",
+      "title": "Diniwid Beach",
+      "location": "Boracay, Philippines",
+      "lat": 11.9711,
+      "lon": 121.9117,
+      "ap": "MPH",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1700,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Quiet Side",
+        "Sunset West-Facing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "unawatuna-sri-lanka",
+      "category": "beach",
+      "title": "Unawatuna Beach",
+      "location": "Galle, Sri Lanka",
+      "lat": 6.0103,
+      "lon": 80.2497,
+      "ap": "CMB",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1737,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Crescent Bay",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hikkaduwa-sri-lanka",
+      "category": "beach",
+      "title": "Hikkaduwa Beach",
+      "location": "Sri Lanka",
+      "lat": 6.1392,
+      "lon": 80.1014,
+      "ap": "CMB",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1774,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Surf Breaks",
+        "Coral Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anjuna-beach-goa",
+      "category": "beach",
+      "title": "Anjuna Beach",
+      "location": "Goa, India",
+      "lat": 15.5736,
+      "lon": 73.74,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1811,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hippie Heritage",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "calangute-beach-goa",
+      "category": "beach",
+      "title": "Calangute Beach",
+      "location": "Goa, India",
+      "lat": 15.5444,
+      "lon": 73.7553,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 1848,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Beach Shacks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "vagator-beach-goa",
+      "category": "beach",
+      "title": "Vagator Beach",
+      "location": "Goa, India",
+      "lat": 15.5972,
+      "lon": 73.74,
+      "ap": "GOI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 1885,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Cliffside Views",
+        "Bohemian Beach Town"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "veligandu-maldives",
+      "category": "beach",
+      "title": "Veligandu Island Beach",
+      "location": "Maldives",
+      "lat": 4.35,
+      "lon": 72.795,
+      "ap": "MLE",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 1922,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Overwater Bungalows",
+        "Crystal Caribbean"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "baros-island-maldives",
+      "category": "beach",
+      "title": "Baros Island Beach",
+      "location": "Maldives",
+      "lat": 4.2842,
+      "lon": 73.4264,
+      "ap": "MLE",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 1959,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Resort Island",
+        "House Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "qantab-beach-oman",
+      "category": "beach",
+      "title": "Qantab Beach",
+      "location": "Muscat, Oman",
+      "lat": 23.5642,
+      "lon": 58.6311,
+      "ap": "MCT",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 1996,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Bay",
+        "Desert Meets Sea"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bondi-beach-sydney",
+      "category": "beach",
+      "title": "Bondi Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.8908,
+      "lon": 151.2742,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2033,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Iconic",
+        "Coastal Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "manly-beach-sydney",
+      "category": "beach",
+      "title": "Manly Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.7969,
+      "lon": 151.2856,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2070,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Ferry From CBD",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "bronte-beach-sydney",
+      "category": "beach",
+      "title": "Bronte Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.9036,
+      "lon": 151.2664,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2107,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Ocean Pool",
+        "Local Vibe"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "tamarama-sydney",
+      "category": "beach",
+      "title": "Tamarama Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.8997,
+      "lon": 151.2697,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2144,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Compact Cove",
+        "Bronte Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "palm-beach-sydney",
+      "category": "beach",
+      "title": "Palm Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.5961,
+      "lon": 151.3253,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2181,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Headland Drives",
+        "Lighthouse Walk"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coogee-beach-sydney",
+      "category": "beach",
+      "title": "Coogee Beach",
+      "location": "Sydney, Australia",
+      "lat": -33.9203,
+      "lon": 151.2581,
+      "ap": "SYD",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2218,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Family Friendly",
+        "Ocean Pools"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "hill-inlet-lookout",
+      "category": "beach",
+      "title": "Hill Inlet Lookout",
+      "location": "Whitsundays, Australia",
+      "lat": -20.2625,
+      "lon": 149.0533,
+      "ap": "PPP",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2255,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Hill Inlet Swirl",
+        "Iconic"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "langford-island-spit",
+      "category": "beach",
+      "title": "Langford Island Spit",
+      "location": "Whitsundays, Australia",
+      "lat": -20.1158,
+      "lon": 148.8689,
+      "ap": "PPP",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2292,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sandspit",
+        "Snorkeling Reef"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "yasawa-fiji",
+      "category": "beach",
+      "title": "Yasawa Islands",
+      "location": "Fiji",
+      "lat": -16.8,
+      "lon": 177.3667,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2329,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Castaway Vibe",
+        "Crystal Water"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "mamanucas-fiji",
+      "category": "beach",
+      "title": "Mamanuca Islands",
+      "location": "Fiji",
+      "lat": -17.6667,
+      "lon": 177.1167,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2366,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Reef Snorkeling",
+        "Surf Breaks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "coral-coast-fiji",
+      "category": "beach",
+      "title": "Coral Coast",
+      "location": "Fiji",
+      "lat": -18.1722,
+      "lon": 177.5667,
+      "ap": "NAN",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2403,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Coral Reef",
+        "Family Resorts"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "muri-beach-rarotonga",
+      "category": "beach",
+      "title": "Muri Beach",
+      "location": "Rarotonga, Cook Islands",
+      "lat": -21.2583,
+      "lon": -159.7392,
+      "ap": "AIT",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2440,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Lagoon",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "trou-aux-biches-mauritius",
+      "category": "beach",
+      "title": "Trou aux Biches",
+      "location": "Mauritius",
+      "lat": -20.0344,
+      "lon": 57.5478,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2477,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Turquoise Lagoon",
+        "Family Friendly"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "le-morne-mauritius",
+      "category": "beach",
+      "title": "Le Morne Beach",
+      "location": "Mauritius",
+      "lat": -20.46,
+      "lon": 57.3128,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2514,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "UNESCO Protected",
+        "Kitesurfing"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "flic-en-flac-mauritius",
+      "category": "beach",
+      "title": "Flic en Flac",
+      "location": "Mauritius",
+      "lat": -20.2839,
+      "lon": 57.3631,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2551,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Lagoon"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "ile-aux-cerfs-mauritius",
+      "category": "beach",
+      "title": "Île aux Cerfs",
+      "location": "Mauritius",
+      "lat": -20.27,
+      "lon": 57.7783,
+      "ap": "MRU",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2588,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Day Trip Island",
+        "Crystal Lagoon"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-georgette-praslin",
+      "category": "beach",
+      "title": "Anse Georgette",
+      "location": "Praslin, Seychelles",
+      "lat": -4.3167,
+      "lon": 55.7,
+      "ap": "PRI",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 2625,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Granite Boulders",
+        "Quiet & Pristine"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-volbert-praslin",
+      "category": "beach",
+      "title": "Anse Volbert",
+      "location": "Praslin, Seychelles",
+      "lat": -4.3147,
+      "lon": 55.7392,
+      "ap": "PRI",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 2662,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Long Curve",
+        "Calm Waters"
+      ],
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "beau-vallon-mahe",
+      "category": "beach",
+      "title": "Beau Vallon Beach",
+      "location": "Mahé, Seychelles",
+      "lat": -4.62,
+      "lon": 55.4297,
+      "ap": "SEZ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 2699,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Beach Bars"
+      ],
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "anse-severe-la-digue",
+      "category": "beach",
+      "title": "Anse Severe",
+      "location": "La Digue, Seychelles",
+      "lat": -4.3492,
+      "lon": 55.8294,
+      "ap": "SEZ",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 2736,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Calm Reef",
+        "Bicycle Access"
+      ],
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "kendwa-zanzibar",
+      "category": "beach",
+      "title": "Kendwa Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -5.7228,
+      "lon": 39.2942,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.8,
+      "reviews": 2773,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Sunset West-Facing",
+        "Calm Tides"
+      ],
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "matemwe-zanzibar",
+      "category": "beach",
+      "title": "Matemwe Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -5.8333,
+      "lon": 39.3667,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.4,
+      "reviews": 410,
+      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Pristine",
+        "Mnemba Atoll Dives"
+      ],
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "paje-zanzibar",
+      "category": "beach",
+      "title": "Paje Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -6.2625,
+      "lon": 39.5333,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.5,
+      "reviews": 447,
+      "gradient": "linear-gradient(160deg,#0a4566,#1b85b0,#6dc7e3)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Kitesurfing",
+        "Powdery White Sand"
+      ],
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "jambiani-zanzibar",
+      "category": "beach",
+      "title": "Jambiani Beach",
+      "location": "Zanzibar, Tanzania",
+      "lat": -6.3033,
+      "lon": 39.5478,
+      "ap": "ZNZ",
+      "icon": "🏖️",
+      "rating": 4.6,
+      "reviews": 484,
+      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Village Vibe",
+        "Low Tide Walks"
+      ],
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+    },
+    {
+      "id": "watamu-kenya",
+      "category": "beach",
+      "title": "Watamu Beach",
+      "location": "Kenya",
+      "lat": -3.3567,
+      "lon": 40.0197,
+      "ap": "MBA",
+      "icon": "🏖️",
+      "rating": 4.7,
+      "reviews": 521,
+      "gradient": "linear-gradient(160deg,#005c8a,#1e96bf,#7fd4e5)",
+      "accent": "#7fd4e5",
+      "tags": [
+        "Marine Park",
+        "Tide Pool Coves"
+      ],
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+    },
+  {
+    "id": "cardrona-nz",
+    "category": "skiing",
+    "title": "Cardrona Alpine Resort",
+    "location": "Otago, New Zealand",
+    "lat": -44.87,
+    "lon": 168.95,
+    "ap": "ZQN",
+    "icon": "🏔️",
+    "rating": 4.6,
+    "reviews": 1180,
+    "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+    "accent": "#6db3f2",
+    "tags": [
+      "All Levels",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65"
+  },
+  {
+    "id": "mt-hutt-nz",
+    "category": "skiing",
+    "title": "Mt Hutt",
+    "location": "Canterbury, New Zealand",
+    "lat": -43.47,
+    "lon": 171.53,
+    "ap": "CHC",
+    "icon": "🎿",
+    "rating": 4.5,
+    "reviews": 940,
+    "gradient": "linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
+    "accent": "#90caf9",
+    "tags": [
+      "High Altitude",
+      "Off-Piste",
+      "Long Season"
+    ],
+    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47"
+  },
+  {
+    "id": "falls-creek-au",
+    "category": "skiing",
+    "title": "Falls Creek",
+    "location": "Victoria, Australia",
+    "lat": -36.87,
+    "lon": 147.28,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 1320,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",
+    "accent": "#7eb3e8",
+    "tags": [
+      "All Levels",
+      "Village Base",
+      "Groomed Runs"
+    ],
+    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61"
+  },
+  {
+    "id": "mt-buller-au",
+    "category": "skiing",
+    "title": "Mt Buller",
+    "location": "Victoria, Australia",
+    "lat": -37.14,
+    "lon": 146.44,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.3,
+    "reviews": 1510,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",
+    "accent": "#82b4e8",
+    "tags": [
+      "Family Friendly",
+      "Groomed Runs",
+      "Village Base"
+    ],
+    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39"
+  },
+  {
+    "id": "mt-hotham-au",
+    "category": "skiing",
+    "title": "Mt Hotham",
+    "location": "Victoria, Australia",
+    "lat": -36.98,
+    "lon": 147.13,
+    "ap": "MEL",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 870,
+    "gradient": "linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",
+    "accent": "#78ace4",
+    "tags": [
+      "Off-Piste",
+      "Expert Terrain",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "charlotte-pass-au",
+    "category": "skiing",
+    "title": "Charlotte Pass",
+    "location": "New South Wales, Australia",
+    "lat": -36.43,
+    "lon": 148.33,
+    "ap": "CBR",
+    "icon": "🏔️",
+    "rating": 4.2,
+    "reviews": 410,
+    "gradient": "linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",
+    "accent": "#76aedf",
+    "tags": [
+      "High Altitude",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "nevados-de-chillan-cl",
+    "category": "skiing",
+    "title": "Nevados de Chillán",
+    "location": "Ñuble, Chile",
+    "lat": -36.91,
+    "lon": -71.4,
+    "ap": "SCL",
+    "icon": "⛷️",
+    "rating": 4.6,
+    "reviews": 760,
+    "gradient": "linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",
+    "accent": "#74aadc",
+    "tags": [
+      "Off-Piste",
+      "Backcountry",
+      "Long Season"
+    ],
+    "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46"
+  },
+  {
+    "id": "la-parva-cl",
+    "category": "skiing",
+    "title": "La Parva",
+    "location": "Santiago, Chile",
+    "lat": -33.33,
+    "lon": -70.28,
+    "ap": "SCL",
+    "icon": "🏔️",
+    "rating": 4.5,
+    "reviews": 690,
+    "gradient": "linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",
+    "accent": "#72a8dc",
+    "tags": [
+      "High Altitude",
+      "Expert Terrain",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67"
+  },
+  {
+    "id": "el-colorado-cl",
+    "category": "skiing",
+    "title": "El Colorado",
+    "location": "Santiago, Chile",
+    "lat": -33.35,
+    "lon": -70.3,
+    "ap": "SCL",
+    "icon": "⛷️",
+    "rating": 4.3,
+    "reviews": 880,
+    "gradient": "linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",
+    "accent": "#7aacdc",
+    "tags": [
+      "All Levels",
+      "High Altitude",
+      "Groomed Runs"
+    ],
+    "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop"
+  },
+  {
+    "id": "corralco-cl",
+    "category": "skiing",
+    "title": "Corralco",
+    "location": "Araucanía, Chile",
+    "lat": -38.3,
+    "lon": -71.58,
+    "ap": "ZCO",
+    "icon": "🏔️",
+    "rating": 4.7,
+    "reviews": 350,
+    "gradient": "linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",
+    "accent": "#78aada",
+    "tags": [
+      "Backcountry",
+      "Scenic Views",
+      "Off-Piste"
+    ],
+    "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49"
+  },
+  {
+    "id": "cerro-catedral-ar",
+    "category": "skiing",
+    "title": "Cerro Catedral",
+    "location": "Bariloche, Argentina",
+    "lat": -41.17,
+    "lon": -71.44,
+    "ap": "BRC",
+    "icon": "⛷️",
+    "rating": 4.6,
+    "reviews": 1420,
+    "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
+    "accent": "#6db3f2",
+    "tags": [
+      "Expert Terrain",
+      "Village Base",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47"
+  },
+  {
+    "id": "las-lenas-ar",
+    "category": "skiing",
+    "title": "Las Leñas",
+    "location": "Mendoza, Argentina",
+    "lat": -35.15,
+    "lon": -70.08,
+    "ap": "MDZ",
+    "icon": "🏔️",
+    "rating": 4.7,
+    "reviews": 980,
+    "gradient": "linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
+    "accent": "#90caf9",
+    "tags": [
+      "Steep Chutes",
+      "Off-Piste",
+      "Expert Terrain"
+    ],
+    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61"
+  },
+  {
+    "id": "chapelco-ar",
+    "category": "skiing",
+    "title": "Chapelco",
+    "location": "Neuquén, Argentina",
+    "lat": -40.2,
+    "lon": -71.3,
+    "ap": "CPC",
+    "icon": "⛷️",
+    "rating": 4.4,
+    "reviews": 520,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",
+    "accent": "#7eb3e8",
+    "tags": [
+      "All Levels",
+      "Family Friendly",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39"
+  },
+  {
+    "id": "caviahue-ar",
+    "category": "skiing",
+    "title": "Caviahue",
+    "location": "Neuquén, Argentina",
+    "lat": -37.85,
+    "lon": -71.05,
+    "ap": "NQN",
+    "icon": "🏔️",
+    "rating": 4.2,
+    "reviews": 280,
+    "gradient": "linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",
+    "accent": "#82b4e8",
+    "tags": [
+      "Backcountry",
+      "Off-Piste",
+      "Scenic Views"
+    ],
+    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop"
+  },
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -711,6 +4523,8 @@ const US_AIRPORTS = [
   { code:"PHX", label:"Phoenix",       flag:"🌵" },
   { code:"MSP", label:"Minneapolis",   flag:"❄️" },
   { code:"DTW", label:"Detroit",       flag:"🚗" },
+  { code:"IAH", label:"Houston",       flag:"🚀" },
+  { code:"PHL", label:"Philadelphia",  flag:"🔔" },
 ];
 
 // ─── full searchable airport list ─────────────────────────────────────────────
@@ -1097,12 +4911,14 @@ async function fetchMarine(lat, lon) {
   if (fromProxy) { _wxCacheSet(cacheKey, fromProxy); return fromProxy; }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
-  // Beach-only after 2026-05-03 surf retirement — only ocean_temperature_max
+  // Beach-only after 2026-05-03 surf retirement — only sea_surface_temperature_max
   // is consumed by scoreVenue (water-temp gate). Wave/swell fields removed
-  // to trim Open-Meteo payload.
+  // to trim Open-Meteo payload. Field was 'ocean_temperature_max' until
+  // 2026-06-07 — Open-Meteo never had that name; marine fetch had been failing
+  // silently and beach venues were scoring without water-temp data.
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
-    `&daily=ocean_temperature_max` +
+    `&daily=sea_surface_temperature_max` +
     `&forecast_days=7&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -1214,7 +5030,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
   // ─── Marine data (beach only — water temp) ──────────────────────────────
   const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
-  const waterTemp = atM(md?.ocean_temperature_max);     // null if no marine
+  const waterTemp = atM(md?.sea_surface_temperature_max); // null if no marine
   const ySnow     = (di > 0 && Array.isArray(d?.snowfall_sum)  && d.snowfall_sum[di-1] != null)
                     ? d.snowfall_sum[di-1] : 0;
 
@@ -1519,6 +5335,17 @@ function upcomingFridayISO(today) {
   const fri = new Date(today);
   fri.setDate(fri.getDate() + daysToFri);
   return fri.toISOString().slice(0, 10);
+}
+
+// "2026-06-19" → "Fri Jun 19". Renders the actual TP-returned round-trip
+// dates under live prices so users see the exact window they're booking.
+const _SD_DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const _SD_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function shortDate(iso) {
+  if (!iso || typeof iso !== "string") return "";
+  const d = new Date(iso + "T12:00:00Z");
+  if (Number.isNaN(d.getTime())) return "";
+  return `${_SD_DAYS[d.getUTCDay()]} ${_SD_MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
 }
 
 function weekendDayIndices(today) {
@@ -2222,6 +6049,58 @@ const AIRPORT_COORDS = {
   BOI:{lat:43.5644,lon:-116.2228}, GEG:{lat:47.6199,lon:-117.5338}, ABQ:{lat:35.0402,lon:-106.6090},
   OKC:{lat:35.3931,lon:-97.6007},  TUL:{lat:36.1984,lon:-95.8881},  MHT:{lat:42.9326,lon:-71.4357},
   ALB:{lat:42.7483,lon:-73.8019},  SYR:{lat:43.1112,lon:-76.1063},  BDL:{lat:41.9389,lon:-72.6832},
+  // US ski/beach gateways referenced by VENUES
+  ASE:{lat:39.2232,lon:-106.8687}, BTV:{lat:44.4719,lon:-73.1533},  BZN:{lat:45.7775,lon:-111.1530},
+  EGE:{lat:39.6426,lon:-106.9177}, EYW:{lat:24.5561,lon:-81.7595},  FCA:{lat:48.3105,lon:-114.2560},
+  GUC:{lat:38.5340,lon:-106.9332}, HDN:{lat:40.4811,lon:-107.2178}, JAC:{lat:43.6073,lon:-110.7377},
+  KOA:{lat:19.7388,lon:-156.0457}, MTJ:{lat:38.5098,lon:-107.8941}, MYR:{lat:33.6797,lon:-78.9283},
+  OGG:{lat:20.8987,lon:-156.4305}, RDD:{lat:40.5090,lon:-122.2934}, SAF:{lat:35.6171,lon:-106.0883},
+  SNA:{lat:33.6757,lon:-117.8682}, SRQ:{lat:27.3954,lon:-82.5544},  SUN:{lat:43.5044,lon:-114.2965},
+  VPS:{lat:30.4832,lon:-86.5254},
+  // Canada
+  YKA:{lat:50.7022,lon:-120.4441}, YLW:{lat:49.9561,lon:-119.3779}, YVR:{lat:49.1939,lon:-123.1844},
+  YYC:{lat:51.1138,lon:-114.0203},
+  // Caribbean / Mexico / Central America
+  AUA:{lat:12.5014,lon:-70.0152},  AXA:{lat:18.2048,lon:-63.0551},  BGI:{lat:13.0746,lon:-59.4925},
+  BOC:{lat:9.3408,lon:-82.2508},   CUN:{lat:21.0365,lon:-86.8771},  CZM:{lat:20.5224,lon:-86.9285},
+  GCM:{lat:19.2929,lon:-81.3577},  HUX:{lat:15.7754,lon:-96.2625},  MBJ:{lat:18.5037,lon:-77.9133},
+  PLS:{lat:21.7736,lon:-72.2659},  PVR:{lat:20.6801,lon:-105.2543}, SJD:{lat:23.1518,lon:-109.7211},
+  SJO:{lat:9.9939,lon:-84.2088},   STT:{lat:18.3373,lon:-64.9734},  SXM:{lat:18.0410,lon:-63.1099},
+  TAB:{lat:11.1497,lon:-60.8322},  UVF:{lat:13.7332,lon:-60.9526},
+  // South America
+  FEN:{lat:-3.8541,lon:-32.4233},  FLN:{lat:-27.6703,lon:-48.5527}, SCL:{lat:-33.3930,lon:-70.7858},
+  USH:{lat:-54.8433,lon:-68.2958}, ZCO:{lat:-38.9263,lon:-72.6517},
+  BRC:{lat:-41.1512,lon:-71.1575}, MDZ:{lat:-32.8317,lon:-68.7928}, CPC:{lat:-40.0754,lon:-71.1373},
+  NQN:{lat:-38.9490,lon:-68.1557},
+  // Europe — ski gateways
+  CMF:{lat:45.6381,lon:5.8800},    GVA:{lat:46.2381,lon:6.1090},    INN:{lat:47.2603,lon:11.3438},
+  INV:{lat:57.5425,lon:-4.0475},   KRK:{lat:50.0777,lon:19.7848},   OSL:{lat:60.1939,lon:11.1004},
+  SOF:{lat:42.6967,lon:23.4114},   SZG:{lat:47.7933,lon:13.0043},   TBS:{lat:41.6694,lon:44.9547},
+  TRN:{lat:45.2008,lon:7.6496},    ZRH:{lat:47.4647,lon:8.5492},
+  // Europe — beach gateways
+  CAG:{lat:39.2515,lon:9.0543},    DBV:{lat:42.5614,lon:18.2683},   DLM:{lat:36.7131,lon:28.7925},
+  EAS:{lat:43.3565,lon:-1.7906},   FAO:{lat:37.0144,lon:-7.9659},   IBZ:{lat:38.8729,lon:1.3731},
+  JMK:{lat:37.4351,lon:25.3481},   JNX:{lat:37.0811,lon:25.3683},   JTR:{lat:36.3992,lon:25.4793},
+  MAH:{lat:39.8626,lon:4.2186},    MLO:{lat:36.6967,lon:24.4769},   NAP:{lat:40.8860,lon:14.2908},
+  NCE:{lat:43.6584,lon:7.2159},    PMI:{lat:39.5517,lon:2.7388},    RHO:{lat:36.4054,lon:28.0862},
+  SPU:{lat:43.5389,lon:16.2980},   TPS:{lat:37.9114,lon:12.4881},
+  // Asia
+  BEY:{lat:33.8208,lon:35.4884},   CMB:{lat:7.1808,lon:79.8841},    CTS:{lat:42.7752,lon:141.6923},
+  DAD:{lat:16.0439,lon:108.1992},  DPS:{lat:-8.7482,lon:115.1672},  ENI:{lat:11.2024,lon:119.4154},
+  GOI:{lat:15.3808,lon:73.8314},   HKT:{lat:8.1132,lon:98.3169},    HNA:{lat:39.4286,lon:141.1351},
+  KBV:{lat:8.0991,lon:98.9862},    KUL:{lat:2.7456,lon:101.7099},   LOP:{lat:-8.7572,lon:116.2769},
+  MCT:{lat:23.5933,lon:58.2844},   MLE:{lat:4.1918,lon:73.5290},    MPH:{lat:11.9244,lon:121.9534},
+  NRT:{lat:35.7720,lon:140.3929},  PQC:{lat:10.2270,lon:103.9670},  USM:{lat:9.5479,lon:100.0617},
+  // Middle East / North Africa
+  RAK:{lat:31.6068,lon:-8.0363},
+  // Oceania
+  AIT:{lat:-18.8309,lon:-159.7641}, BME:{lat:-17.9447,lon:122.2317}, BOB:{lat:-16.4444,lon:-151.7510},
+  CBR:{lat:-35.3069,lon:149.1947},  CNS:{lat:-16.8858,lon:145.7553}, LEA:{lat:-22.2356,lon:114.0889},
+  NAN:{lat:-17.7553,lon:177.4413},  PPP:{lat:-20.4950,lon:148.5524}, SYD:{lat:-33.9461,lon:151.1772},
+  ZQN:{lat:-45.0211,lon:168.7392},  CHC:{lat:-43.4894,lon:172.5320}, MEL:{lat:-37.6690,lon:144.8410},
+  // Sub-Saharan Africa + Indian Ocean
+  INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
+  PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
 };
 
 // ─── Great-circle flight time estimate ────────────────────────────────────────
@@ -2603,7 +6482,7 @@ function useCloudSync() {
     };
   }, [user, pushNow]);
 
-  const signIn = useCallback(async (email) => {
+  const signIn = useCallback(async (email, profileMeta) => {
     if (!CLOUD_SYNC_CONFIGURED) return { ok: false, error: "Cloud sync disabled" };
     if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid email" };
     setStatus("syncing");
@@ -2621,9 +6500,18 @@ function useCloudSync() {
         });
         useCloudSync._authListenerAttached = true;
       }
+      // Optional name + phone get attached to auth.users.user_metadata so the
+      // info is recoverable from Supabase even if the user_data jsonb gets
+      // wiped. They also live in localStorage peakly_profile and sync that way.
+      const data = {};
+      if (profileMeta?.name)  data.full_name = profileMeta.name;
+      if (profileMeta?.phone) data.phone     = profileMeta.phone;
       const { error } = await client.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin + "/peakly/" },
+        options: {
+          emailRedirectTo: window.location.origin + "/peakly/",
+          ...(Object.keys(data).length ? { data } : {}),
+        },
       });
       if (error) throw error;
       setStatus("checking_email");
@@ -2725,6 +6613,28 @@ function getGoVerdict(score) {
   return { label:"WAIT", color:"#ef4444", bg:"#fee2e2" };
 }
 
+// Small UV index pill (☀️ UV N) — tinted by intensity. Renders next to the
+// verdict pill on every card so users can see at a glance how sunny it is.
+function UVBadge({ uv, size = "sm" }) {
+  if (uv == null || !Number.isFinite(uv)) return null;
+  const u = Math.round(uv);
+  const tint = u >= 8 ? { bg:"#fee2e2", fg:"#b91c1c" }   // very high — red
+             : u >= 6 ? { bg:"#ffedd5", fg:"#c2410c" }   // high — orange
+             : u >= 3 ? { bg:"#fef3c7", fg:"#a16207" }   // moderate — amber
+             :          { bg:"#f1f5f9", fg:"#475569" };  // low — gray
+  const isSm = size === "sm";
+  return (
+    <div style={{
+      display:"inline-flex", alignItems:"center", gap:3,
+      background: tint.bg, borderRadius: isSm ? 6 : 8,
+      padding: isSm ? "2px 6px" : "3px 10px",
+    }}>
+      <span style={{ fontSize: isSm ? 10 : 12 }}>☀️</span>
+      <span style={{ fontSize: isSm ? 9 : 11, fontWeight:800, color: tint.fg, fontFamily:F }}>UV {u}</span>
+    </div>
+  );
+}
+
 function GoVerdictBadge({ score, size = "sm" }) {
   const v = getGoVerdict(score);
   const isSm = size === "sm";
@@ -2778,7 +6688,7 @@ function SkeletonCard() {
 }
 
 // ─── listing card ─────────────────────────────────────────────────────────────
-function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlertToggle }) {
+function ListingCardImpl({ listing, wishlists, onToggle, onOpen, alertedIds, onAlertToggle }) {
   const saved = wishlists.includes(listing.id);
   const alerted = !!(alertedIds && alertedIds.has(listing.id));
   const [savedAnim, setSavedAnim] = useState(false);
@@ -2879,20 +6789,19 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
                   <span className="shimmer" style={{ width: 28, height: 9, borderRadius: 4, display: "inline-block" }} />
                 </div>
               )}
-              <div style={{ ...PILL, background: "rgba(255,255,255,0.92)", color: "#0284c7", flexShrink: 0 }}>
-                <span style={{ fontSize: 10 }}>✈️</span>
-                {listing.flightsLoading && !listing.flight.live ? (
-                  <span className="shimmer" style={{ width: 36, height: 9, borderRadius: 4, display: "inline-block" }} />
-                ) : (
-                  <span>{listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
-                )}
-              </div>
               <div style={{
                 ...PILL, background: "rgba(0,0,0,0.55)", color: "#fff",
                 backdropFilter: "blur(6px)", minWidth: 0, flex: "1 1 auto",
-                overflow: "hidden", whiteSpace: "nowrap",
+                height: "auto", minHeight: 22, padding: "3px 10px",
+                lineHeight: 1.25,
               }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  wordBreak: "break-word",
+                }}>
                   {listing.conditionLabel}
                 </span>
               </div>
@@ -2906,53 +6815,53 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
         <div style={{ fontWeight:700, fontSize:14, color:"#222", fontFamily:F, lineHeight:1.2 }}>
           {listing.title}
         </div>
-        {/* Location + Best-window pill on one row — collapses three rows of meta */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:3 }}>
-          <div style={{ color:"#717171", fontSize:12, fontFamily:F, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {listing.location}
-            {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
-          </div>
-          {listing.bestWindow && (
-            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>
+        {/* Location — own row so long names like "Kelingking Secret Beach"
+            wrap cleanly without truncation */}
+        <div style={{ color:"#717171", fontSize:12, fontFamily:F, marginTop:3, lineHeight:1.35, wordBreak:"break-word" }}>
+          {listing.location}
+          {listing.breakType && <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:"#0284c7", background:"#e0f2fe", borderRadius:4, padding:"1px 5px", textTransform:"capitalize", letterSpacing:0.3 }}>{listing.breakType} break</span>}
+        </div>
+        {listing.bestWindow && (
+          <div style={{ marginTop:5 }}>
+            <span style={{ fontSize:10, color:"#0284c7", fontWeight:700, fontFamily:F, background:"#e0f2fe", borderRadius:6, padding:"2px 6px", display:"inline-block" }}>
               Best: {listing.bestWindow.day} · {listing.bestWindow.score}/100
             </span>
-          )}
-        </div>
+          </div>
+        )}
         {listing.weekendConfidence === "medium" && (
           <div style={{ fontSize:10, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:4 }}>
             5-day forecast — may shift
           </div>
         )}
-        <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"nowrap", overflow:"hidden" }}>
-          {listing.tags.slice(0,3).map(t => (
-            <span key={t} style={{
-              background:"#f7f7f7", border:"1px solid #e8e8e8", borderRadius:10,
-              padding:"2px 7px", fontSize:10, color:"#444", fontWeight:700, fontFamily:F,
-              whiteSpace:"nowrap", flexShrink:0,
-            }}>{t}</span>
-          ))}
-        </div>
         <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-            {listing.flightsLoading && !listing.flight.live ? (
-              <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
-            ) : listing.flight.live ? (
-              <>
-                <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
-                {listing.flight.pct >= 10 && (
-                  <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
-                )}
-              </>
-            ) : (
-              <span style={{ fontSize:14, fontWeight:700, color:"#717171", fontFamily:F }}>~${listing.flight.price} typical</span>
+          <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
+              {listing.flightsLoading && !listing.flight.live ? (
+                <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
+              ) : listing.flight.live ? (
+                <>
+                  <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
+                  {listing.flight.pct >= 10 && (
+                    <span style={{ fontSize:12, color:"#b0b0b0", textDecoration:"line-through", fontFamily:F }}>${listing.flight.normal}</span>
+                  )}
+                </>
+              ) : (
+                <span style={{ fontSize:14, fontWeight:700, color:"#717171", fontFamily:F }}>~${listing.flight.price} typical</span>
+              )}
+            </div>
+            {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, lineHeight:1.35 }}>
+                {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+              </div>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
             onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }}
-            style={{ textDecoration:"none" }}>
+            style={{ textDecoration:"none", flexShrink:0 }}>
             <div className="pressable" style={{
               background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20,
               padding:"7px 12px", minHeight:32, display:"flex", alignItems:"center", gap:4,
+              whiteSpace:"nowrap",
             }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
@@ -2963,9 +6872,13 @@ function ListingCard({ listing, wishlists, onToggle, onOpen, alertedIds, onAlert
     </div>
   );
 }
+// React.memo so a parent re-render (search keystroke, modal open) doesn't
+// re-render 400+ cards. Stable listing refs come from the useMemo on the
+// listings array in App.
+const ListingCard = React.memo(ListingCardImpl);
 
 // ─── featured card (horizontal scroll) ───────────────────────────────────────
-function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
+function FeaturedCardImpl({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   return (
     <div className="card" onClick={() => onOpen && onOpen(listing)} style={{ minWidth:300, borderRadius:20, overflow:"hidden", flexShrink:0, background:"#fff", boxShadow:"0 1px 6px rgba(0,0,0,0.08)" }}>
@@ -3009,7 +6922,8 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           )}
         </div>
         <div style={{
-          position:"absolute", bottom:10, left:12,
+          position:"absolute", bottom:10, left:12, right:12,
+          display:"flex", alignItems:"center", gap:5, flexWrap:"wrap",
         }}>
           <span style={{
             background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
@@ -3024,18 +6938,23 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
           {listing.location} · {listing.period}
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div>
+          <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
             {listing.flightsLoading && !listing.flight.live ? (
               <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
             ) : (
-              <>
+              <div>
                 <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
                 <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
-              </>
+              </div>
+            )}
+            {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+              <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap" }}>
+                {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+              </div>
             )}
           </div>
           <a href={buildFlightUrl(listing.flight.from || "JFK", listing.ap, { startDate: listing.flight.depDate, endDate: listing.flight.retDate })} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()} style={{ textDecoration:"none" }}>
+            onClick={e => { e.stopPropagation(); haptic("heavy"); if (window.plausible) plausible('book_click', {props: {venue: listing.title, category: listing.category}}); }} style={{ textDecoration:"none" }}>
             <div className="pressable" style={{ background:"linear-gradient(135deg,#1a56db,#0ea5e9)", borderRadius:20, padding:"8px 14px", minHeight:36, display:"flex", alignItems:"center", gap:4 }}>
               <span style={{ fontSize:11 }}>✈️</span>
               <span style={{ fontSize:11, fontWeight:800, color:"white", fontFamily:F }}>Book</span>
@@ -3046,9 +6965,10 @@ function FeaturedCard({ listing, wishlists, onToggle, onOpen }) {
     </div>
   );
 }
+const FeaturedCard = React.memo(FeaturedCardImpl);
 
 // ─── compact card (3-column grid) ────────────────────────────────────────────
-function CompactCard({ listing, wishlists, onToggle, onOpen }) {
+function CompactCardImpl({ listing, wishlists, onToggle, onOpen }) {
   const saved = wishlists.includes(listing.id);
   const shortTitle = listing.title.split(",")[0];
   const shortLoc   = listing.location.split(",").slice(-1)[0]?.trim() || listing.location.split(",")[0];
@@ -3088,12 +7008,13 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
 
         {/* Condition label */}
         <div style={{
-          position:"absolute", bottom:5, left:5,
+          position:"absolute", bottom:5, left:5, right:5,
         }}>
           <span style={{
-            color:"#fff", fontSize:10, fontWeight:600, fontFamily:F,
+            color:"#fff", fontSize:10, fontWeight:600, fontFamily:F, lineHeight:1.25,
             textShadow:"0 1px 3px rgba(0,0,0,0.8)",
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"100%",
+            display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+            overflow:"hidden", wordBreak:"break-word",
           }}>{listing.conditionLabel}</span>
         </div>
       </div>
@@ -3132,6 +7053,11 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
             </>
           )}
         </div>
+        {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+          <div style={{ fontSize:9, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap", marginTop:2 }}>
+            {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+          </div>
+        )}
         {listing.weekendConfidence === "medium" && (
           <div style={{ fontSize:9, color:"#a16207", fontFamily:F, fontWeight:700, marginTop:3 }}>
             5-day fcst
@@ -3141,6 +7067,7 @@ function CompactCard({ listing, wishlists, onToggle, onOpen }) {
     </div>
   );
 }
+const CompactCard = React.memo(CompactCardImpl);
 
 // ─── search sheet ─────────────────────────────────────────────────────────────
 // 7-day forecast is the product, not a limit. We removed the "When" chip row
@@ -3163,8 +7090,6 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     sort: filters?.sort || "score",
     maxPrice: filters?.maxPrice ?? 1000,
     maxFlightHrs: filters?.maxFlightHrs ?? null,
-    startDate: filters?.startDate || "",
-    endDate: filters?.endDate || "",
   });
   const [apQuery, setApQuery] = useState("");
   const [apFocus, setApFocus] = useState(false);
@@ -3218,7 +7143,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
   const apply = () => {
     const next = { activities: local.activities, destination: local.destination, when: local.when, continent: local.continent, fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, skiPass: local.skiPass };
     setSearch(next);
-    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs, startDate: local.startDate, endDate: local.endDate });
+    if (setFilters) setFilters({ sort: local.sort, maxPrice: local.maxPrice, maxFlightHrs: local.maxFlightHrs });
     onApply(next);
     onClose();
   };
@@ -3250,7 +7175,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           </div>
           <div style={{ padding:"0 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:18, fontWeight:900, color:"#222", fontFamily:F }}>Plan a trip</span>
-            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:1000, maxFlightHrs:6, startDate:"", endDate:"" })}
+            <button onClick={() => setLocal({ activities:[], destination:"", when:"anytime", continent:"", fromAirport: local.fromAirport, fromAirport2: local.fromAirport2, sort:"score", maxPrice:2000, maxFlightHrs:null })}
               style={{ background:"none", border:"none", fontSize:12, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer" }}>
               Reset
             </button>
@@ -3299,18 +7224,18 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
               ))}
             </div>
           )}
-          {/* Top 10 popular airports */}
+          {/* Popular airports — full even grid (16 = 4×4, no ragged row) */}
           {!apFocus && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
-              {US_AIRPORTS.slice(0, 10).map(ap => {
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:6, marginBottom:6 }}>
+              {US_AIRPORTS.map(ap => {
                 const sel1 = local.fromAirport === ap.code;
                 return (
                   <button key={ap.code} onClick={() => { setLocal(l => ({...l, fromAirport:ap.code})); setApQuery(""); }} style={{
-                      padding:"6px 10px", borderRadius:14, cursor:"pointer",
+                      padding:"8px 6px", borderRadius:12, cursor:"pointer", textAlign:"center",
                       background: sel1 ? "#222" : "#f5f5f5",
                       color:      sel1 ? "#fff" : "#555",
                       border:"none",
-                      fontSize:11, fontWeight:700, fontFamily:F,
+                      fontSize:12, fontWeight:700, fontFamily:F,
                   }}>{ap.code}</button>
                 );
               })}
@@ -3450,21 +7375,10 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
           )}
         </div>
 
-        {/* ── Travel dates + Budget (compact row) ── */}
+        {/* ── Budget (date picker removed — pricing always for upcoming Friday) ── */}
         <div style={{ padding:"14px 20px 0" }}>
           <div style={{ display:"flex", gap:10 }}>
             <div style={{ flex:1 }}>
-              <SectionLabel>Dates</SectionLabel>
-              <div style={{ display:"flex", gap:6 }}>
-                <input type="date" value={local.startDate || ""}
-                  onChange={e => setLocal(l => ({...l, startDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.startDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.startDate ? "#0c4a6e" : "#aaa", background: local.startDate ? "#f0f9ff" : "#fafafa", fontWeight: local.startDate ? 700 : 400, minWidth:0 }} />
-                <input type="date" value={local.endDate || ""}
-                  onChange={e => setLocal(l => ({...l, endDate:e.target.value}))}
-                  style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1.5px solid ${local.endDate ? "#0284c7" : "#e8e8e8"}`, fontSize:12, fontFamily:F, color: local.endDate ? "#0c4a6e" : "#aaa", background: local.endDate ? "#f0f9ff" : "#fafafa", fontWeight: local.endDate ? 700 : 400, minWidth:0 }} />
-              </div>
-            </div>
-            <div style={{ width:100 }}>
               <SectionLabel>Budget</SectionLabel>
               <div style={{ background:"#fafafa", border:"1.5px solid #e8e8e8", borderRadius:8, padding:"8px 10px", textAlign:"center" }}>
                 <span style={{ fontSize:13, fontWeight:800, color: local.maxPrice >= 2000 ? "#999" : "#0284c7", fontFamily:F }}>
@@ -3489,16 +7403,18 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
         {/* ── Region ── */}
         <div style={{ padding:"12px 20px 0" }}>
           <SectionLabel>Region</SectionLabel>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
             {CONTINENTS.map(cont => {
               const sel = local.continent === cont.id;
               return (
                 <button key={cont.id} onClick={() => toggleContinent(cont.id)} style={{
-                    padding:"6px 12px", borderRadius:16, cursor:"pointer",
+                    padding:"10px 16px", borderRadius:20, cursor:"pointer",
                     background: sel ? "#0284c7" : "#f5f5f5",
                     color:      sel ? "#fff" : "#555",
                     border:"none",
-                    fontSize:11, fontWeight:700, fontFamily:F,
+                    fontSize:13, fontWeight:800, fontFamily:F,
+                    boxShadow: sel ? "0 3px 10px rgba(2,132,199,0.28)" : "none",
+                    transition:"transform 0.12s ease, box-shadow 0.12s ease",
                 }}>
                   {cont.label}
                 </button>
@@ -3569,7 +7485,7 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
 }
 
 // ─── search bar ───────────────────────────────────────────────────────────────
-function SearchBar({ search, onOpen }) {
+function SearchBar({ search, onOpen, compact = false }) {
   const acts = search.activities || [];
   const hasSearch = search.destination || acts.length > 0 || search.when !== "anytime" || search.continent;
 
@@ -3589,6 +7505,30 @@ function SearchBar({ search, onOpen }) {
   const whenLabel = "This weekend";
   const contLabel = search.continent ? " · " + (CONTINENTS.find(c => c.id === search.continent)?.label ?? "") : "";
 
+  // Compact mode renders inline next to the wordmark — single line, no
+  // subtitle, lighter shadow. Used in the Explore header to free up vertical
+  // space for the first carousel.
+  if (compact) {
+    return (
+      <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
+        display:"flex", alignItems:"center",
+        background:"#f5f5f5", borderRadius:24,
+        border:"1.5px solid #ebebeb",
+        padding:"8px 6px 8px 14px", gap:8, cursor:"pointer",
+      }}>
+        <div style={{ flex:1, minWidth:0, fontSize:13, fontWeight:700, color: hasSearch ? "#222" : "#888", fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {hasSearch ? topLine : "Search venues"}
+        </div>
+        <div style={{
+          background: hasSearch ? "#222" : "#0284c7",
+          borderRadius:18, width:30, height:30, flexShrink:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <span style={{ fontSize:13 }}>🔍</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div onClick={onOpen} className="pressable" role="button" aria-label="Search venues" style={{
       display:"flex", alignItems:"center",
@@ -3650,7 +7590,7 @@ function AlertBanner({ count, onView }) {
 
 // ─── filter sheet ─────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
-  { id:"score",  label:"Best conditions" },
+  { id:"score",  label:"Best weekend" },
   { id:"price",  label:"Cheapest flights" },
   { id:"value",  label:"Best value" },
   { id:"deal",   label:"Best Deal" },
@@ -3841,27 +7781,23 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
       return hrs <= filters.maxFlightHrs || (l.weekendScore || 0) >= 95;
     });
   }
-  // Date range filter
-  if (filters.startDate) {
-    const start = new Date(filters.startDate);
-    if (!isNaN(start)) out = out.filter(l => {
-      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
-      return !dep || dep >= start;
-    });
-  }
-  if (filters.endDate) {
-    const end = new Date(filters.endDate);
-    if (!isNaN(end)) out = out.filter(l => {
-      const dep = l.flight?.departure ? new Date(l.flight.departure) : null;
-      return !dep || dep <= end;
-    });
-  }
-  if (filters.sort === "score") out = [...out].sort((a,b) => b.conditionScore - a.conditionScore);
-  if (filters.sort === "price") out = [...out].sort((a,b) => a.flight.price   - b.flight.price);
+  // Stable tiebreak by id so equal-score venues never jitter between renders.
+  const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  // Default "score" = Best weekend: rank by the Fri–Mon Weekend Score (the
+  // product/moat the hero + "Firing this weekend" carousel also use), tie-broken
+  // by live deal score → cheaper fare → id. Keeps the grid consistent with the
+  // front page instead of ranking by today-only conditions.
+  if (filters.sort === "score") out = [...out].sort((a, b) =>
+    (b.weekendScore || 0) - (a.weekendScore || 0)
+    || (b.dealScore || 0) - (a.dealScore || 0)
+    || (a.flight.price || 0) - (b.flight.price || 0)
+    || byId(a, b)
+  );
+  if (filters.sort === "price") out = [...out].sort((a,b) => (a.flight.price - b.flight.price) || byId(a, b));
   if (filters.sort === "value") out = [...out].sort((a,b) => {
     const valA = a.conditionScore / (a.flight.price || 1);
     const valB = b.conditionScore / (b.flight.price || 1);
-    return valB - valA;
+    return (valB - valA) || byId(a, b);
   });
   // "Best Deal" — gated on flight.live (estimates / no-deal-score venues sink
   // to the bottom rather than disappearing, so the list still feels populated
@@ -3870,8 +7806,17 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
     const aLive = a.flight?.live === true && a.dealScore != null;
     const bLive = b.flight?.live === true && b.dealScore != null;
     if (aLive !== bLive) return aLive ? -1 : 1;
-    return (b.dealScore || 0) - (a.dealScore || 0);
+    return ((b.dealScore || 0) - (a.dealScore || 0)) || byId(a, b);
   });
+  // Exact-fare-only mode: 7-day spontaneous-trip product can't show venues
+  // without a confirmed same-day price. Filter to live fares once they've
+  // loaded; degrade gracefully if Travelpayouts returns nothing for ANY
+  // venue (proxy/upstream down) by showing the full list with estimates.
+  const anyFlightLoading = out.some(l => l.flightsLoading);
+  if (!anyFlightLoading) {
+    const liveOnly = out.filter(l => l.flight?.live === true);
+    if (liveOnly.length > 0) out = liveOnly;
+  }
   return out;
 }
 
@@ -3879,6 +7824,52 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
 //   - Standard: browser fired beforeinstallprompt (Chrome/Edge/Samsung Internet) → one-tap install
 //   - iOS tip:  iOS Safari (no programmatic install) → "Add to Home Screen" instructions
 // Both share the same dismissal flag so users see at most one nudge.
+// One-line account nudge above Explore once the user shows intent (3+ saves
+// and no account yet). Reuses the 14-day time-decay dismissal pattern from
+// InstallNudge — a stale "not now" tap shouldn't silence the nudge forever.
+function AccountNudgeBanner({ wishlistCount, cloudSync, onGoToProfile }) {
+  const DISMISS_TTL_MS = 14 * 24 * 3600 * 1000;
+  const isDismissedNow = () => {
+    try {
+      const raw = localStorage.getItem("peakly_account_nudge_dismissed");
+      if (!raw) return false;
+      const ts = parseInt(raw, 10);
+      return Number.isFinite(ts) && (Date.now() - ts) < DISMISS_TTL_MS;
+    } catch { return false; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissedNow);
+  if (!cloudSync?.enabled || cloudSync.user) return null;
+  if (wishlistCount < 3 || dismissed) return null;
+  const recordDismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_account_nudge_dismissed", String(Date.now())); } catch {}
+  };
+  return (
+    <div style={{ padding:"0 20px 14px" }}>
+      <div style={{
+        background:"#fff", border:"1.5px solid #e0f2fe", borderRadius:14,
+        padding:"12px 14px", display:"flex", alignItems:"center", gap:12,
+        boxShadow:"0 2px 12px rgba(2,132,199,0.10)",
+      }}>
+        <button onClick={() => onGoToProfile && onGoToProfile()} className="pressable" style={{
+          flex:1, background:"none", border:"none", textAlign:"left", padding:0, cursor:"pointer", fontFamily:F,
+          display:"flex", alignItems:"center", gap:10,
+        }}>
+          <span style={{ fontSize:22 }}>🔔</span>
+          <div>
+            <div style={{ fontSize:13, fontWeight:800, color:"#222" }}>Save these for next time</div>
+            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>Get pushed the moment conditions are firing.</div>
+          </div>
+        </button>
+        <button onClick={recordDismiss} aria-label="Dismiss" style={{
+          background:"none", border:"none", color:"#bbb", fontSize:18, fontWeight:700,
+          cursor:"pointer", padding:"4px 6px", lineHeight:1,
+        }}>×</button>
+      </div>
+    </div>
+  );
+}
+
 function InstallNudge({ wishlistCount }) {
   const { canInstall, trigger } = useInstallPrompt();
   // Time-decay dismissal: a "not now" tap re-prompts after 14 days. Permanent
@@ -3970,21 +7961,210 @@ function InstallNudge({ wishlistCount }) {
 
 // Tiny pill showing cloud-sync status. Hidden when sync is disabled
 // (placeholder constants) so existing users see no change.
+// Diagnostic pill — surfaces VPS proxy + flight + APNS state at a glance.
+// Polls /health on mount + every 60s. Renders three dots; tap to expand.
+function ServiceStatusPill() {
+  const [health, setHealth] = useState(null);
+  const [flightStatus, setFlightStatus] = useState("unknown");
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 5000);
+        const r = await fetch("https://peakly-api.duckdns.org/health", { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!alive) return;
+        if (r.ok) setHealth(await r.json());
+        else setHealth({ status: "down" });
+      } catch { if (alive) setHealth({ status: "down" }); }
+      if (alive) setFlightStatus(getFlightApiStatus());
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+  const wx = !health ? "unknown" : health.status === "ok" ? "live" : "down";
+  const fl = flightStatus;
+  const ap = !health ? "unknown" : (health.apns === "configured" || health.apns_configured === true ? "live" : "off");
+  const dot = s => s === "live" ? "#16a34a" : s === "down" ? "#ef4444" : s === "off" ? "#f59e0b" : "#bbb";
+  const Dot = ({ icon, state }) => (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+      <span style={{ fontSize: 12 }}>{icon}</span>
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: dot(state) }} />
+    </span>
+  );
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12 }}>
+      <button onClick={() => setOpen(o => !o)} className="pressable" style={{
+        width: "100%", background: "#f9f9f9", border: "1px solid #ececec", borderRadius: 12,
+        padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        cursor: "pointer", fontFamily: F,
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Service status</span>
+        <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Dot icon="🌤" state={wx} />
+          <Dot icon="✈️" state={fl} />
+          <Dot icon="🔔" state={ap} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ marginTop: 6, padding: "10px 14px", background: "#fff", border: "1px solid #ececec", borderRadius: 12, fontFamily: F, fontSize: 11, color: "#555", lineHeight: 1.7 }}>
+          <div>🌤 Weather proxy: {wx === "live" ? "live ✓" : "down — direct Open-Meteo fallback"}</div>
+          <div>✈️ Flight pricing: {fl === "live" ? "live ✓" : fl === "down" ? "down — showing estimates" : "no calls yet"}</div>
+          <div>🔔 iOS push (APNS): {ap === "live" ? "configured ✓" : "not configured"}</div>
+          {health && health.wx_cache_size != null && (
+            <div style={{ marginTop: 4, color: "#888" }}>
+              Weather cache: {health.wx_cache_size} · alerts: {health.alerts || 0} · poll errors: {health.poll?.errors ?? "n/a"}
+            </div>
+          )}
+          <div style={{ marginTop: 4, color: "#888", fontSize: 10 }}>Build {PEAKLY_BUILD}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SyncStatusPill({ cloudSync }) {
   if (!cloudSync || !cloudSync.enabled) return null;
   const map = {
-    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not synced" },
+    signed_out:     { color:"#888",     bg:"#f5f5f5", label:"Not signed in" },
     checking_email: { color:"#a16207",  bg:"#fef3c7", label:"Check email" },
     syncing:        { color:"#0284c7",  bg:"#e0f2fe", label:"Syncing…" },
-    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Synced ✓" },
+    synced:         { color:"#16a34a",  bg:"#dcfce7", label:"Signed in ✓" },
     offline:        { color:"#888",     bg:"#f5f5f5", label:"Offline" },
-    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sync error" },
+    error:          { color:"#ef4444",  bg:"#fee2e2", label:"Sign-in error" },
   };
   const m = map[cloudSync.status] || map.signed_out;
   return (
     <span style={{ fontSize:9, color:m.color, fontFamily:F, background:m.bg, padding:"2px 6px", borderRadius:4, fontWeight:700 }}>
       {m.label}
     </span>
+  );
+}
+
+// Single account-conversion modal surfaced from every save/alert tap when the
+// user isn't signed in yet. Bottom-sheet pattern (same look as OnboardingSheet
+// / SearchSheet) but compact — sized to its own content, never full-height.
+// Reuses cloudSync.signIn (magic link) so the auth path is identical to the
+// Profile flow; just shown contextually at the moment the user shows intent.
+function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile }) {
+  const [name, setName]   = useState(profile?.name  || "");
+  const [email, setEmail] = useState(profile?.email || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
+  const [busy, setBusy]   = useState(false);
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const [now, setNow]     = useState(Date.now());
+  const [feedback, setFeedback] = useState("");
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  useEffect(() => {
+    if (!lastSentAt) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lastSentAt]);
+  if (!open) return null;
+  const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
+  const trimmedName  = name.trim();
+  const trimmedEmail = email.trim();
+  const trimmedPhone = phone.trim();
+  const validEmail = trimmedEmail.includes("@") && trimmedEmail.length >= 5;
+  const validName  = trimmedName.length >= 2;
+  const canSend = !busy && validName && validEmail && cooldownMs === 0 && cloudSync?.enabled;
+  const send = async () => {
+    if (!canSend) return;
+    setBusy(true); setFeedback("");
+    // Save locally first so it survives the magic-link round-trip even before
+    // sign-in finishes. Cloud sync will mirror this to user_data.data once
+    // the user comes back signed in.
+    if (setProfile) {
+      setProfile(p => ({ ...p, name: trimmedName, email: trimmedEmail, phone: trimmedPhone || (p.phone || "") }));
+    }
+    const r = await cloudSync.signIn(trimmedEmail, { name: trimmedName, phone: trimmedPhone });
+    setBusy(false);
+    if (!r?.ok) setFeedback(r?.error || "Couldn't send. Try again.");
+    else { setLastSentAt(Date.now()); setFeedback("Check your email for a one-tap link. (Spam folder too — Supabase mail loves it.)"); }
+  };
+  const headline = intent === "save"  ? "Save it."
+                 : intent === "alert" ? "Get the alert."
+                 :                      "Save it. Get the alert.";
+  const sub      = intent === "save"  ? "Tell us who you are. We'll remember your spots across every device."
+                 : intent === "alert" ? "We'll shoot an email your way every time your favorite spots are firing..."
+                 :                      "Tell us who you are. We'll save your spots and push you when conditions are firing.";
+  const inputStyle = {
+    width:"100%", padding:"13px 14px", borderRadius:14,
+    border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa", boxSizing:"border-box",
+  };
+  return (
+    <>
+      <div onClick={onClose} className="backdrop" style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:200 }} />
+      <div className="sheet" style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
+        zIndex:201, maxHeight:"82vh", overflowY:"auto",
+        paddingBottom:"max(env(safe-area-inset-bottom,0px),24px)",
+      }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 4px" }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
+        </div>
+        <div style={{ padding:"14px 24px 12px" }}>
+          <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            {headline}
+          </div>
+          <div style={{ fontSize:13, color:"#555", fontFamily:F, marginTop:8, lineHeight:1.5 }}>
+            {sub}
+          </div>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:18 }}>
+            <input type="text" autoComplete="name" placeholder="Full name"
+              value={name} onChange={e => setName(e.target.value)} disabled={busy}
+              autoFocus
+              style={inputStyle}
+            />
+            <input type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
+              value={email} onChange={e => setEmail(e.target.value)} disabled={busy}
+              style={inputStyle}
+            />
+            <div>
+              <input type="tel" inputMode="tel" autoComplete="tel" placeholder="Phone (optional)"
+                value={phone} onChange={e => setPhone(e.target.value)} disabled={busy}
+                onKeyDown={e => { if (e.key === "Enter") send(); }}
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          <button onClick={send} disabled={!canSend} className="pressable" style={{
+            width:"100%", marginTop:16,
+            background: canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
+            borderRadius:14, padding:"14px 18px", fontSize:14, fontWeight:800, fontFamily:F,
+            cursor: canSend ? "pointer" : "default",
+          }}>
+            {busy ? "Sending…" : cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs/1000)}s` : lastSentAt ? "Resend link" : "Create account"}
+          </button>
+
+          {feedback && (
+            <div style={{ fontSize:12, color: feedback.startsWith("Check") ? "#0284c7" : "#ef4444", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
+              {feedback}
+            </div>
+          )}
+
+          <button onClick={onClose} className="pressable" style={{
+            marginTop:14, background:"none", border:"none", padding:0,
+            fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -4026,14 +8206,14 @@ function ProfileSyncSection({ cloudSync, profile }) {
     <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase" }}>
-          Sync your data
+          Get notified when conditions are firing
         </div>
         <SyncStatusPill cloudSync={cloudSync} />
       </div>
       {cloudSync.user ? (
         <>
           <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10 }}>
-            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Wishlists, alerts, trips and profile sync automatically.
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>. Your alerts, wishlists and profile sync across every device.
           </div>
           <button className="pressable" onClick={out} style={{
             background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
@@ -4043,7 +8223,7 @@ function ProfileSyncSection({ cloudSync, profile }) {
       ) : (
         <>
           <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10, lineHeight:1.45 }}>
-            Sign in with email to sync your wishlists across devices and recover them if you clear your browser. We send a one-tap link — no password.
+            Create an account to set Strike Alerts. We'll push you the moment your spots are firing — no password, just a one-tap email link.
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <input
@@ -4062,7 +8242,7 @@ function ProfileSyncSection({ cloudSync, profile }) {
               {busy ? "Sending…"
                 : cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs / 1000)}s`
                 : lastSentAt    ? "Resend link"
-                : "Send link"}
+                : "Create account"}
             </button>
           </div>
         </>
@@ -4217,9 +8397,48 @@ function MapView({ listings, profile, onOpenDetail }) {
   );
 }
 
+// ─── scoring explainer — one-time education card (CLAUDE.md Open #8) ─────────
+// New users were dumped into Explore with zero context for what the scores
+// mean. One dismissible card, shows until "Got it", then never again.
+// Onboarding itself stays friction-free per the 2026-05 contract — this lives
+// in the feed where the scores actually are.
+function ScoringExplainer() {
+  const isDismissed = () => {
+    try { return !!localStorage.getItem("peakly_scoring_explainer_dismissed"); } catch { return true; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissed);
+  if (dismissed) return null;
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_scoring_explainer_dismissed", String(Date.now())); } catch {}
+    logEvent("scoring_explainer", { stage: "dismissed" });
+  };
+  return (
+    <div style={{ padding:"12px 14px 0" }}>
+      <div style={{
+        background:"#fff", border:"1.5px solid #e0f2fe", borderRadius:14,
+        padding:"14px 16px", boxShadow:"0 2px 12px rgba(2,132,199,0.10)",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+          <span style={{ fontSize:18 }}>🎯</span>
+          <span style={{ fontSize:13.5, fontWeight:800, color:"#222", fontFamily:F, flex:1 }}>How Peakly scores your weekend</span>
+        </div>
+        <div style={{ fontSize:12.5, color:"#555", fontFamily:F, lineHeight:1.55, marginBottom:10 }}>
+          Every spot gets a 0–100 score for the <b>Fri–Mon window</b> — live weather
+          for the best 2 days, weighted with real flight prices from your airport.
+          If the 7-day forecast can't back a weekend, we say so instead of guessing.
+        </div>
+        <button onClick={dismiss} className="pressable" style={{
+          background:"#0284c7", border:"none", borderRadius:10, padding:"9px 18px",
+          color:"#fff", fontSize:12.5, fontWeight:800, fontFamily:F, cursor:"pointer",
+        }}>Got it</button>
+      </div>
+    </div>
+  );
+}
+
 function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAlertToggle, onViewAlerts, onViewProfile, activeCat, setActiveCat, filters, setFilters, search, setSearch, onOpenDetail, namedLists, setNamedLists, wxLastUpdated, profile, onRefresh, cloudSync }) {
   const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
-  const [showSaved, setShowSaved] = useState(false);
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
@@ -4272,13 +8491,14 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const ACTIVE_CATS = new Set(["skiing", "beach"]);
   const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
   const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
-  const heroPick = [...bestPool]
+  // Exact-fares-only mode: prefer live-priced venues for the hero; fall back
+  // to estimate-priced venues only when no live ones are available (cold load
+  // / proxy down / TP coverage gap) so the front page never goes blank.
+  const heroPickFiltered = [...bestPool]
     .filter(l => l.conditionLabel !== "Checking conditions…")
-    .sort((a, b) => {
-      const aBoost = 0;
-      const bBoost = 0;
-      return (b.conditionScore + bBoost) - (a.conditionScore + aBoost);
-    })[0] || null;
+    .sort((a, b) => b.conditionScore - a.conditionScore);
+  const heroLive = heroPickFiltered.filter(l => l.flight?.live === true);
+  const heroPick = (heroLive.length > 0 ? heroLive[0] : heroPickFiltered[0]) || null;
 
   // "Firing this weekend" carousel — Fri–Mon best-2-of-4 score >= 75 with
   // medium-or-better forecast confidence. Excludes "low" confidence (next
@@ -4294,8 +8514,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       .filter(l => {
         if (l.weekendScore < 75) return false;
         if (l.weekendConfidence === "low") return false;
-        if (!l.flight?.price) return true;
-        if (!l.flight.live) return true;   // estimates don't drive deal filtering
+        if (l.flight?.live !== true) return false; // exact-fares-only mode
         return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
       })
       .sort(sortByVal).slice(0, 10);
@@ -4315,7 +8534,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       return bVal - aVal;
     };
     return allScored
-      .filter(l => l.weekendScore >= 65)
+      .filter(l => l.weekendScore >= 65 && l.flight?.live === true)
       .sort(sortByVal).slice(0, 8);
   })();
   // Which carousel + header to render
@@ -4341,7 +8560,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   })();
   const dealCarouselReady = dealCarousel.length >= 3;
 
-  const filtered = applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport);
+  const filtered = React.useMemo(
+    () => applyFilters(activeListings, activeCat, filters, search, profile?.homeAirport),
+    [activeListings, activeCat, filters, search, profile?.homeAirport]
+  );
   // Exclude hero + carousel venues from the grid to avoid duplicates
   const heroAndBestIds = new Set([
     heroPick?.id,
@@ -4353,7 +8575,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
 
-  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.startDate || filters.endDate || filters.maxFlightHrs || search.skiPass;
+  const hasActiveFilters = filters.maxPrice < 2000 || filters.sort !== "score" || filters.maxFlightHrs || search.skiPass;
 
   // Last checked timestamp
   const timeAgo = wxLastUpdated ? (() => {
@@ -4374,9 +8596,6 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
     const fmt = d => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
     return `${fmt(fri)} → ${fmt(last)}`;
   })();
-
-  // Saved count for quick-access
-  const savedCount = wishlists.length;
 
   // Only expose 2 active categories: Skiing, Beach (surfing retired 2026-05-03)
   const VISIBLE_CAT_IDS = ["all", "skiing", "beach"];
@@ -4413,7 +8632,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
               transition:"transform 0.6s ease",
             }}>⟲</span>
           </button>
-          <div style={{ display:"flex", gap:4, flex:1, minWidth:0 }}>
+          <div style={{ display:"flex", gap:8, flex:1, minWidth:0 }}>
             {visibleCats.map(c => (
               <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
                 onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
@@ -4421,27 +8640,17 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                 aria-pressed={activeCat === c.id}
                 style={{
                   flex: 1, minWidth:0,
-                  padding:"4px 4px", borderRadius:14, cursor:"pointer",
+                  padding:"9px 8px", borderRadius:14, cursor:"pointer",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", textAlign:"center",
                   background: activeCat === c.id ? "#0284c7" : "#f5f5f5",
                   color: activeCat === c.id ? "#fff" : "#555",
                   border:"1.5px solid", borderColor: activeCat === c.id ? "#0284c7" : "transparent",
-                  fontSize:11, fontWeight:700, fontFamily:F,
+                  fontSize:13, fontWeight:800, fontFamily:F,
               }}>
                 {c.label}
               </button>
             ))}
           </div>
-          {savedCount > 0 && (
-            <button onClick={() => setShowSaved(!showSaved)} className="pill" style={{
-              flexShrink:0, padding:"4px 8px", borderRadius:14, cursor:"pointer",
-              background: showSaved ? "#fee2e2" : "#f5f5f5",
-              border:"1.5px solid", borderColor: showSaved ? "#f87171" : "transparent",
-              fontSize:11, fontWeight:700, color: showSaved ? "#ef4444" : "#888", fontFamily:F,
-            }}>
-              ❤️ {savedCount}
-            </button>
-          )}
         </div>
       )}
 
@@ -4478,13 +8687,10 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           {filters.maxFlightHrs && (
             <FilterChip label={`≤ ${filters.maxFlightHrs}hr flight`} onRemove={() => setFilters(f => ({...f, maxFlightHrs:null}))} />
           )}
-          {(filters.startDate || filters.endDate) && (
-            <FilterChip label={`${filters.startDate || "?"} - ${filters.endDate || "?"}`} onRemove={() => setFilters(f => ({...f, startDate:"", endDate:""}))} />
-          )}
           {search.skiPass && (
             <FilterChip label={search.skiPass.charAt(0).toUpperCase() + search.skiPass.slice(1) + " Pass"} onRemove={() => setSearch(s => ({...s, skiPass:""}))} />
           )}
-          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
+          <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null }); setSearch(s => ({...s, skiPass:""})); }} style={{ flexShrink:0, background:"none", border:"none", fontSize:11, color:"#aaa", fontWeight:700, fontFamily:F, cursor:"pointer", padding:"3px 4px", whiteSpace:"nowrap" }}>Clear all</button>
         </div>
       )}
 
@@ -4512,34 +8718,8 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           </div>
         )}
 
-        {/* ── Saved venues inline (replaces wishlists tab) ── */}
-        {showSaved && (
-          <div style={{ padding:"16px 14px", background:"#fef2f2", borderBottom:"1px solid #fecaca" }}>
-            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>Saved venues</div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
-              {listings.filter(l => wishlists.includes(l.id)).map(l => (
-                <div key={l.id} className="card" onClick={() => onOpenDetail(l)} style={{
-                  minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
-                  border:"1.5px solid #fecaca",
-                }}>
-                  <div style={{ height:70, background:l.gradient, position:"relative" }}>
-                    <button className="heart" onClick={e => { e.stopPropagation(); onToggle(l.id); haptic("medium"); }} style={{
-                      position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:12,
-                      width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
-                    }}>❤️</button>
-                  </div>
-                  <div style={{ padding:"6px 8px" }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                    <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
-                  </div>
-                </div>
-              ))}
-              {wishlists.length === 0 && (
-                <div style={{ fontSize:12, color:"#999", fontFamily:F, padding:"10px 0" }}>Tap the heart on any venue to save it</div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Saved venues relocated to the Profile tab (2026-06-09) — keeps the
+            Explore top a clean category-selection surface. */}
 
         {/* ── Home-airport setup banner ──
             Auto-detect (~app.jsx:8488) tries geolocation but fails silently
@@ -4547,7 +8727,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             `homeAirport || "JFK"`. Without this banner the user sees JFK
             prices without realizing it. Suppress when an airport IS set
             (covers users who deliberately picked JFK). */}
-        {!loading && !showSaved && !profile?.homeAirport && onViewProfile && (
+        {!loading && !profile?.homeAirport && onViewProfile && (
           <div onClick={onViewProfile} className="pressable" style={{
             margin:"12px 14px 0", padding:"10px 14px", background:"#fef3c7",
             border:"1.5px solid #fde68a", borderRadius:12, cursor:"pointer",
@@ -4567,7 +8747,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && !showSaved && !heroPick && (
+        {!loading && !heroPick && (
           /* Skeleton while weather is still fetching for first venues */
           <div style={{ margin:"10px 12px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
             <div className="shimmer" style={{ height:170 }} />
@@ -4578,7 +8758,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </div>
           </div>
         )}
-        {!loading && heroPick && !showSaved && (() => {
+        {!loading && heroPick && (() => {
           const hero = heroPick;
           const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
@@ -4639,7 +8819,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                           <span style={{ fontSize:22, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1 }}>{hero.conditionScore}</span>
                           <span style={{ fontSize:11, color:"#bbb", fontFamily:F }}>/100</span>
                         </div>
-                        <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{hero.conditionLabel}</div>
+                        <div style={{ fontSize:10, color:"#717171", fontFamily:F, fontWeight:600, marginTop:3, lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", wordBreak:"break-word" }}>{hero.conditionLabel}</div>
                       </>
                     ) : (
                       <div className="shimmer" style={{ height:14, borderRadius:6, width:"60%" }} />
@@ -4665,6 +8845,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                         ? `${hero.flight.pct}% below typical · from ${heroCity}`
                         : `from ${heroCity}`}
                     </div>
+                    {hero.flight.live && hero.flight.depDate && hero.flight.retDate && (
+                      <div style={{ fontSize:10, fontWeight:700, color:"#0284c7", fontFamily:F, marginTop:2, whiteSpace:"nowrap" }}>
+                        {shortDate(hero.flight.depDate)} → {shortDate(hero.flight.retDate)}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {/* CTA row */}
@@ -4697,8 +8882,14 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           </div>
         )}
 
+        {/* ── Scoring explainer — one-time education for new users (Open #8) ── */}
+        {!loading && <ScoringExplainer />}
+
         {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
         <InstallNudge wishlistCount={wishlists.length} />
+
+        {/* ── Account nudge — surfaces after 3+ wishlists when not signed in ── */}
+        <AccountNudgeBanner wishlistCount={wishlists.length} cloudSync={cloudSync} onGoToProfile={onViewProfile} />
 
         {/* ── Front-page carousel — primary or fallback, never blank ── */}
         {!loading && carouselReady && (
@@ -4714,6 +8905,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                     : "Best Fri–Mon windows · spontaneous trips, bookable now"}
                 </div>
               </div>
+              {activeListings.some(l => l.flightsLoading) && (
+                <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:"#888", fontFamily:F, fontWeight:600 }}>
+                  <span className="pulse" style={{ width:6, height:6, borderRadius:"50%", background:"#0284c7", display:"inline-block" }} />
+                  Loading live prices…
+                </div>
+              )}
             </div>
             <div style={{
               display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none",
@@ -4906,14 +9103,14 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
                               color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
                             }}>Show all categories</button>
                           )}
-                          {!hasFlightCap && !onSpecificCat && (
+                          {!hasFlightCap && !onSpecificCat && onViewAlerts && (
                             <button onClick={onViewAlerts} className="pressable" style={{
                               background:"#0284c7", border:"none", borderRadius:12, padding:"12px 20px",
                               color:"white", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
                             }}>Set an alert</button>
                           )}
                           {hasActiveFilters && (
-                            <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null, startDate:"", endDate:"" }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
+                            <button onClick={() => { setFilters({ sort:"score", maxPrice:2000, maxFlightHrs:null }); setSearch(s => ({...s, skiPass:""})); }} className="pressable" style={{
                               background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"12px 20px",
                               color:"#555", fontSize:13, fontWeight:700, fontFamily:F, cursor:"pointer",
                             }}>Clear all filters</button>
@@ -4951,8 +9148,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
         {/* Email capture */}
         <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
-          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:4 }}>Get notified when conditions peak</div>
-          <div style={{ fontSize:11, color:"#0369a1", fontFamily:F, marginBottom:10 }}>We'll alert you when your saved spots hit 90+</div>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:10 }}>Get notified when conditions are firing</div>
           <form onSubmit={async e => {
             e.preventDefault();
             const form = e.target;
@@ -5284,22 +9480,34 @@ function SharedListView({ snapshot, listings, cloudSync, onImported, onClose }) 
 // — user reviews + taps "Create Alert" to commit. Venue IDs validated against
 // VENUES at write time; if a venue is renamed, update here.
 const ALERT_TEMPLATES = [
-  { id:"powder-mammoth",        title:"Powder Alert", subtitle:"Mammoth",       bg:"#dbeafe", accent:"#0284c7", glyph:"mountain",
+  { id:"powder-mammoth",        title:"Powder Day",     subtitle:"Mammoth",         bg:"#dbeafe", accent:"#0284c7", glyph:"mountain",
     draft:{ sport:"skiing", condition:"powder", locations:["mammoth"],         priceMax:600 } },
-  { id:"japan-cheap-flight",    title:"Cheap Flight", subtitle:"to Japan",      bg:"#fee2e2", accent:"#ef4444", glyph:"plane",
-    draft:{ sport:"skiing", condition:"good",   locations:["niseko","nozawa"], region:"AS", priceMax:900 } },
-  { id:"cancun-beach",          title:"Beach Weekend",subtitle:"Cancun",        bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
-  { id:"alps-bluebird",         title:"Bluebird Day", subtitle:"Alps",          bg:"#e0f2fe", accent:"#0369a1", glyph:"mountain",
+  { id:"pow-day-tahoe",         title:"Pow Day",        subtitle:"Tahoe",           bg:"#e0f2fe", accent:"#0369a1", glyph:"mountain",
+    draft:{ sport:"skiing", condition:"powder", locations:["tahoe","heavenly"], priceMax:700 } },
+  { id:"japan-first-tracks",    title:"First Tracks",   subtitle:"Japan pow",       bg:"#fee2e2", accent:"#ef4444", glyph:"plane",
+    draft:{ sport:"skiing", condition:"powder", locations:["niseko","nozawa","rusutsu"], region:"AS", priceMax:1100 } },
+  { id:"alps-bluebird",         title:"Bluebird",       subtitle:"Alps",            bg:"#dbeafe", accent:"#1e40af", glyph:"mountain",
     draft:{ sport:"skiing", condition:"great",  locations:["chamonix","tignes"], priceMax:800 } },
-  { id:"caribbean-escape",      title:"Caribbean",    subtitle:"Escape",        bg:"#cffafe", accent:"#0891b2", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_grace","beach_eagle","beach_shoal"], priceMax:700 } },
-  { id:"med-beach",             title:"Med Beach",    subtitle:"Greece + Italy",bg:"#fce7f3", accent:"#be185d", glyph:"palm",
-    draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
-  { id:"spring-skiing",         title:"Spring Skiing",subtitle:"Late Season",   bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
+  { id:"spring-skiing",         title:"Spring Skiing",  subtitle:"Late Season",     bg:"#ede9fe", accent:"#6d28d9", glyph:"snow",
     draft:{ sport:"skiing", condition:"good",   locations:["tignes","cervinia","les-arcs-s20"], priceMax:800 } },
-  { id:"whistler-fresh-snow",   title:"Fresh Snow",   subtitle:"Whistler",      bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
+  { id:"whistler-fresh-snow",   title:"Fresh Snow",     subtitle:"Whistler",        bg:"#dcfce7", accent:"#16a34a", glyph:"snow",
     draft:{ sport:"skiing", condition:"insane", locations:["whistler"],        priceMax:800 } },
+  { id:"cancun-beach",          title:"Beach Weekend",  subtitle:"Cancun",          bg:"#fef3c7", accent:"#f59e0b", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_rivmaya"],   priceMax:500 } },
+  { id:"tulum-heat",            title:"Tulum Heat",     subtitle:"Riviera Maya",    bg:"#fed7aa", accent:"#c2410c", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_tulum","beach_rivmaya","beach_holbox"], priceMax:600 } },
+  { id:"caribbean-escape",      title:"Caribbean",      subtitle:"Escape",          bg:"#cffafe", accent:"#0891b2", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_grace","beach_eagle","beach_shoal"], priceMax:700 } },
+  { id:"calm-seas",             title:"Calm Seas",      subtitle:"Sayulita + Bocas",bg:"#d1fae5", accent:"#047857", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_sayulita","beach_bocas"], priceMax:600 } },
+  { id:"med-beach",             title:"Med Beach",      subtitle:"Greece + Italy",  bg:"#fce7f3", accent:"#be185d", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_sardinia","beach_mykonos","beach_santorini"], priceMax:900 } },
+  { id:"hawaii-deal",           title:"Hawaii Deal",    subtitle:"under $700",      bg:"#fef3c7", accent:"#b45309", glyph:"palm",
+    draft:{ sport:"beach",  condition:"great",  locations:["beach_hapuna","beach_kapalua"], priceMax:700 } },
+  { id:"sub-300-rt",            title:"Sub-$300 RT",    subtitle:"any spot",        bg:"#dcfce7", accent:"#15803d", glyph:"plane",
+    draft:{ sport:"all",    condition:"good",   locations:[],                  priceMax:300 } },
+  { id:"anywhere-firing",       title:"Anywhere Firing",subtitle:"conditions 90+",  bg:"#ffe4e6", accent:"#9f1239", glyph:"plane",
+    draft:{ sport:"all",    condition:"insane", locations:[],                  priceMax:1000 } },
 ];
 
 function TemplateGlyph({ kind, color }) {
@@ -5319,9 +9527,16 @@ function TemplateGlyph({ kind, color }) {
   return null;
 }
 
-function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
+function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboarding, cloudSync, requireAccount }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft]   = useState({ sport:"", condition:"great", locations:[], priceMax:500 });
+  // Wrap any action that creates/edits an alert. Signed-in users get the
+  // action immediately; everyone else gets the central AccountModal — no
+  // second prompt, no tab bounce.
+  const gate = (action) => () => {
+    if (!cloudSync?.user) { requireAccount && requireAccount(); return; }
+    action();
+  };
   const [showMore, setShowMore] = useState(false);
 
   // Helper to get condition score threshold
@@ -5596,9 +9811,9 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
       <div style={{ padding:"20px 24px 12px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
           <div style={{ fontSize:24, fontWeight:900, color:"#222", fontFamily:F, letterSpacing:"-0.02em" }}>Alerts</div>
-          <div style={{ fontSize:14, color:"#717171", marginTop:6, fontFamily:F }}>Know the moment conditions fire</div>
+          <div style={{ fontSize:14, color:"#717171", marginTop:6, fontFamily:F }}>Know the moment conditions are firing</div>
         </div>
-        <button onClick={() => setAdding(true)} className="pressable" style={{
+        <button onClick={gate(() => setAdding(true))} className="pressable" style={{
           background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:20,
           padding:"8px 16px", color:"#222", fontSize:13, fontWeight:700,
           fontFamily:F, cursor:"pointer",
@@ -5628,38 +9843,39 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
         </div>
       )}
 
-      {/* Quick Templates carousel — primary action, lifted above saved alerts */}
+      {/* Quick Templates — 2-column grid that scrolls with the page so all
+          14 templates are visible (the old horizontal carousel clipped the
+          third tile at the right edge and felt sloppy). */}
       <div style={{ padding:"4px 0 20px" }}>
-        <div style={{ padding:"0 24px 10px" }}>
+        <div style={{ padding:"0 20px 10px" }}>
           <div style={{ fontSize:16, fontWeight:800, color:"#222", fontFamily:F }}>
-            {userAlerts.length === 0 ? "Start with a template" : "Quick Templates"}
+            {userAlerts.length === 0 ? "Start with a template" : "Add another in one tap"}
           </div>
           <div style={{ fontSize:13, color:"#717171", fontFamily:F, marginTop:2 }}>
-            {userAlerts.length === 0 ? "Tap one — we'll set it up" : "Add another in one tap"}
+            Tap one — we'll set it up
           </div>
         </div>
         <div style={{
-          display:"flex", gap:12, overflowX:"auto", padding:"4px 24px 8px",
-          scrollSnapType:"x mandatory", WebkitOverflowScrolling:"touch",
+          display:"grid", gridTemplateColumns:"1fr 1fr", gap:10,
+          padding:"4px 16px 8px",
         }}>
           {ALERT_TEMPLATES.map(t => (
-            <button key={t.id} onClick={() => {
+            <button key={t.id} onClick={gate(() => {
               setDraft({ sport:"", condition:"great", locations:[], priceMax:500, ...t.draft });
               setAdding(true);
               haptic();
               logEvent("alert_template_applied", { id: t.id });
-            }} className="pressable" style={{
-              flex:"0 0 152px", scrollSnapAlign:"start",
+            })} className="pressable" style={{
               background:t.bg, border:"none", borderRadius:14,
-              padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
-              position:"relative", overflow:"hidden", minHeight:108,
+              padding:"12px 12px 10px", textAlign:"left", cursor:"pointer",
+              position:"relative", overflow:"hidden", minHeight:96,
               display:"flex", flexDirection:"column", justifyContent:"space-between",
             }}>
-              <div>
-                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.title}</div>
-                <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.2 }}>{t.subtitle}</div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.2, wordBreak:"break-word" }}>{t.title}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:"#444", fontFamily:F, lineHeight:1.3, marginTop:2, wordBreak:"break-word" }}>{t.subtitle}</div>
               </div>
-              <div style={{ alignSelf:"flex-end" }}>
+              <div style={{ alignSelf:"flex-end", marginTop:6 }}>
                 <TemplateGlyph kind={t.glyph} color={t.accent} />
               </div>
             </button>
@@ -5721,419 +9937,125 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile }) {
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ profile, setProfile, onShowOnboarding, namedLists = [], cloudSync, wishlists = [], listings = [], onOpenDetail, onToggle }) {
-  const [airportQuery,      setAirportQuery]      = useState("");
-  const [airportFocused,    setAirportFocused]    = useState(false);
-  const [detectingLocation, setDetectingLocation] = useState(false);
-  const [editMode,          setEditMode]          = useState(false);
+function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAccountModal, listings, wishlists, onToggle, onOpenDetail }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
-  const [shareCopied,    setShareCopied]    = useState(false);
-  const [geoPromptOpen,  setGeoPromptOpen]  = useState(false);
-  const [showAllSaved,   setShowAllSaved]   = useState(false);
-  const { canInstall: canInstallPwa, trigger: triggerInstallPwa } = useInstallPrompt();
-
-  const toggle = field => setProfile(p => ({...p, [field]: !p[field]}));
-  const toggleSport = id => setProfile(p => ({
-    ...p,
-    sports: (p.sports || []).includes(id)
-      ? p.sports.filter(s => s !== id)
-      : [...(p.sports || []), id],
-  }));
-
-  const hasAccount  = !!profile.hasAccount;
-  const sports      = profile.sports || [];
-  const skillLevels = profile.skillLevels || {};
-  const initials    = profile.name ? profile.name.trim()[0].toUpperCase() : "?";
-  const avatarGrad  = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.grad || AVATAR_COLORS[0].grad;
-  const avatarHex   = AVATAR_COLORS.find(c => c.id === profile.avatarColor)?.hex  || AVATAR_COLORS[0].hex;
+  const signedIn = !!cloudSync?.user;
+  const savedListings = (listings || []).filter(l => (wishlists || []).includes(l.id));
 
   return (
-    <div style={{ flex:1, overflowY:"auto" }}>
-
-      {/* ── Social header (logged in) ── */}
-      {hasAccount ? (
-        <div style={{ background:"linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 100%)", padding:"24px 24px 18px", position:"relative", overflow:"hidden" }}>
-          <button className="pressable" onClick={() => setEditMode(e => !e)} style={{
-            position:"absolute", top:18, right:18,
-            background: editMode ? avatarHex : "rgba(255,255,255,0.09)",
-            border: editMode ? "none" : "1px solid rgba(255,255,255,0.13)",
-            borderRadius:20, cursor:"pointer", color:"white",
-            fontSize:11, fontWeight:700, fontFamily:F, padding:"6px 12px",
-            transition:"background 0.2s",
-          }}>
-            {editMode ? "✓ Done" : "✏️ Edit"}
-          </button>
-          <div style={{ display:"flex", alignItems:"center", gap:14, position:"relative" }}>
-            <div style={{
-              width:60, height:60, borderRadius:"50%",
-              background: avatarGrad,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:26, fontWeight:900, color:"white", fontFamily:F,
-              border:"2px solid rgba(255,255,255,0.18)",
-              flexShrink:0,
-            }}>{initials}</div>
-            <div style={{ flex:1, minWidth:0, paddingRight:60 }}>
-              <div style={{ fontSize:19, fontWeight:900, color:"#fff", fontFamily:F, lineHeight:1.1, marginBottom:3 }}>
-                {profile.name || "Adventure Seeker"}
-              </div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", fontFamily:F }}>
-                ✈️ {profile.homeAirport || "No airport set"}
-              </div>
-            </div>
+    <div style={{ flex:1, overflowY:"auto", padding:"40px 24px 32px", display:"flex", flexDirection:"column" }}>
+      {signedIn ? (
+        <>
+          <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            ✨ You're set.
           </div>
-
-          {/* Sport skill badges — defensive filter: skip any sport id no longer
-              in CATEGORIES (e.g. legacy "surfing" survived migration somehow) */}
-          {sports.filter(s => CATEGORIES.find(c => c.id === s)).length > 0 && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:14 }}>
-              {sports.filter(s => CATEGORIES.find(c => c.id === s)).map(s => {
-                const cat = CATEGORIES.find(c => c.id === s);
-                return (
-                  <div key={s} style={{
-                    background:"rgba(255,255,255,0.1)", borderRadius:20,
-                    padding:"4px 11px", display:"inline-flex", alignItems:"center", gap:5,
-                    border:"1px solid rgba(255,255,255,0.12)",
-                  }}>
-                    <span style={{ fontSize:11, color:"white", fontWeight:700, fontFamily:F }}>
-                      {cat.label}
-                    </span>
-                  </div>
-                );
-              })}
+          <div style={{ fontSize:15, color:"#555", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
+            We'll push you the moment conditions are firing at your spots.
+          </div>
+          <div style={{ fontSize:12, color:"#888", fontFamily:F, marginTop:18 }}>
+            Signed in as <strong style={{ color:"#222" }}>{cloudSync.user.email}</strong>
+          </div>
+          {!signOutConfirm ? (
+            <button onClick={() => setSignOutConfirm(true)} className="pressable" style={{
+              alignSelf:"flex-start", marginTop:24, background:"none", border:"none",
+              fontSize:12, fontWeight:700, color:"#888", fontFamily:F, cursor:"pointer",
+              textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+            }}>Sign out</button>
+          ) : (
+            <div style={{ marginTop:20, padding:"14px 16px", background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:14 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"#222", fontFamily:F, marginBottom:10 }}>Sign out?</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => setSignOutConfirm(false)} style={{
+                  flex:1, background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
+                  padding:"10px", color:"#555", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
+                }}>Cancel</button>
+                <button onClick={() => {
+                  cloudSync.signOut && cloudSync.signOut();
+                  setProfile(p => ({ ...p, hasAccount:false }));
+                  setSignOutConfirm(false);
+                }} style={{
+                  flex:1, background:"#0284c7", border:"none", borderRadius:10,
+                  padding:"10px", color:"white", fontSize:12, fontWeight:700, fontFamily:F, cursor:"pointer",
+                }}>Sign out</button>
+              </div>
             </div>
           )}
-        </div>
+        </>
       ) : (
-        /* ── Join CTA (no account) ── */
-        <div style={{ background:"linear-gradient(160deg,#0d0d0d,#1a1a1a)", padding:"36px 24px 28px", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-40, right:-30, width:160, height:160, borderRadius:"50%", background:"#0284c7", opacity:0.1, filter:"blur(40px)", pointerEvents:"none" }} />
-          <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize:"24px 24px", pointerEvents:"none" }} />
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:18, position:"relative" }}>
-            <div style={{
-              width:64, height:64, borderRadius:"50%",
-              background:"linear-gradient(135deg,rgba(2,132,199,0.2),rgba(2,132,199,0.08))",
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:28,
-              border:"2px solid rgba(2,132,199,0.32)",
-              boxShadow:"0 0 30px rgba(2,132,199,0.18)",
-              flexShrink:0,
-            }}>P</div>
-            <div>
-              <div style={{ fontSize:20, fontWeight:900, color:"#fff", fontFamily:F }}>Never miss your window</div>
-              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:F, marginTop:3, lineHeight:1.4 }}>
-                We'll tell you when conditions peak and flights drop
-              </div>
-            </div>
+        <>
+          <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, lineHeight:1.1, letterSpacing:"-0.4px" }}>
+            Be first when<br/>conditions are firing.
           </div>
-          <button className="pressable" onClick={onShowOnboarding} style={{
-            width:"100%", background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:16, padding:"15px 0",
-            color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-            boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
+          <div style={{ fontSize:15, color:"#555", fontFamily:F, marginTop:12, lineHeight:1.5 }}>
+            Push alerts the moment your spots peak. Wishlists synced across devices. No password.
+          </div>
+          <button onClick={() => openAccountModal && openAccountModal({ intent: "alert" })} className="pressable" style={{
+            width:"100%", marginTop:22,
+            background:"#0284c7", color:"#fff", border:"none", borderRadius:14,
+            padding:"15px 18px", fontSize:15, fontWeight:800, fontFamily:F, cursor:"pointer",
+            boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
           }}>
-            🚀 Create my adventure profile
+            Create account
           </button>
+        </>
+      )}
+
+      {/* ── Saved venues (relocated here from the Explore top 2026-06-09) ── */}
+      {savedListings.length > 0 && (
+        <div style={{ marginTop:28 }}>
+          <div style={{ fontSize:15, fontWeight:800, color:"#222", fontFamily:F, marginBottom:12 }}>
+            Saved venues
+          </div>
+          <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x", overscrollBehavior:"contain" }}>
+            {savedListings.map(l => (
+              <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{
+                minWidth:140, maxWidth:140, background:"#fff", borderRadius:12, overflow:"hidden",
+                border:"1.5px solid #eee", flexShrink:0, cursor:"pointer",
+              }}>
+                <div style={{ height:70, background:l.gradient, position:"relative" }}>
+                  <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); haptic("medium"); }} style={{
+                    position:"absolute", top:2, right:2, background:"none", border:"none", fontSize:12,
+                    width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                  }}>❤️</button>
+                </div>
+                <div style={{ padding:"6px 8px" }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
+                  <div style={{ fontSize:10, color:"#666", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div style={{ padding:"0 24px" }}>
-
-        {/* ── Edit panel (only when hasAccount + editMode) ── */}
-        {hasAccount && editMode && (
-          <div style={{ marginTop:20, marginBottom:4 }}>
-            {/* Name */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.06em" }}>Name</div>
-              <input type="text" value={profile.name || ""} placeholder="First name"
-                onChange={e => setProfile(p => ({...p, name:e.target.value}))}
-                style={{ width:"100%", padding:"13px 16px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
-            </div>
-
-            {/* Home airports (up to 3) */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, textTransform:"uppercase", letterSpacing:"0.06em" }}>Home airports (up to 3)</div>
-                {navigator.geolocation && (
-                  <button className="pressable" onClick={() => setGeoPromptOpen(true)} style={{ background:"none", border:"none", fontSize:11, fontWeight:700, color:"#0284c7", fontFamily:F, cursor:"pointer", padding:0, display:"flex", alignItems:"center", gap:3 }}>
-                    {detectingLocation ? "Detecting…" : "📍 Detect"}
-                  </button>
-                )}
-                {/* Geo permission explainer */}
-                {geoPromptOpen && (
-                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => setGeoPromptOpen(false)}>
-                    <div onClick={e => e.stopPropagation()} style={{ width:"min(430px,100vw)", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 36px", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
-                      <div style={{ width:36, height:4, background:"#e8e8e8", borderRadius:2, margin:"0 auto 20px" }} />
-                      <div style={{ fontSize:28, textAlign:"center", marginBottom:8 }}>📍</div>
-                      <div style={{ fontSize:17, fontWeight:800, color:"#222", fontFamily:F, textAlign:"center", marginBottom:8 }}>Find your nearest airport</div>
-                      <div style={{ fontSize:13, color:"#666", fontFamily:F, textAlign:"center", lineHeight:1.5, marginBottom:24 }}>
-                        To find cheap flights from your nearest airport, Peakly needs your location. Your location is only used to match you with the closest airport — it's never stored or shared.
-                      </div>
-                      <button className="pressable" onClick={() => {
-                        setGeoPromptOpen(false);
-                        setDetectingLocation(true);
-                        navigator.geolocation.getCurrentPosition(
-                          pos => {
-                            const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-                            const already = (profile.homeAirports || []).includes(code);
-                            if (!already && (profile.homeAirports || []).length < 3) {
-                              setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-                            }
-                            setDetectingLocation(false);
-                          },
-                          () => setDetectingLocation(false),
-                          { timeout: 2000, maximumAge: 300000 }
-                        );
-                      }} style={{ width:"100%", background:"#222", border:"none", borderRadius:14, padding:"15px", cursor:"pointer", color:"white", fontSize:14, fontWeight:700, fontFamily:F, marginBottom:10 }}>
-                        Allow Location Access
-                      </button>
-                      <button onClick={() => setGeoPromptOpen(false)} style={{ width:"100%", background:"none", border:"1.5px solid #e8e8e8", borderRadius:14, padding:"13px", cursor:"pointer", color:"#555", fontSize:13, fontWeight:700, fontFamily:F }}>
-                        Skip — I'll enter manually
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
-                {(profile.homeAirports || []).map((code, idx) => {
-                  const airport = ALL_AIRPORTS.find(a => a.code === code);
-                  return (
-                    <div key={idx} style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, background:"#222", color:"#fff" }}>
-                      <span style={{ fontSize:11, fontWeight:600, fontFamily:F }}>{code}</span>
-                      <button onClick={() => setProfile(p => ({ ...p, homeAirports: (p.homeAirports || []).filter((_, i) => i !== idx) }))} style={{ background:"none", border:"none", color:"#fff", cursor:"pointer", fontSize:14, padding:"0", marginLeft:4 }}>×</button>
-                    </div>
-                  );
-                })}
-              </div>
-              {(!profile.homeAirports || profile.homeAirports.length < 3) && (
-                <div style={{ position:"relative" }}>
-                  <input type="text" placeholder="Add airport…" value={airportQuery}
-                    onChange={e => setAirportQuery(e.target.value)}
-                    onFocus={() => setAirportFocused(true)}
-                    onBlur={() => setTimeout(() => setAirportFocused(false), 150)}
-                    style={{ width:"100%", padding:"10px 14px", borderRadius:12, border:"1.5px solid #e8e8e8", fontSize:13, fontFamily:F, color:"#222" }}
-                  />
-                  {airportFocused && airportQuery.length >= 2 && (() => {
-                    const q = airportQuery.toLowerCase();
-                    const results = ALL_AIRPORTS.filter(a => a.city.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)).slice(0, 6);
-                    return results.length > 0 ? (
-                      <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:12, marginTop:4, overflow:"hidden", boxShadow:"0 6px 20px rgba(0,0,0,0.12)", zIndex:10 }}>
-                        {results.map((ap, i) => {
-                          const alreadyAdded = (profile.homeAirports || []).includes(ap.code);
-                          return (
-                            <button key={ap.code} onMouseDown={() => {
-                              if (!alreadyAdded && (profile.homeAirports || []).length < 3) {
-                                setProfile(p => ({ ...p, homeAirports: [...(p.homeAirports || []), ap.code] }));
-                                setAirportQuery("");
-                                setAirportFocused(false);
-                              }
-                            }} style={{
-                              width:"100%", padding:"10px 14px",
-                              background: alreadyAdded ? "#f0f0f0" : "#fff",
-                              border:"none", borderBottom: i < results.length - 1 ? "1px solid #f0f0f0" : "none",
-                              textAlign:"left", cursor: alreadyAdded ? "default" : "pointer", fontFamily:F, display:"flex", alignItems:"center", gap:10,
-                              opacity: alreadyAdded ? 0.6 : 1,
-                            }}>
-                              <span style={{ fontSize:15 }}>{ap.flag}</span>
-                              <div style={{ flex:1 }}>
-                                <span style={{ fontSize:13, fontWeight:700, color:"#222" }}>{ap.code}</span>
-                                <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
-                              </div>
-                              {alreadyAdded && <span style={{ color:"#999", fontSize:14 }}>✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : <div style={{ background:"#f9f9f9", border:"1.5px solid #e8e8e8", borderRadius:12, padding:"10px 14px", marginTop:4, fontSize:12, color:"#aaa", fontFamily:F }}>No airports found</div>;
-                  })()}
-                </div>
-              )}
-            </div>
-
-            {/* Sports + skill levels */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#666", fontFamily:F, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.06em" }}>Your sports</div>
-              {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
-                const sel = sports.includes(cat.id);
-                return (
-                  <div key={cat.id} style={{ marginBottom:8 }}>
-                    <button onClick={() => toggleSport(cat.id)} style={{
-                      width:"100%", padding:"11px 14px", borderRadius:12,
-                      background: sel ? "#222" : "#f7f7f7", border:"1.5px solid",
-                      borderColor: sel ? "#222" : "#e8e8e8",
-                      display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-                    }}>
-                      <span style={{ flex:1, textAlign:"left", fontSize:13, fontWeight:700, color: sel ? "#fff" : "#222", fontFamily:F }}>{cat.label}</span>
-                      <span style={{ color: sel ? "#0284c7" : "#ccc", fontWeight:900, fontSize:16 }}>{sel ? "✓" : "+"}</span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Notifications ── */}
-        <div style={{ marginTop:22, marginBottom:22 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-            Notifications
-          </div>
-          {[
-            { key:"notifyPeak",   label:"🔥 Peak conditions", desc:"Conditions 90+ AND cheap flights from your airport" },
-            { key:"notifyDeal",   label:"✈️ Flight deals",    desc:"Price drops on venues you've saved or alerted" },
-            { key:"notifyWeekly", label:"📅 Weekly digest",   desc:"Best windows this week — conditions + flights combined" },
-          ].map(({ key, label, desc }) => (
-            <div key={key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid #f7f7f7" }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:600, color:"#222", fontFamily:F }}>{label}</div>
-                <div style={{ fontSize:12, color:"#bbb", fontFamily:F }}>{desc}</div>
-              </div>
-              <div onClick={() => toggle(key)} style={{
-                width:44, height:26, borderRadius:13, cursor:"pointer",
-                background: profile[key] ? "#0284c7" : "#e0e0e0",
-                position:"relative", transition:"background 0.2s", flexShrink:0,
-              }}>
-                <div style={{ position:"absolute", top:3, width:20, height:20, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.22)", transition:"left 0.2s", left: profile[key] ? 21 : 3 }} />
-              </div>
-            </div>
-          ))}
+      {/* Tiny footer links — sit at the very bottom */}
+      <div style={{ flex:1 }} />
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:8, marginTop:32 }}>
+        <button onClick={onShowOnboarding} className="pressable" style={{
+          background:"none", border:"none",
+          fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+          textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+        }}>
+          {profile.homeAirport ? `Home: ${profile.homeAirport} · ${(profile.sports || []).join(" & ") || "no sport set"}` : "Set home airport & sport"}
+        </button>
+        <button onClick={forceCleanReload} className="pressable" style={{
+          background:"none", border:"none",
+          fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F, cursor:"pointer",
+          textDecoration:"underline", textUnderlineOffset:"3px", padding:0,
+        }}>
+          App v{PEAKLY_BUILD} · Refresh
+        </button>
+        {/* Legal links — App Store review requires reachable ToS + Privacy pages */}
+        <div style={{ display:"flex", gap:14 }}>
+          <a href="terms.html" target="_blank" rel="noopener" style={{
+            fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>Terms of Service</a>
+          <a href="privacy.html" target="_blank" rel="noopener" style={{
+            fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>Privacy Policy</a>
         </div>
-
-        {/* ── Cloud sync (only when SUPABASE_URL is set) ── */}
-        <ProfileSyncSection cloudSync={cloudSync} profile={profile} />
-
-        {/* ── My Lists (share + manage) ── */}
-        {namedLists.length > 0 && (
-          <MyListsSection namedLists={namedLists} cloudSync={cloudSync} />
-        )}
-
-        {/* ── Wishlists ── */}
-        {wishlists.length > 0 && (() => {
-          // Saved venues live in Profile only (Wishlists tab is built but
-          // hidden — see CLAUDE.md "keep nav lean"). To avoid orphaning saves
-          // when count > preview limit, show "Show more" instead of capping
-          // silently at 6.
-          const saved = listings.filter(l => wishlists.includes(l.id));
-          const visible = showAllSaved ? saved : saved.slice(0, 6);
-          const hidden = saved.length - visible.length;
-          return (
-            <div style={{ marginBottom:22 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:12, paddingTop:8, borderTop:"1px solid #f0f0f0" }}>
-                Saved Venues · {saved.length}
-              </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                {visible.map(l => (
-                  <div key={l.id} className="card" onClick={() => onOpenDetail && onOpenDetail(l)} style={{ borderRadius:12, overflow:"hidden", background:"#fff", border:"1.5px solid #e8e8e8" }}>
-                    <div style={{ height:80, background:l.gradient, position:"relative" }}>
-                      <button className="heart" onClick={e => { e.stopPropagation(); onToggle && onToggle(l.id); }} style={{
-                        position:"absolute", top:5, right:5, background:"none", border:"none", fontSize:13,
-                      }}>❤️</button>
-                    </div>
-                    <div style={{ padding:"7px 8px" }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:"#222", fontFamily:F, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</div>
-                      <div style={{ fontSize:10, color:"#717171", fontFamily:F }}>{l.flight.live ? '$' : '~$'}{l.flight.price} · {l.conditionLabel}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {hidden > 0 && (
-                <button onClick={() => setShowAllSaved(true)} className="pressable" style={{
-                  marginTop:10, width:"100%", background:"#fff", border:"1.5px solid #e0e0e0",
-                  borderRadius:12, padding:"10px 0", fontSize:12, fontWeight:700, color:"#222",
-                  fontFamily:F, cursor:"pointer",
-                }}>Show {hidden} more</button>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* ── Install Peakly (only when prompt is captured) ── */}
-        {canInstallPwa && (
-          <button className="pressable" onClick={triggerInstallPwa} style={{
-            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:12,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-          }}>
-            <span>📲</span> Install Peakly to home screen
-          </button>
-        )}
-
-        {/* ── Share & Refer (combined) ── */}
-        <div style={{ marginBottom:20 }}>
-          <button className="pressable" onClick={() => {
-            const msg = "Check out Peakly — find ski & beach spots firing this weekend, with cheap flights aligned. https://j1mmychu.github.io/peakly";
-            const doCopy = () => {
-              try {
-                if (navigator.clipboard?.writeText) {
-                  navigator.clipboard.writeText(msg).then(() => {
-                    setShareCopied(true);
-                    setTimeout(() => setShareCopied(false), 3000);
-                  }).catch(() => { setShareCopied(true); setTimeout(() => setShareCopied(false), 3000); });
-                } else {
-                  setShareCopied(true);
-                  setTimeout(() => setShareCopied(false), 3000);
-                }
-              } catch (_) {}
-            };
-            if (navigator.share) {
-              navigator.share({ title:"Peakly", text:msg, url:"https://j1mmychu.github.io/peakly" }).catch(doCopy);
-            } else { doCopy(); }
-          }} style={{
-            width:"100%",
-            background: shareCopied ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#0284c7,#38bdf8)",
-            border:"none", borderRadius:14,
-            padding:"15px 12px", cursor:"pointer", color:"white", fontSize:14, fontWeight:800, fontFamily:F,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            boxShadow: shareCopied ? "0 4px 18px rgba(34,197,94,0.35)" : "0 4px 18px rgba(2,132,199,0.32)",
-            transition:"background 0.35s, box-shadow 0.35s",
-          }}>
-            <span style={{ fontSize:18 }}>{shareCopied ? "✓" : "📤"}</span>
-            {shareCopied ? "Link copied! Send to a friend 🎁" : "Share Peakly · Invite Friends 🎁"}
-          </button>
-          {shareCopied && (
-            <div style={{ textAlign:"center", fontSize:12, color:"#22c55e", fontWeight:600, fontFamily:F, marginTop:6 }}>
-              Paste it anywhere to invite a friend!
-            </div>
-          )}
-        </div>
-
-        {/* ── Sign Out ── */}
-        {hasAccount && !signOutConfirm && (
-          <button className="pressable" onClick={() => setSignOutConfirm(true)} style={{
-            width:"100%", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14,
-            padding:"14px 12px", cursor:"pointer", color:"#0284c7",
-            fontSize:13, fontWeight:700, fontFamily:F, marginBottom:32,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-          }}>
-            Sign Out
-          </button>
-        )}
-        {hasAccount && signOutConfirm && (
-          <div style={{ background:"#fff5f5", border:"1.5px solid #ffcdd2", borderRadius:16, padding:"18px 16px", marginBottom:32 }}>
-            <div style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F, marginBottom:4, textAlign:"center" }}>
-              Sign out of Peakly?
-            </div>
-            <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginBottom:16, textAlign:"center" }}>
-              Your wishlists and alerts stay saved locally.
-            </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button onClick={() => setSignOutConfirm(false)} style={{
-                flex:1, background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:12,
-                padding:"12px", cursor:"pointer", color:"#555",
-                fontSize:13, fontWeight:700, fontFamily:F,
-              }}>Cancel</button>
-              <button onClick={() => {
-                setProfile(p => ({ ...p, name:"", email:"", hasAccount:false, sports:[], skillLevels:{}, avatarColor:"sunset" }));
-                setSignOutConfirm(false);
-              }} style={{
-                flex:1, background:"#0284c7", border:"none", borderRadius:12,
-                padding:"12px", cursor:"pointer", color:"white",
-                fontSize:13, fontWeight:700, fontFamily:F,
-              }}>Sign Out</button>
-            </div>
-          </div>
-        )}
-        {!hasAccount && <div style={{ height:32 }} />}
       </div>
     </div>
   );
@@ -6384,12 +10306,6 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
                           )}
                         </div>
 
-                        {/* First tag */}
-                        {l.tags?.[0] && (
-                          <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:6, fontStyle:"italic" }}>
-                            "{l.tags[0]}"
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -6630,7 +10546,6 @@ const AVATAR_COLORS = [
 
 function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
-  const [email,       setEmail]      = useState(profile.email || "");
   const [sports,      setSports]     = useState(profile.sports || []);
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
@@ -6660,19 +10575,11 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
   };
 
   const complete = () => {
-    setProfile(p => ({ ...p, email, sports, homeAirport: airport, hasAccount:true }));
+    // Email is collected in the account-creation flow (Alerts tab / nudge banner),
+    // not in onboarding. Onboarding stays friction-free: airport + sports + done.
+    // onboarded_at lets the account-nudge banner know when to first prompt.
+    setProfile(p => ({ ...p, sports, homeAirport: airport, hasAccount:true, onboarded_at: Date.now() }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
-    // If they gave a valid email and cloud sync is on, this IS their account —
-    // fire the magic link now so there's no second "create account" step in Profile.
-    const trimmed = (email || "").trim();
-    if (trimmed.includes("@") && cloudSync?.enabled && !cloudSync.user) {
-      cloudSync.signIn(trimmed).then(r => {
-        if (r?.ok && setImportToast) {
-          setImportToast("Check your email for a one-tap sign-in link ✉️");
-          setTimeout(() => setImportToast(""), 4500);
-        }
-      });
-    }
     onClose();
   };
 
@@ -6762,19 +10669,27 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
 
             {navigator.geolocation && (
               <button onClick={detectAirport} disabled={detecting} className="pressable" style={{
-                width:"100%", padding:"13px 14px", marginBottom:10, borderRadius:14,
-                border:"1.5px solid #0284c7", background:"#f0f9ff", color:"#0284c7",
-                fontSize:14, fontWeight:800, fontFamily:F, cursor: detecting ? "default" : "pointer",
+                width:"100%", padding:"16px 14px", marginBottom:14, borderRadius:14,
+                border:"none", background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
+                fontSize:15, fontWeight:900, fontFamily:F, cursor: detecting ? "default" : "pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                 opacity: detecting ? 0.7 : 1,
+                boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
               }}>
-                <span style={{ fontSize:16 }}>📍</span>
+                <span style={{ fontSize:18 }}>📍</span>
                 <span>{detecting ? "Detecting your nearest airport…" : "Use my current location"}</span>
               </button>
             )}
+            {navigator.geolocation && (
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, color:"#bbb" }}>
+                <div style={{ flex:1, height:1, background:"#ececec" }} />
+                <span style={{ fontSize:11, fontWeight:700, fontFamily:F, letterSpacing:"0.08em" }}>OR</span>
+                <div style={{ flex:1, height:1, background:"#ececec" }} />
+              </div>
+            )}
             <div style={{ position:"relative", marginBottom:14 }}>
               <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Or search any airport worldwide…"
+              <input type="text" placeholder="Search any airport worldwide…"
                 value={apQuery} onChange={e => setApQuery(e.target.value)}
                 onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
@@ -6861,20 +10776,6 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
               })}
             </div>
 
-            {/* Email — magic link sign-in. Optional; if filled the magic link sends on Finish. */}
-            <div>
-              <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, letterSpacing:"0.04em", textTransform:"uppercase", marginBottom:8 }}>
-                Stay synced (optional)
-              </div>
-              <input type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:15, fontFamily:F, color:"#222", background:"#fafafa", fontWeight:600 }}
-              />
-              {cloudSync?.enabled && (
-                <div style={{ fontSize:12, color:"#717171", fontFamily:F, marginTop:10, lineHeight:1.5 }}>
-                  We'll send a one-tap magic link so your wishlists and alerts sync across devices. No password, no spam.
-                </div>
-              )}
-            </div>
           </div>
         )}
 
@@ -7196,10 +11097,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     precip:d.precipitation_sum?.[i]   ?? 0,
     wind:  d.wind_speed_10m_max?.[i]  ?? 0,
     code:  d.weather_code?.[i]        ?? 0,
+    uv:    d.uv_index_max?.[i]        ?? null,
   })) : [];
 
   const flightUrl  = buildFlightUrl(listing.flight.from || "JFK", listing.ap, {
-    startDate: filters?.startDate, endDate: filters?.endDate, whenId: search?.when,
+    startDate: listing.flight.depDate, endDate: listing.flight.retDate, whenId: search?.when,
   });
 
   // Similar venues: same category, excluding current, sorted by score
@@ -7321,6 +11223,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:22, fontWeight:900, color:"#16a34a", fontFamily:F }}>
                 {listing.flight.live ? `from $${listing.flight.price}` : `~$${listing.flight.price}`}
               </div>
+              {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
+                <div style={{ fontSize:11, fontWeight:700, color:"#16a34a", fontFamily:F, marginTop:2, whiteSpace:"nowrap" }}>
+                  {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
+                </div>
+              )}
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>
                 {listing.flight.live
                   ? (listing.flight.pct >= 10 ? `typical $${listing.flight.normal} · ${listing.flight.pct}% below` : "current price")
@@ -7341,6 +11248,11 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                     <div style={{ fontSize:21 }}>{wxEmoji(f.code)}</div>
                     <div style={{ fontSize:12, fontWeight:700, color:"#222", fontFamily:F, marginTop:3 }}>{Math.round(f.hi)}°</div>
                     <div style={{ fontSize:10, color:"#bbb", fontFamily:F }}>{Math.round(f.lo)}°</div>
+                    {f.uv != null && (
+                      <div style={{ fontSize:9, fontWeight:700, color: f.uv>=8?"#b91c1c":f.uv>=6?"#c2410c":f.uv>=3?"#a16207":"#888", fontFamily:F, marginTop:1 }}>
+                        ☀️{Math.round(f.uv)}
+                      </div>
+                    )}
                     {f.precip > 1 && <div style={{ fontSize:9, color:"#3b82f6", fontWeight:600, fontFamily:F, marginTop:1 }}>💧{Math.round(f.precip)}"</div>}
                   </div>
                 ))}
@@ -7351,41 +11263,17 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
           {/* Why this score? — opens the black box */}
           <ScoreBreakdown listing={listing} />
 
-          {/* Gear / Essentials — Amazon Associates peakly-20 */}
-          {GEAR_ITEMS[listing.category] && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
-                {listing.category === "skiing" ? "⛷️ Ski gear" : "🏖️ Beach essentials"}
-              </div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x" }}>
-                {GEAR_ITEMS[listing.category].map((g, i) => (
-                  <a key={i} href={g.url} target="_blank" rel="noopener noreferrer sponsored"
-                     onClick={() => { if (window.plausible) plausible('gear_click', { props: { item: g.title, category: listing.category } }); }}
-                     style={{ flexShrink:0, width:140, background:"#f7f7f7", borderRadius:14, overflow:"hidden", textDecoration:"none", display:"block" }}>
-                    <div style={{ height:80, overflow:"hidden" }}>
-                      <img src={g.img} alt={g.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
-                    </div>
-                    <div style={{ padding:"8px 10px 10px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, marginBottom:3 }}>{g.title}</div>
-                      <div style={{ fontSize:10, color:"#888", fontFamily:F, lineHeight:1.4, marginBottom:4 }}>{g.desc}</div>
-                      <div style={{ fontSize:12, fontWeight:900, color:"#16a34a", fontFamily:F }}>${g.price}</div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-              <div style={{ fontSize:9, color:"#bbb", fontFamily:F, marginTop:6 }}>Affiliate links — we earn a small commission</div>
-            </div>
-          )}
-
           {/* Set Alert CTA */}
-          <button onClick={() => onAlert && onAlert(listing)} className="pressable" style={{
-            background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
-            padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
-            gap:8, width:"100%", cursor:"pointer", marginBottom:14,
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
-          </button>
+          {onAlert && (
+            <button onClick={() => onAlert(listing)} className="pressable" style={{
+              background:"#f5f5f5", border:"1.5px solid #e8e8e8", borderRadius:14,
+              padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center",
+              gap:8, width:"100%", cursor:"pointer", marginBottom:14,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Alert me when conditions peak</span>
+            </button>
+          )}
 
           {/* Tags — polished to match Explore-card tag style */}
           {listing.tags?.length > 0 && (
@@ -7394,6 +11282,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 <span key={t} style={{
                   background:"#f5f5f5", border:"1px solid #ebebeb", borderRadius:10,
                   padding:"3px 9px", fontSize:11, fontWeight:700, color:"#555", fontFamily:F,
+                  whiteSpace:"nowrap", flexShrink:0,
                 }}>{t}</span>
               ))}
             </div>
@@ -7428,16 +11317,16 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             </div>
           )}
-        {/* ─── Gear picks (Amazon Associates) ────────────────────────────── */}
+        {/* ─── Gear picks (Amazon Associates, tag=peakly-20) ─────────── */}
         {GEAR_ITEMS[listing.category] && (
-          <div style={{ marginBottom:20 }}>
+          <div style={{ marginBottom:16 }}>
             <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
-              Gear for your trip
+              {listing.category === "skiing" ? "⛷️ Ski gear" : "🏖️ Beach essentials"}
             </div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x" }}>
               {GEAR_ITEMS[listing.category].map((item, i) => (
                 <a key={i} href={item.url} target="_blank" rel="noopener noreferrer sponsored"
-                  onClick={() => logEvent('gear_click', { venue: listing.title, category: listing.category, item: item.title })}
+                  onClick={() => { if (window.plausible) plausible('gear_click', { props: { venue: listing.title, category: listing.category, item: item.title } }); }}
                   style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, textDecoration:"none", overflow:"hidden", display:"block" }}>
                   <div style={{ height:80, overflow:"hidden", borderRadius:"14px 14px 0 0", background:"#eee" }}>
                     <img src={item.img} alt={item.title} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
@@ -7450,6 +11339,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
                 </a>
               ))}
             </div>
+            <div style={{ fontSize:9, color:"#bbb", fontFamily:F, marginTop:6 }}>Affiliate links — we earn a small commission</div>
           </div>
         )}
         {/* Travel insurance — SafetyWing (referenceID=peakly) */}
@@ -8096,6 +11986,10 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 }
 
 // ─── bottom nav ───────────────────────────────────────────────────────────────
+// v1: false until VPS has the APNS .p8 — flip to true after setup-apns.sh runs.
+// Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
+// App Store regression where users see Alerts but push never delivers.
+const APNS_LIVE = false;
 function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
@@ -8220,7 +12114,10 @@ function App() {
   // Default ≤6hr flight: aligns "spontaneous weekend" with realistic flight
   // times. Globe-spanning results from a "this weekend" app defeat the brand
   // promise. Power users override via the chip's × button or Clear all.
-  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:1000, maxFlightHrs:6, startDate:"", endDate:"" });
+  // Default to no filters applied (matches "Clear all" baseline). Users
+  // explicitly opt into a max-price / max-flight-hours cap via the search sheet
+  // instead of seeing a silently filtered grid on cold load.
+  const [filters,      setFilters]      = useState({ sort:"score", maxPrice:2000, maxFlightHrs:null });
   const [showSearch,     setShowSearch]     = useState(false);
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
@@ -8230,6 +12127,9 @@ function App() {
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
   const [sharedListView, setSharedListView] = useState(null); // snapshot from ?l=<slug>
   const [importToast,    setImportToast]    = useState("");
+  // Single conversion modal surfaced from every save/alert action when the user
+  // isn't signed in. `null` = closed; `{intent: "save"|"alert"}` = open.
+  const [accountModal,   setAccountModal]   = useState(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
@@ -8297,34 +12197,10 @@ function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── APNS readiness probe (gates Alerts tab on native iOS) ───────────────
-  // Until Jack ships the .p8 to the VPS, iOS alerts have no delivery path.
-  // Promising push that never fires breaks user trust harder than hiding the
-  // tab. Web users keep Alerts (in-app filter — works without APNS). Probe
-  // /health on boot; once apns_configured: true comes back, the cached flag
-  // restores the tab automatically on next load — no app redeploy needed.
-  const [apnsConfigured, setApnsConfigured] = useState(() => {
-    try { return localStorage.getItem("peakly_apns_configured") === "1"; } catch { return false; }
-  });
-  useEffect(() => {
-    const isNative = !!window.Capacitor?.isNativePlatform?.();
-    if (!isNative) return; // Web doesn't need APNS — Alerts tab stays visible
-    if (apnsConfigured) return; // cached positive; nothing to refresh
-    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const t = setTimeout(() => ctrl?.abort(), 5000);
-    fetch("https://peakly-api.duckdns.org/health", { signal: ctrl?.signal })
-      .then(r => r.ok ? r.json() : null)
-      .then(j => {
-        if (j?.apns_configured === true) {
-          setApnsConfigured(true);
-          try { localStorage.setItem("peakly_apns_configured", "1"); } catch {}
-        }
-      })
-      .catch(() => {})
-      .finally(() => clearTimeout(t));
-    return () => { clearTimeout(t); ctrl?.abort(); };
-  }, [apnsConfigured]);
-  const showAlertsTab = !window.Capacitor?.isNativePlatform?.() || apnsConfigured;
+  // Hide the Alerts tab on native iOS until APNS is live (see APNS_LIVE
+  // constant above BottomNav). Web — including iOS Safari PWA — stays visible.
+  // Android Capacitor builds aren't gated; FCM ships separately.
+  const showAlertsTab = window.Capacitor?.getPlatform?.() !== "ios" || APNS_LIVE;
   // Snap stranded users back to Explore if the tab they're on disappears.
   useEffect(() => {
     if (!showAlertsTab && activeTab === "alerts") setActiveTab("explore");
@@ -8389,13 +12265,21 @@ function App() {
 
   const fetchInitialWeather = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
-    // Only fetch top 100 venues — covers initial view + "Best Right Now"
-    const initial = VENUES.slice(0, 100);
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < initial.length; i += BATCH_SIZE) {
-      const batch = initial.slice(i, i + BATCH_SIZE);
+    // Priority tier — top 200 venues cover hero + carousel + first-grid view.
+    // VPS /api/weather has a shared 2hr cache so simultaneous coord dedup
+    // absorbs the larger batch. Open-Meteo free tier is 10K calls/day; even
+    // at 1000 venues every 10 minutes that's 144K/day theoretical, but the
+    // 2hr proxy cache means real upstream traffic is ~12 cold + 0 warm per
+    // hour. Plenty of headroom.
+    const BATCH_SIZE = 100;
+    const THROTTLE_MS = 500;
+    const PRIORITY_COUNT = Math.min(200, VENUES.length);
+    const priority  = VENUES.slice(0, PRIORITY_COUNT);
+    const remaining = VENUES.slice(PRIORITY_COUNT);
+
+    const runBatch = async (batchSlice) => {
       const results = await Promise.allSettled(
-        batch.map(async v => {
+        batchSlice.map(async v => {
           const needsMarine = v.category === "beach";
           const [wxR, marR] = await Promise.allSettled([
             fetchWeather(v.lat, v.lon),
@@ -8410,20 +12294,42 @@ function App() {
           marRef.current[r.value.id] = r.value.marine;
         }
       });
+    };
+
+    // ── Priority tier (blocks loading state) ──
+    for (let i = 0; i < priority.length; i += BATCH_SIZE) {
+      await runBatch(priority.slice(i, i + BATCH_SIZE));
       if (i === 0) {
         setWxData({...wxRef.current});
         setMarData({...marRef.current});
         setLoading(false);
         setWxLastUpdated(new Date());
       }
-      // Throttle batches to stay within Open-Meteo free tier (10K calls/day)
-      if (i + BATCH_SIZE < initial.length) {
-        await new Promise(res => setTimeout(res, 1000));
+      if (i + BATCH_SIZE < priority.length) {
+        await new Promise(res => setTimeout(res, THROTTLE_MS));
       }
     }
     setWxData({...wxRef.current});
     setMarData({...marRef.current});
     setWxLastUpdated(new Date());
+
+    // ── Background tail (non-blocking) ──
+    // Fire-and-forget; user already sees Explore. State setter hydrates the
+    // remaining cards as their data arrives — they re-render from `~$X` to `$X`
+    // and shimmer-to-real-score in place. Throttled identically to priority.
+    if (remaining.length > 0) {
+      (async () => {
+        for (let i = 0; i < remaining.length; i += BATCH_SIZE) {
+          await runBatch(remaining.slice(i, i + BATCH_SIZE));
+          setWxData({...wxRef.current});
+          setMarData({...marRef.current});
+          if (i + BATCH_SIZE < remaining.length) {
+            await new Promise(res => setTimeout(res, THROTTLE_MS));
+          }
+        }
+        setWxLastUpdated(new Date());
+      })();
+    }
   }, []);
 
   useEffect(() => {
@@ -8522,10 +12428,13 @@ function App() {
   }, [loading, profile.homeAirport, profile.homeAirport2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute day offset from selected start date (0=today, 1=tomorrow, etc.)
-  const scoreDayIndex = filters.startDate ? Math.max(0, Math.round((new Date(filters.startDate) - new Date(new Date().toDateString())) / 86400000)) : 0;
+  const scoreDayIndex = 0;
 
-  // Enrich venues with live scores + flight prices (real Duffel when available, estimate fallback)
-  const listings = VENUES.map(v => {
+  // Enrich venues with live scores + flight prices. Memoized so that random
+  // App-level state changes (search input keystrokes, modal open/close) don't
+  // recompute scoreVenue O(n) times. Recomputes only when an actual input
+  // changes — weather lands, prices land, home airport changes.
+  const listings = React.useMemo(() => VENUES.map(v => {
     const { score, label, period } = scoreVenue(v, wxData[v.id], marData[v.id], scoreDayIndex);
     const estimate1  = getFlightDeal(v.ap, profile.homeAirport || "JFK");
     const estimate2  = profile.homeAirport2 ? getFlightDeal(v.ap, profile.homeAirport2 || "JFK") : null;
@@ -8546,10 +12455,10 @@ function App() {
           from:    profile.homeAirport || "JFK",
           live:    true,
           foundAt: duffelData.foundAt || null,
-          depDate: filters.startDate || null,
-          retDate: filters.endDate   || null,
+          depDate: duffelData.departDate || null,
+          retDate: duffelData.returnDate || null,
         }
-      : { ...estimate, from: estimate.from || profile.homeAirport || "JFK", live: false, foundAt: null, depDate: filters.startDate || null, retDate: filters.endDate || null };
+      : { ...estimate, from: estimate.from || profile.homeAirport || "JFK", live: false, foundAt: null, depDate: null, retDate: null };
     // Find best window in the 7-day forecast
     let bestDay = 0, bestScore = score;
     const vWx = wxData[v.id], vMar = marData[v.id];
@@ -8573,9 +12482,10 @@ function App() {
     const deal = scoreWeekendDeal(v, vWx, vMar, new Date(), profile.homeAirport || "JFK", flight);
     const wknd = deal.conditions;
 
+    const uv = wxData[v.id]?.daily?.uv_index_max?.[scoreDayIndex] ?? null;
     return {
       ...v,
-      conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading,
+      conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading, uv,
       weekendScore: wknd.score,
       weekendLabel: wknd.label,
       weekendPeriod: wknd.period,
@@ -8591,11 +12501,17 @@ function App() {
       dealPriceRatio: deal.priceRatio,
       dealIsEstimate: deal.isEstimate,
     };
-  });
+  }), [wxData, marData, duffelPrices, profile.homeAirport, profile.homeAirport2, scoreDayIndex, flightsLoading]);
 
-  const firingCount = listings.filter(l => l.conditionScore >= 90).length;
+  const firingCount = React.useMemo(() => listings.filter(l => l.conditionScore >= 90).length, [listings]);
 
   const toggleWishlist = useCallback(id => {
+    // Saves require a signed-in account. Unsigned users get the central
+    // AccountModal — no tab bounce, no secondary prompts.
+    if (!cloudSync?.user) {
+      setAccountModal({ intent: "save" });
+      return;
+    }
     const isCurrentlySaved = wishlistIds.includes(id);
     if (!isCurrentlySaved) {
       const venue = VENUES.find(v => v.id === id);
@@ -8632,7 +12548,7 @@ function App() {
         return lists.map(l => ({ ...l, venueIds: (l.venueIds||[]).filter(x => x !== id) }));
       }
     });
-  }, [wishlistIds, setWishlists, setNamedLists]);
+  }, [wishlistIds, setWishlists, setNamedLists, cloudSync]);
 
   // Set of venueIds that have an active alert — drives the 🔔 badge on cards
   const alertedVenueIds = React.useMemo(
@@ -8645,6 +12561,12 @@ function App() {
   // have the full Alerts tab. Mirrors to the server polling worker so push
   // can fire when conditions hit.
   const quickToggleAlert = useCallback(listing => {
+    // Alerts require an account — push delivery is impossible without one.
+    // Show the central modal instead of silently saving to localStorage.
+    if (!cloudSync?.user) {
+      setAccountModal({ intent: "alert" });
+      return;
+    }
     const existing = userAlerts.find(a => a.venueId === listing.id);
     if (existing) {
       setUserAlerts(p => p.filter(a => a.id !== existing.id));
@@ -8853,18 +12775,18 @@ function App() {
           }}>{importToast}</div>
         )}
         {/* Top header — hidden on map tab so map fills screen edge-to-edge.
-            Explore: stacked rows so the wordmark and the search bar each get
-            their own breathing room instead of fighting for width on one line. */}
+            Explore: wordmark + search bar on a SINGLE row so the first
+            carousel sits right under the spotlight instead of below the fold. */}
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ background:"#fff", flexShrink:0 }}>
-              <div style={{ padding:"52px 20px 0" }}>
-                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1 }}>
+              <div style={{ padding:"48px 16px 12px", display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1, flexShrink:0 }}>
                   peakly
                 </span>
-              </div>
-              <div style={{ padding:"10px 16px 14px" }}>
-                <SearchBar search={search} onOpen={() => setShowSearch(true)} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <SearchBar search={search} onOpen={() => setShowSearch(true)} compact />
+                </div>
               </div>
             </div>
           ) : (
@@ -8883,7 +12805,7 @@ function App() {
               listings={listings} loading={loading}
               wishlists={wishlistIds} onToggle={toggleWishlist}
               alertedIds={alertedVenueIds} onAlertToggle={quickToggleAlert}
-              onViewAlerts={() => setActiveTab("alerts")}
+              onViewAlerts={showAlertsTab ? () => setActiveTab("alerts") : undefined}
               onViewProfile={() => setActiveTab("profile")}
               activeCat={activeCat} setActiveCat={setActiveCat}
               filters={filters} setFilters={setFilters} search={search} setSearch={setSearch}
@@ -8899,18 +12821,18 @@ function App() {
               listings={listings} userAlerts={userAlerts}
               setUserAlerts={setUserAlerts} profile={profile}
               onShowOnboarding={() => setShowOnboarding(true)}
+              cloudSync={cloudSync}
+              requireAccount={() => { setAccountModal({ intent: "alert" }); }}
             />
           )}
           {activeTab === "profile" && (
             <ProfileTab
               profile={profile} setProfile={setProfile}
               onShowOnboarding={() => setShowOnboarding(true)}
-              namedLists={namedLists}
               cloudSync={cloudSync}
-              wishlists={wishlistIds}
-              listings={listings}
-              onOpenDetail={openDetail}
-              onToggle={toggleWishlist}
+              openAccountModal={(opts) => setAccountModal(opts || { intent: "alert" })}
+              listings={listings} wishlists={wishlistIds}
+              onToggle={toggleWishlist} onOpenDetail={openDetail}
             />
           )}
         </div>
@@ -8944,6 +12866,17 @@ function App() {
             onClose={() => setShowVibeSearch(false)}
           />
         )}
+
+        {/* Central account-conversion modal — every save/alert tap from an
+            unsigned user routes here. Sized to its own content, not full-height. */}
+        <AccountModal
+          open={!!accountModal}
+          intent={accountModal?.intent}
+          cloudSync={cloudSync}
+          profile={profile}
+          setProfile={setProfile}
+          onClose={() => setAccountModal(null)}
+        />
 
         {showOnboarding && (
           <OnboardingSheet
@@ -8986,11 +12919,13 @@ function App() {
             onOpenDetail={openDetail}
             filters={filters}
             search={search}
-            onAlert={(venue) => {
+            onAlert={showAlertsTab ? (venue) => {
               setDetailVenue(null);
               try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch {}
-              setActiveTab("alerts");
-            }}
+              // Account-gated: route through the modal first, otherwise into Alerts tab
+              if (!cloudSync?.user) setAccountModal({ intent: "alert" });
+              else setActiveTab("alerts");
+            } : undefined}
           />
         )}
 

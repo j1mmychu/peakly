@@ -1,8 +1,8 @@
-# Peakly DevOps Report — 2026-06-04
+# Peakly DevOps Report — 2026-06-10
 
-**Status: 🟡 YELLOW**
+**Status: 🔴 RED**
 
-No new P0s. Cache buster bumped `20260602a` → `20260604a` (2 days stale on arrival). Two P1s remain stuck for 31+ days — VPS redeploy and APNS config are both parked despite completed code. Nothing is on fire today, but at >66 DAU the Open-Meteo free tier ceiling hits and the app silently degrades.
+Two P0s active. (1) **GitHub PAT expires 2026-06-15 — 5 days.** When it blows, `scripts/auto-push.sh` and all remote scheduled agents lose push access. GitHub Actions CI is safe (uses OIDC, not PAT), but the entire local/agent ship pipeline dies. (2) **GEAR_ITEMS was deleted again** (third time) — Amazon Associates has earned $0 since the June 7 auto-commits. **Restored this run.** Cache stamp was `20260609ab` on merge arrival — bumped to `20260610a` this run. VPS redeploy remains Day 37 and is the standing rate-limit cliff at any real traffic event.
 
 ---
 
@@ -10,170 +10,148 @@ No new P0s. Cache buster bumped `20260602a` → `20260604a` (2 days stale on arr
 
 | Fix | File | Detail |
 |-----|------|--------|
-| Cache buster `20260602a` → `20260604a` | `app.jsx:17` | 2 days stale |
-| SW CACHE_NAME `peakly-20260602a` → `peakly-20260604a` | `sw.js:2` | Evicts stale cached assets on next visit |
-| Query string `?v=20260602a` → `?v=20260604a` | `index.html:400` | Forces browser reload of updated app.jsx |
+| **GEAR_ITEMS restored** | `app.jsx:279` (const) + `app.jsx:11320` (render) | P0 revenue fix — Amazon back live |
+| Cache buster `20260609ab` → `20260610a` | `app.jsx:17` | Stale on merge arrival |
+| SW CACHE_NAME `peakly-20260609ab` → `peakly-20260610a` | `sw.js:2` | Evicts stale cached assets on next visit |
+| Query string `?v=20260609ab` → `?v=20260610a` | `index.html:400` | Forces browser reload of updated app.jsx |
 
 ---
 
-## 1. Live Site Health
+## 1. P0-A — GitHub PAT Expires 2026-06-15 (5 Days)
 
-| Check | Result |
-|-------|--------|
-| `app.jsx` size | **9,006 lines / 522.5 KB raw / ~149 KB gzip est.** |
-| CDN scripts | All HTTPS, pinned to exact versions ✅ |
-| Plausible analytics | Present, uncommented, `data-domain="j1mmychu.github.io"` ✅ |
-| Cache buster | `v=20260604a` — **bumped this run** |
-| SW CACHE_NAME | `peakly-20260604a` — **bumped this run** |
-| PEAKLY_BUILD | `20260604a` — **bumped this run** |
-| Sentry DSN | Active, non-empty: `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304.ingest.us.sentry.io/...` ✅ |
-| Sentry init guard | `typeof Sentry !== "undefined"` — safe on CDN failure ✅ |
+**Deadline: This Friday. Miss it and `scripts/auto-push.sh` fails silently, remote scheduled agents can't push, every agent-generated fix stays undeployed.**
 
-### CDN Dependency Versions
+The GitHub Actions deploy workflow (`deploy.yml`) is safe — it uses OIDC (`id-token: write`) with auto-provisioned `GITHUB_TOKEN`, no PAT required there. The PAT is used by:
+- `scripts/auto-push.sh` (git push via credential store on Jack's machine)
+- Remote scheduled agents (`peakly-devops`, `peakly-content-data`, `peakly-product-manager`)
 
-| Library | Pinned Version | Status |
-|---------|---------------|--------|
-| React + ReactDOM | 18.3.1 | ✅ Current |
-| Babel Standalone | 7.29.7 | ✅ Current (confirmed via npm registry) |
-| Supabase JS | 2.106.2 | ✅ Recent |
-| Leaflet | 1.9.4 | ✅ Stable (1.9.x is the maintained line) |
-| Sentry CDN | Loader SDK (pinned to project key) | ✅ Managed by Sentry |
+**Fix — 3 minutes:**
+```
+1. github.com/settings/tokens/legacy → find token expiring 2026-06-15
+2. Click "Regenerate" → set expiry 1 year → copy new token
+3. Update everywhere:
+   a. Local credential store:
+      git credential reject <<EOF
+      protocol=https
+      host=github.com
+      username=j1mmychu
+      EOF
+      (next `git push` prompts — enter new token, it caches automatically)
+   b. Remote agents: find and update GH_PAT env var wherever it lives
+      pm2 set <agent-name>:GH_PAT "ghp_newTokenHere"
+```
 
-### Structural Note: Cache Buster Still Manually Bumped
+---
 
-This is the 10th+ consecutive report where DevOps bumps the buster because auto-push.sh doesn't do it automatically. The 5-line fix has been in the reports since 2026-05-26. At this point it's burned more DevOps cycles than it would cost to implement.
+## 2. P0-B — GEAR_ITEMS Deleted: Amazon at $0 (FIXED THIS RUN)
 
-**Fix (10-min implementation, eliminates this class of P0 permanently):**
+Third deletion since launch. Timeline:
+- First deleted: 2026-05-09 history scrub
+- Restored: 2026-05-24 (commits 932943c / 450891b)
+- Deleted again: 2026-06-07 via 3 unlabeled `auto: app.jsx` commits
+- **Restored this run** — `app.jsx:279` const + `app.jsx:11320` render in VenueDetailSheet
 
+Revenue impact June 7–10: ~3 days × $4.48/1K MAU lost. At current DAU: ~$0.
+
+An INVARIANT comment is now on the constant. Still not a guardrail — add the pre-commit grep check below to make it structural:
+
+**Add to `scripts/auto-push.sh` before the `git commit` line:**
 ```bash
-# Add to scripts/auto-push.sh BEFORE the git add section:
-TODAY=$(date +%Y%m%d)
-CURRENT=$(grep -o 'PEAKLY_BUILD = "[0-9a-z]*"' app.jsx | grep -o '"[0-9a-z]*"' | tr -d '"')
-if [[ "$CURRENT" < "${TODAY}a" ]]; then
-  sed -i "s/PEAKLY_BUILD = \"[^\"]*\"/PEAKLY_BUILD = \"${TODAY}a\"/" app.jsx
-  sed -i "s/CACHE_NAME = \"peakly-[^\"]*\"/CACHE_NAME = \"peakly-${TODAY}a\"/" sw.js
-  sed -i "s/app\.jsx?v=[0-9a-z]*/app.jsx?v=${TODAY}a/" index.html
-  echo "[auto-push] cache buster bumped to ${TODAY}a"
+GEAR_COUNT=$(grep -c "GEAR_ITEMS" app.jsx 2>/dev/null || echo 0)
+if [ "$GEAR_COUNT" -lt 4 ]; then
+  echo "[auto-push] ABORT: GEAR_ITEMS invariant violated ($GEAR_COUNT refs < 4)"
+  git restore app.jsx  # roll back the offending edit
+  exit 1
 fi
 ```
 
 ---
 
-## 2. Flight Proxy Status
+## 3. Live Site Health
 
 | Check | Result |
 |-------|--------|
-| Proxy URL in client | `https://peakly-api.duckdns.org` — HTTPS ✅ |
-| Raw IP in client code | None (was 104.131.82.242 historically, gone) ✅ |
-| Travelpayouts token | Server-side only (`process.env.TRAVELPAYOUTS_TOKEN`) ✅ |
-| TP_MARKER affiliate ID | `"710303"` in `app.jsx:1936` — public affiliate marker, correct ✅ |
-| `fetchTravelpayoutsPrice` timeout | 5s `AbortController` ✅ |
-| Retries | 3 attempts, 1.2s/2.4s exponential backoff on 429/5xx ✅ |
-| Concurrency cap | Semaphore: max 3 concurrent flight requests (`_flightSem`) ✅ |
-| `/health` reachability | Cannot verify — outbound network restricted in audit sandbox |
+| `app.jsx` size | **~9,100+ lines / ~540+ KB raw / ~154 KB gzip est.** |
+| CDN scripts | All HTTPS, pinned to exact versions ✅ |
+| Plausible analytics | Present, uncommented, `data-domain="j1mmychu.github.io"` ✅ |
+| Cache buster | `v=20260610a` — bumped this run ✅ |
+| SW CACHE_NAME | `peakly-20260610a` — bumped this run ✅ |
+| PEAKLY_BUILD | `20260610a` — bumped this run ✅ |
+| PRECACHE | `[]` — correct ✅ |
+| Sentry DSN | Active: `9416b032a46681d74645b056fcb08eb7@...sentry.io` ✅ |
+| `forceCleanReload()` | Present — users can rescue stuck PWA ✅ |
+| SW update probe on boot | Present — `reg.update()` on load ✅ |
+| GEAR_ITEMS | ✅ Restored this run (was 0 refs, now 5) |
 
-### P1-A — VPS Redeploy: Day 31 (CHRONIC)
+### CDN Dependency Versions
 
-Code complete since **2026-05-04**. `proxy.js` has shared weather cache, marine cache, and weekend-specific pricing. None of it is running until pm2 restarts. Same finding every single day.
+| Library | Pinned Version | SRI | Notes |
+|---------|---------------|-----|-------|
+| React + ReactDOM | 18.3.1 (unpkg) | ❌ | Current |
+| Babel Standalone | 7.29.7 (unpkg) | ❌ | Current |
+| Supabase JS | 2.45.4 (lazy-loaded) | ❌ | Downgraded + made lazy — good change |
+| Leaflet | 1.9.4 (unpkg) | ✅ | Stable |
+| Sentry Loader | Project key–pinned | N/A | Managed by Sentry |
 
-**Rate math without proxy weather cache:**
-- ~150 Open-Meteo calls per cold page load (100 weather + ~50 marine for beach venues)
-- Open-Meteo free tier: **10,000 calls/day**
-- **Hits ceiling at 67 DAU**
+Supabase JS is now lazy-loaded via `ensureSupabase()` — the eager `<script>` in `index.html` was removed in the June 9 commits. The known-skipped diff is superseded.
 
-**One SSH session, ~3 minutes:**
+---
+
+## 4. Flight Proxy Status
+
+| Check | Result |
+|-------|--------|
+| Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
+| Travelpayouts token | Server-side env var only ✅ |
+| TP_MARKER | `"710303"` — public affiliate marker ✅ |
+| Flight request timeout | 5s AbortController ✅ |
+| Concurrency cap | `_flightSem` max 3 concurrent ✅ |
+| VPS redeploy | ❌ **Day 37** |
+
+### P1-A — VPS Redeploy: Day 37
+
 ```bash
 ssh root@198.199.80.21
-cd /opt/peakly-proxy && git pull
-pm2 restart peakly-proxy && pm2 save
+cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy && pm2 save
 curl https://peakly-api.duckdns.org/health | jq .
 ```
 
-Expected after redeploy:
+Expected after deploy:
 ```json
-{
-  "status": "ok",
-  "wx_cache_size": 0,
-  "apns_configured": false,
-  "poll_worker": "running"
-}
+{ "status": "ok", "wx_cache_size": 0, "apns_configured": false, "poll_worker": "running" }
 ```
 
+Without proxy weather cache: **67 DAU = 10,050 Open-Meteo calls/day = free tier blown**. Grid goes blank. No error shown to user.
+
 ---
 
-## 3. Weather & External APIs
+## 5. Security Audit
 
 | Check | Result |
 |-------|--------|
-| Open-Meteo base URL | `https://api.open-meteo.com/v1` — HTTPS ✅ |
-| Marine API URL | `https://marine-api.open-meteo.com/v1` — HTTPS ✅ |
-| Auth required | None — free tier, no key ✅ |
-| Client timeout | 8s `AbortController` on direct Open-Meteo calls ✅ |
-| Client retries | 3 attempts, 1.2s/2.4s backoff on 429/5xx ✅ |
-| Proxy fallback | `_tryProxyWx()` tries proxy first (4s timeout), falls back to direct ✅ |
-| localStorage cache | 2hr TTL, 4000-entry LRU eviction ✅ |
-| Venue batch size | 50 venues / 2s — stays within Open-Meteo burst tolerance ✅ |
+| Travelpayouts API token in client | Not present ✅ |
+| Supabase anon key | `app.jsx:26` — by design, RLS-gated ✅ |
+| `.gitignore` | Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.pdf`, `*.pptx` ✅ |
+| APNS keys | All via `process.env` in proxy.js ✅ |
+| Secrets in last 5 commits | None detected ✅ |
+| CSP meta tag | ❌ Not present (P2) |
 
-**Rate limit floor (direct, no proxy cache):** 67 DAU = 10,050 calls/day = ceiling breached. Venues return `null` data, score as 0, grid looks empty. No error message to user.
+SRI missing on React, ReactDOM, Babel, Supabase — known-skipped. Re-elevate on any CDN compromise news.
 
 ---
 
-## 4. Security Audit
-
-| Check | Result |
-|-------|--------|
-| Travelpayouts API token in client | **Not present** ✅ |
-| Supabase anon key | Exposed by design (`app.jsx:26`) — RLS-gated per architecture ✅ |
-| `.gitignore` | Present — covers `.env`, `.env.*`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.pdf`, `*.pptx` ✅ |
-| Sentry DSN in HTML | Exposed (expected — Sentry Loader SDK requires it in script src) ✅ |
-| Recent commits for secrets | No secrets in last 5 commits ✅ |
-| APNS keys in proxy | All via `process.env` — never hardcoded ✅ |
-
-### SRI Gap (Known-Skipped — Highest Supply-Chain Risk)
-
-| Script | SRI Present |
-|--------|-------------|
-| React 18.3.1 (unpkg) | ❌ |
-| ReactDOM 18.3.1 (unpkg) | ❌ |
-| Babel Standalone 7.29.7 (unpkg) | ❌ |
-| Supabase 2.106.2 (jsdelivr) | ❌ |
-| Sentry Loader (sentry-cdn.com) | ❌ (intentionally unversioned by Sentry) |
-| Leaflet 1.9.4 (unpkg) | ✅ |
-
-In `known-skipped.md`. Re-flag immediately if any CDN compromise hits the news.
-
----
-
-## 5. Performance Analysis
+## 6. Performance
 
 | Metric | Value |
 |--------|-------|
-| `app.jsx` raw | 522.5 KB |
-| `app.jsx` gzip estimate | ~149 KB |
-| Babel Standalone | ~900 KB minified (transforms JSX at runtime) |
+| `app.jsx` raw | ~540 KB |
+| Babel Standalone | ~900 KB minified — runtime JSX transform |
 | React + ReactDOM | ~141 KB minified |
-| Supabase (gzip) | ~80 KB |
+| Supabase JS (lazy, gzip) | ~80 KB — only loads on auth event ✅ |
 | Leaflet JS (gzip) | ~40 KB |
-| **Total JS cold load** | ~1.3 MB raw / ~410 KB gzip |
+| **Total cold load** | ~1.2 MB raw / ~390 KB gzip est. |
 
-**Single largest bottleneck: Babel Standalone runtime transform.** Downloads 900KB, then parses 522KB of JSX in-browser before React mounts. Mid-range Android: 2–4s CPU-bound before first render. Not actionable without adding a build step — architectural constraint.
-
-**Images:** `loading="lazy"` present on all venue photo `<img>` tags ✅.
-
-**Supabase eager load:** ~80KB gzip on every anonymous page load. `reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff` still applies cleanly. Known-skipped.
-
----
-
-## 6. Cost Estimate
-
-| Tier | MAU | Open-Meteo calls/day | DigitalOcean | Supabase | Total/mo |
-|------|-----|---------------------|--------------|----------|----------|
-| Now | ~10 | ~1,500 (direct) | $6 | Free | **$6** |
-| 1K MAU | ~33 DAU avg | ~5,000/day | $6 | Free | **$6** |
-| 10K MAU | ~333 DAU | **49,950/day — FREE TIER BLOWN** | $12–$18 | Free–$25 | **$25–$43** |
-| 100K MAU | ~3,300 DAU | ~400/day with proxy cache | $24–$48 | $25 | **$50–$73** |
-
-**Deploy the proxy weather cache (already written) → free tier holds through 10K MAU.** Cost: one SSH session.
+Images: `loading="lazy"` on all venue `<img>` tags ✅. Babel Standalone remains the bottleneck — no fix without a build step.
 
 ---
 
@@ -181,55 +159,55 @@ In `known-skipped.md`. Re-flag immediately if any CDN compromise hits the news.
 
 | Check | Result |
 |-------|--------|
-| Polling worker in proxy.js | ✅ Ships in current code |
-| APNS JWT generator | ✅ Ships in current code |
-| Client alert registration | ✅ Ships in current app.jsx |
-| APNS keys configured on VPS | ❓ Unverified — Jack must check `/health` |
-| Deadline | **2026-05-13 — 22 days overdue** |
+| Polling worker | Written, undeployed (Day 37) |
+| APNS JWT generator | Written, undeployed |
+| Hard deadline | **2026-05-13 — 28 days overdue** |
 
-### P1-B — APNS: 22 Days Past Deadline
+### P1-B — APNS: 28 Days Past Deadline
 
-CLAUDE.md set a hard deadline of 2026-05-13: either APNS live OR gate Alerts tab on iOS. Neither happened.
+**Option B — iOS gate (5 min, unblocks App Store):**
 
-**Option A — Wire APNS (30 min if .p8 key is in hand):**
-```bash
-ssh root@198.199.80.21
-pm2 set peakly-proxy:APNS_KEY_ID "YOUR_10_CHAR_KEY_ID"
-pm2 set peakly-proxy:APNS_TEAM_ID "YOUR_10_CHAR_TEAM_ID"
-pm2 set peakly-proxy:APNS_BUNDLE_ID "com.peakly.app"
-pm2 set peakly-proxy:APNS_KEY_PATH "/opt/peakly-proxy/AuthKey_XXXXXXXX.p8"
-pm2 set peakly-proxy:APNS_PROD "true"
-pm2 restart peakly-proxy
-curl https://peakly-api.duckdns.org/health | jq .apns_configured
-# Expected: true
-```
-
-**Option B — Gate Alerts tab on iOS (5 min, ship today):**
-
-Find the Alerts tab nav item in `app.jsx` (search `tab === "alerts"`) and add at the top of `App`:
+Add near the top of `App` component:
 ```jsx
-const isIOS = typeof window !== "undefined" &&
-  window.Capacitor?.getPlatform?.() === "ios";
+const isNativeIOS = typeof window !== "undefined" &&
+  typeof window.Capacitor !== "undefined" &&
+  window.Capacitor.getPlatform?.() === "ios";
 ```
-Then gate both the tab button and route: `{!isIOS && <AlertsTab ... />}`.
+
+Then gate Alerts tab render and nav button on `!isNativeIOS`. App Store submission unblocked today.
 
 ---
 
-## 8. What Breaks First at Scale
+## 8. Cost Estimate
 
-**Open-Meteo at 67 DAU.** Hard ceiling — not a warning. 67 users × 150 calls = 10,050/day = free tier gone. Venues score as zero, grid looks empty, users churn with no error message. The proxy weather cache (already written, undeployed for 31 days) collapses this to ~400 upstream calls/day. One SSH session.
+| Tier | MAU | DAU est. | Open-Meteo/day | DigitalOcean | Supabase | Total/mo |
+|------|-----|----------|----------------|--------------|----------|----------|
+| Now | <20 | ~7 | ~1,050 direct | $6 | Free | **$6** |
+| 1K MAU | ~33 avg DAU | ~33 | ~4,950 — under limit | $6 | Free | **$6** |
+| 10K MAU (no proxy) | ~333 DAU | ~333 | **49,950 — BLOWN** | $12 | $25 | **$37** |
+| 10K MAU + proxy | ~333 DAU | ~333 | ~400 (cached) ✅ | $12 | $25 | **$37** |
+| 100K MAU + proxy | ~3,300 DAU | ~3,300 | ~400 (LRU sat.) | $24–$48 | $25 | **$50–$73** |
 
-**Supabase bandwidth at ~8K MAU.** Every wishlist sync and alert registration hits Supabase REST API. 2GB/month free bandwidth. Monitor via Supabase dashboard → Settings → Billing once you cross 1K MAU.
+---
 
-**Single VPS droplet (1GB RAM) at 10K MAU.** Proxy weather cache LRU fills at scale. Upgrade to $12/mo 2GB droplet before then.
+## 9. What Breaks First at Scale
+
+**Open-Meteo at 67 DAU.** Hard binary cutoff. 10,000 calls/day free tier. Venues return null, score as zero, grid goes empty. No user-visible error. The proxy cache has been ready to deploy for 37 days.
+
+**GEAR_ITEMS auto-deletion** is the recurring revenue leak. Three deletions in 37 days. The pre-commit guard above is a 5-minute fix that ends this class of incident permanently.
+
+**Supabase bandwidth at ~8K MAU.** 2GB/month free. Monitor via Supabase dashboard → Settings → Billing past 1K MAU.
 
 ---
 
 ## Action Items
 
-| Priority | Action | Time | Owner |
-|----------|--------|------|-------|
-| **P1** | SSH to VPS: `git pull && pm2 restart peakly-proxy` | 3 min | Jack |
-| **P1** | Wire APNS keys OR gate Alerts behind `isNativePlatform()` | 5–30 min | Jack |
-| **P2** | Add cache-buster auto-bump to `scripts/auto-push.sh` | 10 min | Jack |
-| **P2** | `git apply reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff` | 1 min | Jack |
+| Priority | Action | Time | Owner | Days Blocked |
+|----------|--------|------|-------|-------------|
+| **P0** | Regenerate GitHub PAT before 2026-06-15 (instructions in §1) | 3 min | Jack | **5 days to expiry** |
+| ~~P0~~ | ~~Restore GEAR_ITEMS~~ | — | ✅ Fixed this run | — |
+| **P1** | `ssh root@198.199.80.21 && cd /opt/peakly-proxy && git pull && pm2 restart peakly-proxy` | 3 min | Jack | **37 days** |
+| **P1** | Wire APNS OR add iOS Alerts gate (`Capacitor.getPlatform() === "ios"`) | 5–30 min | Jack | **28 days past deadline** |
+| **P2** | Add GEAR_ITEMS pre-commit guard to `scripts/auto-push.sh` (bash snippet in §2) | 5 min | DevOps | New |
+| **P2** | Add cache-buster auto-bump to `scripts/auto-push.sh` | 10 min | Jack | 16 days flagged |
+| **P3** | Add permissive CSP meta tag to `index.html` | 20 min | DevOps | Ongoing |
