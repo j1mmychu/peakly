@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610d";
+const PEAKLY_BUILD = "20260610e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8274,6 +8274,47 @@ function ProfileSyncSection({ cloudSync, profile }) {
             background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
             padding:"9px 14px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer",
           }}>Sign out (data stays on this device)</button>
+
+          {/* Delete account — App Store 5.1.1(v). Always reachable, not buried. */}
+          {delPhase === "idle" ? (
+            <button className="pressable" onClick={() => { setDelPhase("confirm"); setDelErr(""); }} style={{
+              display:"block", marginTop:14, background:"none", border:"none", padding:0,
+              fontSize:12, fontWeight:700, color:"#ef4444", fontFamily:F, cursor:"pointer",
+              textDecoration:"underline", textUnderlineOffset:"3px",
+            }}>Delete account</button>
+          ) : (
+            <div style={{ marginTop:14, padding:"12px 14px", background:"#fff5f5", border:"1.5px solid #fecaca", borderRadius:12 }}>
+              <div style={{ fontSize:13, fontWeight:800, color:"#b91c1c", fontFamily:F, marginBottom:6 }}>Delete account?</div>
+              <div style={{ fontSize:12, color:"#555", fontFamily:F, lineHeight:1.5, marginBottom:10 }}>
+                This permanently deletes your account and all cloud-synced data — wishlists, lists, alerts, trips, and profile — from our servers. It can't be undone. Anything saved on <strong>this device</strong> stays until you clear it.
+              </div>
+              <input
+                type="text" value={delText} placeholder="Type DELETE to confirm"
+                onChange={e => setDelText(e.target.value)} disabled={delPhase === "deleting"}
+                autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                style={{
+                  width:"100%", boxSizing:"border-box", padding:"10px 12px", borderRadius:10,
+                  border:"1.5px solid #fecaca", fontSize:13, fontFamily:F, color:"#222", marginBottom:10,
+                }}
+              />
+              {delErr && (
+                <div style={{ fontSize:11, color:"#ef4444", fontFamily:F, marginBottom:10 }}>{delErr}</div>
+              )}
+              <div style={{ display:"flex", gap:8 }}>
+                <button className="pressable" onClick={() => { setDelPhase("idle"); setDelText(""); setDelErr(""); }} disabled={delPhase === "deleting"} style={{
+                  flex:1, background:"#f7f7f7", border:"1.5px solid #e8e8e8", borderRadius:10,
+                  padding:"10px", fontSize:12, fontWeight:700, color:"#555", fontFamily:F, cursor:"pointer",
+                }}>Cancel</button>
+                <button className="pressable" onClick={doDelete}
+                  disabled={delText.trim().toUpperCase() !== "DELETE" || delPhase === "deleting"} style={{
+                  flex:1, background:"#ef4444", border:"none", borderRadius:10,
+                  padding:"10px", fontSize:12, fontWeight:800, color:"#fff", fontFamily:F,
+                  cursor: (delText.trim().toUpperCase() === "DELETE" && delPhase !== "deleting") ? "pointer" : "default",
+                  opacity: (delText.trim().toUpperCase() === "DELETE" && delPhase !== "deleting") ? 1 : 0.5,
+                }}>{delPhase === "deleting" ? "Deleting…" : "Permanently delete"}</button>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <>
