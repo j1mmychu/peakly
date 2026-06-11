@@ -293,9 +293,10 @@ For 2026-04-15 and earlier (proxy cleanup, 18 algorithm holes 04-14, 7 algorithm
 - iOS App Store: Apple Developer enrollment ($99/yr) + `npx cap add ios` + Xcode build
 - Replace placeholder affiliate IDs (GetYourGuide, Backcountry — LLC approved)
 - Register `peakly.app` domain
-- Terms of Service / Privacy Policy — pages SHIPPED 2026-05-09 (`terms.html` + `privacy.html` committed, commits `152b529`/`58ef15a`); Profile footer links to them written 2026-06-09 but UNCOMMITTED (working tree)
+- Terms of Service / Privacy Policy — pages SHIPPED (`terms.html` + `privacy.html`); Profile footer links COMMITTED 2026-06-10
+- **Account deletion SQL — Jack: paste `server/sql/delete-account.sql` into the Supabase SQL editor once** (App Store 5.1.1(v); client ships the graceful fallback until then)
 - Google Play Store via PWABuilder/TWA ($25)
-- ListingCard "Book" button Plausible event — `book_click` event written 2026-06-09 (FeaturedCard) but UNCOMMITTED (working tree)
+- ListingCard "Book" button Plausible event — `book_click` COMMITTED 2026-06-10
 
 ## Agent Team (5 + briefing + token watch)
 
