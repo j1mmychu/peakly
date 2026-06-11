@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610a";
+const PEAKLY_BUILD = "20260610b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8093,9 +8093,9 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
   const headline = intent === "save"  ? "Save it."
                  : intent === "alert" ? "Get the alert."
                  :                      "Save it. Get the alert.";
-  const sub      = intent === "save"  ? "Tell us who you are. We'll remember your spots across every device."
+  const sub      = intent === "save"  ? "We'll keep your favorite spots saved across every device — just your email, no password."
                  : intent === "alert" ? "We'll shoot an email your way every time your favorite spots are firing..."
-                 :                      "Tell us who you are. We'll save your spots and push you when conditions are firing.";
+                 :                      "We'll save your spots and shoot you an email every time they're firing.";
   const inputStyle = {
     width:"100%", padding:"13px 14px", borderRadius:14,
     border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa", boxSizing:"border-box",
