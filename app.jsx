@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610n";
+const PEAKLY_BUILD = "20260610p";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -9267,9 +9267,12 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </button>
           </div>
         )}
-        {/* Email capture */}
+        {/* Email-capture waitlist ("ping when conditions pop"). Gated off iOS
+            native (ALERTS_AVAILABLE) so an App Store reviewer without push never
+            sees a "Notify me" promise the device can't deliver. */}
+        {ALERTS_AVAILABLE && (
         <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
-          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:10 }}>{ALERTS_AVAILABLE ? "Get notified when conditions are firing" : "Save your spots across every device"}</div>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:10 }}>Get notified when conditions are firing</div>
           <form onSubmit={async e => {
             e.preventDefault();
             const form = e.target;
@@ -9303,6 +9306,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           </form>
           <div className="waitlist-status" style={{ fontSize:11, marginTop:8, fontFamily:F, minHeight:14 }}></div>
         </div>
+        )}
         <div style={{ height:24 }} />
       </div>
       {/* Floating List/Map view toggle — hovers above the bottom tab nav so it
