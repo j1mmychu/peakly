@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610j";
+const PEAKLY_BUILD = "20260610k";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8319,7 +8319,9 @@ function ProfileSyncSection({ cloudSync, profile }) {
       ) : (
         <>
           <div style={{ fontSize:12, color:"#555", fontFamily:F, marginBottom:10, lineHeight:1.45 }}>
-            Create an account to set Strike Alerts. We'll push you the moment your spots are firing — no password, just a one-tap email link.
+            {ALERTS_AVAILABLE
+              ? "Create an account to set Strike Alerts. We'll push you the moment your spots are firing — no password, just a one-tap email link."
+              : "Create an account to save your spots and sync them across every device — no password, just a one-tap email link."}
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <input
