@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610g";
+const PEAKLY_BUILD = "20260610h";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -12109,6 +12109,12 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 // Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
 // App Store regression where users see Alerts but push never delivers.
 const APNS_LIVE = false;
+// Is alert delivery actually available on THIS platform? iOS native has no push
+// until APNS is configured (APNS_LIVE), so on iOS we both hide the Alerts tab
+// AND soften alert-promise copy elsewhere (onboarding, Profile) so an App Store
+// reviewer never reads a notification promise the device can't keep. Web +
+// Android keep alerts (Alerts tab + magic-link email account).
+const ALERTS_AVAILABLE = (typeof window !== "undefined" && window.Capacitor?.getPlatform?.() === "ios") ? APNS_LIVE : true;
 function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
   const tabs = [
     { id:"explore",   label:"Explore",  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> },
