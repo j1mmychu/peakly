@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610e";
+const PEAKLY_BUILD = "20260610f";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8586,6 +8586,13 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const userSports = profile?.sports?.length > 0 ? profile.sports : [];
   const ACTIVE_CATS = new Set(["skiing", "beach"]);
   const activeListings = listings.filter(l => ACTIVE_CATS.has(l.category));
+  // Total-weather-failure signal: once the initial load resolves, if EVERY
+  // venue still carries the no-weather sentinel the upstream forecast fetch is
+  // down (reviewer cold-start / offline / Open-Meteo outage). We show an honest
+  // "pull to refresh" banner rather than 353 cards that read "Checking
+  // conditions…" forever — the grid still renders (spots + estimate fares).
+  const weatherDown = !loading && activeListings.length > 0 &&
+    activeListings.every(l => l.conditionLabel === "Checking conditions…");
   const bestPool = activeCat === "all" ? activeListings : activeListings.filter(l => l.category === activeCat);
   // Exact-fares-only mode: prefer live-priced venues for the hero; fall back
   // to estimate-priced venues only when no live ones are available (cold load
