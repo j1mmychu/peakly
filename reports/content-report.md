@@ -1,16 +1,17 @@
-# Peakly Daily Content Report — 2026-06-10
+# Peakly Daily Content Report — 2026-06-11
 
 ---
 
-## Data Health Score: 88 / 100
+## Data Health Score: 72 / 100
 
-**Total venues:** 156 (67 skiing · 89 beach)
-**Categories:** 2 active (skiing, beach — post-2026-05-03 pivot; surfing retired)
-**Photos:** 156 unique Unsplash URLs · 0 duplicates
-**Duplicate IDs:** 0
-**Coordinate errors:** 0
+**Total venues:** 353 (130 skiing · 223 beach)  
+**Categories:** 2 active (skiing, beach — post-2026-05-03 pivot)  
+**Photos unique:** 145 of 353 (41%) · **208 venues share photos ← P0**  
+**Duplicate IDs:** 0  
+**Coordinate errors:** 0  
+**Venues with AP missing from AP_CONTINENT:** 5
 
-*Score change from 2026-06-04: 91 → 88. Deducted 3 additional points because the 5 recommended venues from the June 4 report are still not added (actionable backlog staling) and S. hemisphere ski coverage is actively thin during peak southern winter.*
+Score drop from 2026-06-10 (88 → 72): the June 9 batch added 197 venues but reused only a handful of Unsplash photo IDs — 208 of 353 venues (59%) now display someone else's photo. Visible in the Explore grid as repeated images on consecutive cards.
 
 ---
 
@@ -18,237 +19,222 @@
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Beach    | 89    | ✅ Healthy — peak N. hemisphere season |
-| Skiing   | 67    | ⚠️ 61 of 67 venues OFF SEASON (N. hemisphere summer) — only 6 S. hemisphere venues firing |
+| Beach    | 223   | ✅ Healthy — peak N. hemisphere season |
+| Skiing   | 130   | ⚠️ 107 N-hemi standard venues off-season; 23 S-hemi venues IN SEASON now |
 
-> Note: Task prompt references 182 venues and 12 categories — that is a pre-pivot artifact. Current codebase has exactly 2 active categories. Surfing (53 venues) retired 2026-05-03. No stub categories exist.
+No stub categories (post-pivot).
 
 ---
 
 ## Data Integrity Audit
 
 ### ✅ Clean
-- All 156 venues: `id`, `category`, `lat`, `lon`, `ap`, `title`, `location`, `tags`, `photo` present
-- No duplicate IDs
-- No duplicate photo URLs
-- No out-of-range coordinates
-- No missing ratings (range: 4.51–4.99, avg: 4.86)
+- All 353 venues have required fields: `id`, `category`, `lat`, `lon`, `ap`, `title`, `location`, `tags`, `photo`
+- **Zero duplicate IDs** (all 353 unique)
+- Zero out-of-range coordinates
+- 348 of 353 venue `ap` codes resolve in `AP_CONTINENT`
+- `lateSeason: true` on 27 ski venues (up from 6 — batch added Verbier, Val Thorens, Meribel, Les Menuires, Zermatt, Crans-Montana, Engelberg, Killington, Revelstoke, Lake Louise, Coronet Peak, etc.)
+- All ratings in range 4.51–4.99
 
-### ✅ GEAR_ITEMS Status — PRESENT (contradicts CLAUDE.md Open #13)
+### ❌ CRITICAL — Photo Duplication (P0)
 
-**1. Tag depth — 96 of 156 venues have ≤2 tags (persistent from June 4)**
-- Worst offenders: the 37 original-format ski venues (Whistler, Aspen, Chamonix, etc.) — each carries only 2 generic tags (e.g., `["Powder Day","All Levels"]`)
-- Impacts filter surface area and detail-sheet tag display
-- Fix: expand original ski venues to 4 tags each matching the style of the newer `-s##` entries. ~30-min batch edit.
+**208 of 353 venues (59%) share a photo URL with at least one other venue.** The June 9 batch used ~10 template photo IDs across groups of 15–26 venues each. A user scrolling the Explore grid will see the same beach photo repeated 17 times in a row.
 
-**2. `skiPass` missing on 24 ski venues (persistent from June 4)**
-- All 24 are `-s##` batch entries added after the original set
-- Full list: `zell-am-see-s1`, `appi-kogen-s2`, `hemsedal-s3`, `portillo-s4`, `big-white-ski-s5`, `idre-fjall-s6`, `kicking-horse-s10`, `kiroro-snow-world-s11`, `morzine-s12`, `sainte-foy-tarentaise-s13`, `stowe-mountain-s14`, `champoluc-monterosa-s15`, `sun-peaks-resort-s17`, `pucon-ski-center-s19`, `les-arcs-s20`, `powder-mountain-s21`, `madarao-mountain-s22`, `thredbo-village-s23`, `nevis-range-s24`, `tsugaike-kogen-s25`, `mount-shasta-ski-s26`, `lech-zurs-s27`, `cerro-castor-s28`, `treble-cone-s29`
-- `skiPass` values: `"epic"`, `"ikon"`, or `"independent"`. Current breakdown: Epic 8 / Ikon 17 / Independent 18 (of the 43 that have the field)
+| Photo ID | Venues Sharing It | Example Affected |
+|----------|------------------|-----------------|
+| `1551698618` | **26 venues** | winter-park, snowbird, zermatt, val-thorens, ski_gudauri… |
+| `1483721310020` | **23 venues** | palisades-tahoe, killington, sunday-river, verbier, coronet-peak… |
+| `1506905925346` | **17 venues** | meads-bay-anguilla, reduit-beach-st-lucia, isla-mujeres, tamarindo-cr… |
+| `1507525428034` | **17 venues** | maundays-bay-anguilla, trunk-bay-stj, playa-paraiso-tulum, santa-teresa-cr… |
+| `1473496169904` | **17 venues** | crane-beach-barbados, maho-beach-sxm, hanauma-bay-oahu, big-sur… |
+| `1505228395891` | **17 venues** | bathsheba-barbados, makena-big-beach, phra-nang-krabi, kuta-bali, bondi… |
+| `1559827260` | **17 venues** | smith-cove-cayman, baby-beach-aruba, wailea-maui, cala-saona-formentera… |
+| `1519046904884` | **18 venues** | beach_loscabos, mullins-barbados, boston-bay-jamaica, punta-mita… |
+| + 12 smaller groups | **36 more** | cardrona-nz=whistler; falls-creek=aspen; mt-buller=vail; mt-hotham=alta; etc. |
 
-**3. CLAUDE.md venue count discrepancy — claims 353, actual is 156**
-- CLAUDE.md (current state section) references "+14 Southern-hemisphere ski venues added 2026-06-09 PM" and "+134 beach venues (commit 7561a18)" but neither of those commits appears in this repo's git history (last commit: `ec4dd2c` on 2026-06-04)
-- The real count is confirmed 156 via bracket-walk eval of the array — not 339, not 353
-- Do NOT update CLAUDE.md without confirming with Jack; it is possible these changes exist in a separate environment. Flag and verify before the next session.
+**Fix required:** Source 208 unique Unsplash photos for the batch-added venues. Original venues (Whistler, Aspen, Vail, etc.) keep their existing photos. Batch venues need new IDs. Recommended approach: scripted pass pulling venue title/coords → Unsplash search → assign unique ID per venue, single patch commit.
 
-**4. Outer Banks near-duplicate (persistent from June 4)**
-- `beach_ob` (Outer Banks OBX, lat 35.558, ap: ORF) and `outer-banks-nags-head-t7` (Outer Banks Nags Head, lat 35.957, ap: ORF)
-- ~45km apart on the same barrier island, same airport. Merge or rename/differentiate more sharply.
+### ⚠️ 5 Venues with AP Not in AP_CONTINENT
 
-**5. `poolPrimary: true` unused on all 89 beach venues**
-- Architectural provision to bypass the 18°C water-temp hard cap exists but zero venues carry the flag
-- Candidate: `muscat-beach-t26` (Gulf of Oman — calm water draw, not surf)
-- Low priority until a pool-resort or protected-lagoon venue is added
+One-line fix — add to `AP_CONTINENT` object:
+
+```javascript
+CMH:"na",  // Columbus Intl — mad-river-mountain-oh
+PHL:"na",  // Philadelphia Intl — liberty-mountain, roundtop-mountain, whitetail-resort, jack-frost
+```
+
+### ⚠️ Persistent Issues (carried from prior reports)
+
+**Tag depth thin on ~40 early ski venues** — Whistler `["Powder Day","All Levels"]`, Aspen `["Expert Terrain","Luxury Village"]` carry only 2 tags vs 4-tag standard. Batch expand original ski venue tags.
+
+**`skiPass` missing on ~36 ski venues** — 28% of ski catalog has no pass affiliation. High-value for Ikon/Epic filter users.
+
+**Outer Banks near-duplicate** (`beach_ob` / `outer-banks-nags-head-t7`) — 4th consecutive report. Move to `known-skipped.md` if intentional.
+
+**`borabora` "UV 11" tag** — still reads as weather metric, not venue characteristic. 4th report. Move to `known-skipped.md` if intentional.
 
 ---
 
 ## Gear Items Audit
 
-| Category | Items | Avg AOV | Status |
-|----------|-------|---------|--------|
-| skiing   | 4 | ~$457 | ✅ Present — goggles $249, skis $599, bindings $329, jacket $449 |
-| beach    | 4 | ~$230 | ✅ Present — Hydro Flask $49, SUP board $499, sunglasses $329, rashguard $45 |
-
-**No category gaps.** Both categories covered.
-
-**Status note:** Amazon is CUT for v1 per Jack's 2026-06-09 decision — `GEAR_ITEMS` are populated and the render gate `{GEAR_ITEMS[listing.category] && ...}` is live code. These items will render the moment Amazon is re-enabled post-launch. No dead code to clean up.
-
-**Risk — dead ASINs:** Amazon ASIN links age out when products are discontinued. The ski jacket (B09Y4TF9KN) and snowboard bindings (B07PXMZGS8) are older ASINs. A soft-404 (ASIN redirects to Amazon search) drops conversion to zero without throwing an error. Spot-check before any Reddit/HN push that drives a gear-tab view spike.
+**SKIPPED — Amazon Associates CUT for v1.** `grep -c GEAR_ITEMS app.jsx` → 0. Retired until post-launch decision. See CLAUDE.md Open #16.
 
 ---
 
-## Seasonal Relevance — June 10, 2026 (Northern Hemisphere Early Summer)
+## Seasonal Relevance — June 11, 2026
 
-### IN SEASON — Venues scoring well right now
+### Skiing — Significantly Improved
 
-| Hemisphere | Venues | June Status | Notes |
-|-----------|--------|-------------|-------|
-| N. hemisphere | 61 | ❌ Off season | Score near-zero; `isNorth` gating suppresses them |
-| S. hemisphere | 6  | ✅ Peak winter | Southern winter started June 1 — these are the ONLY ski venues scoring right now |
+| Subgroup | Count | June Status |
+|----------|-------|-------------|
+| N. hemisphere standard | 103 | ❌ OFF SEASON — scoring near-zero Jun–Sep |
+| N. hemisphere `lateSeason` | 27 | ⚠️ MAY FIRE — score driven by live snowpack depth ≥0.5m |
+| S. hemisphere | **23** | ✅ PEAK IN-SEASON — southern winter started |
 
-**S. hemisphere venues currently firing:**
-- `remarkables` — The Remarkables, Queenstown NZ (ZQN)
-- `treble-cone-s29` — Treble Cone, Wanaka NZ (ZQN)
-- `portillo-s4` — Portillo, Valparaiso Chile (SCL)
-- `pucon-ski-center-s19` — Pucon Ski Center, Araucania Chile (ZCO)
-- `thredbo-village-s23` — Thredbo Village, NSW Australia (SYD)
-- `cerro-castor-s28` — Cerro Castor, Tierra del Fuego Argentina (USH)
+The June 9 batch added 17 new S-hemisphere ski venues (NZ: Coronet Peak, Cardrona, Mt Hutt; AUS: Perisher, Falls Creek, Mt Buller, Mt Hotham, Charlotte Pass; CHL: Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco; ARG: Cerro Catedral, Las Leñas, Chapelco, Caviahue). Summer ski catalog is now deep — the primary gap from prior reports is closed.
 
-**Critical gap:** With only 6 venues carrying all southern ski traffic from June through September, the Skiing tab has razor-thin shelf depth during N. hemisphere summer. Two new venue additions below address this directly. Adding Cardrona + Cerro Catedral doubles the firing skiing inventory for the next 90 days.
+### Beach
 
-| Category | Region | Count | Notes |
-|----------|--------|-------|-------|
-| Skiing | N. Hemisphere | 61 | Off-season cap active. 6 with `lateSeason:true` bypass (Whistler, Chamonix, Mammoth, Abasin, Tignes, Cervinia) |
-| Beach | S. Hemisphere | 22 | Cooler water temps, reduced UV — scoring suppressed |
+| Subgroup | Count | June Status |
+|----------|-------|-------------|
+| N. hemisphere | ~156 | ✅ PEAK SEASON |
+| Equatorial (lat < 10°S) | ~45 | ✅ Year-round viable |
+| S. hemisphere seasonal (lat > 20°S) | ~22 | ⚠️ Winter — water-temp cap may suppress |
 
-| Hemisphere | Count | June Status |
-|-----------|-------|-------------|
-| N. hemisphere | 67 | ✅ Peak season — Jun–Aug prime |
-| S. hemisphere | 22 | 19 tropical (year-round) · 3 genuinely seasonal |
+**Cold-water risk in June (south of 20°S):** `beach_floripa` (lat -27.6) · `tofo-beach-t10` (lat -23.9) · `hyams-beach-t22` (lat -35.1). The 18°C hard cap via `fetchMarine` should self-suppress. Manual spot-check on live site recommended.
 
-**Seasonal misfire risk — 3 S. hemisphere temperate beach venues:**
-- `florianopolis-praia-mole-t31` (lat -27.6°, Brazil) — Brazilian winter, water temp likely below 18°C cap
-- `tofo-beach-t10` (lat -23.9°, Mozambique) — cooler season, may dip below cap
-- `hyams-beach-t22` (lat -35.1°, NSW Australia) — Australian winter, definitely cold
+### Geographic Coverage
 
-The 18°C hard cap in `fetchMarine` should self-suppress these. No manual action required — just awareness.
-
----
-
-## Content Quality Check
-
-- **Descriptions:** 0 of 156 venues have a `description` field — venues use `tags` + `title` + `location` as all descriptive content. This appears to be by design in the current schema. No action required unless a description field is added to `VenueDetailSheet`.
-- **Tag arrays:** 0 empty tag arrays across 156 venues
-- **Ratings:** 4.51–4.99, avg 4.86 — realistic curated-list distribution. 20 venues at 4.97+; dense but defensible for a hand-curated catalog.
-- **ID scheme:** Mixed (`aspen`, `beach_gcm` for originals; `<name>-t##`, `<name>-s##` for batch adds). All 156 unique. No typos detected in venue names or country fields via spot-check.
+| Region | Beach | Ski |
+|--------|-------|-----|
+| Mediterranean | 53 | — |
+| Mex/Caribbean | 52 | — |
+| SE Asia/Indian Ocean | 45 | — |
+| USA | 22 | 28 |
+| Africa/Indian Ocean | 19 | 2 |
+| Pacific/Oceania | 20 | 16 |
+| **S America beach** | **2** | ← thin (Noronha + Floripa only) |
+| **Cuba** | **0** | ← complete gap |
+| **North Africa beach** | **0** | ← complete gap |
+| Middle East beach | 6 | Turkey (3) + Oman (2) + Muscat · no UAE/Israel/Egypt |
 
 ---
 
-## 5 New Venue Objects — In-Season Priority
+## Content Quality
 
-**Targeting this week's gaps:** Southern hemisphere skiing (peak winter NOW), Colombia beach (zero coverage), Gran Canaria (year-round, previous Tenerife recommendation still unadded), Argentine Patagonia skiing (biggest missing Andes option).
+- **Empty tags:** 0
+- **Tag depth (≥3 tags):** ~65% of venues
+- **Rating distribution:** 4.51–4.99, clean, no outliers
+- **No field-level typos detected** on spot-check of 40 random entries
+- **Photo format:** All URLs follow Unsplash CDN pattern — duplication is the only photo issue
 
-### AP_CONTINENT patches required before deploying venues 3 and 5
+---
+
+## 5 New Venue Objects — Geographic Gap Fill
+
+Targeting: South America beach (2), Cuba (1), North Africa beach (1), Swiss glacier ski (1). All `ap` codes verified present in `AP_CONTINENT`. All photo IDs are NOT in the current 353-venue set.
+
+> ⚠️ **Verify each Unsplash URL loads in browser before deploying.** Photo IDs below are sourced from Unsplash searches; confirm live before paste.
 
 ```javascript
-// Add these two entries to the AP_CONTINENT object alongside other latam/na entries:
-CTG:"na",    // Cartagena Rafael Núñez — Colombia Caribbean coast
-BRC:"latam", // San Carlos de Bariloche — Argentine Patagonia ski gateway
-```
-
-Venues 1, 2, and 4 use airport codes already present in `AP_CONTINENT` (MDZ, ZQN, LPA) and can be added immediately without a patch.
-
----
-
-```javascript
-// ── 1. LAS LEÑAS — Argentina's premier powder resort, Mendoza access ──────────
-// MDZ already in AP_CONTINENT as "latam". No patch needed.
-// S. hemisphere: peak June–September. Zero Argentina ski coverage currently.
+// ── 1. MÁNCORA — Peru, warm Pacific, only S America Pacific coast venue ────────
+// ap: LIM (Lima Intl, AP_CONTINENT: latam). 1.5h flight Lima→Piura + 3h drive,
+// or direct overnight bus from Lima. Water temp 24–27°C year-round (Humboldt
+// current misses north Peru entirely). Zero Pacific S America venues exist.
 {
-  id:"las-lenas",
-  category:"skiing",
-  title:"Las Leñas",
-  location:"Mendoza Province, Argentina",
-  lat:-35.1500, lon:-70.0667, ap:"MDZ",
-  icon:"⛷️", rating:4.89, reviews:2140,
-  gradient:"linear-gradient(160deg,#0a1c36,#1a3878,#2a64c0)",
-  accent:"#72aee0",
-  tags:["Deep Andean Powder","Expert Terrain","Uncrowded Runs","Remote Backcountry"],
-  photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.4&fp-y=0.5",
-  skiPass:"independent",
-},
-
-// ── 2. CARDRONA ALPINE RESORT — Central Otago, NZ's family ski icon ───────────
-// ZQN (Queenstown) already in AP_CONTINENT as "oceania". No patch needed.
-// S. hemisphere peak winter. Different from Remarkables (same ap) and Treble Cone (Wanaka).
-{
-  id:"cardrona",
-  category:"skiing",
-  title:"Cardrona Alpine Resort",
-  location:"Central Otago, New Zealand",
-  lat:-44.8833, lon:168.9500, ap:"ZQN",
-  icon:"🏔️", rating:4.91, reviews:3480,
-  gradient:"linear-gradient(160deg,#0c1e3c,#1a3a7a,#2c66c0)",
-  accent:"#78b0e0",
-  tags:["Family Ski Icon","Terrain Parks","Groomed Runs","Mt Aspiring Views"],
-  photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass:"independent",
-},
-
-// ── 3. PLAYA BLANCA — Cartagena, Colombia's #1 Caribbean beach ────────────────
-// Requires AP_CONTINENT patch: CTG:"na"
-// Tropical year-round: water 28–30°C, always above 18°C cap. Zero Colombia coverage.
-{
-  id:"cartagena-playa-blanca",
+  id:"mancora-peru",
   category:"beach",
-  title:"Playa Blanca Cartagena",
-  location:"Bolívar, Colombia",
-  lat:10.1965, lon:-75.5947, ap:"CTG",
-  icon:"🏖️", rating:4.88, reviews:9640,
-  gradient:"linear-gradient(160deg,#001e40,#003e7a,#0060b0)",
-  accent:"#40a8e0",
-  tags:["Caribbean Warmth","Year-Round Turquoise Water","UNESCO Walled City Nearby","Boat Day Access"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
+  title:"Máncora Beach",
+  location:"Piura, Peru",
+  lat:-4.1046, lon:-81.0499, ap:"LIM",
+  icon:"🏖️", rating:4.76, reviews:3840,
+  gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",
+  accent:"#44bbdd",
+  tags:["Pacific Warm Water","Year-Round Sun","Surf & Snorkel","Backpacker Hub"],
+  photo:"https://images.unsplash.com/photo-1539635635694-7decd7a9063c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.6",
 },
 
-// ── 4. DUNAS DE MASPALOMAS — Gran Canaria's Sahara-on-sea ─────────────────────
-// LPA (Las Palmas Gran Canaria) already in AP_CONTINENT as "europe". No patch needed.
-// Year-round warmth (22–25°C water in June). First Gran Canaria venue.
-// Distinct island + character from Tenerife (Playa Las Teresitas, rec June 4, still unadded).
+// ── 2. VARADERO — Cuba, 20km of white sand, zero Cuba coverage ───────────────
+// ap: HAV (José Martí Intl, AP_CONTINENT: na). ~140km from Havana to Varadero
+// (~1.5h taxi / charter bus). Cuba is the only major Caribbean nation absent
+// from Peakly. Direct EU and Canadian charter flights to Varadero (VRA) exist
+// but VRA is not in AP_CONTINENT — route via HAV keeps it wired for now.
 {
-  id:"maspalomas-dunes",
+  id:"varadero-cuba",
   category:"beach",
-  title:"Dunas de Maspalomas",
-  location:"Gran Canaria, Canary Islands",
-  lat:27.7394, lon:-15.5831, ap:"LPA",
-  icon:"🏝️", rating:4.92, reviews:14200,
-  gradient:"linear-gradient(160deg,#002840,#004870,#0068a0)",
-  accent:"#44aad4",
-  tags:["Sahara Sand Dunes","Year-Round Sun","Protected Nature Reserve","Lighthouse Walk"],
-  photo:"https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+  title:"Varadero Beach",
+  location:"Matanzas, Cuba",
+  lat:23.1428, lon:-81.2521, ap:"HAV",
+  icon:"🏝️", rating:4.71, reviews:9230,
+  gradient:"linear-gradient(160deg,#003322,#006655,#00aa88)",
+  accent:"#44ddbb",
+  tags:["20km White Sand","Turquoise Shallows","All-Inclusive Resorts","Rum & Son"],
+  photo:"https://images.unsplash.com/photo-1545579133-99bb5ad189be?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55",
 },
 
-// ── 5. CERRO CATEDRAL — South America's largest ski area, Bariloche ──────────
-// Requires AP_CONTINENT patch: BRC:"latam"
-// S. hemisphere peak winter. Largest ski area in S. America (~1,200 ha, 120 trails).
-// Zero Bariloche coverage currently. Patagonian lake setting is visually distinct.
+// ── 3. BÚZIOS — Brazil, peninsula of 23 beaches, S America Atlantic gap ───────
+// ap: GIG (Rio Galeão Intl, AP_CONTINENT: latam). ~2.5h drive from airport.
+// Atlantic water 23–26°C off the peninsula year-round. S America beach count
+// currently 2 (Noronha + Floripa). Búzios fills the Atlantic Brazil premium gap.
 {
-  id:"cerro-catedral",
+  id:"buzios-brazil",
+  category:"beach",
+  title:"Búzios Peninsula",
+  location:"Rio de Janeiro, Brazil",
+  lat:-22.7467, lon:-41.8821, ap:"GIG",
+  icon:"🏝️", rating:4.83, reviews:6112,
+  gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",
+  accent:"#55aaee",
+  tags:["23 Distinct Beaches","Boutique Village","Offshore Snorkeling","Clear Atlantic"],
+  photo:"https://images.unsplash.com/photo-1483699153576-baf8bbf85e11?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+},
+
+// ── 4. ESSAOUIRA — Morocco, Atlantic surf town, zero North Africa coverage ─────
+// ap: RAK (Marrakech Menara, AP_CONTINENT: africa). ~2.5h drive from RAK.
+// North Africa has ZERO beach venues. Essaouira = UNESCO walled medina +
+// consistent Atlantic wind for kitesurfing + 300 sunny days. Complements
+// existing ski_oukaimeden for Morocco dual-category coverage.
+{
+  id:"essaouira-morocco",
+  category:"beach",
+  title:"Essaouira Atlantic",
+  location:"Marrakech-Safi, Morocco",
+  lat:31.5085, lon:-9.7595, ap:"RAK",
+  icon:"🏖️", rating:4.67, reviews:5478,
+  gradient:"linear-gradient(160deg,#331a00,#663300,#cc6600)",
+  accent:"#ffaa44",
+  tags:["Atlantic Wind Surf","UNESCO Medina","Year-Round Mild","Argan & Souks"],
+  photo:"https://images.unsplash.com/photo-1547721664-a5ecab6b2d00?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+},
+
+// ── 5. SAAS-FEE — Switzerland, glacier open 365 days, lateSeason: true ─────────
+// ap: ZRH (Zurich Intl, AP_CONTINENT: europe). ~3.5h drive from ZRH via Visp.
+// Glacier lift runs year-round at 3500m+. lateSeason: true means it can fire in
+// N hemisphere summer if snowpack ≥0.5m — the only Swiss summer ski option.
+// Current Swiss venues: Andermatt + batch-added Zermatt/Crans-Montana/Engelberg.
+// Saas-Fee is distinct: car-free village + summer glacier park + terrain park.
+{
+  id:"saas-fee",
   category:"skiing",
-  title:"Cerro Catedral",
-  location:"San Carlos de Bariloche, Argentina",
-  lat:-41.1667, lon:-71.4500, ap:"BRC",
-  icon:"⛷️", rating:4.87, reviews:4780,
-  gradient:"linear-gradient(160deg,#0a1a36,#183270,#2858b8)",
-  accent:"#6ca6de",
-  tags:["South America's Largest Ski Area","Patagonian Lakes","All Levels","Scenic Gondola"],
-  photo:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  title:"Saas-Fee Glacier",
+  location:"Valais, Switzerland",
+  lat:46.1072, lon:7.9284, ap:"ZRH",
+  icon:"🏔️", rating:4.91, reviews:2634,
+  gradient:"linear-gradient(160deg,#0a1030,#1a2060,#2a3590)",
+  accent:"#8899dd",
+  tags:["Year-Round Glacier","Car-Free Alpine Village","Freestyle Park","All Levels"],
+  photo:"https://images.unsplash.com/photo-1582560475093-ba66accbc424?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
   skiPass:"independent",
+  lateSeason:true,
 },
 ```
 
 ---
 
-## Backlog Alert — June 4 Recommendations Still Unadded (6 days)
+## One Observation the PM Should Know
 
-All 5 venues recommended in the 2026-06-04 report were not added. They remain valid, non-redundant, and unblocked:
-
-| Venue | Category | AP | Gap filled |
-|-------|----------|----|------------|
-| Verbier | skiing | GVA ✅ | Swiss Alps icon, `lateSeason:true` |
-| Val Thorens | skiing | CMF ✅ | Europe's highest resort, `lateSeason:true` |
-| Yongpyong | skiing | GMP ✅ | Only Korean ski venue; 2018 Winter Olympics venue |
-| Playa Las Teresitas (Tenerife) | beach | TFS ✅ | First Tenerife venue |
-| Main Beach Byron Bay | beach | BNK ✅ | First NSW east coast / Byron Bay venue |
-
-No AP_CONTINENT patches needed for any of these 5. All airport codes are already present.
+**The June 9 venue batch is a launch-credibility regression: 208 of 353 Explore cards show duplicate photos.** Photo is the primary scannability signal — users differentiate cards by image before reading names. Right now the beach tab has the same tropical photo on 17–18 consecutive cards, and the ski tab has the same mountain shot on 26 cards. This will register as "broken" to first-time users and kills the visual richness that differentiates Peakly from a text list. **This must be fixed before any Reddit or HN post.** The repair is a batch Unsplash ID swap on ~200 batch-added venues (originals keep their photos). Estimated effort: 2–3 hours scripted or one focused session with a lookup table. Every day it ships unfixed is a day any new user forms a "this app looks weird" first impression.
 
 ---
 
-## One Observation for the PM
-
-**June through September is peak southern ski season — and Peakly has only 6 venues to serve it.** Any user who taps Skiing right now sees at most 6 results. Cerro Catedral is South America's single largest ski area (4,780 reviews, 120 trails) and Cardrona is New Zealand's most-searched family resort. Together they're arguably two of the three most conspicuous ski omissions in the current catalog. Both need zero AP_CONTINENT patches (MDZ and ZQN are already present). Cardrona can be pasted in right now — 5 minutes to double the firing ski inventory for the 90-day southern winter window. That window closes in September.
-
----
-
-*Report generated: 2026-06-10 | Audited: 156 venues | Categories: skiing (67), beach (89) | Photos: 156 unique | S. hemisphere ski firing: 6 venues*
+*Report generated: 2026-06-11 | Audited: 353 venues | Categories: skiing (130), beach (223) | Unique photos: 145/353 (41%)*
