@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610b";
+const PEAKLY_BUILD = "20260610c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6534,7 +6534,43 @@ function useCloudSync() {
     setStatus("signed_out");
   }, []);
 
-  return { enabled: CLOUD_SYNC_CONFIGURED, status, user, signIn, signOut, syncNow: pushNow };
+  // Account deletion — App Store Guideline 5.1.1(v). Calls the server-side
+  // delete_user() RPC (server/sql/delete-account.sql) which wipes the user's
+  // user_data + shared_lists rows AND their auth.users identity, then clears
+  // the cloud-synced keys from THIS device and signs out. Local-only data
+  // (caches, event log, install flags) is left alone — it's not "the account".
+  const deleteAccount = useCallback(async () => {
+    if (!CLOUD_SYNC_CONFIGURED) return { ok: false, error: "Cloud sync disabled" };
+    try {
+      const client = await ensureSupabase();
+      if (!client) throw new Error("Supabase failed to load");
+      const { error } = await client.rpc("delete_user");
+      if (error) {
+        const msg = String(error.message || error);
+        // RPC not deployed yet → Postgres/PostgREST "function does not exist".
+        const notDeployed = /PGRST202|does not exist|could not find|not found|schema cache/i.test(msg);
+        logEvent("account_delete_error", { message: msg });
+        return { ok: false, error: notDeployed
+          ? "Account deletion isn't switched on yet. Email jjciluzzi@gmail.com and we'll remove your data within 48h."
+          : "Couldn't delete your account just now. Please try again." };
+      }
+      // Server data gone — clear the synced subset locally + drop the session.
+      try {
+        for (const k of SYNCED_KEYS) localStorage.removeItem(k);
+        localStorage.removeItem("peakly_last_sync");
+      } catch {}
+      try { await client.auth.signOut(); } catch {}
+      setUser(null);
+      setStatus("signed_out");
+      logEvent("account_deleted");
+      return { ok: true };
+    } catch (e) {
+      logEvent("account_delete_error", { message: String(e?.message || e) });
+      return { ok: false, error: "Couldn't delete your account just now. Please try again." };
+    }
+  }, []);
+
+  return { enabled: CLOUD_SYNC_CONFIGURED, status, user, signIn, signOut, deleteAccount, syncNow: pushNow };
 }
 
 // ─── Analytics helper ─────────────────────────────────────────────────────────
