@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610k";
+const PEAKLY_BUILD = "20260610l";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -9269,7 +9269,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
         {/* Email capture */}
         <div style={{ margin:"8px 14px 0", padding:"16px", background:"linear-gradient(135deg,#f0f9ff,#e0f2fe)", borderRadius:16, border:"1px solid #bae6fd" }}>
-          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:10 }}>Get notified when conditions are firing</div>
+          <div style={{ fontSize:13, fontWeight:800, color:"#0c4a6e", fontFamily:F, marginBottom:10 }}>{ALERTS_AVAILABLE ? "Get notified when conditions are firing" : "Save your spots across every device"}</div>
           <form onSubmit={async e => {
             e.preventDefault();
             const form = e.target;
