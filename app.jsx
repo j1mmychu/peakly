@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610s";
+const PEAKLY_BUILD = "20260610af";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -272,40 +272,8 @@ const CATEGORIES = [
   { id:"beach", label:"Beach" },
 ];
 
-// ─── Amazon Associates gear items (tag=peakly-20) ────────────────────────────
-// Gate: GEAR_ITEMS[listing.category] renders in VenueDetailSheet only when
-// category has items. INVARIANT: grep -c "GEAR_ITEMS" app.jsx must be >= 4.
-// Deleted by auto: commits twice (2026-05-09 scrub, 2026-06-07). Do not remove.
-const GEAR_ITEMS = {
-  skiing: [
-    { title:"Smith I/O MAG Ski Goggles", desc:"ChromaPop lens · fog-resistant", price:249,
-      url:"https://www.amazon.com/dp/B08CRDGDCX?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=120&h=120&fit=crop" },
-    { title:"Atomic Bent Chetler 100 Skis", desc:"All-mountain freeride · 100mm underfoot", price:599,
-      url:"https://www.amazon.com/dp/B09KZQP7F3?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1522163182402-834f871fd851?w=120&h=120&fit=crop" },
-    { title:"Burton Custom Snowboard Bindings", desc:"Channel-compatible · all-mountain flex", price:329,
-      url:"https://www.amazon.com/dp/B07PXMZGS8?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1483721310020-03333e577078?w=120&h=120&fit=crop" },
-    { title:"Helly Hansen Ski Jacket", desc:"HELLY TECH waterproof · recco reflector", price:449,
-      url:"https://www.amazon.com/dp/B09Y4TF9KN?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1553689651-b4ff74a56a0b?w=120&h=120&fit=crop" },
-  ],
-  beach: [
-    { title:"Hydro Flask 32 oz Wide Mouth", desc:"TempShield insulation · sand-proof lid", price:49,
-      url:"https://www.amazon.com/dp/B07MT8ZLQR?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop" },
-    { title:"Aqua Marina Inflatable SUP Board", desc:"11' all-round · complete kit", price:499,
-      url:"https://www.amazon.com/dp/B08MQL3Z8Z?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1562774053-701939374585?w=120&h=120&fit=crop" },
-    { title:"Maui Jim Peahi Polarized Sunglasses", desc:"PolarizedPlus2 lens · UV400", price:329,
-      url:"https://www.amazon.com/dp/B00CEQXGRQ?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1508296695146-257a814070b4?w=120&h=120&fit=crop" },
-    { title:"Rash Guard Long Sleeve UPF 50+", desc:"Quick-dry · reef-safe", price:35,
-      url:"https://www.amazon.com/dp/B073RH8BJ9?tag=peakly-20",
-      img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=120&h=120&fit=crop" },
-  ],
-};
+// Amazon Associates gear modules CUT for v1 — Jack's decision 2026-06-09,
+// reaffirmed 2026-06-10. Do NOT restore. Revenue Model is honest at $7.58/1K MAU.
 
 // ─── continents for filtering ─────────────────────────────────────────────────
 const CONTINENTS = [
@@ -11444,31 +11412,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               </div>
             </div>
           )}
-        {/* ─── Gear picks (Amazon Associates, tag=peakly-20) ─────────── */}
-        {GEAR_ITEMS[listing.category] && (
-          <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F, marginBottom:10 }}>
-              {listing.category === "skiing" ? "⛷️ Ski gear" : "🏖️ Beach essentials"}
-            </div>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4, touchAction:"pan-x" }}>
-              {GEAR_ITEMS[listing.category].map((item, i) => (
-                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer sponsored"
-                  onClick={() => { if (window.plausible) plausible('gear_click', { props: { venue: listing.title, category: listing.category, item: item.title } }); }}
-                  style={{ flexShrink:0, width:130, background:"#f7f7f7", borderRadius:14, textDecoration:"none", overflow:"hidden", display:"block" }}>
-                  <div style={{ height:80, overflow:"hidden", borderRadius:"14px 14px 0 0", background:"#eee" }}>
-                    <img src={item.img} alt={item.title} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                  </div>
-                  <div style={{ padding:"7px 9px 9px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#222", fontFamily:F, lineHeight:1.3, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.title}</div>
-                    <div style={{ fontSize:9, color:"#888", fontFamily:F, marginTop:2, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{item.desc}</div>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#0284c7", fontFamily:F, marginTop:4 }}>${item.price}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-            <div style={{ fontSize:9, color:"#bbb", fontFamily:F, marginTop:6 }}>Affiliate links — we earn a small commission</div>
-          </div>
-        )}
+        {/* Amazon gear picks removed — Amazon cut for v1 (see top of file). */}
         {/* Travel insurance — SafetyWing (referenceID=peakly) */}
         <a href="https://safetywing.com/?referenceID=peakly" target="_blank" rel="noopener noreferrer sponsored"
            onClick={() => { if (window.plausible) plausible('insurance_click', { props: { venue: listing.title, category: listing.category } }); }}
@@ -12289,8 +12233,12 @@ function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Push notification registration (Capacitor native + web SW fallback) ─────
+  // APNS_LIVE gate: on iOS v1 (APNS not configured) we must NOT call
+  // PushNotifications.register() — there's no aps-environment entitlement, so it
+  // would error and an App Store reviewer would see a permission prompt leading
+  // nowhere. Flip APNS_LIVE=true after the .p8 + entitlement are set up to re-enable.
   useEffect(() => {
-    if (window.Capacitor?.isNativePlatform()) {
+    if (window.Capacitor?.isNativePlatform() && APNS_LIVE) {
       // Native (iOS/Android via Capacitor) — request permission and register for push
       (async () => {
         try {

@@ -6,8 +6,20 @@ Current state (refresh from CLAUDE.md every run): Frontend on GitHub Pages
 (j1mmychu.github.io/peakly). Flight proxy on DigitalOcean VPS 198.199.80.21
 behind Caddy + Let's Encrypt at https://peakly-api.duckdns.org. HTTPS
 migration is DONE — do not propose it again. Cache buster currently
-peakly-20260414b. GitHub PAT "peakly-vps-deploy" expires 2026-06-15
-(token-renewal agent watches this weekly).
+peakly-20260414b. GitHub PAT "peakly-vps-deploy": RESOLVED 2026-06-10 —
+traced to NO live consumer (repo is public, local pushes are SSH, VPS has
+no git). Jack regenerated a fresh token and holds it offline. Its expiry
+is a non-event. Do NOT flag PAT expiry again; the weekly token-renewal
+watch can be retired.
+
+AMAZON / gear modules — DO NOT TOUCH. The Amazon Associates gear-item
+constant (the one whose absence past reports called a "revenue leak") is
+CUT for v1 by Jack's explicit decision (2026-06-09, reaffirmed 2026-06-10).
+A `grep` count of 0 for it is the CORRECT, intended state — NOT a leak, NOT
+a regression. Never restore the constant, never re-add the VenueDetailSheet
+gear render gate, and never recommend a pre-commit guard enforcing its
+presence. Revenue Model is honest at $7.58/1K MAU without it. Revisit only
+if Jack says so in writing.
 
 Your job every morning is to audit Peakly's infrastructure and security
 posture, then write a report that includes actual fixes — not just findings.
