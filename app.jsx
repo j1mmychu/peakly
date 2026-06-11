@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610c";
+const PEAKLY_BUILD = "20260610d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8237,6 +8237,25 @@ function ProfileSyncSection({ cloudSync, profile }) {
     else       setLastSentAt(Date.now());
   };
   const out = async () => { await cloudSync.signOut(); setFeedback(""); setLastSentAt(0); };
+
+  // Account deletion (App Store 5.1.1(v)). Two-step: tap reveals a confirm
+  // panel that spells out exactly what's deleted and requires typing DELETE.
+  const [delPhase, setDelPhase] = useState("idle"); // idle | confirm | deleting
+  const [delText, setDelText]   = useState("");
+  const [delErr, setDelErr]     = useState("");
+  const doDelete = async () => {
+    if (delText.trim().toUpperCase() !== "DELETE") return;
+    setDelPhase("deleting"); setDelErr("");
+    const r = await cloudSync.deleteAccount();
+    if (r.ok) {
+      try { haptic("heavy"); } catch {}
+      setDelPhase("idle"); setDelText("");
+      setFeedback("Your account and all cloud-synced data have been deleted.");
+    } else {
+      setDelErr(r.error || "Couldn't delete your account just now. Please try again.");
+      setDelPhase("confirm");
+    }
+  };
 
   return (
     <div style={{ marginBottom:16, padding:"14px 14px 12px", background:"#fff", border:"1.5px solid #ebebeb", borderRadius:14 }}>
