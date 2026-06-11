@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610h";
+const PEAKLY_BUILD = "20260610i";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -12325,7 +12325,7 @@ function App() {
   // Hide the Alerts tab on native iOS until APNS is live (see APNS_LIVE
   // constant above BottomNav). Web — including iOS Safari PWA — stays visible.
   // Android Capacitor builds aren't gated; FCM ships separately.
-  const showAlertsTab = window.Capacitor?.getPlatform?.() !== "ios" || APNS_LIVE;
+  const showAlertsTab = ALERTS_AVAILABLE;
   // Snap stranded users back to Explore if the tab they're on disappears.
   useEffect(() => {
     if (!showAlertsTab && activeTab === "alerts") setActiveTab("explore");
