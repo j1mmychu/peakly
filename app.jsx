@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610m";
+const PEAKLY_BUILD = "20260610n";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -10769,7 +10769,7 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 { dot:"#16a34a", text: profile?.homeAirport
                     ? `Cheap flights from ${AIRPORT_CITY[profile.homeAirport] || profile.homeAirport}`
                     : "Cheap flights from your home airport" },
-                { dot:"#d97706", text:"Strike alerts the moment your spots peak" },
+                { dot:"#d97706", text: ALERTS_AVAILABLE ? "Strike alerts the moment your spots peak" : "Save your spots & sync across devices" },
               ].map(({ dot, text }, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:14 }}>
                   <span style={{ width:8, height:8, borderRadius:"50%", background:dot, flexShrink:0 }} />
