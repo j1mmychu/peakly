@@ -105,7 +105,20 @@ if git status --porcelain | awk '{print $2}' | grep -q '^app\.jsx$'; then
   # 3. Venue count can't crater. Baseline persisted in scripts/.venue-baseline;
   # grows automatically, but a drop of >5 in one commit means something ate the
   # VENUES array. Legit big deletions: update the baseline file by hand first.
-  VCOUNT=$(grep -cE 'category: *"(skiing|beach)"' app.jsx)
+  # Count via eval of the VENUES array (same walker as status.sh) — NEVER grep
+  # category:, it's blind to the ~197 JSON-formatted batch entries (sees 156
+  # of 353). Falls back to the old grep only if node is unavailable/errors,
+  # so the guard can never block a commit on counter failure.
+  VCOUNT=$(node -e '
+const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
+const m=s.match(/const\s+VENUES\s*=\s*\[/);if(!m){process.exit(1);}
+let i=m.index+m[0].length-1,d=0,start=i;
+while(i<s.length){const c=s[i];if(c==="[")d++;else if(c==="]"){d--;if(d===0){i++;break;}}else if(c==="\""||c==="'"'"'"||c==="`"){const q=c;i++;while(i<s.length&&s[i]!==q){if(s[i]==="\\")i++;i++;}}i++;}
+const a=eval("("+s.slice(start,i)+")");console.log(a.length);
+' 2>/dev/null)
+  case "$VCOUNT" in
+    ''|*[!0-9]*) VCOUNT=$(grep -cE 'category: *"(skiing|beach)"' app.jsx) ;;
+  esac
   BASEFILE="$REPO/scripts/.venue-baseline"
   BASELINE=$(cat "$BASEFILE" 2>/dev/null || echo 0)
   if [ "$VCOUNT" -lt $((BASELINE - 5)) ]; then
