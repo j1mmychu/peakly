@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610f";
+const PEAKLY_BUILD = "20260610g";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8823,6 +8823,22 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
         {/* Saved venues relocated to the Profile tab (2026-06-09) — keeps the
             Explore top a clean category-selection surface. */}
+
+        {/* Conditions-unavailable banner — total weather-fetch failure. Grid
+            below still renders venues + estimate fares; this just explains the
+            missing scores and offers the recovery gesture. */}
+        {weatherDown && (
+          <div style={{
+            margin:"12px 14px 0", padding:"10px 14px", background:"#fff7ed",
+            border:"1.5px solid #fed7aa", borderRadius:12,
+            display:"flex", alignItems:"center", gap:10,
+          }}>
+            <span style={{ fontSize:16, flexShrink:0 }}>🌥️</span>
+            <div style={{ fontSize:12, fontWeight:700, color:"#9a3412", fontFamily:F, lineHeight:1.35 }}>
+              Live conditions are unavailable right now — pull down to refresh. Spots and flights still show below.
+            </div>
+          </div>
+        )}
 
         {/* ── Home-airport setup banner ──
             Auto-detect (~app.jsx:8488) tries geolocation but fails silently
