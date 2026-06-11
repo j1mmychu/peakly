@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610p";
+const PEAKLY_BUILD = "20260610q";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4866,6 +4866,7 @@ async function _tryProxyWx(kind, lat, lon) {
 }
 
 async function fetchWeather(lat, lon) {
+  if (window.__PEAKLY_STUB_WX_FAIL) return null; // TEMP cold-start test stub — REMOVE
   const cacheKey = _wxCacheKey("weather", lat, lon);
   const cached = _wxCacheGet(cacheKey);
   if (cached) return cached;
