@@ -1,142 +1,111 @@
-# Peakly PM Report — 2026-06-13 (v49)
+# Peakly PM Report — 2026-06-12 (v56)
 
-> Supersedes v48 (June 4). **9-day gap since last report.** Status: **ORANGE — Reddit launch window has passed with no confirmed outcome. App Store submission path is clear but unstarted. Revenue model is honest at $7.58/1K MAU.**
-
----
-
-## Stale Bug Claims — Closed at Entry
-
-The prompt flags three "bugs." All are stale:
-
-| "Bug" | Status |
-|-------|--------|
-| Peakly Pro $9/mo vs $79/yr | **NOT A BUG.** Pro UI removed April 16. No price appears anywhere in the live product. Closed in v32 (2026-05-13). |
-| Sentry DSN empty | **NOT A BUG.** DSN confirmed non-empty at `app.jsx:8` since 2026-05-13. Devops report June 4 verified: `https://9416b032a46681d74645b056fcb08eb7@o4511108649058304...` ✅ |
-| Cache buster stale | **NOT A BUG.** Auto-bumping is structural since June 8 (`scripts/auto-push.sh`). Buster resets to `${TODAY}a` on any new day and increments `a→z→aa` per-push. Class is architecturally dead. |
-
-Stop re-triaging these. They don't exist.
+> Supersedes v55 (June 11). **Status: YELLOW.** VPS still 403 (Day 2 — Jack has not SSH'd). Photo duplication worsened to 211 venues (60%). PAT expiry flagged by v55 as P0 is **wrong** — traced to no live consumer on June 10 and already closed in CLAUDE.md. Launch date June 21 holds. Nine days. Both P0s are fixable in the next 48 hours if Jack acts on VPS today.
+>
+> _Rolling file — v55 archived to context by reference._
 
 ---
 
-## Shipped Since v48 (2026-06-04 → 2026-06-10)
+## Shipped Since v55 (2026-06-11 → 2026-06-12)
 
-This was the most productive week since the May 3 pivot. Per CLAUDE.md (authoritative):
+| What | Verdict |
+|------|---------|
+| **Image lazy loading confirmed** — DevOps verified 9/9 `<img>` tags have `loading="lazy"` | ✅ Closes the "unverified" finding from v55. |
+| **Daily DevOps + Content reports** (June 12) | ✅ Both ran. VPS still down, photo dedup worsened, 5 AP_CONTINENT gaps confirmed. |
+| **No app.jsx changes** | ✅ Correct. Cache stamp `20260610af` is unchanged — nothing new to bump on. |
 
-| What Shipped | Right Call? |
-|-------------|-------------|
-| **+197 venues (156→353):** 14 S. hemisphere ski venues (NZ, AUS, Chile, Argentina) + 134-beach JSON batch | ✅ Summer N-hemisphere needs ski inventory. Beach depth matters. **Quality audit pending — see Risk section.** |
-| **`<ScoringExplainer>` component** — one-time dismissible "how Peakly scores your weekend" card in Explore | ✅ Closes the trust gap for new users. Right moment to ship it. |
-| **App Store readiness — account deletion** (`delete_user()` SQL + Profile UI, two-step `DELETE` confirm) | ✅ Mandatory for Guideline 5.1.1(v). Jack still needs to paste `server/sql/delete-account.sql` into Supabase. |
-| **Cold-start reviewer-proof** — `weatherDown` banner, venues survive total weather failure, no blank grid | ✅ Correct. Apple reviewers test in hardened environments. This was the right P0 to fix. |
-| **iOS alert copy honesty** (`ALERTS_AVAILABLE` gate on push-promise copy) | ✅ Prevents Guideline 2.3.3 rejection. |
-| **VPS verified LIVE** — `/health` returns `wx_cache_size` populated, poll worker running | ✅ **Day 35+ resolved. The "VPS binary blocker" framing is permanently retired.** |
-| **GEAR_ITEMS definitively cut (Open #16 resolved)** — DevOps daily run briefly re-restored it; reverted same day; `tasks/agents/devops.md` updated with standing do-not-touch directive | ✅ Right call. Revenue model stays $7.58/1K MAU honest. The restore/revert churn was a process failure, not a product one. |
-| **Auto-push guard: eval counter** — venue-count check now eval-based (counts all 353), not grep-based (was blind to JSON-format batch entries, saw only 156) | ✅ Closes the invariant gap. |
-| **Explore UX polish** — category pills enlarged, saved-venues strip removed from toolbar → relocated to Profile tab, grid ranked by `weekendScore` | ✅ Correct product call. Pills are the primary navigation; enlarging them was overdue. |
-| **Save/account copy reframed** — "just your email, no password" voice instead of cloud-sync language | ✅ Email-first is the right product framing for a PWA pre-App-Store. |
-| **+2 US airports** (IAH, PHL) now in `US_AIRPORTS` 4×4 grid | ✅ Minor, right. |
-| **Cache stamp now `20260610s`** across app.jsx / sw.js / index.html | ✅ Structural auto-bump working as designed. |
-
-**Net assessment:** The June 5–10 sprint was largely the right work — App Store compliance, VPS closure, content expansion. One concern: the 197-venue batch landed during/immediately before the planned Reddit launch window (see Risk section).
+**Code state June 12 (verified by DevOps report):**
+- `app.jsx`: 13,021 lines · `PEAKLY_BUILD = "20260610af"` · balanced 5,509/5,509 braces
+- **353 venues** (130 ski / 223 beach) — eval-counted ✅
+- **GEAR_ITEMS: 0** — Amazon CUT confirmed ✅
+- Sentry DSN: active (`9416b032…`) ✅
+- Cache stamp lockstep: `20260610af` in app.jsx / sw.js / index.html ✅
+- **VPS proxy: 403 🔴** (Day 2)
+- **Photo duplication: 211 venues (60%) 🔴** (Day 2 — worsened from 208)
 
 ---
 
-## The June 7 Reddit Launch — Unconfirmed
+## Bug Triage — June 12
 
-The v48 report set June 7 (Sunday) as the Reddit launch date with three substeps: r/solotravel first, then r/frugaltravel, then r/skiing. Today is June 13. **No launch outcome appears in CLAUDE.md, CHANGELOG.md, or any report.**
+| Item | Severity | Days Open | Status |
+|------|----------|-----------|--------|
+| **VPS 403 (DuckDNS/Caddy post-reboot)** | **P0** | **Day 2** | Jack: SSH to 198.199.80.21. Runbook in v55 §Decision 2. 10 minutes. Every day without this is a day flight prices are invisible to all users. |
+| **Photo duplication: 211 venues (60%)** | **P0** | **Day 2** | Agent generates unique-photo patch. 2–3 hours scripted. Launch cannot happen with 18 identical beach photos on the grid. See below for fix plan. |
+| ~~GitHub PAT expires June 15~~ | ~~P0~~ | **CLOSED** | **v55 wrong to re-flag this.** CLAUDE.md traced June 10: PAT has no live consumer. Auto-push uses SSH (`git@github.com:`). Expiry is a non-event. Removing from checklist. Final. |
+| 5 venues with AP missing from AP_CONTINENT | P2 | Day 2 | One-liner fix. Batch: content agent next run. |
+| 13 stale `claude/*` branches on remote | P2 | Day 1 | Review `claude/improve-scoring-system-XYGY6` before bulk-deleting — CLAUDE.md explicitly prohibits scoring changes without critique. Jack or agent: `git diff main...origin/claude/improve-scoring-system-XYGY6 -- app.jsx`. If it's dead weight, bulk-delete the whole set. |
+| Outer Banks near-dup | P3 | Day 15+ | DEFER post-launch. Final. |
+| SRI on CDN scripts | P3 | Day 43+ | DEFER post-launch. Final. |
+| CSP meta | P3 | Day 43+ | DEFER post-launch. Final. |
 
-This is the most important open question in the product right now.
-
-Three possibilities:
-1. **Launch happened, no report filed** — outcome (karma count, traffic spike, Plausible events) is unknown to the agent team and to this report.
-2. **Launch delayed** — a June 7 check of the app revealed the day-8 grid issue (predicted in v48), confidence scoring filtered out too many venues, and Jack deferred.
-3. **Launch hasn't happened** — no action taken.
-
-**If #1:** Jack needs to share Plausible data and any Sentry spikes. Revenue baseline is $7.58/1K MAU — at 100 initial users that's $0.76/mo. Absolute numbers are irrelevant right now; what matters is Day-1 retention (do people come back Saturday?).
-
-**If #2 or #3:** We are now 6 days past a planned launch with no explanation. That's a decision-avoidance signal. The product is launch-ready. The window isn't closing (summer beach content is peak-relevant through August) but momentum is.
-
-**Decision 1 (PM v49): Jack, reply with one of three answers before June 14:**
-- A) "It launched on June 7 — here's what happened."
-- B) "Delayed to [specific date]."
-- C) "Not launching on Reddit — here's why and what the new plan is."
-
-"We'll see" is not an answer.
+**P0 count: 2 (unchanged from yesterday). No regression. No escalation. Same two fires that need the same two actions.**
 
 ---
 
-## Bug Triage — June 13
+## Known Blockers
 
-| Bug | Severity | Days Open | Status |
-|-----|----------|-----------|--------|
-| Account deletion SQL not yet pasted into Supabase | **P1** | Day 3 | **Jack action.** Client ships graceful fallback but App Store review will test deletion. Must be active before submission. |
-| SRI on CDN scripts | P2 | Day 40+ | DEFER post-launch. Requires hash generation + browser regression test for Babel unsafe-eval. |
-| CSP meta tag | P2 | Day 40+ | DEFER post-launch. Same constraint as SRI. |
-| Eager Supabase `<script>` (80KB on anon load) | P2 | Day 38 | Diff exists (`reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff`). **SHIP this week — 30-second apply. No excuse.** |
-| Unsplash `&auto=format&q=75` missing on 353 photo URLs | P2 | Day 39 | Sed block in devops-2026-05-06.md. **SHIP this week — single command, ~7MB mobile savings.** |
-| 197 new venues — no human quality audit documented | **P1** | Day 4 | See Risk section. |
-| APNS not configured | P3 | Day 31+ | Parked. `isNativePlatform()` gate live. iOS v1 ships without push. |
-| skiPass field missing on ~16-25 ski venues | P3 | Day 42 | DEFER. Filter works correctly (missing = excluded from pass-specific results). |
+| Blocker | What It Unlocks | Owner | ETA |
+|---------|----------------|-------|-----|
+| **VPS 403 fix** | Flight pricing, weather cache, CORS | Jack, SSH | **Today — overdue** |
+| **Photo deduplication (211 venues)** | Explore grid looks like a product | Agent | **June 14** |
+| LLC approval | REI (+$6.16), Backcountry (+$0.64), GYG (+$1.20) | External | Unknown |
+| Account deletion SQL | App Store Guideline 5.1.1(v) | Jack | Before App Store submit |
+| Reddit launch | 5K–8K user acquisition | Jack | **June 21 — hard date** |
 
 ---
 
-## Known Blockers — June 13
+## Explicit Product Decisions — June 12
 
-| Blocker | What It Unlocks | Who | ETA |
-|---------|----------------|-----|-----|
-| **Jack: answer the launch question** | Trajectory for next 90 days | Jack | June 14 |
-| **Jack: paste `server/sql/delete-account.sql` into Supabase** | App Store 5.1.1(v) compliance | Jack | Before App Store submission |
-| **Apple Developer enrollment ($99/yr)** | App Store submission | Jack | Jack's call |
-| LLC approval | REI (+$6.16/1K MAU), Backcountry (+$0.64), GetYourGuide (+$1.20) | External | Unknown |
-| APNS .p8 key + pm2 env vars | iOS push alerts | Jack | Post-launch |
+### Decision 1: PAT expiry is CLOSED. Remove from all checklists. Final.
 
----
+v55 listed "GitHub PAT expires 2026-06-15" as P0. This is incorrect and was already resolved in CLAUDE.md on June 10:
 
-## Explicit Product Decisions — June 13
+> "GitHub PAT #15 RESOLVED 2026-06-10 — traced: the PAT has NO live consumer. The token (peakly-vps-deploy) was created for VPS git-pull deploys that were never wired up. Repo is public (no auth needed for raw.githubusercontent fetches). Local pushes are SSH (git@github.com:). VPS has no git repo (/opt/peakly-proxy is hand-copied). Expiry on 06-15 breaks nothing."
 
-**Decision 1: Reddit launch answer required by June 14.** (See above. Not repeating it.)
+The auto-push pipeline uses `git push origin main` via SSH, not the PAT. The PAT was created for a git-deploy workflow that was never implemented. v55 re-flagged a resolved item, likely because that run didn't have access to the updated CLAUDE.md. This decision is final — removing PAT from checklist items 14 and forward.
+
+**DECISION: PAT #15 is CLOSED. Off the list. If the agent re-flags it, point to this decision and CLAUDE.md §Open #15.**
 
 ---
 
-**Decision 2: Eager Supabase script — SHIP this week. Final.**
+### Decision 2: Photo dedup is an agent task, not a Jack task. Scope it now.
 
-This finding has been in known-skipped since May 9. It was re-flagged for post-launch and it's now post-launch (or post-planned-launch). The diff is already written. 30 seconds to apply. Shipping 80KB to every anonymous user on first paint is indefensible at any traffic level. The "re-flag if bounce rate > 65%" condition is backwards — we should fix it before we have enough users to measure bounce.
+The Content report has already done the hard analysis — we know exactly which 211 venues are affected and which 20 Unsplash photo IDs are overused (down to the count: 28 venues share one ski photo, 23 share another, etc.). This is a scripted content operation, not product design.
 
-**Action (Claude Code):** `cd ~/peakly && git apply reports/ready-to-ship/eager-supabase-delete-2026-05-08.diff && git add index.html && git commit -m "Remove eager Supabase script; lazy-load path handles it"`
+**Scope for Content agent:**
+- Skip original compact-format venues (Whistler, Aspen, Vail, etc.) — they have curated photos
+- Generate unique Unsplash IDs for all 211 batch venues (photo IDs in the `w=800&h=600&fit=crop` format already used)
+- Output as a ready-to-ship diff to `reports/ready-to-ship/photo-dedup-YYYY-MM-DD.diff`
+- One commit, auto-push ships it
+
+**Time estimate:** 2–3 hours for the agent run. Auto-push handles the rest. Target: DONE by June 14 EOD.
+
+**DECISION: Content agent runs photo dedup as its top priority on the next scheduled or on-demand run. Until this ships, venue additions are FROZEN.**
 
 ---
 
-**Decision 3: App Store submission date — set a target or formally defer to 2026-Q3.**
+### Decision 3: June 21 launch date is locked. No further extensions.
 
-App Store readiness work is substantially done:
-- ✅ Account deletion (client + SQL pending)
-- ✅ Cold-start reviewer-proof
-- ✅ iOS alert copy honest
-- ✅ APNS gate live (iOS ships without push)
-- ✅ Info.plist location string
-- ✅ Privacy Manifest
+Two P0s, 9 days out. Timeline:
+- June 12 (today): Jack VPS fix + PAT false alarm closed
+- June 13–14: Photo dedup patch shipped
+- June 15–17: End-to-end smoke test on live site (VPS green, unique photos, ≥8 cards, prices render)
+- June 18–20: Reddit post written + account karma verified
+- June 21: Post to r/solotravel + r/frugaltravel
 
-What's left:
-- Apple Developer enrollment ($99)
-- Xcode build + `npx cap add ios`
-- Account deletion SQL deployed (Supabase)
-- App Store screenshots (requires a device or simulator)
+If the VPS fix doesn't happen by June 14, launch slips to June 28. Summer beach window is open through September — one more week doesn't crater the 90-day projection — but two weeks of drift becomes a pattern. **June 21 is the last date that doesn't require explaining a "why did it take so long" to yourself.**
 
-This is **3–5 days of focused Jack time** if enrollment is approved quickly. Apple review typically takes 24–48h. A submission before June 30 is realistic if enrollment starts now.
-
-**Decision:** SHIP to App Store by June 30 OR formally defer to Q3 (July 15 earliest, post-LLC). Pick one. "When it's ready" is not a date.
+**DECISION: June 21. Hard gate: (1) VPS `/health` returns `200` with `wx_cache_size > 0`, (2) Explore grid shows unique photos on first scroll, (3) ≥8 cards visible from a US beach filter. Any gate fails → June 28. No further dates discussed until one of those two passes.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: answer the launch question (June 14 deadline).** One sentence. Everything else gates on this.
+1. **Jack: SSH + VPS Caddy/DuckDNS fix. Today. Not tomorrow.** Flight pricing has been dark for 2 days. Every user who opens the app sees `~$—` on every card. The product's core value prop — "cheap flight + good conditions" — is invisible. This is 10 minutes of work that's been sitting for 48 hours. Runbook: v55 §Decision 2.
 
-**2. Apply the two deferred one-liners** (Supabase script + Unsplash photo optimization). Both have diffs written. Both take under 2 minutes combined. Shipping them this week closes two P2s that have been open 38+ days.
+2. **Content agent: Photo dedup patch, delivered by June 14.** 211 venues with duplicate photos is the other launch-blocking embarrassment. The analysis is done; the implementation is a scripted loop. Generate unique Unsplash IDs for the 211 affected batch venues, output as a diff, ship it.
 
-**3. Quality audit on the 197 new venues before next promotion.** Content agent should spot-check 20 random venues from the June 5-9 batch (tags, photos, airport codes, scoring behavior). File findings in `reports/inputs/content-2026-06-13.md`. If any venue scores ≥85 on a hemisphere/season mismatch, that's a P1 before the next Reddit or HN post.
-
-**Zero new features this week.**
+3. **Jack: Review + bulk-delete stale `claude/*` branches.** 13 stale branches including one named `improve-scoring-system` — which per CLAUDE.md requires an algorithm critique before touching. Diff it, confirm it's dead weight, delete everything. Pre-App-Store hygiene. 15 minutes.
 
 ---
 
@@ -144,57 +113,87 @@ This is **3–5 days of focused Jack time** if enrollment is approved quickly. A
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Venue deep links / individual pages | **DEFER post-launch** | No change to previous decision. SEO benefit takes weeks. Build after 1K users. |
-| Hotels in deal score | **CUT. Final.** | v2 if demand validates. Not revisiting before 10K users. |
-| Wishlists / Trips tab | **LOCKED at 1K MAU gate** | No change. |
-| Peakly Pro | **CUT for v1. Final.** | Post-1K MAU. The $9/mo/$79/yr question is moot — there's no Pro UI. |
-| Additional S. hemisphere venues | **DEFER** | 353 is enough for launch. Audit the existing batch before adding more. |
-| GetYourGuide / REI / Backcountry affiliate wiring | **DEFER** | LLC blocks approval. No action possible until LLC clears. |
-| Group coordination | **DEFER to v2** | Post-launch roadmap. |
-| Crowd intelligence | **DEFER to v2** | Same. |
+| GitHub PAT renewal | **CLOSED PERMANENTLY** | No live consumer. v55 was wrong. CLAUDE.md §Open #15. Final. |
+| Peakly Pro price fix | **NOT A TASK** | UI removed April 16. No price renders. Off the list. |
+| App Store submission | **DEFER to post-1K web users** | APNS parked, account deletion SQL pending, LLC not approved. |
+| Additional venue adds | **FROZEN** | Until photo dedup ships. More venues = more dedup debt. |
+| Surfing / climbing / MTB / hiking categories | **CUT permanently** | Skiing + beach only until 100K validates the brand. |
+| OBX near-dup merge | **DEFER post-launch** | P3. No conversion impact. |
 
 ---
 
-## 90-Day Projection — Updated June 13
+## Pre-Launch Checklist — June 12
 
-| Scenario | Users (90d from June 13) | What Has to Be True |
-|----------|--------------------------|---------------------|
-| Reddit launch this week (June 14-16) + post reaches top 10 | **5K–8K** | Post gets upvoted in r/solotravel. VPS holds the spike. Day-1 retention > 20%. |
-| Reddit launch happened June 7, no traction yet | **1K–3K** | Organic SEO + word of mouth only. Growth is slow. |
-| Reddit + App Store submission before June 30 | **8K–12K** | Two acquisition channels live simultaneously. The combo is the moat. |
-| No launch action through June | **<500** | Organic only. The 100K goal slips into 2027. |
+| # | Item | Status |
+|---|------|--------|
+| 1 | SEO meta clean | ✅ |
+| 2 | APNS Capacitor gate (3 sites in app.jsx) | ✅ |
+| 3 | GEAR_ITEMS: 0 (Amazon CUT holds) | ✅ |
+| 4 | Sentry DSN non-empty (`9416b032…`) | ✅ |
+| 5 | Seasonal default beach N-hem June | ✅ |
+| 6 | lateSeason flags (27 ski venues) | ✅ |
+| 7 | Cache stamp `20260610af` lockstep | ✅ |
+| 8 | JSON-LD structured data | ✅ |
+| 9 | Static H1 fallback | ✅ |
+| 10 | ScoringExplainer (one-time card) | ✅ |
+| 11 | Grid sorts by Weekend Score | ✅ |
+| 12 | Image lazy loading (9/9 `<img>`) | ✅ |
+| 13 | **Photo deduplication (211 venues)** | ❌ **P0 — agent task, due June 14** |
+| 14 | **VPS proxy `/health` green** | ❌ **P0 — Jack SSH, overdue** |
+| 15 | ~~GitHub PAT renewed~~ | **N/A — CLOSED** (no live consumer) |
+| 16 | Plausible domain validated | ❓ Jack: confirm `j1mmychu.github.io` active in dashboard |
+| 17 | Reddit account karma verified (>100 in target sub) | ❌ Jack, June 18–20 |
+| 18 | Reddit post written | ❌ Jack, June 18–20 |
+| 19 | Account deletion SQL pasted in Supabase | ❌ Jack (App Store, not launch gate) |
+| 20 | 5 venues with AP missing from AP_CONTINENT | ❌ P2, agent batch fix |
+| 21 | Pre-launch incognito mobile audit | ❌ Jack: ≥8 cards, unique photos, prices render |
 
-**For 8K not 5K:** The delta is the App Store channel. Reddit gets you awareness in a community that already tracks snow/beach conditions. App Store gets you distribution among people who search "best ski weekend" on their phone. Both channels target the same user. Running them concurrently — even one month apart — compounds growth faster than sequential.
+**13 of 21 green. 2 are launch gates (13, 14). Everything else is polish or post-launch.**
 
 ---
 
-## Revenue Model — June 13
+## Revenue Model — June 12
 
 | Stream | Code Status | RPM/1K MAU |
 |--------|-------------|------------|
-| Booking.com (`aid=2311236`) | ✅ Live | $6.90 |
-| SafetyWing (`referenceID=peakly`) | ✅ Live | $0.54 |
-| Travelpayouts (`TP_MARKER=710303`) | ✅ Live | $0.14 |
-| Amazon Associates (`peakly-20`) | ❌ CUT for v1 (Jack, June 9). GEAR_ITEMS = 0. | $0 |
-| REI (Avantlink) | LLC pending | +$6.16 unlocked |
-| Backcountry / GetYourGuide | LLC pending | +$1.84 unlocked |
+| Amazon Associates | ❌ CUT (`grep -c GEAR_ITEMS app.jsx` → 0) | $0 — revisit post-launch |
+| Booking.com (`aid=2311236`) | ✅ app.jsx live | $6.90 |
+| SafetyWing (`referenceID=peakly`) | ✅ app.jsx live | $0.54 |
+| Travelpayouts (`TP_MARKER=710303`) | ✅ Code · ❌ VPS 403 | $0.14 (dark until VPS fixed) |
+| REI (Avantlink) | LLC pending | +$6.16 |
+| Backcountry / GetYourGuide | LLC pending | +$1.84 |
 
-**Live RPM: $7.58/1K MAU.** LLC approval doubles it to ~$15.67. At 8K MAU (90-day optimistic): ~$60/mo → ~$125/mo post-LLC. Revenue doesn't matter until 10K MAU. The goal right now is users.
+**Live RPM (VPS up): $7.58/1K MAU.** Dark today — Travelpayouts calls returning null. VPS fix restores full revenue stack.
+
+---
+
+## 90-Day Projection
+
+| Scenario | Users (90d) | What Has to Be True |
+|----------|-------------|---------------------|
+| Both P0s fixed + Reddit June 21 top-10 | **6K–8K** | Jack SSH today, photo dedup by June 14, post lands well |
+| VPS fixed but photo dedup slips to launch day | **3K–5K** | First impressions hurt. Bounce rate elevated. Screenshots don't spread. |
+| Launch slips to June 28 | **4K–6K** | Still viable. One week doesn't crater summer. Two weeks starts to. |
+| No launch by July 15 | **<2K** | Summer half-consumed, organic SEO only, 100K slips to 2027 |
+
+**For 8K not 5K:** Both P0s are fixed *before* launch (not same day). Post hits top-10 karma in r/solotravel within 6 hours. Second post in r/frugaltravel within 72h. None of this requires new engineering — it requires Jack to act on two already-diagnosed issues.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 197 new venues haven't been seen by a human.**
+**The beach sort algorithm surfaces tropical venue clusters, not the best beach in the world.**
 
-`validate-venues.mjs` checks field completeness (required keys, coordinate bounds, AP_CONTINENT coverage). It does not check:
-- Whether the Unsplash photo actually shows the venue (wrong photo, wrong vibe)
-- Whether the tags match what a user would search for
-- Whether the airport code produces real flight results from common origins
-- Whether the venue scores correctly in the Fri–Mon window during June (the exact moment new users will see it)
+With 223 beach venues sorted by `weekendScore`, the June grid from any US home airport (JFK, LAX, ORD, DFW) will show Caribbean and Mexican Pacific venues dominating the top 10 — not because they're uniquely good, but because Open-Meteo gives every Caribbean island near-identical forecast data in June (30°C, UV 10–11, <20% precip). Cancún, Tulum, and Playa del Carmen will score within 1–2 points of each other.
 
-The 134-beach batch was pasted as pretty-printed JSON, accepted 134/134 by the validator, and shipped. That's excellent throughput but zero human review on any individual entry. At 353 venues, a 5% error rate = 17 venues that confuse or mislead new users. One bad first impression on a venue that prominently surfaces in the carousel ("Why is this rated 4.92 with a photo of a parking lot?") can tank the Reddit thread before it gains traction.
+A user who knows the Caribbean will see this as arbitrary ranking. "Why is Playa del Carmen above Tulum? They're 60km apart and the weather is identical." They'll assume the algorithm is broken.
 
-**The fix is 2 hours:** spot-check 20 random venues from the new batch in the live app. Open each detail sheet. Confirm the photo, the score makes sense for this weekend, the Book CTA goes somewhere real. File anything wrong. This is the highest-ROI task a human can do right now that an agent cannot.
+**What breaks the tie correctly:** Travelpayouts price. A $180 Cancún fare vs. a $340 Cozumel fare is the actual differentiator. But until the VPS is fixed, price signals are dark — so the tie-breaking signal the algorithm needs most is exactly the one that's currently offline.
 
-Jack or a trusted friend should do this before the next promotional post goes live.
+**Two fixes, one is urgent:** (1) Fix the VPS so price actually differentiates the Caribbean cluster. (2) After the VPS is fixed, audit the top 10 beach results from JFK, LAX, ORD, DFW — if the top 10 is still >5 Caribbean venues with scores within 2pts, add a "one per region" dedup to the carousel header only (not the full grid). The full grid can show duplicates; the hero carousel is what users screenshot and share.
+
+The carousel dedup is a 30-minute fix. But it's premature until the VPS is live and price signal is back. Don't build it yet — validate first.
+
+---
+
+*Report written: 2026-06-12 | PM v56 | Build: 20260610af | Venues: 353 (130 ski / 223 beach)*
