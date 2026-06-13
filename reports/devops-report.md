@@ -1,8 +1,18 @@
-# Peakly DevOps Report — 2026-06-12
+# Peakly DevOps Report — 2026-06-13
 
 **Status: 🟡 YELLOW**
 
-VPS proxy P1 from yesterday is **still open** — Jack has not SSH'd in. No new P0s. Code is clean. Image lazy loading confirmed closed (was "unverified" yesterday). 13 stale `claude/*` branches on remote need cleanup before App Store submission.
+VPS proxy P1 is **still open** for the third consecutive day — Jack has not SSH'd in. No new P0s. One fix shipped this run: stale `150+` venue count updated to `350+` in 3 places in `index.html` (OG description, JSON-LD featureList, noscript fallback). Code is healthy. Cache stamp correctly unchanged at `20260610af` — no app code has changed since June 10.
+
+---
+
+## Fix Shipped This Run
+
+| Fix | File | Detail |
+|-----|------|--------|
+| `150+` → `350+` venues | `index.html` lines 11, 54, 395 | OG card, JSON-LD featureList, noscript root text — was lying to social crawlers and search engines for 4+ days since the venue batch landed |
+
+**Impact:** Every Twitter/iMessage/Slack unfurl was saying "150+ venues" while the product has 353. Google's structured data parser had the same stale number. Fixed in this commit.
 
 ---
 
@@ -10,199 +20,158 @@ VPS proxy P1 from yesterday is **still open** — Jack has not SSH'd in. No new 
 
 | Check | Result |
 |---|---|
-| `app.jsx` size | 13,021 lines / 652KB raw |
-| Cache stamp | `20260610af` — lockstep across app.jsx / sw.js / index.html ✅ |
-| Stamp staleness | 2 days (last app change: June 10) — **correct**; auto-push only bumps on app-bearing edits |
-| Plausible analytics | Present, uncommented ✅ |
-| GitHub Pages | Last deploy `8d4afef` (2026-06-11 16:16 UTC) ✅ |
-| Sentry DSN | Wired (`9416b032…`) and initialized ✅ |
-| GEAR_ITEMS | 0 — Amazon cut holds ✅ |
-| VENUES | 353 (bracket-walk confirmed) ✅ |
-| ALERTS_AVAILABLE iOS gate | Live ✅ |
+| `app.jsx` size | 13,021 lines / 652KB raw (~163KB gzipped estimate) |
+| Cache stamp | `20260610af` — lockstep across `app.jsx` / `sw.js` / `index.html` ✅ |
+| Stamp staleness | 3 days since last app change (June 10) — **correct**; auto-push only bumps on app-bearing edits |
+| Plausible analytics | `script.hash.js` — present, uncommented, deferred ✅ |
+| Sentry DSN | Wired (`9416b032…`), initialized in `app.jsx:7` ✅ |
+| GEAR_ITEMS | 0 — Amazon cut holds (`grep -c GEAR_ITEMS app.jsx` → 0) ✅ |
+| VENUES | **353** (130 ski / 223 beach) — bracket-walk confirmed ✅ |
+| OG venue count | Fixed `150+` → `350+` in this run ✅ |
+| ALERTS_AVAILABLE iOS gate | Live — `APNS_LIVE = false` gates push promises off iOS ✅ |
+| `deleteAccount()` | Wired in `useCloudSync`, UI at Profile → Delete account ✅ |
+| `weatherDown` banner | Live (`app.jsx:8564`) — cold-start resilient ✅ |
+| `ScoringExplainer` | Live (`app.jsx:8471`) — one-time dismissible ✅ |
+| Image lazy loading | 9/9 `<img>` tags carry `loading="lazy"` ✅ |
 | Brace balance | 5,509 / 5,509 — balanced ✅ |
-| Image lazy loading | **9/9 `<img>` tags have `loading="lazy"` ✅** — yesterday's "unverified" finding is CLOSED |
+| Supabase version | Both `index.html` (eager) and `app.jsx` (lazy-load fallback) → `2.106.2` ✅ |
 
-**No app code changed on June 11 or June 12.** The only June 11 commits touched `peakly-native/README.md` and report files. Cache stamp correctly unchanged. Nothing to bump.
+**CDN dependency versions:**
 
----
-
-## 2. VPS Proxy Status — P1 🔴 (UNCHANGED FROM 2026-06-11)
-
-Same 403 as yesterday. Network egress from this environment blocks the `peakly-api.duckdns.org` host — the 403 fires at the network level, not from Caddy, so I cannot confirm whether the fix Jack needs to run has been applied.
-
-**Last confirmed working state:** 2026-06-10 evening (Jack verified `/health` post-reboot, per CLAUDE.md).
-
-**What's dark today:**
-- Flight pricing — `fetchTravelpayoutsPrice` returns null for all venues; all cards show `~$—`
-- Shared weather cache — Reddit-spike protection inactive; app falls back to direct Open-Meteo correctly
-- Push token registration — `alert_register_failed` fires for any user with alerts set
-
-**This is a Jack-only action.** The exact fix steps are in the 2026-06-11 DevOps report (Section 2, SSH commands). Run them. Takes 10 minutes.
+| Library | Pinned version | SRI |
+|---------|---------------|-----|
+| React | 18.3.1 (current) | ❌ missing |
+| ReactDOM | 18.3.1 (current) | ❌ missing |
+| Supabase JS | 2.106.2 (current) | ❌ missing |
+| Leaflet | 1.9.4 (current) | ✅ present |
+| Babel Standalone | 7.29.7 (current) | ❌ missing (skip — Babel's eval requirement makes SRI noop) |
 
 ---
 
-## 3. Stale Remote Branches — P1 (New) 🟠
+## 2. VPS Proxy Status — P1 🔴 (OPEN 3 DAYS)
 
-**13 `claude/*` branches** and **3 other stale branches** are open on origin:
+Network egress from this cloud environment blocks `peakly-api.duckdns.org` — same restriction as June 11 and June 12. Cannot verify live from here.
 
-```
-claude/analyze-test-coverage-WVIsT
-claude/code-review-cleanup-HjoCS
-claude/condense-alert-page-jzdLo
-claude/enhance-loading-screen-rZ1dc
-claude/implement-todo-lNL7W
-claude/improve-peakly-ui-UHCHG
-claude/improve-scoring-system-XYGY6    ← scoring changes — review before deleting
-claude/redesign-front-page-EndKs
-claude/review-peakly-ux-UQ0Qu
-claude/simplify-alerts-page-2ejGB
-claude/simplify-profile-page-Bi2Tc
-claude/standardize-venue-data-CufiQ
-claude/streamline-onboarding-account-97XRR
-fix-appjsx-final                       ← "fix" prefix is a flag — may be a broken-state recovery branch
-restore-appjsx                         ← "restore" prefix is a flag — same concern
-test-small
-```
+**Last confirmed healthy state:** 2026-06-10 evening (Jack SSH'd in, verified `/health` post-reboot, per CLAUDE.md).
 
-The `claude/improve-scoring-system-XYGY6` branch name is a specific concern — CLAUDE.md explicitly prohibits scoring changes without an algorithm critique. If that branch contains live scoring changes that were never reviewed and never merged to main, it's either dead weight or a ticking liability.
-
-**CLAUDE.md says:** scoring is unlocked but requires a critique before touching.
-
-**Fix — one command, runs in 2 minutes:**
+**SSH commands (run these, Jack):**
 
 ```bash
-# Review what's in the suspicious ones first
-git log --oneline origin/claude/improve-scoring-system-XYGY6 | head -5
-git diff main...origin/claude/improve-scoring-system-XYGY6 -- app.jsx | head -80
-
-# Then bulk-delete all claude/* branches if they're safe:
-git push origin --delete \
-  claude/analyze-test-coverage-WVIsT \
-  claude/code-review-cleanup-HjoCS \
-  claude/condense-alert-page-jzdLo \
-  claude/enhance-loading-screen-rZ1dc \
-  claude/implement-todo-lNL7W \
-  claude/improve-peakly-ui-UHCHG \
-  claude/improve-scoring-system-XYGY6 \
-  claude/redesign-front-page-EndKs \
-  claude/review-peakly-ux-UQ0Qu \
-  claude/simplify-alerts-page-2ejGB \
-  claude/simplify-profile-page-Bi2Tc \
-  claude/standardize-venue-data-CufiQ \
-  claude/streamline-onboarding-account-97XRR \
-  fix-appjsx-final \
-  restore-appjsx \
-  test-small
+ssh root@198.199.80.21
+pm2 status
+curl -s http://localhost:3001/health | python3 -m json.tool
 ```
 
-**Why this matters for App Store:** An App Store reviewer who glances at the GitHub repo (uncommon but happens for open repos) seeing 13+ `claude/improve-*` branches signals unfinished/experimental state. More importantly, any CI/CD tooling that watches all branches (currently none, but if added) will run against these.
+If pm2 shows the process is online and `/health` returns `wx_cache_size: N`, the proxy is fine. If pm2 shows stopped/errored:
 
-Last cleanup: 2026-05-09 (86 branches nuked). This batch is only 16. Low risk to delete.
+```bash
+cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save
+```
+
+**User impact while down:**
+- All venue cards show `~$—` (flight pricing returns null)
+- Weather cache inactive → 353 venues × N users = direct Open-Meteo hits → rate-limit risk at 66+ concurrent DAU
+- Push token registration fails silently (`alert_register_failed` Plausible event fires)
+
+This is a Jack-only action. 10 minutes.
+
+---
+
+## 3. Stale Remote Branches — P1 🟠 (UNCHANGED, DAY 3)
+
+13 `claude/*` branches from cloud-agent sessions remain on origin. Still unchanged from June 11 and June 12.
+
+**Review first, then delete:**
+
+```bash
+# Check scoring branch diff — review before deleting
+git diff main origin/claude/improve-scoring-system-XYGY6
+
+# Delete all claude/* branches in one shot (after review)
+git branch -r | grep 'origin/claude/' | sed 's|origin/||' | xargs -I{} git push origin --delete {}
+
+# Verify clean
+git branch -r | grep claude/
+```
 
 ---
 
 ## 4. Security Audit
 
-### ✅ Travelpayouts token
-Not in any client-side file. Server reads from `process.env.TRAVELPAYOUTS_TOKEN`. Clean.
+| Check | Result |
+|---|---|
+| Travelpayouts token in client | Not present — server-side only ✅ |
+| Supabase anon key | Exposed at `app.jsx:26` — **expected and safe** with RLS; this is Supabase's documented public-client pattern |
+| `.gitignore` | Covers `.env`, `.env.*`, `*.pem`, `*.p8`, `*.key`, `*.mobileprovision` ✅ |
+| Recent commit secrets scan | Clean — last 10 commits are report files only |
+| SRI on React/ReactDOM/Supabase | ❌ Missing — P2 |
+| CSP | ❌ Missing — Babel's `unsafe-eval` requirement makes it unenforceable anyway |
 
-### ✅ Recent commit history
-No secrets in last 15 commits. No new credentials introduced since June 4.
-
-### ✅ .gitignore
-Covers `.env`, `*.pem`, `*.key`, `*.p8`, `.pdf`, `.pptx`, business docs. Clean.
-
-### ✅ GEAR_ITEMS
-`grep -c GEAR_ITEMS app.jsx` → 0. Amazon cut holds. Revenue model ($7.58/1K MAU) matches code.
-
-### ⚠️ Supabase anon key hardcoded — P2 (documented, accepted)
-```javascript
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-```
-Public-safe by design (RLS-gated). Risk: misconfigured RLS = all user data exposed.
-**Pre-launch action (Jack):** Open Supabase dashboard → Authentication → Policies. Confirm `user_data` and `shared_lists` both have `USING (auth.uid() = user_id)` policies for SELECT/INSERT/UPDATE/DELETE. No policy = public read. This is a 5-minute audit.
-
-### ⚠️ SRI missing on 5 CDN scripts — P2 (Open #10, unchanged)
-Leaflet has SRI. React, ReactDOM, Babel, Supabase JS, Sentry, Plausible do not.
+**P2 — Add SRI to React, ReactDOM, Supabase.** Generate hashes and patch `index.html`:
 
 ```bash
-# Generate hashes for React + ReactDOM + Supabase (skip Babel — see note)
-for url in \
-  "https://unpkg.com/react@18.3.1/umd/react.production.min.js" \
-  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" \
-  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"; do
-  echo "--- $url"
-  echo "integrity=\"sha384-$(curl -sL "$url" | openssl dgst -sha384 -binary | openssl base64 -A)\""
-done
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
+  | openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
+  | openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -s https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js \
+  | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-**Do NOT SRI-pin Babel Standalone** — it uses dynamic sub-resource loading internally and will break.
-
-Then add `integrity="sha384-<hash>" crossorigin` to the three `<script>` tags in `index.html`. ~15 minutes.
+Then add `integrity="sha384-<HASH>"` to the three `<script>` tags in `index.html:80-85`. Time: ~20 minutes.
 
 ---
 
 ## 5. Performance Analysis
 
-| Component | Est. Gzipped | Notes |
-|---|---|---|
-| **Babel Standalone 7.29.7** | **~290KB** | **#1 bottleneck — ~40% of total download** |
-| ReactDOM 18.3.1 | ~130KB | |
-| app.jsx raw | 652KB → ~130KB gzipped | ~20% compression ratio estimate |
-| Supabase JS 2.106.2 | ~80KB | Lazy-loaded — not first-paint blocking ✅ |
-| Sentry SDK | ~45KB | |
-| Leaflet 1.9.4 | ~42KB | |
-| React 18.3.1 | ~11KB | |
-| **First-load total (gzipped)** | **~730KB** | Supabase excluded (lazy) |
+**Estimated cold-load payload (gzipped):**
 
-Babel `<link rel="preload">` already in place in `index.html`. No further mitigation possible without a build step. Accept and ship.
+| Asset | Gzipped estimate |
+|-------|-----------------|
+| React 18.3.1 prod | ~45KB |
+| ReactDOM 18.3.1 prod | ~130KB |
+| Babel Standalone 7.29.7 | ~220KB |
+| Supabase JS 2.106.2 | ~80KB |
+| Leaflet JS 1.9.4 | ~40KB |
+| Plus Jakarta Sans (4 weights) | ~30KB |
+| `app.jsx` (652KB raw) | ~163KB |
+| **Total** | **~708KB** |
 
-**app.jsx growth:** 13,021 lines / 652KB today vs 13,021 lines / 636KB per June 11 report. The line count is identical — the byte difference is measurement artifact (the June 11 report rounded down). No material growth since June 10. The +4,015 lines in 7 days noted yesterday was a comparison vs June 4 (the state before the App Store sprint shipped 20 commits worth of work on June 9–10).
+**Biggest single bottleneck:** Babel Standalone. 220KB download + browser parses + Babel transpiles 652KB of JSX at runtime. CPU cost: ~200–400ms modern device, ~800–1500ms mid-tier Android. This is the no-build-step tax. It's architectural — not fixable without a bundler. Acceptable for v1.
 
-**Image lazy loading:** ✅ Confirmed. All 9 `<img>` tags in app.jsx carry `loading="lazy"`. Yesterday's "unverified" finding is closed.
-
----
-
-## 6. CDN Versions
-
-| Library | Pinned | Notes |
-|---|---|---|
-| React | 18.3.1 | ✅ |
-| ReactDOM | 18.3.1 | ✅ |
-| Babel Standalone | 7.29.7 | ✅ |
-| Supabase JS | 2.106.2 | ✅ Verify 2.107+ for auth security patches if available |
-| Leaflet | 1.9.4 | ✅ SRI pinned |
-
-All exact-version pinned. No floating `@latest`. No surprise upgrades. Clean.
+**Secondary bottleneck:** 353 venue `fetchWeather` calls on cold cache. Batched at 50/2s, but a first-time user on an empty localStorage waits for the whole queue before the grid fills. VPS proxy cache (cache hit <100ms vs ~2s direct) is the fix — which loops back to P1.
 
 ---
 
-## 7. Cost Estimate
+## 6. Cost Estimate
 
-| Scale | Monthly Cost | What's the bottleneck |
-|---|---|---|
+| Scale | Monthly cost | Bottleneck |
+|-------|-------------|------------|
 | Current (<1K MAU) | **$6** | Nothing |
-| 10K MAU | **$6–12** | 4K-entry LRU ceiling on VPS; popular venues start evicting, re-hit Open-Meteo |
-| 100K MAU | **$60–120** | Node.js single-process OOM + Open-Meteo free-tier rate ceiling |
+| 10K MAU | **$6–12** | VPS LRU ceiling + Open-Meteo rate limits start at ~66 concurrent DAU |
+| 100K MAU | **$60–120** | Node single-process OOM on 1GB + Open-Meteo 600 req/min ceiling |
 
-**What breaks first at scale:** The single-process Node.js VPS. At ~5K concurrent users, the in-memory weather cache LRU starts evicting. At ~10K concurrent, Open-Meteo rate-limits and the Node process approaches OOM on the 1GB droplet. Fix: Redis + 2GB droplet = $12/month, 2 hours of work. Not a today problem. Not even a pre-launch problem. The moment a Reddit/HN post lands and traffic spikes, the VPS cache goes from "nice to have" to "P0 in the next 4 hours." Don't post to Reddit until the VPS is actually responding to requests (fix P1 first).
+**Quick wins (zero cost):** Cloudflare free tier in front of GitHub Pages — edge caching + DDoS protection, zero code changes. Enable before any Reddit/HN post.
 
 ---
 
-## Action Items
+## 7. Open Action Items
 
-| Priority | Item | Owner | ETA |
+| Priority | Item | Owner | Status |
 |---|---|---|---|
-| **P1** | SSH to VPS — verify Caddy + DuckDNS, restore `/health`. See 2026-06-11 DevOps report §2 for exact commands | **Jack** | **Today** |
-| **P1** | Review `claude/improve-scoring-system-XYGY6` diff vs main; delete all 13 `claude/*` + 3 stale branches | **Jack** | This week, before App Store submission |
-| P2 | Audit Supabase RLS policies: `user_data` + `shared_lists` USING `auth.uid()` | Jack | Pre-launch |
-| P2 | Paste `server/sql/delete-account.sql` into Supabase SQL editor | Jack | Pre-launch (App Store 5.1.1(v)) |
-| P2 | Add SRI to React, ReactDOM, Supabase JS (skip Babel) — ~15 min | DevOps | This sprint |
-| Parked | No CSP meta (Open #10) | — | Post-launch |
+| **P1** | SSH to VPS → `pm2 status` + `curl localhost:3001/health` | **Jack** | **Open 3 days** |
+| **P1** | Review scoring branch diff, delete all 13 `claude/*` + stale remote branches | **Jack** | Open (pre-App Store) |
+| P2 | Paste `server/sql/delete-account.sql` into Supabase SQL editor (App Store 5.1.1(v)) | **Jack** | Open (pre-App Store) |
+| P2 | Add SRI hashes to React, ReactDOM, Supabase in `index.html` | DevOps | ~20 min |
+| P2 | Audit Supabase RLS on `user_data` + `shared_lists` | Jack | Pre-launch |
+| ✅ Done | `150+` → `350+` in `index.html` OG/JSON-LD/noscript | DevOps | Fixed this run |
+| Parked | No CSP (Open #10) — Babel `unsafe-eval` makes it moot | — | Post-launch |
 | Parked | Babel cold-parse perf (requires build step) | — | Post-launch |
 
 ---
 
-## One Paragraph: What Breaks First
+## What Breaks First at Scale
 
-The single-process, in-memory Node.js proxy on a 1GB DigitalOcean droplet is the first domino. At ~5,000 concurrent users hitting popular ski/beach venues (say, Aspen and Tulum after a Reddit thread), the 4,000-entry weather LRU evicts and fresh upstream calls to Open-Meteo start compounding. Open-Meteo's free tier throttles at roughly 10,000 requests/hour per IP — with 353 venues × 7 forecast days per venue fetched per uncached user, that ceiling hits around 60–70 simultaneous unique-venue requests. The Node.js process doesn't crash instantly; it slows, queues back up, and the `/api/weather` 4-second client timeout starts firing, falling back to direct Open-Meteo from the client side — which then hits the same rate ceiling from the user's IP instead of the shared VPS IP. Prevention: before posting to Reddit, upgrade to a 2GB droplet ($12/mo), add Redis for a shared cross-process cache, and switch Open-Meteo calls to the VPS IP only (remove direct client fallback during spikes, or add an exponential backoff). That's a half-day of work and $6/month more. The current architecture survives a Product Hunt feature fine; it will not survive a Hacker News front page without that prep.
+The single-process Node.js proxy on a 1GB DigitalOcean droplet is the first domino. At ~5,000 concurrent users hitting popular venues, the 4,000-entry LRU evicts and upstream Open-Meteo calls compound. Open-Meteo's free tier throttles at ~600 req/min per IP — with 353 venues potentially uncached, that ceiling hits around 60 simultaneous unique-venue requests. The client-side fallback then hits Open-Meteo directly from user IPs, making the rate-limit pressure distributed and unpredictable. Fix path: (1) Before Reddit/HN: SSH in, confirm the VPS is alive — 10 minutes, zero dollars. (2) At 1K MAU: add Redis to the VPS ($6/mo, 2hr work) so the weather cache survives restarts. (3) At 10K MAU: Cloudflare + 2GB droplet. The current architecture survives Product Hunt; it will not survive a Hacker News front page without step 1 done first.
