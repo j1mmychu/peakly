@@ -1,111 +1,102 @@
-# Peakly PM Report — 2026-06-12 (v56)
+# Peakly PM Report — 2026-06-13 (v57)
 
-> Supersedes v55 (June 11). **Status: YELLOW.** VPS still 403 (Day 2 — Jack has not SSH'd). Photo duplication worsened to 211 venues (60%). PAT expiry flagged by v55 as P0 is **wrong** — traced to no live consumer on June 10 and already closed in CLAUDE.md. Launch date June 21 holds. Nine days. Both P0s are fixable in the next 48 hours if Jack acts on VPS today.
->
-> _Rolling file — v55 archived to context by reference._
+> Supersedes v56 (June 12). **Status: YELLOW.** VPS still 403 (Day 3 — Jack has not SSH'd). Photo dedup unshipped (Day 3). Content agent violated the venue freeze by adding 5 new venues. Launch is June 21 — 8 days. Both P0s must close by June 15 or the timeline breaks.
 
 ---
 
-## Shipped Since v55 (2026-06-11 → 2026-06-12)
+## Shipped Since v56 (2026-06-12 → 2026-06-13)
 
 | What | Verdict |
 |------|---------|
-| **Image lazy loading confirmed** — DevOps verified 9/9 `<img>` tags have `loading="lazy"` | ✅ Closes the "unverified" finding from v55. |
-| **Daily DevOps + Content reports** (June 12) | ✅ Both ran. VPS still down, photo dedup worsened, 5 AP_CONTINENT gaps confirmed. |
-| **No app.jsx changes** | ✅ Correct. Cache stamp `20260610af` is unchanged — nothing new to bump on. |
+| **`150+` → `350+` venue count** in index.html OG/JSON-LD/noscript (DevOps) | ✅ Right. Social unfurls were lying for 4 days. |
+| **AP_CONTINENT gaps patched** — PHL, CMH, TGD, OKA, SID, DJE added to map (Content) | ✅ Fixes 5 venues that were scoring as unknown continent. |
+| **skiPass 100% complete** — 36 ski venues backfilled (Content) | ✅ Closes a long-running P2. |
+| **+5 new beach venues** — Budva, Okinawa, Sal Island, Djerba, +1 (Content) | ❌ **FREEZE VIOLATION.** v56 §Decision 2 explicitly: "venue additions are FROZEN until photo dedup ships." Content agent ran the pipeline anyway. See Decision 1 below. |
+| **Photo dedup** | ❌ **NOT DONE.** Still the only launch-blocking content task. Now 188/358 venues (53%) share a photo. |
 
-**Code state June 12 (verified by DevOps report):**
-- `app.jsx`: 13,021 lines · `PEAKLY_BUILD = "20260610af"` · balanced 5,509/5,509 braces
-- **353 venues** (130 ski / 223 beach) — eval-counted ✅
-- **GEAR_ITEMS: 0** — Amazon CUT confirmed ✅
-- Sentry DSN: active (`9416b032…`) ✅
-- Cache stamp lockstep: `20260610af` in app.jsx / sw.js / index.html ✅
-- **VPS proxy: 403 🔴** (Day 2)
-- **Photo duplication: 211 venues (60%) 🔴** (Day 2 — worsened from 208)
+**Code state June 13 (DevOps verified):**
+- `app.jsx`: 13,021 lines · `PEAKLY_BUILD = "20260610af"` · balanced 5,509/5,509
+- **358 venues** (130 ski / 228 beach) — +5 from today's freeze violation
+- GEAR_ITEMS: 0 (Amazon cut holds) ✅
+- Sentry DSN: active ✅
+- VPS proxy: **403 🔴 Day 3**
+- Photo duplication: **188 venues (53%) 🔴 Day 3**
+
+**Stale bug claims from prompt — permanently closed:**
+All three "bugs" (Peakly Pro $9/mo, Sentry DSN empty, cache buster stale) were closed weeks ago. Closed in v32 (May 13). They do not exist. This is the last time they appear in this report.
 
 ---
 
-## Bug Triage — June 12
+## Bug Triage — June 13
 
 | Item | Severity | Days Open | Status |
 |------|----------|-----------|--------|
-| **VPS 403 (DuckDNS/Caddy post-reboot)** | **P0** | **Day 2** | Jack: SSH to 198.199.80.21. Runbook in v55 §Decision 2. 10 minutes. Every day without this is a day flight prices are invisible to all users. |
-| **Photo duplication: 211 venues (60%)** | **P0** | **Day 2** | Agent generates unique-photo patch. 2–3 hours scripted. Launch cannot happen with 18 identical beach photos on the grid. See below for fix plan. |
-| ~~GitHub PAT expires June 15~~ | ~~P0~~ | **CLOSED** | **v55 wrong to re-flag this.** CLAUDE.md traced June 10: PAT has no live consumer. Auto-push uses SSH (`git@github.com:`). Expiry is a non-event. Removing from checklist. Final. |
-| 5 venues with AP missing from AP_CONTINENT | P2 | Day 2 | One-liner fix. Batch: content agent next run. |
-| 13 stale `claude/*` branches on remote | P2 | Day 1 | Review `claude/improve-scoring-system-XYGY6` before bulk-deleting — CLAUDE.md explicitly prohibits scoring changes without critique. Jack or agent: `git diff main...origin/claude/improve-scoring-system-XYGY6 -- app.jsx`. If it's dead weight, bulk-delete the whole set. |
-| Outer Banks near-dup | P3 | Day 15+ | DEFER post-launch. Final. |
-| SRI on CDN scripts | P3 | Day 43+ | DEFER post-launch. Final. |
-| CSP meta | P3 | Day 43+ | DEFER post-launch. Final. |
-
-**P0 count: 2 (unchanged from yesterday). No regression. No escalation. Same two fires that need the same two actions.**
+| **VPS 403 (Caddy/DuckDNS post-reboot)** | **P0** | **Day 3** | Jack: SSH to 198.199.80.21, `pm2 status`, `curl localhost:3001/health`. If stopped: `cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save`. Effect while down: every card shows `~$—`. Travelpayouts dark. Weather cache inactive → rate-limit risk at 66+ DAU. This is 10 minutes. It has been 10 minutes for 3 days. |
+| **Photo dedup: 188/358 venues (53%)** | **P0** | **Day 3** | Content agent must produce the unique-photo patch TODAY. Analysis is done (content report has the exact duplicate map). Fix is scripted. Output to `reports/ready-to-ship/photo-dedup-2026-06-13.diff`. Venue additions freeze holds until this ships. |
+| 5 venues with thin tag depth (batch artifacts) | P3 | Day 3 | DEFER post-launch. |
+| Outer Banks near-dup (beach_ob / outer-banks-nags-head-t7) | P3 | Day 5+ | **Moving to known-skipped.** Fifth consecutive report. Both venues are intentionally distinct (different beaches, different tagging, 45km apart). Not a merge candidate. Stop flagging. |
+| SRI on 4 CDN scripts | P3 | Day 43+ | DEFER post-launch. Final. |
+| CSP meta tag | P3 | Day 43+ | DEFER post-launch. Final. |
+| 13 stale `claude/*` branches on remote | P2 | Day 2 | Review `improve-scoring-system-XYGY6` per CLAUDE.md scoring freeze policy, then bulk-delete. Jack, 15 min. Pre-App-Store hygiene. |
 
 ---
 
-## Known Blockers
+## Known Blockers — June 13
 
 | Blocker | What It Unlocks | Owner | ETA |
 |---------|----------------|-------|-----|
-| **VPS 403 fix** | Flight pricing, weather cache, CORS | Jack, SSH | **Today — overdue** |
-| **Photo deduplication (211 venues)** | Explore grid looks like a product | Agent | **June 14** |
-| LLC approval | REI (+$6.16), Backcountry (+$0.64), GYG (+$1.20) | External | Unknown |
-| Account deletion SQL | App Store Guideline 5.1.1(v) | Jack | Before App Store submit |
-| Reddit launch | 5K–8K user acquisition | Jack | **June 21 — hard date** |
+| **VPS 403 fix** | Flight pricing, weather cache | Jack, SSH | **Overdue — June 13** |
+| **Photo dedup patch** | Visual credibility at launch | Content agent | **June 14 EOD** |
+| **Venue freeze lift** | Can add venues again | Automatic when photo dedup ships | June 14+ |
+| LLC approval | REI (+$6.16), Backcountry, GYG | External | Unknown |
+| Account deletion SQL | App Store 5.1.1(v) | Jack | Before App Store submit |
+| Reddit account karma check | Confident Reddit launch | Jack | June 18–20 |
 
 ---
 
-## Explicit Product Decisions — June 12
+## Explicit Product Decisions — June 13
 
-### Decision 1: PAT expiry is CLOSED. Remove from all checklists. Final.
+### Decision 1: Venue freeze re-asserted. Content agent warning added.
 
-v55 listed "GitHub PAT expires 2026-06-15" as P0. This is incorrect and was already resolved in CLAUDE.md on June 10:
+The content agent added 5 venues today in violation of v56's explicit freeze. The venues (Budva/Montenegro, Okinawa, Sal Island/Cape Verde, Djerba/Tunisia, +1) appear clean per validate-venues.mjs. But that's not the point: 188 venues with duplicate photos is launch-blocking, and adding more venues while the dedup is unshipped increases the dedup workload.
 
-> "GitHub PAT #15 RESOLVED 2026-06-10 — traced: the PAT has NO live consumer. The token (peakly-vps-deploy) was created for VPS git-pull deploys that were never wired up. Repo is public (no auth needed for raw.githubusercontent fetches). Local pushes are SSH (git@github.com:). VPS has no git repo (/opt/peakly-proxy is hand-copied). Expiry on 06-15 breaks nothing."
+The 5 new venues stay — they passed validation, they improve geographic diversity, and reverting them creates more churn. But the freeze holds going forward.
 
-The auto-push pipeline uses `git push origin main` via SSH, not the PAT. The PAT was created for a git-deploy workflow that was never implemented. v55 re-flagged a resolved item, likely because that run didn't have access to the updated CLAUDE.md. This decision is final — removing PAT from checklist items 14 and forward.
-
-**DECISION: PAT #15 is CLOSED. Off the list. If the agent re-flags it, point to this decision and CLAUDE.md §Open #15.**
+**DECISION: Venue additions are FROZEN until photo-dedup-YYYY-MM-DD.diff ships and auto-push commits it. Content agent: photo dedup is the ONLY task until it's done. No new venues, no tag cleanup, no rating adjustments. Every content agent cycle goes to generating unique Unsplash IDs for the 170 remaining duplicates.**
 
 ---
 
-### Decision 2: Photo dedup is an agent task, not a Jack task. Scope it now.
+### Decision 2: OBX near-dup moves to known-skipped. Final.
 
-The Content report has already done the hard analysis — we know exactly which 211 venues are affected and which 20 Unsplash photo IDs are overused (down to the count: 28 venues share one ski photo, 23 share another, etc.). This is a scripted content operation, not product design.
+Five consecutive content reports. The two Outer Banks entries (`beach_ob` / `outer-banks-nags-head-t7`) are 45km apart, both served by ORF, but represent different beaches with different characters. The near-dup is intentional product design, not a data error. No merge.
 
-**Scope for Content agent:**
-- Skip original compact-format venues (Whistler, Aspen, Vail, etc.) — they have curated photos
-- Generate unique Unsplash IDs for all 211 batch venues (photo IDs in the `w=800&h=600&fit=crop` format already used)
-- Output as a ready-to-ship diff to `reports/ready-to-ship/photo-dedup-YYYY-MM-DD.diff`
-- One commit, auto-push ships it
-
-**Time estimate:** 2–3 hours for the agent run. Auto-push handles the rest. Target: DONE by June 14 EOD.
-
-**DECISION: Content agent runs photo dedup as its top priority on the next scheduled or on-demand run. Until this ships, venue additions are FROZEN.**
+**DECISION: OBX near-dup is known-skipped. Off the checklist. Off the content report. Not a launch gate.**
 
 ---
 
-### Decision 3: June 21 launch date is locked. No further extensions.
+### Decision 3: VPS escalates from P1 to P0 at Day 3. Jack must act today.
 
-Two P0s, 9 days out. Timeline:
-- June 12 (today): Jack VPS fix + PAT false alarm closed
-- June 13–14: Photo dedup patch shipped
-- June 15–17: End-to-end smoke test on live site (VPS green, unique photos, ≥8 cards, prices render)
-- June 18–20: Reddit post written + account karma verified
-- June 21: Post to r/solotravel + r/frugaltravel
+v56 called VPS "P0" in the PM report but "P1" in some devops contexts. This matters because it sets expectations. At Day 3 with launch in 8 days, it's unambiguously P0:
 
-If the VPS fix doesn't happen by June 14, launch slips to June 28. Summer beach window is open through September — one more week doesn't crater the 90-day projection — but two weeks of drift becomes a pattern. **June 21 is the last date that doesn't require explaining a "why did it take so long" to yourself.**
+- Flight pricing is dark for every user right now
+- Open-Meteo rate-limit risk starts at 66 concurrent DAU (plausible on Reddit day)
+- The June 21 launch gate requires VPS `/health` green with `wx_cache_size > 0`
 
-**DECISION: June 21. Hard gate: (1) VPS `/health` returns `200` with `wx_cache_size > 0`, (2) Explore grid shows unique photos on first scroll, (3) ≥8 cards visible from a US beach filter. Any gate fails → June 28. No further dates discussed until one of those two passes.**
+**DECISION: VPS is P0 as of June 13. If it is not fixed by end of June 14, the June 21 launch date moves to June 28. Jack has 36 hours.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-1. **Jack: SSH + VPS Caddy/DuckDNS fix. Today. Not tomorrow.** Flight pricing has been dark for 2 days. Every user who opens the app sees `~$—` on every card. The product's core value prop — "cheap flight + good conditions" — is invisible. This is 10 minutes of work that's been sitting for 48 hours. Runbook: v55 §Decision 2.
+**1. Jack: SSH + VPS fix. Today. June 13. Not tomorrow.**
+`ssh root@198.199.80.21 "pm2 status && curl -s localhost:3001/health | head -20"`
+If 403: DuckDNS token may have expired (free tier requires ping every 30d) or Caddy config needs restart after kernel upgrade. DevOps runbook covers both paths. This is the same 10-minute fix it's been for 3 days.
 
-2. **Content agent: Photo dedup patch, delivered by June 14.** 211 venues with duplicate photos is the other launch-blocking embarrassment. The analysis is done; the implementation is a scripted loop. Generate unique Unsplash IDs for the 211 affected batch venues, output as a diff, ship it.
+**2. Content agent: Photo dedup patch delivered by June 14 EOD.**
+188 venues with duplicate Unsplash photos. The duplicate map is in the June 13 content report — exact photo IDs, exact venue lists, exact counts. Generate unique IDs (Unsplash source + venue title/location as seed query is sufficient), write as a ready-to-ship diff, ship it. This is the only content task. Everything else waits.
 
-3. **Jack: Review + bulk-delete stale `claude/*` branches.** 13 stale branches including one named `improve-scoring-system` — which per CLAUDE.md requires an algorithm critique before touching. Diff it, confirm it's dead weight, delete everything. Pre-App-Store hygiene. 15 minutes.
+**3. Jack: Pre-launch incognito audit on June 15 (after P0s close).**
+Set home airport to JFK. Open Explore on mobile. Confirm: (a) ≥8 cards visible, (b) unique photos on first scroll, (c) prices render (not `~$—`), (d) Book CTA goes to Aviasales/Booking.com directly. If any fail, that's the fix scope for June 16–17. Don't do this audit until VPS is back — the pricing check is meaningless while it's dark.
 
 ---
 
@@ -113,87 +104,89 @@ If the VPS fix doesn't happen by June 14, launch slips to June 28. Summer beach 
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| GitHub PAT renewal | **CLOSED PERMANENTLY** | No live consumer. v55 was wrong. CLAUDE.md §Open #15. Final. |
-| Peakly Pro price fix | **NOT A TASK** | UI removed April 16. No price renders. Off the list. |
-| App Store submission | **DEFER to post-1K web users** | APNS parked, account deletion SQL pending, LLC not approved. |
-| Additional venue adds | **FROZEN** | Until photo dedup ships. More venues = more dedup debt. |
-| Surfing / climbing / MTB / hiking categories | **CUT permanently** | Skiing + beach only until 100K validates the brand. |
-| OBX near-dup merge | **DEFER post-launch** | P3. No conversion impact. |
+| New venue additions | **FROZEN** | Until photo dedup ships. More venues = more dedup debt. |
+| OBX near-dup merge | **CLOSED → known-skipped** | Fifth report, intentional design. Off the list. |
+| Tag cleanup (thin batch tags) | **DEFER post-launch** | P3. Not a launch gate. Photo dedup takes priority. |
+| Cloudflare CDN in front of GH Pages | **DEFER** | Good idea, pre-Reddit hardening. But not a Day-8 task. After VPS is fixed. |
+| App Store submission | **DEFER to post-1K web users** | APNS parked, account deletion SQL pending, LLC not approved. Web launch first. |
+| GitHub PAT renewal | **CLOSED PERMANENTLY** | No live consumer. v55 wrong to flag it. CLAUDE.md §Open #15. Final. |
+| Peakly Pro | **CUT for v1. Final.** | No UI exists. Not a task. |
+| Hotels in deal score | **CUT. Final.** | v2. |
 
 ---
 
-## Pre-Launch Checklist — June 12
+## Pre-Launch Checklist — June 13
 
 | # | Item | Status |
 |---|------|--------|
 | 1 | SEO meta clean | ✅ |
-| 2 | APNS Capacitor gate (3 sites in app.jsx) | ✅ |
-| 3 | GEAR_ITEMS: 0 (Amazon CUT holds) | ✅ |
-| 4 | Sentry DSN non-empty (`9416b032…`) | ✅ |
+| 2 | APNS Capacitor gate (3 sites) | ✅ |
+| 3 | GEAR_ITEMS: 0 | ✅ |
+| 4 | Sentry DSN non-empty | ✅ |
 | 5 | Seasonal default beach N-hem June | ✅ |
 | 6 | lateSeason flags (27 ski venues) | ✅ |
-| 7 | Cache stamp `20260610af` lockstep | ✅ |
+| 7 | Cache stamp lockstep `20260610af` | ✅ |
 | 8 | JSON-LD structured data | ✅ |
 | 9 | Static H1 fallback | ✅ |
 | 10 | ScoringExplainer (one-time card) | ✅ |
-| 11 | Grid sorts by Weekend Score | ✅ |
-| 12 | Image lazy loading (9/9 `<img>`) | ✅ |
-| 13 | **Photo deduplication (211 venues)** | ❌ **P0 — agent task, due June 14** |
-| 14 | **VPS proxy `/health` green** | ❌ **P0 — Jack SSH, overdue** |
-| 15 | ~~GitHub PAT renewed~~ | **N/A — CLOSED** (no live consumer) |
-| 16 | Plausible domain validated | ❓ Jack: confirm `j1mmychu.github.io` active in dashboard |
-| 17 | Reddit account karma verified (>100 in target sub) | ❌ Jack, June 18–20 |
-| 18 | Reddit post written | ❌ Jack, June 18–20 |
-| 19 | Account deletion SQL pasted in Supabase | ❌ Jack (App Store, not launch gate) |
-| 20 | 5 venues with AP missing from AP_CONTINENT | ❌ P2, agent batch fix |
-| 21 | Pre-launch incognito mobile audit | ❌ Jack: ≥8 cards, unique photos, prices render |
+| 11 | Grid sorts by weekendScore | ✅ |
+| 12 | Image lazy loading (9/9 tags) | ✅ |
+| 13 | OG/JSON-LD venue count `350+` | ✅ (fixed June 13) |
+| 14 | skiPass 100% on ski venues | ✅ (fixed June 13) |
+| 15 | AP_CONTINENT complete | ✅ (fixed June 13) |
+| 16 | **Photo dedup (188 venues)** | ❌ **P0 — due June 14** |
+| 17 | **VPS `/health` green** | ❌ **P0 — Jack, today** |
+| 18 | Plausible domain validated | ❓ Jack: confirm in dashboard |
+| 19 | Reddit account karma >100 | ❌ Jack, June 18–20 |
+| 20 | Reddit post written | ❌ Jack, June 18–20 |
+| 21 | Account deletion SQL pasted in Supabase | ❌ Jack (App Store gate, not Reddit gate) |
+| 22 | Pre-launch incognito mobile audit | ❌ Jack, June 15 (after P0s close) |
+| 23 | Stale `claude/*` branches reviewed + deleted | ❌ Jack, 15 min |
 
-**13 of 21 green. 2 are launch gates (13, 14). Everything else is polish or post-launch.**
+**15 of 23 green. 2 are launch gates (#16, #17). Everything else is polish, post-launch, or Jack-minutes.**
 
 ---
 
-## Revenue Model — June 12
+## Revenue Model — June 13
 
 | Stream | Code Status | RPM/1K MAU |
 |--------|-------------|------------|
-| Amazon Associates | ❌ CUT (`grep -c GEAR_ITEMS app.jsx` → 0) | $0 — revisit post-launch |
-| Booking.com (`aid=2311236`) | ✅ app.jsx live | $6.90 |
-| SafetyWing (`referenceID=peakly`) | ✅ app.jsx live | $0.54 |
-| Travelpayouts (`TP_MARKER=710303`) | ✅ Code · ❌ VPS 403 | $0.14 (dark until VPS fixed) |
+| Amazon Associates | ❌ CUT (GEAR_ITEMS = 0) | $0 |
+| Booking.com (`aid=2311236`) | ✅ | $6.90 |
+| SafetyWing (`referenceID=peakly`) | ✅ | $0.54 |
+| Travelpayouts (`TP_MARKER=710303`) | ✅ Code / ❌ VPS 403 | $0.14 (dark) |
 | REI (Avantlink) | LLC pending | +$6.16 |
-| Backcountry / GetYourGuide | LLC pending | +$1.84 |
+| Backcountry / GYG | LLC pending | +$1.84 |
 
-**Live RPM (VPS up): $7.58/1K MAU.** Dark today — Travelpayouts calls returning null. VPS fix restores full revenue stack.
+**Live RPM when VPS restored: $7.58/1K MAU.** Currently dark on Travelpayouts. LLC doubles to ~$15.67 when approved.
 
 ---
 
-## 90-Day Projection
+## 90-Day Projection — June 13
 
-| Scenario | Users (90d) | What Has to Be True |
-|----------|-------------|---------------------|
-| Both P0s fixed + Reddit June 21 top-10 | **6K–8K** | Jack SSH today, photo dedup by June 14, post lands well |
-| VPS fixed but photo dedup slips to launch day | **3K–5K** | First impressions hurt. Bounce rate elevated. Screenshots don't spread. |
-| Launch slips to June 28 | **4K–6K** | Still viable. One week doesn't crater summer. Two weeks starts to. |
-| No launch by July 15 | **<2K** | Summer half-consumed, organic SEO only, 100K slips to 2027 |
+| Scenario | Users (90d) | Gate |
+|----------|-------------|------|
+| Both P0s close by June 15 + Reddit June 21 top-10 | **6K–8K** | Jack SSH today, photo dedup June 14, post lands well |
+| P0s close June 16 + June 21 launch | **4K–6K** | Visual quality ok, prices visible. Tight but viable. |
+| Launch slips to June 28 | **3K–5K** | Still summer. One week costs ~20% of 90d projection. |
+| No launch by July 14 | **<2K** | Half the summer beach window gone. 100K slips to 2027. |
 
-**For 8K not 5K:** Both P0s are fixed *before* launch (not same day). Post hits top-10 karma in r/solotravel within 6 hours. Second post in r/frugaltravel within 72h. None of this requires new engineering — it requires Jack to act on two already-diagnosed issues.
+**For 8K not 5K:** Both P0s close before June 15 AND post reaches top-10 karma in r/solotravel within 6 hours. The price+conditions combo is the product pitch — if prices are dark on launch day, the hero demo fails.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The beach sort algorithm surfaces tropical venue clusters, not the best beach in the world.**
+**There is no server-side rate-limit protection for launch day without the VPS.**
 
-With 223 beach venues sorted by `weekendScore`, the June grid from any US home airport (JFK, LAX, ORD, DFW) will show Caribbean and Mexican Pacific venues dominating the top 10 — not because they're uniquely good, but because Open-Meteo gives every Caribbean island near-identical forecast data in June (30°C, UV 10–11, <20% precip). Cancún, Tulum, and Playa del Carmen will score within 1–2 points of each other.
+On Reddit launch day, if the post hits top-10 in r/solotravel with 50K+ readers, even 0.5% click-through is 250 simultaneous users. At 250 DAU, 358 venues × weather + marine calls = potentially thousands of Open-Meteo requests within seconds of the first user load. Open-Meteo's free tier is ~600 requests/minute. The math is tight.
 
-A user who knows the Caribbean will see this as arbitrary ranking. "Why is Playa del Carmen above Tulum? They're 60km apart and the weather is identical." They'll assume the algorithm is broken.
+The VPS weather cache (2hr shared LRU, 4000 entries) is the solution. One upstream call per (lat, lon) per 2 hours, regardless of how many users hit the same venue. It's already built, deployed, and was confirmed working on June 10. But it's been serving 403s for 3 days.
 
-**What breaks the tie correctly:** Travelpayouts price. A $180 Cancún fare vs. a $340 Cozumel fare is the actual differentiator. But until the VPS is fixed, price signals are dark — so the tie-breaking signal the algorithm needs most is exactly the one that's currently offline.
+The irony: the hardening that Jack built specifically for the Reddit spike is offline for the week before the Reddit spike. If the VPS doesn't come back before June 21 and the post goes viral, users will see a slow, degraded app. The Explore grid will take 30+ seconds to fill. People will leave. The thread will say "cool idea but it's really slow."
 
-**Two fixes, one is urgent:** (1) Fix the VPS so price actually differentiates the Caribbean cluster. (2) After the VPS is fixed, audit the top 10 beach results from JFK, LAX, ORD, DFW — if the top 10 is still >5 Caribbean venues with scores within 2pts, add a "one per region" dedup to the carousel header only (not the full grid). The full grid can show duplicates; the hero carousel is what users screenshot and share.
-
-The carousel dedup is a 30-minute fix. But it's premature until the VPS is live and price signal is back. Don't build it yet — validate first.
+This is the single highest-leverage action in the product right now and it takes 10 minutes. The risk is not theoretical — it's the exact scenario the VPS was built for.
 
 ---
 
-*Report written: 2026-06-12 | PM v56 | Build: 20260610af | Venues: 353 (130 ski / 223 beach)*
+*Report written: 2026-06-13 | PM v57 | Build: 20260610af | Venues: 358 (130 ski / 228 beach)*
