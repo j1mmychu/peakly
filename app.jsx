@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260610af";
+const PEAKLY_BUILD = "20260613a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -711,7 +711,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -732,7 +732,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65",
       "skiPass": "ikon"
     },
     {
@@ -751,7 +751,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -772,7 +772,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
       "skiPass": "ikon"
     },
     {
@@ -791,7 +791,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
       "skiPass": "ikon"
     },
     {
@@ -810,7 +810,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
       "skiPass": "ikon"
     },
     {
@@ -829,7 +829,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
       "skiPass": "ikon"
     },
     {
@@ -848,7 +848,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -868,7 +868,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67",
       "skiPass": "ikon"
     },
     {
@@ -887,7 +887,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -907,7 +907,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
       "skiPass": "ikon"
     },
     {
@@ -926,7 +926,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
       "skiPass": "ikon"
     },
     {
@@ -945,7 +945,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -965,7 +965,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -986,7 +986,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1006,7 +1006,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52",
       "skiPass": "ikon"
     },
     {
@@ -1026,7 +1026,7 @@ const VENUES = [
         "Iconic",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1046,7 +1046,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1066,7 +1066,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1086,7 +1086,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52",
       "skiPass": "ikon"
     },
     {
@@ -1105,7 +1105,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55",
       "skiPass": "ikon"
     },
     {
@@ -1124,7 +1124,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
       "skiPass": "ikon"
     },
     {
@@ -1143,7 +1143,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
       "skiPass": "ikon"
     },
     {
@@ -1162,7 +1162,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1182,7 +1182,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
       "skiPass": "ikon"
     },
   // ── Epic Pass batch (added 2026-06-08) ──
@@ -1203,7 +1203,7 @@ const VENUES = [
         "Family Friendly",
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1631779202803-42c151ef761a?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.41",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1224,7 +1224,7 @@ const VENUES = [
         "All Levels",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1244,7 +1244,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
       "skiPass": "epic"
     },
     {
@@ -1263,7 +1263,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1282,7 +1282,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1301,7 +1301,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1320,7 +1320,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1339,7 +1339,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1358,7 +1358,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1377,7 +1377,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1396,7 +1396,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1415,7 +1415,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1434,7 +1434,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1453,7 +1453,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1557692493-0a42e50efc26?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.52",
       "skiPass": "epic"
     },
     {
@@ -1472,7 +1472,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
       "skiPass": "epic"
     },
     {
@@ -1491,7 +1491,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1511,7 +1511,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1531,7 +1531,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1552,7 +1552,7 @@ const VENUES = [
         "Off-Piste",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1572,7 +1572,7 @@ const VENUES = [
       "tags": [
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1592,7 +1592,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1612,7 +1612,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1632,7 +1632,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "epic"
     },
   // ── Global beach batch (added 2026-06-08) ──
@@ -1710,7 +1710,7 @@ const VENUES = [
         "Calm North Coast",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
     },
     {
       "id": "bathsheba-barbados",
@@ -1729,7 +1729,7 @@ const VENUES = [
         "Surf Breaks",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
     {
       "id": "smith-cove-grand-cayman",
@@ -1748,7 +1748,7 @@ const VENUES = [
         "Snorkeling",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
     },
     {
       "id": "stingray-sandbar-cayman",
@@ -1767,7 +1767,7 @@ const VENUES = [
         "Wildlife Everywhere",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
     },
     {
       "id": "bambarra-beach-tci",
@@ -1786,7 +1786,7 @@ const VENUES = [
         "Uncrowded",
         "Turquoise Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
     },
     {
       "id": "long-bay-providenciales",
@@ -1805,7 +1805,7 @@ const VENUES = [
         "Kiteboarding Capital",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562095804-aba1f2fe0eca?w=800&h=600&fit=crop"
     },
     {
       "id": "trunk-bay-st-john",
@@ -1824,7 +1824,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Voted #1 USA Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
     },
     {
       "id": "honeymoon-beach-stj",
@@ -1843,7 +1843,7 @@ const VENUES = [
         "Calm Waters",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548484654-4e8d3a7e6c2d?w=800&h=600&fit=crop"
     },
     {
       "id": "boston-bay-jamaica",
@@ -1862,7 +1862,7 @@ const VENUES = [
         "Surf Breaks",
         "Caribbean Soul"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1558618051-88ac5c36d0b6?w=800&h=600&fit=crop"
     },
     {
       "id": "treasure-beach-jamaica",
@@ -1881,7 +1881,7 @@ const VENUES = [
         "Fishing Village Vibe",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
     },
     {
       "id": "baby-beach-aruba",
@@ -1900,7 +1900,7 @@ const VENUES = [
         "Calm Bay",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
     },
     {
       "id": "arashi-beach-aruba",
@@ -1919,7 +1919,7 @@ const VENUES = [
         "Calm Waters",
         "Snorkeling"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
     },
     {
       "id": "sugar-beach-st-lucia",
@@ -1938,7 +1938,7 @@ const VENUES = [
         "Piton Views",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"
     },
     {
       "id": "reduit-beach-st-lucia",
@@ -1957,7 +1957,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"
     },
     {
       "id": "mullet-bay-sxm",
@@ -1976,7 +1976,7 @@ const VENUES = [
         "Calm Waters",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"
     },
     {
       "id": "maho-beach-sxm",
@@ -1995,7 +1995,7 @@ const VENUES = [
         "Iconic",
         "Plane Spotting"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"
     },
     {
       "id": "simpson-bay-sxm",
@@ -2014,7 +2014,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"
     },
     {
       "id": "pirates-bay-tobago",
@@ -2033,7 +2033,7 @@ const VENUES = [
         "Secluded Beach",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"
     },
     {
       "id": "englishmans-bay-tobago",
@@ -2052,7 +2052,7 @@ const VENUES = [
         "Crescent Bay",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"
     },
     {
       "id": "playa-maroma-mexico",
@@ -2071,7 +2071,7 @@ const VENUES = [
         "Crystal Caribbean",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"
     },
     {
       "id": "akumal-bay-mexico",
@@ -2090,7 +2090,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
     },
     {
       "id": "isla-mujeres-norte",
@@ -2109,7 +2109,7 @@ const VENUES = [
         "Calm Waters",
         "Crystal Caribbean"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
     },
     {
       "id": "playa-paraiso-tulum",
@@ -2128,7 +2128,7 @@ const VENUES = [
         "Mayan Ruins Backdrop",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"
     },
     {
       "id": "xpu-ha-beach",
@@ -2147,7 +2147,7 @@ const VENUES = [
         "Crystal Caribbean",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"
     },
     {
       "id": "punta-mita-mexico",
@@ -2166,7 +2166,7 @@ const VENUES = [
         "Surf Breaks",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"
     },
     {
       "id": "san-pancho-mexico",
@@ -2185,7 +2185,7 @@ const VENUES = [
         "Bohemian Beach Town",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
     },
     {
       "id": "mazunte-mexico",
@@ -2204,7 +2204,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"
     },
     {
       "id": "zipolite-mexico",
@@ -2223,7 +2223,7 @@ const VENUES = [
         "Naturist Area",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"
     },
     {
       "id": "cabo-pulmo",
@@ -2242,7 +2242,7 @@ const VENUES = [
         "Coral Reef",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
     },
     {
       "id": "tamarindo-cr",
@@ -2261,7 +2261,7 @@ const VENUES = [
         "Surf Breaks",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
     },
     {
       "id": "santa-teresa-cr",
@@ -2280,7 +2280,7 @@ const VENUES = [
         "Surf Breaks",
         "Yoga on the Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"
     },
     {
       "id": "hanauma-bay-oahu",
@@ -2299,7 +2299,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Marine Preserve"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"
     },
     {
       "id": "waimea-bay-oahu",
@@ -2318,7 +2318,7 @@ const VENUES = [
         "Surf Breaks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
     },
     {
       "id": "makena-big-beach",
@@ -2337,7 +2337,7 @@ const VENUES = [
         "Golden Sand",
         "Pacific Bluffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
     },
     {
       "id": "wailea-beach-maui",
@@ -2356,7 +2356,7 @@ const VENUES = [
         "Luxury",
         "Calm Pacific"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"
     },
     {
       "id": "kaanapali-beach-maui",
@@ -2375,7 +2375,7 @@ const VENUES = [
         "Cliff Dive",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"
     },
     {
       "id": "coronado-beach-sd",
@@ -2394,7 +2394,7 @@ const VENUES = [
         "Pacific Bluffs",
         "Hotel del Coronado"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
     },
     {
       "id": "la-jolla-cove",
@@ -2413,7 +2413,7 @@ const VENUES = [
         "Snorkeling Coves",
         "Sea Lions"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"
     },
     {
       "id": "manhattan-beach-ca",
@@ -2432,7 +2432,7 @@ const VENUES = [
         "Pier 60 Sunsets",
         "Beach Volleyball"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"
     },
     {
       "id": "big-sur-pfeiffer",
@@ -2451,7 +2451,7 @@ const VENUES = [
         "Purple Sand",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-goloritze-sardinia",
@@ -2470,7 +2470,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
     },
     {
       "id": "spiaggia-rosa-budelli",
@@ -2489,7 +2489,7 @@ const VENUES = [
         "Pink Sand",
         "UNESCO Protected"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
     },
     {
       "id": "costa-smeralda-sardinia",
@@ -2508,7 +2508,7 @@ const VENUES = [
         "Billionaire Yachts",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"
     },
     {
       "id": "capri-marina-piccola",
@@ -2527,7 +2527,7 @@ const VENUES = [
         "Faraglioni Rocks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"
     },
     {
       "id": "procida-italy",
@@ -2546,7 +2546,7 @@ const VENUES = [
         "Pastel Houses",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"
     },
     {
       "id": "amalfi-beach",
@@ -2565,7 +2565,7 @@ const VENUES = [
         "Amalfi Drive",
         "Pastel Cliff Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"
     },
     {
       "id": "scala-dei-turchi-sicily",
@@ -2584,7 +2584,7 @@ const VENUES = [
         "White Marl Cliffs",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"
     },
     {
       "id": "plage-mala-cap-dail",
@@ -2603,7 +2603,7 @@ const VENUES = [
         "Hidden Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"
     },
     {
       "id": "eze-beach-france",
@@ -2622,7 +2622,7 @@ const VENUES = [
         "Belle Époque",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"
     },
     {
       "id": "pointe-st-hospice",
@@ -2641,7 +2641,7 @@ const VENUES = [
         "Pine Forest Path",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-salada-ibiza",
@@ -2660,7 +2660,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-comte-ibiza",
@@ -2679,7 +2679,7 @@ const VENUES = [
         "Legendary Sunsets",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-bassa-ibiza",
@@ -2698,7 +2698,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-pregonda-menorca",
@@ -2717,7 +2717,7 @@ const VENUES = [
         "Red Volcanic Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-mitjana-menorca",
@@ -2736,7 +2736,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Turquoise Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-saona-formentera",
@@ -2755,7 +2755,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"
     },
     {
       "id": "ses-illetes-formentera",
@@ -2774,7 +2774,7 @@ const VENUES = [
         "World's Finest Sand",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-mondrago-mallorca",
@@ -2793,7 +2793,7 @@ const VENUES = [
         "Natural Park Beach",
         "Pine Forest"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-tuent-mallorca",
@@ -2812,7 +2812,7 @@ const VENUES = [
         "Tramuntana Cliffs",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-do-carvalho-algarve",
@@ -2831,7 +2831,7 @@ const VENUES = [
         "Sea Cave Access",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-da-falesia-algarve",
@@ -2850,7 +2850,7 @@ const VENUES = [
         "Red Cliffs",
         "6km Pristine Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-da-rocha-algarve",
@@ -2869,7 +2869,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
     },
     {
       "id": "stiniva-beach-vis",
@@ -2888,7 +2888,7 @@ const VENUES = [
         "Cliff-Locked Cove",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
     },
     {
       "id": "punta-rata-brela",
@@ -2907,7 +2907,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"
     },
     {
       "id": "pasjaca-beach-croatia",
@@ -2926,7 +2926,7 @@ const VENUES = [
         "Cliffside Stairs",
         "Hidden Cove"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"
     },
     {
       "id": "plaka-beach-naxos",
@@ -2945,7 +2945,7 @@ const VENUES = [
         "4km of Sand",
         "Dune-Backed"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
     },
     {
       "id": "mikri-vigla-naxos",
@@ -2964,7 +2964,7 @@ const VENUES = [
         "Kitesurfing",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"
     },
     {
       "id": "tsambika-beach-rhodes",
@@ -2983,7 +2983,7 @@ const VENUES = [
         "Monastery Backdrop",
         "Golden Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
     },
     {
       "id": "firiplaka-milos",
@@ -3002,7 +3002,7 @@ const VENUES = [
         "Volcanic Pumice",
         "Crystal Aegean"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
     },
     {
       "id": "amoudi-bay-santorini",
@@ -3021,7 +3021,7 @@ const VENUES = [
         "Caldera Views",
         "Cliffside Tavernas"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "perissa-beach-santorini",
@@ -3040,7 +3040,7 @@ const VENUES = [
         "Black Volcanic Sand",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "super-paradise-mykonos",
@@ -3059,7 +3059,7 @@ const VENUES = [
         "Party Sunset",
         "See & Be Seen"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "elia-beach-mykonos",
@@ -3078,7 +3078,7 @@ const VENUES = [
         "Longest Beach",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "kaputas-beach-turkey",
@@ -3097,7 +3097,7 @@ const VENUES = [
         "Turquoise Cove",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "iztuzu-beach-turkey",
@@ -3116,7 +3116,7 @@ const VENUES = [
         "Turtle Nesting",
         "4km of Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "patong-beach-phuket",
@@ -3135,7 +3135,7 @@ const VENUES = [
         "Non-Stop Party Beach",
         "Nightlife"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "karon-beach-phuket",
@@ -3154,7 +3154,7 @@ const VENUES = [
         "Squeaky Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "kata-beach-phuket",
@@ -3173,7 +3173,7 @@ const VENUES = [
         "Family Friendly",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "freedom-beach-phuket",
@@ -3192,7 +3192,7 @@ const VENUES = [
         "Hidden Cove",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "nai-harn-phuket",
@@ -3211,7 +3211,7 @@ const VENUES = [
         "Calm Bay",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "ao-nang-beach-krabi",
@@ -3230,7 +3230,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Long-Tail Boat Hub"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "phra-nang-beach-krabi",
@@ -3249,7 +3249,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "lamai-beach-koh-samui",
@@ -3268,7 +3268,7 @@ const VENUES = [
         "Calmer Than Chaweng",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "haad-rin-koh-phangan",
@@ -3287,7 +3287,7 @@ const VENUES = [
         "Full Moon Parties",
         "Nightlife"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "sao-beach-phu-quoc",
@@ -3306,7 +3306,7 @@ const VENUES = [
         "Powdery White Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "bai-khem-phu-quoc",
@@ -3325,7 +3325,7 @@ const VENUES = [
         "Powdery White Sand",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "my-khe-beach-danang",
@@ -3344,7 +3344,7 @@ const VENUES = [
         "20km Coastline",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "cua-dai-hoi-an",
@@ -3363,7 +3363,7 @@ const VENUES = [
         "Hoi An Doorstep",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "padang-padang-bali",
@@ -3382,7 +3382,7 @@ const VENUES = [
         "Sea Cave Coves",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "kuta-beach-bali",
@@ -3401,7 +3401,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "bingin-beach-bali",
@@ -3420,7 +3420,7 @@ const VENUES = [
         "Reef Break",
         "Cliffside Cafes"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "dreamland-beach-bali",
@@ -3439,7 +3439,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "tanjung-aan-lombok",
@@ -3458,7 +3458,7 @@ const VENUES = [
         "Pepper Sand",
         "Twin Bays"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "pink-beach-lombok",
@@ -3477,7 +3477,7 @@ const VENUES = [
         "Pink Sand",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
     },
     {
       "id": "nacpan-beach-palawan",
@@ -3496,7 +3496,7 @@ const VENUES = [
         "4km of Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
     },
     {
       "id": "las-cabanas-elnido",
@@ -3515,7 +3515,7 @@ const VENUES = [
         "Island-Hopping Hub",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "puka-shell-boracay",
@@ -3534,7 +3534,7 @@ const VENUES = [
         "Puka Shells",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "diniwid-boracay",
@@ -3553,7 +3553,7 @@ const VENUES = [
         "Quiet Side",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "unawatuna-sri-lanka",
@@ -3572,7 +3572,7 @@ const VENUES = [
         "Crescent Bay",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
     },
     {
       "id": "hikkaduwa-sri-lanka",
@@ -3591,7 +3591,7 @@ const VENUES = [
         "Surf Breaks",
         "Coral Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
     },
     {
       "id": "anjuna-beach-goa",
@@ -3610,7 +3610,7 @@ const VENUES = [
         "Hippie Heritage",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
     },
     {
       "id": "calangute-beach-goa",
@@ -3629,7 +3629,7 @@ const VENUES = [
         "Family Friendly",
         "Beach Shacks"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
     },
     {
       "id": "vagator-beach-goa",
@@ -3648,7 +3648,7 @@ const VENUES = [
         "Cliffside Views",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
     {
       "id": "veligandu-maldives",
@@ -3667,7 +3667,7 @@ const VENUES = [
         "Overwater Bungalows",
         "Crystal Caribbean"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
     },
     {
       "id": "baros-island-maldives",
@@ -3686,7 +3686,7 @@ const VENUES = [
         "Resort Island",
         "House Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
     },
     {
       "id": "qantab-beach-oman",
@@ -3705,7 +3705,7 @@ const VENUES = [
         "Calm Bay",
         "Desert Meets Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
     },
     {
       "id": "bondi-beach-sydney",
@@ -3724,7 +3724,7 @@ const VENUES = [
         "Iconic",
         "Coastal Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562095804-aba1f2fe0eca?w=800&h=600&fit=crop"
     },
     {
       "id": "manly-beach-sydney",
@@ -3743,7 +3743,7 @@ const VENUES = [
         "Ferry From CBD",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
     },
     {
       "id": "bronte-beach-sydney",
@@ -3762,7 +3762,7 @@ const VENUES = [
         "Ocean Pool",
         "Local Vibe"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548484654-4e8d3a7e6c2d?w=800&h=600&fit=crop"
     },
     {
       "id": "tamarama-sydney",
@@ -3781,7 +3781,7 @@ const VENUES = [
         "Compact Cove",
         "Bronte Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1558618051-88ac5c36d0b6?w=800&h=600&fit=crop"
     },
     {
       "id": "palm-beach-sydney",
@@ -3800,7 +3800,7 @@ const VENUES = [
         "Headland Drives",
         "Lighthouse Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
     },
     {
       "id": "coogee-beach-sydney",
@@ -3819,7 +3819,7 @@ const VENUES = [
         "Family Friendly",
         "Ocean Pools"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
     },
     {
       "id": "hill-inlet-lookout",
@@ -3838,7 +3838,7 @@ const VENUES = [
         "Hill Inlet Swirl",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
     },
     {
       "id": "langford-island-spit",
@@ -3857,7 +3857,7 @@ const VENUES = [
         "Sandspit",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"
     },
     {
       "id": "yasawa-fiji",
@@ -3876,7 +3876,7 @@ const VENUES = [
         "Castaway Vibe",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"
     },
     {
       "id": "mamanucas-fiji",
@@ -3895,7 +3895,7 @@ const VENUES = [
         "Reef Snorkeling",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"
     },
     {
       "id": "coral-coast-fiji",
@@ -3914,7 +3914,7 @@ const VENUES = [
         "Coral Reef",
         "Family Resorts"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"
     },
     {
       "id": "muri-beach-rarotonga",
@@ -3933,7 +3933,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"
     },
     {
       "id": "trou-aux-biches-mauritius",
@@ -3952,7 +3952,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"
     },
     {
       "id": "le-morne-mauritius",
@@ -3971,7 +3971,7 @@ const VENUES = [
         "UNESCO Protected",
         "Kitesurfing"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"
     },
     {
       "id": "flic-en-flac-mauritius",
@@ -3990,7 +3990,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"
     },
     {
       "id": "ile-aux-cerfs-mauritius",
@@ -4009,7 +4009,7 @@ const VENUES = [
         "Day Trip Island",
         "Crystal Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
     },
     {
       "id": "anse-georgette-praslin",
@@ -4028,7 +4028,7 @@ const VENUES = [
         "Granite Boulders",
         "Quiet & Pristine"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
     },
     {
       "id": "anse-volbert-praslin",
@@ -4047,7 +4047,7 @@ const VENUES = [
         "Long Curve",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"
     },
     {
       "id": "beau-vallon-mahe",
@@ -4066,7 +4066,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"
     },
     {
       "id": "anse-severe-la-digue",
@@ -4085,7 +4085,7 @@ const VENUES = [
         "Calm Reef",
         "Bicycle Access"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"
     },
     {
       "id": "kendwa-zanzibar",
@@ -4104,7 +4104,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Tides"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
     },
     {
       "id": "matemwe-zanzibar",
@@ -4123,7 +4123,7 @@ const VENUES = [
         "Pristine",
         "Mnemba Atoll Dives"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"
     },
     {
       "id": "paje-zanzibar",
@@ -4142,7 +4142,7 @@ const VENUES = [
         "Kitesurfing",
         "Powdery White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"
     },
     {
       "id": "jambiani-zanzibar",
@@ -4161,7 +4161,7 @@ const VENUES = [
         "Village Vibe",
         "Low Tide Walks"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
     },
     {
       "id": "watamu-kenya",
@@ -4180,7 +4180,7 @@ const VENUES = [
         "Marine Park",
         "Tide Pool Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
     },
   {
     "id": "cardrona-nz",
@@ -4200,7 +4200,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65",
+    "photo": "https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4221,7 +4221,7 @@ const VENUES = [
       "Off-Piste",
       "Long Season"
     ],
-    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
+    "photo": "https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4242,7 +4242,7 @@ const VENUES = [
       "Village Base",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
+    "photo": "https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4263,7 +4263,7 @@ const VENUES = [
       "Groomed Runs",
       "Village Base"
     ],
-    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
+    "photo": "https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4284,7 +4284,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
+    "photo": "https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4305,7 +4305,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
+    "photo": "https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4326,7 +4326,7 @@ const VENUES = [
       "Backcountry",
       "Long Season"
     ],
-    "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
+    "photo": "https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4347,7 +4347,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67",
+    "photo": "https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4368,7 +4368,7 @@ const VENUES = [
       "High Altitude",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
+    "photo": "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4389,7 +4389,7 @@ const VENUES = [
       "Scenic Views",
       "Off-Piste"
     ],
-    "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
+    "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4410,7 +4410,7 @@ const VENUES = [
       "Village Base",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
+    "photo": "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4431,7 +4431,7 @@ const VENUES = [
       "Off-Piste",
       "Expert Terrain"
     ],
-    "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
+    "photo": "https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4452,7 +4452,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
+    "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {
@@ -4473,7 +4473,7 @@ const VENUES = [
       "Off-Piste",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
+    "photo": "https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     "skiPass": "independent",
   },
   {id:"beach_sveti_stefan", category:"beach",
@@ -4482,35 +4482,35 @@ const VENUES = [
     icon:"🏖️", rating:4.82, reviews:1140,
     gradient:"linear-gradient(160deg,#0a2e1a,#1a5c3a,#2e9c6a)",
     accent:"#5ec494", tags:["Adriatic Riviera","Historic Island","Pebble Beach","Crystal Clear Water"],
-    photo:"https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
   {id:"beach_okinawa", category:"beach",
     title:"Emerald Beach Okinawa", location:"Naha, Japan",
     lat:26.334, lon:127.801, ap:"OKA",
     icon:"🏖️", rating:4.85, reviews:2480,
     gradient:"linear-gradient(160deg,#003333,#006666,#00aaaa)",
     accent:"#33ddcc", tags:["Subtropical Japan","Coral Reef","Ultra-Clear Water","Island Culture"],
-    photo:"https://images.unsplash.com/photo-1562095804-aba1f2fe0eca?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
   {id:"beach_cape_verde", category:"beach",
     title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
     lat:16.856, lon:-22.932, ap:"SID",
     icon:"🏖️", rating:4.80, reviews:1860,
     gradient:"linear-gradient(160deg,#1a1a00,#4a4400,#8a7a00)",
     accent:"#d4c060", tags:["Trade Winds","Year-Round Sun","Kitesurfing Mecca","Atlantic Islands"],
-    photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
   {id:"beach_fuerteventura", category:"beach",
     title:"Corralejo Beach", location:"Fuerteventura, Canary Islands",
     lat:28.737, lon:-13.866, ap:"FUE",
     icon:"🏖️", rating:4.83, reviews:3120,
     gradient:"linear-gradient(160deg,#2a1800,#6a4000,#c47a00)",
     accent:"#f0b040", tags:["White Sand Dunes","Year-Round Warm","Windsurfing","European Gem"],
-    photo:"https://images.unsplash.com/photo-1548484654-4e8d3a7e6c2d?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
   {id:"beach_djerba", category:"beach",
     title:"Djerba Sidi Mahrez", location:"Djerba, Tunisia",
     lat:33.784, lon:10.987, ap:"DJE",
     icon:"🏖️", rating:4.76, reviews:1420,
     gradient:"linear-gradient(160deg,#1a0a00,#4a2400,#8a5a00)",
     accent:"#d49050", tags:["North Africa","Roman History","Flat Turquoise Sea","Budget Pick"],
-    photo:"https://images.unsplash.com/photo-1558618051-88ac5c36d0b6?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
