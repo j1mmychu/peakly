@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613j";
+const PEAKLY_BUILD = "20260613k";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5580,11 +5580,11 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
     return { score: null, conditions, priceRatio, isEstimate: false, label: conditions.confidence === "low" ? "Beyond 7-day window" : null };
   }
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-  // 50/50 weight: conditions and price each contribute equally to final score.
-  // Both signals normalized 0–100. priceNorm: ratio 1.0 = 50 (par baseline),
-  // 0.5 = 100 (50% off = max), 1.5 = 0 (50% above = min). Linear, clamped.
-  // Future: let users pick the degree (DEAL_WEIGHT slider in profile).
-  const DEAL_WEIGHT = 0.5;
+  // 75/25 conditions/price: a genuinely good weekend is mostly about conditions;
+  // a cheap fare is a secondary nudge, not the headline. priceNorm normalized
+  // 0–100: ratio 1.0 = 50 (par baseline), 0.5 = 100 (50% off = max), 1.5 = 0
+  // (50% above = min). Linear, clamped. (DEAL_WEIGHT is price's share.)
+  const DEAL_WEIGHT = 0.25;
   const conditionsNorm = conditions.score;
   const priceNorm = clamp(100 * (1.5 - priceRatio), 0, 100);
   // Medium-confidence (day-5 horizon) discount: 0.92× = ~8% haircut on the
