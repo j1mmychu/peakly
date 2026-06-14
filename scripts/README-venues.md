@@ -65,7 +65,8 @@ Recommended cadence: 50–100 venues per batch. Larger batches trip rate limits 
 | **R4** | `ap "XXX" missing from AIRPORT_COORDS` | The rejection message includes a 💡 suggestion: add `XXX: { lat: <N>, lon: <N> }` to the AIRPORT_COORDS block (around line 2169 of app.jsx) and re-run. Find coords by Googling the airport name + "iata coordinates" or via openflights.org. |
 | **R5** | `venue is 1240 mi from XXX (>300mi limit)` | Most likely wrong `ap`. Pick a closer airport. Acceptable if the venue is in a remote spot where the named airport really is the only sensible gateway (relax to a different airport if so). |
 | **R6** | `skiPass only valid on skiing category` | You set `skiPass: "ikon"` on a beach venue. Remove the field. |
-| **R7** | `photo URL not reachable` | Unsplash purged the photo. Find a new one. |
+| **R7** | `photo URL not reachable` | Unsplash purged the photo. Pick a replacement from `data/photo-pool.json` (already verified live + on-theme). |
+| **R11** | `photo not in the approved <cat> pool` | Reuse a URL already in `data/photo-pool.json["skiing"\|"beach"]`. To introduce a brand-new photo: open it, confirm it actually shows snow/mountain (ski) or beach/ocean (beach), confirm it loads (HTTP 200), then add it to the pool file and re-run. The pool is the single source of truth for "legit photo applicable to the activity". |
 | **R8** | `new tag "X" (review + approve)` | Warning, not a rejection. Either rename to an existing tag (the list lives in current VENUES) or accept the new tag — it gets pasted into VENUES regardless. |
 | **R9** | `lateSeason needs |lat|>=35` | The venue is too far south for the late-season rule. Drop the `lateSeason: true` flag. |
 | **R10** | `poolPrimary only valid on beach` | You set `poolPrimary: true` on a ski venue. Remove the field. |
