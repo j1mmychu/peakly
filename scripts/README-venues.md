@@ -45,6 +45,7 @@ Nothing — uses Node's built-in `fetch`, no npm deps.
 | R8 | `tags` is an array, each ≤ 20 chars; new tags get flagged for review (not rejected) |
 | R9 | `lateSeason: true` requires `|lat| ≥ 35` AND `category === "skiing"` |
 | R10 | `poolPrimary: true` requires `category === "beach"` |
+| R11 | `photo` is in the vetted, activity-appropriate pool `data/photo-pool.json[category]` (every entry verified live + vision-confirmed on-theme — a ski venue can't ship a beach/food/other image or a dead link) |
 
 ## Adding new IATA codes
 
