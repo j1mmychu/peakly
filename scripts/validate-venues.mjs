@@ -94,6 +94,15 @@ async function photoOk(url) {
   } catch { return false; }
 }
 
+// Vetted per-category photo pool (data/photo-pool.json) — every entry is verified
+// live + vision-confirmed on-theme by the 2026-06-13 audit. R11 requires venues to
+// use a pool photo so a ski venue never ships a beach/food/other image or a dead link.
+let PHOTO_POOL = null;
+try {
+  const raw = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "photo-pool.json"), "utf8"));
+  PHOTO_POOL = { skiing: new Set(raw.skiing || []), beach: new Set(raw.beach || []) };
+} catch { PHOTO_POOL = null; }
+
 // ─── Validation ──────────────────────────────────────────────────────────
 async function validate(v, state) {
   const errors = []; // [{rule, msg, suggestion?}]

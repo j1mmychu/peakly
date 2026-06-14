@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613h";
+const PEAKLY_BUILD = "20260613i";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -507,143 +507,143 @@ const VENUES = [
   {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"], photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"breckenridge",category:"skiing",title:"Breckenridge",           location:"Colorado, USA",            lat:39.4817,lon:-106.0384,ap:"DEN",icon:"⛷️",rating:4.93,reviews:4820,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",tags:["Historic Town","Epic Pass"], photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49", skiPass:"epic"},
   {id:"tahoe",       category:"skiing",title:"Palisades Tahoe",         location:"California, USA",          lat:39.1959,lon:-120.2357,ap:"RNO",icon:"⛷️",rating:4.92,reviews:3240,gradient:"linear-gradient(160deg,#0a1c38,#1a407e,#306ec0)",accent:"#76a8db",tags:["Lake Views","Consistent Snow"], photo:"https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63", skiPass:"ikon"},
-  {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop", skiPass:"ikon", lateSeason:true},
-  {id:"steamboat",   category:"skiing",title:"Steamboat Springs",       location:"Colorado, USA",            lat:40.4572,lon:-106.8045,ap:"HDN",icon:"⛷️",rating:4.91,reviews:2860,gradient:"linear-gradient(160deg,#0d1e38,#1a4280,#3270be)",accent:"#72a4d8",tags:["Champagne Powder","Cowboy Style"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33", skiPass:"ikon"},
-  {id:"sunvalley",   category:"skiing",title:"Sun Valley",              location:"Idaho, USA",               lat:43.6936,lon:-114.3536,ap:"SUN",icon:"⛷️",rating:4.94,reviews:2420,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3472c0)",accent:"#74a8da",tags:["Bald Mountain","Original Resort"], photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30", skiPass:"ikon"},
-  {id:"snowbasin",   category:"skiing",title:"Snowbasin",               location:"Utah, USA",                lat:41.2161,lon:-111.8548,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1980,gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",tags:["Olympic Venue","Uncrowded"], photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52", skiPass:"ikon"},
-  {id:"taos",        category:"skiing",title:"Taos Ski Valley",         location:"New Mexico, USA",          lat:36.5953,lon:-105.4475,ap:"SAF",icon:"⛷️",rating:4.92,reviews:1640,gradient:"linear-gradient(160deg,#0d1c38,#1a3a78,#2e68b8)",accent:"#72a4d8",tags:["High Altitude","Southwest Vibes"], photo:"https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"grandtarghee",category:"skiing",title:"Grand Targhee Resort",   location:"Wyoming, USA",             lat:43.7883,lon:-110.9426,ap:"JAC",icon:"⛷️",rating:4.90,reviews:1340,gradient:"linear-gradient(160deg,#0c1c36,#1a3876,#2e66b6)",accent:"#74a4d8",tags:["Teton Views","Powder Stash"], photo:"https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57", skiPass:"ikon"},
-  {id:"abasin",      category:"skiing",title:"Arapahoe Basin",          location:"Colorado, USA",            lat:39.6426,lon:-105.8718,ap:"DEN",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0a1a34,#1a3876,#2e66ba)",accent:"#72a6d8",tags:["Longest Season CO","The Legend"], photo:"https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46", skiPass:"ikon", lateSeason:true},
-  {id:"sugarbush",   category:"skiing",title:"Sugarbush Resort",        location:"Vermont, USA",             lat:44.1356,lon:-72.9014,ap:"BTV",icon:"⛷️",rating:4.90,reviews:1940,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2e6abc)",accent:"#76a8da",tags:["Mad River Valley","East Coast Best"], photo:"https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52", skiPass:"ikon"},
-  {id:"stratton",    category:"skiing",title:"Stratton Mountain",       location:"Vermont, USA",             lat:43.1134,lon:-72.9076,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Southern VT","Snowboard Birthplace"], photo:"https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55", skiPass:"ikon"},
-  {id:"keystone",    category:"skiing",title:"Keystone Resort",         location:"Colorado, USA",            lat:39.6045,lon:-105.9516,ap:"DEN",icon:"⛷️",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7e,#2e6cc0)",accent:"#76aada",tags:["Night Skiing","3 Peaks"], photo:"https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33", skiPass:"epic"},
-  {id:"crestedbutte",category:"skiing",title:"Crested Butte Mountain",  location:"Colorado, USA",            lat:38.8992,lon:-106.9655,ap:"GUC",icon:"⛷️",rating:4.94,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a7a,#2e68be)",accent:"#74a8dc",tags:["Extreme Terrain","Last Great Ski Town"], photo:"https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52", skiPass:"epic"},
-  {id:"heavenly",    category:"skiing",title:"Heavenly Mountain",       location:"California, USA",          lat:38.9332,lon:-119.9400,ap:"RNO",icon:"⛷️",rating:4.93,reviews:3580,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3270c2)",accent:"#74a8dc",tags:["Lake Tahoe Views","Gondola Ride"], photo:"https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55", skiPass:"epic"},
-  {id:"okemo",       category:"skiing",title:"Okemo Mountain Resort",   location:"Vermont, USA",             lat:43.4017,lon:-72.7174,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Immaculate Grooming","Family Resort"], photo:"https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63", skiPass:"epic"},
-  {id:"whitefish",   category:"skiing",title:"Whitefish Mountain",      location:"Montana, USA",             lat:48.4825,lon:-114.3487,ap:"FCA",icon:"⛷️",rating:4.92,reviews:1840,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Glacier NP Gateway","3,000 Acres"], photo:"https://images.unsplash.com/photo-1631779202803-42c151ef761a?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.41", skiPass:"independent"},
-  {id:"mthood",      category:"skiing",title:"Mt Hood Meadows",         location:"Oregon, USA",              lat:45.3311,lon:-121.6648,ap:"PDX",icon:"⛷️",rating:4.90,reviews:2060,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Pacific NW","2,150 Acres"], photo:"https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32", skiPass:"independent"},
-  {id:"alyeska",     category:"skiing",title:"Alyeska Resort",          location:"Alaska, USA",              lat:60.9697,lon:-149.0989,ap:"ANC",icon:"⛷️",rating:4.93,reviews:1320,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Alaska's Largest","Glacier Views"], photo:"https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59", skiPass:"independent"},
-  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
-  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"epic"},
-  {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
+  {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33", skiPass:"ikon", lateSeason:true},
+  {id:"steamboat",   category:"skiing",title:"Steamboat Springs",       location:"Colorado, USA",            lat:40.4572,lon:-106.8045,ap:"HDN",icon:"⛷️",rating:4.91,reviews:2860,gradient:"linear-gradient(160deg,#0d1e38,#1a4280,#3270be)",accent:"#72a4d8",tags:["Champagne Powder","Cowboy Style"], photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30", skiPass:"ikon"},
+  {id:"sunvalley",   category:"skiing",title:"Sun Valley",              location:"Idaho, USA",               lat:43.6936,lon:-114.3536,ap:"SUN",icon:"⛷️",rating:4.94,reviews:2420,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3472c0)",accent:"#74a8da",tags:["Bald Mountain","Original Resort"], photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52", skiPass:"ikon"},
+  {id:"snowbasin",   category:"skiing",title:"Snowbasin",               location:"Utah, USA",                lat:41.2161,lon:-111.8548,ap:"SLC",icon:"⛷️",rating:4.91,reviews:1980,gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",tags:["Olympic Venue","Uncrowded"], photo:"https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"taos",        category:"skiing",title:"Taos Ski Valley",         location:"New Mexico, USA",          lat:36.5953,lon:-105.4475,ap:"SAF",icon:"⛷️",rating:4.92,reviews:1640,gradient:"linear-gradient(160deg,#0d1c38,#1a3a78,#2e68b8)",accent:"#72a4d8",tags:["High Altitude","Southwest Vibes"], photo:"https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57", skiPass:"ikon"},
+  {id:"grandtarghee",category:"skiing",title:"Grand Targhee Resort",   location:"Wyoming, USA",             lat:43.7883,lon:-110.9426,ap:"JAC",icon:"⛷️",rating:4.90,reviews:1340,gradient:"linear-gradient(160deg,#0c1c36,#1a3876,#2e66b6)",accent:"#74a4d8",tags:["Teton Views","Powder Stash"], photo:"https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46", skiPass:"ikon"},
+  {id:"abasin",      category:"skiing",title:"Arapahoe Basin",          location:"Colorado, USA",            lat:39.6426,lon:-105.8718,ap:"DEN",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0a1a34,#1a3876,#2e66ba)",accent:"#72a6d8",tags:["Longest Season CO","The Legend"], photo:"https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52", skiPass:"ikon", lateSeason:true},
+  {id:"sugarbush",   category:"skiing",title:"Sugarbush Resort",        location:"Vermont, USA",             lat:44.1356,lon:-72.9014,ap:"BTV",icon:"⛷️",rating:4.90,reviews:1940,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2e6abc)",accent:"#76a8da",tags:["Mad River Valley","East Coast Best"], photo:"https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55", skiPass:"ikon"},
+  {id:"stratton",    category:"skiing",title:"Stratton Mountain",       location:"Vermont, USA",             lat:43.1134,lon:-72.9076,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Southern VT","Snowboard Birthplace"], photo:"https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33", skiPass:"ikon"},
+  {id:"keystone",    category:"skiing",title:"Keystone Resort",         location:"Colorado, USA",            lat:39.6045,lon:-105.9516,ap:"DEN",icon:"⛷️",rating:4.92,reviews:3480,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7e,#2e6cc0)",accent:"#76aada",tags:["Night Skiing","3 Peaks"], photo:"https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52", skiPass:"epic"},
+  {id:"crestedbutte",category:"skiing",title:"Crested Butte Mountain",  location:"Colorado, USA",            lat:38.8992,lon:-106.9655,ap:"GUC",icon:"⛷️",rating:4.94,reviews:2060,gradient:"linear-gradient(160deg,#0c1a36,#1a3a7a,#2e68be)",accent:"#74a8dc",tags:["Extreme Terrain","Last Great Ski Town"], photo:"https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55", skiPass:"epic"},
+  {id:"heavenly",    category:"skiing",title:"Heavenly Mountain",       location:"California, USA",          lat:38.9332,lon:-119.9400,ap:"RNO",icon:"⛷️",rating:4.93,reviews:3580,gradient:"linear-gradient(160deg,#0c1c38,#1a4080,#3270c2)",accent:"#74a8dc",tags:["Lake Tahoe Views","Gondola Ride"], photo:"https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63", skiPass:"epic"},
+  {id:"okemo",       category:"skiing",title:"Okemo Mountain Resort",   location:"Vermont, USA",             lat:43.4017,lon:-72.7174,ap:"ALB",icon:"⛷️",rating:4.89,reviews:2180,gradient:"linear-gradient(160deg,#0c1a36,#1a3a78,#2e66b8)",accent:"#72a6d8",tags:["Immaculate Grooming","Family Resort"], photo:"https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32", skiPass:"epic"},
+  {id:"whitefish",   category:"skiing",title:"Whitefish Mountain",      location:"Montana, USA",             lat:48.4825,lon:-114.3487,ap:"FCA",icon:"⛷️",rating:4.92,reviews:1840,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Glacier NP Gateway","3,000 Acres"], photo:"https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59", skiPass:"independent"},
+  {id:"mthood",      category:"skiing",title:"Mt Hood Meadows",         location:"Oregon, USA",              lat:45.3311,lon:-121.6648,ap:"PDX",icon:"⛷️",rating:4.90,reviews:2060,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Pacific NW","2,150 Acres"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"alyeska",     category:"skiing",title:"Alyeska Resort",          location:"Alaska, USA",              lat:60.9697,lon:-149.0989,ap:"ANC",icon:"⛷️",rating:4.93,reviews:1320,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Alaska's Largest","Glacier Views"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
+  {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"epic"},
+  {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62", skiPass:"ikon"},
+  {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"ikon"},
+  {id:"cervinia",    category:"skiing",title:"Cervinia",                location:"Aosta Valley, Italy",      lat:45.9373,lon:7.6271,ap:"TRN",icon:"⛷️",rating:4.91,reviews:2120,gradient:"linear-gradient(160deg,#101832,#203872,#3462b2)",accent:"#6ea0d4",tags:["Matterhorn Italy","High Altitude"], photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent", lateSeason:true},
   {id:"beach_gcm",      category:"beach",title:"Seven Mile Beach",       location:"Grand Cayman, Cayman Islands",  lat:19.3180,lon:-81.3902,ap:"GCM",icon:"🏖️",rating:4.97,reviews:14200,gradient:"linear-gradient(160deg,#003344,#006688,#00aabb)",accent:"#00ddee",tags:["World's Best Beach","Crystal Caribbean"], photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
   {id:"beach_grace",    category:"beach",title:"Grace Bay",              location:"Providenciales, Turks & Caicos",lat:21.7918,lon:-72.2598,ap:"PLS",icon:"🏖️",rating:4.98,reviews:11900,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbee",tags:["#1 Ranked Beach","Swim-Through Reef"], photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
   {id:"beach_shoal",    category:"beach",title:"Shoal Bay East",         location:"Anguilla",                      lat:18.2130,lon:-63.0420,ap:"AXA",icon:"🏖️",rating:4.96,reviews:4800,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Powdery White Sand","Quiet & Exclusive"], photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
   {id:"beach_eagle",    category:"beach",title:"Eagle Beach",            location:"Aruba",                         lat:12.5600,lon:-70.0850,ap:"AUA",icon:"🏖️",rating:4.95,reviews:13400,gradient:"linear-gradient(160deg,#003355,#00558a,#0088bb)",accent:"#22aadd",tags:["Iconic Divi Tree","Year-Round Sun"], photo:"https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"},
   {id:"beach_magens",   category:"beach",title:"Magens Bay",             location:"St. Thomas, USVI",              lat:18.3700,lon:-64.9330,ap:"STT",icon:"🏖️",rating:4.93,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Protected Horseshoe","Palm-Lined Shore"], photo:"https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"},
-  {id:"beach_stlucia",  category:"beach",title:"Anse Chastanet",         location:"St. Lucia",                     lat:13.8630,lon:-61.0750,ap:"UVF",icon:"🏖️",rating:4.96,reviews:6200,gradient:"linear-gradient(160deg,#001a22,#003844,#006677)",accent:"#00aabb",tags:["Piton Views","Volcano Backdrop"], photo:"https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"},
-  {id:"beach_barbados", category:"beach",title:"Bottom Bay",             location:"Barbados",                      lat:13.0700,lon:-59.4450,ap:"BGI",icon:"🏖️",rating:4.94,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099aa)",accent:"#00ccdd",tags:["Atlantic Wonder","Coral Cliffs"], photo:"https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"},
-  {id:"beach_orient",   category:"beach",title:"Orient Bay",             location:"Saint-Martin, French Antilles",  lat:18.1000,lon:-63.0300,ap:"SXM",icon:"🏖️",rating:4.91,reviews:8600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",accent:"#33aadd",tags:["St-Barths Vibes","Water Sports Hub"], photo:"https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"},
-  {id:"beach_tobago",   category:"beach",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
-  {id:"beach_negril",   category:"beach",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"},
-  {id:"beach_holbox",   category:"beach",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
-  {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
-  {id:"beach_cozumel",  category:"beach",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"},
-  {id:"beach_rivmaya",  category:"beach",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
-  {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Beach Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"},
-  {id:"beach_loscabos",category:"beach",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
-  {id:"beach_manuelant",category:"beach",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"},
-  {id:"beach_bocas",    category:"beach",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"},
-  {id:"beach_noronha",  category:"beach",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
-  {id:"beach_floripa",  category:"beach",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Beach + Lagoon"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
-  {id:"beach_ob",       category:"beach",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
-  {id:"beach_siestakey",category:"beach",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
-  {id:"beach_clearwater",category:"beach",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
-  {id:"beach_keywest",  category:"beach",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
-  {id:"beach_destin",   category:"beach",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
-  {id:"beach_myrtle",   category:"beach",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"},
-  {id:"beach_miami",    category:"beach",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"},
-  {id:"beach_lanikai",  category:"beach",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"},
-  {id:"beach_hapuna",   category:"beach",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"},
-  {id:"beach_kapalua",  category:"beach",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
-  {id:"beach_positano", category:"beach",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"},
-  {id:"beach_sardinia", category:"beach",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"},
-  {id:"beach_algarve",  category:"beach",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"},
-  {id:"beach_santorini",category:"beach",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"},
-  {id:"beach_mykonos",  category:"beach",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
-  {id:"beach_hvar",     category:"beach",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"},
-  {id:"beach_dubrovnik",category:"beach",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
-  {id:"beach_milos",    category:"beach",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"},
-  {id:"beach_ibiza",    category:"beach",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
-  {id:"beach_formentera",category:"beach",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
-  {id:"beach_menorca",  category:"beach",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"},
-  {id:"beach_cotedazur",category:"beach",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
-  {id:"beach_diani",    category:"beach",title:"Diani Beach",            location:"Mombasa, Kenya",                lat:-4.2720,lon:39.5930,ap:"MBA",icon:"🏖️",rating:4.93,reviews:8800,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22cc88",tags:["White Coral Sand","Colobus Monkeys"], photo:"https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"},
-  {id:"beach_zanzibar", category:"beach",title:"Nungwi Beach",           location:"Zanzibar, Tanzania",            lat:-5.7215,lon:39.2978,ap:"ZNZ",icon:"🏖️",rating:4.95,reviews:12400,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Spice Island","Dhow Sunset Cruises"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
-  {id:"beach_seychelles",category:"beach",title:"Anse Source d'Argent",  location:"La Digue, Seychelles",          lat:-4.3636,lon:55.8381,ap:"SEZ",icon:"🏖️",rating:4.99,reviews:10200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccdd",tags:["Most Photographed Beach","Granite Boulders"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
-  {id:"beach_praslin",  category:"beach",title:"Anse Lazio",             location:"Praslin, Seychelles",           lat:-4.2836,lon:55.7133,ap:"PRI",icon:"🏖️",rating:4.98,reviews:8600,gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",accent:"#22bbee",tags:["Verdure d'Eau Clear","World Top10"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
-  {id:"beach_mauritius",category:"beach",title:"Belle Mare Plage",       location:"Mauritius",                     lat:-20.2700,lon:57.7700,ap:"MRU",icon:"🏖️",rating:4.95,reviews:11200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Turquoise Lagoon","Indian Ocean Luxury"], photo:"https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"},
-  {id:"beach_railay",   category:"beach",title:"Railay Beach",           location:"Krabi, Thailand",               lat:8.0107,lon:98.8382,ap:"KBV",icon:"🏖️",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Limestone Cliffs","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
-  {id:"beach_kohsamui", category:"beach",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
-  {id:"beach_phiphi",   category:"beach",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
-  {id:"beach_elnido",   category:"beach",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
-  {id:"beach_boracay",  category:"beach",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
-  {id:"beach_nusapenida",category:"beach",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
-  {id:"beach_gilit",    category:"beach",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
-  {id:"beach_aitutaki", category:"beach",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
-  {id:"beach_whitehaven",category:"beach",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
-  {id:"beach_cable",    category:"beach",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"},
-  {id:"beach_portdouglas",category:"beach",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
-  {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1557692493-0a42e50efc26?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.52",skiPass:"independent"},
-  {id:"schweitzer-mtn",category:"skiing",title:"Schweitzer Mountain",location:"Idaho, USA",lat:48.3583,lon:-116.6272,ap:"GEG",icon:"🎿",rating:4.87,reviews:1567,gradient:"linear-gradient(160deg,#0e3b68,#1b68b5,#87bbea)",accent:"#1b68b5",tags:["Lake Pend Oreille Views","Expert","Uncrowded","Idaho Gem"],photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",skiPass:"ikon"},
-  {id:"beach_spain_mallorca_es",category:"beach",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
-  {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"HNA",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Tohoku Powder"],photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"ikon"},
-  {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OSL",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
-  {id:"kiroro-snow-world-s11",category:"skiing",title:"Kiroro Snow World",location:"Hokkaido, Japan",lat:43.0558,lon:140.9656,ap:"CTS",icon:"🏔️",rating:4.58,reviews:3869,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"morzine-s12",category:"skiing",title:"Morzine",location:"Haute-Savoie, France",lat:46.1786,lon:6.7069,ap:"GVA",icon:"🏔️",rating:4.91,reviews:3064,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"epic"},
-  {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"ikon"},
-  {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZCO",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"les-arcs-s20",category:"skiing",title:"Les Arcs",location:"Savoie, France",lat:45.5,lon:6.8333,ap:"GVA",icon:"🏔️",rating:4.76,reviews:1688,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"powder-mountain-s21",category:"skiing",title:"Powder Mountain",location:"Weber County, Utah",lat:41.3833,lon:-111.7833,ap:"SLC",icon:"🏔️",rating:4.94,reviews:2962,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"madarao-mountain-s22",category:"skiing",title:"Madarao Mountain",location:"Nagano, Japan",lat:36.9847,lon:138.3381,ap:"NRT",icon:"🏔️",rating:4.67,reviews:1309,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Deep Powder","Tree Skiing","Uncrowded Runs","Nagano Backcountry"],photo:"https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"thredbo-village-s23",category:"skiing",title:"Thredbo Village",location:"New South Wales, Australia",lat:-36.5,lon:148.3,ap:"SYD",icon:"🏔️",rating:4.62,reviews:1299,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"nevis-range-s24",category:"skiing",title:"Nevis Range",location:"Highlands, Scotland",lat:56.8333,lon:-5.0,ap:"INV",icon:"🏔️",rating:4.63,reviews:1521,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"tsugaike-kogen-s25",category:"skiing",title:"Tsugaike Kogen",location:"Nagano, Japan",lat:36.7697,lon:137.8158,ap:"NRT",icon:"🏔️",rating:4.8,reviews:717,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"mount-shasta-ski-s26",category:"skiing",title:"Mount Shasta Ski",location:"Siskiyou County, California",lat:41.35,lon:-122.1833,ap:"RDD",icon:"🏔️",rating:4.59,reviews:4147,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"lech-zurs-s27",category:"skiing",title:"Lech Zürs",location:"Vorarlberg, Austria",lat:47.2083,lon:10.1444,ap:"INN",icon:"🏔️",rating:4.73,reviews:4718,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Expert Terrain","Off-Piste Powder","Arlberg Region","Luxury"],photo:"https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"cerro-castor-s28",category:"skiing",title:"Cerro Castor",location:"Tierra del Fuego, Argentina",lat:-54.7833,lon:-68.1167,ap:"USH",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
-  {id:"agios-prokopios-t2",category:"beach",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Quiet & Pristine","Family Friendly","Shallow Clear Water","Naxos Old Town"],photo:"https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"playa-de-la-concha-t3",category:"beach",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Curved Urban Bay","Belle Époque Promenade","Basque Pintxos Scene","Safe Swimming"],photo:"https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["National Park Bay","Snorkeling Reefs","Blue Flag","Calm Pacific"],photo:"https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"ORF",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"natadola-beach-t9",category:"beach",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Swimming Lagoon","White Sand","Fiji's Best Beach"],photo:"https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"tioman-island-t11",category:"beach",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"KUL",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"mana-island-fiji-t12",category:"beach",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Private Resort Island","Snorkeling Reef","Palm-Fringed Lagoon","Remote Getaway"],photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"zlatni-rat-t14",category:"beach",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Shifting Pebble Cape","Kitesurfing","Blue Flag","Adriatic Icon"],photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"lovina-beach-t15",category:"beach",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Black Volcanic Sand","Dolphin Watching","Calm North Coast","Snorkeling"],photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_stlucia",  category:"beach",title:"Anse Chastanet",         location:"St. Lucia",                     lat:13.8630,lon:-61.0750,ap:"UVF",icon:"🏖️",rating:4.96,reviews:6200,gradient:"linear-gradient(160deg,#001a22,#003844,#006677)",accent:"#00aabb",tags:["Piton Views","Volcano Backdrop"], photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
+  {id:"beach_barbados", category:"beach",title:"Bottom Bay",             location:"Barbados",                      lat:13.0700,lon:-59.4450,ap:"BGI",icon:"🏖️",rating:4.94,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099aa)",accent:"#00ccdd",tags:["Atlantic Wonder","Coral Cliffs"], photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
+  {id:"beach_orient",   category:"beach",title:"Orient Bay",             location:"Saint-Martin, French Antilles",  lat:18.1000,lon:-63.0300,ap:"SXM",icon:"🏖️",rating:4.91,reviews:8600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088cc)",accent:"#33aadd",tags:["St-Barths Vibes","Water Sports Hub"], photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
+  {id:"beach_tobago",   category:"beach",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
+  {id:"beach_negril",   category:"beach",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
+  {id:"beach_holbox",   category:"beach",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
+  {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
+  {id:"beach_cozumel",  category:"beach",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
+  {id:"beach_rivmaya",  category:"beach",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
+  {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Beach Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
+  {id:"beach_loscabos",category:"beach",title:"Playa del Amor",          location:"Los Cabos, Mexico",             lat:22.9325,lon:-109.9100,ap:"SJD",icon:"🏖️",rating:4.94,reviews:14600,gradient:"linear-gradient(160deg,#1a0d00,#4d2600,#804000)",accent:"#cc8833",tags:["El Arco Rock Arch","Sea of Cortez"], photo:"https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"},
+  {id:"beach_manuelant",category:"beach",title:"Manuel Antonio",         location:"Puntarenas, Costa Rica",        lat:9.3850,lon:-84.1420,ap:"SJO",icon:"🏖️",rating:4.93,reviews:12400,gradient:"linear-gradient(160deg,#001e00,#003d00,#006600)",accent:"#44cc44",tags:["Wildlife Everywhere","Rainforest Meets Sand"], photo:"https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"},
+  {id:"beach_bocas",    category:"beach",title:"Bocas del Toro",         location:"Panama",                        lat:9.3500,lon:-82.2420,ap:"BOC",icon:"🏖️",rating:4.90,reviews:7800,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33bbcc",tags:["Caribbean Jungle","Bioluminescent Bay"], photo:"https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"},
+  {id:"beach_noronha",  category:"beach",title:"Fernando de Noronha",    location:"Pernambuco, Brazil",            lat:-3.8550,lon:-32.4270,ap:"FEN",icon:"🏖️",rating:4.99,reviews:5600,gradient:"linear-gradient(160deg,#001428,#002855,#004491)",accent:"#3366dd",tags:["Most Pristine Atlantic","Limited Visitors"], photo:"https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"},
+  {id:"beach_floripa",  category:"beach",title:"Praia Mole",             location:"Florianópolis, Brazil",         lat:-27.6050,lon:-48.4420,ap:"FLN",icon:"🏖️",rating:4.88,reviews:9200,gradient:"linear-gradient(160deg,#002244,#004488,#0066cc)",accent:"#3388ee",tags:["Brazil's Most Beautiful","Beach + Lagoon"], photo:"https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"},
+  {id:"beach_ob",       category:"beach",title:"Outer Banks OBX",        location:"North Carolina, USA",           lat:35.5582,lon:-75.4665,ap:"ORF",icon:"🏖️",rating:4.89,reviews:18600,gradient:"linear-gradient(160deg,#001a28,#003350,#005580)",accent:"#3388bb",tags:["Wild Horses","Barrier Island Drive"], photo:"https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"},
+  {id:"beach_siestakey",category:"beach",title:"Siesta Key Beach",       location:"Sarasota, Florida",             lat:27.2671,lon:-82.5471,ap:"SRQ",icon:"🏖️",rating:4.94,reviews:16800,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["World's Finest Sand","Gulf Sunset Views"], photo:"https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"},
+  {id:"beach_clearwater",category:"beach",title:"Clearwater Beach",      location:"Florida, USA",                  lat:27.9783,lon:-82.8279,ap:"TPA",icon:"🏖️",rating:4.91,reviews:22400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#22aaff",tags:["Voted #1 USA Beach","Pier 60 Sunsets"], photo:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"},
+  {id:"beach_keywest",  category:"beach",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
+  {id:"beach_destin",   category:"beach",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
+  {id:"beach_myrtle",   category:"beach",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
+  {id:"beach_miami",    category:"beach",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
+  {id:"beach_lanikai",  category:"beach",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
+  {id:"beach_hapuna",   category:"beach",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
+  {id:"beach_kapalua",  category:"beach",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
+  {id:"beach_positano", category:"beach",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
+  {id:"beach_sardinia", category:"beach",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
+  {id:"beach_algarve",  category:"beach",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
+  {id:"beach_santorini",category:"beach",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
+  {id:"beach_mykonos",  category:"beach",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
+  {id:"beach_hvar",     category:"beach",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
+  {id:"beach_dubrovnik",category:"beach",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
+  {id:"beach_milos",    category:"beach",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
+  {id:"beach_ibiza",    category:"beach",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
+  {id:"beach_formentera",category:"beach",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
+  {id:"beach_menorca",  category:"beach",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
+  {id:"beach_cotedazur",category:"beach",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_diani",    category:"beach",title:"Diani Beach",            location:"Mombasa, Kenya",                lat:-4.2720,lon:39.5930,ap:"MBA",icon:"🏖️",rating:4.93,reviews:8800,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22cc88",tags:["White Coral Sand","Colobus Monkeys"], photo:"https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_zanzibar", category:"beach",title:"Nungwi Beach",           location:"Zanzibar, Tanzania",            lat:-5.7215,lon:39.2978,ap:"ZNZ",icon:"🏖️",rating:4.95,reviews:12400,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Spice Island","Dhow Sunset Cruises"], photo:"https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_seychelles",category:"beach",title:"Anse Source d'Argent",  location:"La Digue, Seychelles",          lat:-4.3636,lon:55.8381,ap:"SEZ",icon:"🏖️",rating:4.99,reviews:10200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccdd",tags:["Most Photographed Beach","Granite Boulders"], photo:"https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_praslin",  category:"beach",title:"Anse Lazio",             location:"Praslin, Seychelles",           lat:-4.2836,lon:55.7133,ap:"PRI",icon:"🏖️",rating:4.98,reviews:8600,gradient:"linear-gradient(160deg,#003344,#006688,#0099cc)",accent:"#22bbee",tags:["Verdure d'Eau Clear","World Top10"], photo:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_mauritius",category:"beach",title:"Belle Mare Plage",       location:"Mauritius",                     lat:-20.2700,lon:57.7700,ap:"MRU",icon:"🏖️",rating:4.95,reviews:11200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Turquoise Lagoon","Indian Ocean Luxury"], photo:"https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_railay",   category:"beach",title:"Railay Beach",           location:"Krabi, Thailand",               lat:8.0107,lon:98.8382,ap:"KBV",icon:"🏖️",rating:4.97,reviews:18400,gradient:"linear-gradient(160deg,#002233,#005566,#009999)",accent:"#22ddcc",tags:["Limestone Cliffs","Accessible by Boat Only"], photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_kohsamui", category:"beach",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_phiphi",   category:"beach",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_elnido",   category:"beach",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_boracay",  category:"beach",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_nusapenida",category:"beach",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+  {id:"beach_gilit",    category:"beach",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"},
+  {id:"beach_aitutaki", category:"beach",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_whitehaven",category:"beach",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_cable",    category:"beach",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"},
+  {id:"beach_portdouglas",category:"beach",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
+  {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",skiPass:"independent"},
+  {id:"schweitzer-mtn",category:"skiing",title:"Schweitzer Mountain",location:"Idaho, USA",lat:48.3583,lon:-116.6272,ap:"GEG",icon:"🎿",rating:4.87,reviews:1567,gradient:"linear-gradient(160deg,#0e3b68,#1b68b5,#87bbea)",accent:"#1b68b5",tags:["Lake Pend Oreille Views","Expert","Uncrowded","Idaho Gem"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",skiPass:"ikon"},
+  {id:"beach_spain_mallorca_es",category:"beach",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"},
+  {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
+  {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"HNA",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Tohoku Powder"],photo:"https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45", skiPass:"independent"},
+  {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4", skiPass:"independent"},
+  {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4", skiPass:"independent"},
+  {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45", skiPass:"ikon"},
+  {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OSL",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop", skiPass:"epic"},
+  {id:"kiroro-snow-world-s11",category:"skiing",title:"Kiroro Snow World",location:"Hokkaido, Japan",lat:43.0558,lon:140.9656,ap:"CTS",icon:"🏔️",rating:4.58,reviews:3869,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"morzine-s12",category:"skiing",title:"Morzine",location:"Haute-Savoie, France",lat:46.1786,lon:6.7069,ap:"GVA",icon:"🏔️",rating:4.91,reviews:3064,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1517490232338-06b912a786b5?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"sainte-foy-tarentaise-s13",category:"skiing",title:"Sainte-Foy Tarentaise",location:"Savoie, France",lat:45.55,lon:6.8833,ap:"GVA",icon:"🏔️",rating:4.54,reviews:967,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"stowe-mountain-s14",category:"skiing",title:"Stowe Mountain",location:"Lamoille County, Vermont",lat:44.5267,lon:-72.7817,ap:"BTV",icon:"🏔️",rating:4.62,reviews:4924,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Vermont Classic","Mt Mansfield","Resort Village","New England Icon"],photo:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop", skiPass:"epic"},
+  {id:"champoluc-monterosa-s15",category:"skiing",title:"Champoluc Monterosa",location:"Aosta Valley, Italy",lat:45.8167,lon:7.7,ap:"TRN",icon:"🏔️",rating:4.7,reviews:744,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"sun-peaks-resort-s17",category:"skiing",title:"Sun Peaks Resort",location:"British Columbia, Canada",lat:50.8833,lon:-119.8833,ap:"YKA",icon:"🏔️",rating:4.87,reviews:1915,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Night Skiing"],photo:"https://images.unsplash.com/photo-1551582045-6ec9c11d8697?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"pucon-ski-center-s19",category:"skiing",title:"Pucon Ski Center",location:"Araucania, Chile",lat:-39.2667,lon:-71.95,ap:"ZCO",icon:"🏔️",rating:4.54,reviews:1034,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"independent"},
+  {id:"les-arcs-s20",category:"skiing",title:"Les Arcs",location:"Savoie, France",lat:45.5,lon:6.8333,ap:"GVA",icon:"🏔️",rating:4.76,reviews:1688,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"independent"},
+  {id:"powder-mountain-s21",category:"skiing",title:"Powder Mountain",location:"Weber County, Utah",lat:41.3833,lon:-111.7833,ap:"SLC",icon:"🏔️",rating:4.94,reviews:2962,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"independent"},
+  {id:"madarao-mountain-s22",category:"skiing",title:"Madarao Mountain",location:"Nagano, Japan",lat:36.9847,lon:138.3381,ap:"NRT",icon:"🏔️",rating:4.67,reviews:1309,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Deep Powder","Tree Skiing","Uncrowded Runs","Nagano Backcountry"],photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"independent"},
+  {id:"thredbo-village-s23",category:"skiing",title:"Thredbo Village",location:"New South Wales, Australia",lat:-36.5,lon:148.3,ap:"SYD",icon:"🏔️",rating:4.62,reviews:1299,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"nevis-range-s24",category:"skiing",title:"Nevis Range",location:"Highlands, Scotland",lat:56.8333,lon:-5.0,ap:"INV",icon:"🏔️",rating:4.63,reviews:1521,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"tsugaike-kogen-s25",category:"skiing",title:"Tsugaike Kogen",location:"Nagano, Japan",lat:36.7697,lon:137.8158,ap:"NRT",icon:"🏔️",rating:4.8,reviews:717,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46", skiPass:"independent"},
+  {id:"mount-shasta-ski-s26",category:"skiing",title:"Mount Shasta Ski",location:"Siskiyou County, California",lat:41.35,lon:-122.1833,ap:"RDD",icon:"🏔️",rating:4.59,reviews:4147,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67", skiPass:"independent"},
+  {id:"lech-zurs-s27",category:"skiing",title:"Lech Zürs",location:"Vorarlberg, Austria",lat:47.2083,lon:10.1444,ap:"INN",icon:"🏔️",rating:4.73,reviews:4718,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Expert Terrain","Off-Piste Powder","Arlberg Region","Luxury"],photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"independent"},
+  {id:"cerro-castor-s28",category:"skiing",title:"Cerro Castor",location:"Tierra del Fuego, Argentina",lat:-54.7833,lon:-68.1167,ap:"USH",icon:"🏔️",rating:4.87,reviews:3777,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49", skiPass:"independent"},
+  {id:"treble-cone-s29",category:"skiing",title:"Treble Cone",location:"Wanaka, New Zealand",lat:-44.6167,lon:168.95,ap:"ZQN",icon:"🏔️",rating:4.83,reviews:4724,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63", skiPass:"independent"},
+  {id:"agios-prokopios-t2",category:"beach",title:"Agios Prokopios",location:"Naxos, Greece",lat:37.0667,lon:25.4167,ap:"JNX",icon:"🏝️",rating:4.64,reviews:2555,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Quiet & Pristine","Family Friendly","Shallow Clear Water","Naxos Old Town"],photo:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"},
+  {id:"playa-de-la-concha-t3",category:"beach",title:"Playa de la Concha",location:"San Sebastian, Spain",lat:43.3208,lon:-1.9928,ap:"EAS",icon:"🏝️",rating:4.74,reviews:730,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Curved Urban Bay","Belle Époque Promenade","Basque Pintxos Scene","Safe Swimming"],photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"},
+  {id:"huatulco-santa-cruz-t4",category:"beach",title:"Huatulco Santa Cruz",location:"Oaxaca, Mexico",lat:15.7583,lon:-96.1417,ap:"HUX",icon:"🏝️",rating:4.68,reviews:2120,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["National Park Bay","Snorkeling Reefs","Blue Flag","Calm Pacific"],photo:"https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"},
+  {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"},
+  {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"},
+  {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"ORF",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
+  {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
+  {id:"natadola-beach-t9",category:"beach",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Swimming Lagoon","White Sand","Fiji's Best Beach"],photo:"https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"},
+  {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"},
+  {id:"tioman-island-t11",category:"beach",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"KUL",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"},
+  {id:"mana-island-fiji-t12",category:"beach",title:"Mana Island Fiji",location:"Fiji",lat:-17.6667,lon:177.0833,ap:"NAN",icon:"🏝️",rating:4.9,reviews:4969,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Private Resort Island","Snorkeling Reef","Palm-Fringed Lagoon","Remote Getaway"],photo:"https://images.unsplash.com/photo-1502209524164-acea936639a2?w=800&h=600&fit=crop"},
+  {id:"zlatni-rat-t14",category:"beach",title:"Zlatni Rat",location:"Brac, Croatia",lat:43.3167,lon:16.6333,ap:"SPU",icon:"🏝️",rating:4.8,reviews:1745,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Shifting Pebble Cape","Kitesurfing","Blue Flag","Adriatic Icon"],photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+  {id:"lovina-beach-t15",category:"beach",title:"Lovina Beach",location:"Bali, Indonesia",lat:-8.1556,lon:115.0244,ap:"DPS",icon:"🏝️",rating:4.73,reviews:1555,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Black Volcanic Sand","Dolphin Watching","Calm North Coast","Snorkeling"],photo:"https://images.unsplash.com/photo-1544550581-1bcabf842b77?w=800&h=600&fit=crop"},
 
-  {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["5-Star Resorts","Calm Bay","Family Friendly","Reef Snorkeling"],photo:"https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"patara-beach-t18",category:"beach",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Ancient Lycian Ruins","Sea Turtle Nesting","6km Pristine Beach","UNESCO Protected"],photo:"https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Kiteboarding Capital","Trade Winds","Windsurfing","World Cup Kite Venue"],photo:"https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"san-vito-lo-capo-t21",category:"beach",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"hyams-beach-t22",category:"beach",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Whitest Sand in the World","Jervis Bay","Quiet & Pristine","Kangaroo Sightings"],photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"lindos-beach-t23",category:"beach",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Acropolis Backdrop","Pebble & Sand Mix","Turquoise Cove","Hilltop Village Walk"],photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"laguna-beach-t24",category:"beach",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Tide Pool Coves","Artist Village","Snorkeling","Pacific Bluffs"],photo:"https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"koh-tao-sairee-t25",category:"beach",title:"Koh Tao Sairee",location:"Surat Thani, Thailand",lat:10.0833,lon:99.8333,ap:"USM",icon:"🏝️",rating:4.96,reviews:1817,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Scuba Diving Mecca","Crystal Coral","Open Water Certs","Turtle Bay"],photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"muscat-beach-t26",category:"beach",title:"Muscat Beach",location:"Oman",lat:23.588,lon:58.3972,ap:"MCT",icon:"🏝️",rating:4.71,reviews:2486,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Turquoise Gulf Water","Turtle Nesting","Desert Meets Sea","Quiet Escape"],photo:"https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["5-Star Resorts","Calm Bay","Family Friendly","Reef Snorkeling"],photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+  {id:"patara-beach-t18",category:"beach",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Ancient Lycian Ruins","Sea Turtle Nesting","6km Pristine Beach","UNESCO Protected"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"},
+  {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Kiteboarding Capital","Trade Winds","Windsurfing","World Cup Kite Venue"],photo:"https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"},
+  {id:"san-vito-lo-capo-t21",category:"beach",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
+  {id:"hyams-beach-t22",category:"beach",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Whitest Sand in the World","Jervis Bay","Quiet & Pristine","Kangaroo Sightings"],photo:"https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=600&fit=crop"},
+  {id:"lindos-beach-t23",category:"beach",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Acropolis Backdrop","Pebble & Sand Mix","Turquoise Cove","Hilltop Village Walk"],photo:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"},
+  {id:"laguna-beach-t24",category:"beach",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Tide Pool Coves","Artist Village","Snorkeling","Pacific Bluffs"],photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"},
+  {id:"koh-tao-sairee-t25",category:"beach",title:"Koh Tao Sairee",location:"Surat Thani, Thailand",lat:10.0833,lon:99.8333,ap:"USM",icon:"🏝️",rating:4.96,reviews:1817,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["Scuba Diving Mecca","Crystal Coral","Open Water Certs","Turtle Bay"],photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
+  {id:"muscat-beach-t26",category:"beach",title:"Muscat Beach",location:"Oman",lat:23.588,lon:58.3972,ap:"MCT",icon:"🏝️",rating:4.71,reviews:2486,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Turquoise Gulf Water","Turtle Nesting","Desert Meets Sea","Quiet Escape"],photo:"https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"},
 
-  {id:"rendezvous-bay-t28",category:"beach",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"an-bang-beach-t29",category:"beach",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Hoi An Doorstep","Fishing Village Vibe","Uncrowded","Beach Bars"],photo:"https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"rendezvous-bay-t28",category:"beach",title:"Rendezvous Bay",location:"Anguilla",lat:18.2,lon:-63.1167,ap:"AXA",icon:"🏝️",rating:4.9,reviews:3451,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
+  {id:"an-bang-beach-t29",category:"beach",title:"An Bang Beach",location:"Quang Nam, Vietnam",lat:15.9206,lon:108.3369,ap:"DAD",icon:"🏝️",rating:4.83,reviews:1240,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Hoi An Doorstep","Fishing Village Vibe","Uncrowded","Beach Bars"],photo:"https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"},
 
   // ── batch 2026-05-27: Maldives, Sri Lanka, Turkey, Lebanon ski, Morocco ski ─
   {id:"beach_maldives",category:"beach",
@@ -651,28 +651,28 @@ const VENUES = [
     lat:4.1755,lon:73.5093,ap:"MLE",icon:"🏝️",rating:4.98,reviews:6800,
     gradient:"linear-gradient(160deg,#001a33,#003d7a,#0077cc)",accent:"#66ccff",
     tags:["Overwater Bungalows","Bioluminescent Lagoon","Reef Snorkeling","Clearest Water on Earth"],
-    photo:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+    photo:"https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"},
 
   {id:"beach_mirissa",category:"beach",
     title:"Mirissa Beach",location:"Matara District, Sri Lanka",
     lat:5.9469,lon:80.4584,ap:"CMB",icon:"🏝️",rating:4.87,reviews:4200,
     gradient:"linear-gradient(160deg,#001e14,#003d28,#00703f)",accent:"#44cc88",
     tags:["Blue Whale Watching","Coconut Hill Sunrise","Surf Breaks","Party Sunset"],
-    photo:"https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"},
+    photo:"https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"},
 
   {id:"beach_oludeniz",category:"beach",
     title:"Ölüdeniz Blue Lagoon",location:"Fethiye, Turkey",
     lat:36.5514,lon:29.1139,ap:"DLM",icon:"🏖️",rating:4.94,reviews:18600,
     gradient:"linear-gradient(160deg,#00132b,#002e6e,#0055bb)",accent:"#3388ee",
     tags:["Paragliding From Babadağ","Protected Blue Lagoon","Turquoise Water","Butterfly Valley"],
-    photo:"https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+    photo:"https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"},
 
   {id:"ski_mzaar",category:"skiing",
     title:"Mzaar Kfardebian",location:"Mount Lebanon, Lebanon",
     lat:34.0703,lon:35.9742,ap:"BEY",icon:"⛷️",rating:4.78,reviews:2640,
     gradient:"linear-gradient(160deg,#1a0d2e,#3d2080,#6040c0)",accent:"#9980e0",
     tags:["Middle East's Largest Resort","Cedar Mountains","Day Trip From Beirut","All Levels"],
-    photo:"https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
     skiPass:"independent"},
 
   {id:"ski_oukaimeden",category:"skiing",
@@ -680,7 +680,7 @@ const VENUES = [
     lat:31.2082,lon:-7.8600,ap:"RAK",icon:"⛷️",rating:4.61,reviews:1180,
     gradient:"linear-gradient(160deg,#1a0a00,#4d2a00,#8c5000)",accent:"#cc8844",
     tags:["Africa's Highest Ski Resort","Atlas Mountain Views","Berber Villages","Rope Tow Adventure"],
-    photo:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30",
     skiPass:"independent"},
 
   {id:"beach_phuquoc",category:"beach",
@@ -689,7 +689,7 @@ const VENUES = [
     icon:"🏝️",rating:4.81,reviews:3140,
     gradient:"linear-gradient(160deg,#001e14,#003d28,#006644)",accent:"#44cc88",
     tags:["Sunset West-Facing","Calm Gulf Waters","Island Town","Budget Friendly"],
-    photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+    photo:"https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"},
 
   {id:"beach_goa",category:"beach",
     title:"Palolem Beach",location:"Goa, India",
@@ -697,7 +697,7 @@ const VENUES = [
     icon:"🏝️",rating:4.79,reviews:4620,
     gradient:"linear-gradient(160deg,#1a0a00,#4d2200,#8c5000)",accent:"#ffaa44",
     tags:["Crescent Bay","Hippie Heritage","Yoga on the Sand","Warm Arabian Sea"],
-    photo:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+    photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
 
   {id:"ski_gudauri",category:"skiing",
     title:"Gudauri Ski Resort",location:"Kazbegi Region, Georgia",
@@ -705,7 +705,7 @@ const VENUES = [
     icon:"🏔️",rating:4.73,reviews:2210,
     gradient:"linear-gradient(160deg,#1a0d2e,#3d2080,#6040c0)",accent:"#9980e0",
     tags:["Caucasus Powder","Off-Piste Backcountry","High Altitude","Value Pick"],
-    photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    photo:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52",
     skiPass:"independent"},
 
   {id:"ski_bansko",category:"skiing",
@@ -714,7 +714,7 @@ const VENUES = [
     icon:"⛷️",rating:4.68,reviews:3780,
     gradient:"linear-gradient(160deg,#0e1e38,#1a4280,#3272be)",accent:"#72a4d8",
     tags:["Budget Ski Europe","Après-Ski Village","Beginner Friendly","Long Season"],
-    photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    photo:"https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop",
     skiPass:"independent"},
   // ── Ikon Pass batch (added 2026-06-08) ──
     {
@@ -734,7 +734,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -755,7 +755,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -776,7 +776,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65",
+      "photo": "https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52",
       "skiPass": "ikon"
     },
     {
@@ -795,7 +795,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
+      "photo": "https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -816,7 +816,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
+      "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
       "skiPass": "ikon"
     },
     {
@@ -835,7 +835,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
+      "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
       "skiPass": "ikon"
     },
     {
@@ -854,7 +854,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55",
       "skiPass": "ikon"
     },
     {
@@ -873,7 +873,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
       "skiPass": "ikon"
     },
     {
@@ -892,7 +892,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
+      "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -912,7 +912,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67",
+      "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
       "skiPass": "ikon"
     },
     {
@@ -931,7 +931,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -951,7 +951,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
+      "photo": "https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop",
       "skiPass": "ikon"
     },
     {
@@ -970,7 +970,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
+      "photo": "https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop",
       "skiPass": "ikon"
     },
     {
@@ -989,7 +989,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1664352669091-e7b2f5cfb1d0?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1009,7 +1009,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
+      "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1030,7 +1030,7 @@ const VENUES = [
         "Powder Day",
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30",
+      "photo": "https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1050,7 +1050,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52",
+      "photo": "https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop",
       "skiPass": "ikon"
     },
     {
@@ -1070,7 +1070,7 @@ const VENUES = [
         "Iconic",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1090,7 +1090,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
+      "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1110,7 +1110,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
+      "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1130,7 +1130,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52",
+      "photo": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
     },
     {
@@ -1149,7 +1149,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55",
+      "photo": "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
     },
     {
@@ -1168,7 +1168,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
     },
     {
@@ -1187,7 +1187,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
+      "photo": "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
     },
     {
@@ -1206,7 +1206,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55",
+      "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1226,7 +1226,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
+      "photo": "https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
       "skiPass": "ikon"
     },
   // ── Epic Pass batch (added 2026-06-08) ──
@@ -1247,7 +1247,7 @@ const VENUES = [
         "Family Friendly",
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1631779202803-42c151ef761a?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.41",
+      "photo": "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1268,7 +1268,7 @@ const VENUES = [
         "All Levels",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1288,7 +1288,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
+      "photo": "https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
       "skiPass": "epic"
     },
     {
@@ -1307,7 +1307,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1326,7 +1326,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1345,7 +1345,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1364,7 +1364,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1517490232338-06b912a786b5?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1383,7 +1383,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1402,7 +1402,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1421,7 +1421,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1440,7 +1440,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1551582045-6ec9c11d8697?w=800&h=600&fit=crop",
       "skiPass": "epic"
     },
     {
@@ -1459,7 +1459,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1524742065576-48c9a51bd901?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65",
       "skiPass": "epic"
     },
     {
@@ -1478,7 +1478,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
       "skiPass": "epic"
     },
     {
@@ -1497,7 +1497,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1557692493-0a42e50efc26?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.52",
+      "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
       "skiPass": "epic"
     },
     {
@@ -1516,7 +1516,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
+      "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
       "skiPass": "epic"
     },
     {
@@ -1535,7 +1535,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1548777113-e0b0d7e72e6c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1555,7 +1555,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1575,7 +1575,7 @@ const VENUES = [
       "tags": [
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1543896868-2f7d98bd3dd6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1596,7 +1596,7 @@ const VENUES = [
         "Off-Piste",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1520175462-89499834c4c1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1616,7 +1616,7 @@ const VENUES = [
       "tags": [
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1578985545284-db7b72abc2cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1636,7 +1636,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1516117172878-026ddba3c36a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1656,7 +1656,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1589802822605-b6f1d7fbd41a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1676,7 +1676,7 @@ const VENUES = [
       "tags": [
         "All Levels"
       ],
-      "photo": "https://images.unsplash.com/photo-1484527689-1ac2a30bfbd4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
       "skiPass": "epic"
     },
   // ── Global beach batch (added 2026-06-08) ──
@@ -1697,7 +1697,7 @@ const VENUES = [
         "Powdery White Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
     },
     {
       "id": "maundays-bay-anguilla",
@@ -1716,7 +1716,7 @@ const VENUES = [
         "Crystal Water",
         "St-Barths Vibes"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
     },
     {
       "id": "crane-beach-barbados",
@@ -1735,7 +1735,7 @@ const VENUES = [
         "Pink Sand",
         "Coral Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
     },
     {
       "id": "mullins-beach-barbados",
@@ -1754,7 +1754,7 @@ const VENUES = [
         "Calm North Coast",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"
     },
     {
       "id": "bathsheba-barbados",
@@ -1773,7 +1773,7 @@ const VENUES = [
         "Surf Breaks",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
     },
     {
       "id": "smith-cove-grand-cayman",
@@ -1792,7 +1792,7 @@ const VENUES = [
         "Snorkeling",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
     },
     {
       "id": "stingray-sandbar-cayman",
@@ -1811,7 +1811,7 @@ const VENUES = [
         "Wildlife Everywhere",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
     },
     {
       "id": "bambarra-beach-tci",
@@ -1830,7 +1830,7 @@ const VENUES = [
         "Uncrowded",
         "Turquoise Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"
     },
     {
       "id": "long-bay-providenciales",
@@ -1849,7 +1849,7 @@ const VENUES = [
         "Kiteboarding Capital",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1562095804-aba1f2fe0eca?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
     },
     {
       "id": "trunk-bay-st-john",
@@ -1868,7 +1868,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Voted #1 USA Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
     },
     {
       "id": "honeymoon-beach-stj",
@@ -1887,7 +1887,7 @@ const VENUES = [
         "Calm Waters",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1548484654-4e8d3a7e6c2d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
     },
     {
       "id": "boston-bay-jamaica",
@@ -1906,7 +1906,7 @@ const VENUES = [
         "Surf Breaks",
         "Caribbean Soul"
       ],
-      "photo": "https://images.unsplash.com/photo-1558618051-88ac5c36d0b6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"
     },
     {
       "id": "treasure-beach-jamaica",
@@ -1925,7 +1925,7 @@ const VENUES = [
         "Fishing Village Vibe",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
+      "photo": "https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"
     },
     {
       "id": "baby-beach-aruba",
@@ -1944,7 +1944,7 @@ const VENUES = [
         "Calm Bay",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"
     },
     {
       "id": "arashi-beach-aruba",
@@ -1963,7 +1963,7 @@ const VENUES = [
         "Calm Waters",
         "Snorkeling"
       ],
-      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"
     },
     {
       "id": "sugar-beach-st-lucia",
@@ -1982,7 +1982,7 @@ const VENUES = [
         "Piton Views",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"
     },
     {
       "id": "reduit-beach-st-lucia",
@@ -2001,7 +2001,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
     },
     {
       "id": "mullet-bay-sxm",
@@ -2020,7 +2020,7 @@ const VENUES = [
         "Calm Waters",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"
     },
     {
       "id": "maho-beach-sxm",
@@ -2039,7 +2039,7 @@ const VENUES = [
         "Iconic",
         "Plane Spotting"
       ],
-      "photo": "https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
     },
     {
       "id": "simpson-bay-sxm",
@@ -2058,7 +2058,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
     },
     {
       "id": "pirates-bay-tobago",
@@ -2077,7 +2077,7 @@ const VENUES = [
         "Secluded Beach",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"
     },
     {
       "id": "englishmans-bay-tobago",
@@ -2096,7 +2096,7 @@ const VENUES = [
         "Crescent Bay",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"
     },
     {
       "id": "playa-maroma-mexico",
@@ -2115,7 +2115,7 @@ const VENUES = [
         "Crystal Caribbean",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"
     },
     {
       "id": "akumal-bay-mexico",
@@ -2134,7 +2134,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
     },
     {
       "id": "isla-mujeres-norte",
@@ -2153,7 +2153,7 @@ const VENUES = [
         "Calm Waters",
         "Crystal Caribbean"
       ],
-      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
     },
     {
       "id": "playa-paraiso-tulum",
@@ -2172,7 +2172,7 @@ const VENUES = [
         "Mayan Ruins Backdrop",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
     },
     {
       "id": "xpu-ha-beach",
@@ -2191,7 +2191,7 @@ const VENUES = [
         "Crystal Caribbean",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
     },
     {
       "id": "punta-mita-mexico",
@@ -2210,7 +2210,7 @@ const VENUES = [
         "Surf Breaks",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"
     },
     {
       "id": "san-pancho-mexico",
@@ -2229,7 +2229,7 @@ const VENUES = [
         "Bohemian Beach Town",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"
     },
     {
       "id": "mazunte-mexico",
@@ -2248,7 +2248,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
     },
     {
       "id": "zipolite-mexico",
@@ -2267,7 +2267,7 @@ const VENUES = [
         "Naturist Area",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
     },
     {
       "id": "cabo-pulmo",
@@ -2286,7 +2286,7 @@ const VENUES = [
         "Coral Reef",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
     },
     {
       "id": "tamarindo-cr",
@@ -2305,7 +2305,7 @@ const VENUES = [
         "Surf Breaks",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "santa-teresa-cr",
@@ -2324,7 +2324,7 @@ const VENUES = [
         "Surf Breaks",
         "Yoga on the Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "hanauma-bay-oahu",
@@ -2343,7 +2343,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Marine Preserve"
       ],
-      "photo": "https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "waimea-bay-oahu",
@@ -2362,7 +2362,7 @@ const VENUES = [
         "Surf Breaks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "makena-big-beach",
@@ -2381,7 +2381,7 @@ const VENUES = [
         "Golden Sand",
         "Pacific Bluffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "wailea-beach-maui",
@@ -2400,7 +2400,7 @@ const VENUES = [
         "Luxury",
         "Calm Pacific"
       ],
-      "photo": "https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "kaanapali-beach-maui",
@@ -2419,7 +2419,7 @@ const VENUES = [
         "Cliff Dive",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1565623006013-1285e4d04497?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "coronado-beach-sd",
@@ -2438,7 +2438,7 @@ const VENUES = [
         "Pacific Bluffs",
         "Hotel del Coronado"
       ],
-      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "la-jolla-cove",
@@ -2457,7 +2457,7 @@ const VENUES = [
         "Snorkeling Coves",
         "Sea Lions"
       ],
-      "photo": "https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "manhattan-beach-ca",
@@ -2476,7 +2476,7 @@ const VENUES = [
         "Pier 60 Sunsets",
         "Beach Volleyball"
       ],
-      "photo": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "big-sur-pfeiffer",
@@ -2495,7 +2495,7 @@ const VENUES = [
         "Purple Sand",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "cala-goloritze-sardinia",
@@ -2514,7 +2514,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
     },
     {
       "id": "spiaggia-rosa-budelli",
@@ -2533,7 +2533,7 @@ const VENUES = [
         "Pink Sand",
         "UNESCO Protected"
       ],
-      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
     },
     {
       "id": "costa-smeralda-sardinia",
@@ -2552,7 +2552,7 @@ const VENUES = [
         "Billionaire Yachts",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "capri-marina-piccola",
@@ -2571,7 +2571,7 @@ const VENUES = [
         "Faraglioni Rocks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "procida-italy",
@@ -2590,7 +2590,7 @@ const VENUES = [
         "Pastel Houses",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
     },
     {
       "id": "amalfi-beach",
@@ -2609,7 +2609,7 @@ const VENUES = [
         "Amalfi Drive",
         "Pastel Cliff Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1523906834658-6e5e0be5e0fb?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
     },
     {
       "id": "scala-dei-turchi-sicily",
@@ -2628,7 +2628,7 @@ const VENUES = [
         "White Marl Cliffs",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
     },
     {
       "id": "plage-mala-cap-dail",
@@ -2647,7 +2647,7 @@ const VENUES = [
         "Hidden Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
     },
     {
       "id": "eze-beach-france",
@@ -2666,7 +2666,7 @@ const VENUES = [
         "Belle Époque",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
     {
       "id": "pointe-st-hospice",
@@ -2685,7 +2685,7 @@ const VENUES = [
         "Pine Forest Path",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-salada-ibiza",
@@ -2704,7 +2704,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1561030093-83e7e8f7f2c7?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-comte-ibiza",
@@ -2723,7 +2723,7 @@ const VENUES = [
         "Legendary Sunsets",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-bassa-ibiza",
@@ -2742,7 +2742,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1553913861-c69a032e7069?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-pregonda-menorca",
@@ -2761,7 +2761,7 @@ const VENUES = [
         "Red Volcanic Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-mitjana-menorca",
@@ -2780,7 +2780,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Turquoise Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-saona-formentera",
@@ -2799,7 +2799,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"
     },
     {
       "id": "ses-illetes-formentera",
@@ -2818,7 +2818,7 @@ const VENUES = [
         "World's Finest Sand",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1590080876351-941da357b7ae?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-mondrago-mallorca",
@@ -2837,7 +2837,7 @@ const VENUES = [
         "Natural Park Beach",
         "Pine Forest"
       ],
-      "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502209524164-acea936639a2?w=800&h=600&fit=crop"
     },
     {
       "id": "cala-tuent-mallorca",
@@ -2856,7 +2856,7 @@ const VENUES = [
         "Tramuntana Cliffs",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-do-carvalho-algarve",
@@ -2875,7 +2875,7 @@ const VENUES = [
         "Sea Cave Access",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1544550581-1bcabf842b77?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-da-falesia-algarve",
@@ -2894,7 +2894,7 @@ const VENUES = [
         "Red Cliffs",
         "6km Pristine Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"
     },
     {
       "id": "praia-da-rocha-algarve",
@@ -2913,7 +2913,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"
     },
     {
       "id": "stiniva-beach-vis",
@@ -2932,7 +2932,7 @@ const VENUES = [
         "Cliff-Locked Cove",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"
     },
     {
       "id": "punta-rata-brela",
@@ -2951,7 +2951,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"
     },
     {
       "id": "pasjaca-beach-croatia",
@@ -2970,7 +2970,7 @@ const VENUES = [
         "Cliffside Stairs",
         "Hidden Cove"
       ],
-      "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=600&fit=crop"
     },
     {
       "id": "plaka-beach-naxos",
@@ -2989,7 +2989,7 @@ const VENUES = [
         "4km of Sand",
         "Dune-Backed"
       ],
-      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
     },
     {
       "id": "mikri-vigla-naxos",
@@ -3008,7 +3008,7 @@ const VENUES = [
         "Kitesurfing",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
     },
     {
       "id": "tsambika-beach-rhodes",
@@ -3027,7 +3027,7 @@ const VENUES = [
         "Monastery Backdrop",
         "Golden Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
     },
     {
       "id": "firiplaka-milos",
@@ -3046,7 +3046,7 @@ const VENUES = [
         "Volcanic Pumice",
         "Crystal Aegean"
       ],
-      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
+      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
     },
     {
       "id": "amoudi-bay-santorini",
@@ -3065,7 +3065,7 @@ const VENUES = [
         "Caldera Views",
         "Cliffside Tavernas"
       ],
-      "photo": "https://images.unsplash.com/photo-1507991237285-6d74e0adc0fa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"
     },
     {
       "id": "perissa-beach-santorini",
@@ -3084,7 +3084,7 @@ const VENUES = [
         "Black Volcanic Sand",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1519820056430-f656be5a1e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"
     },
     {
       "id": "super-paradise-mykonos",
@@ -3103,7 +3103,7 @@ const VENUES = [
         "Party Sunset",
         "See & Be Seen"
       ],
-      "photo": "https://images.unsplash.com/photo-1439405326-9f4ee48e0e73?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"
     },
     {
       "id": "elia-beach-mykonos",
@@ -3122,7 +3122,7 @@ const VENUES = [
         "Longest Beach",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"
     },
     {
       "id": "kaputas-beach-turkey",
@@ -3141,7 +3141,7 @@ const VENUES = [
         "Turquoise Cove",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
     },
     {
       "id": "iztuzu-beach-turkey",
@@ -3160,7 +3160,7 @@ const VENUES = [
         "Turtle Nesting",
         "4km of Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
     },
     {
       "id": "patong-beach-phuket",
@@ -3179,7 +3179,7 @@ const VENUES = [
         "Non-Stop Party Beach",
         "Nightlife"
       ],
-      "photo": "https://images.unsplash.com/photo-1520454379017-1a16d7f1a1d7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"
     },
     {
       "id": "karon-beach-phuket",
@@ -3198,7 +3198,7 @@ const VENUES = [
         "Squeaky Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1533104190960-c7e28b5f6b52?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
     },
     {
       "id": "kata-beach-phuket",
@@ -3217,7 +3217,7 @@ const VENUES = [
         "Family Friendly",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1519996409144-01b7bb003574?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
     },
     {
       "id": "freedom-beach-phuket",
@@ -3236,7 +3236,7 @@ const VENUES = [
         "Hidden Cove",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
     },
     {
       "id": "nai-harn-phuket",
@@ -3255,7 +3255,7 @@ const VENUES = [
         "Calm Bay",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"
     },
     {
       "id": "ao-nang-beach-krabi",
@@ -3274,7 +3274,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Long-Tail Boat Hub"
       ],
-      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
     },
     {
       "id": "phra-nang-beach-krabi",
@@ -3293,7 +3293,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
     },
     {
       "id": "lamai-beach-koh-samui",
@@ -3312,7 +3312,7 @@ const VENUES = [
         "Calmer Than Chaweng",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1495908040769-ab5c3b1d4e6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
     },
     {
       "id": "haad-rin-koh-phangan",
@@ -3331,7 +3331,7 @@ const VENUES = [
         "Full Moon Parties",
         "Nightlife"
       ],
-      "photo": "https://images.unsplash.com/photo-1528543010-26b51d08a7e2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"
     },
     {
       "id": "sao-beach-phu-quoc",
@@ -3350,7 +3350,7 @@ const VENUES = [
         "Powdery White Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1436262117760-66d59c6f25cc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
     },
     {
       "id": "bai-khem-phu-quoc",
@@ -3369,7 +3369,7 @@ const VENUES = [
         "Powdery White Sand",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
     },
     {
       "id": "my-khe-beach-danang",
@@ -3388,7 +3388,7 @@ const VENUES = [
         "20km Coastline",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
     },
     {
       "id": "cua-dai-hoi-an",
@@ -3407,7 +3407,7 @@ const VENUES = [
         "Hoi An Doorstep",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"
     },
     {
       "id": "padang-padang-bali",
@@ -3426,7 +3426,7 @@ const VENUES = [
         "Sea Cave Coves",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1467631332947-8506a3b38a56?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"
     },
     {
       "id": "kuta-beach-bali",
@@ -3445,7 +3445,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"
     },
     {
       "id": "bingin-beach-bali",
@@ -3464,7 +3464,7 @@ const VENUES = [
         "Reef Break",
         "Cliffside Cafes"
       ],
-      "photo": "https://images.unsplash.com/photo-1512100011019-1f6c8ecd1b06?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"
     },
     {
       "id": "dreamland-beach-bali",
@@ -3483,7 +3483,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"
     },
     {
       "id": "tanjung-aan-lombok",
@@ -3502,7 +3502,7 @@ const VENUES = [
         "Pepper Sand",
         "Twin Bays"
       ],
-      "photo": "https://images.unsplash.com/photo-1562619425-01c1b0c33793?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
     },
     {
       "id": "pink-beach-lombok",
@@ -3521,7 +3521,7 @@ const VENUES = [
         "Pink Sand",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+      "photo": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"
     },
     {
       "id": "nacpan-beach-palawan",
@@ -3540,7 +3540,7 @@ const VENUES = [
         "4km of Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
+      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
     },
     {
       "id": "las-cabanas-elnido",
@@ -3559,7 +3559,7 @@ const VENUES = [
         "Island-Hopping Hub",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
     },
     {
       "id": "puka-shell-boracay",
@@ -3578,7 +3578,7 @@ const VENUES = [
         "Puka Shells",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"
     },
     {
       "id": "diniwid-boracay",
@@ -3597,7 +3597,7 @@ const VENUES = [
         "Quiet Side",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"
     },
     {
       "id": "unawatuna-sri-lanka",
@@ -3616,7 +3616,7 @@ const VENUES = [
         "Crescent Bay",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"
     },
     {
       "id": "hikkaduwa-sri-lanka",
@@ -3635,7 +3635,7 @@ const VENUES = [
         "Surf Breaks",
         "Coral Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
     },
     {
       "id": "anjuna-beach-goa",
@@ -3654,7 +3654,7 @@ const VENUES = [
         "Hippie Heritage",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
     },
     {
       "id": "calangute-beach-goa",
@@ -3673,7 +3673,7 @@ const VENUES = [
         "Family Friendly",
         "Beach Shacks"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
     },
     {
       "id": "vagator-beach-goa",
@@ -3692,7 +3692,7 @@ const VENUES = [
         "Cliffside Views",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
     },
     {
       "id": "veligandu-maldives",
@@ -3711,7 +3711,7 @@ const VENUES = [
         "Overwater Bungalows",
         "Crystal Caribbean"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"
     },
     {
       "id": "baros-island-maldives",
@@ -3730,7 +3730,7 @@ const VENUES = [
         "Resort Island",
         "House Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"
     },
     {
       "id": "qantab-beach-oman",
@@ -3749,7 +3749,7 @@ const VENUES = [
         "Calm Bay",
         "Desert Meets Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
     },
     {
       "id": "bondi-beach-sydney",
@@ -3768,7 +3768,7 @@ const VENUES = [
         "Iconic",
         "Coastal Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1562095804-aba1f2fe0eca?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
     },
     {
       "id": "manly-beach-sydney",
@@ -3787,7 +3787,7 @@ const VENUES = [
         "Ferry From CBD",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
     },
     {
       "id": "bronte-beach-sydney",
@@ -3806,7 +3806,7 @@ const VENUES = [
         "Ocean Pool",
         "Local Vibe"
       ],
-      "photo": "https://images.unsplash.com/photo-1548484654-4e8d3a7e6c2d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "tamarama-sydney",
@@ -3825,7 +3825,7 @@ const VENUES = [
         "Compact Cove",
         "Bronte Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1558618051-88ac5c36d0b6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "palm-beach-sydney",
@@ -3844,7 +3844,7 @@ const VENUES = [
         "Headland Drives",
         "Lighthouse Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
+      "photo": "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "coogee-beach-sydney",
@@ -3863,7 +3863,7 @@ const VENUES = [
         "Family Friendly",
         "Ocean Pools"
       ],
-      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "hill-inlet-lookout",
@@ -3882,7 +3882,7 @@ const VENUES = [
         "Hill Inlet Swirl",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "langford-island-spit",
@@ -3901,7 +3901,7 @@ const VENUES = [
         "Sandspit",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "yasawa-fiji",
@@ -3920,7 +3920,7 @@ const VENUES = [
         "Castaway Vibe",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "mamanucas-fiji",
@@ -3939,7 +3939,7 @@ const VENUES = [
         "Reef Snorkeling",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "coral-coast-fiji",
@@ -3958,7 +3958,7 @@ const VENUES = [
         "Coral Reef",
         "Family Resorts"
       ],
-      "photo": "https://images.unsplash.com/photo-1499922817053-40fe6b02b3d1?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "muri-beach-rarotonga",
@@ -3977,7 +3977,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1580541631950-7282082b03fe?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "trou-aux-biches-mauritius",
@@ -3996,7 +3996,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1517957096316-710192f26730?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "le-morne-mauritius",
@@ -4015,7 +4015,7 @@ const VENUES = [
         "UNESCO Protected",
         "Kitesurfing"
       ],
-      "photo": "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
     },
     {
       "id": "flic-en-flac-mauritius",
@@ -4034,7 +4034,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1584100936595-c0c5b900dc73?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
     },
     {
       "id": "ile-aux-cerfs-mauritius",
@@ -4053,7 +4053,7 @@ const VENUES = [
         "Day Trip Island",
         "Crystal Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "anse-georgette-praslin",
@@ -4072,7 +4072,7 @@ const VENUES = [
         "Granite Boulders",
         "Quiet & Pristine"
       ],
-      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
     },
     {
       "id": "anse-volbert-praslin",
@@ -4091,7 +4091,7 @@ const VENUES = [
         "Long Curve",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1543192262-a55cf7c7068c?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
     },
     {
       "id": "beau-vallon-mahe",
@@ -4110,7 +4110,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
     },
     {
       "id": "anse-severe-la-digue",
@@ -4129,7 +4129,7 @@ const VENUES = [
         "Calm Reef",
         "Bicycle Access"
       ],
-      "photo": "https://images.unsplash.com/photo-1552751753-0fc84ae0b223?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
     },
     {
       "id": "kendwa-zanzibar",
@@ -4148,7 +4148,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Tides"
       ],
-      "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
     },
     {
       "id": "matemwe-zanzibar",
@@ -4167,7 +4167,7 @@ const VENUES = [
         "Pristine",
         "Mnemba Atoll Dives"
       ],
-      "photo": "https://images.unsplash.com/photo-1518790111753-7c60ffbd1450?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
     },
     {
       "id": "paje-zanzibar",
@@ -4186,7 +4186,7 @@ const VENUES = [
         "Kitesurfing",
         "Powdery White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1548041347-390744c58da3?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
     },
     {
       "id": "jambiani-zanzibar",
@@ -4205,7 +4205,7 @@ const VENUES = [
         "Village Vibe",
         "Low Tide Walks"
       ],
-      "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
     },
     {
       "id": "watamu-kenya",
@@ -4224,7 +4224,7 @@ const VENUES = [
         "Marine Park",
         "Tide Pool Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
     },
   {
     "id": "cardrona-nz",
@@ -4244,7 +4244,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1561843702-1ab41bebe7f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30",
     "skiPass": "independent",
   },
   {
@@ -4265,7 +4265,7 @@ const VENUES = [
       "Off-Piste",
       "Long Season"
     ],
-    "photo": "https://images.unsplash.com/photo-1569038786784-aee5b10e3511?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&h=600&fit=crop&fp-x=0.57&fp-y=0.52",
     "skiPass": "independent",
   },
   {
@@ -4286,7 +4286,7 @@ const VENUES = [
       "Village Base",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1522163723043-5c42c1de3742?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop",
     "skiPass": "independent",
   },
   {
@@ -4307,7 +4307,7 @@ const VENUES = [
       "Groomed Runs",
       "Village Base"
     ],
-    "photo": "https://images.unsplash.com/photo-1576012816255-89a5a2d94ac7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
     "skiPass": "independent",
   },
   {
@@ -4328,7 +4328,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1543268524-cda03c9861c3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
     "skiPass": "independent",
   },
   {
@@ -4349,7 +4349,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1598586517946-4e3db73cadf3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52",
     "skiPass": "independent",
   },
   {
@@ -4370,7 +4370,7 @@ const VENUES = [
       "Backcountry",
       "Long Season"
     ],
-    "photo": "https://images.unsplash.com/photo-1533234499399-4cc0a54684f9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55",
     "skiPass": "independent",
   },
   {
@@ -4391,7 +4391,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1529408686637-c33ca8e4f9b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
     "skiPass": "independent",
   },
   {
@@ -4412,7 +4412,7 @@ const VENUES = [
       "High Altitude",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
     "skiPass": "independent",
   },
   {
@@ -4433,7 +4433,7 @@ const VENUES = [
       "Scenic Views",
       "Off-Piste"
     ],
-    "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55",
     "skiPass": "independent",
   },
   {
@@ -4454,7 +4454,7 @@ const VENUES = [
       "Village Base",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
     "skiPass": "independent",
   },
   {
@@ -4475,7 +4475,7 @@ const VENUES = [
       "Off-Piste",
       "Expert Terrain"
     ],
-    "photo": "https://images.unsplash.com/photo-1580058572462-98e0c62ed3d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
     "skiPass": "independent",
   },
   {
@@ -4496,7 +4496,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
     "skiPass": "independent",
   },
   {
@@ -4517,7 +4517,7 @@ const VENUES = [
       "Off-Piste",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1516259762965-f47aced4a7f7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+    "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
     "skiPass": "independent",
   },
   {id:"beach_sveti_stefan", category:"beach",
@@ -4526,35 +4526,35 @@ const VENUES = [
     icon:"🏖️", rating:4.82, reviews:1140,
     gradient:"linear-gradient(160deg,#0a2e1a,#1a5c3a,#2e9c6a)",
     accent:"#5ec494", tags:["Adriatic Riviera","Historic Island","Pebble Beach","Crystal Clear Water"],
-    photo:"https://images.unsplash.com/photo-1559827291-bce015748c52?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
   {id:"beach_okinawa", category:"beach",
     title:"Emerald Beach Okinawa", location:"Naha, Japan",
     lat:26.334, lon:127.801, ap:"OKA",
     icon:"🏖️", rating:4.85, reviews:2480,
     gradient:"linear-gradient(160deg,#003333,#006666,#00aaaa)",
     accent:"#33ddcc", tags:["Subtropical Japan","Coral Reef","Ultra-Clear Water","Island Culture"],
-    photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
   {id:"beach_cape_verde", category:"beach",
     title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
     lat:16.856, lon:-22.932, ap:"SID",
     icon:"🏖️", rating:4.80, reviews:1860,
     gradient:"linear-gradient(160deg,#1a1a00,#4a4400,#8a7a00)",
     accent:"#d4c060", tags:["Trade Winds","Year-Round Sun","Kitesurfing Mecca","Atlantic Islands"],
-    photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"},
   {id:"beach_fuerteventura", category:"beach",
     title:"Corralejo Beach", location:"Fuerteventura, Canary Islands",
     lat:28.737, lon:-13.866, ap:"FUE",
     icon:"🏖️", rating:4.83, reviews:3120,
     gradient:"linear-gradient(160deg,#2a1800,#6a4000,#c47a00)",
     accent:"#f0b040", tags:["White Sand Dunes","Year-Round Warm","Windsurfing","European Gem"],
-    photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"},
   {id:"beach_djerba", category:"beach",
     title:"Djerba Sidi Mahrez", location:"Djerba, Tunisia",
     lat:33.784, lon:10.987, ap:"DJE",
     icon:"🏖️", rating:4.76, reviews:1420,
     gradient:"linear-gradient(160deg,#1a0a00,#4a2400,#8a5a00)",
     accent:"#d49050", tags:["North Africa","Roman History","Flat Turquoise Sea","Budget Pick"],
-    photo:"https://images.unsplash.com/photo-1568781269258-758a4e7c0b3f?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
