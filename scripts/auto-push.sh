@@ -8,6 +8,10 @@
 
 set -euo pipefail
 
+# Pause switch: `touch /tmp/peakly-pause-autopush` to suspend auto-push during a
+# multi-edit change so half-finished work never ships to prod; `rm` it to resume.
+if [ -f /tmp/peakly-pause-autopush ]; then exit 0; fi
+
 REPO=/Users/haydenb/peakly
 cd "$REPO"
 

@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613n";
+const PEAKLY_BUILD = "20260614b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4948,7 +4948,7 @@ async function fetchWeather(lat, lon) {
     `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,` +
     `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,` +
     `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max` +
-    `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
+    `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=14&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const r = await fetch(url, { signal: controller.signal });
@@ -4988,7 +4988,7 @@ async function fetchMarine(lat, lon) {
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=sea_surface_temperature_max` +
-    `&forecast_days=7&timezone=auto`;
+    `&forecast_days=14&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const r = await fetch(url, { signal: controller.signal });
@@ -5437,11 +5437,13 @@ function weekendDayIndices(today) {
   return indices;
 }
 
-function scoreWeekend(venue, wx, marine, todayDate) {
+// Score a single weekend window (array of forecast day-indices). Returns the
+// headline conditions object for that weekend; scoreWeekend picks the best of
+// the candidate weekends.
+function scoreOneWeekend(venue, wx, marine, todayDate, indices) {
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const indices = weekendDayIndices(todayDate);
   if (!wx?.daily || indices.length === 0) {
-    return { score:50, label:"Loading…", period:"", days:"", confidence:"low" };
+    return { score:50, label:"Loading…", period:"", days:"", confidence:"low", maxDi:0 };
   }
 
   // Score each weekend day in window
@@ -5492,10 +5494,11 @@ function scoreWeekend(venue, wx, marine, todayDate) {
     bestPairAvg = top.score;
   }
 
-  // Confidence: based on the latest day in the weekend window.
-  // Day 0–4 = high (forecast solid), day 5 = medium, day 6+ = low.
+  // Confidence: based on the latest day in the weekend window. This weekend
+  // (≤ day 6) = high; next weekend (day 7–10) = medium outlook; the far edge
+  // (day 11+) = low. Two-tier "next 2 weekends" horizon, honestly hedged.
   const maxDi = Math.max(...indices);
-  const confidence = maxDi <= 4 ? "high" : maxDi === 5 ? "medium" : "low";
+  const confidence = maxDi <= 6 ? "high" : maxDi <= 10 ? "medium" : "low";
 
   // Label = best day's per-day label, prefixed with day name.
   const top = bestPair.reduce((a,b) => b.score > a.score ? b : a);
@@ -5552,8 +5555,44 @@ function scoreWeekend(venue, wx, marine, todayDate) {
 
   return {
     score: finalScore, label, period, days: days_str, confidence, splitWeekend,
-    lo, hi, halfWidth, headlineDay, consistency,
+    lo, hi, halfWidth, headlineDay, consistency, maxDi,
   };
+}
+
+// The upcoming long-weekend window, plus the one after it (both clamped to the
+// 14-day forecast horizon). weekendDayIndices already rolls a nearly-over
+// weekend forward to next Friday, so wk1 is always a future Fri–Mon window.
+function candidateWeekends(today) {
+  const wk1 = weekendDayIndices(today);
+  if (wk1.length === 0) return [];
+  const wk2 = wk1.map(i => i + 7).filter(i => i <= 13);
+  return wk2.length >= 2 ? [wk1, wk2] : [wk1];
+}
+
+// Front-page entry: score the next ~2 weekends and recommend the best one.
+function scoreWeekend(venue, wx, marine, todayDate) {
+  // Only consider weekends the forecast actually covers — a stale 7-day cache
+  // drops the 2nd weekend until it refreshes (graceful; behaves like before).
+  const horizon = wx?.daily?.time?.length ?? 0;
+  const weekends = candidateWeekends(todayDate).filter(idxs => idxs.length >= 1 && Math.max(...idxs) < horizon);
+  if (!wx?.daily || weekends.length === 0) {
+    return { score:50, label:"Loading…", period:"", days:"", confidence:"low", weekendWhich:"this", weekendFriISO:null };
+  }
+  // Prefer the sooner / more-confident weekend unless a later one is clearly
+  // better — discount by forecast confidence so a noisy day-12 outlook can't
+  // out-rank a solid in-forecast weekend on luck.
+  const discountFor = (c) => c === "high" ? 1.0 : c === "medium" ? 0.93 : 0.82;
+  let best = null;
+  weekends.forEach((indices, wkIdx) => {
+    const r = scoreOneWeekend(venue, wx, marine, todayDate, indices);
+    const pick = r.score * discountFor(r.confidence);
+    if (!best || pick > best.pick) best = { ...r, wkIdx, indices, pick };
+  });
+  const friDi = Math.min(...best.indices);
+  const friDate = new Date(todayDate); friDate.setDate(friDate.getDate() + friDi);
+  const weekendWhich = best.wkIdx === 0 ? "this" : "next";
+  const period = weekendWhich === "next" ? `Next weekend · ${best.period}` : best.period;
+  return { ...best, period, weekendWhich, weekendFriISO: friDate.toISOString().slice(0, 10) };
 }
 
 // Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
@@ -5574,10 +5613,10 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const typicalPrice = getTypicalPrice(venue, homeAirport || "JFK", today);
   const priceRatio = typicalPrice > 0 ? flight.price / typicalPrice : null;
   if (conditions.confidence === "low" || priceRatio == null) {
-    // 7-day forecast horizon is the product, not a limit. Don't fabricate a
-    // score for a weekend the forecast can't honestly back. ScoreBreakdown
-    // surfaces this label so the user understands why the venue has no deal score.
-    return { score: null, conditions, priceRatio, isEstimate: false, label: conditions.confidence === "low" ? "Beyond 7-day window" : null };
+    // The forecast horizon is the product, not a limit. Don't fabricate a deal
+    // score for a weekend even the 2-week outlook can't honestly back yet.
+    // ScoreBreakdown surfaces this label so the user knows why there's no score.
+    return { score: null, conditions, priceRatio, isEstimate: false, label: conditions.confidence === "low" ? "Beyond forecast horizon" : null };
   }
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   // 75/25 conditions/price: a genuinely good weekend is mostly about conditions;
@@ -11075,8 +11114,8 @@ function ScoreBreakdown({ listing }) {
   const confExplain = wkConf === "high"
     ? "Forecast solid for the whole weekend window"
     : wkConf === "medium"
-      ? "Last day at the 6-day forecast edge — slight uncertainty"
-      : "Outside the 7-day forecast horizon";
+      ? "Next-weekend outlook — forecast still firming up"
+      : "Too far out for the forecast to back yet";
 
   const conditionsExplain = listing.weekendLabel || listing.conditionLabel || "Conditions checked";
 
@@ -11116,7 +11155,7 @@ function ScoreBreakdown({ listing }) {
         <div style={{ padding:"4px 14px 14px", borderTop:"1px solid #f3f3f3" }}>
           {isLow ? (
             <div style={{ fontSize:12, color:"#717171", fontFamily:F, padding:"10px 0", lineHeight:1.5 }}>
-              Beyond the 7-day forecast — confidence too low to call this weekend. We only score what the forecast can back.
+              Too far out for the forecast to back this weekend yet — we only score what it can. Check back as it nears.
             </div>
           ) : (
             <>
@@ -12680,6 +12719,7 @@ function App() {
       weekendPeriod: wknd.period,
       weekendDays: wknd.days,
       weekendConfidence: wknd.confidence,
+      weekendWhich: wknd.weekendWhich,
       weekendLo: wknd.lo,
       weekendHi: wknd.hi,
       weekendHalfWidth: wknd.halfWidth,
