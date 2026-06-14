@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613k";
+const PEAKLY_BUILD = "20260613l";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -11120,7 +11120,7 @@ function ScoreBreakdown({ listing }) {
             </div>
           ) : (
             <>
-              <ScoreRow label="Conditions" weight="50 pts" value={conditionsNorm} explain={conditionsExplain} />
+              <ScoreRow label="Conditions" weight="75 pts" value={conditionsNorm} explain={conditionsExplain} />
               {listing.weekendHeadline && listing.weekendHeadline.score >= conditionsNorm + 4 && (
                 <ScoreRow
                   label="Headline day"
