@@ -21,6 +21,7 @@
     "cap:ios": "npx cap add ios && npx cap sync ios",
     "cap:sync": "npx cap sync",
     "build:ios": "bash scripts/build-ios.sh",
+    "build:web": "node scripts/build-web.mjs",
     "smoke": "bash scripts/smoke-test.sh",
     "smoke:local": "bash scripts/smoke-test.sh --local"
   }
