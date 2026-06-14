@@ -35,12 +35,24 @@ if (spans.length !== arr.length) {
   process.exit(1);
 }
 
-// build new photo assignment per category via round-robin over distinct palette
+// Vetted per-category photo pool (verified live + vision-confirmed on-theme by
+// the 2026-06-13 audit). When present it is the authoritative palette — this is
+// how dead/404 and theme-mismatched photos get dropped catalog-wide. Falls back
+// to the in-file palette if the pool file is absent.
+let POOL = null;
+try { POOL = JSON.parse(fs.readFileSync("data/photo-pool.json", "utf8")); } catch (e) { POOL = null; }
+
+// build new photo assignment per category via round-robin over the palette
 function buildAssignment(cat) {
   const idxs = arr.map((v, i) => i).filter(i => arr[i].category === cat);
-  const palette = [];
-  const seen = new Set();
-  for (const i of idxs) { const u = arr[i].photo; if (!seen.has(u)) { seen.add(u); palette.push(u); } }
+  let palette;
+  if (POOL && Array.isArray(POOL[cat]) && POOL[cat].length) {
+    palette = [...new Set(POOL[cat])];
+  } else {
+    palette = [];
+    const seen = new Set();
+    for (const i of idxs) { const u = arr[i].photo; if (!seen.has(u)) { seen.add(u); palette.push(u); } }
+  }
   const map = {}; // venueIndex -> newPhoto
   idxs.forEach((i, k) => { map[i] = palette[k % palette.length]; });
   return { map, paletteSize: palette.length, count: idxs.length };
