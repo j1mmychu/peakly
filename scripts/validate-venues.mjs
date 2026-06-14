@@ -19,6 +19,7 @@
 //   R8  Tags array; new tags flagged for review (not rejected)
 //   R9  lateSeason:true requires |lat|>=35 AND category==='skiing'
 //   R10 poolPrimary:true requires category==='beach'
+//   R11 photo is in the vetted, activity-appropriate pool (data/photo-pool.json)
 
 import fs from "node:fs";
 import path from "node:path";
