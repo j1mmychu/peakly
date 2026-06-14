@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260614b";
+const PEAKLY_BUILD = "20260614c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5058,7 +5058,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   const di = dayIndex || 0;
   // If the requested day is beyond the forecast window, return unavailable
   const forecastLen = wx.daily.temperature_2m_max?.length ?? 7;
-  if (di >= forecastLen) return { score:50, label:"Forecast unavailable", period:"Beyond 7-day forecast window" };
+  if (di >= forecastLen) return { score:50, label:"Forecast unavailable", period:"Beyond forecast window" };
   const d = wx.daily;
   const md = marine?.daily;
 
@@ -5099,7 +5099,19 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 
   // ─── Marine data (beach only — water temp) ──────────────────────────────
   const atM = (arr) => (Array.isArray(arr) && di < arr.length) ? arr[di] : null;
-  const waterTemp = atM(md?.sea_surface_temperature_max); // null if no marine
+  // The marine model horizon (~9 days) is shorter than the 14-day weather
+  // forecast, so sea temp is null for next-weekend days. Sea temp moves slowly,
+  // so fall back to the most recent available reading rather than dropping the
+  // cold-water gate entirely (which would let a cold beach score high for next
+  // weekend). Returns null only when there's no marine data at all.
+  const waterTemp = (() => {
+    const arr = md?.sea_surface_temperature_max;
+    if (!Array.isArray(arr)) return null;
+    const exact = atM(arr);
+    if (exact != null) return exact;
+    for (let k = Math.min(di, arr.length) - 1; k >= 0; k--) { if (arr[k] != null) return arr[k]; }
+    return null;
+  })();
   const ySnow     = (di > 0 && Array.isArray(d?.snowfall_sum)  && d.snowfall_sum[di-1] != null)
                     ? d.snowfall_sum[di-1] : 0;
 
@@ -5601,6 +5613,13 @@ function scoreWeekend(venue, wx, marine, todayDate) {
 // certainty we don't have). Returns {score, conditions, priceRatio, isEstimate, label}.
 function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   const conditions = scoreWeekend(venue, wx, marine, today);
+  // The only fare we fetch is for THIS weekend's Friday. If the recommended
+  // weekend is next weekend, fusing conditions with this-weekend's price would
+  // claim a "deal" priced for the wrong trip. Surface conditions only (no deal
+  // claim) until per-weekend pricing exists. Price is 25% of the score anyway.
+  if (conditions.weekendWhich === "next") {
+    return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
+  }
   // Staleness gate: a "live" fare last seen >14 days ago is a different
   // animal than one scraped this morning. Demote to estimate so we don't
   // claim a deal off month-old data the carrier has since repriced.
@@ -8734,6 +8753,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       .filter(l => {
         if (l.weekendScore < 75) return false;
         if (l.weekendConfidence === "low") return false;
+        if (l.weekendWhich === "next") return false; // "Firing THIS weekend" — next-weekend picks belong in the grid
         if (l.flight?.live !== true) return false; // exact-fares-only mode
         return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
       })
