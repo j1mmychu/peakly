@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613d";
+const PEAKLY_BUILD = "20260613e";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8517,7 +8517,7 @@ function MapView({ listings, profile, onOpenDetail }) {
     mapRef.current = map;
     layerRef.current = L.layerGroup().addTo(map);
     return () => { try { map.remove(); } catch (_) {} mapRef.current = null; layerRef.current = null; };
-  }, []);
+  }, [leafletReady]);
 
   useEffect(() => {
     if (!layerRef.current || !window.L) return;
