@@ -1,0 +1,20 @@
+# Why: eager Supabase <script> at index.html:85 ships ~80KB gzip to every anonymous
+#      visitor, defeating the documented lazy-load contract (ensureSupabase() at
+#      app.jsx:54). Regenerated 2026-06-11 — the 2026-05-08 diff is corrupt
+#      ("corrupt patch at line 26") and targeted the old 2.45.4 pin.
+# Estimated time to apply: 30 seconds (git apply from repo root, then push)
+# Risk: low — ensureSupabase() injects the same UMD on demand; verified 5 call
+#        sites all route through it (app.jsx:5926/5963/6348/6369 + loader :54)
+
+--- a/index.html
++++ b/index.html
+@@ -80,9 +80,6 @@
+   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+
+-  <!-- Supabase JS (UMD) — cloud sync for wishlists/alerts/profile.
+-       Inert until SUPABASE_URL is set in app.jsx. -->
+-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"></script>
+
+   <!-- Leaflet — map view (lightweight, ~40KB JS + CSS, OSM/CartoDB tiles via free CDN) -->
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />

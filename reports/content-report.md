@@ -1,247 +1,139 @@
-# Peakly Daily Content Report — 2026-06-14
+# Peakly Daily Content Report — 2026-06-13
 
 ---
 
-## Data Health Score: 84 / 100
+## Data Health Score: 76 / 100
 
-**Total venues:** 156 (67 skiing · 89 beach)  
-**Categories:** 2 active (skiing, beach — post-2026-05-03 pivot; surfing retired)  
-**Photos:** 156 unique Unsplash URLs · 0 duplicates  
-**Duplicate IDs:** 0  
-**Coordinate errors:** 0  
-**Missing critical fields:** 0
+**Deductions:** −14 photo duplication (188 venues / 53% share a photo — see P0 below); −7 tag depth thin on batch venues; −3 five venues with AP not in AP_CONTINENT (fixed this run).
 
-Score degraders vs. last report (was 91):
-- Tag copy-paste duplication across 4 S hemisphere ski venues (−5)
-- All international airports missing from `AIRPORT_COORDS` — flight-time filter blind to non-US venues (−5)
-- 3 S hemisphere beach venues surfacing in Southern winter (−2)
-- Extremely thin S hemisphere ski coverage for June (6 venues total; peak season for Oceania/Latin America ski) (−3)
-- 1 cosmetic: `borabora` "UV 11" tag reads as data, not a vibe signal (−1 style)
+**vs yesterday (68):** +8. skiPass now 100% complete (was 28% missing), AP_CONTINENT patched, 5 new venues shipped. Photo P0 unchanged — still the only launch-blocking content issue.
 
 ---
 
-## Category Breakdown
+## 1. Category Breakdown
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Beach    | 89    | ✅ Healthy — 86/89 viable in June (55 tropical + 31 N hem summer) |
-| Skiing   | 67    | ⚠️ June coverage thin — only 12/67 viable (6 lateSeason N hem + 6 S hem) |
+| Category | Count | Notes |
+|----------|-------|-------|
+| Skiing   | 130   | 23 S.Hem venues in peak season now |
+| Beach    | 228   | 170 N.Hem in peak season; 53 S.Hem out of season |
+| **Total** | **358** | +5 new beach venues added this run |
 
-> **Note for PM:** The task prompt references "182 venues, 12 categories" — that's pre-pivot state. Current catalog is 2 categories only. No stub categories exist.
+Post-2026-05-03 pivot: skiing + beach only. No hiking, surfing, or other categories exist — agent prompt references these in error; disregard.
 
 ---
 
-## Data Integrity Audit
+## 2. Data Integrity Audit
 
 ### ✅ Clean
-- All 156 venues have: `id`, `category`, `lat`, `lon`, `ap`, `tags`, `photo`, `icon`, `rating`, `reviews`
-- Zero duplicate IDs
-- Zero duplicate photo URLs
-- Zero out-of-range coordinates
-- All AP codes pass 3-letter IATA format check
-- All venue ratings within 4.0–5.0 range
-- `lateSeason: true` correctly set on 6 N hemisphere high-altitude ski venues: whistler, chamonix, mammoth, abasin, tignes, cervinia
+- **Zero duplicate IDs** across all 358 entries
+- Zero missing coordinates
+- Zero missing airport codes
+- Zero missing tags (all venues ≥ 2 tags)
+- Zero missing rating / reviews / icon / gradient / accent
+- All 358 photos from `images.unsplash.com`
+- All IATA codes pass 3-letter uppercase format check
+- **skiPass: 100% coverage on 130 ski venues** ← fixed this run (was 28% missing)
 
-### ⚠️ Flagged Issues
+### ❌ P0 UNRESOLVED — Photo Duplication (Day 2)
 
-**1. Copy-paste tag pollution on 4 S hemisphere ski venues (HIGH PRIORITY)**
+**188 of 358 venues (53%) share a photo URL with at least one other venue.**
 
-`portillo-s4` and `pucon-ski-center-s19` share *identical* tags:
-`["Glacial Skiing","Scenic Views","Village Base","On-Piste"]`
+The June 9 batch additions reused ~18 Unsplash IDs across groups of 3–26 venues. A user scrolling Explore sees the same ski mountain photo repeated on 26 consecutive cards, and the same Caribbean beach photo on 17+ cards. This destroys visual credibility.
 
-Neither is accurate: Portillo (3,350m, Chile, no village, iconic funicular) should be `["High Altitude","Expert Terrain","Challenging Terrain","Remote Location"]`. Pucon sits on a volcano — correct tags would be `["Volcanic Terrain","Scenic Views","All Levels","Families Welcome"]`.
+| Photo ID | Venues Sharing | Sample |
+|----------|---------------|--------|
+| `1551698618` | **26** | winter-park, copper-mountain, snowbird, deer-valley… |
+| `1483721310020` | **23** | palisades-tahoe, brighton, killington, verbier… |
+| `1519046904884` | **18** | beach_loscabos, mullins-beach-barbados, punta-mita… |
+| `1506905925346` | **17** | meads-bay-anguilla, long-bay-providenciales, reduit-beach-st-lucia… |
+| `1507525428034` | **17** | maundays-bay-anguilla, trunk-bay-st-john, mullet-bay-sxm… |
+| `1473496169904` | **17** | crane-beach-barbados, honeymoon-beach-stj, maho-beach-sxm… |
+| `1505228395891` | **17** | bathsheba-barbados, treasure-beach-jamaica, pirates-bay-tobago… |
+| `1559827260` | **17** | smith-cove-grand-cayman, baby-beach-aruba, englishmans-bay-tobago… |
+| `1502117859338` | **16** | stingray-sandbar-cayman, arashi-beach-aruba, playa-maroma-mexico… |
+| `1535827841776` | **16** | bambarra-beach-tci, sugar-beach-st-lucia, akumal-bay-mexico… |
 
-`cerro-castor-s28` and `thredbo-village-s23` share identical tags:
-`["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"]`
+**Fix approach:** ~2 hours scripted. For each affected venue: generate a unique Unsplash search term from `title + location`, fetch a distinct photo ID from the Unsplash API or an Unsplash curated list, replace in place. The 165 already-unique photo venues keep their photos. **This is the only launch-blocking content issue remaining.**
 
-Thredbo is Australia's #1 resort with a famous summer hiking trail — tags should include `"Australia's Best"` and `"Village Base"`. Cerro Castor (Tierra del Fuego) is the world's southernmost ski resort — `"World's Southernmost"` and `"Remote Location"` are unique selling points wasted by generic tags.
+### ✅ Fixed This Run — AP_CONTINENT gaps (5 venues, now patched)
 
-**Fix (surgical, paste into VENUES array):**
-```js
-// portillo-s4: replace tags line
-tags: ["High Altitude","Expert Terrain","Challenging Terrain","Remote Location"],
+Added `PHL:"na"` and `CMH:"na"` to the airport map. Previously 5 venues had AP codes missing from the continent map, causing them to score as unknown continent: `mad-river-mountain-oh` (CMH), `liberty-mountain`, `roundtop-mountain`, `whitetail-resort`, `jack-frost` (all PHL).
 
-// pucon-ski-center-s19: replace tags line
-tags: ["Volcanic Terrain","Scenic Views","All Levels","Families Welcome"],
+Also added for new venues: `TGD:"europe"`, `OKA:"asia"`, `SID:"africa"`, `DJE:"africa"`.
 
-// thredbo-village-s23: replace tags line
-tags: ["Australia's Best","Village Base","Long Season","Summer Hiking"],
+### ✅ Fixed This Run — skiPass gaps (36 ski venues, now 0 missing)
 
-// cerro-castor-s28: replace tags line
-tags: ["World's Southernmost","Remote Location","Long Season","Powder Day"],
-```
+All 36 ski venues added in the June 9 batch were missing `skiPass`. Now complete:
+- `big-white-ski-s5`, `sun-peaks-resort-s17`: `"ikon"` (Ikon Pass properties)
+- `stowe-mountain-s14`: `"epic"` (Vail Resorts / Epic Pass)
+- All 14 S.Hem batch venues + 19 other European/Japanese/S.Hem venues: `"independent"`
 
-**2. `AIRPORT_COORDS` missing all international airports (MEDIUM PRIORITY)**
+### ⚠️ Persistent — Tag Depth Thin
 
-The `flightHours()` distance filter uses `AIRPORT_COORDS` to compute Haversine distances. This object contains **63 US domestic airports only** (JFK→BDL). Every international venue (all 28 non-US airports in the catalog) returns `undefined` for flight time → the "≤Xhr" filter silently bypasses them, surfacing e.g. Queenstown (ZQN) to a New York user filtering "≤4hr flights."
+9 tag combos shared across 3+ venues (copy-paste artifacts from batch additions). Worst: 26 venues share 1-tag "All Levels", 23 share "Powder Day" alone. Tags should be venue-specific attributes, not generic descriptors. Low priority vs. photo P0, but affects filter discovery surface (Powder Day filter matches too broadly).
 
-Affected airports: ZQN, SCL, ZCO, SYD, USH, YVR, YYC, GVA, CMF, TRN, AGP, and 17 others.
+### ⚠️ Persistent — Outer Banks Near-Duplicate
 
-The fix is adding international coordinates to `AIRPORT_COORDS`. High-value entries to add for S hemisphere ski season:
-```js
-// Add to AIRPORT_COORDS:
-ZQN:{lat:-45.0211,lon:168.7394},  // Queenstown NZ
-SYD:{lat:-33.9399,lon:151.1753},  // Sydney AU
-MEL:{lat:-37.6733,lon:144.8433},  // Melbourne AU
-SCL:{lat:-33.3929,lon:-70.7858},  // Santiago Chile
-USH:{lat:-54.8432,lon:-68.2958},  // Ushuaia Argentina
-BRC:{lat:-41.1512,lon:-71.1576},  // Bariloche Argentina
-CHC:{lat:-43.4894,lon:172.5322},  // Christchurch NZ
-YVR:{lat:49.1967,lon:-123.1815},  // Vancouver Canada
-```
-
-**3. 3 S hemisphere beach venues surfacing in southern winter**
-
-`beach_floripa` (Florianópolis, BR, lat −27.6), `tofo-beach-t10` (Mozambique, lat −23.9), `hyams-beach-t22` (New South Wales AU, lat −35.1) are all in their off-season in June. Water temps drop to 14–17°C, violating the 18°C hard cap for beach scoring. These venues should score near-zero and sink to the bottom of results — verifying the scoring engine handles this correctly is the mitigation. No data change needed; worth confirming in browser.
-
-**4. `borabora` UV tag is confusing**
-- Current: `tags: ["UV 11","Crystal Water"]`
-- Fix: `tags: ["Overwater Bungalows","Crystal Lagoon","Turquoise Water","Bucket List"]`
-
-"UV 11" reads like sensor data, not an editorial tag. Overwater bungalows is Bora Bora's literal brand identity.
-
-**5. Near-duplicate Outer Banks (LOW PRIORITY)**
-- `beach_ob` → "Outer Banks OBX" (lat 35.558, ORF)
-- `outer-banks-nags-head-t7` → "Outer Banks Nags Head" (lat 35.957, ORF)
-Both served by ORF, ~45km apart. A user sees two Outer Banks results. Consider merging into the stronger entry (`outer-banks-nags-head-t7` has richer tags) or explicitly differentiating the sub-location in `beach_ob`'s title ("Kill Devil Hills" or "Cape Hatteras").
+`beach_ob` and `outer-banks-nags-head-t7` are 45km apart, both served by ORF. Fifth consecutive report. Merge candidate or intentionally distinct? **Decision needed — move to known-skipped if intentional.**
 
 ---
 
-## Gear Items Audit
+## 3. Gear Items Audit
 
-**GEAR_ITEMS status:** Present in app.jsx for `skiing` and `beach` categories. Coverage is correct for active categories. Amazon Associates tag (`peakly-20`) is wired.
+Both categories covered:
+- `skiing`: 4 items (goggles, skis, bindings, jacket)
+- `beach`: 4 items
 
-> ⚠️ PM Note: Per CLAUDE.md, Jack formally cut GEAR_ITEMS for v1 launch in a later commit (2026-06-09). Current repo state (2026-06-04) still has the code. If you see this report in a session past that cut date, `grep -c GEAR_ITEMS app.jsx` should return 0. This is not a content bug — it's a pipeline timing artifact.
-
----
-
-## Seasonal Relevance — June 14 (Peak Northern Summer)
-
-### Skiing — June 14
-| Status | Count | Venues |
-|--------|-------|--------|
-| ✅ In-season N hem (lateSeason) | 6 | Whistler, Chamonix, Mammoth, A-Basin, Tignes, Cervinia |
-| ✅ In-season S hem | 6 | Remarkables, Portillo, Pucon, Thredbo, Cerro Castor, Treble Cone |
-| ❌ Off-season N hem | 55 | Rest of catalog |
-
-**June gap = 45 resorts short of a healthy ski catalog.** S hemisphere needs at least 15+ venues to serve the Oceania/Latin America ski market during their prime months (June–September). Currently 6 venues. This is the most actionable expansion target.
-
-### Beach — June 14
-| Status | Count | Notes |
-|--------|-------|-------|
-| ✅ Tropical (always viable) | 55 | Southeast Asia, Caribbean, Pacific islands |
-| ✅ N hemisphere summer | 31 | Mediterranean, US coasts, Azores |
-| ❌ S hem winter (off-season) | 3 | Floripa, Tofo, Hyams Beach |
-
-Beach catalog is healthy for June. S hem beach venues will score near-zero from water temp cap — no data change needed, the algorithm handles it.
+No missing categories. All use `peakly-20` Amazon tag. **Recommend spot-checking 2–3 ASINs are still live** before App Store submission.
 
 ---
 
-## Content Quality Notes
+## 4. Seasonal Relevance — June 13
 
-- 34 ski venues have only 2 tags (mostly the original 67 compact-format venues like Whistler `["Powder Day","All Levels"]`). Minimum 3 tags recommended for filter surface area; 4 is optimal. No urgent fix needed but worth expanding during next content sprint.
-- Tag variety is good overall: no single tag dominates above 8× in the catalog.
-- `poolPrimary: true` is unset on all beach venues. Architectural provision exists — consider flagging warm-calm-water pool-style venues (Maldives atolls, Bora Bora inner lagoon) for a future content pass.
+### ✅ In Season
+| Group | Count | Notes |
+|-------|-------|-------|
+| N.Hem beach (lat ≥ 0) | 170 | Peak June–Aug season for US/EU/Asia users |
+| S.Hem ski (lat < 0) | 23 | Jun–Sep winter peak; all confirmed in-season |
+| N.Hem ski `lateSeason: true` | 27 | High-altitude/glacier venues; limited summer skiing possible |
 
----
+### ⚠️ Out of Season
+| Group | Count | Notes |
+|-------|-------|-------|
+| N.Hem ski standard | 80 | Off until Nov; scoring correctly suppresses these |
+| S.Hem beach (lat < 0) | 53 | Austral winter; Fiji, Bali, Sydney, Mauritius, etc. — out of season |
 
-## 5 New Venue Objects — S Hemisphere Ski Focus (June Peak)
-
-Target: address the June ski coverage gap. All venues verified against Open-Meteo coordinate coverage, AP_CONTINENT membership, and uniqueness against existing IDs.
-
-> ⚠️ **Action required before pasting:** Add `CHC` and `BRC` to both `AP_CONTINENT` and `AIRPORT_COORDS` (values above in Issue #2). `MEL`, `INN`, and `ZQN` are already in `AP_CONTINENT`. Without AIRPORT_COORDS entries, the flight-time filter will bypass these venues for all US-origin users (same limitation as existing 6 S-hem ski venues).
-
-```js
-  {
-    id: "cardrona-s35",
-    category: "skiing",
-    title: "Cardrona Alpine Resort",
-    location: "Wanaka, New Zealand",
-    lat: -44.8667,
-    lon: 168.9333,
-    ap: "ZQN",
-    icon: "🏔️",
-    rating: 4.88,
-    reviews: 2140,
-    gradient: "linear-gradient(160deg,#0a2233,#1a4a70,#3a7ab8)",
-    accent: "#80b8e8",
-    tags: ["Family Friendly","Beginners Welcome","Groomed Runs","Queenstown Base"],
-    photo: "https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-    skiPass: "independent"
-  },
-  {
-    id: "mt-hutt-s36",
-    category: "skiing",
-    title: "Mt Hutt",
-    location: "Canterbury, New Zealand",
-    lat: -43.5,
-    lon: 171.5833,
-    ap: "CHC",
-    icon: "🏔️",
-    rating: 4.79,
-    reviews: 1650,
-    gradient: "linear-gradient(160deg,#001830,#003060,#1a60a0)",
-    accent: "#6aaad8",
-    tags: ["Expert Terrain","Steep Chutes","Wind Exposure","Canterbury Plains Views"],
-    photo: "https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
-    skiPass: "independent"
-  },
-  {
-    id: "falls-creek-s37",
-    category: "skiing",
-    title: "Falls Creek Alpine Resort",
-    location: "Victoria, Australia",
-    lat: -36.8667,
-    lon: 147.2833,
-    ap: "MEL",
-    icon: "⛷️",
-    rating: 4.74,
-    reviews: 1870,
-    gradient: "linear-gradient(160deg,#0d1f2d,#1a3a55,#2e6080)",
-    accent: "#78b0d0",
-    tags: ["Village Base","All Levels","Cross-Country","High Country"],
-    photo: "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-    skiPass: "independent"
-  },
-  {
-    id: "cerro-catedral-s38",
-    category: "skiing",
-    title: "Cerro Catedral",
-    location: "Bariloche, Argentina",
-    lat: -41.1667,
-    lon: -71.4333,
-    ap: "BRC",
-    icon: "🏔️",
-    rating: 4.82,
-    reviews: 3260,
-    gradient: "linear-gradient(160deg,#1a0a2e,#3a1a60,#6040a0)",
-    accent: "#b090e0",
-    tags: ["South America's Largest","Off-Piste","Lake Views","Patagonia"],
-    photo: "https://images.unsplash.com/photo-1547036967-3f4fc0adbf6a?w=800&h=600&fit=crop&fp-x=0.4&fp-y=0.5",
-    skiPass: "independent"
-  },
-  {
-    id: "hintertux-s39",
-    category: "skiing",
-    title: "Hintertux Glacier",
-    location: "Tyrol, Austria",
-    lat: 47.0667,
-    lon: 11.65,
-    ap: "INN",
-    icon: "🏔️",
-    rating: 4.86,
-    reviews: 2920,
-    gradient: "linear-gradient(160deg,#0a1a3a,#1a3a70,#3060b0)",
-    accent: "#80a8e0",
-    tags: ["Year-Round Glacier","Expert Terrain","Summer Skiing","Tyrol"],
-    photo: "https://images.unsplash.com/photo-1609205807107-2a4cfb1e9b64?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-    lateSeason: true,
-    skiPass: "independent"
-  },
-```
+S.Hem ski is solid at 23 venues (NZ×5, Chile×6, Argentina×5, Australia×6, S.Africa×1). Appropriate coverage for June peak.
 
 ---
 
-## PM Observation
+## 5. Content Quality
 
-**The June ski catalog effectively has 12 viable venues out of 67 (18%).** Users opening the app this weekend who filter "Skiing" will see 55 resorts that score near-zero due to off-season caps — those sink to the bottom, but they still clutter the grid. A `confidence !== "low"` + hemisphere-aware pre-filter (already partially built into `scoreWeekend`) would clean this up visually without removing data. More importantly: the S hemisphere ski inventory (6 venues) is underbuilt for peak Oceania/Latin America ski season. Cardrona, Falls Creek, and Cerro Catedral above bring it to 9 — still thin. The CLAUDE.md notes a planned +14 S hemisphere ski sprint (Nevados de Chillán, La Parva, El Colorado, Mt Buller, Hotham, Charlotte Pass, Cerro Bayo, Cerro Chapelco, Caviahue, Las Leñas, Corralco) — that sprint is the right call and should go in this week while June ski traffic is highest.
+- **Descriptions:** No `description` field in compact format — by design, not flagged.
+- **Ratings:** All in range 4.5–4.99. Avg ski 4.79, avg beach 4.82. Realistic for curated catalog.
+- **Review counts:** Some batch venues have suspiciously round counts (e.g., 1000, 1500). Not broken, but worth noting if App Store reviewers scrutinize authenticity.
+- **poolPrimary flag:** 0 beach venues use it. Feature exists but unused.
+
+---
+
+## 6. Five New Venues Shipped This Run
+
+Targeting geographic gaps in N.Hem in-season beach (zero prior coverage in Balkans, Japan, Africa Atlantic, Canaries, N.Africa):
+
+| ID | Title | Location | AP | Gap Filled |
+|----|-------|----------|----|------------|
+| `beach_sveti_stefan` | Sveti Stefan Riviera | Budva, Montenegro | TGD | Balkans — 0 → 1 |
+| `beach_okinawa` | Emerald Beach Okinawa | Naha, Japan | OKA | Japan beach — 0 → 1 |
+| `beach_cape_verde` | Santa Maria Beach | Sal Island, Cape Verde | SID | W.Africa Atlantic — 0 → 1 |
+| `beach_fuerteventura` | Corralejo Beach | Fuerteventura, Canary Islands | FUE | Canary Islands — 0 → 1 |
+| `beach_djerba` | Djerba Sidi Mahrez | Djerba, Tunisia | DJE | N.Africa beach — 0 → 1 |
+
+All 5 are N.Hem, in-season June–September. All have unique photos (verified no duplicates). All AP codes registered in AP_CONTINENT.
+
+> **Photo verification note:** New venue Unsplash IDs were selected from the free pool not currently in use by any other venue, but visual content has not been verified in a browser. Recommend a spot-check on the 5 photos before deploying.
+
+---
+
+## 7. One Observation for PM
+
+**The photo duplication P0 is a credibility hole, not a bug.** The app works — venues render, score correctly, and book correctly. But a user in Sydney opening Peakly on a ski weekend in June and seeing 26 ski resort cards with the identical mountain photo will assume the product is low-effort or broken. This is the single thing most likely to cause a first-time user to bounce and never return. The fix is 2–3 hours of scripted work: one unique Unsplash search term per affected venue, one photo ID per find-replace. It should be the next thing touched before any new feature work or App Store submission push.
