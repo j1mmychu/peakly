@@ -148,6 +148,13 @@ async function validate(v, state) {
   // R7 photo URL HEAD check
   if (v.photo && !(await photoOk(v.photo))) push("R7", `photo URL not reachable: ${v.photo.slice(0, 80)}`);
 
+  // R11 photo must be from the vetted, activity-appropriate pool (data/photo-pool.json)
+  if (PHOTO_POOL && v.photo && PHOTO_POOL[v.category] && !PHOTO_POOL[v.category].has(v.photo)) {
+    push("R11",
+      `photo not in the approved ${v.category} pool`,
+      `reuse a photo already in data/photo-pool.json["${v.category}"], or vision-review the new one (must show ${v.category === "skiing" ? "snow/mountain/skiing" : "beach/ocean/coast"}) and add it to the pool first`);
+  }
+
   // R8 tag vocabulary
   if (!Array.isArray(v.tags)) {
     push("R8", `tags must be an array`);
