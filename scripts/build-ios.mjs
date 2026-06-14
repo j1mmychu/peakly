@@ -155,6 +155,14 @@ async function main() {
     .replace(/<script\s+type="text\/babel"\s+src="\.\/app\.jsx[^"]*"[^>]*><\/script>/,
              '<script src="./app.js"></script>');
 
+  // Leaflet is lazy-loaded from a CDN in app.jsx for web, but the iOS bundle must
+  // run offline — vendor it eagerly here so window.L exists before app.js and
+  // ensureLeaflet() short-circuits instead of hitting a (blocked) CDN.
+  html = html.replace(
+    '<script src="./app.js"></script>',
+    '<link rel="stylesheet" href="./vendor/leaflet.css" />\n  <script src="./vendor/leaflet.js"></script>\n  <script src="./app.js"></script>',
+  );
+
   // Strip Open Graph / Twitter images that point at unsplash.com — they're meta
   // tags, never fetched by the device, but they trip the "no cdn" grep.
   html = html.replace(/https:\/\/images\.unsplash\.com\/[^"]+/g, "");
