@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613m";
+const PEAKLY_BUILD = "20260613n";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -11045,8 +11045,8 @@ function wxEmoji(code) { for (const [k,v] of WX_CODE_MAP) { if ((code??0) >= k) 
 
 // ─── Score breakdown — opens the black box ───────────────────────────────────
 // Users see "94 · Strong deal" but no breakdown. Without transparency, trust
-// erodes. This expander mirrors the scoreWeekendDeal math: conditionsNorm × 0.5
-// + priceNorm × 0.5 (when both signals live). Three states:
+// erodes. This expander mirrors the scoreWeekendDeal math: conditionsNorm × 0.75
+// + priceNorm × 0.25 (when both signals live). Three states:
 //   1. Live deal — show Conditions / Price / Confidence rows + Verdict
 //   2. Estimate price (no live flight) — "Conditions only · flight pricing isn't live"
 //   3. Low confidence (>5-day forecast) — "Beyond reliable forecast"
