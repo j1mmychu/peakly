@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613b";
+const PEAKLY_BUILD = "20260613c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -75,6 +75,33 @@ function ensureSupabase() {
     return _supabase;
   });
   return _supabaseLoadPromise;
+}
+
+// Lazy-load Leaflet (CSS + JS) on demand — only the Map view needs it, so it
+// stays off the critical path (saves ~40KB JS + ~15KB CSS + a blocking fetch on
+// first paint). Returns a Promise resolving to window.L. On iOS the vendored
+// <script> defines window.L eagerly, so this short-circuits and never hits a CDN.
+let _leafletLoadPromise = null;
+function ensureLeaflet() {
+  if (typeof window !== "undefined" && window.L) return Promise.resolve(window.L);
+  if (_leafletLoadPromise) return _leafletLoadPromise;
+  _leafletLoadPromise = new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    css.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
+    css.crossOrigin = "";
+    document.head.appendChild(css);
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    s.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+    s.crossOrigin = "";
+    s.async = true;
+    s.onload = () => resolve(window.L);
+    s.onerror = () => reject(new Error("Failed to load Leaflet"));
+    document.head.appendChild(s);
+  });
+  return _leafletLoadPromise;
 }
 
 // User-valuable localStorage keys that cloud-sync mirrors. Caches, error logs,
