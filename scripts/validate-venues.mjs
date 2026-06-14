@@ -1,5 +1,5 @@
 // Validate candidate venues before they get pasted into app.jsx VENUES.
-// Reads data/venue-candidates.json, runs 10 rules, writes:
+// Reads data/venue-candidates.json, runs 11 rules, writes:
 //   - data/venue-accepted.json — paste-ready array, drop into VENUES
 //   - data/venue-rejected.md   — human-readable list with reasons
 //
