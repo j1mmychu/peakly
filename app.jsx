@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260613e";
+const PEAKLY_BUILD = "20260613f";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -181,20 +181,37 @@ async function forceCleanReload() {
     reportError(e.reason, { type: "unhandled_promise" });
   });
 
-  // Performance monitoring
+  // Performance monitoring + Web Vitals (LCP/CLS) — the cold-load numbers the
+  // teardown flagged as never measured. Reported to Plausible for real-device data.
+  let _lcp = 0, _cls = 0;
+  try {
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) _lcp = Math.round(e.startTime);
+    }).observe({ type: "largest-contentful-paint", buffered: true });
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) if (!e.hadRecentInput) _cls += e.value;
+    }).observe({ type: "layout-shift", buffered: true });
+  } catch (e) {}
   window.addEventListener("load", () => {
     setTimeout(() => {
       const perf = performance.getEntriesByType("navigation")[0];
-      if (perf) {
-        const metrics = {
+      const metrics = {
+        ...(perf ? {
           dns: Math.round(perf.domainLookupEnd - perf.domainLookupStart),
           ttfb: Math.round(perf.responseStart - perf.requestStart),
           domReady: Math.round(perf.domContentLoadedEventEnd - perf.startTime),
           fullLoad: Math.round(perf.loadEventEnd - perf.startTime),
-        };
-        try { localStorage.setItem("peakly_perf", JSON.stringify(metrics)); } catch(e) {}
-      }
-    }, 1000);
+        } : {}),
+        lcp: _lcp,
+        cls: Math.round(_cls * 1000) / 1000,
+      };
+      try { localStorage.setItem("peakly_perf", JSON.stringify(metrics)); } catch(e) {}
+      try {
+        if (window.plausible) window.plausible("web_vitals", { props: {
+          lcp: _lcp, ttfb: metrics.ttfb || 0, fullLoad: metrics.fullLoad || 0, cls: metrics.cls,
+        }});
+      } catch(e) {}
+    }, 3000);
   });
 
   // Expose for debugging from console or scheduled tasks
