@@ -1307,7 +1307,7 @@ const VENUES = [
       "tags": [
         "Powder Day"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic"
     },
     {
@@ -4091,7 +4091,7 @@ const VENUES = [
         "Long Curve",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
     },
     {
       "id": "beau-vallon-mahe",
