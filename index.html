@@ -80,10 +80,6 @@
   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 
-  <!-- Supabase JS (UMD) — cloud sync for wishlists/alerts/profile.
-       Inert until SUPABASE_URL is set in app.jsx. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"></script>
-
   <!-- Leaflet (map view) is lazy-loaded on demand by ensureLeaflet() in app.jsx
        — kept off the critical render path since most sessions never open the map. -->
 
@@ -396,7 +392,7 @@
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260616a" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260616b" data-presets="react"></script>
 
   <!-- Service Worker registration -->
   <script>
