@@ -1,0 +1,19 @@
+# Why: AccountModal alert copy (shipped 975ad88 last night) promises "we'll shoot
+#      an email your way" — no email-alert sender exists anywhere (proxy.js sends
+#      APNS push only; grep for sendgrid/resend/nodemailer/smtp = 0 matches).
+#      "Don't sell certainty you don't have" applies to channels too. New copy
+#      promises an alert without naming a channel we can't back.
+# Estimated time to apply: 20 seconds
+# Risk: low — change-class is update-string-constant
+
+--- a/app.jsx
++++ b/app.jsx
+@@ -8059,7 +8059,7 @@
+                  : intent === "alert" ? "Get the alert."
+                  :                      "Save it. Get the alert.";
+   const sub      = intent === "save"  ? "Tell us who you are. We'll remember your spots across every device."
+-                 : intent === "alert" ? "We'll shoot an email your way every time your favorite spots are firing..."
++                 : intent === "alert" ? "Tell us who you are. We'll alert you the moment your spots are firing."
+                  :                      "Tell us who you are. We'll save your spots and push you when conditions are firing.";
+   const inputStyle = {
+     width:"100%", padding:"13px 14px", borderRadius:14,

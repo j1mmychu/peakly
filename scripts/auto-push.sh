@@ -8,6 +8,10 @@
 
 set -euo pipefail
 
+# Pause switch: `touch /tmp/peakly-pause-autopush` to suspend auto-push during a
+# multi-edit change so half-finished work never ships to prod; `rm` it to resume.
+if [ -f /tmp/peakly-pause-autopush ]; then exit 0; fi
+
 REPO=/Users/haydenb/peakly
 cd "$REPO"
 
@@ -79,6 +83,55 @@ if cache_files_changed; then
   fi
 fi
 
+# ─── Invariant guard (CLAUDE.md Open #14) ───────────────────────────────────
+# Refuse to commit app.jsx if structural invariants regress. This is the
+# defense against the GEAR_ITEMS class of bug: clean-looking commits that
+# silently delete logic. Fails loud, keeps changes in the working tree so
+# nothing is lost — just not shipped.
+guard_fail() {
+  echo "[auto-push] ❌ INVARIANT GUARD: $1 — COMMIT REFUSED, changes left in working tree" | tee -a /tmp/peakly-auto-push.log >&2
+  exit 0
+}
+
+if git status --porcelain | awk '{print $2}' | grep -q '^app\.jsx$'; then
+  # 1. Brace balance
+  OPEN=$(grep -o '{' app.jsx | wc -l | tr -d ' ')
+  CLOSE=$(grep -o '}' app.jsx | wc -l | tr -d ' ')
+  [ "$OPEN" = "$CLOSE" ] || guard_fail "brace imbalance ($OPEN open / $CLOSE close)"
+
+  # 2. Cache stamp lockstep across all three load-bearing files
+  S_APP=$(grep -E 'const PEAKLY_BUILD = "' app.jsx | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+  S_SW=$(grep -E 'const CACHE_NAME = "peakly-' sw.js | head -1 | sed -E 's/.*peakly-([^"]+)".*/\1/')
+  S_IDX=$(grep -oE 'app\.jsx\?v=[a-z0-9]+' index.html | head -1 | sed 's/.*v=//')
+  { [ -n "$S_APP" ] && [ "$S_APP" = "$S_SW" ] && [ "$S_APP" = "$S_IDX" ]; } \
+    || guard_fail "cache stamp drift (app=$S_APP sw=$S_SW idx=$S_IDX)"
+
+  # 3. Venue count can't crater. Baseline persisted in scripts/.venue-baseline;
+  # grows automatically, but a drop of >5 in one commit means something ate the
+  # VENUES array. Legit big deletions: update the baseline file by hand first.
+  # Count via eval of the VENUES array (same walker as status.sh) — NEVER grep
+  # category:, it's blind to the ~197 JSON-formatted batch entries (sees 156
+  # of 353). Falls back to the old grep only if node is unavailable/errors,
+  # so the guard can never block a commit on counter failure.
+  VCOUNT=$(node -e '
+const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
+const m=s.match(/const\s+VENUES\s*=\s*\[/);if(!m){process.exit(1);}
+let i=m.index+m[0].length-1,d=0,start=i;
+while(i<s.length){const c=s[i];if(c==="[")d++;else if(c==="]"){d--;if(d===0){i++;break;}}else if(c==="\""||c==="'"'"'"||c==="`"){const q=c;i++;while(i<s.length&&s[i]!==q){if(s[i]==="\\")i++;i++;}}i++;}
+const a=eval("("+s.slice(start,i)+")");console.log(a.length);
+' 2>/dev/null)
+  case "$VCOUNT" in
+    ''|*[!0-9]*) VCOUNT=$(grep -cE 'category: *"(skiing|beach)"' app.jsx) ;;
+  esac
+  BASEFILE="$REPO/scripts/.venue-baseline"
+  BASELINE=$(cat "$BASEFILE" 2>/dev/null || echo 0)
+  if [ "$VCOUNT" -lt $((BASELINE - 5)) ]; then
+    guard_fail "venue count dropped $BASELINE → $VCOUNT (limit: -5/commit)"
+  fi
+  [ "$VCOUNT" -gt "$BASELINE" ] && echo "$VCOUNT" > "$BASEFILE"
+fi
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Compose a commit message from the touched files.
 CHANGED=$(git status --porcelain | awk '{print $2}' | head -6 | tr '\n' ' ')
 if [ -z "$CHANGED" ]; then exit 0; fi
@@ -88,7 +141,14 @@ git add -A
 # Skip if the only change ended up being whitespace / nothing real
 if git diff --cached --quiet; then exit 0; fi
 
-git commit -m "auto: ${SHORT}" --quiet || exit 0
+# Paper trail for logic-bearing commits: app.jsx commits carry a diffstat body
+# so `git log` shows the blast radius instead of a bare "auto: app.jsx".
+if echo "$CHANGED" | grep -q 'app.jsx'; then
+  STAT=$(git diff --cached --stat -- app.jsx | tail -1 | sed 's/^ *//')
+  git commit -m "auto: ${SHORT}" -m "app.jsx: ${STAT}" --quiet || exit 0
+else
+  git commit -m "auto: ${SHORT}" --quiet || exit 0
+fi
 
 # Pull-rebase any concurrent commits before pushing. If conflicts, abort the
 # push and leave the commit local — the next edit will retry, and visible

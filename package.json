@@ -11,13 +11,17 @@
     "@capacitor/push-notifications": "^6.0.0"
   },
   "devDependencies": {
+    "@babel/standalone": "^7.29.7",
     "@capacitor/cli": "^6.0.0",
+    "esbuild": "^0.28.1",
     "playwright": "^1.59.1"
   },
   "scripts": {
     "cap:init": "npx cap init",
     "cap:ios": "npx cap add ios && npx cap sync ios",
     "cap:sync": "npx cap sync",
+    "build:ios": "bash scripts/build-ios.sh",
+    "build:web": "node scripts/build-web.mjs",
     "smoke": "bash scripts/smoke-test.sh",
     "smoke:local": "bash scripts/smoke-test.sh --local"
   }

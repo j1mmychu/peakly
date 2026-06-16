@@ -27,7 +27,7 @@ elif [ -n "${1:-}" ]; then
 fi
 
 if [ "$LOCAL_MODE" = "1" ]; then
-  if [ ! -d "dist" ]; then bash "$REPO/scripts/build-ios.sh" >/dev/null; fi
+  if [ ! -d "dist" ]; then node "$REPO/scripts/build-web.mjs" >/dev/null; fi
   ( cd dist && python3 -m http.server 8002 >/dev/null 2>&1 ) &
   SERVER_PID=$!
   trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
