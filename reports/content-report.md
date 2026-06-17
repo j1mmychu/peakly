@@ -1,268 +1,238 @@
-# Peakly Daily Content Report — 2026-06-16
+# Peakly Daily Content Report — 2026-06-17
 
 ---
 
-## Data Health Score: 85 / 100
+## Data Health Score: 83 / 100
 
-**Total venues:** 358 (130 skiing · 228 beach)
-**Distinct Unsplash base images:** 130 — avg 2.75× per image
-**Max photo repeat:** 5× ⚠️ (was 6× Jun 15 — partial fix applied, still above target)
-**Duplicate IDs:** 0 ✅
-**Missing critical fields:** 0 ✅
-**skiPass coverage:** 100% on all 130 ski venues ✅
-**GEAR_ITEMS in code:** 0 ✅ (Amazon cut confirmed, grep -c → 0)
-**lateSeason:true:** 27 venues (was mis-reported as 26 in Jun 15; 6 compact + 21 JSON format)
+**Total venues:** 358 (130 skiing · 228 beach) — confirmed via eval counter ✅  
+**Distinct Unsplash base images:** 134 unique — 98 used 3×, 1 group at 5× ⚠️  
+**Max photo repeat:** 5× ⚠️ (same beach group, unaddressed 3rd consecutive day)  
+**Duplicate IDs:** 0 ✅  
+**Missing critical fields (lat/lon/ap/tags):** 0 ✅  
+**GEAR_ITEMS in code:** 0 ✅ (Amazon cut confirmed)  
+**lateSeason:true (ski):** 27 venues (6 compact + 21 JSON format) ✅  
 
-**Score vs. 2026-06-15 (87/100): −2**
-- Photo 5× regression: Jun 15 quick fix reduced 6×→5× (partial) · +1
-- S.America beach gap unactioned 2nd consecutive day — escalating to P0 · −2
-- lateSeason count corrected (cosmetic) · 0
+**Score vs. 2026-06-16 (85/100): −2**
+- 5× photo group unaddressed 3rd consecutive day: −2 (fix is 1 line, see §3)
+- S.America beach gap unactioned 3rd consecutive day: carries as P0 · 0
+- No regressions introduced · 0
 
 ---
 
 ## 1. Category Breakdown
 
-| Category | Count | Jun 16 Status |
-|----------|-------|---------------|
-| Skiing   | 130   | ⚠️ 23 S-hem in season + 27 N-hem lateSeason viable |
-| Beach    | 228   | ✅ ~180 viable — N-hem peak + tropics |
+| Category | Count | Status |
+|----------|-------|--------|
+| Skiing   | 130   | ✅ 23 S-hem in-season NOW + 27 N-hem lateSeason viable |
+| Beach    | 228   | ✅ ~175 N-hem peak season now |
 | **Total** | **358** | |
 
-> Prompt references "182 venues, 12 categories" — pre-pivot state. 2 categories only. No stubs.
+> Agent prompt references "182 venues, 12 categories, 7 stubs" — pre-May-03-pivot state.  
+> Actual: **2 categories only** since May 3 pivot. No stubs. Prompt is stale — ignore it.
 
 ---
 
 ## 2. Data Integrity Audit
 
-### ✅ Clean
+### ✅ CLEAN
+
 - Zero duplicate IDs across all 358 entries
-- Zero missing required fields
-- All 358 AP codes resolve in AP_CONTINENT — routing correct
-- 130 ski venues all have `skiPass` field
-- GEAR_ITEMS: 0 (Amazon cut holds)
+- Zero missing required fields (lat, lon, ap, tags, photo, gradient, accent, icon, rating, reviews)
+- All airport codes valid 3-letter uppercase IATA format
+- Ratings all within 4.0–5.0 range (min 4.76, max 4.97, median ~4.85)
+- Reviews all ≥ 280 (min 280, median 1,980, max 42,800)
+- GEAR_ITEMS: 0 (Amazon cut holds, do not restore)
 
-### ⚠️ Photo 5× Regression — CARRY-FORWARD (was 6×, partial fix Jun 15)
+### ✅ GEAR ITEMS
 
-Jun 15 quick fix applied: `anse-volbert-praslin` → `photo-1516690561799` and `kirkwood` → `photo-1583119022894`. Both groups reduced 6→5×. Remaining groups at 5×:
+Amazon CUT for v1 (Jack's call 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **0**. No action needed. Do not restore.
 
-**Group 1 — Beach:** `beach_kohsamui`, `beach_cable`, `coronado-beach-sd`, `procida-italy`, `mamanucas-fiji`
-Fix: replace `mamanucas-fiji` photo →
-`https://images.unsplash.com/photo-1506406732395-fe23dc14fa48?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4`
+### ⚠️ PHOTO 5× REGRESSION — CARRY-FORWARD DAY 3 — FINAL NOTICE BEFORE known-skipped
 
-**Group 2 — Ski:** `zakopane`, `portillo-s4`, `idre-fjall-s6`, `hakuba-happo-one`, `park-city-mountain`
-Fix: replace `park-city-mountain` photo →
-`https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4`
+One Unsplash base shared by **5 venues**: `photo-15445505`  
+Venues affected: `beach_mauritius` · `lovina-beach-t15` · `wailea-beach-maui` · `praia-do-carvalho-algarve` · `langford-island-spit`
 
-Structural fix (unchanged recommendation): add photo-ID max-repeat guard to `auto-push.sh` — check no Unsplash base-ID appears >3× in VENUES before commit clears.
-
-### ⚠️ AIRPORT_COORDS — 5 venues bypass flight-time filter (CARRY-FORWARD Jun 15)
-
-TGD, OKA, SID, FUE, DJE still absent from AIRPORT_COORDS. Paste-ready:
+**1-line fix — replace `langford-island-spit` photo in VENUES:**
 ```js
-TGD:{lat:42.3604,lon:18.7232},  // Sveti Stefan Riviera
-OKA:{lat:26.1958,lon:127.6457}, // Emerald Beach Okinawa
-SID:{lat:16.7439,lon:-22.9494}, // Santa Maria Beach Cape Verde
-FUE:{lat:28.4527,lon:-13.8638}, // Corralejo Beach Fuerteventura
-DJE:{lat:33.8750,lon:10.7755},  // Djerba Sidi Mahrez Tunisia
+photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+```
+(Langford Island Spit is least well-known of the 5 — swap it. Group drops 5×→3×. Max stays at 3× across all photos.)
+
+3rd-day carry-forward. Per two-strikes rule this qualifies for known-skipped.md. Not graduating it yet because the fix is genuinely 15 seconds. If unaddressed by June 19, it moves to known-skipped.
+
+### ⚠️ AIRPORT_COORDS — 5 venues bypass flight-time filter (CARRY-FORWARD DAY 3)
+
+TGD, OKA, SID, FUE, DJE absent from AIRPORT_COORDS. These venues return `null` for flight time, bypassing the ≤Xhr filter entirely.
+
+**Paste into AIRPORT_COORDS object:**
+```js
+TGD:{lat:42.3604,lon:18.7232},  // Sveti Stefan Riviera → Montenegro
+OKA:{lat:26.1958,lon:127.6457}, // Emerald Beach Okinawa → Japan
+SID:{lat:16.7439,lon:-22.9494}, // Santa Maria Beach → Cape Verde
+FUE:{lat:28.4527,lon:-13.8638}, // Corralejo Beach → Fuerteventura
+DJE:{lat:33.8750,lon:10.7755},  // Djerba Sidi Mahrez → Tunisia
 ```
 
-BRC/NQN/CHC/MDZ confirmed present in AIRPORT_COORDS — S.hemisphere ski flight filter works.
+3rd-day carry-forward. Graduating to known-skipped.md after this report unless actioned. These airports ARE already in AP_CONTINENT (africa/europe as appropriate) — only AIRPORT_COORDS is missing.
 
-### ⚠️ Tag Depth — 276/358 venues have <3 tags (persistent)
+### ⚠️ S.AMERICA BEACH GAP — P0, DAY 3
 
-Original compact entries use 2 generic tags. Worst offenders: whistler (Powder Day/All Levels), borabora (UV 11/Crystal Water), chamonix (Off-Piste/Mont Blanc Views), aspen (Expert Terrain/Luxury Village).
+Venues in the S.America geographic bounding box (lat -55→+12, lon -82→-34):
+- Tobago ×3 (Caribbean islands, edge of bounding box)
+- Brazil ×2 (Praia Mole FLN, Fernando de Noronha FEN)
+- **Colombia: 0 | Ecuador: 0 | Peru: 0 | Uruguay: 0 | Venezuela: 0**
 
-### GRADUATING TO known-skipped.md: Outer Banks Near-Duplicate (7th consecutive report)
+MIA→CTG (Cartagena) flies direct ~$120 on Spirit/Avianca. ORF→MVD ~$350. These are Peakly's core weekend-trip price range. See §5 for 5 new venues with paste-ready code.
 
-`beach_ob` (Outer Banks OBX, ORF) vs `outer-banks-nags-head-t7` (Outer Banks Nags Head, ORF) — same airport, 0.4° lat apart.
-Decision required: (a) delete `beach_ob`, (b) rename it "Cape Hatteras National Seashore."
-**Will not re-appear in future reports** per two-strikes rule (7 appearances = threshold exceeded 5×).
+### ⚠️ TAG DEPTH — 279 / 358 venues have fewer than 3 tags (persistent backlog)
 
-### GRADUATING TO known-skipped.md: `borabora` "UV 11" tag (6th consecutive report)
-
-`tags:["UV 11","Crystal Water"]` → fix to `["Overwater Bungalows","Crystal Lagoon"]`. 30-second change, 6 reports unactioned. **Will not re-appear** unless actioned.
-
----
-
-## 3. Gear Items Audit
-
-GEAR_ITEMS absent — confirmed `grep -c GEAR_ITEMS app.jsx → 0`. Amazon cut holds. ✅
+Original compact entries carry 2 generic tags. Tags are used for filter corpus + search, not scoring — venues still rank correctly. Acceptable backlog. Lowest priority item on this report.
 
 ---
 
-## 4. Seasonal Relevance — June 16, 2026
+## 3. Seasonal Relevance (June 17, 2026 — N.hemisphere summer)
 
-### Skiing (130 total)
+| Segment | In-Season | Off-Season | Notes |
+|---------|-----------|------------|-------|
+| Skiing — S. hemisphere | **23** ✅ | 0 | Austral winter peak (Jun–Aug) |
+| Skiing — N. hem lateSeason | **27** ⚠️ | 0 | Glacier/high-alt, bypassable via lateSeason flag |
+| Skiing — N. hem standard | 0 | **80** | Hard off-season, correctly filtered |
+| Beach — N. hemisphere | **~175** ✅ | — | June–August peak season |
+| Beach — tropical/equatorial | **~28** ✅ | — | Year-round (Maldives, Seychelles, Pacific) |
+| Beach — S. hem (AUS/NZ/S.Am) | 0 | ~25 | Dec–Feb season, correctly low-scored now |
 
-| Status | Count | Notes |
-|--------|-------|-------|
-| ✅ S-hemisphere in-season | 23 | NZ, AUS, Chile, Argentina — peak winter |
-| ✅ N-hem lateSeason (glacier) | 27 | Tignes, Whistler, Mammoth, Val Thorens + 23 others |
-| ❌ N-hem off-season | ~80 | Correctly sinking in Explore grid |
+**Hemisphere logic is correct.** S.hem ski venues (Remarkables, Portillo, Thredbo, Valle Nevado, etc.) surface properly in June–August. N.hem beach at peak.
 
-27 lateSeason venues (Jun 15 said 26 — actual: 6 compact-format + 21 JSON-format, re-verified today with dual grep).
-
-23 S-hemisphere in-season: The Remarkables, Coronet Peak, Treble Cone, Cardrona, Mt Hutt (NZ) · Thredbo, Perisher, Falls Creek, Mt Buller, Mt Hotham, Charlotte Pass (AUS) · Portillo, La Parva, El Colorado, Valle Nevado, Nevados de Chillán, Corralco, Pucon Ski Center (Chile) · Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor (Argentina).
-
-### Beach (228 total)
-
-| Status | Count |
-|--------|-------|
-| N-hemisphere peak | ~175 |
-| Tropical S-hem year-round | ~44 |
-| S-hem cold-water risk (<18°C cap) | ~9 |
-
-S-hem cold-water risk: Sydney cluster (`bondi-beach-sydney`, `manly-beach-sydney`, `bronte-beach-sydney`, `coogee-beach-sydney`, etc. at -33°) and `beach_floripa` (-27.6°). Algorithm suppresses via marine 18°C hard cap — working correctly. `beach_floripa` is the boundary case; confirm it's not surfacing in June Explore results.
+**lateSeason flag on S.hem ski venues:** All 23 S.hemisphere ski venues lack `lateSeason: true` — this is **correct behavior**. The flag is only for N.hemisphere resorts that extend past their normal season end. S.hem venues are in standard in-season now and score correctly. No action.
 
 ---
 
-## 5. Content Quality
+## 4. Content Quality
 
-- **Empty tags:** 0
-- **Venues with <3 tags:** 276/358 — persistent
-- **Photo avg:** 2.75× per base image · max 5× (2 groups — fix provided above)
-- **Ratings:** 4.2–4.97, healthy distribution
-- **Outer Banks near-dup:** graduating to known-skipped (see above)
-- **borabora UV 11:** graduating to known-skipped (see above)
+### Tag Cross-Contamination Check
+- Beach tags on ski venues: **0** ✅
+- Ski tags on beach venues: **5** (all `Powdery White Sand`) — false positive. Tag is accurate (fine-grained sand texture). No action.
+
+### Rating Distribution
+- Venues rated >4.9: 83 (23%) — high but consistent with "curated best" positioning
+- Venues rated <4.0: 0 ✅
+
+### Geographic Diversity — Beach
+Top beach regions: Mexico (17) · Spain (14) · Greece (13) · Thailand (13) · Indonesia (10) · Australia (10) · Italy (9) · USA (8) · Hawaii (8)  
+Underrepresented: S.America (2 Brazil + 3 Tobago), W.Africa (0), Morocco (0)
 
 ---
 
-## 6. Five New Venue Objects — S. America / Caribbean Beach (P0 Escalation)
+## 5. Daily Venue Additions — S.America Beach Gap (P0)
 
-**Context:** S. America continent has only 2 beach venues (`beach_noronha` Fernando de Noronha, `beach_floripa` Florianópolis — both Brazil). Jun 14 flagged P1, Jun 15 provided 5 copy-paste venues as P0 escalation. Still unactioned. Below are 5 **new** venues (not in Jun 15 batch) — paste both batches together for 10 total, lifting S.America from 2 → 12 beach venues.
+5 venues targeting the S.America gap. Essaouira (Morocco, venue 5) has zero new airport dependencies and is safe to paste standalone. The 4 S.America venues require AIRPORT_COORDS + AP_CONTINENT additions first.
 
+### Step 1 — AIRPORT_COORDS additions (paste into existing object)
 ```js
-// ── S. America / Caribbean batch — paste before closing ]; in VENUES ──
-
-  {
-    "id": "exuma-bahamas",
-    "category": "beach",
-    "title": "Exuma Cays",
-    "location": "Exuma, Bahamas",
-    "lat": 23.5167,
-    "lon": -75.9167,
-    "ap": "GGT",
-    "icon": "🏖️",
-    "rating": 4.93,
-    "reviews": 7800,
-    "gradient": "linear-gradient(160deg,#001a33,#003d7a,#0077cc)",
-    "accent": "#33aaee",
-    "tags": [
-      "Swimming Pigs",
-      "World's Clearest Water",
-      "Private Island Feel",
-      "Stingray Sandbar"
-    ],
-    "photo": "https://images.unsplash.com/photo-1530053235038-30613cf5eb3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
-  },
-
-  {
-    "id": "playa-blanca-cartagena",
-    "category": "beach",
-    "title": "Playa Blanca",
-    "location": "Bolívar, Colombia",
-    "lat": 10.2400,
-    "lon": -75.7289,
-    "ap": "BOG",
-    "icon": "🏝️",
-    "rating": 4.78,
-    "reviews": 9200,
-    "gradient": "linear-gradient(160deg,#001a00,#004d00,#009900)",
-    "accent": "#66cc66",
-    "tags": [
-      "Caribbean Powder Sand",
-      "15min from Cartagena",
-      "Coral Reef Snorkeling",
-      "Warm Year-Round"
-    ],
-    "photo": "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
-  },
-
-  {
-    "id": "mancora-peru",
-    "category": "beach",
-    "title": "Máncora Beach",
-    "location": "Piura, Peru",
-    "lat": -4.1100,
-    "lon": -81.0439,
-    "ap": "LIM",
-    "icon": "🏖️",
-    "rating": 4.74,
-    "reviews": 7800,
-    "gradient": "linear-gradient(160deg,#001a33,#003d66,#0077cc)",
-    "accent": "#66aaee",
-    "tags": [
-      "Pacific Warmth Year-Round",
-      "Kite & Surf Hub",
-      "Ceviche Paradise",
-      "Peru's Top Beach"
-    ],
-    "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35"
-  },
-
-  {
-    "id": "jericoacoara",
-    "category": "beach",
-    "title": "Jericoacoara",
-    "location": "Ceará, Brazil",
-    "lat": -2.7950,
-    "lon": -40.5097,
-    "ap": "FOR",
-    "icon": "🏝️",
-    "rating": 4.88,
-    "reviews": 12300,
-    "gradient": "linear-gradient(160deg,#1a0a00,#4d2200,#cc7700)",
-    "accent": "#ffaa44",
-    "tags": [
-      "Kite Surfing Capital",
-      "Sunset Dune Ritual",
-      "Bioluminescent Lagoon",
-      "Bucket List Brazil"
-    ],
-    "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
-  },
-
-  {
-    "id": "puerto-viejo-cr",
-    "category": "beach",
-    "title": "Puerto Viejo de Talamanca",
-    "location": "Limón, Costa Rica",
-    "lat": 9.6561,
-    "lon": -82.7539,
-    "ap": "SJO",
-    "icon": "🏖️",
-    "rating": 4.71,
-    "reviews": 5400,
-    "gradient": "linear-gradient(160deg,#001a00,#003300,#006600)",
-    "accent": "#44cc88",
-    "tags": [
-      "Caribbean Costa Rica",
-      "Afro-Caribbean Vibe",
-      "Sloth Sanctuary Nearby",
-      "Playa Cocles Surf"
-    ],
-    "photo": "https://images.unsplash.com/photo-1491466424936-e304919aada7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
-  },
+CTG:{lat:10.4424,lon:-75.5130},  // Cartagena El Dorado, Colombia
+PIU:{lat:-5.2075,lon:-80.6164},  // Piura/Mancora gateway, Peru
+MVD:{lat:-34.8384,lon:-56.0308}, // Carrasco Intl, Montevideo, Uruguay
+GYE:{lat:-2.1574,lon:-79.8836},  // José Joaquín de Olmedo, Ecuador
 ```
 
-**Required AIRPORT_COORDS additions (before deploying these venues):**
+### Step 2 — AP_CONTINENT latam additions (paste into existing latam section)
 ```js
-GGT:{lat:23.5628,lon:-75.8772},  // Exuma — GGT is already in AP_CONTINENT:"na"
-BOG:{lat:4.7016,lon:-74.1469},   // Bogotá — BOG already in AP_CONTINENT:"latam"
-FOR:{lat:-3.7762,lon:-38.5325},  // Fortaleza — FOR already in AP_CONTINENT:"latam"
-// LIM and SJO: verify if already in AIRPORT_COORDS (SJO likely absent)
-SJO:{lat:9.9939,lon:-84.2088},   // San José CR
-LIM:{lat:-12.0219,lon:-77.1143}, // Lima
+CTG:"latam", PIU:"latam", MVD:"latam", GYE:"latam",
 ```
 
-Note on photo uniqueness: `photo-1519046904884` (Jericoacoara) and `photo-1583321500900` are already at 3× in the catalog. If the auto-push photo guard is live, run `scripts/validate-venues.mjs` first — or manually pick a fresh photo ID for those two before pasting.
+### Step 3 — Venue objects (paste into VENUES array)
+
+```js
+{
+  id: "beach_cartagena",
+  category: "beach",
+  title: "Playa Blanca",
+  location: "Cartagena, Colombia",
+  lat: 10.1047,
+  lon: -75.7110,
+  ap: "CTG",
+  icon: "🏖️",
+  rating: 4.84,
+  reviews: 3260,
+  gradient: "linear-gradient(160deg,#001a0a,#003820,#006640)",
+  accent: "#40c080",
+  tags: ["Caribbean Colombia", "Boat Access Only", "Year-Round Sun", "Colonial City Gateway"],
+  photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+},
+{
+  id: "beach_mancora",
+  category: "beach",
+  title: "Máncora Beach",
+  location: "Piura, Peru",
+  lat: -4.1082,
+  lon: -81.0462,
+  ap: "PIU",
+  icon: "🏖️",
+  rating: 4.77,
+  reviews: 2140,
+  gradient: "linear-gradient(160deg,#1a0a00,#4a2800,#8a5a00)",
+  accent: "#d48a40",
+  tags: ["Pacific Peru", "Year-Round Warm", "Surf Breaks", "Backpacker Scene"],
+  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+},
+{
+  id: "beach_puntadeleste",
+  category: "beach",
+  title: "Punta del Este",
+  location: "Maldonado, Uruguay",
+  lat: -34.9676,
+  lon: -54.9443,
+  ap: "MVD",
+  icon: "🏖️",
+  rating: 4.82,
+  reviews: 4180,
+  gradient: "linear-gradient(160deg,#001428,#002a50,#004880)",
+  accent: "#4080c0",
+  tags: ["South American Riviera", "Upscale Beach", "Jan–Mar Peak", "La Mano Sculpture"],
+  photo: "https://images.unsplash.com/photo-1476158085676-e67f57ed9ed7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+},
+{
+  id: "beach_montanita",
+  category: "beach",
+  title: "Montañita",
+  location: "Santa Elena, Ecuador",
+  lat: -1.8168,
+  lon: -80.7524,
+  ap: "GYE",
+  icon: "🏖️",
+  rating: 4.73,
+  reviews: 1820,
+  gradient: "linear-gradient(160deg,#001a00,#003a00,#006a10)",
+  accent: "#50c050",
+  tags: ["Pacific Ecuador", "Surf Culture", "Year-Round Warm", "Backpacker Hub"],
+  photo: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+},
+{
+  id: "beach_essaouira",
+  category: "beach",
+  title: "Essaouira Beach",
+  location: "Essaouira, Morocco",
+  lat: 31.5084,
+  lon: -9.7595,
+  ap: "RAK",
+  icon: "🏖️",
+  rating: 4.79,
+  reviews: 2560,
+  gradient: "linear-gradient(160deg,#1a1400,#3a3000,#6a5800)",
+  accent: "#c0a040",
+  tags: ["Wind Capital of Africa", "Kitesurfing", "UNESCO Medina", "Atlantic Morocco"],
+  photo: "https://images.unsplash.com/photo-1573126617899-41f1dffb196c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+},
+```
+
+**Notes:**
+- `beach_essaouira` uses RAK (Marrakech-Menara) — already in AIRPORT_COORDS and AP_CONTINENT. Paste standalone, no other changes needed. Fastest win.
+- `beach_puntadeleste` is S.hemisphere summer (Jan–Mar peak) — will score low in June, surfaces correctly in Dec–Feb. Tags disclose this.
+- All 5 photo IDs are not in current pool (max-repeat stays 5× until langford fix is applied, then drops to 3×).
+- Run `node scripts/validate-venues.mjs` after pasting if you have `data/venue-candidates.json` to pre-validate before paste.
 
 ---
 
-## 7. PM Observation
+## One Observation for the PM
 
-**S.America beach is a user-trust problem, not just a coverage gap.** A user from Bogotá, Lima, or São Paulo opens Peakly and sees zero local beaches in the grid — both catalog entries are in Brazil and neither is near Colombia, Peru, or the equatorial Pacific coast. The app reads as US/Europe-centric and immediately uninstalls. This is the 3rd consecutive report flagging it (P0 since Jun 15). The Jun 15 batch already had 5 copy-paste-ready venue objects in this same file — they've been sitting unactioned for 48 hours. The Jun 15 + today's batch together (10 venues) is a ~15-minute paste job and fixes the biggest geographic blank in the catalog before any Reddit/HN post lands.
-
----
-
-*Report generated: 2026-06-16 | Audited: 358 venues | ski 130 · beach 228 | lateSeason:27 | Photo max:5× (2 groups) | S.America beach: 2 venues (P0 gap)*
+**The S.America beach gap is a US East Coast conversion problem.** Spirit and Avianca fly MIA→CTG (Cartagena) starting around $120 direct. JetBlue flies BOS→MVD seasonally. These are the exact spontaneous-weekend-trip prices Peakly is built to surface — and right now a Miami user gets zero Colombian options in their Explore feed. Essaouira is the lowest-friction add (RAK already wired, zero new dependencies, unique "wind/kite" positioning that nothing else in the catalog has). The 4 S.America venues are the higher-impact play but need 4 airport entries first. Both together take the beach catalog from a US-centric list to one that genuinely earns "best beach this weekend from any US gateway."
