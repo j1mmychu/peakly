@@ -6204,14 +6204,20 @@ const AIRPORT_COORDS = {
   INV:{lat:57.5425,lon:-4.0475},   KRK:{lat:50.0777,lon:19.7848},   OSL:{lat:60.1939,lon:11.1004},
   SOF:{lat:42.6967,lon:23.4114},   SZG:{lat:47.7933,lon:13.0043},   TBS:{lat:41.6694,lon:44.9547},
   TRN:{lat:45.2008,lon:7.6496},    ZRH:{lat:47.4647,lon:8.5492},
-  // Europe — beach gateways
+  // Europe — beach gateways (incl. Mediterranean/Adriatic)
+  TGD:{lat:42.3604,lon:18.7232},   // Montenegro (Sveti Stefan Riviera)
   CAG:{lat:39.2515,lon:9.0543},    DBV:{lat:42.5614,lon:18.2683},   DLM:{lat:36.7131,lon:28.7925},
   EAS:{lat:43.3565,lon:-1.7906},   FAO:{lat:37.0144,lon:-7.9659},   IBZ:{lat:38.8729,lon:1.3731},
   JMK:{lat:37.4351,lon:25.3481},   JNX:{lat:37.0811,lon:25.3683},   JTR:{lat:36.3992,lon:25.4793},
   MAH:{lat:39.8626,lon:4.2186},    MLO:{lat:36.6967,lon:24.4769},   NAP:{lat:40.8860,lon:14.2908},
   NCE:{lat:43.6584,lon:7.2159},    PMI:{lat:39.5517,lon:2.7388},    RHO:{lat:36.4054,lon:28.0862},
   SPU:{lat:43.5389,lon:16.2980},   TPS:{lat:37.9114,lon:12.4881},
+  // Africa — North + West (beach gateways)
+  SID:{lat:16.7439,lon:-22.9494},  // Cape Verde (Santa Maria Beach)
+  FUE:{lat:28.4527,lon:-13.8638},  // Fuerteventura (Corralejo)
+  DJE:{lat:33.8750,lon:10.7755},   // Tunisia (Djerba Sidi Mahrez)
   // Asia
+  OKA:{lat:26.1958,lon:127.6457},  // Okinawa (Emerald Beach)
   BEY:{lat:33.8208,lon:35.4884},   CMB:{lat:7.1808,lon:79.8841},    CTS:{lat:42.7752,lon:141.6923},
   DAD:{lat:16.0439,lon:108.1992},  DPS:{lat:-8.7482,lon:115.1672},  ENI:{lat:11.2024,lon:119.4154},
   GOI:{lat:15.3808,lon:73.8314},   HKT:{lat:8.1132,lon:98.3169},    HNA:{lat:39.4286,lon:141.1351},

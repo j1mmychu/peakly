@@ -1,5 +1,5 @@
 #!/bin/bash
-# auto-push.sh — fires from PostToolUse hook on Edit/Write in /Users/haydenb/peakly.
+# auto-push.sh — fires from PostToolUse hook on Edit/Write inside the peakly repo.
 # Bumps the cache key in lockstep across app.jsx + sw.js + index.html, commits any
 # pending changes, then pushes master → origin/main (which is what GitHub Pages
 # deploys). Idempotent: if there are no changes, exits silently.
@@ -12,16 +12,12 @@ set -euo pipefail
 # multi-edit change so half-finished work never ships to prod; `rm` it to resume.
 if [ -f /tmp/peakly-pause-autopush ]; then exit 0; fi
 
-REPO=/Users/haydenb/peakly
+# Resolve repo root dynamically — works on Mac, Linux, and remote cloud sessions.
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO"
 
-# Bail if not inside the peakly working tree (some other Claude session).
-# Compare resolved real paths — /Users/haydenb/peakly is a symlink into
-# ~/Library/Application Support/Claude/... and `git rev-parse` returns the
-# real path, not the symlink.
-REPO_REAL=$(cd "$REPO" && pwd -P)
-GIT_TOP_REAL=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ "$GIT_TOP_REAL" != "$REPO_REAL" ]; then exit 0; fi
+# Bail if this isn't the peakly repo (some other Claude session in a different repo).
+[ -f "$REPO/CLAUDE.md" ] || exit 0
 
 # Acquire a short lock so simultaneous Edit calls don't race.
 LOCK="$REPO/.git/.auto-push.lock"
