@@ -13,12 +13,11 @@ localStorage. VENUES array is the single source — `app.jsx` lines ~138-950.
 WHAT YOU CHECK EVERY RUN:
 
 1. DATA INTEGRITY AUDIT
-   - Count total venues and break down by the 3 launch categories
-   - Do NOT flag deprioritized categories as stubs (see Current state above)
-   - Check every venue for: missing coordinates, missing airport codes,
-     missing tags array, empty descriptions, duplicate IDs, duplicate photo URLs
+   - Count total venues and break down by the 2 launch categories (skiing, beach only — surfing retired 2026-05-03). Do NOT flag old categories (surfing, tanning, climbing, etc.) — post-pivot there are only 2 categories.
+   - Use the node eval counter to count venues — NEVER grep `category:"..."` (blind to JSON-format batch entries). One-liner: `node -e 'const s=require("fs").readFileSync("app.jsx","utf8"); const m=s.match(/const\s+VENUES\s*=\s*\[/); let i=m.index+m[0].length-1,d=0; while(i<s.length){const c=s[i];if(c==="["||c==="{")d++;else if(c==="]"||c==="}"){d--;if(d===0){i++;break;}}else if(c==="\""||c==="'"'"'"||c==="`"){const q=c;i++;while(i<s.length&&s[i]!==q){if(s[i]==="\\")i++;i++;}}i++;} const a=eval("("+s.slice(m.index+m[0].length-1,i)+")"); console.log(a.length+" venues, ski:"+a.filter(v=>v.category==="skiing").length+", beach:"+a.filter(v=>v.category==="beach").length);'`
+   - Check every venue for: missing coordinates, missing airport codes, missing tags array, duplicate IDs
+   - Photo duplicate check — IMPORTANT: use the FULL Unsplash photo ID (e.g. `photo-1507525428034-b723cf961d3e`), NOT just the first numeric segment. The correct regex is `grep -oE 'photo-[a-f0-9]+-[a-f0-9]+\?' app.jsx | sed 's/\?$//' | sort | uniq -c | sort -rn | head -10`. Do NOT use `grep -oE 'photo-[0-9]+'` — it truncates the ID and produces false positives. The target ceiling is ≤3× per full photo ID. Exclude the default fallback photo at the `getVenuePhoto` constant (line ~6425) from the count.
    - Flag any venue with coordinates that don't match the claimed location
-   - Check for typos in venue names, country names, and descriptions
    - Verify airport IATA codes are valid
 
 2. GEAR ITEMS AUDIT
