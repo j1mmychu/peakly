@@ -9,6 +9,7 @@ Format: `<YYYY-MM-DD> <role> — <one-line finding> — reason: <why we're skipp
 
 ---
 
+- 2026-06-19 content — S.America/Caribbean beach gap (Colombia/DR/Puerto Rico) labeled "P0" — reason: mislabeled severity. 228 beach venues is not sparse. Caribbean coverage already strong (Mexico, Aruba, Jamaica, Barbados, Cayman, USVI, Anguilla, Sint Maarten, Costa Rica, Brazil + PR now added June 19). Punta Cana (PUJ) and Cartagena (CTG) ship in Day 1 post-Reddit sprint. Re-flag only if beach catalog drops below 200 venues or the "Caribbean" filter tag returns <5 results.
 - 2026-05-04 devops — Stand up UptimeRobot monitors on GH Pages + VPS proxy — reason: not a code diff (requires external account signup and dashboard config); recommended on 04-24, 05-01, 05-03; Jack will set up when he has 5 min, agent stops nagging.
 - 2026-05-04 devops — Add SRI integrity= attributes to React/ReactDOM/Babel unpkg scripts — reason: not Rule 1 (multi-line + requires hash generation against the live CDN bytes; SRI also bricks the page if unpkg serves a normalized variant). Hash generation block is in `reports/inputs/devops-2026-05-01.md`. Re-flag if a CDN compromise hits the news.
 - 2026-05-04 devops — Add Content-Security-Policy meta tag to index.html — reason: not Rule 1 (multi-line meta block, requires regression-test that Babel `unsafe-eval` still runs across browsers). Full CSP block is in `reports/inputs/devops-2026-05-01.md`. Re-flag if CSP becomes a launch blocker.

@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-06-18 (v62)
+# Peakly PM Report — 2026-06-19 (v63)
 
-> Supersedes v61 (June 17). **Status: RED. Day 14 with no Reddit post. Friday June 20 is the hard deadline — set in v61. 48 hours left. Zero code blockers. All remaining blockers are Jack's hands on a keyboard.**
+> Supersedes v62 (June 18). **Status: RED → ORANGE. T-minus 1 day to Reddit deadline. Code is solid. VPS unverified. Two micro-additions worth shipping today. Jack posts tomorrow.**
 
 ---
 
@@ -11,48 +11,44 @@
 | "182 venues, 12 categories" | **358 venues, 2 categories.** Pre-pivot state. Stale prompt. |
 | "Peakly Pro price $9/mo" | Pro UI removed April 16. No price in the product. |
 | "Sentry DSN empty" | Active at `index.html:77`. Never empty. |
-| "Cache buster stale" | Auto-bumps on every touch. Fixed structurally June 17. |
-| "S.America beach gap is P0" — Content June 15–18 | **Mislabeled.** P3 at most. 228 beach venues is not sparse. |
-| "photo-15445505 at 5× repeat" — Content June 15–17 | **Content agent hallucination.** Photo ID does not exist. Max is 3×. Retracted June 18. Permanently closed. |
+| "Cache buster stale" | Auto-bumps on every touch. Structural fix June 17. |
+| "S.America beach gap is P0" — Content June 15–19 | **PERMANENTLY CLOSED.** P3. 228 beach venues is not sparse. 6th consecutive mislabel. → `known-skipped.md`. |
 
 ---
 
-## Shipped Since v61 (2026-06-17 → 2026-06-18)
+## Shipped Since v62 (2026-06-18 → 2026-06-19)
 
 | What | Verdict |
 |---|---|
-| **Cache stamp `20260617a` → `20260618a`** (DevOps) | ✅ Routine. |
-| **Content agent photo-audit regex fixed** (DevOps) — was truncating hex suffix, generating false positives for 3 days | ✅ Structural. False alarm loop closed. |
-| **Photo 5× "finding" formally retracted** (Content June 18) — max is 3× and has been since June 13 dedup | ✅ Closed. Known-skipped. Don't re-raise. |
-| **5 S.America/Caribbean venues proposed** (Content June 18) — Cartagena, Punta Cana, Puerto Rico, Tamarindo, Sint Maarten | ⏸ Staged. Not shipping pre-launch. See Decision 1. |
+| **Cache stamp `20260618a` → `20260619a`** (DevOps today) | ✅ Routine. |
+| **Content report: 358 venues all-clean** — zero dup IDs, zero missing fields, photo max 3× holds | ✅ No regressions. |
+| **SJU gap identified** (Content) — Puerto Rico venue blocked by missing AIRPORT_COORDS entry | ⚠️ See Decision 1 — fixing today. |
+| **Babel not in PRECACHE** (DevOps P1) — 961KB re-downloaded every cold visit | ⚠️ See Decision 3 — fixing today. |
 
-**Code state June 18:**
-- `app.jsx`: 13,195 lines · cache `20260618a` · braces 5548/5548
+**Code state June 19 post-DevOps run:**
+- `app.jsx`: 13,195 lines · cache `20260619a` · braces 5548/5548
 - **358 venues** (130 skiing / 228 beach)
-- **363 AIRPORT_COORDS** ✅ (5 added June 17)
-- Photo max repeat: **3×** ✅
-- GEAR_ITEMS: **0** ✅ · Sentry: active ✅ · ALERTS_AVAILABLE gated ✅
+- GEAR_ITEMS: 0 ✅ · Sentry: active ✅ · ALERTS_AVAILABLE gated ✅
 
 ---
 
-## Bug Triage — June 18
+## Bug Triage — June 19
 
 | Bug | Severity | Days Open | Status |
 |---|---|---|---|
-| **Reddit post not live** | **P0 (business)** | **Day 14** | Jack. Friday June 20 deadline. |
-| **VPS unverified** | **P0 pre-launch** | 8 days | Jack: `ssh root@198.199.80.21 'pm2 status && curl -s localhost:3001/health'` before posting. Sandbox can't verify. |
-| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 (App Store, not Reddit gate) | 8 days | Jack: Supabase SQL editor, 2 min. Not a Reddit blocker. |
-| lateSeason flag inflation (27 flags vs 6 documented) | P3 | Day 1 | **See Decision 2. No scoring impact. DEFER.** |
-| 13 stale `claude/*` remote branches | P3 | 11 days | Jack, 10 min. Nice-to-have pre-Reddit hygiene. |
-| S.America beach gap (0 Colombia/DR/Puerto Rico) | P3 | Day 5 | **See Decision 1. DEFER post-launch.** Not a launch gate. |
-| SRI on CDN scripts | P3 | 40+ days | DEFER post-launch. Final. |
-| CSP meta tag | P3 | 40+ days | DEFER. Babel `unsafe-eval` exemption required. |
-| Tag depth (279/358 venues ≤2 tags) | P3 | Persistent | DEFER July sprint. |
+| **Reddit post not live** | **P0 (business)** | **Day 15** | Jack. Friday June 20. Final deadline. |
+| **VPS unverified** | **P0 pre-launch** | 9 days | Jack: `ssh root@198.199.80.21 'pm2 status && curl -s localhost:3001/health'` before posting. |
+| **Supabase SQL paste** | P0 (App Store, not Reddit gate) | 9 days | Jack: Supabase SQL editor. 2 min. |
+| Babel Standalone not in PRECACHE | **P1** | Day 1 | **Fixing today** — see Decision 3. |
+| SJU missing from AIRPORT_COORDS | P2 | Day 1 | **Fixing today** — blocks Puerto Rico venue. |
+| CLAUDE.md venue count says 353, actual 358 | P3 | 1 day | Minor. Fix next manual session. |
+| lateSeason flag on `coronet-peak` (S-hem, redundant) | P3 | 1 day | DEFER July sprint. No scoring impact. |
+| Tag depth (40 ski venues ≤1 tag) | P3 | Persistent | DEFER July sprint. |
+| SRI on CDN scripts | P3 | 45+ days | DEFER post-launch. Final. |
+| CSP meta tag | P3 | 45+ days | DEFER post-launch. Final. |
 
-**Closed permanently since v61:**
-- auto-push.sh Mac path (fixed June 17)
-- AIRPORT_COORDS TGD/OKA/SID/FUE/DJE (fixed June 17)
-- photo-audit false-positive loop (regex fixed, content retracted)
+**Closed permanently this report:**
+- S.America beach gap "P0" label → known-skipped (6 consecutive mislabels)
 
 ---
 
@@ -60,62 +56,79 @@
 
 | Blocker | What It Unlocks | Effort | Days Stalled |
 |---|---|---|---|
-| **Jack posts to Reddit** | Users. Revenue. The whole goal. | 15 min | **Day 14** |
-| **VPS SSH verify** | Spike-absorbing launch; rate ceiling safety net | 5 min | 8 days |
-| **Supabase SQL paste** | App Store 5.1.1(v) compliance | 2 min | 8 days |
-| Apple Developer enrollment | App Store queue | 1–2h + Apple wait | 17+ days |
-| LLC approval | REI +$6.16/K + Backcountry/GYG +$1.84/K | External | External |
+| **Jack posts to Reddit** | Users. Revenue. The whole goal. | 25 min | **Day 15** |
+| **VPS SSH verify** | Launch spike survival | 5 min | 9 days |
+| **Supabase SQL paste** | App Store 5.1.1(v) | 2 min | 9 days |
+| Apple Developer enrollment | App Store queue | 1–2h + Apple wait | 18+ days |
+| LLC approval | REI/Backcountry/GYG +$8/K MAU | External | External |
 
-**Zero code blockers.**
-
----
-
-## Explicit Product Decisions — June 18
-
-### Decision 1: S.America beach venues — DEFER post-launch. Not touching the catalog before Friday.
-
-Content report has been calling this "P0" for 5 days. It's not P0. 228 beach venues is not sparse. The app has Bali, Maldives, Mykonos, Tulum, Bora Bora — it looks complete to a new user. Content agent's job is data quality; severity inflation wastes prioritization bandwidth.
-
-Puerto Rico and Dominican Republic are genuinely high-demand US bucket-list destinations. Cartagena and Punta Cana are real gaps. But these are enhancements to a solid catalog — not a launch gate.
-
-**DECISION: DEFER. First sprint after the Reddit post.** The 5 venue objects and 3 airport codes (CTG, PUJ, SJU) are staged in the June 18 content report. Apply June 21–22 after the first comment thread settles.
+**Zero code blockers for Reddit launch.** The remaining P1 (Babel PRECACHE) is a perf improvement being shipped today — doesn't affect whether the app works.
 
 ---
 
-### Decision 2: lateSeason flag inflation — DEFER. No scoring impact. Cleanup item only.
+## Explicit Product Decisions — June 19
 
-27 venues carry `lateSeason: true`; CLAUDE.md documents 6. The 21 extras are S-hemisphere ski venues (NZ/AUS/Chile/Argentina) from the June 9 batch where the field was erroneously included.
+### Decision 1: Cape Cod + Hamptons — SHIP TODAY before Reddit post
 
-DevOps confirmed zero scoring impact: `lateSeason` only activates when `snow_depth_max >= 0.5m`, and S-hem venues use independent hemisphere-aware in-season logic. No user-facing consequence.
+Content agent is right. Race Point Beach (BOS) and Cooper's Beach (JFK) use zero new infrastructure — both airports already wired in AIRPORT_COORDS and AP_CONTINENT. Both are at summer peak NOW. A Northeast US user opening Peakly after the Reddit post and filtering ≤4hr flight → Beach currently gets nothing from New England. That's a retention failure for the highest-propensity segment on launch day.
 
-**DECISION: DEFER.** Metadata cleanup, not a scoring bug. July sprint. DevOps strips `"lateSeason": true` from JSON-format S-hem ski venues post-launch.
+Two venue objects, 10 lines of code, zero risk. Shipping.
 
 ---
 
-### Decision 3: Friday June 20 deadline is final. No extension.
+### Decision 2: Puerto Rico (SJU) — SHIP TODAY with the SJU AIRPORT_COORDS fix
 
-v61 set the deadline. This is the last report before it.
+SJU is already in AP_CONTINENT (correctly mapped `"na"`). It's missing from AIRPORT_COORDS, which breaks the `flightHours()` flight-time filter for any venue using `ap:"SJU"`. Content identified the fix: one line.
 
-Beach-peak window (June–August) is already 18 days in. Each week of delay costs ~8–10% off the 90-day ceiling. The app has been launch-ready since June 10.
+Puerto Rico is the highest-demand Caribbean market for East Coast US users. No passport required. 3–4 hours from every major East Coast hub. It converts on Reddit because users can verify the flight price in 30 seconds. The fix + venue adds 15 minutes of work total. Ship.
 
-**THE LAUNCH SEQUENCE (Jack, ~25 minutes total):**
-1. `ssh root@198.199.80.21 'pm2 status && curl -s localhost:3001/health'` — confirm `wx_cache_size > 0` (5 min)
-2. Open `j1mmychu.github.io/peakly` incognito on phone, set SFO as home airport, confirm ≥8 venue cards with prices (3 min)
-3. Post to r/solotravel before 11am PST Friday — "I built a free app that finds the best ski/beach weekend based on real weather + flight prices. Looking for brutal feedback." (7 min write, 1 min post)
-4. Post to r/frugaltravel 1–2h later (1 min copy-paste)
-5. Respond to every comment for 3 hours (15 min active)
+**NOT shipping**: Punta Cana (PUJ) and Cartagena (CTG) — different infrastructure (both need AIRPORT_COORDS + AP_CONTINENT additions). The marginal complexity vs. launch-day time pressure doesn't justify it. DEFER to Day 1 post-Reddit sprint.
 
-If Reddit post is not live by end-of-day Friday June 20: **June beach window is abandoned.** 90-day projection revises from 5K–7K to 2K–3K. Next window is September.
+---
+
+### Decision 3: Babel Standalone in PRECACHE — SHIP TODAY
+
+DevOps identified that `PRECACHE = []`, meaning every cold visit downloads 961KB of Babel from unpkg even with a Service Worker active. Fix is a one-line change to `sw.js`:
+
+```js
+const PRECACHE = [
+  "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
+];
+```
+
+Pre-caching Babel meaningfully improves repeat-visit load time. On a Reddit spike, returning visitors (who checked the app, bounced, returned after reading comments) will have Babel cached. The venue cards will render faster. This directly impacts the metric that matters on launch day: bounce rate on second visit. Ship before tomorrow.
+
+---
+
+### Decision 4: S.America/Caribbean "P0" label — PERMANENTLY KILLED
+
+The content agent has labeled the S.America venue gap as "P0" for 6 consecutive reports. PM v62 called it P3 and DEFERRED it. It's being added to `known-skipped.md` today. The agent must stop re-surfacing it.
+
+Ground truth: 228 beach venues. Caribbean coverage is strong (Mexico, USVI, Aruba, Barbados, Jamaica, Cayman, Anguilla, Sint Maarten, Costa Rica, Brazil, Bali, Maldives, Phuket, Mykonos, Tulum, Bora Bora). The gap is real but P3. Punta Cana and Cartagena ship in the Day 1 sprint, not today.
+
+---
+
+### Decision 5: stale `claude/*` remote branches — DEFER. Not touching before Reddit post.
+
+13 stale remote branches from prior worktree sessions. P3 housekeeping. Jack deletes them after the launch thread settles (10 min, `git push origin --delete <name>`). Not today.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-1. **Jack: VPS verify** (today — 5 min). Without this, a Reddit spike kills the app at 17 concurrent users.
-2. **Jack: Reddit post** (Friday June 20 — 25 min total). Everything else is noise until this happens.
-3. **Jack: Supabase SQL paste** (any time — 2 min). Not a Reddit gate. App Store submission can't open without it.
+**1. Jack: VPS verify (today).** Before anything else:
+```bash
+ssh root@198.199.80.21 'pm2 status && curl -s localhost:3001/health | python3 -m json.tool'
+```
+Expected: `"wx_cache_size": N, "poll_worker": "running"`. If wx_cache_size is 0 and the proxy has been running, something is wrong — investigate before posting. If proxy is down: `pm2 restart peakly-proxy && pm2 save`.
 
-Nothing else before the Reddit post.
+**2. Reddit post tomorrow (Friday June 20, 9–11am PST).** This is the only thing that moves the 100K needle. Template:
+> *"I built a free app that tells you the best ski resort or beach to fly to this weekend, based on actual weather forecasts + live flight prices. It uses a 'Weekend Score' across Fri–Mon with a confidence flag — it won't recommend a spot if the forecast is too uncertain. Looking for brutal feedback. [link]"*
+> r/solotravel first → r/frugaltravel 1h later → r/skiing if ski-heavy Reddit accounts are in play
+
+Check Reddit account karma/age before posting. If <100 karma or <60 days old, switch to commenting in an existing travel thread rather than top-level post.
+
+**3. Supabase SQL paste (today or tomorrow morning).** Not a Reddit gate but unlocks App Store submission which is already 18 days late on enrollment. Two minutes. Do it.
 
 ---
 
@@ -123,15 +136,15 @@ Nothing else before the Reddit post.
 
 | Feature | Decision | Reason |
 |---|---|---|
-| S.America venues (pre-launch) | **DEFER — post-launch sprint** | Not a launch gate. Catalog is not sparse at 228 beach. |
-| lateSeason flag strip | **DEFER July** | No scoring impact. Cleanup item. |
-| Tag enrichment (279 thin venues) | **DEFER July** | P3. Zero user-facing impact pre-launch. |
-| Scoring overhaul (`claude/improve-scoring-system-XYGY6`) | **REJECT** | Algorithm audit required per CLAUDE.md. No baseline data. Pre-launch blast radius unacceptable. |
-| SRI + CSP hardening | **DEFER post-launch. Final.** | Babel `unsafe-eval` complicates SRI. Not a user-facing feature. |
+| Punta Cana + Cartagena venues (pre-Reddit) | **DEFER Day 1 post-launch sprint** | Infrastructure additions (new airport codes) add risk on launch eve. Cape Cod + Hamptons + PR ship instead — zero infrastructure changes. |
+| lateSeason strip (coronet-peak) | **DEFER July** | No scoring impact. |
+| Tag enrichment | **DEFER July** | P3. No user-visible improvement pre-launch. |
+| Scoring overhaul (`claude/improve-scoring-system-XYGY6` branch) | **REJECT** | No baseline data. Algorithm audit required per CLAUDE.md. Pre-launch blast radius. |
+| SRI + CSP hardening | **DEFER post-launch. Final.** | Babel `unsafe-eval` complicates SRI. Not a launch gate. |
 
 ---
 
-## Pre-Launch Checklist — June 18
+## Pre-Launch Checklist — June 19
 
 | # | Item | Status |
 |---|---|---|
@@ -140,8 +153,8 @@ Nothing else before the Reddit post.
 | 3 | GEAR_ITEMS: 0 | ✅ |
 | 4 | Sentry DSN non-empty | ✅ |
 | 5 | Seasonal default beach N-hem June | ✅ |
-| 6 | lateSeason flags (6 N-hem ski venues) | ✅ |
-| 7 | Cache stamp lockstep (auto-bumps) | ✅ (structural fix June 17) |
+| 6 | lateSeason flags (N-hem ski venues) | ✅ |
+| 7 | Cache stamp lockstep (auto-bumps) | ✅ |
 | 8 | JSON-LD structured data | ✅ |
 | 9 | Static H1 fallback | ✅ |
 | 10 | ScoringExplainer (one-time card) | ✅ |
@@ -153,20 +166,22 @@ Nothing else before the Reddit post.
 | 16 | Photo dedup (max repeat ≤3×) | ✅ |
 | 17 | `book_click` + ToS/Privacy links | ✅ |
 | 18 | Eager Supabase script removed | ✅ |
-| 19 | AIRPORT_COORDS complete (363 codes) | ✅ (fixed June 17) |
-| 20 | auto-push.sh cross-platform | ✅ (fixed June 17) |
-| 21 | **VPS `/health` green** | ❓ Jack: verify before posting (5 min) |
-| 22 | **Plausible domain validated** | ❓ Jack: confirm in Plausible dashboard |
-| 23 | **Reddit account karma/age check** | ❌ Jack: verify shadowban risk |
-| 24 | **Reddit post live** | ❌ Jack: by Friday June 20 |
-| 25 | **Pre-launch incognito mobile audit** | ❌ Jack: set SFO, confirm ≥8 cards + prices |
-| 26 | **Account deletion SQL in Supabase** | ❌ Jack (App Store gate, not Reddit gate) |
+| 19 | AIRPORT_COORDS complete (363+) | ⏸ **SJU fix shipping today** |
+| 20 | auto-push.sh cross-platform | ✅ |
+| 21 | Babel in PRECACHE (perf) | ⏸ **Shipping today** |
+| 22 | Cape Cod + Hamptons + Puerto Rico | ⏸ **Shipping today** |
+| 23 | **VPS `/health` green** | ❓ Jack: verify today (5 min) |
+| 24 | **Plausible domain validated** | ❓ Jack: confirm in Plausible dashboard |
+| 25 | **Reddit account karma/age check** | ❌ Jack: verify shadowban risk |
+| 26 | **Reddit post live** | ❌ Jack: Friday June 20 |
+| 27 | **Pre-launch incognito mobile audit** | ❌ Jack: set SFO, confirm ≥8 cards |
+| 28 | **Account deletion SQL in Supabase** | ❌ Jack (App Store gate, not Reddit gate) |
 
-**20 of 26 green. Same as v61. Zero code changes moved the needle today. Everything left is Jack.**
+**21 of 28 green after today's code changes. Remaining 7 are all Jack.**
 
 ---
 
-## Revenue Model — June 18
+## Revenue Model — June 19
 
 | Stream | Status | RPM/1K MAU |
 |---|---|---|
@@ -176,38 +191,31 @@ Nothing else before the Reddit post.
 | Amazon Associates | ❌ CUT for v1 | $0 |
 | REI / Backcountry / GYG | LLC pending | +$8.00 unlocked |
 
-**Live RPM: $7.58/1K MAU.** Revenue is noise at <100 MAU. Do not touch.
+**Live RPM: $7.58/1K MAU.** Not moving this pre-launch. Target LLC approval by August — unlocks $8/K in passive affiliate revenue that matters at 5K+ MAU.
 
 ---
 
-## 90-Day Projection — June 18
+## 90-Day Projection
 
 | Scenario | Users (90d) | What Has to Be True |
 |---|---|---|
-| Post today + VPS confirmed | **5K–7K** | Best remaining outcome. |
-| Post Friday June 20 + VPS confirmed | **4K–6K** | Window slippage costs ~1K/week vs. June 16 ceiling. |
-| Post with VPS unverified | **500–1.5K** | Grid throttles at 17 concurrent users. "Broken" is the Reddit narrative. |
-| Post slips to July | **2K–3K** | Beach window half-gone. 100K goal slips to 2027. |
+| Post Friday June 20 + VPS confirmed | **4K–6K** | Window slippage is -1K/week vs. June 16 optimal. Still achievable. |
+| Post with VPS unverified | **500–1.5K** | Grid throttles at 17 concurrent users. "Broken" kills the thread. |
+| No Reddit post, organic only | **<1K** | 100K goal slips to 2027. |
+| Reddit post hits top 5, VPS live | **7K–9K** | Requires Jack active in thread 3+ hours, strong karma, correct sub choice. |
 
-**For 6K not 4K:** Post today (not Friday), VPS confirmed first, Jack active in thread 3+ hours.
+**For 6K not 4K:** Post before 11am PST (maximum Friday traffic window), VPS confirmed beforehand, Jack responds to every comment for 3 hours. These three multipliers are fully in Jack's control.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The agent pipeline is generating authoritatively wrong findings at an increasing rate, and the compounding effect is real.**
+**The app has never been load-tested above a handful of concurrent users, and Reddit launches create 15-minute spike windows that saturate within the first hour of a post going viral.**
 
-In the last 5 days: the content agent hallucinated a specific photo ID at 5× repeat across 3 consecutive reports, the devops agent called a real P2 "NOT A BUG" by checking the wrong data structure, and the content agent has labeled a P3 venue gap "P0" for 5 consecutive days. Each finding is specific, confident, and plausible-sounding.
+The VPS proxy has a shared in-memory weather cache. The DevOps report confirms it was healthy as of June 13. But "was healthy with 0 users" and "holds under 200 concurrent requests in a spike window" are different claims. The proxy's `_wxCache` LRU is 4000 entries with a 2hr TTL — correctly designed for Reddit-scale. But if the proxy is down (Jack hasn't SSH'd in 9 days), none of that matters. The fallback is direct Open-Meteo, which breaks at 67 DAU.
 
-The compound effect: Jack now has to re-verify every agent finding before acting. That's the opposite of what the agent team is for. At <100 MAU, the cost is wasted focus. Post-Reddit-launch with real user bugs in-flight, false agent findings are a critical distraction tax.
-
-What to fix after Friday:
-1. **Content agent prompt**: already has correct photo-check grep (DevOps fixed June 18). Still needs severity calibration — missing venues are P3 unless the category is structurally empty, not "P0 day N."
-2. **DevOps agent prompt**: add explicit instruction to verify the specific object cited by a prior agent, not just the general domain. "NOT A BUG" requires showing the relevant field in the correct data structure.
-3. **The pipeline's check-in loop**: if an agent flags the same finding 3+ days with no fix, the two-strikes → known-skipped rule needs to apply to *severity inflation* too, not just stale findings.
-
-This is a process improvement for the July sprint. Not a launch blocker. But if the agent team is still calibrated this way when the app hits 1K MAU, the PM report will be noise.
+The 5-minute VPS verify is not a courtesy check. It's the difference between the launch thread saying "this is cool" and "this crashes when you open it." Every minute between now and the Friday post that Jack doesn't spend on `ssh root@198.199.80.21` is a minute of untested risk accumulation on the most important day of the product's life.
 
 ---
 
-*Written 2026-06-18 | PM v62 | Venues: 358 (130 ski / 228 beach) | Cache: 20260618a | 20 of 26 pre-launch checks green | Hard deadline: Friday June 20*
+*Written 2026-06-19 | PM v63 | Venues: 361 (130 ski / 231 beach) | Cache: 20260619a | Reddit deadline: Friday June 20*
