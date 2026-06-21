@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260620a";
+const PEAKLY_BUILD = "20260621a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4562,7 +4562,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001428,#003060,#0060a0)",
     accent:"#60b0e0",
     tags:["Cape Cod National Seashore","Classic New England Summer","Whale Watch Gateway","BOS Weekend Escape"],
-    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+    photo:"https://images.unsplash.com/photo-1560903510-6c52aadbfd44?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
   {id:"beach_hamptons", category:"beach",
     title:"Cooper's Beach", location:"Southampton, New York",
     lat:40.8728, lon:-72.3937, ap:"JFK",
