@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260621a";
+const PEAKLY_BUILD = "20260622a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -463,7 +463,7 @@ const AP_CONTINENT = {
   // Latin America
   MDZ:"latam", ZCO:"latam", USH:"latam", BRC:"latam", CPC:"latam", NQN:"latam",
   // North America patch — mid-Atlantic / Ohio (liberty-mountain, roundtop, whitetail, jack-frost, mad-river-mountain)
-  PHL:"na", CMH:"na",
+  PHL:"na", CMH:"na", EWR:"na",
   // Asia-Pacific patch — Okinawa
   OKA:"asia",
   // Africa patch — Cape Verde (Sal), Djerba (Tunisia)

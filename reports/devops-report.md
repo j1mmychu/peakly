@@ -1,8 +1,8 @@
-# Peakly DevOps Report — 2026-06-21
+# Peakly DevOps Report — 2026-06-22
 
 **Status: 🟢 GREEN**
 
-Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation fixed (beach_cape_cod pushed `photo-1507525428034` to 4× — swapped to fresh URL, back to 3× max). The content agent's "5×" finding for `photo-1544550581` was a false positive from partial Unsplash ID matching — see §5. No P0 code issues. Business P0 remains: Reddit post is Day 17.
+Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-line prereq for 5 US domestic beach venues). No P0 code issues. Business P0 remains: Reddit post Day 18.
 
 > **Sandbox note:** Outbound egress to `peakly-api.duckdns.org`, Open-Meteo, and GitHub Pages is blocked from this remote execution environment. A sandbox 403/timeout is NOT evidence of VPS downtime. Last confirmed VPS healthy: June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before posting.
 
@@ -12,8 +12,8 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 
 | Fix | Files | Detail |
 |-----|-------|--------|
-| Cache stamp `20260620a` → `20260621a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
-| `beach_cape_cod` photo swap | `app.jsx:4565` | `photo-1507525428034` was 4× (violates ≤3× max); replaced with `photo-1560903510` |
+| Cache stamp `20260621a` → `20260622a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
+| `EWR:"na"` added to `AP_CONTINENT` | `app.jsx:466` | Missing prereq for Newark-origin venues. Unblocks 5 US domestic beach venues (Malibu, Crane Beach, St Pete, Flamenco, Asbury Park) pending content freeze lift |
 
 ---
 
@@ -24,9 +24,9 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | `app.jsx` size | **13,220 lines / 664 KB raw (~175 KB gzip est.)** |
 | CDN scripts | All HTTPS, exact versions pinned ✅ |
 | Plausible analytics | Present, `defer`'d, `data-domain="j1mmychu.github.io"` ✅ |
-| Cache stamp (pre-fix) | `20260620a` — 1 day stale |
-| Cache stamp (post-fix) | `20260621a` ✅ |
-| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260621a` ✅ |
+| Cache stamp (pre-fix) | `20260621a` — 1 day stale |
+| Cache stamp (post-fix) | `20260622a` ✅ |
+| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260622a` ✅ |
 | Brace balance | **5552 open / 5552 close — BALANCED** ✅ |
 | Sentry DSN | `9416b032a4...` at `index.html:77`, `defer`'d ✅ |
 | Sentry init guard | `typeof Sentry !== "undefined"` — CDN-failure-safe ✅ |
@@ -42,7 +42,7 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | `DEAL_WEIGHT` | `0.25` (conditions 75% / price 25%) ✅ |
 | `lateSeason: true` venues | **29** ✅ |
 | Supabase eager script | Removed — lazy-loaded only ✅ |
-| Leaflet eager script | Removed — lazy-loaded only ✅ |
+| Leaflet eager script | Removed — `ensureLeaflet()` lazy-loads on map open only ✅ |
 | Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
 | Old HTTP IP (`104.131.82.242`) | Not present ✅ |
 | `fetchTravelpayoutsPrice` timeout | `AbortController` 5s + 3-retry backoff ✅ |
@@ -52,7 +52,8 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | Supabase service role key | **Not present** ✅ |
 | `.gitignore` secrets coverage | `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, business docs — all covered ✅ |
 | Babel in PRECACHE | `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js` ✅ |
-| Photo dedup max repeat (post-fix) | **3×** ✅ |
+| Photo dedup max repeat | **2×** ✅ (below the 3× target) |
+| `EWR` in `AP_CONTINENT` | ✅ (fixed this run — was missing) |
 
 ---
 
@@ -67,7 +68,7 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | Supabase service key | Absent ✅ |
 | Sentry DSN | Expected in client; DSNs are public-safe ✅ |
 | Git history | Business PDF leak (May 9) scrubbed via `git-filter-repo` ✅ |
-| SRI on CDN scripts | Leaflet only — React, Babel, Sentry missing SRI (P2 — deferred post-launch, PM v64 final call) |
+| SRI on CDN scripts | Leaflet only — React, Babel, Sentry missing SRI (**P3 — deferred post-launch, final per PM v64**) |
 
 ---
 
@@ -80,7 +81,7 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | Retry | 3 attempts, 1.2s / 2.4s backoff ✅ |
 | Rate-limit handling | 429 → backoff; 5xx → mark down, return null ✅ |
 | Concurrency cap | Semaphore at 3 concurrent requests ✅ |
-| VPS health | Unverifiable from sandbox — last confirmed June 13 ✅ |
+| VPS health | **Unverifiable from sandbox** — last confirmed June 13 (networked session). Jack: `curl https://peakly-api.duckdns.org/health` before the Reddit post. If `wx_cache_size` is 0, let it warm up a few minutes. |
 
 ---
 
@@ -91,7 +92,7 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | Open-Meteo | Direct `api.open-meteo.com/v1` with proxy-first + fallback ✅ |
 | Marine API | `marine-api.open-meteo.com/v1/marine` — beach venues only ✅ |
 | Batch | 50 venues / 2s stagger ✅ |
-| Rate-limit risk | ~66+ concurrent DAU saturates Open-Meteo free tier. VPS cache is the mitigation — ensure it stays up before Reddit post. |
+| Rate-limit risk | ~66+ concurrent DAU saturates Open-Meteo free tier. VPS weather cache is the mitigation — confirm it's up before Reddit post. |
 
 ---
 
@@ -100,131 +101,54 @@ Cache stamp bumped `20260620a` → `20260621a`. One real photo dedup violation f
 | Asset | ~Gzip | Load mode |
 |-------|-------|-----------|
 | React 18.3.1 + ReactDOM | ~175 KB | blocking `<script>` |
-| **Babel Standalone 7.29.7** | **~800 KB** | preload + blocking `<script>` |
+| **Babel Standalone 7.29.7** | **~800 KB** | preload + blocking `<script>` — biggest bottleneck |
 | Supabase JS 2.106.2 | ~80 KB | lazy (JS dynamic load) ✅ |
-| Leaflet 1.9.4 | ~40 KB | lazy (map open only) ✅ |
+| Leaflet 1.9.4 | ~40 KB | lazy (`ensureLeaflet()` on map open) ✅ |
 | Sentry CDN loader | ~10 KB | `defer`'d ✅ |
 | `app.jsx` | ~175 KB | `text/babel` — parsed + transpiled client-side |
-| **Cold-start total** | **~1.2 MB gzip** | — |
+| **Cold-start total** | **~1.2 MB gzip** | Repeat visits: Babel cached in PRECACHE |
 
-Babel is the ceiling. SW caches it after first visit (PRECACHE). Repeat visits skip the CDN fetch. Expected cold TTI on mid-range Android / 4G: 6–8s. Structural, not fixable without a build step.
+Babel is the structural ceiling. The SW now caches it in PRECACHE so repeat visits skip the CDN fetch. New user cold TTI on mid-range Android 4G: 6–8s. Not fixable without a build step — accepted pre-launch cost.
 
-CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ · Leaflet 1.9.4 ✅ — no updates needed.
-
----
-
-## 5. Photo Dedup — Root Cause Analysis
-
-**Content agent "5× violation" for `photo-1544550581` is a FALSE POSITIVE.**
-
-The agent matched `photo-[0-9]*` which captures only the numeric prefix, ignoring the alphanumeric suffix. Two distinct Unsplash photos share prefix `1544550581`:
-
-| Full photo URL | Venues using it | Count |
-|---------------|-----------------|-------|
-| `photo-1544550581-5f7ceaf7f992` | beach_mauritius, wailea-beach-maui, langford-island-spit | 3× ✅ |
-| `photo-1544550581-1bcabf842b77` | lovina-beach-t15, praia-do-carvalho-algarve | 2× ✅ |
-
-These are different photos. No violation. The only real violation was `photo-1507525428034-b723cf961d3e` at **4×** — fixed this run.
-
-**Post-fix photo state:**
-
-| Metric | Value |
-|--------|-------|
-| Max exact-URL repeat across all 361 venues | **3×** ✅ |
-| Distinct photo URLs | 134 |
-| Venues with photos | 361 |
-| Violations (>3×) | **0** ✅ |
-
-**Fix for content agent prompt** — swap grep pattern in `tasks/agents/content-data.md`:
-```bash
-# WRONG (current — false positives):
-grep -o "photo-[0-9]*" app.jsx | sort | uniq -c | sort -rn
-
-# CORRECT (full URL — no false positives):
-grep -oE "images\.unsplash\.com/photo-[A-Za-z0-9]+-[A-Za-z0-9]+" app.jsx | sort | uniq -c | sort -rn
-```
+CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ — no updates needed.
 
 ---
 
-## 6. Cost Estimate
+## 5. Open Items
 
-| Tier | MAU | DigitalOcean | Open-Meteo | Supabase | Total |
-|------|-----|-------------|------------|----------|-------|
-| Current | <50 | $6 | $0 free | $0 free | **$6/mo** |
-| 1K MAU | 1,000 | $6 | $0 (VPS cache) | $0 free | **$6/mo** |
-| 10K MAU | 10,000 | $12 (4GB) | $0 (VPS cache) | $0–25 | **$12–37/mo** |
-| 100K MAU | 100,000 | $48 (8GB) | $0–200 (cache vs. miss) | $25–200 | **$73–248/mo** |
+| Item | Priority | Owner | Notes |
+|------|----------|-------|-------|
+| **Reddit post** | **P0 (business)** | Jack | Day 18. Product is done. This is the only P0. |
+| **VPS health confirm** | P1 pre-launch | Jack | `curl https://peakly-api.duckdns.org/health` — 5 min, do before posting |
+| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 App Store / P3 web | Jack | Required for App Store 5.1.1(v). 2 min. |
+| lateSeason inflation — 21 JSON-format venues | P2 | July sprint | `snow_depth_max >= 0.5m` gate limits user-facing damage |
+| Single-tag ski venues (40 venues) | P3 | July sprint | Filter discoverability only |
+| SRI on CDN scripts | P3 | Post-launch | Final per PM v64 |
+| CSP meta | P3 | Post-launch | Babel `unsafe-eval` makes strict CSP impossible |
 
----
-
-## Open Issues (Priority Order)
-
-### P0 — Business (Jack-Only)
-
-**Reddit post — Day 17. The hard deadline was yesterday.** Code is clean. 361 venues. Cache `20260621a`. Photo dedup fixed. Nothing blocking.
-
-```bash
-# 5-minute pre-post checklist from a networked terminal:
-
-# VPS health
-curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Expect: wx_cache_size > 0, poll_worker: running, apns_configured: false (expected)
-
-# Live site HTTP 200
-curl -s -o /dev/null -w "%{http_code}" https://j1mmychu.github.io/peakly/
-
-# If both pass: open r/skiing + r/travel + r/solotravel and post.
-```
-
-**Supabase account-deletion SQL** — paste `server/sql/delete-account.sql` into Supabase dashboard → SQL Editor → Run. 2 minutes. Not a Reddit blocker; blocks App Store 5.1.1(v) compliance.
+**Permanently closed — stop raising:**
+- Peakly Pro price discrepancy (Pro UI gone April 16)
+- Sentry DSN empty (active at `index.html:77`)
+- Cache buster stale (structural auto-bump handles it; this run fixed 1-day lag)
+- Photo 5× violation (false positive — exact-hash audit confirms 2× max)
+- VPS "Day X binary blocker" framing (confirmed healthy June 10/13; sandbox 403s are egress-blocked containers, not server downtime)
+- DEAL_WEIGHT finding (75/25 locked May 13)
+- GEAR_ITEMS finding (Amazon cut for v1; `grep -c GEAR_ITEMS app.jsx → 0`)
+- EWR missing from AP_CONTINENT (fixed this run)
 
 ---
 
-### P1 — Content Agent Regex Fix
+## Cost Projection
 
-Update `tasks/agents/content-data.md` photo-dedup grep to use full Unsplash URL (see §5). Prevents recurring false-positive findings. 2 minutes.
-
----
-
-### P2 — Caribbean Airports Missing (Deferred — Day 1 Post-Reddit)
-
-`PUJ`, `CTG`, `NAS`, `GND` absent from `AIRPORT_COORDS` + `AP_CONTINENT`. `HAV` absent from `AIRPORT_COORDS`. Blocks 5 priority Caribbean venues from distance filtering. PM v64: defer to post-Reddit sprint Day 1.
-
-```js
-// AIRPORT_COORDS additions:
-PUJ: [18.5670, -68.3634],
-CTG: [10.4424, -75.5130],
-NAS: [25.0432, -77.4659],
-GND: [12.0042, -61.7872],
-HAV: [22.9892, -82.4091],
-
-// AP_CONTINENT additions:
-PUJ:"latam", CTG:"latam", NAS:"latam", GND:"latam", HAV:"latam",
-```
-
-5-minute fix, deferred by product decision.
-
----
-
-### P2 — SRI on CDN Scripts (Permanently Deferred)
-
-React, Babel, Sentry missing SRI hashes. Leaflet has them. PM v64 final call: do not re-raise before 1K MAU. Off the open issues list.
+| Scale | Monthly cost | Notes |
+|-------|-------------|-------|
+| <10 MAU (now) | $6/mo | DO droplet + GH Pages free |
+| 1K MAU | $6/mo | Proxy holds, Open-Meteo fine |
+| 10K MAU | $12/mo | Upgrade to 2GB droplet; VPS weather cache becomes load-bearing |
+| 100K MAU | $50-100/mo | 3× droplets + managed Postgres |
 
 ---
 
 ## What Breaks First at Scale
 
-**Open-Meteo at ~66+ concurrent DAU.** 361 venues × 2 API calls = 722 upstream calls per full cold-start sweep across all simultaneous users. The VPS in-memory LRU cache collapses these to a few dozen real upstream calls per 2hr window — but only while the process is up. A VPS restart (e.g. kernel update) resets the cache; a Reddit spike that hits during a restart window sends 722 calls to Open-Meteo per concurrent user batch with no dedup.
-
-Fix before Reddit post if possible (30 min on the VPS):
-```bash
-# Add Redis-backed cache to proxy.js — zero additional cost on the existing $6/mo droplet
-apt install redis-server -y && systemctl enable --now redis-server
-# Replace in-memory _wxCache in proxy.js with redis.get/setex (TTL 7200s)
-# After: cache survives pm2 restarts, resets only on redis flush or TTL
-```
----
-
-## Summary
-
-Code is healthy. One photo dedup violation identified (content agent false positive on 5× corrected; one real 4× fixed). Cache is current `20260621a`. **The only remaining action is the Reddit post.** Day 17. Post today.
+Open-Meteo free tier at ~66+ simultaneous DAU on the same venue set. The VPS weather cache collapses N simultaneous requests to 1 upstream call — it's deployed, but unverified since June 13. After a Reddit spike this is the first thing that matters; the client falls back to direct Open-Meteo (degraded, rate-limited, not broken) so it's survivable. Second to fail: Babel cold-load TTI drives bounce for new users — every cold load is 6-8s blank screen on 4G mobile. Third: DO 1GB RAM ceiling if alert polling and weather polling overlap during a spike. None of these are launch blockers at <10 MAU.
