@@ -1,5 +1,5 @@
 // Peakly Service Worker — lightweight cache-first for static assets + web push handler
-const CACHE_NAME = "peakly-20260623b";
+const CACHE_NAME = "peakly-20260623c";
 const PRECACHE = [
   "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
 ];
@@ -49,7 +49,7 @@ self.addEventListener("fetch", (e) => {
   );
 });
 
-// ─── Web Push: Strike Alert notifications ─────────────────────────────────────
+// ─── Web Push: Strike Alert notifications ─────────────────────────────────────────────
 self.addEventListener("push", (e) => {
   let data = {};
   try {
