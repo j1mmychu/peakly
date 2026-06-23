@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260622a";
+const PEAKLY_BUILD = "20260623a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -1207,8 +1207,7 @@ const VENUES = [
         "All Levels"
       ],
       "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
-      "skiPass": "ikon",
-      "lateSeason": true
+      "skiPass": "ikon"
     },
     {
       "id": "valle-nevado",

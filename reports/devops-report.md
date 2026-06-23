@@ -1,10 +1,10 @@
-# Peakly DevOps Report — 2026-06-22
+# Peakly DevOps Report — 2026-06-23
 
 **Status: 🟢 GREEN**
 
-Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-line prereq for 5 US domestic beach venues). No P0 code issues. Business P0 remains: Reddit post Day 18.
+Cache stamp bumped `20260622a` → `20260623a`. Coronet Peak `lateSeason: true` removed (P2 S-hem correctness bug, 1 line). All invariants pass. Business P0 remains: Reddit post Day 19.
 
-> **Sandbox note:** Outbound egress to `peakly-api.duckdns.org`, Open-Meteo, and GitHub Pages is blocked from this remote execution environment. A sandbox 403/timeout is NOT evidence of VPS downtime. Last confirmed VPS healthy: June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before posting.
+> **Sandbox note:** Outbound egress to `peakly-api.duckdns.org`, Open-Meteo, and GitHub Pages is blocked in this remote execution environment. A sandbox 403/timeout is NOT evidence of VPS downtime. Last confirmed VPS healthy: June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before posting to Reddit.
 
 ---
 
@@ -12,8 +12,8 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 
 | Fix | Files | Detail |
 |-----|-------|--------|
-| Cache stamp `20260621a` → `20260622a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
-| `EWR:"na"` added to `AP_CONTINENT` | `app.jsx:466` | Missing prereq for Newark-origin venues. Unblocks 5 US domestic beach venues (Malibu, Crane Beach, St Pete, Flamenco, Asbury Park) pending content freeze lift |
+| Cache stamp `20260622a` → `20260623a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
+| Removed `lateSeason: true` from `coronet-peak` | `app.jsx:1212` | S-hem venue (lat −44.93°, Queenstown NZ). The `lateSeason` flag is a N-hem-only bypass for the off-season binary cap when `snow_depth_max >= 0.5m`. For S-hem venues, the in-season gate (`mo >= 5 && mo <= 10`) already handles seasonality — `lateSeason` is irrelevant here and could incorrectly inflate scores in NZ off-months. lateSeason count: 27 → 26. |
 
 ---
 
@@ -24,14 +24,14 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | `app.jsx` size | **13,220 lines / 664 KB raw (~175 KB gzip est.)** |
 | CDN scripts | All HTTPS, exact versions pinned ✅ |
 | Plausible analytics | Present, `defer`'d, `data-domain="j1mmychu.github.io"` ✅ |
-| Cache stamp (pre-fix) | `20260621a` — 1 day stale |
-| Cache stamp (post-fix) | `20260622a` ✅ |
-| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260622a` ✅ |
+| Cache stamp (pre-fix) | `20260622a` — 1 day stale |
+| Cache stamp (post-fix) | `20260623a` ✅ |
+| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260623a` ✅ |
 | Brace balance | **5552 open / 5552 close — BALANCED** ✅ |
 | Sentry DSN | `9416b032a4...` at `index.html:77`, `defer`'d ✅ |
 | Sentry init guard | `typeof Sentry !== "undefined"` — CDN-failure-safe ✅ |
-| Venue count (eval) | **361** (130 skiing / 231 beach) ✅ |
-| Venue baseline | `scripts/.venue-baseline` = 361 — no crater ✅ |
+| Venue count (bracket-walker eval) | **361** (130 skiing / 231 beach) ✅ |
+| Venue baseline (`scripts/.venue-baseline`) | **361** — no crater ✅ |
 | Duplicate IDs | **0** ✅ |
 | `GEAR_ITEMS` | **0** — Amazon v1 cut holds ✅ |
 | `loading="lazy"` on images | All venue card `<img>` tags ✅ |
@@ -40,9 +40,7 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | `weatherDown` banner | Live in ExploreTab ✅ |
 | `ScoringExplainer` | Live ✅ |
 | `DEAL_WEIGHT` | `0.25` (conditions 75% / price 25%) ✅ |
-| `lateSeason: true` venues | **29** ✅ |
-| Supabase eager script | Removed — lazy-loaded only ✅ |
-| Leaflet eager script | Removed — `ensureLeaflet()` lazy-loads on map open only ✅ |
+| `lateSeason: true` venues | **26** (was 27; coronet-peak fixed this run) ✅ |
 | Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
 | Old HTTP IP (`104.131.82.242`) | Not present ✅ |
 | `fetchTravelpayoutsPrice` timeout | `AbortController` 5s + 3-retry backoff ✅ |
@@ -50,10 +48,10 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | Travelpayouts token in client | **Not present** — server-side only. `TP_MARKER=710303` is public affiliate marker only ✅ |
 | Supabase anon key in client | Present — expected, RLS-gated ✅ |
 | Supabase service role key | **Not present** ✅ |
-| `.gitignore` secrets coverage | `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, business docs — all covered ✅ |
+| `.gitignore` secrets coverage | `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, business docs — covered ✅ |
 | Babel in PRECACHE | `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js` ✅ |
-| Photo dedup max repeat | **2×** ✅ (below the 3× target) |
-| `EWR` in `AP_CONTINENT` | ✅ (fixed this run — was missing) |
+| Photo max repeat | **3×** (content agent confirmed) ✅ |
+| `coronet-peak` S-hem lateSeason | **FIXED this run** ✅ |
 
 ---
 
@@ -66,7 +64,7 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | Travelpayouts API token | Server-side env only ✅ |
 | Supabase anon key | Public by design, RLS gates all data access ✅ |
 | Supabase service key | Absent ✅ |
-| Sentry DSN | Expected in client; DSNs are public-safe ✅ |
+| Sentry DSN | Expected in client; Sentry DSNs are public-safe ✅ |
 | Git history | Business PDF leak (May 9) scrubbed via `git-filter-repo` ✅ |
 | SRI on CDN scripts | Leaflet only — React, Babel, Sentry missing SRI (**P3 — deferred post-launch, final per PM v64**) |
 
@@ -81,7 +79,7 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | Retry | 3 attempts, 1.2s / 2.4s backoff ✅ |
 | Rate-limit handling | 429 → backoff; 5xx → mark down, return null ✅ |
 | Concurrency cap | Semaphore at 3 concurrent requests ✅ |
-| VPS health | **Unverifiable from sandbox** — last confirmed June 13 (networked session). Jack: `curl https://peakly-api.duckdns.org/health` before the Reddit post. If `wx_cache_size` is 0, let it warm up a few minutes. |
+| VPS health | **Unverifiable from sandbox** — last confirmed June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before the Reddit post. If `wx_cache_size` is 0, let it warm a few minutes. |
 
 ---
 
@@ -91,8 +89,8 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 |-------|--------|
 | Open-Meteo | Direct `api.open-meteo.com/v1` with proxy-first + fallback ✅ |
 | Marine API | `marine-api.open-meteo.com/v1/marine` — beach venues only ✅ |
-| Batch | 50 venues / 2s stagger ✅ |
-| Rate-limit risk | ~66+ concurrent DAU saturates Open-Meteo free tier. VPS weather cache is the mitigation — confirm it's up before Reddit post. |
+| Batch stagger | 50 venues / 2s ✅ |
+| Rate-limit risk | ~66+ concurrent DAU saturates Open-Meteo free tier. VPS weather cache is the mitigation. Confirm up before Reddit post. |
 
 ---
 
@@ -101,14 +99,14 @@ Cache stamp bumped `20260621a` → `20260622a`. EWR added to `AP_CONTINENT` (1-l
 | Asset | ~Gzip | Load mode |
 |-------|-------|-----------|
 | React 18.3.1 + ReactDOM | ~175 KB | blocking `<script>` |
-| **Babel Standalone 7.29.7** | **~800 KB** | preload + blocking `<script>` — biggest bottleneck |
+| **Babel Standalone 7.29.7** | **~800 KB** | preload + blocking — biggest single bottleneck |
 | Supabase JS 2.106.2 | ~80 KB | lazy (JS dynamic load) ✅ |
 | Leaflet 1.9.4 | ~40 KB | lazy (`ensureLeaflet()` on map open) ✅ |
 | Sentry CDN loader | ~10 KB | `defer`'d ✅ |
 | `app.jsx` | ~175 KB | `text/babel` — parsed + transpiled client-side |
 | **Cold-start total** | **~1.2 MB gzip** | Repeat visits: Babel cached in PRECACHE |
 
-Babel is the structural ceiling. The SW now caches it in PRECACHE so repeat visits skip the CDN fetch. New user cold TTI on mid-range Android 4G: 6–8s. Not fixable without a build step — accepted pre-launch cost.
+Babel is the structural ceiling. New-user cold TTI on mid-range Android 4G: 6–8s blank screen. Not fixable without a build step. PRECACHE mitigates repeat visits.
 
 CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ — no updates needed.
 
@@ -118,23 +116,23 @@ CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ — n
 
 | Item | Priority | Owner | Notes |
 |------|----------|-------|-------|
-| **Reddit post** | **P0 (business)** | Jack | Day 18. Product is done. This is the only P0. |
-| **VPS health confirm** | P1 pre-launch | Jack | `curl https://peakly-api.duckdns.org/health` — 5 min, do before posting |
-| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 App Store / P3 web | Jack | Required for App Store 5.1.1(v). 2 min. |
-| lateSeason inflation — 21 JSON-format venues | P2 | July sprint | `snow_depth_max >= 0.5m` gate limits user-facing damage |
-| Single-tag ski venues (40 venues) | P3 | July sprint | Filter discoverability only |
-| SRI on CDN scripts | P3 | Post-launch | Final per PM v64 |
-| CSP meta | P3 | Post-launch | Babel `unsafe-eval` makes strict CSP impossible |
+| **Reddit post** | **P0 (business)** | Jack | Day 19. Product is done. This is the only real P0. |
+| **VPS health confirm** | P1 pre-launch | Jack | `curl https://peakly-api.duckdns.org/health` — 5 min. Do it before posting. |
+| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 App Store / P3 web | Jack | Required for App Store 5.1.1(v). 2 min. Web product unaffected until then. |
+| lateSeason inflation — 21 batch ski venues (Killington worst) | P2 | July sprint | Snow-depth gate suppresses most; Killington priority within sprint. |
+| 40 single-tag ski venues | P3 | July sprint | Filter discoverability gap only. |
+| SRI on CDN scripts | P3 | Post-launch | Final per PM v64. |
+| CSP meta | P3 | Post-launch | Babel `unsafe-eval` makes strict CSP structurally impossible. |
 
 **Permanently closed — stop raising:**
-- Peakly Pro price discrepancy (Pro UI gone April 16)
+- Peakly Pro price (Pro UI gone April 16)
 - Sentry DSN empty (active at `index.html:77`)
-- Cache buster stale (structural auto-bump handles it; this run fixed 1-day lag)
-- Photo 5× violation (false positive — exact-hash audit confirms 2× max)
-- VPS "Day X binary blocker" framing (confirmed healthy June 10/13; sandbox 403s are egress-blocked containers, not server downtime)
+- Cache buster stale (auto-bumped daily; this run fixed 1-day lag)
+- VPS "Day X binary blocker" framing (confirmed healthy June 13; sandbox 403s are container egress blocks, not server downtime)
 - DEAL_WEIGHT finding (75/25 locked May 13)
-- GEAR_ITEMS finding (Amazon cut for v1; `grep -c GEAR_ITEMS app.jsx → 0`)
-- EWR missing from AP_CONTINENT (fixed this run)
+- GEAR_ITEMS finding (Amazon cut v1; count = 0)
+- `coronet-peak` lateSeason flag (fixed this run)
+- EWR missing from AP_CONTINENT (fixed June 22)
 
 ---
 
@@ -143,12 +141,12 @@ CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ — n
 | Scale | Monthly cost | Notes |
 |-------|-------------|-------|
 | <10 MAU (now) | $6/mo | DO droplet + GH Pages free |
-| 1K MAU | $6/mo | Proxy holds, Open-Meteo fine |
-| 10K MAU | $12/mo | Upgrade to 2GB droplet; VPS weather cache becomes load-bearing |
-| 100K MAU | $50-100/mo | 3× droplets + managed Postgres |
+| 1K MAU | $6/mo | Proxy holds fine |
+| 10K MAU | $12/mo | 2GB droplet; weather cache becomes load-bearing at this tier |
+| 100K MAU | $50–100/mo | 3× droplets + managed Postgres |
 
 ---
 
 ## What Breaks First at Scale
 
-Open-Meteo free tier at ~66+ simultaneous DAU on the same venue set. The VPS weather cache collapses N simultaneous requests to 1 upstream call — it's deployed, but unverified since June 13. After a Reddit spike this is the first thing that matters; the client falls back to direct Open-Meteo (degraded, rate-limited, not broken) so it's survivable. Second to fail: Babel cold-load TTI drives bounce for new users — every cold load is 6-8s blank screen on 4G mobile. Third: DO 1GB RAM ceiling if alert polling and weather polling overlap during a spike. None of these are launch blockers at <10 MAU.
+Open-Meteo free tier saturates at ~66+ simultaneous DAU hitting the same venue set. The VPS weather cache collapses N parallel requests to 1 upstream call — deployed, but unverified since June 13. After a Reddit spike, that's the first thing to watch; the client falls back to direct Open-Meteo (degraded, rate-limited, survivable). Second to fail: Babel cold-load TTI (6–8s on 4G mobile) drives new-user bounce — structural, not fixable without a build step. Third: DO 1GB RAM ceiling if alert polling and weather polling overlap during a spike. None are launch blockers at <10 MAU. Confirm VPS up before the Reddit post — that's the only actionable pre-launch infrastructure item.
