@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260623a";
+const PEAKLY_BUILD = "20260623b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -932,8 +932,7 @@ const VENUES = [
         "All Levels"
       ],
       "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
-      "skiPass": "ikon",
-      "lateSeason": true
+      "skiPass": "ikon"
     },
     {
       "id": "loon-mountain",
@@ -4578,6 +4577,63 @@ const VENUES = [
     accent:"#30c070",
     tags:["US Territory No Passport","El Yunque Rainforest Backdrop","Caribbean Water","Direct All East Coast Hubs"],
     photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+
+  // ── 2026-06-23 content sprint: 3 US domestic + Cape Town + Rio ───────────────
+  // PM v66 priority: close "no US East Coast boardwalk / no iconic global beach" gap
+  // before Reddit launch. All photos from vetted pool (data/photo-pool.json), 2× slots.
+  // CPT and GIG added to AIRPORT_COORDS (see coords section above VENUES).
+
+  // 1. Asbury Park, NJ — NYC-area boardwalk revival, 1h from EWR
+  {id:"asbury-park-beach-nj", category:"beach",
+    title:"Asbury Park Beach", location:"New Jersey, USA",
+    lat:40.2204, lon:-73.9957, ap:"EWR",
+    icon:"🏖️", rating:4.72, reviews:6800,
+    gradient:"linear-gradient(160deg,#001828,#003050,#005080)",
+    accent:"#4090c0",
+    tags:["NYC Day Trip","Boardwalk Revival","Atlantic Waves","Music Scene"],
+    photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+
+  // 2. Flamenco Beach, Culebra, PR — consistently ranked #1 US beach, no car, snorkel
+  {id:"flamenco-beach-culebra", category:"beach",
+    title:"Flamenco Beach", location:"Culebra, Puerto Rico",
+    lat:18.3121, lon:-65.3041, ap:"SJU",
+    icon:"🏖️", rating:4.96, reviews:11200,
+    gradient:"linear-gradient(160deg,#002040,#004080,#0070c0)",
+    accent:"#40a8e0",
+    tags:["Caribbean Turquoise","Ranked US Best Beach","Car-Free Island","Snorkeling Reefs"],
+    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+
+  // 3. Zuma Beach, Malibu — LA's PCH beach, Pacific sunset gold, surf break
+  {id:"zuma-beach-malibu", category:"beach",
+    title:"Zuma Beach Malibu", location:"Malibu, California",
+    lat:34.0195, lon:-118.8222, ap:"LAX",
+    icon:"🌊", rating:4.84, reviews:14600,
+    gradient:"linear-gradient(160deg,#001830,#003060,#005090)",
+    accent:"#3c9ed0",
+    tags:["Pacific Coast Highway","Pacific Sunsets","Surf Break","Canyon Hiking Access"],
+    photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"},
+
+  // 4. Clifton Fourth Beach, Cape Town — Table Mountain backdrop, iconic global beach
+  // CPT:{lat:-33.9648,lon:18.6017} added to AIRPORT_COORDS. CPT:"africa" in AP_CONTINENT.
+  {id:"clifton-fourth-beach-cpt", category:"beach",
+    title:"Clifton Fourth Beach", location:"Cape Town, South Africa",
+    lat:-33.9414, lon:18.3794, ap:"CPT",
+    icon:"🏖️", rating:4.91, reviews:18400,
+    gradient:"linear-gradient(160deg,#001828,#003850,#006888)",
+    accent:"#30a0c8",
+    tags:["Table Mountain Backdrop","White Sand","Year-Round","Boulders Penguins Nearby"],
+    photo:"https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"},
+
+  // 5. Ipanema Beach, Rio de Janeiro — South America's most iconic urban beach
+  // GIG:{lat:-22.8100,lon:-43.2507} added to AIRPORT_COORDS. GIG:"latam" in AP_CONTINENT.
+  {id:"ipanema-rio", category:"beach",
+    title:"Ipanema Beach", location:"Rio de Janeiro, Brazil",
+    lat:-22.9863, lon:-43.2044, ap:"GIG",
+    icon:"🏝️", rating:4.88, reviews:28400,
+    gradient:"linear-gradient(160deg,#001830,#003060,#005898)",
+    accent:"#42a2d8",
+    tags:["Iconic Urban Beach","Year-Round Sun","Sunset Caipirinha Scene","Sugarloaf Views"],
+    photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6258,6 +6314,10 @@ const AIRPORT_COORDS = {
   // Sub-Saharan Africa + Indian Ocean
   INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
   PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
+  // Africa — Southern + East (beach/ski gateways)
+  CPT:{lat:-33.9648,lon:18.6017},  // Cape Town International
+  // South America — Rio de Janeiro
+  GIG:{lat:-22.8100,lon:-43.2507}, // Galeão International, Rio de Janeiro
 };
 
 // ─── Great-circle flight time estimate ────────────────────────────────────────
