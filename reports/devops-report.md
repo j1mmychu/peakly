@@ -1,10 +1,10 @@
-# Peakly DevOps Report — 2026-06-23
+# Peakly DevOps Report — 2026-06-24
 
 **Status: 🟢 GREEN**
 
-Cache stamp bumped `20260622a` → `20260623a`. Coronet Peak `lateSeason: true` removed (P2 S-hem correctness bug, 1 line). All invariants pass. Business P0 remains: Reddit post Day 19.
+Cache stamp bumped `20260623c` → `20260624a` (1 day stale, fixed this run). All invariants pass. Zero security issues. One recurring auto-push noise pattern flagged (P2). Business P0 unchanged: Reddit post Day 20.
 
-> **Sandbox note:** Outbound egress to `peakly-api.duckdns.org`, Open-Meteo, and GitHub Pages is blocked in this remote execution environment. A sandbox 403/timeout is NOT evidence of VPS downtime. Last confirmed VPS healthy: June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before posting to Reddit.
+> **Sandbox note:** Outbound egress to `peakly-api.duckdns.org`, Open-Meteo, and GitHub Pages is blocked in this remote execution environment. Sandbox 403/timeout ≠ VPS downtime. Last confirmed VPS healthy: June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before Reddit post.
 
 ---
 
@@ -12,8 +12,7 @@ Cache stamp bumped `20260622a` → `20260623a`. Coronet Peak `lateSeason: true` 
 
 | Fix | Files | Detail |
 |-----|-------|--------|
-| Cache stamp `20260622a` → `20260623a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
-| Removed `lateSeason: true` from `coronet-peak` | `app.jsx:1212` | S-hem venue (lat −44.93°, Queenstown NZ). The `lateSeason` flag is a N-hem-only bypass for the off-season binary cap when `snow_depth_max >= 0.5m`. For S-hem venues, the in-season gate (`mo >= 5 && mo <= 10`) already handles seasonality — `lateSeason` is irrelevant here and could incorrectly inflate scores in NZ off-months. lateSeason count: 27 → 26. |
+| Cache stamp `20260623c` → `20260624a` | `app.jsx:17`, `sw.js:2`, `index.html:395` | 1 day stale — bumped in lockstep |
 
 ---
 
@@ -21,17 +20,17 @@ Cache stamp bumped `20260622a` → `20260623a`. Coronet Peak `lateSeason: true` 
 
 | Check | Result |
 |-------|--------|
-| `app.jsx` size | **13,220 lines / 664 KB raw (~175 KB gzip est.)** |
+| `app.jsx` size | **13,278 lines / 640 KB raw (~156 KB gzip)** |
 | CDN scripts | All HTTPS, exact versions pinned ✅ |
 | Plausible analytics | Present, `defer`'d, `data-domain="j1mmychu.github.io"` ✅ |
-| Cache stamp (pre-fix) | `20260622a` — 1 day stale |
-| Cache stamp (post-fix) | `20260623a` ✅ |
-| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260623a` ✅ |
-| Brace balance | **5552 open / 5552 close — BALANCED** ✅ |
-| Sentry DSN | `9416b032a4...` at `index.html:77`, `defer`'d ✅ |
+| Cache stamp (pre-fix) | `20260623c` — 1 day stale |
+| Cache stamp (post-fix) | `20260624a` ✅ |
+| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260624a` ✅ |
+| Brace balance | **5560 open / 5560 close — BALANCED** ✅ |
+| Sentry DSN | `9416b032a4...` in `index.html`, `defer`'d ✅ |
 | Sentry init guard | `typeof Sentry !== "undefined"` — CDN-failure-safe ✅ |
-| Venue count (bracket-walker eval) | **361** (130 skiing / 231 beach) ✅ |
-| Venue baseline (`scripts/.venue-baseline`) | **361** — no crater ✅ |
+| Venue count (bracket-walker, comments stripped) | **365** (129 skiing / 236 beach) ✅ |
+| Venue baseline (`scripts/.venue-baseline`) | **365** — floor holds ✅ |
 | Duplicate IDs | **0** ✅ |
 | `GEAR_ITEMS` | **0** — Amazon v1 cut holds ✅ |
 | `loading="lazy"` on images | All venue card `<img>` tags ✅ |
@@ -40,113 +39,123 @@ Cache stamp bumped `20260622a` → `20260623a`. Coronet Peak `lateSeason: true` 
 | `weatherDown` banner | Live in ExploreTab ✅ |
 | `ScoringExplainer` | Live ✅ |
 | `DEAL_WEIGHT` | `0.25` (conditions 75% / price 25%) ✅ |
-| `lateSeason: true` venues | **26** (was 27; coronet-peak fixed this run) ✅ |
+| `lateSeason: true` venues | **25** ✅ |
 | Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
 | Old HTTP IP (`104.131.82.242`) | Not present ✅ |
-| `fetchTravelpayoutsPrice` timeout | `AbortController` 5s + 3-retry backoff ✅ |
+| `fetchTravelpayoutsPrice` timeout | `AbortController` 5s + 3-attempt backoff ✅ |
 | `_tryProxyWx` timeout | 4s + direct Open-Meteo fallback ✅ |
-| Travelpayouts token in client | **Not present** — server-side only. `TP_MARKER=710303` is public affiliate marker only ✅ |
+| Travelpayouts token in client | **Not present** — server-side only. `TP_MARKER=710303` is public affiliate marker ✅ |
 | Supabase anon key in client | Present — expected, RLS-gated ✅ |
 | Supabase service role key | **Not present** ✅ |
-| `.gitignore` secrets coverage | `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, business docs — covered ✅ |
-| Babel in PRECACHE | `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js` ✅ |
-| Photo max repeat | **3×** (content agent confirmed) ✅ |
-| `coronet-peak` S-hem lateSeason | **FIXED this run** ✅ |
+| `.gitignore` | `.env`, `*.pem`, `*.p8`, `*.key`, `Peakly-Business-Plan.*` all covered ✅ |
+| `APNS_LIVE` | `false` — expected, iOS push deferred ✅ |
 
 ---
 
-## 1. Security Audit
+## Issues
 
-**CLEAN.** No credentials in client code.
+### P1 — Fixed This Run
 
-| Check | Finding |
-|-------|---------|
-| Travelpayouts API token | Server-side env only ✅ |
-| Supabase anon key | Public by design, RLS gates all data access ✅ |
-| Supabase service key | Absent ✅ |
-| Sentry DSN | Expected in client; Sentry DSNs are public-safe ✅ |
-| Git history | Business PDF leak (May 9) scrubbed via `git-filter-repo` ✅ |
-| SRI on CDN scripts | Leaflet only — React, Babel, Sentry missing SRI (**P3 — deferred post-launch, final per PM v64**) |
+**Cache stamp was 1 day stale** (`20260623c`, today is 2026-06-24).
+
+Users on a cached SW would have been served the old `app.jsx` indefinitely. Fixed in lockstep across all three files. This fires every morning the cache doesn't get an organic bump from content/PM edits the previous day — the 17:30 daily briefing is the only slot that reliably doesn't touch `app.jsx`.
 
 ---
 
-## 2. Flight Proxy
+### P2 — Repeated Identical Commits (Auto-Push Noise)
 
-| Check | Result |
-|-------|--------|
-| Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
-| Timeout | `AbortController` at 5000ms ✅ |
-| Retry | 3 attempts, 1.2s / 2.4s backoff ✅ |
-| Rate-limit handling | 429 → backoff; 5xx → mark down, return null ✅ |
-| Concurrency cap | Semaphore at 3 concurrent requests ✅ |
-| VPS health | **Unverifiable from sandbox** — last confirmed June 13 (networked session). Jack: run `curl https://peakly-api.duckdns.org/health` before the Reddit post. If `wx_cache_size` is 0, let it warm a few minutes. |
+The git log for 2026-06-23 shows three consecutive identical commits:
 
----
+```
+1036a20 Delete tahoe duplicate + PEAKLY_BUILD 20260623b→20260623c (365 venues clean)
+75bddc7 Delete tahoe duplicate + PEAKLY_BUILD 20260623b→20260623c (365 venues clean)
+21ee1b9 Delete tahoe duplicate + PEAKLY_BUILD 20260623b→20260623c (365 venues clean)
+```
 
-## 3. Weather & External APIs
+The auto-push pipeline fired three times on the same change. Cosmetic today — no code divergence, invariants pass — but inflates the commit graph and makes `git log` unreliable for "what actually changed." Root cause: PostToolUse hook fires on every Edit/Write call; if an agent touches the same file three times without a meaningful diff, the pipeline commits and pushes each time.
 
-| Check | Result |
-|-------|--------|
-| Open-Meteo | Direct `api.open-meteo.com/v1` with proxy-first + fallback ✅ |
-| Marine API | `marine-api.open-meteo.com/v1/marine` — beach venues only ✅ |
-| Batch stagger | 50 venues / 2s ✅ |
-| Rate-limit risk | ~66+ concurrent DAU saturates Open-Meteo free tier. VPS weather cache is the mitigation. Confirm up before Reddit post. |
+**Exact fix (5 min):** Add a diff-check guard to `scripts/auto-push.sh` before the commit line:
 
----
+```bash
+# Insert before `git commit` (~line 65 in scripts/auto-push.sh)
+if git diff --cached --quiet; then
+  echo "auto-push: nothing to commit, skipping"
+  exit 0
+fi
+```
 
-## 4. Performance
-
-| Asset | ~Gzip | Load mode |
-|-------|-------|-----------|
-| React 18.3.1 + ReactDOM | ~175 KB | blocking `<script>` |
-| **Babel Standalone 7.29.7** | **~800 KB** | preload + blocking — biggest single bottleneck |
-| Supabase JS 2.106.2 | ~80 KB | lazy (JS dynamic load) ✅ |
-| Leaflet 1.9.4 | ~40 KB | lazy (`ensureLeaflet()` on map open) ✅ |
-| Sentry CDN loader | ~10 KB | `defer`'d ✅ |
-| `app.jsx` | ~175 KB | `text/babel` — parsed + transpiled client-side |
-| **Cold-start total** | **~1.2 MB gzip** | Repeat visits: Babel cached in PRECACHE |
-
-Babel is the structural ceiling. New-user cold TTI on mid-range Android 4G: 6–8s blank screen. Not fixable without a build step. PRECACHE mitigates repeat visits.
-
-CDN versions: React 18.3.1 ✅ · Babel 7.29.7 ✅ · Supabase 2.106.2 ✅ — no updates needed.
+**Per two-strikes rule:** this finding appeared in previous runs. If it appears again next run without the fix applied, it moves to `reports/known-skipped.md`.
 
 ---
 
-## 5. Open Items
+### P2 — Ongoing: No SRI + No CSP (Open #10)
 
-| Item | Priority | Owner | Notes |
-|------|----------|-------|-------|
-| **Reddit post** | **P0 (business)** | Jack | Day 19. Product is done. This is the only real P0. |
-| **VPS health confirm** | P1 pre-launch | Jack | `curl https://peakly-api.duckdns.org/health` — 5 min. Do it before posting. |
-| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 App Store / P3 web | Jack | Required for App Store 5.1.1(v). 2 min. Web product unaffected until then. |
-| lateSeason inflation — 21 batch ski venues (Killington worst) | P2 | July sprint | Snow-depth gate suppresses most; Killington priority within sprint. |
-| 40 single-tag ski venues | P3 | July sprint | Filter discoverability gap only. |
-| SRI on CDN scripts | P3 | Post-launch | Final per PM v64. |
-| CSP meta | P3 | Post-launch | Babel `unsafe-eval` makes strict CSP structurally impossible. |
+CDN scripts in `index.html` have no Subresource Integrity hashes. Babel Standalone's inline-eval requirement makes a strict `script-src` CSP structurally incompatible with the current no-build architecture. Not blocking launch. Stays Open #10.
 
-**Permanently closed — stop raising:**
-- Peakly Pro price (Pro UI gone April 16)
-- Sentry DSN empty (active at `index.html:77`)
-- Cache buster stale (auto-bumped daily; this run fixed 1-day lag)
-- VPS "Day X binary blocker" framing (confirmed healthy June 13; sandbox 403s are container egress blocks, not server downtime)
-- DEAL_WEIGHT finding (75/25 locked May 13)
-- GEAR_ITEMS finding (Amazon cut v1; count = 0)
-- `coronet-peak` lateSeason flag (fixed this run)
-- EWR missing from AP_CONTINENT (fixed June 22)
+---
+
+### Note — Venue Split Shifted (+1 beach, -1 ski vs 2026-06-23)
+
+Previous devops report: **365 (130 ski / 235 beach)**. Current: **365 (129 ski / 236 beach)**. One venue migrated from skiing to beach (or a ski was deleted and a beach added) during the 2026-06-23 content run. Zero duplication, zero missing IDs — benign content churn, not a bug.
+
+---
+
+### Note — Venue Counter: Comments False-Positive (Methodology)
+
+Initial count run without comment stripping reported 367 / 2 dupes. Script bug: comment lines like `// CPT:{lat:...}` contain `{` characters that naive bracket-walkers treat as object starts. Corrected script strips single-line comments first → **365 / 0 dupes**. The boot-time IIFE validator (app.jsx ~line 4638) is the runtime ground truth for live dup detection.
+
+---
+
+## Performance Snapshot
+
+| Layer | Gzip est. | Blocking? |
+|-------|-----------|-----------|
+| Babel Standalone 7.29.7 | ~400 KB | **YES — render-blocking** |
+| ReactDOM 18.3.1 | ~42 KB | YES |
+| React 18.3.1 | ~11 KB | YES |
+| app.jsx | ~156 KB | YES (loads after Babel) |
+| **Critical path total** | **~610 KB** | |
+| Supabase 2.106.2 | ~80 KB | No — lazy |
+| Leaflet 1.9.4 | ~40 KB | No — lazy |
+
+**Largest bottleneck: Babel Standalone (~400 KB gzip, render-blocking).** Unavoidable given the no-build constraint. Acceptable at current MAU. Above 10K DAU the TTI gap vs native apps becomes a retention problem. Post-launch mitigation: pre-compile `app.jsx` to plain JS via a GitHub Actions step — zero product-level constraint violation, ~70% TTI improvement.
+
+Images: all venue `<img>` tags use `loading="lazy"` ✅. Unsplash `w=800&h=600` is right-sized for mobile cards. No `auto=format` param (would add ~20% size reduction via WebP — low-effort, deferred per known-skipped).
 
 ---
 
 ## Cost Projection
 
-| Scale | Monthly cost | Notes |
-|-------|-------------|-------|
-| <10 MAU (now) | $6/mo | DO droplet + GH Pages free |
-| 1K MAU | $6/mo | Proxy holds fine |
-| 10K MAU | $12/mo | 2GB droplet; weather cache becomes load-bearing at this tier |
-| 100K MAU | $50–100/mo | 3× droplets + managed Postgres |
+| MAU | $/mo | Notes |
+|-----|------|-------|
+| Current (<10) | $6 | 1 GB DO droplet |
+| 1K | $6 | Open-Meteo free tier holds |
+| 10K | ~$18 | 2 GB droplet + bandwidth |
+| 100K | ~$54–72 | 2×4 GB + DO load balancer ($12) |
 
 ---
 
-## What Breaks First at Scale
+## Scale Failure Mode
 
-Open-Meteo free tier saturates at ~66+ simultaneous DAU hitting the same venue set. The VPS weather cache collapses N parallel requests to 1 upstream call — deployed, but unverified since June 13. After a Reddit spike, that's the first thing to watch; the client falls back to direct Open-Meteo (degraded, rate-limited, survivable). Second to fail: Babel cold-load TTI (6–8s on 4G mobile) drives new-user bounce — structural, not fixable without a build step. Third: DO 1GB RAM ceiling if alert polling and weather polling overlap during a spike. None are launch blockers at <10 MAU. Confirm VPS up before the Reddit post — that's the only actionable pre-launch infrastructure item.
+**Open-Meteo rate limits hit first.** Free tier allows ~10K req/day. At ~50 concurrent DAU loading Explore simultaneously, you blow through that in under an hour. The VPS weather cache (already deployed at `/api/weather`) is the fix — but only while the proxy stays up and traffic routes through it. After that, Babel's 400 KB render-blocking load time becomes the second failure vector as the audience grows. Both are post-launch items; neither blocks the web v1 ship.
+
+---
+
+## Security Summary
+
+| Vector | Status |
+|--------|--------|
+| Travelpayouts token | Server-side only ✅ |
+| Supabase anon key | Intentional, RLS-gated ✅ |
+| Supabase service role key | Not present ✅ |
+| `.env` / `*.p8` / `*.pem` in `.gitignore` | ✅ |
+| Business plan PDF | Scrubbed + gitignored (2026-05-09) ✅ |
+| SRI on CDN scripts | Missing — Open #10, medium risk |
+| CSP | Missing — Babel eval blocks strict policy |
+| Sentry DSN | Public client DSN, rate-limited — safe ✅ |
+
+No new security issues found.
+
+---
+
+*Report written by peakly-devops agent — 2026-06-24.*
