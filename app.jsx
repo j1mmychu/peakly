@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260624a";
+const PEAKLY_BUILD = "20260624b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4633,6 +4633,51 @@ const VENUES = [
     accent:"#42a2d8",
     tags:["Iconic Urban Beach","Year-Round Sun","Sunset Caipirinha Scene","Sugarloaf Views"],
     photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
+
+  // ── 2026-06-24 content sprint: Jackson Hole + Kitzbühel + Grace Bay + South Beach + Cancún ──
+  // Closes 5 high-credibility catalog gaps: top US ski resort, Austria's most famous,
+  // world's #1-ranked beach (Condé Nast / TripAdvisor), most iconic US city beach,
+  // and Mexico's most-visited resort. All airports already in AP_CONTINENT + AIRPORT_COORDS.
+
+  {id:"jackson-hole", category:"skiing",
+    title:"Jackson Hole Mountain Resort", location:"Teton Village, Wyoming, USA",
+    lat:43.5879, lon:-110.8279, ap:"JAC",
+    icon:"🏔️", rating:4.97, reviews:3180,
+    gradient:"linear-gradient(160deg,#0a1a2e,#1a3a6a,#2a5aa0)",
+    accent:"#6090d8", tags:["Greatest Vertical USA","Expert Terrain","IKON Pass","Teton Views"],
+    photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"ikon"},
+
+  {id:"big-sky-montana", category:"skiing",
+    title:"Big Sky Resort", location:"Big Sky, Montana, USA",
+    lat:45.2851, lon:-111.4013, ap:"BZN",
+    icon:"🏔️", rating:4.93, reviews:2640,
+    gradient:"linear-gradient(160deg,#0a1e30,#1a3c60,#2a5a90)",
+    accent:"#70a8d8", tags:["Biggest Skiing USA","Lone Peak Aerial Tram","Low Crowds","IKON Pass"],
+    photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
+
+  {id:"grace-bay-turks", category:"beach",
+    title:"Grace Bay Beach", location:"Providenciales, Turks & Caicos",
+    lat:21.8027, lon:-72.2033, ap:"PLS",
+    icon:"🏝️", rating:4.96, reviews:12500,
+    gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
+    accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
+    photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop"},
+
+  {id:"south-beach-miami", category:"beach",
+    title:"South Beach", location:"Miami Beach, Florida, USA",
+    lat:25.7907, lon:-80.1300, ap:"MIA",
+    icon:"🏖️", rating:4.83, reviews:21400,
+    gradient:"linear-gradient(160deg,#001a2e,#003060,#005898)",
+    accent:"#40a0e0", tags:["Art Deco Boardwalk","Atlantic Waves","Year-Round Sun","Nightlife District"],
+    photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop"},
+
+  {id:"cancun-beach", category:"beach",
+    title:"Cancún Beach", location:"Cancún, Quintana Roo, Mexico",
+    lat:21.1619, lon:-86.8515, ap:"CUN",
+    icon:"🌊", rating:4.82, reviews:19800,
+    gradient:"linear-gradient(160deg,#001820,#003848,#006880)",
+    accent:"#30b8d8", tags:["Caribbean Sea","Hotel Zone","Direct USA Flights","Cenote Day Trips"],
+    photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves

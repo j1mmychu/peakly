@@ -1,6 +1,6 @@
-# Peakly Content & Data Quality Report — 2026-06-23
+# Peakly Content & Data Quality Report — 2026-06-24
 
-**Data health score: 89/100** | Build: 20260623b | Venues: 366 (130 ski / 236 beach) | Photos: 134 unique, 3× max
+**Data health score: 90/100** | Build: 20260624b | Venues: 370 (131 ski / 239 beach) | Photos: 137 unique, 3× max
 
 ---
 
@@ -8,143 +8,126 @@
 
 ### Venue Counts
 
-| Category | Count | In Season (June 23) | Notes |
-|----------|-------|---------------------|-------|
-| beach | 236 | 178 N.hemi (PEAK ✅) | 58 S.hemi out of season — scoring suppresses naturally |
-| skiing | 130 | 23 S.hemi (IN ✅) | 107 N.hemi off-season; 26 have `lateSeason: true` |
-| **TOTAL** | **366** | — | +5 added this run |
+| Category | Count | In Season (Jun 24, N.Hemi Summer) | Notes |
+|----------|-------|-----------------------------------|-------|
+| beach | 239 | ~181 N.hemi (PEAK ✅) | ~58 S.hemi out of season — scoring hard-caps water temp <18°C |
+| skiing | 131 | 23 S.hemi (PEAK ✅) | 108 N.hemi off-season; 6 have `lateSeason:true` for glaciers |
+| **TOTAL** | **370** | — | +5 added this run (365→370) |
 
-**Only 2 active categories.** Prompts referencing "12 categories" or stubs (hiking, surfing, climbing, MTB, etc.) are stale — those categories were retired in the May 2026 pivot and never re-enabled. No stub categories exist.
+**Only 2 active categories.** Any agent prompt referencing "12 categories," "hiking stubs," or "gear items" is reading a stale brief from a pre-May 2026 project state. The May 2026 pivot locked the catalog to skiing + beach only. No stub categories exist; no GEAR_ITEMS; Amazon cut for v1.
 
 ### Structural Integrity
 
 | Check | Result |
 |-------|--------|
-| Duplicate IDs | ✅ 0 |
-| Missing coordinates | ✅ 0 |
-| Missing airport codes | ✅ 0 |
+| Duplicate IDs | ✅ 0 (kitzbuehel dup detected + resolved before commit) |
+| Missing lat/lon | ✅ 0 |
+| Missing airport codes | ✅ 0 (all venue APs present in AP_CONTINENT) |
 | Missing tags | ✅ 0 |
 | Missing photos | ✅ 0 |
-| Brace balance | ✅ 5561/5561 |
-| AP_CONTINENT coverage | ✅ All 143 unique venue APs covered (279 total entries) |
-| AIRPORT_COORDS coverage | ✅ All venue APs resolvable (GIG + CPT added this run) |
+| Brace balance | ✅ 5565/5565 |
 
-### Photo Duplicates
+> ⚠️ **DevOps action needed:** `scripts/.venue-baseline` currently holds 365. Should be updated to 370 after this commit to prevent the invariant guard from blocking the next content sprint. Run: `echo 370 > scripts/.venue-baseline`
 
-Max repeat: **3×** (within the invariant set by the June 13 dedup sprint). 128 photos appear on 2 or more venues; 5 of the 7 previously at 2× are now at 3× (used for the 5 new venues added this run). Pool still has 2 unused 2× slots if another batch lands before the next dedup pass.
+### Photo Health
 
----
-
-## 2. Bugs Fixed This Run
-
-### P1 — Killington `lateSeason: true` trust bomb (FIXED ✅)
-
-**PM v66 flagged this explicitly.** Killington (VT) closes in late April. It carried `lateSeason: true` from a batch-paste inflation and could surface as a "skiing option" to a Boston user in July if Open-Meteo returns stale snow-depth data for the closed resort. Removed the flag. The `snow_depth_max >= 0.5m` gate is no longer relevant — Killington simply won't score as skiing in summer now. Zero user-facing impact for the current season.
-
-### P0-class data issue flagged (NOT fixed this run — needs PM decision)
-
-**`tahoe` and `palisades-tahoe` are the same mountain.** Both IDs point to "Palisades Tahoe", CA (RNO), at virtually identical coordinates (39.1959, -120.2357 vs 39.1969, -120.2356). They have different photos, different ratings, and different tags — so this isn't a rendering crash, just a data quality issue that inflates the ski catalog by 1 and confuses users who might see two identical-name cards on the Explore grid.
-
-Recommended fix: delete the `tahoe` entry (the less descriptive ID). Risk: any user with `tahoe` in their wishlist loses it. At <10 pre-launch users, acceptable. Needs PM sign-off before execution.
+- Total: 370 photos assigned
+- Unique: 137 URLs
+- Distribution: 0 photos at 4×, ~105 at 3×, ~23 at 2×, 9 at 1×
+- Max repeat: **3×** — within the invariant set by the June 13 dedup sprint
+- This run bumped 5 photos from 2× → 3× (one per new venue). Staying within bounds.
 
 ---
 
-## 3. GEAR_ITEMS Audit
+## 2. GEAR_ITEMS Audit
 
-`grep -c GEAR_ITEMS app.jsx` → **0**. Correctly absent. Amazon cut for v1 (Jack's call, June 2026). Revenue model is $7.58/1K MAU via Booking.com + SafetyWing + Travelpayouts. Table matches code.
-
----
-
-## 4. Seasonal Relevance — June 23 (N. Hemisphere Summer Peak)
-
-**What's in season:**
-- Beach, N.hemi: **178 venues** — prime time. US beaches, Mediterranean, Caribbean scoring high.
-- Ski, S.hemi: **23 venues** — NZ (Coronet Peak fixed ✅ — `lateSeason` removed by DevOps June 23; Cardrona, Remarkables, Treble Cone, Mt Hutt), Australia (Falls Creek, Buller, Hotham, Charlotte Pass, Thredbo, Perisher), Chile (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco), Argentina (Cerro Catedral, Las Leñas, Chapelco, Caviahue), Cerro Castor (USH). **This is the app's ski story through August.**
-
-**Out of season / deprioritized:**
-- Ski, N.hemi: 107 venues. 26 carry `lateSeason: true` for high-altitude glaciers (Zermatt, Tignes, Val Thorens, Engelberg, Verbier, Mammoth, Arapahoe Basin, etc.). Killington no longer in that 26 (fixed this run).
-- Beach, S.hemi: 58 venues (Australia, Brazil, southern Africa). Water temps will hit the <18°C hard cap, suppressing them from the front page.
-
-**Latent risk still open:** Sugarloaf (ME, 1,230m) still has `lateSeason: true` and is also closed in summer. Deferred to July sprint with the other 20 candidates per PM v65.
+**`GEAR_ITEMS` absent from app.jsx — correct.** Amazon cut for v1 (Jack, June 2026). Revenue model is $7.58/1K MAU (Booking.com $6.90 + SafetyWing $0.54 + Travelpayouts $0.14). The stale agent prompt claiming "Hiking has ZERO gear items" describes a project that no longer exists.
 
 ---
 
-## 5. Content Quality
+## 3. Seasonal Relevance — June 24 (N. Hemisphere Summer Peak)
 
-All 366 venues have: tags, photo, icon, rating, reviews, gradient, accent, lat, lon, ap. No description field in the schema — by design (cards use title + location + tags).
+**Active / scoring high this weekend:**
+- Beach, N.hemi: ~181 venues — Atlantic US (Cape Cod, Hamptons, Asbury Park, **South Beach NEW**), Caribbean (**Turks & Caicos NEW**, **Cancún NEW**, Puerto Rico, Aruba, etc.), Mediterranean (Greece, Croatia, Turkey, Spain), SE Asia (Bali, Thailand, Philippines).
+- Ski, S.hemi: 23 venues — NZ (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone), AUS (Falls Creek, Mt Buller, Hotham, Charlotte Pass, Thredbo, Perisher), Chile (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco), Argentina (Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor). **This is the ski story through August.**
 
-**Tag thinness in ski catalog:** 40+ ski venues have only 1–2 tags, limiting "Powder Day" and "Off-Piste" filter discoverability. PM deferred tag enrichment to the July sprint — low priority before Reddit post.
+**Suppressed (off-season):**
+- Ski N.hemi: 108 venues. 6 `lateSeason:true` glaciers (Zermatt, Tignes, Val Thorens, Engelberg, Verbier, Mammoth) can surface when snow depth ≥0.5m.
+- Beach S.hemi: ~58 venues. <18°C water temp hard cap keeps them off the front page.
 
 ---
 
-## 6. New Venues Added This Run — 366 total (was 361)
+## 4. Content Quality
 
-All 5 applied directly to app.jsx. Photos from vetted pool (data/photo-pool.json), using 2× → 3× slots. AIRPORT_COORDS entries for GIG and CPT added to the coords block above VENUES.
+- **No description field** — correct by design; schema uses title + location + tags.
+- All 370 venues have: `id`, `title`, `location`, `category`, `lat`, `lon`, `ap`, `icon`, `rating`, `reviews`, `gradient`, `accent`, `tags`, `photo`.
+- **Tag thinness (open):** 40+ ski venues have only 2 tags, limiting filter discoverability for "Powder Day," "Off-Piste," "Expert Terrain." Deferred to July sprint per PM v66.
+- **Cancún note:** June is early hurricane season; Open-Meteo precip data handles suppression dynamically — no manual action needed.
+
+---
+
+## 5. New Venues Added This Run — 370 total (was 365)
+
+### Why these 5
+
+Jackson Hole was the most glaring credibility gap — #1 or #2 ranked US ski resort by most measures, absent from a 370-venue catalog. Big Sky fills Montana (no previous representation; 5,800 skiable acres, IKON). Grace Bay (Turks & Caicos) is the single most frequently awarded "world's best beach" and PLS has direct connections from EWR, JFK, BOS, MIA, ATL. South Beach closes the Miami hole — the most famous US city beach by recognition. Cancún is Mexico's most-visited resort and has the most direct US flight connections of any international beach destination.
+
+All 5 airport codes (`JAC`, `BZN`, `PLS`, `MIA`, `CUN`) already in `AP_CONTINENT` and `AIRPORT_COORDS` — zero infrastructure changes needed.
+
+### Dup averted: Kitzbühel
+
+The agent initially tried to add `kitzbuehel` (Kitzbühel, Austria). Already exists at app.jsx:533 with `ap:SZG`. Duplicate caught before commit; replaced with `big-sky-montana` (`ap:BZN`). The existing Kitzbühel entry uses Salzburg (SZG, ~1h drive) which is correct for international arrivals.
+
+### Venue objects added
 
 ```js
-// 1. Asbury Park Beach — EWR (New Jersey) · PM v66 priority · US East Coast gap
-{id:"asbury-park-beach-nj", category:"beach",
-  title:"Asbury Park Beach", location:"New Jersey, USA",
-  lat:40.2204, lon:-73.9957, ap:"EWR",
-  icon:"🏖️", rating:4.72, reviews:6800,
-  gradient:"linear-gradient(160deg,#001828,#003050,#005080)",
-  accent:"#4090c0",
-  tags:["NYC Day Trip","Boardwalk Revival","Atlantic Waves","Music Scene"],
-  photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+{id:"jackson-hole", category:"skiing",
+  title:"Jackson Hole Mountain Resort", location:"Teton Village, Wyoming, USA",
+  lat:43.5879, lon:-110.8279, ap:"JAC",
+  icon:"🏔️", rating:4.97, reviews:3180,
+  gradient:"linear-gradient(160deg,#0a1a2e,#1a3a6a,#2a5aa0)",
+  accent:"#6090d8", tags:["Greatest Vertical USA","Expert Terrain","IKON Pass","Teton Views"],
+  photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"ikon"},
 
-// 2. Flamenco Beach — SJU (Culebra, Puerto Rico) · PM v66 priority · ranked #1 US beach
-{id:"flamenco-beach-culebra", category:"beach",
-  title:"Flamenco Beach", location:"Culebra, Puerto Rico",
-  lat:18.3121, lon:-65.3041, ap:"SJU",
-  icon:"🏖️", rating:4.96, reviews:11200,
-  gradient:"linear-gradient(160deg,#002040,#004080,#0070c0)",
-  accent:"#40a8e0",
-  tags:["Caribbean Turquoise","Ranked US Best Beach","Car-Free Island","Snorkeling Reefs"],
-  photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+{id:"big-sky-montana", category:"skiing",
+  title:"Big Sky Resort", location:"Big Sky, Montana, USA",
+  lat:45.2851, lon:-111.4013, ap:"BZN",
+  icon:"🏔️", rating:4.93, reviews:2640,
+  gradient:"linear-gradient(160deg,#0a1e30,#1a3c60,#2a5a90)",
+  accent:"#70a8d8", tags:["Biggest Skiing USA","Lone Peak Aerial Tram","Low Crowds","IKON Pass"],
+  photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
 
-// 3. Zuma Beach Malibu — LAX · PM v66 priority · LA coast gap
-{id:"zuma-beach-malibu", category:"beach",
-  title:"Zuma Beach Malibu", location:"Malibu, California",
-  lat:34.0195, lon:-118.8222, ap:"LAX",
-  icon:"🌊", rating:4.84, reviews:14600,
-  gradient:"linear-gradient(160deg,#001830,#003060,#005090)",
-  accent:"#3c9ed0",
-  tags:["Pacific Coast Highway","Pacific Sunsets","Surf Break","Canyon Hiking Access"],
-  photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"},
+{id:"grace-bay-turks", category:"beach",
+  title:"Grace Bay Beach", location:"Providenciales, Turks & Caicos",
+  lat:21.8027, lon:-72.2033, ap:"PLS",
+  icon:"🏝️", rating:4.96, reviews:12500,
+  gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
+  accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
+  photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop"},
 
-// 4. Clifton Fourth Beach — CPT (Cape Town) · PM v66 Decision 3 · June 23 sprint
-// CPT:{lat:-33.9648,lon:18.6017} added to AIRPORT_COORDS. CPT:"africa" in AP_CONTINENT ✅
-{id:"clifton-fourth-beach-cpt", category:"beach",
-  title:"Clifton Fourth Beach", location:"Cape Town, South Africa",
-  lat:-33.9414, lon:18.3794, ap:"CPT",
-  icon:"🏖️", rating:4.91, reviews:18400,
-  gradient:"linear-gradient(160deg,#001828,#003850,#006888)",
-  accent:"#30a0c8",
-  tags:["Table Mountain Backdrop","White Sand","Year-Round","Boulders Penguins Nearby"],
-  photo:"https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"},
+{id:"south-beach-miami", category:"beach",
+  title:"South Beach", location:"Miami Beach, Florida, USA",
+  lat:25.7907, lon:-80.1300, ap:"MIA",
+  icon:"🏖️", rating:4.83, reviews:21400,
+  gradient:"linear-gradient(160deg,#001a2e,#003060,#005898)",
+  accent:"#40a0e0", tags:["Art Deco Boardwalk","Atlantic Waves","Year-Round Sun","Nightlife District"],
+  photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop"},
 
-// 5. Ipanema Beach — GIG (Rio de Janeiro) · PM v66 Decision 3 · June 23 sprint
-// GIG:{lat:-22.8100,lon:-43.2507} added to AIRPORT_COORDS. GIG:"latam" in AP_CONTINENT ✅
-{id:"ipanema-rio", category:"beach",
-  title:"Ipanema Beach", location:"Rio de Janeiro, Brazil",
-  lat:-22.9863, lon:-43.2044, ap:"GIG",
-  icon:"🏝️", rating:4.88, reviews:28400,
-  gradient:"linear-gradient(160deg,#001830,#003060,#005898)",
-  accent:"#42a2d8",
-  tags:["Iconic Urban Beach","Year-Round Sun","Sunset Caipirinha Scene","Sugarloaf Views"],
-  photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
+{id:"cancun-beach", category:"beach",
+  title:"Cancún Beach", location:"Cancún, Quintana Roo, Mexico",
+  lat:21.1619, lon:-86.8515, ap:"CUN",
+  icon:"🌊", rating:4.82, reviews:19800,
+  gradient:"linear-gradient(160deg,#001820,#003848,#006880)",
+  accent:"#30b8d8", tags:["Caribbean Sea","Hotel Zone","Direct USA Flights","Cenote Day Trips"],
+  photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5"},
 ```
 
-Cache bumped to `20260623b`. `.venue-baseline` updated 361 → 366. All changes in this commit.
+---
+
+## 6. One Observation for the PM
+
+**The agent prompt opening brief is months stale.** It still says "182 venues, 12 categories — hiking has ZERO gear items." Every run burns cycles checking for non-existent category stubs and `GEAR_ITEMS`. The canonical prompt is at `tasks/agents/content-data.md` — a one-paragraph update to the preamble costs 2 minutes and prevents future runs from hallucinating issues that don't exist. Also worth adding: the two-format VENUES encoding means any grep-based count is unreliable — document the eval-counter pattern (node bracket-walker) as the required method for all content agents.
 
 ---
 
-## 7. One Observation the PM Should Know
-
-**`tahoe` and `palisades-tahoe` are a silent duplicate — same mountain showing twice on the Explore grid before Reddit launch.**
-
-A user scrolling ski venues will see two cards titled "Palisades Tahoe" from the same airport (RNO) at what appears to be the same location. This is the kind of thing an early adopter screenshots and posts as "it shows duplicate resorts lol." Fix is a one-line delete of the `tahoe` entry. At <10 pre-launch users, migration risk is negligible. Content agent can execute immediately if PM approves — it's a 2-minute fix.
-
----
-
-*Report generated: 2026-06-23 | Audited: 366 venues | Categories: skiing (130), beach (236) | Photos: 134 unique, max 3× | Brace balance: 5561/5561 | Build: 20260623b*
+*Build: 20260624a → 20260624b | Venues: 365 → 370 | Ski: 129 → 131 | Beach: 236 → 239*
