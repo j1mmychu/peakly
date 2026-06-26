@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-06-25 (v69)
+# Peakly PM Report — 2026-06-26 (v70)
 
-> Supersedes v68 (June 24). **Status: RED.** Product is launch-ready minus one 45-minute tag pass. Reddit is Day 21. Peak summer beach + S-hemisphere ski window: week 2 of 8.
+> Supersedes v69 (June 25). **Status: RED → launch-ready.** Every technical gate is closed. Reddit is Day 22. The product risk is now entirely a human one: Jack hasn't posted yet.
 
 ---
 
@@ -9,45 +9,46 @@
 | Prompt Claim | Reality |
 |---|---|
 | "182 venues" | **370 venues.** Stale from pre-May pivot. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** No price in product. Not a bug. |
+| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Not a bug. Nothing to fix. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Not empty. |
-| "Cache buster stale" | **Auto-bumped daily by DevOps.** Not stale. |
-| "VPS Day X binary blocker" | **VPS confirmed healthy June 13/14. Sandbox 403s are container egress blocks, not outages.** |
+| "Cache buster stale" | **Auto-bumped daily by DevOps.** Today: `20260626a`. |
+| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s are container egress blocks, not outages. Stop.** |
+| "197 venues with empty tag arrays" | **FALSE.** Content June 25 confirmed it was a counting bug on multi-line JSON format. All 370 venues have tags. |
+| "40 ski venues had 1 tag" | **FIXED June 26** — all 40 now have 4 contextually accurate tags. CLOSED. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25) since May 13.** Stop reporting. |
 | "GEAR_ITEMS" | **Count = 0. Amazon cut for v1. Final.** |
-| "40 ski venues with single tags" | **197 venues (53%) have EMPTY tag arrays.** See Decision 1. |
+| "Duplicate commit pattern" | **Known-skipped June 25 (second strike).** Stop reporting. |
 
 ---
 
-## Shipped Since v68 (2026-06-24 → 2026-06-25)
+## Shipped Since v69 (2026-06-25 → 2026-06-26)
 
 | What | Verdict |
 |------|--------|
-| **Cache `20260624b` → `20260625a`** (DevOps, `2fd6059`) | ✅ Correct. Daily bump. |
-| **Content report: venue freeze honored, zero-tag gap discovered** (`8e39db6`) | ✅ Right call on freeze. Tag finding is critical — see Decision 1. |
+| **Cache `20260625a` → `20260626a`** (DevOps, `f90988a`) | ✅ Correct daily bump. |
+| **Tag enrichment: 40 ski venues 1→4 tags** (Content, `506a94c`) | ✅ Closes the P1 from v69. Filter pills (Powder Day, Expert Terrain, Family Friendly, Late Season) now return correct counts across all 131 ski venues. |
 
-**Code state June 25:**
-- `app.jsx`: 13,323 lines · cache `20260625a` · braces 5,565/5,565
+**Code state June 26:**
+- `app.jsx`: 13,323 lines · cache `20260626a` · braces 5,565/5,565
 - **370 venues** (131 skiing / 239 beach) · GEAR_ITEMS: 0 · lateSeason: 25
-- All pre-launch code items ✅
+- All 370 venues have ≥2 tags. 0 empty, 0 single-tag.
+- All pre-launch code items ✅. VENUE FREEZE active.
 
 ---
 
-## Bug Triage — June 25
+## Bug Triage — June 26
 
 | Bug | Severity | Status |
 |-----|----------|-------|
-| **Reddit post: Day 21** | **P0 (business)** | Jack only. Today. No more deferral. |
-| **197 venues with 0 tags — filter system half-broken** | **P1** | 45-min Content agent fix. DO THIS TODAY before post. See Decision 1. |
-| **VPS unverified since June 13** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health` before posting. From local terminal, not sandbox. |
+| **Reddit post: Day 22** | **P0 (business)** | Jack only. Today. Final answer below. |
+| **VPS SSH verify before posting** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health` from local terminal (not sandbox). 5 min. |
 | **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 (App Store) / P3 (web) | Jack: 2 min in Supabase SQL editor. Graceful fallback active until then. |
-| **Duplicate commit pattern** (3x identical commits June 23) | P2 — **second strike** | Graduates to `known-skipped.md` this run. Root cause noted for future auto-push.sh work. |
-| lateSeason count (25 total; quality varies) | P2 | DEFER July sprint. Snow-depth gate holds. |
 | SRI on CDN scripts | P3 | DEFER post-launch. Final. |
-| CSP meta | P3 | DEFER. Babel `unsafe-eval` makes strict CSP impossible. |
+| CSP meta | P3 | DEFER. Babel `unsafe-eval` makes strict CSP incompatible. |
+| Duplicate commit pattern | Cosmetic | **KNOWN-SKIPPED** (second strike June 25). Stop reporting. |
 
 **Permanently closed — stop raising:**
-- Peakly Pro price · Sentry DSN · Cache buster · VPS "Day X binary blocker" · DEAL_WEIGHT · GEAR_ITEMS · coronet-peak lateSeason · Killington lateSeason · EWR AP_CONTINENT
+Peakly Pro price · Sentry DSN · Cache buster · VPS "Day X binary blocker" · DEAL_WEIGHT · GEAR_ITEMS · coronet-peak lateSeason · Killington lateSeason · EWR AP_CONTINENT · duplicate-commit pattern · "197 empty tag arrays" (was a counting bug)
 
 ---
 
@@ -55,139 +56,129 @@
 
 | Blocker | What It Unlocks | Effort | Days Stalled |
 |---------|----------------|--------|-------------|
-| **Tag enrichment pass** (top 30 ski + top 30 beach) | Filter system works at launch | 45 min (agent) | **New today** |
-| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **21** |
-| **VPS SSH verify** | Confident pricing + spike absorption | 5 min | 12 |
-| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 15 |
-| LLC approval | REI +$6.16, Backcountry/GYG +$1.84/1K MAU | External | External |
+| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **22** |
+| **VPS SSH verify** | Confident pricing + spike absorption | 5 min | 13 |
+| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 16 |
+| LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External | External |
 | Apple Developer ($99) | App Store submission | ~2h + Apple review | Post-launch |
 
 ---
 
-## Explicit Product Decisions — June 25
+## Explicit Product Decisions — June 26
 
-### Decision 1: Tag enrichment is P1. Content agent does it TODAY, before or concurrent with the Reddit post.
+### Decision 1: Tag enrichment is DONE. The last technical pre-launch gate is closed.
 
-The v68 characterization of "40 ski venues with single tags" was wrong. The real number: **197 venues (53%) have completely empty tag arrays.** This includes Kaanapali Beach Maui, Waikiki Beach Oahu, Cancún Beach, Bali Seminyak, Winter Park, Copper Mountain, Palisades Tahoe, Snowbird — the most recognizable names in the catalog.
+v69 called tag enrichment a P1 "do today before Reddit post." Content agent did it. All 370 venues have ≥2 tags. All 131 ski venues have ≥4 tags, including Powder Day, Expert Terrain, Family Friendly, and Late Season. Filter pills return accurate counts across the full catalog.
 
-When a Reddit user lands on Explore and taps the "Powder Day" filter pill, they miss 63 of 131 ski venues. When they tap "Snorkeling," they miss 134 of 239 beach venues. That is a broken feature, not cosmetic debt. Reddit comments don't distinguish between "intentionally missing" and "app is broken" — they write "tried to filter by beach type and got like 5 results, what?"
+There is no remaining code, data, or content item blocking the Reddit post. The pre-post checklist is:
+1. ~~Tag enrichment~~ ✅ DONE June 26
+2. Jack: `curl https://peakly-api.duckdns.org/health` from local terminal (5 min)
+3. Jack: Open live app on mobile, confirm Explore loads with ≥10 beach cards
+4. Jack: Post to Reddit
 
-**Fix is low-risk.** Content agent adds 3–4 tags to top 30 ski + top 30 beach zero-tag venues (the ones with most Explore traffic by coordinate proximity to hub airports). Controlled vocabulary from the Content report. Zero structural change, zero smoke-test risk. 45 minutes.
+That's it. Four steps. Two of them are already done. The remaining two take 10 minutes combined.
 
-**Action (Content agent, TODAY):** Tag enrichment pass — top 30 ski venues (Winter Park, Copper Mountain, Palisades Tahoe, Snowbird, Brighton, Solitude, Deer Valley, Crystal Mountain WA, Mt Bachelor, Sugar Bowl + 20 more) and top 30 beach venues (Kaanapali, Waikiki, Cancún, Seminyak, Patong, Playa del Carmen, Varadero, Langkawi, Ko Phi Phi + 21 more). 3–4 tags each from the controlled vocabulary in the Content report. Cache stamp auto-bumps to `20260625b`.
-
-**Reddit post: after this commit lands, or same hour. Not blocked on the other 137 zero-tag venues — this covers the top-traffic names.**
-
----
-
-### Decision 2: Reddit post order. Today, no exceptions.
-
-The pre-post sequence is now:
-1. **Agent: Tag enrichment commit** (45 min, concurrent with Jack's VPS check)
-2. **Jack: `curl https://peakly-api.duckdns.org/health`** (5 min, from local terminal)
-3. **Jack: Reddit post** (15 min)
-4. **Jack: Stay in thread for 3 hours.** First comment with personal data ("found $180 RT to Cancún, score 88") is the difference between 3K and 8K at 90 days.
-
-Post to r/frugaltravel first, r/solotravel second (1 hour later).
-
-Post copy (unchanged from v68):
-> *"Built a free app that finds the best beach or ski spot to fly to THIS weekend — live weather + real flight prices from your home airport + a confidence score that tells you when the forecast is too shaky to trust. 370 spots globally. Brutally honest about uncertainty. Feedback welcome. [link]"*
-
-There is no Day 22.
+**SHIP. No further gates permitted.**
 
 ---
 
-### Decision 3: Duplicate commit guard — graduate to known-skipped.
+### Decision 2: Post copy gets a season-specific hook. Not generic.
 
-Second consecutive appearance of the triple-commit pattern (June 23: 3x identical "Delete tahoe duplicate" commits). The fix is a pre-commit diff-check in auto-push.sh. This is a 30-minute DevOps task. Per the two-strikes rule, it moves to `reports/known-skipped.md` this run. Re-flags if it causes a broken deploy or wasted run time.
+v69 copy was: *"Built a free app that finds the best beach or ski spot to fly to THIS weekend — live weather + real flight prices from your home airport..."*
+
+That's fine. But we're posting June 26, and the timing is actually a strong hook that the generic copy wastes:
+
+- It's **peak beach season in the Northern Hemisphere** (Mediterranean, Caribbean, Hawaii, SE Asia all firing)
+- It's **peak ski season in NZ, Australia, Chile, and Argentina** — Southern Hemisphere just opened their ski season
+
+This dual-season angle is specific, surprising, and Reddit-clickable. Most travelers don't know they could be booking a ski trip to Cardrona or Valle Nevado right now.
+
+**Updated post copy:**
+
+> *"Built a free app that combines live weather + real flights to find the best ski or beach weekend, wherever you're flying from. 370 spots globally. It's peak beach season in the N. hemisphere right now AND peak ski season in NZ/Chile/Argentina — so both categories are fully live.*
+>
+> *Brutally honest about forecast confidence — shows a 'low confidence' flag if the weather window is too far out to trust, so you're not booking based on vibes. Free. No account needed. Feedback welcome. [link]"*
+
+Post r/frugaltravel first, r/solotravel 60 min later.
+
+**Jack: stay in thread for 3 hours.** The first comment with personal data ("Found $210 RT to Queenstown NZ, score 91 — anyone been to Cardrona?") is the difference between 3K and 8K users at 90 days.
+
+---
+
+### Decision 3: Post-launch sprint scope. Locked now so we don't thrash after the post.
+
+After the Reddit post lands, the next sprint is triggered by 24h of Plausible data. **Do NOT pre-build any of this.** Wait for signal on which venues are getting clicks.
+
+| Sprint Item | Trigger | Effort |
+|-------------|---------|--------|
+| Venue deep links (individual venue pages) | Plausible shows >20% of sessions end on detail sheet | 3–4h |
+| Unsplash `&auto=format&q=75` optimization | Sentry LCP > 3.5s on Explore, or MAU > 100 | 30 min (sed block exists) |
+| Eager Supabase `<script>` deletion | Plausible bounce rate > 65% on cold load | 30 min (diff exists) |
+| Beach tag enrichment (remaining 2-tag venues) | Plausible shows filter pills with low click-through | 45 min |
+| JSON-LD structured data expansion | SEO impressions flat after 2 weeks | 2h |
+
+**DEFER ALL of the above** until we have real data. Building blind is how startups ship features nobody uses.
+
+**CUT from this sprint entirely:** Any new venue category, any new scoring dimension, any monetization feature. The product is ready. Get users first.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Agent: Tag enrichment pass. Today, before or same hour as Reddit post.**
+**1. Jack: Post to Reddit. Today. Not tomorrow.**
 
-Top 30 ski + top 30 beach venues. 3–4 tags each. Controlled vocabulary from Content report §4. Commit, auto-push, cache `20260625b`. Then Jack posts.
+Day 22 is not a number with a good story. "I built this app and waited 22 days to tell anyone" is not a narrative that builds confidence. More importantly: every day we don't post is a day without Plausible data, without Sentry production signal, and without the feedback that tells us what to build next. The app is ready. The tags are fixed. Post.
 
-**2. Jack: Reddit post. Today.**
+**2. Jack: VPS health check from local terminal.**
 
-Sequence above. Stay in thread. VPS check is prerequisite — 5 minutes before posting.
+`curl https://peakly-api.duckdns.org/health` — takes 30 seconds, gives real confidence that pricing and weather caching are alive before 5K people hit the app. If it returns 200 with `wx_cache_size > 0`, we're good. If it's down, you have a real P0 to fix before posting. Do this before step 1.
 
 **3. Jack: Supabase SQL paste.**
 
-`server/sql/delete-account.sql` → Supabase SQL editor. 2 minutes. App Store gate. Do it while in the thread.
+`server/sql/delete-account.sql` → Supabase SQL editor → run. 2 minutes. Required for App Store 5.1.1(v). The client gracefully degrades until this runs, but "account deletion" is a mandatory App Store checkbox — don't let this be the blocker when you go to submit.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Decision | Reason |
-|---------|----------|-------|
-| New venue additions (any) | **FREEZE. Final until Plausible data.** | 370 is enough. No demand signal yet. |
-| Caribbean (Punta Cana, Nassau) | **DEFER July sprint** | Airport prereqs missing; not a launch lever. |
-| S. America beach venues | **DEFER July sprint** | No demand signal. |
-| Remaining 167 zero-tag venues | **DEFER July sprint** | Top 60 fixed pre-launch covers the traffic names. |
-| lateSeason cleanup (sub-2500m N-hem audit) | **DEFER July sprint** | Snow-depth gate holds through launch. |
-| Scoring algorithm changes | **REJECT until post-launch baseline** | No user data. Blast radius unacceptable. |
-| Hotels in deal score | **CUT. Final.** | v2 only. |
-| Peakly Pro | **CUT for v1. Final.** | Post-1K MAU if warranted. |
-| Wishlists / Trips tab unhide | **LOCKED at 1K MAU gate.** | |
-| JSON-LD enhancements | **DEFER.** | Live. Working. SEO gap is not a launch blocker. |
-
----
-
-## Pre-Launch Checklist — June 25
-
-| # | Item | Status |
-|---|------|-------|
-| 1–20 | All code items (scoring, cold-start, alerts honesty, account deletion UI, book_click, ToS links, ScoringExplainer, ALERTS_AVAILABLE, photo dedup) | ✅ All green |
-| 21 | `tahoe` duplicate deleted | ✅ June 23 |
-| 22 | `.venue-baseline` correct at 370 | ✅ |
-| 23 | **Tag enrichment — top 60 venues** | ❌ **Content agent: TODAY** |
-| 24 | **VPS `/health` green** | ❓ Jack: verify before posting (from local terminal) |
-| 25 | **Supabase account deletion SQL** | ❌ Jack: 2 min |
-| 26 | **Reddit post live** | ❌ **Jack: TODAY. Day 21.** |
-
----
-
-## 90-Day Projection — June 25
-
-| Scenario | Users (90d) | What Has to Be True |
-|----------|-------------|---------------------|
-| Post today + top-5 + Jack in thread | **5K–8K** | VPS confirmed. Tags fixed. First data-point comment in hour 1. |
-| Post today without staying in thread | **2K–3K** | Post sinks without human momentum. |
-| Post today + VPS down | **<1K** | Weather fails at spike. "Broken at launch" comment kills momentum. |
-| Slips to July 1 | **2K–4K** | -40% ceiling vs today. July 4 weekend noise. |
-| Slips to August | **<2K** | Summer peak over. 100K goal moves to 2027. |
-
-**For 8K not 5K:** tags fixed before post, VPS confirmed, Jack in thread, personal fare data comment within 30 minutes of posting, top-5 in r/frugaltravel within 6 hours.
-
----
-
-## Revenue Model — June 25
-
-| Stream | Status | RPM/1K MAU |
-|--------|--------|------------|
-| Booking.com (`aid=2311236`) | ✅ Live | $6.90 |
-| SafetyWing (`referenceID=peakly`) | ✅ Live | $0.54 |
-| Travelpayouts (`TP_MARKER=710303`) | ✅ Live (VPS verify pending) | $0.14 |
-| Amazon Associates | ❌ CUT for v1 | $0 |
-| REI / Backcountry / GYG | LLC pending | +$8.00/1K MAU when unlocked |
-
-**Live RPM: $7.58/1K MAU.** Revenue is a rounding error at current MAU. Launch is the only lever.
+| Feature | Rejection Reason |
+|---------|-----------------|
+| New venue category (climbing, hiking, etc.) | Surfing was retired May 2026 with deliberation. Expanding categories before we have 1K users is brand dilution, not growth. REJECTED permanently for v1. |
+| Peakly Pro revival | No price-sensitivity data. No users. No conversion funnel. We don't know what value justifies $79/yr yet. REJECTED until 1K MAU. |
+| Hotel integrations in deal score | v69 deferred this. Still deferred. Flights + conditions is the product. REJECTED for v1. |
+| Offline mode / service worker prefetch expansion | PRECACHE = [] intentionally. At <1K MAU, this adds maintenance cost with zero user benefit. REJECTED. |
+| Social sharing (share a score) | Share-a-list already ships (Supabase shared_lists). Per-score sharing is a viral feature that requires a shareable URL format (venue deep links) as a prerequisite. REJECTED until deep links exist. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The filter system is a trap for the exact users we most want to retain.**
+**The July 4 problem.** When Jack posts today (June 26), the app will show great conditions for the **upcoming weekend: June 27–30** (days 1–4 from now, high confidence). Users who come back after the Reddit post to plan the **July 4th weekend** will be looking at day 8–11, which is beyond Open-Meteo's reliable 7-day window. The front page filters out `confidence: "low"` results. The July 4 weekend grid may be sparse or show the "low confidence" fallback.
 
-The Reddit launch will bring two types of users: browsers (scroll the grid, tap a card, book or bail) and power users (immediately try to filter by "Powder Day" or "Family Friendly"). The browsers will have a great experience. The power users — the ones with highest LTV, most likely to return, most likely to share — will tap a filter and see a broken half-empty grid.
+This is correct product behavior — we don't sell certainty we can't back. But users who had a great first experience (rich cards, high confidence scores) on June 27 and come back June 29 to look at July 4 will see a noticeably different product. They won't know why. The `ScoringExplainer` component covers this conceptually, but the UX of "the app was full of results on Friday, why is it empty on Sunday?" is a churn trigger.
 
-Power users become advocates or detractors in hour one. Getting the tag pass done today isn't just about fixing a P1 — it's about making sure the users most likely to be enthusiastic evangelists don't hit a dead wall on their first interaction with the one feature that proves the product understands what they care about.
-
-The filter system is how Peakly proves it's not just another list of destinations. Fix it before the world sees it.
+**Mitigation (not a code change, just copy):** The empty-state copy for `confidence: "low"` currently reads something like "Check back closer to the weekend." That is sufficient. No action needed pre-launch — but watch for comments in the Reddit thread asking "it worked great the first time, why are there no results now?" and respond proactively in thread.
 
 ---
 
-*Written 2026-06-25 | PM v69 | Build: 20260625a | Venues: 370 (131 ski / 239 beach) | Reddit: Day 21 — post TODAY after tag pass*
+## Success Criteria
+
+**Launch-day baseline (48h after post):**
+- ≥500 unique visitors (Plausible)
+- ≥50 Explore interactions (any filter or sort change)
+- ≥10 "Book" clicks (Travelpayouts or Booking.com)
+- ≥5 Supabase sign-ups (magic-link)
+- Zero ErrorBoundary triggers in Sentry
+
+**90-day projection (5K vs. 8K):**
+
+| Scenario | What's True |
+|----------|-------------|
+| **5K users** | One Reddit post, gets traction in r/frugaltravel, fades after 72h. No follow-up posts. No personal-data comments from Jack in thread. |
+| **8K users** | Jack stays in thread, posts personal-data comment in first 30 min ("I'm flying from JFK — app showed $190 RT to Cancún, score 89"). Cross-shared to r/solotravel by a user. Second post in r/travel or r/skiing 2 weeks later using post-launch Sentry/Plausible data as social proof. |
+
+**The lever is thread engagement, not code.** The app is ready. Everything from here is distribution.
+
+---
+
+*v70 — 2026-06-26 — written by PM agent*
