@@ -792,7 +792,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Expert Terrain",
+        "High Altitude",
+        "Ski Only"
       ],
       "photo": "https://images.unsplash.com/photo-1707128083278-73fd0a037bfe?w=800&h=600&fit=crop&fp-x=0.32&fp-y=0.55",
       "skiPass": "ikon",
@@ -832,7 +835,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Deep Powder",
+        "Tree Skiing",
+        "Low Crowds"
       ],
       "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
       "skiPass": "ikon"
@@ -851,7 +857,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Groomed Runs",
+        "Ski Only",
+        "Luxury"
       ],
       "photo": "https://images.unsplash.com/photo-1555104876-061df4ef2c45?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.55",
       "skiPass": "ikon"
@@ -870,7 +879,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Tree Runs",
+        "Pacific NW",
+        "Expert Terrain"
       ],
       "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
       "skiPass": "ikon"
@@ -889,7 +901,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Deep Powder",
+        "Volcanic Views",
+        "Pacific NW"
       ],
       "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
       "skiPass": "ikon",
@@ -909,7 +924,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Lake Tahoe Views",
+        "Groomed Runs",
+        "Old School Cal"
       ],
       "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
       "skiPass": "ikon"
@@ -928,7 +946,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Vermont Classic",
+        "Expert Terrain",
+        "East Coast Best"
       ],
       "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
       "skiPass": "ikon"
@@ -947,7 +968,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "New England",
+        "Groomed Runs",
+        "Ski School"
       ],
       "photo": "https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop",
       "skiPass": "ikon"
@@ -966,7 +990,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "New England Icon",
+        "Groomed Runs",
+        "East Coast Best"
       ],
       "photo": "https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop",
       "skiPass": "ikon"
@@ -985,7 +1012,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Maine Wild",
+        "Expert Terrain",
+        "Groomed Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
       "skiPass": "ikon",
@@ -1005,7 +1035,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Extreme Terrain",
+        "Deep Powder",
+        "Backcountry"
       ],
       "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
       "skiPass": "ikon",
@@ -1046,7 +1079,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Vancouver Day Trip",
+        "Olympic Venue",
+        "Family Resort"
       ],
       "photo": "https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop",
       "skiPass": "ikon"
@@ -1086,7 +1122,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Swiss Alps",
+        "Year-Round",
+        "Glacial Skiing"
       ],
       "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
       "skiPass": "ikon",
@@ -1106,7 +1145,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Swiss Alps",
+        "Luxury Chalet",
+        "Scenic Views"
       ],
       "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
       "skiPass": "ikon",
@@ -1126,7 +1168,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Arlberg Region",
+        "Off-Piste",
+        "Expert"
       ],
       "photo": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
@@ -1145,7 +1190,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Linked Ski Area",
+        "Après-Ski Village",
+        "Ski Circus"
       ],
       "photo": "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
@@ -1164,7 +1212,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Japow",
+        "Olympic Venue",
+        "Nagano Backcountry"
       ],
       "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
@@ -1183,7 +1234,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Japow",
+        "Uncrowded",
+        "Deep Snow"
       ],
       "photo": "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
@@ -1202,7 +1256,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Queenstown Base",
+        "Groomed Runs",
+        "Night Skiing"
       ],
       "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
       "skiPass": "ikon"
@@ -1221,7 +1278,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "High Altitude",
+        "Off-Piste",
+        "Andes Powder"
       ],
       "photo": "https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
       "skiPass": "ikon"
@@ -1283,7 +1343,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Lake Tahoe Views",
+        "Groomed Runs",
+        "IKON Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
       "skiPass": "epic"
@@ -1302,7 +1365,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Lake Tahoe Views",
+        "Deep Snow",
+        "Expert Terrain"
       ],
       "photo": "https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic"
@@ -1321,7 +1387,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Pacific NW",
+        "Tree Skiing",
+        "Seattle Day Trip"
       ],
       "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1340,7 +1409,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Vermont Classic",
+        "Snowboard Birthplace",
+        "Family Resort"
       ],
       "photo": "https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1359,7 +1431,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "NYC Day Trip",
+        "Night Skiing",
+        "Family Resort"
       ],
       "photo": "https://images.unsplash.com/photo-1517490232338-06b912a786b5?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1378,7 +1453,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "New England",
+        "Groomed Runs",
+        "Lake Views"
       ],
       "photo": "https://images.unsplash.com/photo-1548777123-e216912df7d8?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1397,7 +1475,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "Chicago Day Trip",
+        "Beginner Slopes"
       ],
       "photo": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1416,7 +1497,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "Twin Cities",
+        "Beginner Slopes"
       ],
       "photo": "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1435,7 +1519,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "Beginner Slopes",
+        "Groomed Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1551582045-6ec9c11d8697?w=800&h=600&fit=crop",
       "skiPass": "epic"
@@ -1454,7 +1541,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "Groomed Runs",
+        "DC Day Trip"
       ],
       "photo": "https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65",
       "skiPass": "epic"
@@ -1473,7 +1563,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "Groomed Runs",
+        "Mid-Atlantic"
       ],
       "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
       "skiPass": "epic"
@@ -1492,7 +1585,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Night Skiing",
+        "Groomed Runs",
+        "Mid-Atlantic"
       ],
       "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
       "skiPass": "epic"
@@ -1511,7 +1607,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Night Skiing",
+        "NYC Day Trip",
+        "Groomed Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39",
       "skiPass": "epic"
@@ -1530,7 +1629,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Powder Day"
+        "Powder Day",
+        "Deep Powder",
+        "Tree Skiing",
+        "Off-Piste"
       ],
       "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
       "skiPass": "epic",
@@ -1550,7 +1652,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Uncrowded",
+        "Groomed Runs",
+        "Low Crowds"
       ],
       "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
       "skiPass": "epic",
@@ -1570,7 +1675,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly"
+        "Family Friendly",
+        "Calgary Day Trip",
+        "Olympic Venue",
+        "Beginner Slopes"
       ],
       "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "epic",
@@ -1611,7 +1719,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Late Season"
+        "Late Season",
+        "Highest in Alps",
+        "Year-Round",
+        "Linked Ski Area"
       ],
       "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
       "skiPass": "epic",
@@ -1631,7 +1742,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Linked Ski Area",
+        "Luxury Chalet",
+        "Les Trois Vallées"
       ],
       "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
       "skiPass": "epic",
@@ -1651,7 +1765,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Linked Ski Area",
+        "Budget Pick",
+        "Family Resort"
       ],
       "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
       "skiPass": "epic",
@@ -1671,7 +1788,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels"
+        "All Levels",
+        "Australia's Largest",
+        "Family Resort",
+        "Groomed Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
       "skiPass": "epic"

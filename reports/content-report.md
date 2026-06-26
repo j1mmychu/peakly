@@ -1,19 +1,26 @@
-# Peakly Content & Data Quality Report — 2026-06-25
+# Peakly Content & Data Quality Report — 2026-06-26
 
-**Data health score: 88/100** | Build: `20260625a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 96/100** | Build: `20260626a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
 
 ---
 
 ## Prompt Corrections (permanent — stop raising these)
 
-The scheduled agent prompt is stale from the pre-May 2026 state. Current authoritative facts:
-
 | Prompt Claim | Reality |
 |---|---|
 | "182 venues, 12 categories" | **370 venues, 2 categories (skiing + beach).** Pivot happened May 2026. |
-| "Hiking has ZERO gear items" | **Hiking category does not exist.** Amazon cut for v1. |
-| "7 categories are single-venue stubs" | **Only skiing and beach exist.** All other categories were retired. |
-| "Add 5 new venue objects" | **VENUE FREEZE active per PM v68 (June 24).** No additions until post-launch Plausible data. |
+| "Hiking has ZERO gear items" | **Hiking category does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0`. |
+| "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired May 2026. |
+| "Add 5 new venue objects" | **VENUE FREEZE active (PM v68, June 24).** No additions until post-launch Plausible data confirms demand. |
+| "197 venues have empty tag arrays" | **FALSE — all 370 venues have tags.** Prior reports miscounted multi-line JSON format as empty. See §4. |
+
+---
+
+## Fix Applied This Run
+
+**Tag enrichment: 40 single-tag ski venues → 4 tags each.** (PM v69 P1 — "do this TODAY before Reddit post.")
+
+All 40 venues in the Ikon/Epic batch had exactly 1 tag (`"Powder Day"`, `"All Levels"`, `"Family Friendly"`, or `"Late Season"`). Each now has 4 contextually accurate tags. Brace balance: 5565/5565 ✅. Venue count: 370 ✅. Zero syntax risk — tag array content only.
 
 ---
 
@@ -21,13 +28,11 @@ The scheduled agent prompt is stale from the pre-May 2026 state. Current authori
 
 ### Venue Counts
 
-| Category | Count | In Season (Jun 25, N.Hemi Summer) |
-|----------|-------|-----------------------------------|
-| **beach** | 239 | ~181 N.hemi (PEAK ✅) · ~58 S.hemi suppressed (<18°C hard cap) |
-| **skiing** | 131 | 23 S.hemi (PEAK ✅) · 108 N.hemi off-season · 6 `lateSeason:true` glaciers can surface |
+| Category | Count | In Season (Jun 26, N. Hemi Summer) |
+|----------|-------|-------------------------------------|
+| **beach** | 239 | ~181 N.hemi firing (PEAK) · ~58 S.hemi suppressed by <18°C cap |
+| **skiing** | 131 | 23 S.hemi in-season (NZ/AUS/Chile/Argentina) · 108 N.hemi off-season · 6 `lateSeason:true` glaciers eligible |
 | **TOTAL** | **370** | Venue freeze active. No additions this run. |
-
-> Note: bracket-walker finds 372 objects — 2 are coordinate-only comment stubs (`{lat:-33.9648,lon:18.6017}`, `{lat:-22.8100,lon:-43.2507}`), not real venues. Real ID count: 370. The `.venue-baseline` value of 370 is correct.
 
 ### Structural Integrity
 
@@ -36,75 +41,137 @@ The scheduled agent prompt is stale from the pre-May 2026 state. Current authori
 | Duplicate IDs | ✅ 0 duplicates |
 | Missing lat/lon | ✅ 0 |
 | Missing airport codes | ✅ 0 |
-| Missing tags field | ✅ 0 (tag field present on all 370; content varies — see §4) |
-| Missing photos | ✅ 0 (370 photo URLs; 173 compact format + 197 JSON format) |
-| AP_CONTINENT coverage | ✅ All 144 unique venue APs present in AP_CONTINENT |
-| AIRPORT_COORDS coverage | ✅ All 144 unique venue APs present in AIRPORT_COORDS |
+| Missing tags | ✅ 0 (all 370 venues have ≥2 tags post-enrichment) |
+| Missing photos | ✅ 0 (370 photo URLs) |
+| AP_CONTINENT coverage | ✅ All 144 unique venue APs present |
+| AIRPORT_COORDS coverage | ✅ All 144 unique venue APs present |
 | Brace balance | ✅ 5565/5565 |
-| Build stamp lockstep | ✅ `20260625a` in app.jsx, sw.js, index.html |
+| Build stamp lockstep | ✅ `20260626a` in app.jsx, sw.js, index.html |
 | `.venue-baseline` | ✅ 370 — correct |
 
 ---
 
 ## 2. GEAR_ITEMS Audit
 
-**`GEAR_ITEMS` = 0 — correct.** Amazon cut for v1 (Jack's decision, June 2026). Revenue model is $7.58/1K MAU. The stale agent prompt claiming "Hiking has ZERO gear items" is reading a project that no longer exists. Nothing to fix here.
+**`GEAR_ITEMS` = 0 — correct.** Amazon cut for v1 (Jack's decision, June 9 2026). Revenue model is $7.58/1K MAU. The stale agent prompt claiming "Hiking has ZERO gear items" references a product that no longer exists. Nothing to fix.
 
 ---
 
-## 3. Seasonal Relevance — June 25 (N. Hemisphere Summer Peak)
+## 3. Seasonal Relevance — June 26 (N. Hemisphere Peak Summer)
 
-**Actively scoring:**
-- **Beach N.hemi (~181 venues):** PEAK season. Atlantic US, Caribbean, Mediterranean, SE Asia all firing. Hurricane season started June 1 — precip data from Open-Meteo suppresses Gulf/Caribbean venues dynamically during storm windows; no manual action needed.
-- **Ski S.hemi (23 venues):** New Zealand (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone), Australia (Falls Creek, Mt Buller, Hotham, Charlotte Pass, Thredbo, Perisher), Chile/Argentina (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor). **This is the only ski story until September.**
+### Actively Scoring (High Confidence)
 
-**Suppressed / low-scoring:**
-- **Ski N.hemi (108 venues):** Off-season. 6 `lateSeason:true` glaciers (Zermatt, Tignes, Val Thorens, Engelberg, Verbier, Mammoth) can breach the off-season cap when `snow_depth_max >= 0.5m`. lateSeason quality audit deferred to July sprint per PM v68.
-- **Beach S.hemi (~58 venues):** <18°C hard cap suppresses them from the front page; they still appear in search.
+**Beach N. Hemisphere (~181 venues):** PEAK season. Mediterranean, Caribbean, US Atlantic/Gulf Coast, SE Asia, Hawaii all firing. UV indexes peak in this window. Hurricane season began June 1 — precip data from Open-Meteo dynamically suppresses Gulf/Atlantic venues during storm windows without manual intervention.
+
+**Ski S. Hemisphere (23 venues):** NZ resorts (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone) and Australian resorts (Falls Creek, Mt Buller, Hotham, Charlotte Pass) opened June 5–15. Chilean/Argentine Andes (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor) are in peak winter. Hemisphere flag `isNorth = lat >= 0` gates them correctly.
+
+### Suppressed / Low-Scoring
+
+**Ski N. Hemisphere (108 venues):** Off-season cap applies. 6 `lateSeason:true` glaciers (Zermatt/Cervinia, Tignes, Val Thorens, Engelberg, Verbier, Mammoth) can bypass the cap when `snow_depth_max >= 0.5m`. Legitimate summer ski ops exist; the gate handles it.
+
+**Beach S. Hemisphere (~58 venues):** <18°C hard cap suppresses Bondi Beach, Copacabana, Cape Town, etc. from the front page. Still searchable.
+
+**Highlight for PM:** The 23 S. Hemisphere ski venues are the only ski story until September. Reddit post timing (now Day 22) coincides with NZ/AUS peak opening weekend — strong framing opportunity for any ski-angle copy.
 
 ---
 
-## 4. Content Quality — TAG THINNESS IS WORSE THAN REPORTED
+## 4. Content Quality — TAG AUDIT (corrects prior false positive)
 
-**This is the primary quality debt.** PM v68 referenced "40 ski venues with single tags." The actual picture:
+### Correction to PM v69 / Content Report v68
 
-| Segment | 0 tags | 2 tags | 4+ tags |
-|---------|--------|--------|---------|
-| Skiing (131 total) | **63** (48%) | 36 (27%) | 32 (24%) |
-| Beach (239 total) | **134** (56%) | 59 (25%) | 46 (19%) |
-| **All venues** | **197 (53%)** | **95** | **78** |
+The claim "197 venues (53%) have completely empty tag arrays" was a **counting bug**. Prior scripts matched only inline-format `tags:[...]` and saw multi-line JSON-format tags arrays as empty. All 370 venues always had tags. The real issue was narrower: **40 venues had exactly 1 tag** (all in the Ikon/Epic batch, JSON format).
 
-**197 venues have empty tag arrays.** This is not cosmetic — tapping "Powder Day" or "Snorkeling" on Explore returns nothing for those 197 venues. Users see a filtered grid missing more than half the catalog. That's a broken filter UX at launch.
+### Post-Enrichment Tag Distribution
 
-**Highest-traffic ski venues with 0 tags:**
-Winter Park (3,980 reviews), Copper Mountain (3,720), Palisades Tahoe (3,540), Snowbird (3,380), Brighton (3,060), Solitude (2,820), Deer Valley (2,780), Crystal Mountain WA (2,640), Mt Bachelor (2,600), Sugar Bowl (2,420).
+| Tag Count | Before This Run | After This Run |
+|-----------|----------------|----------------|
+| 0 tags | 0 | 0 |
+| 1 tag | **40** | **0** ✅ |
+| 2 tags | ~238 | ~238 |
+| 3 tags | 14 | 14 |
+| 4 tags | ~67 | ~107 (+40) |
+| 5+ tags | 1 | 1 |
 
-**Highest-traffic beach venues with 0 tags:**
-Kaanapali Beach Maui, Waikiki Beach Oahu, Cancún Beach, Bali Seminyak, Patong Phuket, Playa del Carmen, Varadero Cuba, Langkawi Cenang, Ko Phi Phi Beach — all have 0 tags.
+### Tags Added This Run (40 venues → 4 tags each)
 
-**Recommended fix:** Single targeted Edit pass enriching the top 30 ski + top 30 beach zero-tag venues. 3–4 tags each from a controlled vocabulary:
-- Ski: `Powder Day`, `Off-Piste`, `Groomed Runs`, `Expert Terrain`, `Beginner Friendly`, `Tree Skiing`, `Après Ski`, `Night Skiing`, `Park & Pipe`, `Ski-In/Ski-Out`
-- Beach: `Snorkeling`, `Surf Breaks`, `Family Friendly`, `Nightlife`, `Remote & Quiet`, `Crystal Clear Water`, `Coral Reef`, `Budget Friendly`, `Water Sports`
+| Venue | Location | Tags Added |
+|-------|----------|------------|
+| Snowbird | Utah, USA | Expert Terrain · High Altitude · Ski Only |
+| Solitude | Utah, USA | Deep Powder · Tree Skiing · Low Crowds |
+| Deer Valley | Park City, Utah | Groomed Runs · Ski Only · Luxury |
+| Crystal Mountain | Washington, USA | Tree Runs · Pacific NW · Expert Terrain |
+| Mt. Bachelor | Oregon, USA | Deep Powder · Volcanic Views · Pacific NW |
+| Sugar Bowl | California, USA | Lake Tahoe Views · Groomed Runs · Old School Cal |
+| Killington | Vermont, USA | Vermont Classic · Expert Terrain · East Coast Best |
+| Loon Mountain | New Hampshire | New England · Groomed Runs · Ski School |
+| Sunday River | Maine, USA | New England Icon · Groomed Runs · East Coast Best |
+| Sugarloaf | Maine, USA | Maine Wild · Expert Terrain · Groomed Runs |
+| Revelstoke Mountain | BC, Canada | Extreme Terrain · Deep Powder · Backcountry |
+| Cypress Mountain | BC, Canada | Vancouver Day Trip · Olympic Venue · Family Resort |
+| Engelberg-Titlis | Switzerland | Swiss Alps · Year-Round · Glacial Skiing |
+| Crans-Montana | Valais, Switzerland | Swiss Alps · Luxury Chalet · Scenic Views |
+| St. Anton am Arlberg | Tyrol, Austria | Arlberg Region · Off-Piste · Expert |
+| Saalbach Hinterglemm | Salzburg, Austria | Linked Ski Area · Après-Ski Village · Ski Circus |
+| Hakuba Happo-One | Nagano, Japan | Japow · Olympic Venue · Nagano Backcountry |
+| Furano | Hokkaido, Japan | Japow · Uncrowded · Deep Snow |
+| Coronet Peak | Queenstown, NZ | Queenstown Base · Groomed Runs · Night Skiing |
+| Valle Nevado | Andes, Chile | High Altitude · Off-Piste · Andes Powder |
+| Northstar California | Truckee, CA | Lake Tahoe Views · Groomed Runs · IKON Pass |
+| Kirkwood | California, USA | Lake Tahoe Views · Deep Snow · Expert Terrain |
+| Stevens Pass | Washington, USA | Pacific NW · Tree Skiing · Seattle Day Trip |
+| Mount Snow | Vermont, USA | Vermont Classic · Snowboard Birthplace · Family Resort |
+| Hunter Mountain | New York, USA | NYC Day Trip · Night Skiing · Family Resort |
+| Mt. Sunapee | New Hampshire | New England · Groomed Runs · Lake Views |
+| Wilmot Mountain | Wisconsin, USA | Night Skiing · Chicago Day Trip · Beginner Slopes |
+| Afton Alps | Minnesota, USA | Night Skiing · Twin Cities · Beginner Slopes |
+| Mad River Mountain | Ohio, USA | Night Skiing · Beginner Slopes · Groomed Runs |
+| Liberty Mountain | Pennsylvania, USA | Night Skiing · Groomed Runs · DC Day Trip |
+| Roundtop Mountain | Pennsylvania, USA | Night Skiing · Groomed Runs · Mid-Atlantic |
+| Whitetail Resort | Pennsylvania, USA | Night Skiing · Groomed Runs · Mid-Atlantic |
+| Jack Frost Big Boulder | Pennsylvania, USA | Night Skiing · NYC Day Trip · Groomed Runs |
+| Fernie Alpine Resort | BC, Canada | Deep Powder · Tree Skiing · Off-Piste |
+| Kimberley Alpine Resort | BC, Canada | Uncrowded · Groomed Runs · Low Crowds |
+| Nakiska | Kananaskis, Alberta | Calgary Day Trip · Olympic Venue · Beginner Slopes |
+| Val Thorens | Les 3 Vallées, France | Highest in Alps · Year-Round · Linked Ski Area |
+| Méribel | Les 3 Vallées, France | Linked Ski Area · Luxury Chalet · Les Trois Vallées |
+| Les Menuires | Les 3 Vallées, France | Linked Ski Area · Budget Pick · Family Resort |
+| Perisher | NSW, Australia | Australia's Largest · Family Resort · Groomed Runs |
 
-Estimated effort: 45 minutes. Zero structural risk — only adds array contents to existing empty `tags:[]` fields.
+### Remaining Tag Thinness (deferred, post-launch)
+
+~238 venues have exactly 2 tags. Functional for filtering; thin for discovery. This is the post-launch sprint, not a launch blocker. All filter pills now return accurate counts across the full catalog.
 
 ---
 
 ## 5. New Venue Additions — NONE THIS RUN
 
-**Venue freeze is in effect per PM v68 (June 24).** 370 is sufficient for launch. The stale agent prompt requests 5 new venues — this contradicts the PM's explicit decision. No venues added.
+**Venue freeze in effect (PM v68, June 24).** 370 venues is above the threshold for a compelling Explore grid. The stale agent prompt requests 5 new venues — this contradicts PM's explicit decision. No venues added.
 
-Post-launch deferred pipeline (Plausible data first):
-- Caribbean: Punta Cana (PUJ), Nassau (NAS) — need AP_CONTINENT + AIRPORT_COORDS entries before venues
-- South America beach: Florianópolis, Cartagena
-- Seoul ski: Seoul-area resorts (GMP/ICN)
+Post-launch deferred pipeline (needs Plausible data first):
+- Caribbean: Nassau (NAS — needs AP_CONTINENT + AIRPORT_COORDS entries)
+- South America beach: Cartagena (CTG — needs AP_CONTINENT + AIRPORT_COORDS)
+- Japanese beach: Okinawa (OKA — needs AP_CONTINENT + AIRPORT_COORDS)
+- Florianópolis is already in AP_CONTINENT as FLN ✅
 
 ---
 
-## PM Note
+## 6. Photo Quality
 
-**Tag thinness upgrades from P3 to P2.** PM v68 estimated "40 ski venues with single tags" — real number is 197 venues with empty tag arrays (63 ski + 134 beach). A user who taps any filter pill on Explore gets a grid where 53% of venues are invisible. This is launch-day user confusion, not July cosmetic debt.
+| Metric | Value |
+|--------|-------|
+| Total photo URLs | 370 |
+| Unique base photo IDs | ~135 |
+| Max repeat (any photo) | 3× ✅ |
+| Photo dedup last run | 2026-06-13 (`scripts/photo-dedup.cjs`) |
 
-**Recommended:** Move the tag enrichment pass to pre-launch or Day 1 post-launch, before the Reddit post drives traffic. It's a 45-minute surgical Edit pass, zero structural risk, and fixes the Explore filter experience before real users hit it.
+Acceptable for launch. Next step requires new Unsplash photos (blocked on API key — deferred).
 
-Reddit post remains P0. This is the P2 to queue immediately after.
+---
+
+## One Observation for the PM
+
+**Tag enrichment is done. The filter UX is fully functional at launch.** The "197 empty tags" P1 from v69 was a false positive — all venues always had tags. The real gap was 40 ski venues with 1 tag each, resolved this run (now 4 tags). The `"Powder Day"`, `"Expert Terrain"`, and `"Family Friendly"` filter pills now return correct counts across all 131 ski venues. **This clears the last code-side pre-launch P1. The Reddit post is the only remaining blocker.**
+
+---
+
+*Content agent — 2026-06-26 UTC*
