@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-06-26 (v70)
+# Peakly PM Report — 2026-06-27 (v71)
 
-> Supersedes v69 (June 25). **Status: RED → launch-ready.** Every technical gate is closed. Reddit is Day 22. The product risk is now entirely a human one: Jack hasn't posted yet.
+> Supersedes v70 (June 26). **Status: RED on distribution, GREEN on code.** Everything that can be built has been built. 370 venues. All tags clean. 23 days since launch readiness. The only variable that changes the trajectory now is Jack posting to Reddit.
 
 ---
 
@@ -9,46 +9,46 @@
 | Prompt Claim | Reality |
 |---|---|
 | "182 venues" | **370 venues.** Stale from pre-May pivot. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Not a bug. Nothing to fix. |
-| "Sentry DSN empty" | **Active at `app.jsx:7`.** Not empty. |
-| "Cache buster stale" | **Auto-bumped daily by DevOps.** Today: `20260626a`. |
-| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s are container egress blocks, not outages. Stop.** |
-| "197 venues with empty tag arrays" | **FALSE.** Content June 25 confirmed it was a counting bug on multi-line JSON format. All 370 venues have tags. |
-| "40 ski venues had 1 tag" | **FIXED June 26** — all 40 now have 4 contextually accurate tags. CLOSED. |
+| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Nothing to fix. |
+| "Sentry DSN empty" | **Active at `app.jsx:7`.** |
+| "Cache buster stale" | **Auto-bumped daily by DevOps.** Today: `20260627a`. |
+| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s = container egress blocks, not VPS outages. Stop.** |
+| "197 venues with empty tag arrays" | **FALSE.** Multi-line regex error. 0 empty-tag venues confirmed June 27. |
+| "40 ski venues had 1 tag" | **FIXED June 26.** All 370 venues: ≥2 tags. CLOSED. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25) since May 13.** Stop reporting. |
 | "GEAR_ITEMS" | **Count = 0. Amazon cut for v1. Final.** |
 | "Duplicate commit pattern" | **Known-skipped June 25 (second strike).** Stop reporting. |
 
 ---
 
-## Shipped Since v69 (2026-06-25 → 2026-06-26)
+## Shipped Since v70 (2026-06-26 → 2026-06-27)
 
 | What | Verdict |
-|------|--------|
-| **Cache `20260625a` → `20260626a`** (DevOps, `f90988a`) | ✅ Correct daily bump. |
-| **Tag enrichment: 40 ski venues 1→4 tags** (Content, `506a94c`) | ✅ Closes the P1 from v69. Filter pills (Powder Day, Expert Terrain, Family Friendly, Late Season) now return correct counts across all 131 ski venues. |
+|------|---------|
+| **Cache `20260626a` → `20260627a`** (DevOps, `3a65e80`) | ✅ Standard daily bump. |
+| **Content audit June 27** (`0059054`) — 370/370 venues verified ≥2 tags; photo 3× ceiling confirmed; seasonal relevance audit; venue freeze held. | ✅ Clean confirm. |
 
-**Code state June 26:**
-- `app.jsx`: 13,323 lines · cache `20260626a` · braces 5,565/5,565
+**Zero app.jsx changes overnight.** VENUE FREEZE holding. No regressions.
+
+**Code state June 27:**
+- `app.jsx`: 13,323 lines · cache `20260627a` · braces 5,565/5,565
 - **370 venues** (131 skiing / 239 beach) · GEAR_ITEMS: 0 · lateSeason: 25
-- All 370 venues have ≥2 tags. 0 empty, 0 single-tag.
-- All pre-launch code items ✅. VENUE FREEZE active.
+- Tag coverage: 0 empty, 0 single-tag, min 2 tags across all 370
+- Photo max repeat: 3× (135 unique photos)
 
 ---
 
-## Bug Triage — June 26
+## Bug Triage — June 27
 
 | Bug | Severity | Status |
-|-----|----------|-------|
-| **Reddit post: Day 22** | **P0 (business)** | Jack only. Today. Final answer below. |
-| **VPS SSH verify before posting** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health` from local terminal (not sandbox). 5 min. |
-| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 (App Store) / P3 (web) | Jack: 2 min in Supabase SQL editor. Graceful fallback active until then. |
+|-----|----------|--------|
+| **Reddit post: Day 23** | **P0 (business)** | Jack only. Not a code bug. See below. |
+| **VPS SSH verify before posting** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health` from local terminal. 5 min. Unverifiable from sandbox. |
+| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 (App Store) / P3 (web launch) | Jack: 2 min in Supabase SQL editor. Graceful fallback active until then. |
 | SRI on CDN scripts | P3 | DEFER post-launch. Final. |
-| CSP meta | P3 | DEFER. Babel `unsafe-eval` makes strict CSP incompatible. |
-| Duplicate commit pattern | Cosmetic | **KNOWN-SKIPPED** (second strike June 25). Stop reporting. |
+| CSP meta | P3 | DEFER. Babel `unsafe-eval` makes strict CSP incompatible with the no-build architecture. |
 
-**Permanently closed — stop raising:**
-Peakly Pro price · Sentry DSN · Cache buster · VPS "Day X binary blocker" · DEAL_WEIGHT · GEAR_ITEMS · coronet-peak lateSeason · Killington lateSeason · EWR AP_CONTINENT · duplicate-commit pattern · "197 empty tag arrays" (was a counting bug)
+**Permanently closed — stop raising:** Peakly Pro price · Sentry DSN · Cache buster · VPS "Day X blocker" · DEAL_WEIGHT · GEAR_ITEMS · coronet-peak lateSeason · Killington lateSeason · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays (counting bug)
 
 ---
 
@@ -56,86 +56,71 @@ Peakly Pro price · Sentry DSN · Cache buster · VPS "Day X binary blocker" · 
 
 | Blocker | What It Unlocks | Effort | Days Stalled |
 |---------|----------------|--------|-------------|
-| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **22** |
-| **VPS SSH verify** | Confident pricing + spike absorption | 5 min | 13 |
-| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 16 |
+| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **23** |
+| **VPS SSH verify** | Confident pricing + spike absorption | 5 min | 14 |
+| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 17 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External | External |
 | Apple Developer ($99) | App Store submission | ~2h + Apple review | Post-launch |
 
 ---
 
-## Explicit Product Decisions — June 26
+## Explicit Product Decisions — June 27
 
-### Decision 1: Tag enrichment is DONE. The last technical pre-launch gate is closed.
+### Decision 1: The venue catalog is FROZEN through the first Reddit post and 72h after it.
 
-v69 called tag enrichment a P1 "do today before Reddit post." Content agent did it. All 370 venues have ≥2 tags. All 131 ski venues have ≥4 tags, including Powder Day, Expert Terrain, Family Friendly, and Late Season. Filter pills return accurate counts across the full catalog.
+370 venues. 131 ski. 239 beach. 23 Southern-hemisphere ski venues at peak season right now. Every venue has tags. Every venue has photos. The catalog is complete for v1.
 
-There is no remaining code, data, or content item blocking the Reddit post. The pre-post checklist is:
-1. ~~Tag enrichment~~ ✅ DONE June 26
-2. Jack: `curl https://peakly-api.duckdns.org/health` from local terminal (5 min)
-3. Jack: Open live app on mobile, confirm Explore loads with ≥10 beach cards
-4. Jack: Post to Reddit
+Adding more venues before Reddit launch is feature anxiety. Adding more venues in the 72h after launch is chaos — that's when Sentry and Plausible will be surfacing actual data, and thrashing the catalog during that window contaminates the signal. The Content agent is on freeze. **No new venues until Plausible shows which categories or geographies users actually care about.**
 
-That's it. Four steps. Two of them are already done. The remaining two take 10 minutes combined.
-
-**SHIP. No further gates permitted.**
+**DEFER: All venue additions. Resume: 72h post-Reddit.**
 
 ---
 
-### Decision 2: Post copy gets a season-specific hook. Not generic.
+### Decision 2: Build nothing new before the Reddit post. The pre-launch backlog is empty.
 
-v69 copy was: *"Built a free app that finds the best beach or ski spot to fly to THIS weekend — live weather + real flight prices from your home airport..."*
+The five open code items from prior reports are either Jack-only actions (VPS health check, Supabase SQL paste) or post-launch enhancements (venue deep links, Unsplash optimization, eager Supabase deletion). There is no engineering task that would meaningfully improve the Reddit launch outcome. The app is done.
 
-That's fine. But we're posting June 26, and the timing is actually a strong hook that the generic copy wastes:
+The opportunity cost of building right now is delay. Every hour spent on "one more thing" is an hour without Plausible data, without Sentry signal, without knowing which venue gets clicked first or which search filter gets used. Build decisions made without users are guesses. Build decisions made with data are leverage.
 
-- It's **peak beach season in the Northern Hemisphere** (Mediterranean, Caribbean, Hawaii, SE Asia all firing)
-- It's **peak ski season in NZ, Australia, Chile, and Argentina** — Southern Hemisphere just opened their ski season
+**CUT: Any new feature or enhancement before Reddit post. No exceptions.**
 
-This dual-season angle is specific, surprising, and Reddit-clickable. Most travelers don't know they could be booking a ski trip to Cardrona or Valle Nevado right now.
-
-**Updated post copy:**
-
-> *"Built a free app that combines live weather + real flights to find the best ski or beach weekend, wherever you're flying from. 370 spots globally. It's peak beach season in the N. hemisphere right now AND peak ski season in NZ/Chile/Argentina — so both categories are fully live.*
->
-> *Brutally honest about forecast confidence — shows a 'low confidence' flag if the weather window is too far out to trust, so you're not booking based on vibes. Free. No account needed. Feedback welcome. [link]"*
-
-Post r/frugaltravel first, r/solotravel 60 min later.
-
-**Jack: stay in thread for 3 hours.** The first comment with personal data ("Found $210 RT to Queenstown NZ, score 91 — anyone been to Cardrona?") is the difference between 3K and 8K users at 90 days.
+**SHIP: Nothing. The product is already shipped.**
 
 ---
 
-### Decision 3: Post-launch sprint scope. Locked now so we don't thrash after the post.
+### Decision 3: The week-2 retention problem is real and needs one action now, not after launch.
 
-After the Reddit post lands, the next sprint is triggered by 24h of Plausible data. **Do NOT pre-build any of this.** Wait for signal on which venues are getting clicks.
+This report's "one product risk nobody is talking about" (see below) is also a decision point. The app has no pull mechanism — no push notifications (APNS undeployed), no email re-engagement, no weekly digest. The 90-day path to 8K vs. 5K hinges substantially on whether Week-1 users come back in Week 2.
 
-| Sprint Item | Trigger | Effort |
-|-------------|---------|--------|
-| Venue deep links (individual venue pages) | Plausible shows >20% of sessions end on detail sheet | 3–4h |
-| Unsplash `&auto=format&q=75` optimization | Sentry LCP > 3.5s on Explore, or MAU > 100 | 30 min (sed block exists) |
-| Eager Supabase `<script>` deletion | Plausible bounce rate > 65% on cold load | 30 min (diff exists) |
-| Beach tag enrichment (remaining 2-tag venues) | Plausible shows filter pills with low click-through | 45 min |
-| JSON-LD structured data expansion | SEO impressions flat after 2 weeks | 2h |
+The lowest-cost retention hook that already exists in the codebase is email capture via Supabase magic-link. When a user signs in and saves a wishlist or alert, they've given us an email. **We have no post-launch email strategy.**
 
-**DEFER ALL of the above** until we have real data. Building blind is how startups ship features nobody uses.
+**Decision:** After the Reddit post lands, Jack drafts one manual "This weekend's top spots" email to any users who signed up in Week 1 and sends it via Supabase's email tools. This is not a product feature — it's a founder move. 20 early users who get a personal "Hey, this weekend Cardrona is at 89/100, flights from AKL at $140" email will each tell one more person. That compounds. Code cannot replicate this.
 
-**CUT from this sprint entirely:** Any new venue category, any new scoring dimension, any monetization feature. The product is ready. Get users first.
+**No new code required. Action item for Week 2: manual email to Week-1 Supabase signups.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Post to Reddit. Today. Not tomorrow.**
+**1. Jack: Post to Reddit. Today. June 27. Not Monday.**
 
-Day 22 is not a number with a good story. "I built this app and waited 22 days to tell anyone" is not a narrative that builds confidence. More importantly: every day we don't post is a day without Plausible data, without Sentry production signal, and without the feedback that tells us what to build next. The app is ready. The tags are fixed. Post.
+Day 23 is now longer than most successful apps wait between building and telling anyone. The June-27/30 weekend is showing now — high confidence, peak beach season, NZ/AUS ski opening week. This is the best launch window the app will have until fall. The July 4 weekend will be day 7–10 out from a Monday post, which means low-confidence filtering will thin the grid. Post this weekend, not next.
 
-**2. Jack: VPS health check from local terminal.**
+**Suggested post copy (updated for June 27):**
 
-`curl https://peakly-api.duckdns.org/health` — takes 30 seconds, gives real confidence that pricing and weather caching are alive before 5K people hit the app. If it returns 200 with `wx_cache_size > 0`, we're good. If it's down, you have a real P0 to fix before posting. Do this before step 1.
+> *"Built a free tool that combines live weather + real flights to find the best ski or beach weekend from your home airport. 370 spots globally — it's peak beach season in the N. hemisphere right now AND peak ski season in New Zealand, Australia, and the Andes. Built-in honesty flag: if the forecast window is too far out to trust, it shows 'low confidence' instead of making up a score. Free. No account needed.*
+>
+> *Posting because feedback from people who actually travel matters more than another week of solo dev. Be brutal."*
 
-**3. Jack: Supabase SQL paste.**
+Post r/frugaltravel first. r/solotravel 60 min later. Jack: post your own comment with real flight data from your home airport within 30 minutes of posting. That comment is worth 2,000 users.
 
-`server/sql/delete-account.sql` → Supabase SQL editor → run. 2 minutes. Required for App Store 5.1.1(v). The client gracefully degrades until this runs, but "account deletion" is a mandatory App Store checkbox — don't let this be the blocker when you go to submit.
+**2. Jack: VPS health check from local terminal before posting.**
+
+One command: `curl https://peakly-api.duckdns.org/health` — if it returns `wx_cache_size > 0`, the weather proxy cache is alive and the app can absorb a Reddit spike. If it's down, fixing it before 5K people hit the app is a 5-minute SSH session, not a crisis.
+
+**3. Jack: Supabase SQL paste after the post.**
+
+`server/sql/delete-account.sql` → Supabase SQL editor → run. The client shows a graceful fallback now, so this doesn't block the web launch. It does block App Store 5.1.1(v). Do it the evening of or day after the post so the App Store submission can follow immediately.
 
 ---
 
@@ -143,42 +128,53 @@ Day 22 is not a number with a good story. "I built this app and waited 22 days t
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| New venue category (climbing, hiking, etc.) | Surfing was retired May 2026 with deliberation. Expanding categories before we have 1K users is brand dilution, not growth. REJECTED permanently for v1. |
-| Peakly Pro revival | No price-sensitivity data. No users. No conversion funnel. We don't know what value justifies $79/yr yet. REJECTED until 1K MAU. |
-| Hotel integrations in deal score | v69 deferred this. Still deferred. Flights + conditions is the product. REJECTED for v1. |
-| Offline mode / service worker prefetch expansion | PRECACHE = [] intentionally. At <1K MAU, this adds maintenance cost with zero user benefit. REJECTED. |
-| Social sharing (share a score) | Share-a-list already ships (Supabase shared_lists). Per-score sharing is a viral feature that requires a shareable URL format (venue deep links) as a prerequisite. REJECTED until deep links exist. |
+| New venue category (climbing, hiking, surf) | No users to validate demand. Expanding categories before 1K MAU dilutes the ski+beach brand. REJECTED for v1. |
+| Peakly Pro / subscription tier | No price-sensitivity data, no conversion funnel, no users. Premature. REJECTED until 1K MAU. |
+| Hotel integrations in deal score | Still deferred from v63. Flights + conditions is the product. REJECTED for v1. |
+| Social share-a-score (per-venue permalink) | Requires venue deep links as prerequisite, which requires Plausible to show demand. Don't build infrastructure for a feature before validating the demand. REJECTED until deep links exist and Plausible shows >20% sessions ending on detail sheet. |
+| Weekly email digest (automated) | Valid retention lever, but building automated email infra before knowing whether anyone signs up is premature. Manual founder email in Week 2 costs 20 minutes and teaches 10x more. REJECTED as code; accepted as founder action. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The July 4 problem.** When Jack posts today (June 26), the app will show great conditions for the **upcoming weekend: June 27–30** (days 1–4 from now, high confidence). Users who come back after the Reddit post to plan the **July 4th weekend** will be looking at day 8–11, which is beyond Open-Meteo's reliable 7-day window. The front page filters out `confidence: "low"` results. The July 4 weekend grid may be sparse or show the "low confidence" fallback.
+**The retention cliff at Day 8.**
 
-This is correct product behavior — we don't sell certainty we can't back. But users who had a great first experience (rich cards, high confidence scores) on June 27 and come back June 29 to look at July 4 will see a noticeably different product. They won't know why. The `ScoringExplainer` component covers this conceptually, but the UX of "the app was full of results on Friday, why is it empty on Sunday?" is a churn trigger.
+Users who discover Peakly via Reddit this weekend will have a perfect first experience: peak beach season, high confidence scores, real flight prices, 370 venues. They open the app Friday June 27 and see a rich grid with cards like "Santorini: 91/100, $340 RT from JFK."
 
-**Mitigation (not a code change, just copy):** The empty-state copy for `confidence: "low"` currently reads something like "Check back closer to the weekend." That is sufficient. No action needed pre-launch — but watch for comments in the Reddit thread asking "it worked great the first time, why are there no results now?" and respond proactively in thread.
+Then they close the app.
+
+The app has no mechanism to bring them back. APNS isn't deployed. There's no email re-engagement. No weekly digest. No personalized alert that fires on Tuesday when Queenstown's snowpack hits the threshold they set. The Alerts tab exists but does nothing on web and nothing on iOS without APNS. The magic-link email capture captures addresses but sends zero follow-up messages.
+
+Day 8 is next Saturday (July 5). A user who had a great experience on June 27 and hasn't thought about the app since is not coming back organically. There's no trigger. Reddit's "I found this cool thing" post lives for 72 hours. After that, the only way users return is if they remembered to bookmark the PWA, saved it to their home screen, or set an alert that actually fires.
+
+**The gap between 5K and 8K at 90 days is likely this problem, not a code problem.**
+
+The low-cost mitigations that already exist: PWA install nudge (fires after 2 wishlists saved), Alert bell on venue cards (registers with server but currently requires APNS to deliver). The install nudge is the only one that actually works on web today — it's the single highest-ROI interaction to get right in the first 72 hours after launch.
+
+**One ask of Jack:** In the Reddit thread, explicitly mention "you can install it as an app from your phone browser (no App Store needed)." That converts a web session into a home screen icon, which is the closest thing to a retention hook the app has right now. The `<InstallNudge>` component handles the prompt. The Reddit comment handles the awareness.
 
 ---
 
 ## Success Criteria
 
-**Launch-day baseline (48h after post):**
+**Launch-day baseline (48h after Reddit post):**
 - ≥500 unique visitors (Plausible)
-- ≥50 Explore interactions (any filter or sort change)
+- ≥50 Explore interactions (filter or sort change)
 - ≥10 "Book" clicks (Travelpayouts or Booking.com)
-- ≥5 Supabase sign-ups (magic-link)
+- ≥5 Supabase sign-ups
 - Zero ErrorBoundary triggers in Sentry
+- ≥3 Reddit comments with personal flight data ("found $X RT to [venue]")
 
 **90-day projection (5K vs. 8K):**
 
 | Scenario | What's True |
 |----------|-------------|
-| **5K users** | One Reddit post, gets traction in r/frugaltravel, fades after 72h. No follow-up posts. No personal-data comments from Jack in thread. |
-| **8K users** | Jack stays in thread, posts personal-data comment in first 30 min ("I'm flying from JFK — app showed $190 RT to Cancún, score 89"). Cross-shared to r/solotravel by a user. Second post in r/travel or r/skiing 2 weeks later using post-launch Sentry/Plausible data as social proof. |
+| **5K users** | One Reddit post, gets 50–100 upvotes, 72h traction, fades. No personal data comment. No follow-up post. No Week-2 email. |
+| **8K users** | Jack posts personal data comment in first 30 min. Cross-post to r/solotravel lands. Jack sends manual email to Week-1 signups with weekend conditions. Second Reddit post in Week 3 using real user stats ("someone booked Cardrona from AKL at $140, score was 93"). PWA install nudge fires for 15%+ of users who saved 2+ venues. |
 
-**The lever is thread engagement, not code.** The app is ready. Everything from here is distribution.
+**The lever is distribution and founder presence, not code.** The product is ready. Everything from here is Jack in the thread.
 
 ---
 
-*v70 — 2026-06-26 — written by PM agent*
+*v71 — 2026-06-27 — written by PM agent*
