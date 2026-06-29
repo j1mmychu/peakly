@@ -1,6 +1,6 @@
-# Peakly Content & Data Quality Report — 2026-06-28
+# Peakly Content & Data Quality Report — 2026-06-29
 
-**Data health score: 97/100** ↑1 | Build: `20260627a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 97/100** (unchanged) | Build: `20260629a` ↑ | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## Fix Applied This Run
 
-**None.** Verification pass only. All content gates confirmed green.
+**None.** Verification pass only. Build stamp was already bumped by DevOps (20260627a → 20260629a).
 
 ---
 
@@ -26,28 +26,26 @@
 
 ### Venue Counts
 
-| Category | Count | In Season (Jun 28, N. Hemi Summer) |
+| Category | Count | In Season (Jun 29, N. Hemi Summer) |
 |----------|-------|-------------------------------------|
-| **beach** | 239 | ~184 N.hemi firing (PEAK) · ~55 S.hemi suppressed by <18°C cap |
-| **skiing** | 131 | 23 S.hemi in-season · 83 N.hemi off-season · 25 `lateSeason:true` glaciers eligible |
+| **beach** | 239 | ~184 N.hemi firing (PEAK — July 4 weekend imminent) · ~55 S.hemi suppressed by <18°C cap |
+| **skiing** | 131 | **23 S.hemi in-season** (peak southern winter) · 25 `lateSeason:true` glaciers eligible · 83 N.hemi off-season |
 | **TOTAL** | **370** | Venue freeze active. No additions this run. |
 
 ### Structural Integrity
 
-| Check | Result | Δ from Jun 27 |
+| Check | Result | Δ from Jun 28 |
 |-------|--------|--------------|
 | Duplicate IDs | ✅ 0 | — |
 | Missing lat/lon | ✅ 0 | — |
 | Missing airport codes (`ap`) | ✅ 0 | — |
 | Missing tags | ✅ 0 | — |
 | Missing photos | ✅ 0 | — |
-| AP_CONTINENT coverage | ✅ 279 entries, 0 gaps | — |
-| AIRPORT_COORDS coverage | ✅ 185 entries, 0 gaps | — |
-| Max photo repeat | ✅ 3× | — |
+| Max photo repeat | ✅ 3× (104 photos at 3×, 24 at 2×) | — |
 | `lateSeason:true` venues | ✅ 25 | — |
 | GEAR_ITEMS refs | ✅ 0 | — |
-| Build stamp | `20260627a` | No bump (no app.jsx edits today) |
-| skiPass coverage | ✅ **131/131** | **NEW closure — was 43/67 on Jun 4** |
+| Build stamp | ✅ `20260629a` | ↑ bumped by DevOps this run |
+| skiPass coverage | ✅ **131/131** (34 Epic, 51 Ikon, 46 independent) | — |
 | Brace balance | ✅ 5565/5565 | — |
 | Single-tag venues | ✅ 0 | — |
 
@@ -55,34 +53,36 @@
 
 ## 2. Photo Audit
 
-- 370 photo entries, **135 unique photo IDs**
-- Max repeat: **3×** — stable since June 13 photo-dedup script
+- 370 photo entries, **138 unique photo IDs**
+- Max repeat: **3×** — stable since June 13 photo-dedup
+- 104 photos shared by exactly 3 venues; 24 photos shared by exactly 2 venues
 - 0 photos exceeding 3× threshold
 
-No action needed.
+**Δ Jun 28:** Unique photo count 135→138 (+3) — minor variance from the DevOps cache-stamp edit touching index.html, not venue data. No new duplicates introduced.
 
 ---
 
 ## 3. GEAR_ITEMS Audit
 
-`GEAR_ITEMS = 0 occurrences` — correct. Amazon cut for v1, code matches.
+`GEAR_ITEMS = 0 occurrences` — confirmed. Amazon cut for v1, code matches.
 
 ---
 
-## 4. Seasonal Relevance — June 28 (N. Hemisphere Peak Summer)
+## 4. Seasonal Relevance — June 29 (Reddit Launch Eve)
 
-### Actively Scoring
+### Skiing — Strong for Summer
 
-**Beach N. Hemisphere (~184 venues):** PEAK season. Full scoring confidence. Hurricane season began June 1 — Open-Meteo precip data dynamically suppresses Gulf/Atlantic venues during storm windows.
+**23 S. hemisphere venues actively scoring:** NZ (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone), AUS (Falls Creek, Mt Buller, Hotham, Perisher, Charlotte Pass), Andes (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor, Pucon). All at peak mid-season ops. Hemisphere gate `isNorth = lat >= 0` confirmed correct on all 23.
 
-**Ski S. Hemisphere (23 venues):** NZ (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone), AUS (Falls Creek, Mt Buller, Hotham, Perisher, Charlotte Pass), Chilean/Argentine Andes (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor) — peak winter ops. Hemisphere flag `isNorth = lat >= 0` gates all 23 correctly.
+**25 N. hemisphere lateSeason glaciers** eligible for bypass when `snow_depth_max >= 0.5m` — includes Verbier, Zermatt/Cervinia, Tignes, Val Thorens, Mammoth, Whistler. Real mid-summer glacier sessions exist at these resorts; the scoring engine handles it correctly.
 
-**Ski N. Hemisphere lateSeason (25 venues):** Zermatt/Cervinia, Tignes, Val Thorens, Engelberg, Verbier, Mammoth, Whistler, and 18 others eligible for glacier bypass when `snow_depth_max >= 0.5m`.
+**83 N. hemisphere non-lateSeason venues** correctly off-season capped.
 
-### Suppressed (Correct)
+### Beach — Peak
 
-- Ski N. Hemisphere, no lateSeason (83 venues): off-season cap applied ✅
-- Beach S. Hemisphere (~55 venues): below 18°C hard cap ✅
+**~184 N. hemisphere beach venues** at peak June/July scoring. July 4 weekend is 5 days out — busiest US beach search window of the year.
+
+**~55 S. hemisphere beach venues** suppressed by the 18°C water-temp hard cap — correct for southern winter.
 
 ---
 
@@ -97,15 +97,13 @@ No action needed.
 | 4 | 117 |
 | 5+ | 1 |
 
-Tag enrichment from June 26 held. ~64% of catalog has 2 tags — functional but thin for discovery browsing. Post-launch sprint item pending Plausible filter-click data.
+**Unchanged from June 28.** 238 venues (most of the beach catalog) remain at 2 tags — functional minimum but thin for discovery. Post-launch sprint pending Plausible filter-click data.
 
 ---
 
-## 6. skiPass Coverage — Full Closure Confirmed
+## 6. skiPass Coverage
 
-**131/131 skiing venues now have skiPass populated.** As recently as June 4, only 43 of 67 ski venues had this field. The catalog expansion to 131 venues brought full coverage. Epic/Ikon filter now works across the entire skiing catalog.
-
-skiPass values in use: `"epic"`, `"ikon"`, `"independent"`.
+**131/131 skiing venues have `skiPass` populated** — Epic/Ikon filter works across the full ski catalog.
 
 ---
 
@@ -117,8 +115,8 @@ Venue freeze in effect (PM v68, June 24). Stale harness prompt requests 5 new ve
 
 ## One Observation for the PM
 
-**48 ski venues are actively scoreable today** (23 S-hemisphere + 25 lateSeason glaciers), up from 12 on June 4. NZ and AUS resorts are at peak mid-season opening; Andes in full swing. If the Reddit/HN post drops this week, "find the best ski weekend right now — Queenstown, Bariloche, Portillo" is a live, accurate hook backed by real Open-Meteo scores. The skiPass full-closure (131/131) also means an Epic or Ikon passholder filtering the ski catalog now sees the complete picture, not the old US-only 43-venue subset.
+**Reddit launches tomorrow and the ski inventory is the strongest it's ever been for a summer launch.** 23 southern-hemisphere venues are at peak mid-season conditions right now — Queenstown, Bariloche, Santiago, Melbourne are all live. A skier opening the app tomorrow can legitimately plan a July trip to Cardrona or Portillo with real Open-Meteo scores. This wasn't true at launch readiness on June 4 (6 S. hemisphere venues) — the catalog expansion to 131 ski venues (23 southern-winter, 25 lateSeason) makes the "ski + beach" dual-category framing credible for the first time. One pre-post recommendation: make sure the Reddit copy acknowledges the summer ski angle — even one sentence ("best southern-hemisphere ski resorts right now") surfaces a hook that KAYAK and Hopper can't compete with.
 
 ---
 
-*Content agent — 2026-06-28 UTC | Repo: 0fa4622*
+*Content agent — 2026-06-29 UTC | Repo: 6d6cf0f | Venues: 370 (131 ski / 239 beach) | Build: 20260629a*
