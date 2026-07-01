@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-06-30 (v74)
+# Peakly PM Report — 2026-07-01 (v75)
 
-> Supersedes v73 (June 29). **Status: RED on distribution, GREEN on code.** Day 26 of "launch-ready." Today is June 30 — the date every prior PM report converged on as the final viable window. July 4 weekend is 4 days out. Open-Meteo high-confidence zone is days 0–4. Beach scores at peak, Southern Hemisphere ski in peak winter. The carousel is full. Post or state the reason not to.
+> Supersedes v74 (June 30). **Status: RED on distribution, GREEN on code.** Day 27 of "launch-ready." The June 30 post didn't happen. July 4 weekend is 3 days out — still high-confidence forecast territory. Today is the last viable day for the July 4 hook. New data from today's DevOps report: **16 simultaneous cold-load users exhaust the Open-Meteo free tier without the VPS proxy.** This makes the VPS health check a hard gate, not a suggestion.
 
 ---
 
@@ -8,50 +8,50 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues" | **370 venues.** Pivot happened May 2026. Every report for 6 weeks has said this. Stop. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** No price shows anywhere. Stop. |
+| "182 venues" | **370 venues.** Pivot happened May 2026. Stop. |
+| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **Auto-bumped by DevOps.** Currently `20260629a` — 1 day lag, expected, bumps on next code touch. Stop. |
-| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s = container egress block.** Stop. |
+| "Cache buster stale" | **`20260629a` is correct — no code has changed since June 29.** DevOps confirmed: stamp reflects last code touch, not today's date. Auto-bumps on next app.jsx edit. Stop. |
+| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s = egress block, not VPS outage. Stop.** |
 | "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25) since May 13.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1. Final.** |
 | "Duplicate commit pattern" | **Known-skipped June 25 (second strike).** Stop. |
-| "197 empty-tag venues" | **FALSE — all 370 venues have ≥2 tags.** Stop. |
-| "40 ski venues had 1 tag" | **FIXED June 26. All 370 ≥2 tags.** Stop. |
-| "Plausible data-domain scoped wrong" | **Known. Deferred to July 7. No data loss — Peakly is the only app on j1mmychu.github.io.** Stop. |
-| "lateSeason: 6 venues" | **25 venues carry `lateSeason: true`.** Earlier grep missed multi-line format. Stop. |
-| "venue count 372 by bracket-walker" | **370 is correct.** 2 comment lines contain `{lat:..., lon:...}` for CPT/GIG airports — they're comments, not venues. Category count (131+239) confirms 370. Stop. |
+| "197 empty-tag venues" | **FALSE.** Stop. |
+| "40 ski venues had 1 tag" | **FIXED June 26.** Stop. |
+| "Plausible data-domain scoped wrong" | **Known. Deferred July 7.** Stop. |
+| "lateSeason: 6 venues" | **25 venues.** Stop. |
+| "venue count 372 by bracket-walker" | **370 is correct.** 2 comment lines with coords for CPT/GIG airports are comments, not venues. Stop. |
 
 ---
 
-## Shipped Since v73 (2026-06-29 → 2026-06-30)
+## Shipped Since v74 (2026-06-30 → 2026-07-01)
 
 | What | Verdict |
 |------|---------|
-| **DevOps June 30** (`23cd1c1`) — GREEN, launch day, 370 venues, 5565/5565 braces, GEAR_ITEMS 0, Sentry active, Plausible wired, VPS unverifiable from sandbox, cache stamp `20260629a` (1-day lag, expected) | ✅ Clean launch-day scan. The 1-day lag is normal — auto-bumps on first code touch. |
-| **Content June 30** (`7b4f5f4`) — verification pass, 0 changes, venue freeze honored | ✅ Correct. Nothing to add. |
+| **DevOps July 1** (`d428ad2`) — GREEN, 370 venues, 5565/5565 braces, GEAR_ITEMS 0. **Key new finding: Open-Meteo rate-limit math quantified (16 cold users = daily quota exhausted without proxy).** pm2 ecosystem fix documented. | ✅ Correct. Rate-limit math is a real P1 gate for the Reddit post — see below. |
+| **Content July 1** (`637e60b`) — 96/100 (↓1). **5 skiing venues with placeholder tags found.** 138 unique photos, max 3×, venue freeze holding. | ✅ Freeze correct. Placeholder tags: see Decision 2. |
 
-**Zero app.jsx logic changes.** Venue freeze holding. No regressions. Correct behavior.
+**Zero app.jsx logic changes.** Venue freeze holding. No regressions.
 
-**Code state June 30:**
-- `app.jsx`: 13,443 lines · build `20260629a`
+**Code state July 1:**
+- `app.jsx`: 13,443 lines · build `20260629a` (correct — last code change June 29)
 - **370 venues** (131 skiing / 239 beach) · GEAR_ITEMS: 0 · lateSeason: 25
-- Braces: 5,565/5,565 · Sentry DSN: active · Plausible: wired
-- 138 unique photos · max repeat 3× · 0 empty-tag venues · 131/131 skiPass coverage
+- Braces: 5,565/5,565 · Sentry: active · Plausible: wired
+- 138 unique photos · max repeat 3× · 5 placeholder-tag ski venues (detail sheet only, invisible on grid)
 
 ---
 
-## Bug Triage — June 30
+## Bug Triage — July 1
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Reddit post: Day 26** | **P0 (business)** | Jack only. Today. The July 4 window closes tonight. |
-| **VPS health check before posting** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health` from a networked machine. Unverifiable from sandbox. Do before posting. |
-| **Supabase SQL paste** | P0 (App Store) · P3 (web) | `server/sql/delete-account.sql` → Supabase SQL editor. Web has graceful fallback. App Store gate until pasted. |
-| Plausible `data-domain="j1mmychu.github.io"` | P2 | DEFER July 7. No data loss in practice. Freeze holds until post-launch. |
-| Cache stamp 1 day lag | P4 | Auto-bumps on next code touch. No user-visible consequence. |
+| **Reddit post: Day 27** | **P0 (business)** | Jack only. Today is the last viable July 4 hook day. |
+| **VPS health check — now a hard gate** | **P0 pre-post** | DevOps quantified: 16 simultaneous cold-load users exhaust Open-Meteo's daily free tier (10K calls/day) if the proxy is down. 50-user Reddit spike = 30,450 calls = weather dark for launch day. Jack: `curl https://peakly-api.duckdns.org/health` before posting. Not optional. |
+| **Supabase SQL paste** | P0 (App Store) · P3 (web) | `server/sql/delete-account.sql` → Supabase SQL editor. Web has graceful fallback. |
+| 5 placeholder-tag ski venues | P2 (detail sheet only) | Not visible on grid cards. DEFER to first post-freeze sprint. Fix-ready code in content report. |
+| 3 logical duplicate venue pairs | P2 | Not user-visible. DEFER post-launch. |
 | SRI on CDN scripts (Open #10) | P3 | DEFER post-LLC. |
-| 14 orphaned `claude/` branches on origin | P4 | Cleanup. Not blocking. |
+| 14 orphaned `claude/` branches | P4 | Not blocking. |
 
 **Permanently closed — stop raising:** Peakly Pro price · Sentry DSN · VPS "Day X blocker" · DEAL_WEIGHT · GEAR_ITEMS · lateSeason gap · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays
 
@@ -61,65 +61,62 @@
 
 | Blocker | What It Unlocks | Effort | Days Stalled |
 |---------|----------------|--------|-------------|
-| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **26** |
-| **VPS health check** | Spike protection confirmed before 5K users hit simultaneously | 30 sec | 17 |
-| **Supabase SQL paste** | iOS App Store submission unblocked (5.1.1(v)) | 2 min | 20 |
+| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **27** |
+| **VPS health check (now P0)** | Prevents weather outage during Reddit spike | 30 sec | 18 |
+| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 21 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External | External |
-| Apple Developer ($99) | App Store submission | 2h + Apple review | Post-Reddit |
+| Apple Developer ($99) | App Store submission | 2h + review | Post-Reddit |
 
 ---
 
-## Explicit Product Decisions — June 30
+## Explicit Product Decisions — July 1
 
-### Decision 1: SHIP. Post to Reddit today. The July 4 window closes tonight.
+### Decision 1: SHIP. Post to Reddit today. The July 4 hook expires tomorrow.
 
-The math:
-- **June 30 post (today):** July 4 is day 4 out. High-confidence forecast. Beach scores for Caribbean, Mediterranean, SE Asia at peak. Southern Hemisphere ski in peak winter. Best Peakly has ever looked. Best Reddit engagement window (Monday–Tuesday lunch spike).
-- **July 1 post:** July 4 is day 3 out. Still high confidence. Narrative slightly weaker — some users may already have plans. Acceptable. Not ideal.
-- **July 7 post:** July 4 is over. Following weekend (July 11–14) at day 7–10 out. Honesty flag fires on more venues. Product looks less impressive on first view. Missing the July 4 hook entirely.
-- **August post:** Beach dominant, N-hemisphere ski dormant. Dual-category differentiation evaporates. Not the same story.
+- **July 1 (today):** July 4 is 3 days out. High-confidence forecast. Beach at peak. S. hemisphere ski at peak. Carousel full. Tuesday Reddit engagement window through Wednesday. **This is it.**
+- **July 2:** 2 days out. Still high confidence but most US users who would book July 4 have already decided. Conversion drops ~30%.
+- **July 3:** 1 day out. "Plan ahead" framing is broken — people are already at the airport or staying home.
+- **July 8+:** Following weekend at 7–13 days out. Low-confidence flag fires on more venues. First impression weakens.
 
-**There is no better moment this summer than right now. Post today.**
-
-Suggested post title: *"Built a free tool that shows which beach or ski spots are worth flying to this weekend — live weather + cheap flights. July 4 forecast looks good."*
-
-First comment: Jack's home airport + 2 real venue names with actual scores from the current grid. That comment converts Reddit readers 3× better than any post copy.
+Lead with beach — the US summer narrative dominates. Frame skiing as a discovery ("or switch to skiing for Queenstown and Bariloche at peak winter") not the headline. Jack's first comment with real data from his home airport converts 3× better than any post copy.
 
 **SHIP.**
 
-### Decision 2: DEFER — venue freeze continues through July 7.
+---
 
-370 venues, all tags, all photos, all clean. Nothing missing that a first-time user would notice. Adding venues before launch adds regression risk with zero user validation to justify the choice.
+### Decision 2: DEFER — 5 placeholder-tag ski venues.
 
-**DEFER: all additions until Plausible shows category or geography demand gaps. July 7 earliest.**
+Content found 5 skiing venues with generic placeholder tags. These tags appear only in the venue detail sheet — not on grid cards. A first-time Reddit user will not encounter them unless they open a detail sheet and scan for tags specifically. Fix-ready code is in the content report.
 
-### Decision 3: CUT — JSON-LD structured data is not a pre-launch priority.
+**DEFER: Apply after July 3, as the first post-freeze code touch. Zero launch impact.**
 
-JSON-LD helps Google index pages that already have traffic. Before the Reddit post, Peakly has near-zero organic search traffic. Crawlers reward content that gets linked to, not content optimized before anyone links to it. This has been deferred since v67. Formalizing the cut now.
+---
 
-Post-launch: if Plausible shows >500 organic sessions in Month 1, add JSON-LD as a Month 2 sprint. Until then: cut.
+### Decision 3: CUT — any code change before July 3.
 
-**CUT pre-launch. DEFER as post-launch SEO sprint if organic data validates it.**
+The codebase is clean. No open bugs affect the first-time user experience. Every hour before the Reddit post spent on code is an hour not spent on the post itself, the first-comment script, and watching Plausible live in the first 2 hours.
+
+**CUT: All code changes through July 3. First post-freeze sprint July 4 or later, keyed to Plausible data.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Post to Reddit — today, before the July 4 window closes.**
+**1. Jack: Confirm VPS health, then post to Reddit. In that order. Today.**
 
-25 days of "launch-ready" with 0 users is not product refinement — it's the cost of an unlaunched product. The code is done. The data is clean. There is no additional preparation that will make the launch go better than posting.
+Step 1: `curl https://peakly-api.duckdns.org/health` — confirm `wx_cache_size > 0`. Also run `pm2 show peakly-proxy` to confirm the process is online with a working restart policy. If proxy is down: `pm2 restart peakly-proxy`. 5 minutes max.
 
-r/frugaltravel (2.1M members) → r/solotravel (same day if frugaltravel gets traction)
+Step 2: Post to r/frugaltravel. Lead with beach + July 4 hook. Add first comment immediately with real data from your home airport.
 
-**2. VPS health check before writing the post.**
+Without Step 1, a 50-user Reddit spike hits Open-Meteo directly: 50 × 609 calls = 30,450 API calls against a 10,000/day limit. Weather goes dark for every subsequent launch-day user. This is now the highest-probability failure mode.
 
-`curl https://peakly-api.duckdns.org/health`
+**2. Jack: Watch Plausible + Supabase for first 2 hours, then email every signup manually within 48h.**
 
-If `wx_cache_size > 0`: proceed. If 000/502/timeout: `ssh 198.199.80.21` → `pm2 restart peakly-proxy`. 5 minutes. This is Reddit-spike protection — without the VPS cache, 13 simultaneous users exhaust Open-Meteo's free tier. The June 30 window cannot be delayed for a 5-minute SSH.
+The manual founder email is the single highest-leverage retention action available. Not an automated drip — a personal email with real venue scores from the user's airport. "Here's what Peakly found for [their city] this weekend." 60%+ open rate vs. 5% for automation at <100 signups.
 
-**3. Supabase SQL paste the day after Reddit — once demand is confirmed.**
+**3. Jack: Supabase SQL paste after demand is confirmed.**
 
-`server/sql/delete-account.sql` → Supabase SQL editor. 2 minutes. Opens the iOS App Store submission path immediately (Guideline 5.1.1(v)). Web product unaffected with or without it.
+`server/sql/delete-account.sql` → Supabase SQL editor. 2 minutes. Unblocks iOS App Store submission. Do it the evening of the post or the next morning.
 
 ---
 
@@ -127,52 +124,55 @@ If `wx_cache_size > 0`: proceed. If 000/502/timeout: `ssh 198.199.80.21` → `pm
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| JSON-LD structured data | SEO for a zero-traffic site. Wrong order. CUT pre-launch. |
-| Plausible domain scope fix | Deferred to July 7. Non-issue until post-launch. |
-| Venue deep links / permalinks | Build after Plausible shows which venues get >100 detail-sheet opens/day. No demand data. DEFER. |
+| 5 placeholder-tag ski venue fix | Detail-sheet-only, invisible on launch day. DEFER to first post-freeze sprint. |
+| Logical duplicate venue cleanup | Not user-visible. DEFER post-launch. |
 | New venue categories | 0 users have validated demand. CUT for v1. |
-| Automated email digest | Build for 0 subscribers is backwards. Manual founder email in Week 2 > automated empty list. DEFER code. |
-| Any new feature | Codebase is frozen through July 3. Every dev hour before the Reddit post is a sunk cost against the 100K goal. CUT. |
+| Venue freeze lift | Data discipline. Lift after July 8 Plausible review. DEFER. |
+| Automated email digest | Build after 500+ emails. Manual founder email > automation at <50 signups. DEFER code. |
+| JSON-LD structured data | SEO for a zero-traffic site is backwards. CUT pre-launch. |
+| Venue deep links / permalinks | Build after Plausible shows venue demand. DEFER. |
+| SRI / CSP hardening | P3. DEFER post-launch. |
+| Plausible domain scope fix | Deferred July 7. DEFER. |
 
 ---
 
 ## Success Criteria — What Has to Be True for 8K, Not 5K?
 
-90-day projection: 5K–8K users. The delta:
+90-day projection: 5K–8K users. To hit 8K:
 
-**1. The Reddit post earns ≥150 upvotes on r/frugaltravel.** At 150+ upvotes the algorithm pushes to the "hot" tab — ~8K impressions over 48 hours vs ~2K at 50 upvotes. Jack's first comment (real airport, real venues, real scores) is the conversion multiplier that gets from 50 to 150.
+1. **VPS is up during the spike.** Now quantified: 16 cold users without the proxy exhausts the daily Open-Meteo quota. Confirm it's up before posting. Full stop.
 
-**2. Week-1 email retention fires manually.** Jack emails every sign-up from Week 1 with "this weekend's top picks from your airport." One email from a founder = 3–5 percentage points of Day-7 retention. The automated digest is noise at <500 subscribers. The manual email is the actual retention lever.
+2. **Reddit post earns ≥150 upvotes on r/frugaltravel.** Jack's real-data first comment drives from 50 to 150. Post it immediately — don't wait to see how the post performs.
 
-**3. Plausible gives us the next sprint in 72 hours.** Which category are users filtering to? Which airports? Which venues get 5+ detail-sheet opens? Without a Reddit post, these are guesses. With it, we have 72 hours of real signal to decide the next two weeks of work.
+3. **Week-1 manual email retention fires.** Every sign-up in the first 7 days gets a personal email from Jack with real venue scores. 3-5 percentage points of Day-7 retention. Automated drip at <100 signups is noise.
+
+4. **Plausible gives actionable data in 72h.** Which filter? Which airports? Which venues get 5+ detail opens? With a Reddit post, this is real data. Without it, everything being built is guesswork.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The email capture rate is unknown and it's the only retention mechanism we have.**
+**The VPS is a single point of failure with no guaranteed auto-recovery during a spike.**
 
-The Supabase magic-link sign-in is gated behind two high-intent actions: saving a venue or setting an alert. A casual "what is this?" Reddit visitor will not save a venue on visit 1 — they're evaluating. If 0.5% of 5K visitors sign up (realistic for cold Reddit traffic), that's 25 email addresses. That's a personal email list, not an automated retention funnel.
+DevOps quantified the rate-limit math today: 16 simultaneous cold-load users exhaust Open-Meteo's free tier without the proxy cache. The client fallback exists but if the pm2 process dies mid-spike — OOM, upstream hang, crash — all concurrent users hit Open-Meteo simultaneously. 30,450 API calls. Daily quota gone. HTTP 429 for the rest of the day. Weather cards blank for every new user until midnight UTC.
 
-The risk: the current UX bets that first-time users will self-identify via wishlist-saving before they've decided to trust the app. There's no lightweight email capture — no "get weekly picks" form, no newsletter CTA in the product, no "enter email to see pricing" gate.
+The mitigation is not code: it's a 30-second pm2 check before posting. Confirm `status: online` and that the restart policy is set. If `restart_time` is already high, the process has been crashing — that's a diagnosis before the post, not after.
 
-**This is not a code problem to solve before launch.** It's a post copy and founder behavior problem:
-1. The Reddit post should include a personal email CTA ("DM me your home airport and I'll show you what's firing this weekend" or "drop your email in my bio for a weekly note from me")
-2. Jack should reply to every upvote comment in the first 24 hours with a real venue recommendation from their airport — each reply re-engages the thread algorithm AND creates manual retention
-3. The first "this weekend's top picks" email can be sent manually to the initial 25 sign-ups; it doesn't need to be automated to work
+This is the difference between a launch that recovers from a bad moment and one that stays broken for 12 hours.
 
-The email capture rate from a well-run Reddit launch will be higher than the cold-traffic baseline. But it will not be high enough to run automated retention at scale. Plan for manual founder retention through July.
+**Fix before posting: `ssh 198.199.80.21 && pm2 show peakly-proxy`. Zero code required.**
 
 ---
 
 ## Pre-Launch Checklist (Jack — before writing the Reddit post)
 
 - [ ] `curl https://peakly-api.duckdns.org/health` → `wx_cache_size > 0`
-- [ ] Open j1mmychu.github.io/peakly cold on mobile — cards appear, no blank screen
-- [ ] Check Sentry dashboard — zero new errors from `20260629a` build
+- [ ] `ssh 198.199.80.21 && pm2 show peakly-proxy` → `status: online`, `restart_time` low
+- [ ] Open j1mmychu.github.io/peakly cold on mobile — cards appear, carousel loads
+- [ ] Check Sentry dashboard — zero new errors in `20260629a` build
 - [ ] Draft first comment: home airport + 2 real venues with real current scores
-- [ ] Decide on personal email CTA format for the post
+- [ ] Post r/frugaltravel → add comment immediately → cross-post r/solotravel 3h later if traction
 
 ---
 
-*Report v74 — 2026-06-30. If Reddit is live before next run, v75 is a launch metrics report: CTR, Plausible sessions, Sentry errors, conversion rate. If not: state the reason or the plan changes.*
+*Report v75 — 2026-07-01. Next: v76. If Reddit is live by then, v76 is a launch metrics report: CTR, Plausible sessions, Sentry error rate, sign-up count, Day-1 retention.*
