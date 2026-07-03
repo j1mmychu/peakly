@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-02
+# Peakly Content & Data Report — 2026-07-03
 
-**Data health score: 74/100** (↓22 from Jul 1 — photo duplication, surf tags, missing iconic venues newly scored) | Build: `20260702a` ✅ | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 74/100** (unchanged — all open issues deferred to July 7 per PM v76) | Build: `20260703a` ✅ (bumped by DevOps this run) | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
 
-**⚠️ VENUE FREEZE active through July 3** (PM v68, June 24). 5 new venues staged for July 3 paste below. Freeze expires tomorrow — no changes to app.jsx this run.
+**⚠️ VENUE FREEZE extended through July 7** (PM v76, July 2 override). All queued fixes deferred: placeholder tags, surf-legacy tags, duplicates, new venue paste. Reddit launched June 30; PM is holding the line until 72h Plausible signal reads on July 3.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## Fix Applied This Run
 
-**None.** Venue freeze active through July 3. Findings documented below.
+**None.** All queued changes deferred to July 7 per PM v76. DevOps bumped cache stamp to `20260703a` this run; content makes no app.jsx changes.
 
 ---
 
@@ -27,17 +27,17 @@
 
 ### Venue Counts
 
-| Category | Venues | In Season (Jul 2, N. Hemi Summer) |
+| Category | Venues | In Season (Jul 3, N. Hemi Summer) |
 |----------|--------|-------------------------------------|
-| **Beach** | 239 | ~184 N. hemi firing (PEAK — prime Euro/Caribbean/US summer) · ~55 S. hemi suppressed by <18°C cap |
-| **Skiing** | 131 | **23 S. hemi in-season** (southern winter peak) · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** scoring 0 |
+| **Beach** | 239 | ~184 N. hemi at PEAK — **July 4 weekend starts tomorrow** · ~55 S. hemi suppressed by <18°C cap |
+| **Skiing** | 131 | **23 S. hemi in-season** (peak southern winter) · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** scoring 0 |
 | **TOTAL** | **370** | Verified via bracket-walk eval. Grep undercounts to 156 (known bug — never use grep for this). |
 
 ### Structural Integrity
 
-| Check | Result | Δ from Jul 1 |
+| Check | Result | Δ from Jul 2 |
 |-------|--------|--------------|
-| Duplicate IDs | ✅ 0 | — |
+| Duplicate IDs in VENUES | ✅ 0 | — |
 | Missing lat/lon | ✅ 0 | — |
 | Missing airport codes (`ap`) | ✅ 0 | — |
 | Missing tags | ✅ 0 | — |
@@ -45,13 +45,13 @@
 | Max photo repeat | ✅ 3× (104×3, 24×2, 10×1 = 138 unique) | — |
 | `lateSeason:true` venues | ✅ 25 | — |
 | GEAR_ITEMS refs | ✅ 0 | — |
-| Build stamp | ✅ `20260702a` — DevOps bumped this run | fixed |
+| Build stamp | ✅ `20260703a` — bumped by DevOps this run | fixed |
 | skiPass coverage | ✅ 131/131 (34 Epic / 51 Ikon / 46 independent) | — |
 | Ratings | ✅ range 4.0–4.99, avg 4.71, zero outliers | — |
-| Airport coverage | ✅ 131 unique airports, all in AP_CONTINENT and AIRPORT_COORDS | — |
-| Placeholder-tag venues | ⚠️ **5 open** (from Jul 1 — fix staged, see §2) | → freeze |
-| Logical duplicate venue pairs | ⚠️ 3 open (from Jun 30 — `south-beach-miami` is exact coord dup) | → freeze |
-| Surf-category legacy tags | ⚠️ **27 venues NEW** (see §3) | new Jul 2 |
+| Airport coverage | ✅ all `ap` values in AIRPORT_COORDS | — |
+| Placeholder-tag venues | ⚠️ **5 open** (confirmed again — fix staged §2, execute July 7) | → Jul 7 |
+| Logical duplicate venue pairs | ⚠️ 3 open (`beach_miami` exact dup — staged for removal Jul 7) | → Jul 7 |
+| Surf-category legacy tags | ⚠️ **27 venues** (staged in Jul 2 §3 — execute July 7) | → Jul 7 |
 
 ### Logical Duplicate Venues (open from Jun 30 — deferred per freeze)
 
@@ -145,24 +145,18 @@ Each of the 5 new venues staged below uses a photo not in the current 138-photo 
 
 ---
 
-## 6. Seasonal Relevance (July 2, 2026)
+## 6. Seasonal Relevance (July 3, 2026 — July 4 Weekend Eve)
 
-### Active this weekend
-- **Beach peak season:** ~184 N. hemisphere venues — prime European (Med, Atlantic), Caribbean, US East/West, SE Asia. July 4 weekend is the highest US beach search week of the year.
-- **Skiing S. hemisphere in-season (23):** NZ (Remarkables, Coronet Peak, Treble Cone, Cardrona, Mt Hutt), Australia (Thredbo, Perisher, Falls Creek, Buller, Hotham, Charlotte Pass), Chile (Valle Nevado, La Parva, El Colorado, Nevados, Corralco), Argentina (Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor)
-- **Skiing lateSeason N. hemi (25):** Whistler, Mammoth, Abasin, Tignes/Val d'Isère, Cervinia, Zermatt, Engelberg, Revelstoke, Lake Louise, Val Thorens, Verbier, Méribel, Les Menuires, and 12 others
+### Active right now
+- **Beach peak season:** ~184 N. hemisphere venues at maximum summer scoring. **July 4 weekend starts tomorrow** — highest US domestic beach search volume of the year. If Reddit launched June 30, today is Day 3 of the first traffic spike. Florida Gulf, Southeast, Pacific Coast, Hawaii, Caribbean, Mediterranean all firing.
+- **Skiing S. hemisphere in-season (23 venues):** NZ (Remarkables, Coronet Peak, Treble Cone, Cardrona, Mt Hutt), Australia (Thredbo, Perisher, Falls Creek, Buller, Hotham, Charlotte Pass), Chile (Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco), Argentina (Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor) — all at peak mid-season.
+- **Skiing lateSeason N. hemi (25 venues):** Whistler, Mammoth, Arapahoe Basin, Tignes/Val d'Isère, Cervinia, Zermatt, Engelberg, Revelstoke, Lake Louise, Val Thorens, Verbier, Méribel, Les Menuires, plus 12 others — bypass active when `snow_depth_max >= 0.5m`.
 
-### Off-season / scoring 0
-- **83 N. hemi ski venues** — binary off-season cap, correct
+### Off-season (scoring 0)
+- **83 N. hemi non-lateSeason ski venues** — off-season binary cap applied correctly.
 
-### Gap: year-round glacier venues not in catalog
-These venues operate July ski sessions but are completely absent from VENUES:
-- **Hintertux Glacier**, Austria (year-round, HM airport not in AIRPORT_COORDS)
-- **Saas-Fee**, Switzerland (glacier above 3,500m, ZRH accessible)
-- **Les Deux Alpes**, France (summer glacier Jul–Aug, GNB — in AP_CONTINENT but not AIRPORT_COORDS)
-- **Mölltal Glacier**, Austria (summer, KLU — not registered)
-
-These are legitimate "skiing in July" destinations being entirely missed. Priority post-freeze.
+### Known gap: summer-glacier venues absent from catalog
+Hintertux (year-round), Saas-Fee (ZRH-accessible), Les Deux Alpes (summer glacier Jul–Aug), Mölltal — all operate July ski sessions, none in VENUES. Deferred to July 7 sprint pending Plausible data confirming ski-in-July demand exists in the user base.
 
 ---
 
@@ -253,15 +247,16 @@ These are legitimate "skiing in July" destinations being entirely missed. Priori
 
 ## 8. One Observation for the PM
 
-**Tomorrow (July 3) the venue freeze lifts — and there are 8 changes queued.**
+**It's July 4 eve. Reddit launched 3 days ago. Read Plausible before the July 7 sprint.**
 
-Priority order for the July 3 sprint:
-1. **Tag fix for 3 lateSeason placeholder-tag venues** (5 min paste) — `winter-park`, `copper-mountain`, `lake-louise` can surface in the July Ski grid this weekend with generic tags
-2. **Remove exact dup** `beach_miami` / `south-beach-miami` (1 min)
-3. **Retire 7 kite/wind legacy tags** across 10 venues (10 min)
-4. **Paste 5 new venues** (§7 above) — brings notable missing icons (Alpe d'Huez, St. Moritz, Cortina) into the catalog with fresh photos
-5. Photo sourcing sprint — the 2.7× avg photo reuse is the top quality risk for any social post/launch
+The July 7 sprint backlog now has 8 queued items (photo dedup, 5 placeholder tags, 27 surf-legacy tag retires, 2 duplicate removals, 5 new venue pastes) — all staged and paste-ready in the July 1–2 content reports. Before committing sprint order, run a 72h Plausible read first:
+
+- **Which venues were viewed most?** This calibrates whether the European ski mid-tier gap (Alpe d'Huez, St. Moritz, Cortina) is worth the new-venue pastes, or whether demand is concentrated in US/Caribbean.
+- **Which filter chips were tapped?** If "Skiing" chips are low, photo dedup for beach takes priority over new ski venues.
+- **What's the day-3 return rate?** If >25%, email retention sprint is more valuable than photo sourcing.
+
+The photo dedup sprint (target: 50 new photos, ≤2× reuse) is the one item that can't wait for demand signal — the dunking risk is structural regardless of which venues users visit. Source photos first, redistribute second.
 
 ---
 
-*Content agent — 2026-07-02 UTC | Repo: origin/main 54b6cb3 | Venues: 370 (131 ski / 239 beach) | Build: 20260702a ✅ | Prior report: 2026-07-01*
+*Content agent — 2026-07-03 UTC | Repo: origin/main cfe73f1 | Venues: 370 (131 ski / 239 beach) | Build: 20260703a ✅ | Prior report: 2026-07-02*
