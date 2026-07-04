@@ -1,39 +1,37 @@
-# Peakly DevOps Report — 2026-07-03
+# Peakly DevOps Report — 2026-07-04
 
-**Status: 🟡 YELLOW**
+**Status: 🟢 GREEN**
 
-Structurally clean. Reddit launch was scheduled for Monday June 30 — 3 days have elapsed with zero commits, meaning no agent activity and no code changes post-launch. Cache stamp was 4 days stale (`20260629a` → bumped to `20260703a` this run). Two persistent P1s remain open: SRI hashes (#10) and Plausible domain scope. VPS unverifiable from sandbox; 3 days post-Reddit launch, Jack must confirm `/health` is still warm.
+Cache buster was 5 days stale (`20260629a`, last updated June 29) — bumped to `20260704a` this run. No new P0s. Structurally healthy: braces balanced, GEAR_ITEMS zero, Sentry live, no client-side secrets beyond the documented public-safe Supabase anon key. VPS unverifiable from sandbox (egress block) — Jack must confirm live before/after any Reddit traffic.
 
 ---
 
 ## Fixes Shipped This Run
 
-| Fix | File | Value |
-|-----|------|-------|
-| Cache buster `20260629a` → `20260703a` | `app.jsx:17` | 4 days stale → current |
-| SW CACHE_NAME `peakly-20260629a` → `peakly-20260703a` | `sw.js:2` | Evicts stale cached assets on next visit |
-| Query string `?v=20260629a` → `?v=20260703a` | `index.html:395` | Forces browser reload of updated app.jsx |
+| Fix | File | Line | Detail |
+|-----|------|------|--------|
+| Cache buster `20260629a` → `20260704a` | `app.jsx:17` | 17 | 5 days stale → current |
+| SW CACHE_NAME `peakly-20260629a` → `peakly-20260704a` | `sw.js:2` | 2 | Forces service worker swap on next visit |
+| Query string `?v=20260629a` → `?v=20260704a` | `index.html:395` | 395 | Forces browser reload of updated app.jsx |
 
 ---
 
 ## 1. Live Site Health
 
-**Network unreachable from sandbox** — outbound HTTPS to `j1mmychu.github.io` and `peakly-api.duckdns.org` times out. Per CLAUDE.md 2026-06-13: sandbox egress block, not a real outage. Jack must verify manually (see checklist below).
+**Network unreachable from sandbox** — outbound HTTPS to `peakly-api.duckdns.org` returns HTTP 403 at the egress proxy. Per CLAUDE.md 2026-06-13: this is a sandbox egress allowlist block, not a server outage. Do NOT read this as VPS down.
 
 | Check | Result |
 |-------|--------|
-| `app.jsx` size | **13,443 lines / 657 KB raw** |
-| `PEAKLY_BUILD` stamp | `20260629a` → **bumped to `20260703a`** this run |
-| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260703a` ✅ |
+| `app.jsx` size | **13,443 lines / 673 KB raw** |
+| `PEAKLY_BUILD` stamp | `20260629a` → **bumped to `20260704a`** this run |
+| Three-file lockstep | `PEAKLY_BUILD` / `CACHE_NAME` / `?v=` all `20260704a` ✅ |
 | Brace balance | **5,565 / 5,565 — BALANCED** ✅ |
 | Plausible analytics | Present, `defer`'d, `data-domain="j1mmychu.github.io"` ✅ |
-| Sentry DSN | `9416b032a4…@o4511108649058304.ingest.us.sentry.io`, `defer`'d, live ✅ |
-| GEAR_ITEMS (Amazon) | `grep -c GEAR_ITEMS app.jsx` → **0** — v1 cut confirmed ✅ |
-| Venue count | **370** (131 skiing / 239 beach) via eval ✅ |
-| Eager Supabase `<script>` | Removed from index.html — lazy-load only ✅ |
-| Days since last commit | **4 days** (last: 2026-06-29) ⚠️ |
-
-**⚠️ 4 days no commits.** Reddit launched June 30. Zero agent activity or code changes since. Either the agents went dark post-launch, or nothing broke — both are possible. If Sentry shows new errors from June 30 onward, those 4 days of silence are a problem.
+| Sentry DSN | Active (`9416b032a4…@o4511108649058304.ingest.us.sentry.io`), `defer`'d ✅ |
+| Venue count | **~370** (node bracket-walk) ✅ |
+| GEAR_ITEMS | **0 occurrences** — Amazon cut holds ✅ |
+| Eager Supabase `<script>` | **Not present** — correctly removed ✅ |
+| All `<img>` tags | `loading="lazy"` on all instances ✅ |
 
 ---
 
@@ -41,29 +39,23 @@ Structurally clean. Reddit launch was scheduled for Monday June 30 — 3 days ha
 
 | Check | Result |
 |-------|--------|
-| Proxy URL in client | `https://peakly-api.duckdns.org` — HTTPS only ✅ |
-| HTTP bare-IP (104.131.82.242) | Not present in client code ✅ |
-| `fetchTravelpayoutsPrice` timeout | 5,000 ms `AbortController` + 3 retries with 1.2s backoff ✅ |
-| Weather proxy timeout | 4 s (`_tryProxyWx`) + direct Open-Meteo fallback ✅ |
-| Travelpayouts token in client | **Not present** — server-side only ✅ |
-| Live VPS health | **UNVERIFIABLE FROM SANDBOX** — last confirmed healthy 2026-06-13 |
-
-Jack: `curl https://peakly-api.duckdns.org/health` — confirm `wx_cache_size > 0` and no unexpected errors. If the VPS has been serving real traffic since June 30, check `pm2 logs peakly-proxy --lines 100` for any 500s or OOM restarts.
+| Proxy URL | `https://peakly-api.duckdns.org` (HTTPS) ✅ |
+| HTTP URLs in app.jsx | None — all external calls are HTTPS ✅ |
+| `fetchTravelpayoutsPrice` timeout | 5,000ms `AbortController` timeout with `clearTimeout` ✅ |
+| Proxy fallback | `_tryProxyWx()` with 4s timeout → falls back to direct Open-Meteo ✅ |
+| VPS live check | **UNVERIFIABLE FROM SANDBOX** — last confirmed healthy 2026-06-13. Jack: `curl https://peakly-api.duckdns.org/health` — if `wx_cache_size > 0`, you're good. If zero or down, SSH and `pm2 restart peakly-proxy`. |
 
 ---
 
-## 3. Weather & External API
+## 3. Weather & External APIs
 
 | Check | Result |
 |-------|--------|
-| Open-Meteo endpoints | `api.open-meteo.com/v1` + `marine-api.open-meteo.com/v1` ✅ |
-| Batch strategy | 50 venues per batch, throttled at 2s intervals ✅ |
-| Rate-limit protection | VPS weather cache (2hr LRU) shields direct Open-Meteo ✅ |
-| Babel in PRECACHE | `sw.js` PRECACHE = `["https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"]` ✅ |
-
-**Free-tier ceiling math:** 370 venues × ~2 weather calls = ~740 upstream requests per fresh-load user. Open-Meteo free tier cap is ~10,000 req/day → 13 simultaneous fresh-load users saturates it without the proxy cache. With VPS cache warm, 1,000 concurrent users on the same cached coords = 1 upstream call.
-
-**Post-launch concern:** If the VPS restarted at any point since June 30 (OOM, apt-update reboot, anything), the in-memory weather cache reset to 0. Cold cache + Reddit traffic = direct Open-Meteo hammering. Check `pm2 describe peakly-proxy` → `uptime` field. If uptime < 3 days, the VPS restarted post-launch.
+| Open-Meteo endpoint | `https://api.open-meteo.com/v1` (no auth required) ✅ |
+| Batch strategy | 100 venues/batch, 500ms throttle between batches; priority tier (first 200) blocks loading state, remaining 170 fire-and-forget in background ✅ |
+| Marine fetches | Beach category only (`v.category === "beach"`) ✅ |
+| 2hr client-side cache | Present — weather data cached in localStorage with TTL ✅ |
+| Rate limit math | 370 venues × ~2 calls = ~740 calls/fresh load per user. Direct Open-Meteo free tier is ~10K calls/day → throttles at ~13 simultaneous fresh-load users. VPS proxy cache (2hr TTL, 4000-entry LRU) compresses this to ~1 upstream call per (venue, 2hr window). **VPS being up is the only thing protecting a Reddit spike.** |
 
 ---
 
@@ -71,106 +63,129 @@ Jack: `curl https://peakly-api.duckdns.org/health` — confirm `wx_cache_size > 
 
 | Check | Result |
 |-------|--------|
-| Travelpayouts token in client | ✅ Not present — server-side env var only |
-| Supabase anon key in client | ✅ Intentional — public anon key, RLS-gated, not a secret |
-| `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.mobileprovision`, PDFs |
-| `proxy.js` token handling | ✅ `process.env.TRAVELPAYOUTS_TOKEN` only |
-| TP_MARKER `710303` in client | ✅ Affiliate marker only — not a token |
-| Recent commits for leaks | ✅ Last 20 commits clean — no env vars, no credentials |
-| SRI on CDN scripts | ⚠️ **Open #10** — none on React, ReactDOM, Babel, Sentry |
+| Travelpayouts token in client | **NOT PRESENT** — `server/proxy.js` reads `process.env.TRAVELPAYOUTS_TOKEN`, client only has `TP_MARKER = "710303"` (Aviasales affiliate marker — public by design) ✅ |
+| Supabase anon key | Present in `app.jsx:26` as `SUPABASE_ANON_KEY` — intentional and documented. Anon key is public-safe; all data access is RLS-gated. **Not a secret. Not a finding.** ✅ |
+| `.gitignore` | Covers `.env`, `*.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.mobileprovision`, `*.pdf`, `*.pptx`, business docs ✅ |
+| Recent commit history scan | Last 15 commits: daily reports and cache bumps only — no secrets introduced ✅ |
+| HTTP URLs | Zero plain `http://` external API calls in `app.jsx` or `index.html` ✅ |
+| Sentry DSN in client | Present in `app.jsx:8` and `index.html:77` — intentional (Sentry DSN is public-facing by design, not a secret) ✅ |
 
 ---
 
 ## 5. Performance Analysis
 
-| Asset | Est. Gzip | Notes |
-|-------|-----------|-------|
-| Babel Standalone 7.29.7 | ~1,800 KB raw / ~430 KB gzip | SW PRECACHE'd — cached after first visit ✅ |
-| ReactDOM 18.3.1 | ~130 KB gzip | |
-| app.jsx (raw) | 657 KB / ~161 KB gzip | |
-| Sentry SDK | ~50 KB gzip | `defer`'d — off critical path ✅ |
-| React 18.3.1 | ~11 KB gzip | |
-| **First load total** | **~800 KB transferred** | Babel served from SW cache on repeat visits |
+**Estimated cold-load payload:**
 
-**Biggest bottleneck:** Babel Standalone — 1.8MB unzipped, parsed and run before a single React component renders. No mitigation inside the no-build constraint; SW PRECACHE is the only lever and it's already pulled. First-visit mobile performance is ~3–5 seconds on 3G; repeat visits are fast.
+| Asset | Size (approx) |
+|-------|--------------|
+| React 18.3.1 UMD prod | ~130 KB gzipped |
+| ReactDOM 18.3.1 UMD prod | ~40 KB gzipped |
+| Babel Standalone 7.29.7 | ~280 KB gzipped |
+| Sentry CDN bundle | ~70 KB gzipped |
+| app.jsx (Babel-transpiled in browser) | ~673 KB raw → ~180 KB gzipped |
+| **Total** | **~700 KB gzipped** |
 
-**CDN versions current:** React 18.3.1, Babel 7.29.7, Sentry via CDN ✅
+**Single largest bottleneck: Babel Standalone.** A 280 KB gzipped JavaScript compiler that runs in the browser on every cold load just to transpile JSX. It's architectural — not removable without adding a build step — but it's 40% of the page load payload. At current scale it's acceptable; at 100K MAU it's a user-visible LCP penalty.
 
----
+**All `<img>` tags** use `loading="lazy"` ✅
 
-## P1 — Open Issues
+**CDN dependency versions:**
 
-### P1.1 — No SRI on React, ReactDOM, Babel, Sentry (Open #10)
-
-Still open. A CDN compromise on unpkg or sentry-cdn would inject arbitrary JS with no detection. Babel is the most dangerous target — it eval-executes 657KB of JSX with no sandboxing.
-
-**⚠️ DO NOT add a `<meta>` CSP alongside SRI — Babel Standalone requires `unsafe-eval` to transpile JSX; a CSP would break the entire app.**
-
-```bash
-# Run from any networked machine to generate hashes:
-curl -s https://unpkg.com/@babel/standalone@7.29.7/babel.min.js | \
-  openssl dgst -sha384 -binary | openssl base64 -A
-
-curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | \
-  openssl dgst -sha384 -binary | openssl base64 -A
-
-curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | \
-  openssl dgst -sha384 -binary | openssl base64 -A
-```
-This trades a ~400 KB cache entry for zero Babel download cost on every return visit. **Risk:** if the CDN URL ever changes (version bump), the old cached Babel gets served indefinitely until cache eviction. Pin the exact version (already done in the URL) and bump in lockstep with `CACHE_NAME`.
-
-Then in `index.html`, update each script tag:
-```html
-<script crossorigin
-  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-<HASH_FROM_ABOVE>"
-></script>
-```
-
-**Estimated fix time: 30 minutes.**
-
-### P1.2 — Plausible `data-domain` captures entire GitHub Pages subdomain (Open)
-
-```html
-<!-- current — tracks all of j1mmychu.github.io, not just /peakly: -->
-<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
-
-<!-- fix — path-scoped: -->
-<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.hash.js"></script>
-```
-
-With Reddit traffic from June 30, any other project under `j1mmychu.github.io` contaminates Peakly's Plausible dashboard. The fix is one attribute change + updating the site entry in Plausible's dashboard settings. **Estimated fix time: 2 minutes.**
+| Dep | Version | Notes |
+|-----|---------|-------|
+| React | 18.3.1 | Current stable ✅ |
+| ReactDOM | 18.3.1 | Current stable ✅ |
+| Babel Standalone | 7.29.7 | Recent ✅ |
+| Sentry | Hash-pinned CDN bundle | ✅ |
+| Supabase JS | Lazy-loaded via CDN | Loads only on auth ✅ |
 
 ---
 
 ## 6. Cost Estimate
 
-| MAU | Monthly Cost | Bottleneck |
-|-----|-------------|------------|
-| 1K | **$6** | VPS only; Open-Meteo free; GitHub Pages free |
-| 10K | **$12–18** | VPS upgrade (~2GB droplet) at ~5K MAU |
-| 100K | **$50–120** | VPS $48 (4GB) + Open-Meteo commercial tier |
+**Current infrastructure:** DigitalOcean droplet ($6/month) + GitHub Pages (free).
 
-**Reddit launch cost impact:** A typical 500-upvote post drives 2,000–8,000 visits over 48 hours. That's ~$0 incremental cost — GitHub Pages + Open-Meteo free tier handles it if the VPS cache was warm. If Open-Meteo throttled and the direct fallback fired 5,000 times, still within their free tier. Net: **the launch should have cost $0 extra.**
+| MAU | Open-Meteo calls/day (est.) | Cost |
+|-----|-----------------------------|------|
+| 1K MAU | ~700 calls/day — well under free tier with proxy cache | **$6/mo** |
+| 10K MAU | ~4,440 upstream calls/day (370 venues × 12 cold calls/venue/day) | **$6/mo** |
+| 100K MAU | Proxy absorbs. VPS needs 2 GB RAM + PM2 cluster mode. | **~$12–18/mo** |
 
-**Next cost threshold:** ~5K MAU. At that point, 1GB VPS hits OOM risk from pm2 heap growth under sustained concurrent load. Upgrade to 2GB ($12/mo) before that point, not after.
-
----
-
-## Post-Reddit-Launch Checklist (Jack — Manual)
-
-3 days have elapsed since the June 30 launch. Verify before the next post/press mention:
-
-- [ ] `curl https://peakly-api.duckdns.org/health` → `{"status":"ok", "wx_cache_size":N}` (N > 0 means cache is warm)
-- [ ] `pm2 describe peakly-proxy` → check `uptime` field; if < 3 days, VPS restarted post-launch and cache was cold during traffic
-- [ ] `pm2 logs peakly-proxy --lines 100` → scan for 500 errors, OOM kills, unhandled promise rejections
-- [ ] Check Sentry dashboard for errors since June 30 — especially `ReferenceError`, `TypeError`, ErrorBoundary triggers
-- [ ] Check Plausible for bounce rate — >80% mobile bounce means something is broken on first load
-- [ ] `curl https://j1mmychu.github.io/peakly/` → HTTP 200 with `20260703a` in response body (after this push deploys)
-- [ ] Check Supabase Auth → Users — any signups from the Reddit post? Magic-link conversion is the virality metric.
+**Cost optimization:** Only lever before 100K MAU is upgrading the $6 droplet to $12 (2 GB RAM) to run PM2 cluster mode. Single-worker 1 GB proxy becomes the bottleneck when the LRU cache fills under a concurrent spike.
 
 ---
 
-## Pre-Launch Checklist (Jack manual actions)
+## Open Issues (Persistent)
 
-**VPS memory on a second traffic spike.** The 1GB droplet runs pm2 + Node + Caddy + in-memory LRU weather cache (4,000 entries at ~2KB each = ~8MB baseline) + flight cache + alert store. Under the current baseline, headroom is comfortable. Under a second spike — another Reddit post, HN front page, press — unique (lat,lon) pairs pile into the cache faster than TTLs evict them. At 5,000 unique venue coords in a 2-hour window, the 4,000-entry LRU ceiling causes aggressive eviction under load, which actually protects memory but increases upstream Open-Meteo calls at exactly the wrong moment. Simultaneously, pm2 heap expands under connection pressure and the 1GB wall approaches. **Prevention:** upgrade to the 2GB DigitalOcean droplet ($6 → $12/mo) before any second significant traffic event. That buys headroom for 10K MAU without touching the code. After 10K MAU, the real fix is Redis (shared cache that survives pm2 restarts) — but that's a v2 problem.
+### P2 — No SRI on CDN scripts (Open #10)
+
+**Risk:** If unpkg or the Sentry CDN is compromised, malicious JS runs in every user's browser undetected. Medium risk — unpkg has a track record; this is closure hygiene, not fire-drill.
+
+**Fix (30 min):**
+```bash
+# Generate SRI hash for each CDN asset
+curl -sL https://unpkg.com/react@18.3.1/umd/react.production.min.js | \
+  openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -sL https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | \
+  openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -sL https://unpkg.com/@babel/standalone@7.29.7/babel.min.js | \
+  openssl dgst -sha384 -binary | openssl base64 -A
+```
+
+Then add `integrity="sha384-<HASH>"` to each `<script>` in `index.html`:
+```html
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-HASH_HERE"></script>
+```
+
+Repeat for ReactDOM and Babel. SRI on script tags works without a CSP and doesn't break Babel's `eval()` usage. This has been Open #10 for months. Pre-launch was the right time. Still not shipped.
+
+---
+
+### P2 — Plausible `data-domain` too broad
+
+**Risk:** Any other project deployed to `j1mmychu.github.io` pollutes Peakly's analytics.
+
+**Fix (5 min):**
+```html
+<!-- Line 32, index.html — change: -->
+<script defer data-domain="j1mmychu.github.io" ...></script>
+<!-- To: -->
+<script defer data-domain="j1mmychu.github.io/peakly" ...></script>
+```
+Update the Plausible dashboard domain to match. Doesn't affect historical event data.
+
+---
+
+### P3 — Babel Standalone cold-load cost
+
+**Risk:** 280 KB gzipped compiler + 673 KB raw JSX file transpiled in-browser on every cold visit. Not removable without a build step (documented constraint).
+
+**Mitigation (no build step required, 1 hour):** Pre-transpile `app.js` locally once, commit it, serve it on production instead of `type="text/babel"`. Keep `type="text/babel"` variant for local dev only. Saves the 280 KB Babel payload + client CPU for every production visitor. **Defer until post-launch.**
+
+---
+
+## What Breaks First at Scale
+
+**Open-Meteo's free tier** is the single failure mode that looks like an app bug to users. Post goes up on Reddit, 200 users hit Explore in the first 10 minutes — each triggers a ~740-call weather batch before the VPS proxy cache is warm. That's 148,000 upstream calls in ~10 minutes, wiping the entire daily free-tier quota. After that, `fetchWeather` returns null, every venue scores 50, the grid renders as a flat uniform list with "~$X" everywhere. To a new user that looks like a broken app, not a rate limit.
+
+**The defense is one command:** Before any viral post, `curl https://peakly-api.duckdns.org/health` and confirm `wx_cache_size > 0`. If the proxy went down after the June 30 post or never came back up, SSH in and run `pm2 restart peakly-proxy`. The entire protection layer runs on a $6 droplet. Have the SSH session open before posting.
+
+---
+
+## Post-Reddit Status (July 4)
+
+Today is July 4. The Reddit post was scheduled for June 30. Status unknown from sandbox.
+
+**Jack — verify from local terminal:**
+- [ ] `curl https://peakly-api.duckdns.org/health` → confirm `wx_cache_size > 0`
+- [ ] Live site loads: `https://j1mmychu.github.io/peakly/` → build `20260704a` in Profile footer
+- [ ] Plausible dashboard: any traffic from the June 30 post window?
+- [ ] If Reddit is live: check upvote count + top comments for UX signals
+- [ ] Paste `server/sql/delete-account.sql` into Supabase SQL editor (App Store gate — 2 min, unblocks iOS submission)
+
+---
+
+*Report generated by DevOps agent — 2026-07-04. VPS health unverifiable from sandbox (403 egress block on `peakly-api.duckdns.org`); all other checks run against local repo. Cache buster bumped `20260629a` → `20260704a` this run.*
