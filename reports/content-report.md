@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-04
+# Peakly Content & Data Report — 2026-07-05
 
-**Data health score: 74/100** (open issues carry over — freeze lifts July 7) | Build: `20260704a` ✅ (bumped by DevOps this run) | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 72/100** (open issues unchanged from Jul 4 — freeze lifts tomorrow Jul 7 🚨) | Build: `20260705a` ✅ | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
 
-**⚠️ VENUE FREEZE through July 7** (PM v76, July 2 override). All queued fixes deferred. Reddit launched June 30; freeze runs until 72h Plausible data read is complete. July 4 is peak beach traffic day — freeze is correct, no content churn today.
+**⚠️ VENUE FREEZE through July 7** (PM v76, July 2 override). Freeze expires tomorrow — July 7 sprint execution window opens.
 
 ---
 
@@ -14,13 +14,13 @@
 | "Hiking has ZERO gear items" | **Hiking category does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0`. |
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
 | "197 venues have empty tag arrays" | **FALSE — all 370 venues have non-empty tags.** Multi-line JSON format was miscounted. |
-| "Add 5 new venue objects" | **VENUE FREEZE active through July 7.** 5 venues staged in §7 for post-freeze paste. |
+| "Add 5 new venue objects" | **VENUE FREEZE active through July 7.** 5 venues staged in §8 for tomorrow. |
 
 ---
 
 ## Fix Applied This Run
 
-**None.** Verification pass only. DevOps bumped cache stamp `20260703a→20260704a` this run; content confirms all open findings from July 3 are unchanged and adds one new code hygiene flag.
+**None.** Verification pass only. All July 4 open findings confirmed unchanged. One new finding added: **cross-category photo contamination (§5)** — 2 beach venue cards likely rendering ski/mountain images. Flag for Jack visual review; staged fix also in §5.
 
 ---
 
@@ -28,15 +28,15 @@
 
 ### Venue Counts
 
-| Category | Venues | In Season — July 4 (US Independence Day) |
+| Category | Venues | In Season (Jul 5, N. Hemi Summer) |
 |----------|--------|-------------------------------------------|
-| **Beach** | 239 | **~184 N. hemi at PEAK** — today is the highest-traffic US beach search day of the year · ~55 S. hemi suppressed by <18°C cap |
-| **Skiing** | 131 | **23 S. hemi in peak southern winter** (NZ/AUS/Andes) · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** scoring 0 |
+| **Beach** | 239 | **~184 N. hemi at PEAK** · ~55 S. hemi suppressed by <18°C cap |
+| **Skiing** | 131 | **23 S. hemi at peak southern winter** (NZ/AUS/Andes) · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** |
 | **TOTAL** | **370** | Verified via bracket-walk eval. Never use grep — undercounts to 156. |
 
 ### Structural Integrity
 
-| Check | Result | Δ from Jul 3 |
+| Check | Result | Δ from Jul 4 |
 |-------|--------|--------------|
 | Valid venue objects | ✅ 370 | — |
 | Duplicate IDs | ✅ 0 | — |
@@ -45,47 +45,99 @@
 | Missing tags | ✅ 0 | — |
 | Missing photos | ✅ 0 | — |
 | Zero/single-tag venues | ✅ 0 | — |
-| Max photo repeat | ✅ 3× (104×3, 24×2, 10×1 = 138 unique) | — |
+| Max photo repeat (within-category) | ✅ 3× | — |
+| Cross-category photo contamination | ⚠️ **2 beach venues** using ski photos | **NEW — see §5** |
 | `lateSeason:true` venues | ✅ 25 | — |
 | GEAR_ITEMS refs | ✅ 0 | — |
-| Build stamp | ✅ `20260704a` — bumped by DevOps | ↑ fixed |
+| Build stamp | ✅ `20260705a` | ↑ DevOps bumped |
 | skiPass coverage | ✅ 131/131 (34 Epic / 51 Ikon / 46 independent) | — |
-| Ratings | ✅ range 4.0–4.99, avg 4.71, zero outliers | — |
+| Ratings | ✅ range 4.0–4.99, avg 4.71 | — |
 | Airport coverage | ✅ all `ap` values in AIRPORT_COORDS | — |
-| Placeholder-tag venues | ⚠️ **5 open** (staged §2, execute July 7) | → Jul 7 |
-| Logical duplicate venue pairs | ⚠️ 3 open (staged §3, execute July 7) | → Jul 7 |
-| Surf-legacy tags | ⚠️ **27 venues** (staged Jul 2, execute July 7) | → Jul 7 |
-
-### New: Minor Code Hygiene Flag (non-runtime — detected this run)
-
-Two inline comments inside the VENUES array contain bare object syntax that confuses parsing tools:
-```
-// CPT:{lat:-33.9648,lon:18.6017} added to AIRPORT_COORDS.  (line 4736)
-// GIG:{lat:-22.8100,lon:-43.2507} added to AIRPORT_COORDS. (line 4747)
-```
-JavaScript ignores these at runtime — no data corruption, no impact on scoring or UI. But any parsing-based audit (including this one) will count them as 2 orphaned venue objects, inflating the object count to 372 and falsely flagging "missing id/ap/photo." Suggest rewriting to plain prose on the July 7 sprint: `// Airport CPT (Cape Town) added to AIRPORT_COORDS and AP_CONTINENT.`
-
-### Logical Duplicate Venues (open from Jun 30 — staged for July 7)
-
-| Compact ID | Batch ID | Same coords? | Post-Freeze Fix |
-|-----------|---------|--------------|-----------------|
-| `bigsky` (45.2865, -111.4013) | `big-sky-montana` (45.2851, -111.4013) | Within 156m — same resort | Remove `bigsky` (fewer tags) |
-| `beach_grace` (21.7918, -72.2598) | `grace-bay-turks` (21.8027, -72.2033) | ~1.1km apart | Keep both — different beach sections |
-| `beach_miami` | `south-beach-miami` (exact coords) | ✅ Exact dup | Remove `beach_miami` (batch has better tags) |
+| Placeholder-tag venues | ⚠️ **5 open** (staged §6, execute July 7) | unchanged |
+| Logical duplicate venue pairs | ⚠️ **3 open** (staged §7, execute July 7) | unchanged |
+| Surf-legacy tags | ⚠️ **27 venues** (staged Jul 2, execute July 7) | unchanged |
+| Code hygiene comments (non-runtime) | ⚠️ 2 bare-object comments in VENUES | unchanged |
 
 ---
 
-## 2. Placeholder-Tag Ski Venues (staged for July 7)
+## 2. GEAR_ITEMS Audit
 
-Five JSON-format ski venues share identical placeholder tags `["Powder Day","All Levels"]` and the same gradient as Whistler. Confirmed again this run — **unchanged**.
+`grep -c GEAR_ITEMS app.jsx → 0` — Amazon cut for v1. Confirmed. **Do not restore.**
+
+---
+
+## 3. Seasonal Relevance (Jul 5, 2026)
+
+### Beach — Peak
+
+**~184 N. hemisphere beach venues** at maximum summer scoring — Mediterranean (Greece/Croatia/Italy/Spain/Turkey), Caribbean, US East Coast, Hawaii, SE Asia all firing. Yesterday was July 4 peak; post-holiday intent typically holds strong through Sunday Jul 6 as people search for next-weekend options.
+
+US beach gap still open: ~17 continental US venues vs 222 international. If Plausible confirms US bounce on Beach filter >40%, the 5 staged venues (§8) can be biased toward US coastal on July 7.
+
+**~55 S. hemisphere beach venues** suppressed by 18°C water-temp cap — correct for southern winter. Sydney cluster (7 venues at lat < −33) scores off the front page until October.
+
+### Skiing — Southern Peak
+
+**23 S. hemisphere venues at mid-peak winter:** NZ (Cardrona, Mt Hutt, Coronet Peak, Remarkables, Treble Cone), AUS (Falls Creek, Mt Buller, Hotham, Perisher, Charlotte Pass), Andes (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor, Pucon). Hemisphere gate `isNorth = lat >= 0` confirmed correct for all 23. These score as `inSeason` in July without needing `lateSeason` flag.
+
+**25 N. hemisphere `lateSeason:true` glaciers** eligible at `snow_depth ≥ 0.5m` — Tignes, Zermatt/Cervinia summer glacier, Chamonix, Verbier peak summer glacier sessions are real ops.
+
+**83 N. hemi off-season** correctly capped at `score = 8`.
+
+---
+
+## 4. Tag Distribution
+
+| Tag Count | Venues |
+|-----------|--------|
+| 0 | ✅ 0 |
+| 1 | ✅ 0 |
+| 2 | 238 |
+| 3 | 14 |
+| 4 | 117 |
+| 5+ | 1 |
+
+238 venues at minimum 2-tag depth — unchanged. Tag enrichment deferred to July 7 sprint based on Plausible filter-click data.
+
+---
+
+## 5. NEW: Cross-Category Photo Contamination ⚠️
+
+**Two beach venue cards are almost certainly rendering mountain/ski photos.** This is a live, user-visible quality issue.
+
+| Beach venue | Review count | Photo URL (partial) | Also used by (ski) |
+|---|---|---|---|
+| South Beach Miami (`south-beach-miami`) | **42,800** — most-reviewed venue in catalog | `...1605540436563-5bca919ae766` | Kiroro Snow World · Mount Snow |
+| Grace Bay Beach (`grace-bay-turks`) | 2,109 | `...1531743672295-bbd901790069` | Andermatt · Engelberg-Titlis |
+
+The photo IDs were assigned to ski venues first (Andermatt, Engelberg, Kiroro, Mount Snow), strongly suggesting they're mountain/snow images. When the beach batch was pasted, these IDs were reused by accident.
+
+**Jack: verify in 30 seconds** — open app, tap South Beach Miami, check if the hero photo shows snow. If yes, swap these two photo URLs:
+
+```
+south-beach-miami: replace photo with any of these unused/underused beach Unsplash IDs
+  → https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop  (open ocean/beach)
+  → https://images.unsplash.com/photo-1500854784-a582d3283fb4?w=800&h=600&fit=crop  (Miami/urban beach)
+
+grace-bay-turks: replace photo with any turquoise-water beach photo
+  → https://images.unsplash.com/photo-1414609245224-aea9a7afaef8?w=800&h=600&fit=crop  (turquoise Caribbean)
+```
+
+This is a one-line edit per venue in `app.jsx` — fix is <5 minutes. Execute before July 7 sprint if possible; South Beach Miami's review count makes it high-priority.
+
+---
+
+## 6. Placeholder-Tag Ski Venues (staged — execute July 7)
+
+Five JSON-format ski venues share identical placeholder tags `["Powder Day","All Levels"]` and the same gradient as Whistler — **unchanged from Jul 4**.
 
 | Venue ID | Title | lateSeason | Risk |
 |----------|-------|-----------|------|
-| `winter-park` | Winter Park, CO | ✅ | Can surface in July Ski grid |
-| `copper-mountain` | Copper Mountain, CO | ✅ | Can surface in July Ski grid |
-| `lake-louise` | Lake Louise, AB | ✅ | Can surface in July Ski grid |
-| `palisades-tahoe` | Palisades Tahoe, CA | — | Ski season only |
-| `brighton` | Brighton, UT | — | Ski season only |
+| `winter-park` | Winter Park, CO | ✅ | Surfaces in July lateSeason grid |
+| `copper-mountain` | Copper Mountain, CO | ✅ | Surfaces in July lateSeason grid |
+| `lake-louise` | Lake Louise, AB | ✅ | Surfaces in July lateSeason grid |
+| `palisades-tahoe` | Palisades Tahoe, CA | — | Off-season |
+| `brighton` | Brighton, UT | — | Off-season |
 
 **Fix-ready (paste July 7):**
 
@@ -113,58 +165,23 @@ gradient:"linear-gradient(160deg,#1a1a3a,#2d3a6a,#5a6aaa)",
 
 ---
 
-## 3. Surf-Legacy Tags (27 venues — staged for July 7)
+## 7. Logical Duplicate Venues (staged — execute July 7)
 
-Priority retires (category-specific, not venue-descriptive):
+**Unchanged from Jul 4.**
 
-| Current Tag | Affected Venues | Replace With |
-|-------------|-----------------|-------------|
-| `Kiteboarding Capital` | `bulabog-beach-boracay-t19`, `long-bay-providenciales` | `Water Sports` |
-| `World Cup Kite Venue` | `bulabog-beach-boracay-t19` | `Competitions Held Here` |
-| `Kitesurfing Mecca` | `beach_cape_verde` | `Wind Sports` |
-| `Kitesurfing` | `zlatni-rat-t14`, `mikri-vigla-naxos`, `le-morne-mauritius`, `paje-zanzibar` | `Water Sports` |
-| `Windsurfing` | `bulabog-beach-boracay-t19`, `beach_fuerteventura` | `Wind Sports` |
-| `Atlantic Waves` | `asbury-park-beach-nj`, `south-beach-miami` | `Active Shores` |
-| `Trade Winds` | `bulabog-beach-boracay-t19`, `beach_cape_verde` | `Cool Breezes` |
+| Compact ID | Batch ID | Same coords? | Fix |
+|-----------|---------|--------------|-----|
+| `bigsky` (45.2865, -111.4013) | `big-sky-montana` (45.2851, -111.4013) | ~156m — same resort | Remove `bigsky` (fewer tags) |
+| `beach_grace` (21.7918, -72.2598) | `grace-bay-turks` (21.8027, -72.2033) | ~1.1km apart | Keep both — different sections |
+| `beach_miami` | `south-beach-miami` (exact coords) | ✅ Exact dup | Remove `beach_miami` |
 
-Lower priority — factually accurate wave descriptors, can stay: `Surf Breaks` (15 venues), `Surf Break` (`zuma-beach-malibu`).
+Also pending (Jul 4): rewrite 2 bare-object inline comments in VENUES array (lines 4736, 4747) to plain prose so parsing tools don't miscounts them as venues.
 
 ---
 
-## 4. Photo Audit
+## 8. Five Venues Staged for July 7 (Post-Freeze)
 
-- 370 venues, **138 unique Unsplash photo IDs**
-- Average reuse: **2.7×** — max 3× (stable since June 13 dedup)
-- 104 photos at 3× · 24 photos at 2× · 10 venues with unique photos
-- **Action still needed:** ~50 new Unsplash photos (35 beach + 15 ski) to reach ≤2× across 370 venues. Execute July 7.
-
----
-
-## 5. GEAR_ITEMS Audit
-
-`grep -c GEAR_ITEMS app.jsx → 0` — Amazon cut for v1. Confirmed. **Do not restore.**
-
----
-
-## 6. Seasonal Relevance (July 4, 2026)
-
-### Beach — Absolute Peak
-
-**July 4 = highest US beach intent day of the year.** 184 N. hemisphere venues at maximum summer scoring. Reddit launched June 30 — if the post got traction, today is Day 4 of the initial traffic spike, which typically peaks on the holiday weekend. Florida, Caribbean, Mediterranean, SE Asia all firing hot.
-
-US beach gap: ~17 continental US beach venues (lat 25–50°N, lon 67–125°W) vs 222 international. US Redditors expecting domestic options see a grid skewed toward Caribbean/Mediterranean. The 6hr flight-distance filter surfaces US venues correctly, but only for users who set a home airport. If Plausible shows US bounce on Beach filter >40%, add 5–8 US coastal venues (Virginia Beach VA, South Padre Island TX, Hilton Head SC, Cape Hatteras NC, Santa Cruz CA) in the July 7 sprint.
-
-### Skiing — Southern Winter Peak
-
-23 S. hemisphere venues at mid-peak (NZ, AUS, Andes). 25 lateSeason:true glacier venues eligible (N. hemi summer glacier sessions). 83 N. hemi off-season capped.
-
-Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes, Mölltal — none in catalog. Wait for Plausible to confirm July ski demand before adding.
-
----
-
-## 7. Five Venues Staged for July 7 (Freeze → Paste)
-
-**All five airports confirmed in AIRPORT_COORDS.** Photo IDs are not in the current 138-photo pool — each adds a net-new unique.
+All airports confirmed in AIRPORT_COORDS. Photo IDs are not in the current 138-pool — each adds a net-new unique.
 
 ```js
   // ── NEW: Alpe d'Huez, France ──────────────────────────────────────────────
@@ -179,7 +196,6 @@ Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes,
     photo:"https://images.unsplash.com/photo-1540477960727-8f7e5ad69e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
     skiPass:"independent",
   },
-
   // ── NEW: St. Moritz, Switzerland ──────────────────────────────────────────
   {
     id:"st-moritz",  category:"skiing",
@@ -192,7 +208,6 @@ Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes,
     photo:"https://images.unsplash.com/photo-1606787364406-a3cdf06c6d0c?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
     skiPass:"independent",
   },
-
   // ── NEW: Trysil, Norway ───────────────────────────────────────────────────
   {
     id:"trysil",  category:"skiing",
@@ -205,7 +220,6 @@ Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes,
     photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
     skiPass:"independent",
   },
-
   // ── NEW: Boulders Beach, South Africa ────────────────────────────────────
   {
     id:"boulders-beach-cpt",  category:"beach",
@@ -217,7 +231,6 @@ Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes,
     tags:["Calm Waters","Scenic Views","Snorkeling Reef","Unique Wildlife","White Sand","Family Friendly"],
     photo:"https://images.unsplash.com/photo-1583416750470-965b2707b355?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55",
   },
-
   // ── NEW: Cortina d'Ampezzo, Italy ─────────────────────────────────────────
   {
     id:"cortina-d-ampezzo",  category:"skiing",
@@ -234,10 +247,10 @@ Summer glacier gap still open: Hintertux (year-round), Saas-Fee, Les Deux Alpes,
 
 ---
 
-## 8. One Observation for the PM
+## One Observation for the PM
 
-**July 4 is the peak beach demand day and the app is live. Check Plausible now, not tomorrow.** If the Reddit post is still recirculating (holiday weekends extend viral content by 48–72h), today's Plausible data is the most valuable signal of the launch: which venues are getting detail views, whether the US vs. International beach split is causing bounce, whether skiing has any traction at all. Reading Plausible today — Day 4 post-launch — gives you 3 full days of signal to calibrate the July 7 sprint. Without it, the July 7 backlog (placeholder tags, surf-legacy, duplicates, 5 venue pastes, photo dedup) gets executed in the wrong order. One 10-minute Plausible read changes the sprint sequencing meaningfully.
+**The freeze lifts tomorrow (July 7) and South Beach Miami is almost certainly showing a snow mountain photo.** With 42,800 reviews it's the most-reviewed venue in the catalog — it gets tapped. If the Reddit launch drove any traffic, a meaningful number of users saw the wrong image. The photo swap is a single-line edit, 5 minutes, and doesn't touch anything freeze-sensitive. It's worth doing today rather than bundling into the sprint. Everything else (placeholder tags, duplicates, surf-legacy) can wait for tomorrow's sprint as planned.
 
 ---
 
-*Content agent — 2026-07-04 UTC | Repo: 613832b | Venues: 370 (131 ski / 239 beach) | Build: 20260704a ✅ | Prior report: 2026-07-03*
+*Content agent — 2026-07-05 UTC | Repo: bf5936e | Venues: 370 (131 ski / 239 beach) | Build: 20260705a ✅ | Prior report: 2026-07-04*
