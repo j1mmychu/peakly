@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-06-28 (v72)
+# Peakly PM Report — 2026-07-05 (v79)
 
-> Supersedes v71 (June 27). **Status: RED on distribution, GREEN on code.** Day 24 of "launch-ready." The window Jack planned to launch into (June 27-30 weekend) just closed. The next good window is July 4. That's 5 days. Post Monday morning or the whole summer narrative shifts.
+> Supersedes v78 (July 4). **Status: YELLOW — code green, July 7 sprint T-2 days.** One new content finding (cross-category photo contamination) gets added to the sprint list. Everything else is a countdown and data-read.
 
 ---
 
@@ -8,129 +8,129 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues" | **370 venues.** Stale from pre-May pivot. Stop. |
+| "182 venues" | **370 venues.** Pivot May 2026. Stop. |
 | "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** No price appears. Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **Auto-bumped daily by DevOps.** Today: `20260627a` (1 day lag, no user impact). Stop. |
-| "VPS Day X binary blocker" | **VPS confirmed healthy June 13. Sandbox 403s = container egress block, not VPS outage. Stop.** |
-| "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25) since May 13.** Stop. |
-| "GEAR_ITEMS" | **0 refs. Amazon cut for v1. Final.** |
-| "Duplicate commit pattern" | **Known-skipped June 25 (second strike).** Stop. |
-| "197 empty-tag venues" | **FALSE.** Multi-line JSON miscounted. All 370 venues have tags. Stop. |
-| "40 ski venues had 1 tag" | **FIXED June 26. All 370 ≥2 tags.** Stop. |
+| "Cache buster stale" | **`20260705a` — bumped by DevOps this run.** Stop. |
+| "VPS Day X binary blocker" | **Sandbox 403s = egress block. Not VPS outage. Stop.** |
+| "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25).** Stop. |
+| "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
+| "Duplicate commit pattern" | **Known-skipped June 25.** Stop. |
+| "197 empty-tag venues" | **FALSE. All 370 have tags.** Stop. |
+| "40 ski venues had 1 tag" | **FIXED June 26.** Stop. |
+| "lateSeason: 6 venues" | **25 venues.** Stop. |
+| "Venue count 372" | **370 is correct.** Stop. |
+| "Venue freeze expires July 3" | **Extended through July 7 per v76.** Sprint opens tomorrow. |
 
 ---
 
-## Shipped Since v71 (2026-06-27 → 2026-06-28)
+## Shipped Since v78 (2026-07-04 → 2026-07-05)
 
 | What | Verdict |
 |------|---------|
-| **DevOps June 28** (`0fa4622`) — 370 venues, braces 5565/5565, no new issues, cache lag noted | ✅ Correct. |
-| **Content June 28** (`0a0257f`) — all 370 venues verified ≥2 tags, 135 unique photos, max 3×, skiPass 131/131, venue freeze honored | ✅ Clean confirm. |
+| **DevOps July 5** (`bf5936e`) — YELLOW. Cache `20260704a`→`20260705a` in lockstep. Braces 5565/5565. All invariants hold. VPS unverifiable (sandbox egress). | ✅ Clean. Cache current. |
+| **Content July 5** (`43d2e96`) — 72/100 (unchanged open issues). New finding: **2 beach venues rendering ski/mountain photos** — cross-category contamination. All July 7 fixes confirmed staged. Freeze holds. | ⚠️ New P1. See below. |
 
-**Zero app.jsx changes overnight.** Venue freeze holding. No regressions.
-
-**Code state June 28:**
-- `app.jsx`: 13,443 lines · cache `20260627a` (1 day stale, auto-bumps next edit)
+**Code state July 5:**
+- `app.jsx`: 13,443 lines · cache `20260705a` · braces 5,565/5,565
 - **370 venues** (131 skiing / 239 beach) · GEAR_ITEMS: 0 · lateSeason: 25
-- Braces: 5,565/5,565 · Sentry DSN: active · Plausible: wired
-- 135 unique photos · max repeat 3× · 0 empty-tag venues
+- 138 unique photos · max repeat 3× · 0 empty-tag venues · 131/131 skiPass
+- Sentry DSN: active · Plausible: wired (`j1mmychu.github.io`, fix in July 7 sprint)
 
 ---
 
-## Bug Triage — June 28
+## Bug Triage — July 5
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Reddit post: Day 24** | **P0 (business)** | Jack only. Not a code bug. See below. |
-| **VPS health check before posting** | **P1 pre-post** | Jack: `curl https://peakly-api.duckdns.org/health`. 5 min. Unverifiable from sandbox. |
-| Cache stamp 1 day stale | P4 | Non-issue. Auto-bumps next app.jsx touch. No user-visible consequence. |
-| **Supabase SQL paste** | P0 (App Store) · P3 (web) | `server/sql/delete-account.sql` → Supabase SQL editor. Graceful fallback active on web. |
-| SRI on CDN scripts | P3 | DEFER post-launch. |
-| CSP meta | P3 | DEFER post-launch. Babel `unsafe-eval` conflicts with strict CSP in a no-build architecture. |
-| 14 orphaned `claude/` branches on origin | P4 | DevOps job. Jack or batch-delete via GitHub UI. Not blocking anything. |
+| **Plausible data unread** (if June 30 launch happened) | **P0** | Day 5 of real user data. Jack: open plausible.io dashboard now. |
+| **Reddit post not yet verified** | **P0 (if not done)** | Cannot confirm from sandbox. If not posted — post this weekend before the July 4 momentum fully dissipates. |
+| **VPS cache restart risk** | **P1** | In-memory weather cache = 0 if VPS rebooted since June 30. Jack: `curl https://peakly-api.duckdns.org/health` + `pm2 describe peakly-proxy` uptime. If uptime < 5d, restart happened. |
+| **Cross-category photo contamination** | **P1** | 2 beach venues rendering ski/mountain photos — visible user-facing error. Beach user sees a mountain card; trust erodes. Fix staged in content report. **Add to July 7 sprint, position 0.** |
+| **Supabase SQL paste** | P0 (App Store) · P3 (web) | `server/sql/delete-account.sql` → Supabase SQL editor. 2 min. Jack-only. Day 27 open. |
+| **Plausible `data-domain` scope** | P2 | `j1mmychu.github.io` captures all subdomain pages. 2-min fix. July 7 sprint. |
+| 5 placeholder-tag ski venues | P2 | 3 are lateSeason — can appear in ski grid. Fix-ready. July 7. |
+| 3 logical venue duplicates | P2 | Invisible to users. July 7. |
+| 27 surf-legacy tags | P2 | Detail-sheet only. July 7. |
+| SRI on CDN scripts (Open #10) | P3 | DEFER post-LLC. |
+| 14 orphaned `claude/` branches | P4 | Not blocking. |
 
-**Permanently closed — stop raising:** Peakly Pro price · Sentry DSN · VPS "Day X blocker" · DEAL_WEIGHT · GEAR_ITEMS · lateSeason gaps (coronet-peak, Killington) · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays
+**Permanently closed:** Peakly Pro price · Sentry DSN · VPS outage framing · DEAL_WEIGHT · GEAR_ITEMS · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays
 
 ---
 
 ## Known Blockers
 
-| Blocker | What It Unlocks | Effort | Days Stalled |
-|---------|----------------|--------|-------------|
-| **Jack posts to Reddit** | Users. Everything else is noise. | 15 min | **24** |
-| **VPS SSH verify** | Confident weather proxy + spike absorption | 5 min | 15 |
-| **Supabase SQL paste** | iOS App Store 5.1.1(v) | 2 min | 18 |
-| LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External | External |
-| Apple Developer ($99) | App Store submission | 2h + review | Post-launch |
+| Blocker | What It Unlocks | Days Open |
+|---------|----------------|-----------|
+| **Plausible read** | Week 1 data drives all July 7 decisions | Day 5 |
+| **Reddit post** (if not done) | Users | Day 31 |
+| **VPS health verify** | Weather proxy confidence | Day 22 |
+| **Supabase SQL paste** | iOS App Store 5.1.1(v) | Day 27 |
+| LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
+| Apple Developer ($99) | App Store submission | Post-launch |
 
 ---
 
-## Explicit Product Decisions — June 28
+## Explicit Product Decisions — July 5
 
-### Decision 1: Post to Reddit Monday June 30 morning. This is the final deadline.
+### Decision 1: Cross-category photo contamination is P1. Fix it first in the July 7 sprint.
 
-The June 27-30 weekend window v71 targeted has passed — it's Sunday June 28 evening. Sunday Reddit posts get lower initial engagement than Monday-Tuesday; the algorithm pushes content harder during weekday lunch spikes.
+Two beach venues are rendering ski/mountain photos. A first-time user on the beach filter in July clicking a venue card and seeing a mountain is a visible product error — not a code error, not a data footnote, but a real user-facing trust failure. Content report has the fix staged. This goes to **position 0** in the July 7 sprint, before placeholder tags, before Plausible domain, before anything else.
 
-**The next optimal window: post Monday June 30, 9-11 AM US Eastern.** At that point, the July 4 weekend (Fri July 3–Mon July 6) is day 3-4 out for Open-Meteo, which is **high-confidence territory**. The carousel will be full. Beach scores for the Caribbean, Mediterranean, and Southeast Asia will be at peak. The NZ/AUS/Andes ski venues are at peak Southern Hemisphere winter. This is the single best launch timing remaining this summer.
-
-Waiting past June 30 means:
-- July 1 post shows July 4-7 at day 3-6 out — still good but the narrative weakens
-- July 7 post is after July 4 and shows the following weekend at day 7-13 — the 7-day window constraint hurts
-- August post competes with back-to-school content and the beach season is peaking but ski is dormant until October
-
-**SHIP: Reddit post, Monday June 30, r/frugaltravel → r/solotravel → r/travel. Not Tuesday. Not "this week." Monday.**
-
-Suggested copy (updated for the July 4 angle):
-
-> *"Built a free tool combining live weather + cheap flights to find the best ski or beach weekend. 370 spots globally. July 4 weekend is day 4 out — beach scores are running hot across the Caribbean, Mediterranean, and SE Asia. NZ and Andes ski are in peak winter. Free. No account needed. Honesty flag: if forecast is too uncertain, it says so instead of showing a fake score.*
->
-> *Be brutal — shipping before Reddit felt wrong."*
-
-Jack: post your own comment with your home airport + 2 real venues from your grid. That comment converts Reddit readers 3x better than the post copy alone.
+**SHIP: Fix the 2 contaminated beach venue photos on July 7, first thing.**
 
 ---
 
-### Decision 2: FREEZE the codebase until 72h post-Reddit. No exceptions.
+### Decision 2: July 7 sprint order — updated with photo fix at top.
 
-370 venues. Braces balanced. Zero empty tags. Photo max 3×. The code is done. Any change before the Reddit post introduces regression risk right when Sentry should be signaling clean. Any change in the 72h after adds noise to the Plausible signal we're trying to read.
+| Order | Task | Time |
+|-------|------|------|
+| **0** | **Fix 2 beach venues with ski photos** | 10 min |
+| 1 | **Read Plausible + Sentry** (before touching any code) | 30 min |
+| 2 | **Fix Plausible domain scope** (`j1mmychu.github.io` → `j1mmychu.github.io/peakly`) | 2 min |
+| 3 | **Fix placeholder tags on 3 lateSeason ski venues** | 15 min |
+| 4 | **Remove 3 logical venue duplicates** | 10 min |
+| 5 | **Remove 27 surf-legacy tags** | 20 min |
+| 6 | **Supabase SQL paste** | 2 min |
+| 7 | **Personal email draft** — Jack to signups, send July 10 | 20 min |
 
-The specific things NOT to build before Reddit:
-- Venue deep links (build after you see which venues get the most detail-sheet opens)
-- Eager Supabase deletion (diffs exist — apply week of July 7, not now)
-- SRI/CSP (P3, no urgency)
-- Any new venue (freeze holds)
-- Branch cleanup of claude/ worktrees (no urgency)
+Photo fix (item 0) before Plausible read (item 1) is the one exception to "read data first" — it's a visible content error not a design decision. Fix it unconditionally.
 
-**DEFER: Everything. The freeze runs from now through July 3 at earliest.**
+Items deferred past July 7: photo dedup ≤2× (needs 50 new verified photos — not a sprint task), SRI hashes, JSON-LD, venue deep links, new venues.
+
+**DEFER: Anything not in the table above.**
 
 ---
 
-### Decision 3: The skiing filter experience for US Redditors is a real first-impression risk — no code needed, but be aware.
+### Decision 3: The July 8-14 window is the first real retention measurement.
 
-If a US Redditor clicks "Skiing" on June 30, they see ~48 venues: 25 lateSeason N-hemisphere glaciers + 23 S-hemisphere resorts. The other 83 N-hemisphere ski venues score near zero and are filtered off the grid. The carousel and filter pill both say "Skiing" but the content is entirely Queenstown, Cardrona, Cerro Catedral, Tignes glacier.
+v78 established Week-2 return rate as the primary post-launch KPI. Here's the measurement contract:
 
-This is not a bug — it's honest. We don't show bad ski conditions. But it could read as "the app only has 48 ski venues" to a first-time user who doesn't know the Southern Hemisphere ski calendar.
+- **Baseline:** unique visitors July 4-7 (however many came from the post)
+- **Return gate:** did those same users return July 11-14 (the following weekend)?
+- **Plausible measurement:** look at returning vs. new visitor split on July 12-13 — returning visitors represent the retention cohort
+- **Target:** ≥20% Day-7 return rate means the product has pull without email nudging
 
-The mitigation is zero-code: if Plausible shows a "Skiing" filter drop-off in Week 1 at >60% bounce, the answer is either (a) an "it's summer in the US — here's why we're showing NZ and Andes" educational note or (b) the label "Skiing (Southern Hemisphere in season)" on the filter pill. Both are 15-minute changes. Do NOT pre-build this. Only build it if Plausible proves the problem.
+The personal email from Jack on July 10 is a nudge but shouldn't be the only mechanism. If Day-7 return without email is <10%, the onboarding needs a hook — either a "save for next weekend" prompt or the ScoringExplainer card timing is wrong.
 
-**DEFER: skiing filter UX clarification. Only build if Plausible shows >60% bounce on Skiing filter in Week 1.**
+**SHIP: Measure July 12-13 returning visitor % as the Week-2 KPI. Report in v80.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Post to Reddit Monday June 30 morning. The window closes after July 4.**
+**1. Jack: Open Plausible. Read it for 30 minutes before the July 7 sprint starts.**
 
-The July 4 weekend is the last natural US launch hook until Labor Day. After that, the beach-dominant summer catalog peaks and Peakly's differentiation vs. "just Google flights" weakens. This is not hypothetical — the app has 0 users at Day 24 and zero user data. Everything being built now (future venues, algorithm tweaks, email retention) is guesswork without a user base to calibrate against.
+This is the hard rule. The photo fix (item 0) can go first. Everything else — which venue tags to prioritize, whether to add US beach venues, what the July 10 email says — depends on what the data shows. If 80% of visitors filtered for Beach, that changes the content sprint. If 40% filtered for Skiing, that's a surprise that changes the August narrative.
 
-**2. Jack: VPS health check from local terminal before any Reddit/HN post.**
+**2. Jack: Fix the VPS before the July 7 sprint re-opens the app to edits.**
 
-`curl https://peakly-api.duckdns.org/health` — takes 30 seconds. If `wx_cache_size > 0`, the proxy is alive. If it's down, a 5-minute SSH fixes it before 5K people hit the app at once. The VPS cache is Reddit-spike protection. Confirm it's live first.
+`curl https://peakly-api.duckdns.org/health` then check pm2 uptime. If the cache was cold during the July 4 peak, users saw degraded weather scores. Knowing whether the VPS was warm vs. cold explains any Plausible bounce anomaly and tells you whether the Week-1 data is clean signal or noisy.
 
-**3. Jack: Supabase SQL paste the evening of or day after the Reddit post.**
+**3. Jack: Write the Week-1 retention email tonight, send July 10.**
 
-`server/sql/delete-account.sql` in the Supabase SQL editor. Needed for App Store submission (guideline 5.1.1(v)). Web product already has a graceful fallback. This is an App Store gate, not a web gate — but it takes 2 minutes and unblocks iOS submission immediately after Reddit validates demand.
+"Hey — I built Peakly and you signed up last week. What did you actually search for?" Three sentences. One question. This email is worth more than any feature built this sprint — a 15-30% response rate from Week-1 users gives you direct product feedback before you touch the code.
 
 ---
 
@@ -138,39 +138,43 @@ The July 4 weekend is the last natural US launch hook until Labor Day. After tha
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| New venue category (climbing, hiking, surf) | 0 users have validated demand. Expanding before 1K MAU dilutes the ski+beach brand. CUT. |
-| Peakly Pro / subscription | No price-sensitivity data. Premature. DEFER to 1K MAU. |
-| Hotel integrations in deal score | Deferred from v63. Flights + conditions is the product. CUT for v1. |
-| Automated weekly email digest | Valid retention lever. Building infra before knowing if anyone signs up is backwards. Manual founder email in Week 2 > automated empty list. DEFER as code; SHIP as Jack-action. |
-| JSON-LD schema enhancements | SEO matters but only after crawlers can see the site traffic. Zero content = zero ranking signal. DEFER until post-launch. |
-| Venue deep links / permalink pages | Build after Plausible shows which venues get >100 detail views/day. Don't build infrastructure for demand that may not exist. DEFER. |
+| New venue categories | CUT. Zero users validated demand. 2-category focus is the moat. |
+| New venues (pre-Plausible-read) | DEFER until Plausible confirms a geography gap. Building content for hypothetical demand is waste. |
+| Peakly Pro / subscription | DEFER to 500 users. No price-sensitivity data. |
+| Hotel integrations in deal score | CUT for v1. Scope creep. |
+| JSON-LD structured data | DEFER. SEO pays off on traffic, not absence of it. Post-first-100-users. |
+| Venue deep links | DEFER. Build after >100 detail-sheet opens/day confirmed in Plausible. |
+| Automated email digest | DEFER code. Manual founder email first — infrastructure for an empty list. |
+| SRI hashes on CDN | P3, post-LLC. DEFER. |
 
 ---
 
-## Success Criteria — What Has to Be True for 8K, Not 5K?
+## Success Criteria — 8K vs 5K
 
-90-day projection: 5K–8K users. To hit 8K, not 5K:
+Three gate metrics (unchanged from v78):
 
-1. **Reddit post converts at ≥3% CTR** — most tech/travel posts hit 0.5-1.5%. A 3% CTR on r/frugaltravel (2.1M members) with a front-page showing at 200 upvotes = ~6K visitors in 72h. The Jack-authored real-flight-data comment is the conversion multiplier.
+1. **Week-1 unique visitors ≥ 2K** — distribution signal. Below 2K = repost in a different subreddit.
+2. **Week-2 return rate ≥ 20%** — retention gate. Below 20% = onboarding and email need work.
+3. **Beach filter ≥ 40% of filter clicks in July** — seasonal narrative check. Below 40% = copy mismatch.
 
-2. **Week-1 retention ≥25%** — the retention cliff at Day 8 is the real threat. Users need an email capture + one manual "this weekend's top spots" message from Jack. That single manual email to Week-1 signups is worth 3 percentage points of retention.
-
-3. **The beach-dominant summer narrative holds through August** — if the Plausible data shows US users clicking "Skiing" at 40% rate and bouncing, there's a narrative mismatch. Fix fast.
-
-4. **VPS stays up during the Reddit spike** — if the proxy goes down during the spike, the app falls back to direct Open-Meteo, which handles up to ~66 concurrent DAU before throttling. A 5K-visit spike is ~200 concurrent users worst case. Without the cache, that's a 3x Open-Meteo throttle hit. With the cache, it's 1 upstream call per venue per 2 hours. This is solved — if the VPS is up.
+For 8K (not 5K): organic referral loop kicks in by Week 4. If "share a weekend plan" isn't driving 5+ referrals/week by July 28, the ceiling is 5K and Labor Day requires a second post.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The ski-pivot credibility problem if the Reddit post says "ski" but the grid shows Andes.**
+**The seasonal identity problem: the app Plausible users know in July will look like a different app in October.**
 
-The post copy says "peak ski season in New Zealand, Australia, and the Andes." US Reddit users don't ski in NZ. They ski in Colorado, Vermont, Utah. If a US Redditor who snowboards Vail reads "ski" and clicks through to find the front-page default showing Cardrona and Cerro Catedral, the reaction is "this app isn't for me" — and they bounce before understanding that those are the only ski venues in-season right now because it's June in the N. hemisphere.
+Right now, 184 of 239 beach venues are in-season. The Explore grid for a US user in July is overwhelmingly beach. The product feels like a beach weekend app with a ski bonus for Southern Hemisphere travelers.
 
-This isn't a bug — it's fundamentally correct behavior. But the marketing narrative in the post copy needs to match what first-time users see. The June 30 post copy should lead with beach (which dominates the grid for N. hemisphere users in summer) and frame the ski content as "plus the Southern Hemisphere ski season is peaking right now — Queenstown, Bariloche, Tignes glacier."
+In October, that flips: US ski resorts open (Vail, Breckenridge, Whistler), N. hemisphere beach cools, and the front page becomes ski-dominant for US users. The algorithm is correct. But a user who discovered Peakly in July as "that app that finds good beach weekends" and returns in October will see a ski-dominant grid and wonder if the product changed.
 
-**The fix is in the post copy, not the app.** The skiing UX is honest. The framing just needs to match what users will actually see.
+This isn't a bug. It's the product working as designed — the seasonal default logic is correct. **But the July Reddit post copy will anchor users to a mental model of "beach app."** If the copy doesn't equally frame the ski identity ("Skiing in winter, beach in summer — Peakly tracks conditions for both"), October retention will drop artificially because the product looks different, not because it got worse.
+
+**The fix is in the post copy, not the algorithm.** The July post should explicitly say "Skiing + beach. Ski resorts in winter, beaches in summer, Southern Hemisphere ski right now." Three phrases. That framing sets up October re-engagement instead of confusing it.
+
+This is a distribution copy problem, not a code problem. And it's the one thing that could cost 2–3 percentage points of October retention for free.
 
 ---
 
-*Report written by PM agent — 2026-06-28. Next: v73 expected June 29. If Reddit is live by then, v73 is a launch metrics report, not a pre-launch report.*
+*Report v79 — PM agent, July 5 2026. July 7 sprint opens in 2 days. v80 expected July 7 after the sprint closes — first Plausible data read and photo fix confirmed.*

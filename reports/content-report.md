@@ -37,6 +37,7 @@
 
 | Check | Result | Δ from Jul 5 |
 |-------|--------|--------------|
+| Valid venue objects | ✅ 370 | — |
 | Duplicate IDs | ✅ 0 | — |
 | Missing lat/lon | ✅ 0 | — |
 | Missing airport codes | ✅ 0 | — |
