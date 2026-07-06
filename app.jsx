@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260705a";
+const PEAKLY_BUILD = "20260706a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4781,7 +4781,7 @@ const VENUES = [
     icon:"🏝️", rating:4.96, reviews:12500,
     gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
     accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
-    photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1414609245224-aea9a7afaef8?w=800&h=600&fit=crop"},
 
   {id:"south-beach-miami", category:"beach",
     title:"South Beach", location:"Miami Beach, Florida, USA",
@@ -4789,7 +4789,7 @@ const VENUES = [
     icon:"🏖️", rating:4.83, reviews:21400,
     gradient:"linear-gradient(160deg,#001a2e,#003060,#005898)",
     accent:"#40a0e0", tags:["Art Deco Boardwalk","Atlantic Waves","Year-Round Sun","Nightlife District"],
-    photo:"https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
 
   {id:"cancun-beach", category:"beach",
     title:"Cancún Beach", location:"Cancún, Quintana Roo, Mexico",
