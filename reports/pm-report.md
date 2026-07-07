@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-07-06 (v80)
+# Peakly PM Report — 2026-07-07 (v81)
 
-> Supersedes v79 (July 5). **Status: GREEN on code, YELLOW on distribution.** Photo contamination P1 shipped today — most-reviewed venue (South Beach Miami, 42,800 reviews) was showing a ski mountain and now shows a beach. Venue freeze lifted. July 7 sprint opens tomorrow.
+> Supersedes v80 (July 6). **Status: GREEN on code, YELLOW on distribution.** Day 7 post-launch. July 7 sprint partially executed — Plausible domain fix DONE, dup removal + tag fixes + 5 glacier venues pending. Plausible data unreadable from sandbox; Jack must read it before prioritizing any build work.
 
 ---
 
@@ -8,53 +8,65 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues" | **370 venues.** Pivot May 2026. Stop. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** No price appears. Stop. |
+| "182 venues" | **370 venues.** Stop. |
+| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **`20260706a` — bumped by DevOps today.** Stop. |
-| "VPS Day X binary blocker" | **Sandbox 403s = egress block. Not VPS outage. Stop.** |
-| "DEAL_WEIGHT finding" | **Locked at 0.25 (75/25).** Stop. |
+| "Cache buster stale" | **`20260707a` — bumped by DevOps today.** Stop. |
+| "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Stop. |
+| "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
 | "Duplicate commit pattern" | **Known-skipped June 25.** Stop. |
-| "197 empty-tag venues" | **FALSE. All 370 have tags.** Stop. |
-| "40 ski venues had 1 tag" | **FIXED June 26.** Stop. |
+| "197 empty-tag venues" | **FALSE. All 370 have ≥2 tags.** Stop. |
+| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
+| "Plausible data-domain wrong" | **FIXED July 7 (DevOps `4001690`).** Stop. |
+| "27 surf-legacy tags need removal" | **FALSE — see Decision 1. These are valid beach activity tags. Stop.** |
 | "lateSeason: 6 venues" | **25 venues.** Stop. |
-| "Venue freeze active" | **LIFTED July 6 per v76. Sprint opens July 7.** Stop. |
-| "Cross-category photo contamination open" | **FIXED July 6 by DevOps (`73db399`).** Stop. |
 
 ---
 
-## Shipped Since v79 (2026-07-05 → 2026-07-06)
+## Shipped Since v80 (2026-07-06 → 2026-07-07)
 
 | What | Verdict |
 |------|---------|
-| **DevOps July 6** (`73db399`) — **P1 photo fix**: south-beach-miami (42,800 reviews) + grace-bay-turks (2,109 reviews) now show beach photos, not ski mountains. Cache `20260705a`→`20260706a` in lockstep. Braces 5,565/5,565. | ✅ High-impact fix. Most-reviewed venue was showing a snow mountain — trust repair. |
-| **Content July 6** (`6183c55`) — 5 new venues staged (Alpe d'Huez, St. Moritz, Saas-Fee, Les Deux Alpes, Cortina d'Ampezzo). 2 duplicate removals confirmed (bigsky + beach_miami). 5 placeholder-tag fixes staged. 27 surf-legacy tag removals staged. Venue freeze confirmed expired. | ✅ Sprint-ready staging. Photo URLs need browser verification before commit. |
+| **DevOps July 7** (`4001690`) — Plausible domain `j1mmychu.github.io` → `j1mmychu.github.io/peakly` + cache `20260706a`→`20260707a` | ✅ Sprint item 2 DONE. Plausible now tracks `/peakly/` specifically. **Jack: also update the Plausible dashboard site domain (plausible.io → Sites → Settings → Domain) or add a new site for the path.** |
+| **Content July 7** (`52c329c`) — 370 venues, 0 cross-category photo issues, 2 dups confirmed (bigsky + beach_miami), 5 placeholder-tag venues staged, surf-legacy tag finding revised (26 tags are VALID beach activity tags) | ✅ Data quality audit complete. Sprint execution items clarified. |
 
-**Code state July 6:**
-- `app.jsx`: 13,444 lines · cache `20260706a` · braces 5,565/5,565
-- **370 venues** (131 ski / 239 beach) → **368 post-sprint** (–2 duplicates)
-- GEAR_ITEMS: 0 · lateSeason: 25 · 138 unique photos · max repeat 3×
-- Sentry DSN: active · Plausible: wired (`j1mmychu.github.io` — domain scope fix is July 7)
+**Code state July 7:**
+- `app.jsx`: 13,443 lines · cache `20260707a` · braces 5,565/5,565
+- **370 venues** (131 ski / 239 beach) → 368 post dup removal
+- GEAR_ITEMS: 0 · lateSeason: 25 · 135 unique photos · max repeat 3×
+- Sentry: active · Plausible: domain scoped ✅ · VPS: unverified (sandbox)
+
+**Remaining July 7 sprint items (from v80 Decision 1):**
+
+| Item | Status |
+|------|--------|
+| 1 — Read Plausible + Sentry | ⏳ Jack only — sandbox cannot access |
+| 2 — Plausible domain fix | ✅ DONE (DevOps) |
+| 3 — Remove 2 duplicate venues (368 venues) | ⏳ Pending |
+| 4 — Fix 5 placeholder-tag ski venues | ⏳ Pending |
+| 5 — Remove 27 surf-legacy tags | ❌ CANCELLED — Decision 1 |
+| 6 — Add 5 glacier ski venues | ⏳ Pending photo URL verification |
+| 7 — Supabase SQL paste | ⏳ Jack only |
+| 8 — Draft Week-1 retention email | ⏳ Jack only — send July 10 |
 
 ---
 
-## Bug Triage — July 6
+## Bug Triage — July 7
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Plausible data unread** | **P0** | Sandbox can't read it. Jack: open plausible.io before touching any July 7 code. The data drives the sprint direction. |
-| **Photo contamination** — beach venues showing ski photos | ~~P1~~ | **FIXED July 6** (`73db399`). Closed. |
-| **VPS weather cache restart risk** | **P1** | Unverifiable from sandbox. Day 6 post-launch. Jack: `curl https://peakly-api.duckdns.org/health` — if `wx_cache_size == 0`, cache flushed since launch. 2-min SSH fix. |
-| **Plausible `data-domain` scope** (tracks full `j1mmychu.github.io`, not `/peakly/`) | P2 | July 7 sprint. 2-min fix. Update Plausible dashboard AND index.html tag. |
-| **Duplicate venues** (bigsky + beach_miami) | P2 | July 7 sprint. Staged in content report. |
-| **5 placeholder-tag ski venues** (3 lateSeason — visible in July grid) | P2 | July 7 sprint. Staged. |
-| **27 surf-legacy tags** | P2 | July 7 sprint. Detail-sheet only. Staged. |
-| **Supabase SQL paste** (delete-account.sql) | P0 (App Store) · P3 (web) | Jack-only. 2 min. Day 28 open. Unblocks iOS App Store. |
-| SRI on CDN scripts (Open #10) | P3 | DEFER post-LLC. |
-| 14 orphaned `claude/` branches | P4 | Not blocking. |
+| **Plausible data unread** | **P0** | Sandbox can't access plausible.io. Jack: read dashboard before touching any build work. |
+| **VPS weather cache** — may have restarted (Day 7 post-launch) | **P1** | Jack: `curl https://peakly-api.duckdns.org/health`. If `wx_cache_size == 0`, warm it before the Week-2 return-visitor window (July 11–13). |
+| **Supabase SQL paste** | P0 (App Store) · P3 (web) | Day 28 open. 2 minutes. Jack only. |
+| **2 duplicate venues** (bigsky + beach_miami) | P2 | Sprint item 3. 10 min. |
+| **5 placeholder-tag ski venues** | P2 | Sprint item 4. 15 min. |
+| Surf-legacy tags | ~~P2~~ | **CANCELLED — tags are valid beach activity signals. See Decision 1.** |
+| SRI on CDN scripts | P3 | DEFER post-LLC. |
+| Plausible dashboard domain update | P2 | Jack only. plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly` |
+| 14 orphaned `claude/` branches | P4 | No urgency. |
 
-**Permanently closed:** Peakly Pro price · Sentry DSN · VPS outage framing · DEAL_WEIGHT · GEAR_ITEMS · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays · photo contamination (fixed today)
+**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" outage framing · DEAL_WEIGHT · GEAR_ITEMS · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays · cross-category photo contamination · Plausible domain (code side) · surf-legacy tags
 
 ---
 
@@ -62,78 +74,72 @@
 
 | Blocker | What It Unlocks | Days Open |
 |---------|----------------|-----------|
-| **Plausible read** | Sprint direction — all content decisions contingent | Day 6 post-launch |
-| **VPS health verify** | Confirms whether Week-1 weather data was clean | Day 23 |
-| **Supabase SQL paste** | iOS App Store Guideline 5.1.1(v) | Day 28 |
+| **Plausible read** (Jack, plausible.io) | Sprint prioritization — all content decisions contingent on Week-1 data | Day 7 post-launch |
+| **VPS health verify** (Jack, local terminal) | Confirms whether early-user weather data was clean | Day 23 |
+| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 28 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
 | Apple Developer ($99) | App Store submission | Post-launch |
 
 ---
 
-## Explicit Product Decisions — July 6
+## Explicit Product Decisions — July 7
 
-### Decision 1: July 7 sprint scope — confirmed and ordered.
+### Decision 1: CANCEL surf-legacy tag removal. The "27 tags" finding was wrong.
 
-Item 0 (photo fix) is done. Sprint starts at item 1 tomorrow.
+v80 sprint item 5 queued removal of 27 "surf-legacy" tags across 26 beach venues (tags like "Surf Breaks", "Kitesurfing", "Windsurfing"). Content report July 7 corrects this: these are **legitimate beach activity condition signals**, not artifacts of the retired Surfing category.
 
-| Order | Task | Time |
-|-------|------|------|
-| **1** | **Read Plausible + Sentry before writing any code** | 30 min |
-| **2** | **Fix Plausible domain scope** (`j1mmychu.github.io` → `j1mmychu.github.io/peakly`) | 2 min |
-| **3** | **Remove 2 duplicate venues** (bigsky + beach_miami → 368 venues) | 10 min |
-| **4** | **Fix 5 placeholder-tag ski venues** (winter-park, copper-mountain, lake-louise, palisades-tahoe, brighton) | 15 min |
-| **5** | **Remove 27 surf-legacy tags** | 20 min |
-| **6** | **Add 5 staged venues** (Alpe d'Huez, St. Moritz, Saas-Fee, Les Deux Alpes, Cortina d'Ampezzo) | 30 min |
-| **7** | **Supabase SQL paste** (Jack-only) | 2 min |
-| **8** | **Jack: draft Week-1 retention email** (send July 10) | 20 min |
+"Surf Breaks" on a beach card tells a surfer that the break has wave quality worth scoring. "Kitesurfing" and "Windsurfing" tell wind-sport travelers something real. These tags were correctly included when Surfing was retired — they describe the beach venue, not the old category.
 
-Item 6 caveat: all 5 staged photo URLs need browser verification before commit — run `node scripts/validate-venues.mjs` first. If any photos return 404, swap the ID before pasting.
+**The retired-category tags that were correctly removed** were `category: "surfing"` entries and scoring logic for the surfing category. The beach-venue activity tags were never the problem.
 
-Items deferred past July 7: photo dedup ≤2× (needs ~50 new verified photos), SRI hashes, JSON-LD, venue deep links.
+**CANCEL: Sprint item 5. Remove from queue. Remove "27 surf-legacy tags" from all future bug reports.**
 
-**SHIP: Items 1–5 unconditional. Item 6 on photo URL verification. Items 7–8 are Jack.**
+### Decision 2: The 5 glacier ski venues SHIP today, conditional on photo URL pass.
 
----
+Saas-Fee, Les Deux Alpes, Alpe d'Huez, St. Moritz, Cortina d'Ampezzo are the five most-searched European summer ski destinations not in the catalog. This is a July credibility gap — any Redditor from the UK or Germany who opened the Skiing filter this week and looked for European glacier skiing found nothing.
 
-### Decision 2: Saas-Fee and Les Deux Alpes are the strategic additions for July.
+Strategic case:
+- **Saas-Fee** (ZRH): Only "Four Seasons" glacier resort in the Alps. Year-round skiing. Missing at launch is embarrassing.
+- **Les Deux Alpes** (GNB): Largest glacier in Europe for summer skiing. Closes in August — this is literally the last month to surface it in the July carousel.
+- Alpe d'Huez, St. Moritz, Cortina: Off-season N-hemi right now, but add catalog depth for October onwards.
 
-Of the 5 staged venues, two matter right now for the summer ski narrative:
-- **Saas-Fee** (ZRH, `lateSeason: true`): Year-round glacier. Europe's most famous summer ski destination. Missing from a 131-venue catalog is a credibility gap.
-- **Les Deux Alpes** (GNB, `lateSeason: true`): Glacier summer ski + snowpark. Closes in August — add now or miss the window.
+Both ZRH and GNB are already in AIRPORT_COORDS and AP_CONTINENT. IDs grep-clean. The only gate is photo URL verification — run `node scripts/validate-venues.mjs` on the staged candidates before pasting. If any photo returns 404, swap the Unsplash ID.
 
-Both airports (ZRH, GNB) already in AIRPORT_COORDS and AP_CONTINENT. IDs are novel (grep-clean). The other three (Alpe d'Huez, St. Moritz, Cortina) are off-season N-hemisphere venues — they won't appear in the July grid but add catalog depth for autumn.
+**SHIP: All 5 staged ski venues today. Gate: photo URL verification only. Run `validate-venues.mjs` first.**
 
-**SHIP: All 5 staged venues on July 7, conditional on photo URL verification.**
+### Decision 3: Week-2 retention window is July 11–13. Jack must send the email by July 10.
 
----
+The cohort: anyone who visited July 1–7 post-launch. The question: do they come back without being asked?
 
-### Decision 3: Week-2 retention window opens July 11–13. Measure it.
+Target: ≥20% return rate on Days 7–10 without an email = product has intrinsic pull.
 
-- **Cohort:** unique visitors July 1–7 (post-launch)
-- **Return gate:** did those users return July 11–14?
-- **Measurement:** Plausible returning vs. new visitor split July 12–13
-- **Target:** ≥20% Day-7 return without an email = product has pull
-- **Jack: send Week-1 email July 10** — 3 sentences, 1 question. Highest-leverage non-code action this week.
+What that email should be (3 sentences, from Jack personally):
 
-If return rate is <10%, the onboarding hook becomes the next build priority ahead of venue adds.
+> "Hey — I built Peakly and you visited last week. Scores just updated for next weekend (July 11–14) — [link to beach] looks great from [common airport]. Still building — reply and tell me where you tried to fly and what was wrong."
 
-**SHIP: Measure July 12–13. Report in v81.**
+That last sentence is the most important part. The email isn't just for retention — it's the first real user research conversation. Every reply is worth more than a month of analytics.
+
+**Jack: draft and send July 10, one day before the return window opens. Manual. No automation.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Read Plausible before the July 7 sprint starts.**
+**1. Jack: Read Plausible before touching any code.**
 
-Non-negotiable. If 80% of visitors filtered Beach, that changes content priorities. If Skiing got 40%+ and bounced, there's a seasonal framing problem that needs a copy fix before more ski venues are added. If total Week-1 visits were <200, distribution underperformed and we need a second post before building anything. Read the dashboard first.
+The Week-1 data is in. 7 days of real user behavior. If beach filter dominated (expected), nothing changes. If Skiing filter drove unexpected bounce, there's a framing problem to fix before adding more ski venues. If total visitors are <500, the Reddit distribution underperformed and a second post should happen before the July 7 sprint. **Read the dashboard. Then decide what to build.**
 
-**2. Execute July 7 sprint items 1–5.**
+**2. Execute remaining sprint items 3–4 + item 6 (photo-verified).**
 
-Unconditional — none require Plausible data to decide. Plausible domain fix (2 min). Remove 2 duplicates. Fix 5 placeholder-tag venues. Remove 27 surf-legacy tags. All staged, combined ~50 minutes. Better product regardless of what the dashboard shows.
+- Remove 2 duplicate venues (bigsky + beach_miami): 10 min
+- Fix 5 placeholder-tag ski venues (winter-park, copper-mountain, lake-louise, palisades-tahoe, brighton): 15 min
+- Run `validate-venues.mjs` on 5 glacier venues, then paste: 30 min
 
-**3. Jack: VPS check + Week-1 retention email this week.**
+Combined: ~55 minutes. Improves catalog quality and adds the July-relevant glacier inventory. Nothing here depends on Plausible data — ship regardless.
 
-`curl https://peakly-api.duckdns.org/health` tells you whether weather proxy was warm during launch week. If `wx_cache_size == 0`, a restart happened and early users saw degraded scores — alternative explanation for any bounce anomaly before blaming the product. The Week-1 email (July 10 send) is the highest-leverage retention lever that doesn't require code.
+**3. Jack: Send Week-1 retention email July 10. VPS health check same day.**
+
+The email is the highest-leverage non-code action this week. 3 sentences. Personal. The replies are user research you can't buy. The VPS check tells you whether early-user weather data was reliable — material if you're trying to explain any anomalies in the Plausible bounce data.
 
 ---
 
@@ -141,37 +147,39 @@ Unconditional — none require Plausible data to decide. Plausible domain fix (2
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| New venue categories (climbing, hiking, surf) | **CUT.** 2-category focus is the brand moat. Zero users have validated expansion. |
-| Automated weekly email digest | **DEFER.** Infrastructure for an empty list. Manual founder email first. |
-| Hotel integrations in deal score | **CUT for v1.** Scope creep. |
-| JSON-LD / structured data | **DEFER.** SEO compounds on existing traffic, not absence of it. Post-first-100-users. |
-| Venue deep links / permalink pages | **DEFER.** Build after Plausible shows >100 detail-sheet views/day on specific venues. |
-| Photo dedup ≤2× | **DEFER.** Needs ~50 new verified beach photos. No Unsplash API key. Post-launch. |
-| SRI hashes on CDN scripts | **DEFER post-LLC.** P3. Months-open. |
-| Tag enrichment for 238 two-tag venues | **DEFER.** Wait for July 7 filter-click data to prioritize which categories need it. |
+| Surf-legacy tag removal | **WRONG FINDING — tags are valid beach activity signals. Not removing.** |
+| Automated weekly email digest | **DEFER.** Infrastructure before signups. Manual founder email first. |
+| Hotel integrations | **CUT for v1.** Scope creep. |
+| JSON-LD / structured data | **DEFER.** SEO compounds on traffic that doesn't exist yet. Post-100-users. |
+| Venue deep links / permalink pages | **DEFER.** Build after Plausible shows >100 detail-sheet views/day per venue. |
+| Photo dedup ≤2× | **DEFER.** Needs ~100 new verified Unsplash IDs. No API key in repo. |
+| New venue categories (climbing, surf, hiking) | **CUT.** Ski + beach focus is the moat. |
+| SRI hashes on CDN scripts | **DEFER post-LLC.** P3. |
+| Tag enrichment for 2-tag venues | **DEFER.** Wait for filter-click data to know which tags drive discovery. |
 
 ---
 
 ## Success Criteria — 8K vs 5K
 
-Three gate metrics (unchanged):
+**Gate metrics (unchanged from v80):**
+1. **Week-1 unique visitors ≥ 2K** — if below, distribution underperformed; repost before building.
+2. **Week-2 return rate ≥ 20%** — if below, onboarding hook becomes next build priority.
+3. **Beach filter ≥ 40% of filter clicks in July** — if below, seasonal copy mismatch risk.
 
-1. **Week-1 unique visitors ≥ 2K** — distribution signal. Below 2K = repost in a different subreddit.
-2. **Week-2 return rate ≥ 20%** — retention gate. Below 20% = onboarding hook is next build priority.
-3. **Beach filter ≥ 40% of filter clicks in July** — seasonal narrative check. Below 40% = copy mismatch risk.
-
-For 8K not 5K: organic referral loop kicks in by Week 4. If "share a weekend plan" isn't driving 5+ organic referrals/week by July 28, the ceiling is 5K without a second distribution push.
+**For 8K not 5K:** organic referral loop kicks in by Week 4. "Share a weekend plan" must generate ≥5 organic referrals/week by July 28 without a second distribution push. If it doesn't, the ceiling is 5K and a second Reddit post is the path to 8K, not feature work.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**South Beach Miami — 42,800 reviews, most-reviewed venue in the catalog — was showing a ski mountain photo during launch week. Fixed today. The question is how many first-impression users tapped that card, saw snow, and concluded the app was broken.**
+**There are 7 days of real user data in Plausible right now, and nobody on the agent team can read it.**
 
-Before drawing conclusions from Week-1 bounce data, Jack should do a 30-minute browser smoke test across the top 20 venues by review count. If any others show obviously wrong photos (mountain on a beach card, beach on a ski card), fix those before reading Week-2 data. Otherwise you're optimizing against a noisy baseline.
+The agents run in sandboxed containers with egress blocks. They can verify code structure, count venues, audit photos — but they can't hit plausible.io. This means every product decision this week (which venues to add, whether to fix the skiing filter UX, whether to send a second Reddit post) is being made without the one input that actually matters: what did real users do?
 
-The structural fix: add a cross-category photo check to the content agent's audit protocol. The current grep detects photo ID overlap but not category mismatch. A two-line check on each photo ID — "does this photo also appear on venues of the opposite category?" — would have caught this in June before launch. Low cost, prevents the same class of error on future batch adds.
+This isn't a technical problem. Plausible's dashboard is a link Jack opens in a browser. But if Jack doesn't look at it before approving the July 7 sprint, we're making decisions based on 6-week-old hypotheses instead of 7-day-old reality. That's the actual risk.
+
+**The ask is simple: Jack reads plausible.io before writing any code today. That's it.**
 
 ---
 
-*Report v80 — PM agent, 2026-07-06. July 7 sprint opens tomorrow. v81 expected July 7 after the sprint — first Plausible data read, post-launch venue additions.*
+*PM agent — 2026-07-07 (v81). v82 expected July 8. If Jack shares Plausible data in session, v82 becomes a data-driven sprint update. If not, v82 will flag the gap again.*
