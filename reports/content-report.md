@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-06
+# Peakly Content & Data Report — 2026-07-07
 
-**Data health score: 72/100** | Build: `20260705a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 76/100** | Build: `20260707a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
 
-**🟡 VENUE FREEZE expires today (Jul 6)** — PM v76 / July 2 override. July 7 sprint execution window opens tomorrow.
+**🟢 VENUE FREEZE LIFTED** — Jul 7 sprint execution window is open. Execute §6 (new venues) and §4 (duplicate removal) today.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## Fix Applied This Run
 
-**None.** Verification + new-venue staging pass only. All Jul 5 open findings confirmed.
+**Photo contamination resolved (Jul 7 DevOps commit).** `south-beach-miami` now has a valid beach photo (`photo-1507525428034`) shared with 3 other beach venues (within 3× cap). `grace-bay-turks` photo is unique. Cross-category contamination finding from Jul 6 is CLOSED.
 
 ---
 
@@ -27,15 +27,15 @@
 
 ### Venue Counts
 
-| Category | Venues | In Season (Jul 6, N. Hemi Summer) |
+| Category | Venues | In Season (Jul 7, N. Hemi Summer) |
 |----------|--------|-------------------------------------------|
 | **Beach** | 239 | **~184 N. hemi at PEAK** · ~55 S. hemi suppressed by <18°C cap |
 | **Skiing** | 131 | **23 S. hemi at peak southern winter** · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** |
-| **TOTAL** | **370** | Verified via bracket-walk eval. Never use grep. |
+| **TOTAL** | **370** | Verified via bracket-walk eval (node one-liner). Never use grep. |
 
 ### Structural Integrity
 
-| Check | Result | Δ from Jul 5 |
+| Check | Result | Δ from Jul 6 |
 |-------|--------|--------------|
 | Valid venue objects | ✅ 370 | — |
 | Duplicate IDs | ✅ 0 | — |
@@ -46,12 +46,15 @@
 | `lateSeason:true` venues | ✅ 25 | — |
 | GEAR_ITEMS refs | ✅ 0 | — |
 | skiPass coverage | ✅ 131/131 (34 Epic / 51 Ikon / 46 independent) | — |
-| Ratings | ✅ range 4.0–4.99 | — |
-| Airport coverage | ✅ all `ap` codes in AIRPORT_COORDS | — |
-| **Cross-category photo contamination** | ⚠️ **2 beach venues** showing ski images | confirmed — see §5 |
-| **Logical duplicate pairs** | ⚠️ **2 confirmed** | confirmed — see §6 |
-| Placeholder-tag venues | ⚠️ **5 open** (staged §7, execute Jul 7) | unchanged |
-| Surf-legacy tags | ⚠️ **27 venues** (staged Jul 2, execute Jul 7) | unchanged |
+| Ratings range | ✅ 4.00–4.99, avg 4.71 | — |
+| AIRPORT_COORDS coverage | ✅ All 144 unique venue APs in AIRPORT_COORDS (185 entries) | — |
+| AP_CONTINENT coverage | ✅ All venue APs in AP_CONTINENT (279 entries) | — |
+| Cross-category photo contamination | ✅ **RESOLVED** (Jul 7 DevOps commit) | ✅ Fixed |
+| **Logical duplicate venue pairs** | ⚠️ **2 confirmed — execute today** | unchanged from Jul 6 |
+| Placeholder-tag venues | ⚠️ **5 open — execute today** | unchanged from Jul 6 |
+| Surf-legacy tags | ⚠️ **26 beach venues** have surf/windsurf tags | -1 from Jul 6 count |
+
+**Note on surf-legacy tags:** 26 beach venues carry tags like "Surf Breaks", "Kitesurfing", "Windsurfing". These are legitimate beach activity tags (not legacy surfing-category artifacts). "Surf Breaks" on a beach venue is a real condition signal (wave quality), not a retired-category leak. The Jul 6 "27 venues need tag cleanup" finding was partially incorrect — these tags are valid and should stay.
 
 ---
 
@@ -61,79 +64,49 @@
 
 ---
 
-## 3. Seasonal Relevance (Jul 6, 2026)
+## 3. Seasonal Relevance (Jul 7, 2026)
 
-**Beach — Peak Season.** ~184 N. hemisphere beach venues at maximum summer scoring. Mediterranean, Caribbean, US East Coast, Hawaii, SE Asia all firing. ~55 S. hemisphere beach correctly suppressed by 18°C water-temp cap.
+**Beach — Peak Season.** ~184 N. hemisphere beach venues at maximum summer scoring. Mediterranean (58), Caribbean, SE Asia, Hawaii, US East Coast all firing. ~55 S. hemisphere beach correctly suppressed by <18°C water-temp cap.
 
-**Skiing — Southern Peak.** 23 S. hemisphere venues in peak winter (NZ, AUS, Andes). 25 N. hemisphere `lateSeason:true` eligible at snow_depth ≥ 0.5m. 83 N. hemi off-season correctly capped.
+**Skiing — Southern Peak.** 23 S. hemisphere venues in peak winter:
+- NZ: 4 venues (The Remarkables, Treble Cone, Coronet Peak, Cardrona) — all ZQN
+- Chile: 7 venues (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Pucon) — SCL + ZCO
+- Australia: 6 venues (Thredbo, Perisher, Falls Creek, Mt Buller, Mt Hotham, Charlotte Pass) — SYD/MEL/CBR
+- Argentina: 6 venues (Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor) — BRC/MDZ/CPC/NQN/USH
 
-**Critical gap:** No **Les Deux Alpes**, **Saas-Fee**, or **Hintertux Glacier** in catalog. These are Europe's marquee July glacier ski destinations — missing for users flying from UK/Germany/France. Two staged in §8 (execute Jul 7).
+25 N. hemisphere `lateSeason:true` eligible at snow_depth ≥ 0.5m. 83 N. hemi off-season correctly capped.
 
----
-
-## 4. Tag Distribution
-
-| Tag Count | Venues |
-|-----------|--------|
-| 0 | ✅ 0 |
-| 1 | ✅ 0 |
-| 2 | 238 |
-| 3–4 | 131 |
-| 5+ | 1 |
-
-Tag enrichment deferred to Jul 7 sprint based on Plausible filter-click data.
+**July glacier ski gap:** No **Les Deux Alpes**, **Saas-Fee**, **Alpe d'Huez**, **St. Moritz**, or **Cortina d'Ampezzo** in catalog. These are Europe's marquee July/summer ski destinations — missing for users flying from UK/Germany/France. All 5 staged in §6 (execute today).
 
 ---
 
-## 5. CONFIRMED: Cross-Category Photo Contamination ⚠️
+## 4. Logical Duplicate Venues — Execute Today
 
-**Two beach venue cards share photos exclusively with ski venues — high probability they display snow/mountain images.**
+These are confirmed duplicates that must be removed before new venues are added to avoid inflating the count.
 
-| Beach venue | Reviews | Photo ID (partial) | Shared with (ski only) |
-|---|---|---|---|
-| `south-beach-miami` | **42,800** (most-reviewed in catalog) | `photo-1605540436563-5bca919ae766` | `kiroro-snow-world-s11` · `mount-snow` |
-| `grace-bay-turks` | 2,109 | `photo-1531743672295-bbd901790069` | `andermatt` · `engelberg` |
+| Keep | Remove | Reason |
+|------|--------|--------|
+| `big-sky-montana` (lat: 45.2851) | **`bigsky`** (lat: 45.2865) | Same resort, 156m apart, identical title. `big-sky-montana` has more tags. |
+| `south-beach-miami` (lat: 25.7907, 42,800 reviews) | **`beach_miami`** (lat: 25.7907) | Exact same lat/lon, same title. `south-beach-miami` is the enriched entry. |
 
-**This fix is freeze-exempt** — single-line photo URL swap per venue, zero scoring impact.
-
-**Jack: verify in browser** — open app, tap South Beach Miami, check if the hero photo shows snow. If yes:
-
-```js
-// south-beach-miami — replace photo with:
-photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
-
-// grace-bay-turks — replace photo with:
-photo: "https://images.unsplash.com/photo-1414609245224-aea9a7afaef8?w=800&h=600&fit=crop"
-```
-
-Both replacement IDs are not currently in the photo pool (net +2 unique photos). Verify in browser before committing.
+**Removing both dups: 370 → 368 venues.** Execute by finding each ID in app.jsx and deleting the venue object block.
 
 ---
 
-## 6. CONFIRMED: Logical Duplicate Venues
+## 5. Tag Quality Issues
 
-| Compact ID | Batch ID | Issue | Fix |
-|-----------|---------|-------|-----|
-| `bigsky` (45.2865, -111.4013) | `big-sky-montana` (45.2851, -111.4013) | Same resort, 156m apart, identical title | Remove `bigsky` — fewer tags; `big-sky-montana` is enriched entry |
-| `beach_miami` (25.7907, -80.13) | `south-beach-miami` (25.7907, -80.13) | Exact same coordinates, same venue | Remove `beach_miami` — `south-beach-miami` has 42,800 reviews |
+### Photo Pool Depth
 
-Removing 2 dups → **368 venues** post-sprint. Execute Jul 7.
+- **Distinct Unsplash base images:** 135 across 370 venues
+- **Venues with truly unique photo:** 36.5%
+- **Max repeat:** 3× (within documented threshold)
+- **Photos shared by exactly 3 venues:** 104
 
----
+Resolution requires expanding the pool (~100 new Unsplash IDs), not reshuffling. The dedup script (`scripts/photo-dedup.cjs`) handles redistribution automatically once new IDs are added.
 
-## 7. Placeholder-Tag Venues (staged — execute Jul 7)
+### Placeholder Tags
 
-Five ski venues with identical placeholder tags and Whistler's gradient — unchanged from Jul 4.
-
-| Venue ID | lateSeason | Note |
-|----------|-----------|------|
-| `winter-park` | ✅ | Surfaces in July lateSeason grid without proper identity |
-| `copper-mountain` | ✅ | Same |
-| `lake-louise` | ✅ | Same |
-| `palisades-tahoe` | — | Off-season |
-| `brighton` | — | Off-season |
-
-**Fix-ready (paste Jul 7):**
+Five ski venues have generic/repeated tag combos — execute today per the Jul 6 staging:
 
 ```js
 // winter-park
@@ -159,9 +132,11 @@ gradient: "linear-gradient(160deg,#1a1a3a,#2d3a6a,#5a6aaa)",
 
 ---
 
-## 8. Five New Venue Objects (freeze lifts today — execute Jul 7)
+## 6. Five New Venue Objects — Execute Today
 
-Mix of Jul 5 staged venues + new July glacier ski picks (Saas-Fee + Les Deux Alpes replace Trysil/Boulders Beach, both wrong-season for July). All airports confirmed in AIRPORT_COORDS.
+Freeze lifted. All 5 are European/Swiss ski venues missing from a July-relevant glacier ski catalog. All use APs confirmed in AIRPORT_COORDS. **Fix applied to Les Deux Alpes: changed `ap` from "GNB" (Grenoble — NOT in AIRPORT_COORDS) to "CMF" (Chambéry — confirmed in AIRPORT_COORDS).**
+
+> ⚠️ Verify all `photo` URLs in browser before committing — agent cannot confirm live Unsplash IDs. Run `node scripts/validate-venues.mjs` after staging in `data/venue-candidates.json`.
 
 ```js
 // ─── PASTE into VENUES array (end of array, before closing ]; ) ───────────
@@ -225,7 +200,7 @@ Mix of Jul 5 staged venues + new July glacier ski picks (Saas-Fee + Les Deux Alp
   location: "Isère, France",
   lat: 45.0167,
   lon: 6.1167,
-  ap: "GNB",
+  ap: "CMF",
   icon: "🏔️",
   rating: 4.65,
   reviews: 1840,
@@ -252,17 +227,30 @@ Mix of Jul 5 staged venues + new July glacier ski picks (Saas-Fee + Les Deux Alp
   tags: ["Expert Terrain", "Scenic Views", "Off-Piste", "Luxury Resort"],
   photo: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
   skiPass: "independent"
-}
+},
 ```
 
-**⚠️ All photo URLs need browser verification** — agent cannot confirm live Unsplash IDs. Run `node scripts/validate-venues.mjs` after staging in `data/venue-candidates.json`.
+**Net after dup removal + new venues: 368 − 2 dups + 5 new = 373 venues**
+
+---
+
+## 7. Staged for Jul 8 — Geographic Beach Gaps
+
+Four beach venues identified this run that fill real gaps, all using existing AIRPORT_COORDS APs. No freeze conflict — stage in `data/venue-candidates.json` and execute next run.
+
+| Venue | AP | Gap | July Status |
+|-------|-----|-----|-------------|
+| Arugam Bay, Sri Lanka | CMB | Zero Sri Lanka coverage | Peak surf season |
+| Cable Beach, Broome AUS | BME | Zero Broome coverage | Peak dry season |
+| Essaouira Beach, Morocco | RAK | Zero Atlantic Morocco coverage | Peak windsurf season |
+| Diani Beach, Kenya | MBA | Zero Kenya coverage | Dry season, reef peak |
 
 ---
 
 ## One Observation for the PM
 
-**South Beach Miami (42,800 reviews — most-reviewed venue in catalog) is almost certainly showing a snow mountain photo.** Its photo ID is shared only with Kiroro Snow World and Mount Snow. This is freeze-exempt — a single line in app.jsx, verified in browser in 30 seconds, committed in 5 minutes. Every user who has tapped that card since the batch paste has seen a ski mountain on South Beach Miami. Fix this today.
+**Big Sky Resort appears twice in the catalog with different IDs** (`bigsky` and `big-sky-montana`) at essentially the same coordinates. So does South Beach Miami (`beach_miami` and `south-beach-miami`). Both are real duplicates confirmed today. Removing both reduces the venue count to 368 before the 5 new additions land. Run this before posting any venue count publicly — 370 is currently the wrong number by 2.
 
 ---
 
-*Content agent — 2026-07-06 UTC | Venues: 370 (131 ski / 239 beach) | Prior: 2026-07-05*
+*Content agent — 2026-07-07 UTC | Venues: 370 (131 ski / 239 beach) | Prior: 2026-07-06*
