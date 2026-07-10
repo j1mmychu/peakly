@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-09
+# Peakly DevOps Report — 2026-07-10
 
-**Status: GREEN** — clean run. No P0 or P1 issues. Cache stamp `20260708a` is accurate (bumped July 8, no code changes since). Venue count updated to 373 (content agent added 3 venues July 8). One P2 dependency flag (Babel 8.x). Working tree clean.
+**Status: GREEN** — clean run. No new P0 or P1 issues vs July 9. Venue count 375 after July 9 Content run (+2 beach venues). `lateSeason` corrected to 9 venues (down from 28 false positives fixed July 9). **Week-2 email is P0 today — Jack must send before July 11.**
 
 ---
 
@@ -12,11 +12,12 @@
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
 | "GEAR_ITEMS found" | **0 refs. Amazon cut for v1.** Stop. |
 | "Cache buster stale / 20260708a" | **Accurate — last code change was July 8. Bumps automatically on next code edit.** |
-| "Venue count 156 / 353 / 370 / 372" | **373 (133 ski / 240 beach) as of July 8. Eval only — grep undercounts to 156.** |
-| "lateSeason: 6 venues" | **25 venues.** Stop. |
+| "Venue count 156 / 353 / 370 / 373" | **375 (133 ski / 242 beach) as of July 9. Eval only — grep undercounts to 156.** |
+| "lateSeason: 6 / 25 / 28 venues" | **9 venues — corrected July 9 Content run.** Stop. |
 | "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
 | "Plausible data-domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`.** Stop. |
-| "197 empty-tag venues" | **FALSE. All 373 have tags.** Stop. |
+| "197 empty-tag venues" | **FALSE. All 375 have tags.** Stop. |
+| "2 dup venues pending removal" | **FIXED July 8.** Stop. |
 
 ---
 
@@ -24,12 +25,14 @@
 
 | Check | Result |
 |---|---|
-| `app.jsx` size | 13,496 lines · ~659 KB |
-| Brace balance | ✅ 5,568 / 5,568 BALANCED |
+| `app.jsx` size | 13,502 lines · 676 KB |
+| Brace balance | ✅ 5,572 / 5,572 BALANCED |
 | Cache stamp (app.jsx / sw.js / index.html) | ✅ `20260708a` — accurate, last code change July 8 |
-| Venue count (eval) | ✅ 373 (133 ski / 240 beach) — updated July 8 by content agent (+3 venues) |
-| `.venue-baseline` | ✅ 370 — needs update to 373 (non-blocking, see P3) |
+| Venue count (eval) | ✅ **375** (133 ski / 242 beach) — +2 beach venues added July 9 (Tenerife, Crete) |
+| `.venue-baseline` | ✅ 375 (updated by Content July 9) |
+| Duplicate IDs (structural) | ✅ 0 — confirmed via eval() |
 | GEAR_ITEMS refs | ✅ 0 |
+| `lateSeason` venues | ✅ 9 (trimmed July 9 from 28 false positives) |
 | Plausible analytics | ✅ Present, uncommented, `defer`, correct domain `j1mmychu.github.io/peakly` |
 | Sentry DSN | ✅ Active (`app.jsx:7`, `index.html:77`) |
 | React version | ✅ 18.3.1 UMD — current stable |
@@ -53,9 +56,9 @@
 
 ## P1 (Ongoing) — VPS Weather Cache: Jack-Verify Only
 
-**Unverifiable from sandbox (egress block — NOT a VPS outage per CLAUDE.md).** Day 9 post-launch.
+**Unverifiable from sandbox (egress block — NOT a VPS outage per CLAUDE.md).** Day 10 post-launch. Return visitor window opens July 11–13 — cold cache is now a real risk.
 
-The in-memory LRU weather cache resets on any pm2 restart. Cold cache → 373 weather fetches hit Open-Meteo directly → free-tier quota exhausts at ~66 concurrent users → venues all score 50.
+The in-memory LRU weather cache resets on any pm2 restart. Cold cache → 375 weather fetches hit Open-Meteo directly → free-tier quota exhausts at ~66 concurrent users → venues all score 50.
 
 **Jack: 30-second check:**
 ```bash
@@ -84,13 +87,9 @@ Open app → check console for Babel parse errors → verify all 3 tabs render. 
 
 ---
 
-## P3 — `.venue-baseline` Drift (Non-Blocking)
+## P2 — 5 Placeholder-Tag Ski Venues (Content Agent Task, Day 4)
 
-`.venue-baseline` still reads `370`. Content agent added 3 venues on July 8 bringing total to 373. The auto-push invariant guard checks `>= baseline`, so 373 > 370 passes fine — it only fails if venues drop. Update when convenient:
-
-```bash
-echo "373" > scripts/.venue-baseline
-```
+PM v83 confirms these 5 venues still carry placeholder tags: **winter-park, copper-mountain, lake-louise, palisades-tahoe, brighton**. Tag copy is ready in Content report July 9. Not a DevOps fix — flagging here to ensure the next Content run ships it.
 
 ---
 
@@ -142,13 +141,15 @@ Survives pm2 restarts. No new deps. File is ~100KB at steady state. Do this befo
 
 ---
 
-## Jack: Week-2 Actions
+## Jack: TODAY (July 10)
 
-1. **Send retention email July 10** — 3 sentences, personal, ask what they searched for. First-week replies are user research you can't buy.
-2. **Read Plausible before writing sprint code** — 9 days of real user data in the dashboard. Agents can't reach it from sandbox.
-3. **VPS health check** — `curl https://peakly-api.duckdns.org/health`. 30 seconds.
-4. **Glacier venues (PM v81)** — 5 prepped for `validate-venues.mjs`. ~30 min to ship; prioritize if Plausible shows ski filter engagement.
+| Item | Urgency | What |
+|------|---------|------|
+| **Send Week-1 retention email** | 🔴 **P0** | Last call. Return window opens July 11. 3 sentences, personal, ask what they searched for. |
+| **VPS health check** | 🟡 **P1** | `curl https://peakly-api.duckdns.org/health` — confirm `wx_cache_size > 0` before return visitors arrive July 11. Use `pm2 reload` not `pm2 restart` if you need to restart. |
+| **Read Plausible** | 🟡 **P1** | 9 days of real user data. Zero product decisions have been data-driven. plausible.io → `j1mmychu.github.io/peakly`. |
+| **Supabase SQL paste** | 🟠 this week | `server/sql/delete-account.sql` → SQL editor. Day 30. iOS App Store 5.1.1(v). |
 
 ---
 
-*DevOps agent — 2026-07-09. Next report: 2026-07-10.*
+*DevOps agent — 2026-07-10. Next report: 2026-07-11.*
