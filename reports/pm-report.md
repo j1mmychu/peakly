@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-07-09 (v83)
+# Peakly PM Report — 2026-07-10 (v84)
 
-> Supersedes v82 (July 8). **Status: GREEN on code, YELLOW on distribution.** Day 9 post-launch. Big content run today: `lateSeason:true` properly trimmed to 9 correct venues, 2 new beach venues (Tenerife + Crete) added, photo regressions fixed. **375 venues. Catalog in best shape since launch. Week-2 email: send TODAY — the return window opens July 11 and there's no time left.**
+> Supersedes v83 (July 9). **Status: YELLOW → P1 lateSeason regression live, Week-2 window opens tomorrow, email deadline TODAY.** Day 10 post-launch. Content July 10 identifies lateSeason regression (4 venues lost flag after July 9 trim), 3 generic-tag venues remain, LatAm beach gap confirmed. Fix the regression before the return window opens.
 
 ---
 
@@ -8,235 +8,68 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues" | **375 venues.** Stop. |
-| "370 / 373 venues" | **375 venues (133 ski / 242 beach) as of July 9.** Update baseline. |
+| "182 venues" | **375 venues (133 ski / 242 beach).** Stop. |
 | "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **`20260708a` — accurate, last code change July 8. Auto-bumps on next edit.** Stop. |
+| "Cache buster stale" | **`20260708a` — last code change July 8. Auto-bumps on next code edit.** Stop. |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Stop. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "197 empty-tag venues" | **FALSE. All 375 have ≥2 tags.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
-| "Plausible data-domain wrong" | **FIXED July 7.** Stop. |
-| "27 surf-legacy tags need removal" | **FALSE — valid beach activity tags. Stop.** |
-| "lateSeason: 6 / 25 / 28 venues" | **9 venues (5 compact + 4 quoted format). Fixed July 9.** Stop. |
 | "2 dup venues pending removal" | **FIXED July 8.** Stop. |
-| "5 placeholder-tag ski venues" | **STILL OPEN — day 3. Execute next Content run.** |
-| "Venue count 372 (bracket-walk)" | **Bracket-walk overcounts by 2 non-venue objects. Use both-format category grep = 375.** |
-
----
-
-## Shipped Since v82 (2026-07-08 → 2026-07-09)
-
-| Commit | What | Verdict |
-|--------|------|---------|
-| `8d5215e` — DevOps | Infrastructure audit: 373 venues confirmed, Babel 8.x P2 flagged, working tree clean | ✅ Clean run |
-| `c9f2b7c` — Content | **Major content run:** Remove `lateSeason:true` from 20 closed N. hemi ski venues (28→9 correct). Fix photo 4× regression (3 venues reassigned, beach ≤3×, ski ≤2×). Add TFS+CHQ to AIRPORT_COORDS + AP_CONTINENT. Add 2 new beach venues: Las Teresitas (Tenerife/TFS) + Elafonissi (Crete/CHQ). Net: 373→375. | ✅ Best content run since launch. All v82 Decisions 1+2 executed. |
-
-**Code state July 9:**
-- `app.jsx`: 13,503 lines · cache `20260708a` · braces balanced
-- **375 venues** (133 ski / 242 beach) · `.venue-baseline` updated to **375** this run
-- GEAR_ITEMS: 0 · lateSeason: 9 (5 compact + 4 quoted — all correct glacier/year-round) · photos: beach ≤3×, ski ≤2×
-- Sentry: active · Plausible: domain `j1mmychu.github.io/peakly` ✅ · VPS: unverified from sandbox
-
-**v82 decisions — execution status:**
-- ✅ Decision 1: `lateSeason:true` overuse — 20 removals complete (28→9 correct venues). The July credibility gap closed.
-- ✅ Decision 2: Tenerife + Crete beach venues — Las Teresitas + Elafonissi in catalog.
-- ✅ Decision 3: Alpe d'Huez + Cortina d'Ampezzo — correctly deferred to October sprint.
-
----
-
-## Bug Triage — July 9
-
-| Bug | Severity | Status |
-|-----|----------|--------|
-| **Week-2 retention email not sent** | **P0** | Return window opens July 11. Email must land TODAY (July 9) or July 10 latest. Jack only. |
-| **Plausible data unread** | **P0** | 9 days of real user data sitting in the dashboard. Zero product decisions have been data-driven. Jack: plausible.io. 5 minutes. |
-| **VPS health — Day 9 post-launch** | **P1** | In-memory wx cache resets on pm2 restart. If `wx_cache_size == 0`, return visitors July 11 hit degraded scores. Jack: `curl https://peakly-api.duckdns.org/health` from local terminal before July 11. |
-| **Supabase SQL paste** | P0 (App Store) · P3 (web) | Day 30. 2 minutes. Jack only. |
-| **5 placeholder-tag ski venues** | P2 | Day 3 open. winter-park, copper-mountain, lake-louise, palisades-tahoe, brighton. Tag copy ready in Content report July 9. Execute next Content run. |
-| **Photo URL verification (5 venues)** | P2 | Jack: open 5 Unsplash IDs in browser (see v82/v83 content reports). 2 minutes. |
-| **Plausible dashboard domain update** | P2 | Jack: plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly`. Code side fixed July 7. |
-| Alpe d'Huez + Cortina d'Ampezzo | P3 | Deferred October. No action until N. hemi ski build-up. |
-| SRI on CDN scripts | P3 | DEFER post-LLC. |
-| 14 orphaned `claude/` branches | P4 | No urgency. |
-
-**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" outage framing · DEAL_WEIGHT · GEAR_ITEMS · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays · cross-category photo contamination · Plausible domain (code side) · surf-legacy tags · 2 dup venues · `lateSeason:true` overuse (28→9)
-
----
-
-## Known Blockers
-
-| Blocker | What It Unlocks | Days Open |
-|---------|----------------|-----------|
-| **Week-2 email** (Jack, personal — TODAY) | Week-2 return rate measurement + first user research conversations | **Hard deadline** |
-| **Plausible read** (Jack, plausible.io) | Every product prioritization call — 9 days blind | Day 9 |
-| **VPS health check** (Jack, local terminal) | Return-visitor weather reliability before July 11 window | Day 25 |
-| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 30 |
-| LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
-
----
-
-## Explicit Product Decisions — July 9
-
-### Decision 1: Placeholder tag fix — agents execute next Content run, no Jack action needed.
-
-The Content report July 9 has the exact tag replacements ready. This is a 20-minute agent task with zero product ambiguity — not a Jack decision, not a design call, not a scoring change.
-
-**SHIP: Next Content agent run applies placeholder tag fix. Copy is already written.**
-
-### Decision 2: No speculative venue adds until Plausible data informs direction.
-
-The catalog is in excellent shape: 375 venues, clean lateSeason data, clean photos, no dups, airport coverage complete. Additional content work (new venues, new regions) should wait until Plausible shows which venue types actually drove engagement.
-
-**DECISION: Agent content runs are quality-maintenance only until Plausible data arrives. No speculative adds.**
-
-### Decision 3: Week-2 return rate floor is 15% organic, not 20%.
-
-v81 set 20%. Without knowing Week-1 cohort size or whether the email prompt is driving returns, 20% is too precise. Revised floors:
-- **<15%:** Product has a first-visit problem. Onboarding becomes next sprint.
-- **15–30%:** Expected. Hold strategy, keep building quality.
-- **>30%:** Product has genuine pull. Accelerate distribution (second Reddit, SEO, Twitter).
-
-The email Jack sends today and organic returns are two separate signals. Plausible source breakdown is how we separate them.
-
-**DECISION: Week-2 floor is 15% organic. Email sends today as a separate tracked trigger.**
-
----
-
-## This Week's Top 3 Priorities Only
-
-**1. Jack sends Week-2 retention email TODAY.**
-
-The return window opens July 11 — 48 hours. The email needs to land before users come back on their own. 3 sentences. Personal. Every reply is user research worth more than any sprint item.
-
-Draft:
-> "Hey — I built Peakly and you visited last week. Scores just updated for next weekend (July 11–14) — looks great from [your airport]. Still building — reply and tell me where you tried to fly and what was wrong."
-
-**2. Jack reads Plausible (5 min) and shares Week-1 numbers.**
-
-9 days of real user data. The distribution question (repost or hold), the venue-type question (more ski? more beach?), the UX question (where did people bounce?) — all contingent on this. If uniques <500: second post this week. If >2K: hold and watch Week-2. This is the most important 5-minute action this week.
-
-**3. Agents: placeholder tag fix in next Content run.**
-
-Low-risk, high-quality. Copy is written. 20 minutes. Closes the last open data quality item.
-
----
-
-## Features REJECTED This Week
-
-| Feature | Rejection Reason |
-|---------|-----------------|
-| New venue adds (beyond tag fix) | DEFER. Quality-maintenance mode until Plausible data arrives. |
-| Automated email digest | DEFER. Manual founder email first. Post-PMF only. |
-| Hotel integrations | CUT for v1. |
-| JSON-LD / structured data | DEFER. SEO compounds on traffic that doesn't exist yet. |
-| Venue deep links / permalink pages | DEFER. Need >100 detail-sheet views/day/venue signal first. |
-| New venue categories (climbing, surf, hiking) | CUT. Ski + beach is the moat. |
-| Babel 8.x upgrade | DEFER to post-500 MAU. Risk not justified. |
-| SRI hashes on CDN scripts | DEFER post-LLC. |
-
----
-
-## Success Criteria — 8K vs 5K
-
-**Gate metrics:**
-1. **Week-1 unique visitors** — if <500: second post this week; 500–2K: judgment call; >2K: hold.
-2. **Week-2 organic return rate ≥15%** (July 11–13) — if below, onboarding is next sprint.
-3. **Beach filter ≥40% of filter clicks in July** — seasonal copy mismatch test.
-
-**For 8K not 5K:** The email Jack sends today needs at least 3 replies. Each reply is a potential user-research-to-testimonial-to-share pipeline. The 8K path runs through founder-user conversations, not additional venue adds.
-
----
-
-## One Product Risk Nobody Is Talking About
-
-**The lateSeason:true calibration we shipped today (28→9 venues) changed what shows in the July Skiing filter — and we don't know if it looks right on mobile.**
-
-Before: 28 venues could bypass the off-season cap with ≥0.5m snow depth (including closed Colorado resorts). After: 9 venues only (genuine glacier/year-round operations — Whistler, Zermatt, Val Thorens, Snowbird, Verbier, Cervinia, Les Deux Alpes, Saas-Fee, St. Moritz).
-
-This is almost certainly correct. But the 23 Southern hemisphere venues surface through the normal hemisphere-aware season gate (no lateSeason flag needed). The 9 lateSeason venues are bonus N. hemi glacier inventory that should appear *alongside* those 23 Southern options.
-
-**The risk:** We can't verify from a sandbox that the scoring mix looks coherent on mobile — Open-Meteo data is live, not mocked. A closed Colorado resort could still rank high if its historical snow depth data reports ≥0.5m.
-
-**Jack: when you open Plausible, also open the live site on mobile and click Skiing. Does the front page show open Southern hemisphere resorts prominently? If you see any closed Colorado resort ranking above Valle Nevado or Thredbo, reply in session.**
-
----
-
-*PM agent — 2026-07-09 (v83). Catalog state: excellent. Distribution: still unknown. The email Jack sends today is the only thing that matters this week. v84 expected July 10.*
-
----
-
-## Agent Prompt Corrections (permanent — stop raising these)
-
-| Prompt Claim | Reality |
-|---|---|
-| "182 venues" | **373 venues as of July 8.** Stop. |
-| "370 venues" | **373 venues (−2 dups, +5 new this run).** Update your baseline. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Stop. |
-| "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **`20260708a` — bumped by DevOps this morning.** Stop. |
-| "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Stop. |
-| "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
-| "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "Duplicate commit pattern" | **Known-skipped June 25.** Stop. |
-| "197 empty-tag venues" | **FALSE. All 373 have ≥2 tags.** Stop. |
+| "lateSeason: 6 / 25 / 28 venues" | **5 active, 4 need flag restored (regression). Fix this run. See Decision 1.** |
+| "lateSeason: 9" | **Target is 9. Current is 5 (4 over-trimmed July 9). Fix restores to 9.** |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "Plausible data-domain wrong" | **FIXED July 7.** Stop. |
-| "27 surf-legacy tags need removal" | **FALSE — valid beach activity tags. See v81 Decision 1. Stop.** |
-| "lateSeason: 6 venues" | **28 venues as of July 8 (+3 new glacier venues).** Stop. |
-| "2 duplicate venues pending removal" | **FIXED July 8 (Content `e796902`).** Stop. |
-| "5 placeholder-tag ski venues" | **FIXED July 8 (Content `e796902`).** Stop. |
+| "27 surf-legacy tags need removal" | **FALSE — valid beach activity tags.** Stop. |
+| "5 placeholder-tag ski venues" | **3 remaining** (whistler, beaver-creek, park-city-mountain). The other 2 were already fixed. Stop saying 5. |
 
 ---
 
-## Shipped Since v81 (2026-07-07 → 2026-07-08)
+## Shipped Since v83 (2026-07-09 → 2026-07-10)
 
 | Commit | What | Verdict |
 |--------|------|---------|
-| `b176829` — DevOps | Cache `20260707a` → `20260708a` across app.jsx + sw.js + index.html | ✅ Routine maintenance |
-| `e796902` — Content | Remove 2 dup venues (`bigsky`, `beach_miami`). Fix placeholder tags on 5 ski venues. Add 5 new venues (2 beach, 3 ski glacier). Net: 370 → 373. | ✅ Sprint items 3+4+6 fully executed. Good ship. |
+| `43f826f` — DevOps July 10 | Infrastructure GREEN: 375 venues, braces 5572/5572, Babel 8.x P2 flagged, working tree clean | ✅ Clean |
+| `01e448a` — Content July 10 | lateSeason regression P1 identified (4 venues over-trimmed July 9), 3 generic-tag venues remaining, 5 venue JSONs staged (2 glacier ski + 3 LatAm beach) | ⚠️ Finding run — fix outstanding |
 
-**July 7 sprint status — COMPLETE:**
+**Code state July 10:**
+- `app.jsx`: 13,502 lines · cache `20260708a` · braces 5,572/5,572
+- **375 venues** (133 ski / 242 beach)
+- GEAR_ITEMS: 0 · lateSeason: **5 active** (4 need flag restored before July 11)
+- Photos: beach ≤3×, ski ≤2× · Sentry: active · Plausible: ✅ scoped · VPS: unverifiable from sandbox
 
-| Item | Status |
-|------|--------|
-| 1 — Read Plausible + Sentry | ⏳ Jack only |
-| 2 — Plausible domain fix | ✅ DONE July 7 |
-| 3 — Remove 2 duplicate venues | ✅ DONE July 8 (Content) |
-| 4 — Fix 5 placeholder-tag ski venues | ✅ DONE July 8 (Content) |
-| 5 — Remove 27 surf-legacy tags | ❌ CANCELLED v81 Decision 1 |
-| 6 — Add 5 glacier ski venues | ✅ **PARTIAL** — 3 of 5 shipped (les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). Alpe d'Huez + Cortina d'Ampezzo still pending. |
-| 7 — Supabase SQL paste | ⏳ Jack only — **Day 29** |
-| 8 — Draft Week-1 retention email | ⏳ Jack only — **DEADLINE JULY 10** |
+**Open sprint items:**
 
-**Code state July 8:**
-- `app.jsx`: ~13,500 lines · cache `20260708a` · braces 5,568/5,568 ✅
-- **373 venues** (133 ski / 240 beach)
-- GEAR_ITEMS: 0 · lateSeason: 28 · max photo repeat 4× beach / 3× ski
-- Sentry: active · Plausible: domain scoped ✅ · VPS: unverified from sandbox
-
-**⚠️ Photo URL verification pending (Jack):** 5 new venue Unsplash IDs need a browser check before they're trusted on the front page. IDs: `1566452348683-af04c7f8b0e8` (Arugam Bay), `1548438294-1ad5d5f4f063` (Essaouira), `1583119022894-919a68a3d0e3` (Les Deux Alpes), `1551698618-1dfe5d97d256` (Saas-Fee), `1606787364406-a3cdf06c6d0c` (St. Moritz). If any returns 404, swap before the next VPS cache warm.
+| Item | Status | Age |
+|------|--------|-----|
+| **lateSeason regression fix** (chamonix/mammoth/abasin/tignes) | ⚠️ **P1 — this run** | Day 1 (Jul 10) |
+| 3 generic-tag ski venues (whistler/beaver-creek/park-city-mountain) | P2 — next Content run | Day 1 (Jul 10) |
+| Week-2 retention email | **P0 — TODAY** | Day 4 (since Jul 7) |
+| Supabase SQL paste | P0 (App Store) / P3 (web) | Day 31 |
+| alpe-d-huez + cortina-d-ampezzo (photo-verify gate) | P2 — DEFER until verify | Day 4 |
+| LatAm beach venues staged | P3 — DEFER until Plausible | New Jul 10 |
+| Plausible read | P0 — Jack only | Day 10 |
+| VPS health check | P1 — Jack only | Day 26 |
 
 ---
 
-## Bug Triage — July 8
+## Bug Triage — July 10
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **`lateSeason:true` on 19 closed N. hemi ski resorts** | **P1** | New finding. Closed resorts (Breckenridge, Courchevel, Kitzbuehel, etc.) may surface above open S. hemi lifts in July if snow depth reports ≥ 0.5m. See Decision 1 below. |
-| **Week-1 retention email** not sent | **P0** | Deadline July 10. One day away. Miss it and Week-2 return data is uninterpretable. |
-| **Plausible data unread** | **P0** | 8 days of real user data. Jack: plausible.io before any new build work. |
-| **VPS weather cache** — Day 8, unknown restart state | **P1** | Jack: `curl https://peakly-api.duckdns.org/health`. If `wx_cache_size == 0`, warm before July 11 return-visitor window. |
-| **`borabora` has `lateSeason:true`** | **P2** | Beach venue with a ski-only scoring flag. One-field remove. Harmless today but data quality error. |
-| **Supabase SQL paste** | P0 (App Store) · P3 (web) | Day 29 open. 2 minutes. Jack only. |
-| Alpe d'Huez + Cortina d'Ampezzo | P3 | 2 of 5 glacier venues still pending from sprint item 6. Not July-critical (both off-season). |
-| Photo URL verification (5 new venues) | P2 | Jack: open 5 Unsplash URLs in browser. 2 minutes. |
-| Plausible dashboard domain update | P2 | Jack: plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly` |
-| SRI on CDN scripts | P3 | DEFER post-LLC. |
+| **lateSeason regression** — chamonix, mammoth, abasin, tignes lost `lateSeason:true` | **P1** | 4-line fix. Tignes scores 8/100 "Off-season closed" with tag "Summer Glacier" — engine only checks the flag. Fix before Week-2 window. |
+| **Week-1 retention email unsent** | **P0** | TODAY deadline. 4 consecutive P0 flags. Jack only. |
+| **Plausible data unread** | **P0** | 10 days of user data. Jack: plausible.io. 15 min. Every code decision is a guess. |
+| **VPS weather cache** | **P1** | Day 10 post-launch. Jack: `curl https://peakly-api.duckdns.org/health` before July 11. |
+| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 31. 2 min. Jack only. |
+| **3 generic-tag ski venues** | P2 | Next Content run. |
+| **alpe-d-huez + cortina-d-ampezzo** staged, unverified photos | P2 | Run `validate-venues.mjs` first. |
+| Babel 8.x upgrade (7.29.7 → 8.0.4) | P2 | Post-500 MAU. Test in branch. |
+| LatAm beach gap (3/242 in region) | P3 | DEFER until Plausible confirms LatAm intent. |
+| SRI hashes on CDN scripts | P3 | DEFER post-LLC. |
+| Plausible dashboard domain update | P2 | Jack only. plausible.io → Settings → Domain. |
 
-**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" outage framing · DEAL_WEIGHT · GEAR_ITEMS · EWR AP_CONTINENT · duplicate-commit pattern · empty tag arrays · cross-category photo contamination · Plausible domain (code side) · surf-legacy tags · 2 dup venues · 5 placeholder-tag ski venues
+**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate-commit pattern · cross-category photos · Plausible domain (code side) · surf-legacy tags · 2 venue dups · lateSeason overuse (28→5+4 regression fix in progress)
 
 ---
 
@@ -244,62 +77,72 @@ This is almost certainly correct. But the 23 Southern hemisphere venues surface 
 
 | Blocker | What It Unlocks | Days Open |
 |---------|----------------|-----------|
-| **Week-1 retention email** (Jack, personal) | Week-2 return rate measurement — expires July 10 | 0 days left |
-| **Plausible read** (Jack, plausible.io) | Every product prioritization call this week | Day 8 post-launch |
-| **VPS health verify** (Jack, local terminal) | Confirms weather data reliability for Week-2 window | Day 24 |
-| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 29 |
+| **Week-2 email** (Jack — TODAY) | Return-visitor signal + first user research conversations | 4 days past flag |
+| **Plausible read** (Jack, plausible.io) | All product prioritization — 10 days blind | Day 10 |
+| **VPS health check** (Jack, local terminal) | Return-visitor weather reliability before July 11 | Day 26 |
+| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 31 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
-| Apple Developer ($99) | App Store submission | Post-launch |
 
 ---
 
-## Explicit Product Decisions — July 8
+## Explicit Product Decisions — July 10
 
-### Decision 1: `lateSeason:true` on 19 closed N. hemisphere ski resorts — SHIP THE FIX.
+### Decision 1: SHIP the lateSeason regression fix this run. P1, agent-executable, no decision needed.
 
-Content agent identified that ~19 N. hemisphere ski venues carry `lateSeason:true` but close in April and have no summer skiing. In July, if Open-Meteo reports ≥ 0.5m snow depth at elevation (common from lingering glacial snowpack), these closed resorts bypass the off-season cap and can surface on the front page above actually-open Southern hemisphere lifts.
+The July 9 Content run over-trimmed `lateSeason:true` from 28 venues to 5, when the correct count is 9. Four venues lost the flag that genuinely need it:
 
-The scenario: a user in London opens Peakly this weekend. The Skiing filter shows Breckenridge or Courchevel (closed since April, but high-altitude Open-Meteo reports 0.7m snow depth) ranked above Valle Nevado or Thredbo (open, lifts running). That's a product credibility failure — the app looks broken.
+- **chamonix** — Vallée Blanche, August glacier skiing
+- **mammoth** — tag "Late Season", July operations at 11,000 ft
+- **abasin** — tag "Longest Season CO", summer weekend operations
+- **tignes** — tag "Summer Glacier", Grande Motte July–August
 
-Correctly flagged (confirmed glacier/year-round): whistler, zermatt, val-thorens, snowbird, verbier, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
+Without the flag, each scores 8/100 "Off-season — resort closed" in July. A London user searching for a July ski trip sees Tignes closed. The venue's own tag says "Summer Glacier" — the engine ignores tags, it only checks `lateSeason:true`.
 
-Incorrectly flagged (closes April, no summer ski — **remove `lateSeason:true` from these 19**): breckenridge, grandtarghee, courchevel, kitzbuehel, winter-park, copper-mountain, mt-bachelor, sugarloaf, revelstoke, lake-louise, engelberg, crans-montana, beaver-creek, park-city-mountain, fernie, kimberley, nakiska, meribel, les-menuires.
+Fix: add `lateSeason:true,` to each of the 4 venue blocks. 4 lines. After fix: lateSeason = 9 (matches DevOps July 10 projection).
 
-**This is a data correction, not a scoring algorithm change.** CLAUDE.md's algorithm-critique requirement applies to modifying scoring formulas (DEAL_WEIGHT, scoreVenue logic). Correcting a wrong boolean field on a venue object is the same class of fix as correcting a wrong lat/lon. No critique required.
+**SHIP: This run, by the Content or DevOps agent. Week-2 window opens July 11 — this must be live before then.**
 
-Also fix `borabora` (beach venue with ski-only `lateSeason:true` — one field remove).
+### Decision 2: DEFER LatAm beach venues until Plausible confirms demand.
 
-**SHIP: Remove `lateSeason:true` from 19 closed N. hemi ski venues + borabora. 20 field removals. Execute in next DevOps or Content run.**
+Content July 10 has 5 LatAm beach venues staged (cancun-beach, florianopolis-beach, punta-mita-beach, +2). The identified gap: only 3/242 beach venues serve Mexico/Caribbean/Brazil.
 
-### Decision 2: Tenerife + Crete beach venues — SHIP pending airport constant additions.
+Do not ship yet. Reasons:
+1. No Plausible data to confirm LatAm was in demand from Week-1 users.
+2. Photo URLs in the staged entries are unverified — run `validate-venues.mjs` first.
+3. 375 venues is a strong catalog. A LatAm gap matters only if users are looking for it.
 
-Content agent staged Las Teresitas (TFS, Tenerife) and Elafonissi (CHQ, Crete). Both are July-peak Mediterranean beaches missing from a catalog with 14 Greece venues but zero Crete entries. Elafonissi (pink-sand lagoon, 18K reviews) is one of the most searched European beaches in summer.
+**DEFER: LatAm beach venues. Gate is (a) Plausible shows LatAm intent OR (b) validate-venues.mjs passes clean. Not before.**
 
-Prerequisites: Add `TFS:{lat:28.0445, lon:-16.5726}` to AIRPORT_COORDS (TFS already in AP_CONTINENT:europe). Add `CHQ:{lat:35.5317, lon:24.1497}` to both AIRPORT_COORDS and AP_CONTINENT.
+### Decision 3: Week-2 floor is 15% organic return, not 20%.
 
-**SHIP: Add airport constants + 2 venues in next Content run. Run `validate-venues.mjs` first.**
+v81–v83 used 20% as the return rate floor. Revised to 15% because:
+- Week-1 cohort size is unknown (no Plausible data)
+- The email Jack sends today acts as a confound — need to separate email-driven from organic return
+- 15% is still a meaningful bar for a new product with no notification loop
 
-### Decision 3: Alpe d'Huez + Cortina d'Ampezzo — DEFER to next Content run.
+| Return rate (organic, ex-email) | Read |
+|----------------------------------|------|
+| <15% | First-visit problem. Onboarding sprint before any new features. |
+| 15–30% | Expected. Hold course, ship quality. |
+| >30% | Product has pull. Accelerate distribution. |
 
-Both were in the original 5-glacier sprint but didn't ship July 8. Neither is open for skiing in July (both are off-season N. hemi right now without an active glacier). Not July-urgent. Stage them for September when N. hemisphere ski season build-up begins.
-
-**DEFER: Next Content run, October sprint. Not worth the July focus.**
+**DECISION: 15% organic return rate floor for Week-2. Email sends today as a separate signal to track.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Send Week-1 retention email tomorrow (July 10). This is the deadline, not a suggestion.**
+**1. Fix the lateSeason regression this run (agent task).**
 
-The window closes July 10. 3 sentences from Jack personally. One live venue link with next weekend's scores. One open question — "what was wrong?" The reply rate will tell you more about product-market fit than any analytics dashboard. Every reply is user research you cannot buy.
+4 lines. Chamonix, Mammoth, Arapahoe Basin, Tignes. These venues are actively open in July and currently scoring closed. The Week-2 return window opens tomorrow. This is the highest-leverage code change available today.
 
-**2. Execute `lateSeason:true` fix (Decision 1) — 20 field removals, agent-executable.**
+**2. Jack: Send the retention email today.**
 
-A closed ski resort surfacing above open Southern hemisphere lifts is the kind of thing a Redditor screenshots and posts as "lol this app thinks Breckenridge is open in July." Fix it before the Week-2 return window opens (July 11). This is the highest-impact code change available right now.
+3 sentences. Personal. From jjciluzzi@gmail.com. Subject: "Peakly updated for next weekend." One live link. One open question. The replies are user research. This has been P0 for 4 consecutive reports. It ends today.
 
-**3. Jack: Read Plausible. VPS health check.**
+**3. Jack: Read Plausible + VPS health check (15 min total, before July 11).**
 
-8 days of data. One browser tab. The VPS check is a 2-minute curl. Do both before approving any further build work this week.
+10 days of user data. One browser tab. The VPS check tells you whether return visitors get accurate scores. The Plausible data tells you whether you have 200 or 2,000 returning users. Both change what we build in Week 3.
 
 ---
 
@@ -307,40 +150,42 @@ A closed ski resort surfacing above open Southern hemisphere lifts is the kind o
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| Automated weekly email digest | **DEFER.** Manual founder email first. Infrastructure after signals. |
-| Hotel integrations | **CUT for v1.** Scope creep. |
-| JSON-LD / structured data | **DEFER.** SEO compounds on traffic that doesn't exist yet. Post-100 users. |
-| Venue deep links / permalink pages | **DEFER.** Build after Plausible shows >100 detail-sheet views/day per venue. |
-| Photo pool expansion (≤2× repeat) | **DEFER.** Needs ~100 new verified Unsplash IDs. Not the bottleneck at current MAU. |
-| New venue categories (climbing, surf, hiking) | **CUT.** Ski + beach is the moat. |
-| SRI hashes on CDN scripts | **DEFER post-LLC.** P3. |
-| Gran Canaria (LPA) | **DEFER.** LPA not in AIRPORT_COORDS. Airport constant work is fine, but prioritize Tenerife + Crete first. |
+| LatAm beach venues (5 staged) | **DEFER.** No Plausible confirmation of LatAm demand. Photo URLs unverified. |
+| alpe-d-huez + cortina-d-ampezzo | **DEFER.** Run `validate-venues.mjs` first. Don't paste unverified. |
+| Automated email digest | **DEFER.** Manual founder email first. Automation after PMF signal. |
+| Hotel integrations | **CUT for v1.** |
+| JSON-LD / structured data | **DEFER.** Post-1K users. |
+| Venue deep links / permalink pages | **DEFER.** Post-100 detail-sheet views/day. |
+| Babel 8.x upgrade | **DEFER.** Post-500 MAU. Test in branch. |
+| SRI hashes | **DEFER post-LLC.** |
+| New venue categories | **CUT.** Ski + beach is the moat. |
+| Lesotho (Afriski) ski venue | **DEFER.** No demand signal for Africa skiing at current MAU. |
 
 ---
 
 ## Success Criteria — 8K vs 5K
 
-**Gate metrics (unchanged from v80/v81):**
-1. **Week-1 unique visitors ≥ 2K** — if below, repost before building
-2. **Week-2 return rate ≥ 20%** — if below, onboarding hook becomes next sprint
-3. **Beach filter ≥ 40% of filter clicks in July** — if below, seasonal framing mismatch
+**Week-2 gate (July 11–17):**
+- <15% organic return → onboarding problem → fix first-run before any new features
+- 15–30% organic return → expected → hold strategy, ship quality
+- >30% organic return → product has pull → accelerate distribution (second Reddit/Twitter)
 
-**For 8K not 5K:** organic referral loop kicks in by Week 4. "Share a weekend plan" generates ≥5 organic referrals/week by July 28 without a second distribution push. If it doesn't, 5K is the ceiling and a second Reddit post — not feature work — is the path.
+**The one-number question:** How many unique visitors July 1–7? If <500 → repost. If 500–2K → hold and watch. If >2K → double down on quality. Jack reads Plausible today.
+
+**For 8K not 5K:** organic sharing loop kicks in by Week 4 (July 22+). If Share-a-List generates ≥5 organic inbound visits/week by July 28, the loop is working. If not, a second Reddit post is the path to 8K.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The `lateSeason:true` bug is already live, affecting right now.**
+**The lateSeason regression has been live for 24 hours — all July 10 visitors saw Tignes, Mammoth, Arapahoe Basin, and Chamonix closed.**
 
-The July 8 Content report confirmed this and flagged it for PM decision. But the mechanism has been running since the flag was added in May. Any user who opened the Skiing filter in the past 8 days may have seen a closed N. hemisphere resort ranked above an open Southern hemisphere one, depending on what Open-Meteo returned for elevation snow depth that day.
+These are not obscure venues. Tignes is the most Googled European summer ski resort. Mammoth is the most Googled California summer ski mountain. If any Week-1 visitor came back today specifically to check one of these — because they're planning a trip — they saw "Off-season — resort closed" and bounced.
 
-We don't know how often this happened because we can't read Plausible. We don't know if it caused bounce because we haven't sent the retention email. We've been shipping catalog quality improvements (photo dedup, tag cleanup, dup removal) while a silent ranking error was surfacing closed resorts to the first real users.
+We don't know how many. We can't check Plausible. We can fix it in 4 lines before tomorrow's return window.
 
-The good news: it's a one-Edit fix. The bad news: it's been live since launch.
-
-**Fix it before the Week-2 return window (July 11). A returning user who got a bad result on Day 1 comes back to see if it's better — show them it is.**
+The risk is real. The fix is known. The only question is whether it ships before the July 11 return window or after.
 
 ---
 
-*PM agent — 2026-07-08 (v82). v83 expected July 9. Priority for next agent run: execute `lateSeason:true` fix (Decision 1) + Tenerife/Crete airport constants + 2 new beach venues (Decision 2).*
+*PM agent — 2026-07-10 (v84). v85 expected July 11. Priority for next agent run: lateSeason regression fix (Decision 1) — execute immediately. If Plausible data arrives in session, v85 will be a data-driven Week-2 sprint.*
