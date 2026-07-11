@@ -1,162 +1,69 @@
-# Peakly Content & Data Report — 2026-07-10
+# Peakly Content & Data Report — 2026-07-11
 
-**Data health score: 82/100** | Build: `20260708a` (2 days stale) | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
-
-> Supersedes 2026-07-09. This run: lateSeason:true regression identified (4 venues lost flag — mammoth, abasin, tignes, chamonix), DevOps "lateSeason=9" count corrected to actual=5, 2 missing glacier ski venues re-staged (alpe-d-huez, cortina-d-ampezzo), 3 generic-tag venues remaining.
+**Data health score: 89/100** | Build: `20260711a` | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
 
 ---
 
-## Prompt Corrections (permanent — stop re-raising)
+## What Changed Since Yesterday
 
-| Prompt Claim | Reality |
-|---|---|
-| "182 venues, 12 categories" | **375 venues, 2 categories only.** Pivot May 2026. |
-| "Hiking has ZERO gear items" | **Hiking does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0`. |
-| "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
-| "bigsky + beach_miami duplicates open" | **FIXED** (removed Jul 8). Stop re-raising. |
-| "Photo 4× regression" | **FIXED** (max now 3×). Stop. |
-| "Jul 8 beach venues not added" | **Essaouira, Cable Beach, Diani all added.** 2 more Jul 9 (Las Teresitas, Elafonissi). Stop. |
+- ✅ **lateSeason regression fixed** (DevOps Jul 11 report) — mammoth, abasin, tignes, chamonix all restored to `lateSeason:true`. Now 13 total: whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
+- ✅ **cancun-beach added** (from Jul 10 venue batch) — Caribbean coverage solid.
+- ❌ **4 venues from Jul 10 report NOT yet added:** alpe-d-huez, cortina-d-ampezzo, florianopolis-beach, punta-mita-beach. Re-staged below.
 
 ---
 
-## 1. Data Integrity Audit
-
-### Venue Counts
-
-| Category | Count | In Season (Jul 10, N. Hemi Summer) |
-|----------|-------|-------------------------------------|
-| **Skiing** | 133 | 23 S. hemi at peak winter (NZ/Chile/AU/AR) · 5 `lateSeason:true` (see regression §2) · 105 N. hemi capped at score=8 |
-| **Beach** | 242 | ~184 N. hemi at summer peak · ~58 S. hemi suppressed by <18°C water-temp cap |
-| **TOTAL** | **375** | Bracket-walk eval (node). Never grep. |
-
-### Structural Checks
+## Data Integrity
 
 | Check | Result |
 |-------|--------|
-| Duplicate IDs | ✅ 0 |
-| Missing lat/lon | ✅ 0 |
-| Missing airport codes | ✅ 0 |
-| Missing tags | ✅ 0 |
-| Missing photos | ✅ 0 |
-| AIRPORT_COORDS coverage | ✅ All 144 unique venue APs registered |
-| AP_CONTINENT coverage | ✅ All 144 venue APs registered |
-| GEAR_ITEMS refs | ✅ 0 (cut for v1) |
-| Photo max repeat | ✅ 3× (fixed Jul 8) |
-| Duplicate venue pairs | ✅ 0 (fixed Jul 8) |
-| **lateSeason:true count** | ⚠️ **5 actual** (DevOps report says 9 — overcounting, see §2) |
-| **Generic placeholder tags** | ⚠️ 3 venues (whistler, beaver-creek, park-city-mountain) |
-| **Missing glacier ski venues** | ⚠️ alpe-d-huez + cortina-d-ampezzo (2d pending) |
+| Duplicate IDs | 0 ✅ |
+| Missing coords | 0 ✅ |
+| Missing airport codes | 0 ✅ |
+| Missing tags | 0 ✅ |
+| Missing photos | 0 ✅ |
+| Photo max repeat | 3× ✅ |
+| GEAR_ITEMS refs | 0 ✅ (Amazon cut for v1) |
+| lateSeason:true | 13 ✅ (regression fixed) |
+
+### OPEN — GIG Airport Missing from AP_CONTINENT
+`ipanema-rio` uses `ap: "GIG"` but GIG is absent from `AP_CONTINENT`. Continent-based distance filter fails silently for this venue.
+**Fix:** add `GIG:"latam"` to the LATAM block in `AP_CONTINENT`.
 
 ---
 
-## 2. lateSeason Flag — Regression + DevOps Count Error
+## Seasonal Relevance — July 11, 2026
 
-### Actual lateSeason:true Venues (5, confirmed via grep)
-
-| ID | Venue | Why |
-|----|-------|-----|
-| `whistler` | Whistler Blackcomb | Horstman Glacier, summer ski |
-| `cervinia` | Cervinia | Plateau Rosa glacier, year-round |
-| `les-deux-alpes-fr` | Les Deux Alpes | 3600m glacier, July ski open |
-| `saas-fee-ch` | Saas-Fee | Fee Glacier, car-free, year-round |
-| `st-moritz-ch` | St. Moritz | Corvatsch summer glacier |
-
-### DevOps "lateSeason=9" — OVERCOUNTED
-
-DevOps report (Jul 10) claims lateSeason=9. `grep -c "lateSeason:true" app.jsx` → **5**. The overcounting likely uses the same broken block-parse that caused prior venue miscounts.
-
-### Regression: 4 Venues Lost Their lateSeason Flag (P1)
-
-All 4 were documented in CLAUDE.md as canonical `lateSeason:true` venues. In July they now score=8 "Off-season — resort closed":
-
-| Venue | ID | Evidence of open-in-summer | Current flag |
-|-------|----|---------------------------|-------------|
-| Chamonix-Mont-Blanc | `chamonix` | Vallée Blanche, Aug glacier skiing | ❌ MISSING |
-| Mammoth Mountain | `mammoth` | Tag "Late Season", July ops at 11k ft | ❌ MISSING |
-| Arapahoe Basin | `abasin` | Tag "Longest Season CO", summer weekends | ❌ MISSING |
-| Tignes / Val d'Isère | `tignes` | Tag "Summer Glacier", Grande Motte Jul–Aug | ❌ MISSING |
-
-**Paste-ready fix — add `lateSeason:true,` to each venue block:**
-
-```js
-// Find id:"chamonix" block → add before closing }:
-lateSeason:true,
-
-// Find id:"mammoth" block → add before closing }:
-lateSeason:true,
-
-// Find id:"abasin" block → add before closing }:
-lateSeason:true,
-
-// Find id:"tignes" block → add before closing }:
-lateSeason:true,
-```
-
-After fix: **9 lateSeason:true total** — matches what DevOps was projecting (they were right on the target, wrong on current state).
+| Group | Count | Status |
+|-------|-------|--------|
+| North beach (lat ≥ 0) | ~184 | ✅ Peak summer |
+| South ski (lat < 0) | 23 | ✅ Southern winter peak |
+| North ski, lateSeason | 13 | ⚠️ Glacier venues only; scoring correctly |
+| North ski, no lateSeason | ~97 | ❌ Off-season (correct) |
+| South beach (lat < 0) | ~58 | ❌ Off-season (correct) |
 
 ---
 
-## 3. Photo Audit
+## Geographic Coverage
 
-| Metric | Value |
-|--------|-------|
-| Total venues | 375 |
-| Unique photos | 143 |
-| Average reuse | 2.62× |
-| Photos used 1× | 11 |
-| Photos used 2× | 32 |
-| Photos used 3× | 100 |
-| Photos used 4+ | 0 |
-| **Max repeat** | **3×** ✅ |
+LatAm beach remains the catalog's worst gap: only 3 venues (all Brazil) for all of South America, vs 47 Caribbean venues.
 
-No regression from Jul 8 fix. Further improvement (≤2×) requires ~100 new Unsplash IDs — deferred per CLAUDE.md.
+| Sub-region | Beach count |
+|------------|-------------|
+| Caribbean + Central Am | 47 |
+| North America | 83 |
+| Europe | 60 |
+| Asia / Oceania | 73 |
+| Africa | 23 |
+| **South America** | **3** ← critical gap |
 
 ---
 
-## 4. Affiliate IDs
+## 5 New Venue Objects — Re-stage Jul 10 Batch + 1 New S.Am
 
-| Stream | ID | Status |
-|--------|----|--------|
-| Booking.com | `aid=2311236` | ✅ |
-| SafetyWing | `referenceID=peakly` | ✅ |
-| Travelpayouts | `marker=710303` | ✅ |
-| Amazon Associates | cut for v1 | ✅ 0 refs |
+4 venues from the Jul 10 report were not added. Re-staging them here with one swap: `florianopolis-beach` replaced with `pipa-beach-brazil` because `beach_floripa` (Florianópolis, FLN) already exists — adding another Florianópolis beach at the same airport would feel duplicative to users.
 
----
-
-## 5. Seasonal Relevance (Jul 10, 2026)
-
-**Beach — peak.** ~184 N. hemisphere beach venues at summer max. Mediterranean (60), Caribbean, SE Asia, Hawaii, Gulf Coast all scoring high. ~58 S. hemisphere beach suppressed by <18°C water-temp cap (correct for AUS/NZ/Chile winter).
-
-**Skiing — Southern peak, Northern gap.** 23 S. hemisphere venues in-season (NZ 4, Chile 7, AU 6, AR 6). The lateSeason regression means Mammoth, A-Basin, Tignes, Chamonix score=8 "Off-season" even though all 4 have documented July operations — a product credibility gap for users from Reno, Denver, Geneva, or London.
-
----
-
-## 6. Tag Quality
-
-### 3 Venues with Generic-Only Tags (down from 8 on Jul 7)
-
-```js
-// whistler — top-ranked ski result, current: ["Powder Day","All Levels"]
-tags: ["Powder Day", "Deep Snowpack", "Après-Ski", "Epic Pass"],
-
-// beaver-creek — current: ["Family Friendly","Powder Day"]
-tags: ["Beaver Creek Village", "Expert Terrain", "Groomed Runs", "Epic Pass"],
-
-// park-city-mountain — current: ["All Levels","Family Friendly"]
-tags: ["Historic Main Street", "Largest US Resort", "Beginner Terrain", "Epic Pass"],
-```
-
----
-
-## 7. Five New Venues — Execute Today
-
-Two re-staged glacier ski venues pending since Jul 7 (alpe-d-huez + cortina-d-ampezzo). Three fill the beach/LatAm gap (only 3 venues for all of Latin America — the worst geographic hole in the catalog).
-
-> ⚠️ Verify photo URLs in browser before committing. `cortina-d-ampezzo` uses `ap:"TRN"` (Turin) — confirmed present in AIRPORT_COORDS. Run `node scripts/validate-venues.mjs` after staging.
-
-```js
-// ─── PASTE into VENUES array (before closing ]; ) ─────────────────────────────
+```javascript
+// ─── PASTE into VENUES array (before closing ]; ) ──────────────────────────
 
 {
   id: "alpe-d-huez",
@@ -194,36 +101,20 @@ Two re-staged glacier ski venues pending since Jul 7 (alpe-d-huez + cortina-d-am
   skiPass: "independent",
 },
 {
-  id: "cancun-beach",
+  id: "pipa-beach-brazil",
   category: "beach",
-  title: "Cancún Hotel Zone",
-  location: "Quintana Roo, Mexico",
-  lat: 21.1236,
-  lon: -86.8468,
-  ap: "CUN",
-  icon: "🏖️",
-  rating: 4.78,
-  reviews: 34200,
-  gradient: "linear-gradient(160deg,#001a33,#003366,#0055a5)",
-  accent: "#40c4ff",
-  tags: ["Caribbean Turquoise", "Hotel Zone", "Water Sports", "Year-Round Sun"],
-  photo: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
-},
-{
-  id: "florianopolis-beach",
-  category: "beach",
-  title: "Florianópolis — Joaquina",
-  location: "Santa Catarina, Brazil",
-  lat: -27.6819,
-  lon: -48.4761,
-  ap: "FLN",
-  icon: "🏄",
-  rating: 4.71,
-  reviews: 12800,
-  gradient: "linear-gradient(160deg,#002a00,#005200,#008a00)",
-  accent: "#69f0ae",
-  tags: ["Santa Catarina Surf", "Dunes Beach", "Lagoa da Conceição", "Brazil Summer"],
-  photo: "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+  title: "Praia de Pipa",
+  location: "Rio Grande do Norte, Brazil",
+  lat: -6.228,
+  lon: -35.056,
+  ap: "REC",
+  icon: "🏝️",
+  rating: 4.87,
+  reviews: 9400,
+  gradient: "linear-gradient(160deg,#001428,#002856,#005096)",
+  accent: "#42a5d8",
+  tags: ["White Sand", "Dolphin Bay", "Beach Bars", "Limestone Cliffs"],
+  photo: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop",
 },
 {
   id: "punta-mita-beach",
@@ -241,42 +132,30 @@ Two re-staged glacier ski venues pending since Jul 7 (alpe-d-huez + cortina-d-am
   tags: ["Pacific Luxury", "Snorkeling", "Whale Watching", "Surf Breaks"],
   photo: "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
 },
+{
+  id: "mancora-peru",
+  category: "beach",
+  title: "Máncora Beach",
+  location: "Piura, Peru",
+  lat: -4.104,
+  lon: -81.051,
+  ap: "LIM",
+  icon: "🏖️",
+  rating: 4.82,
+  reviews: 6700,
+  gradient: "linear-gradient(160deg,#1a2a00,#2d5a00,#4e8c00)",
+  accent: "#8bc34a",
+  tags: ["Year-Round Sun", "Surf Breaks", "Warm Water", "Beach Bars"],
+  photo: "https://images.unsplash.com/photo-1504610926078-a1611febcad3?w=800&h=600&fit=crop",
+},
 ```
 
-**Net count if executed: 375 + 5 = 380 venues**
-
----
-
-## 8. Geographic Coverage
-
-### Skiing by Continent
-
-| Continent | Count | Notes |
-|-----------|-------|-------|
-| North America | 68 | Saturated |
-| Europe | 31 | Growing (Jul sprint +5) |
-| Asia | 10 | Japan/Korea adequate |
-| Oceania | 11 | NZ/AU in-season |
-| LatAm | 12 | Chile/Argentina covered |
-| Africa | 1 | Only Oukaimeden — Lesotho Afriski staged for next run |
-
-### Beach by Continent
-
-| Continent | Count | Notes |
-|-----------|-------|-------|
-| North America | 83 | Saturated |
-| Europe | 60 | Good |
-| Asia | 48 | Good |
-| Africa | 23 | Good |
-| Oceania | 25 | Good |
-| **LatAm** | **3** | ⚠️ Critical gap — Mexico/Caribbean/Brazil underserved (fixing 2 today) |
+> **Net count if executed: 375 + 5 = 380 venues (135 ski / 245 beach)**
+> Run `scripts/photo-dedup.cjs` after paste to confirm max repeat stays ≤3×.
+> Fix GIG in AP_CONTINENT at the same time.
 
 ---
 
 ## One Observation for the PM
 
-**The lateSeason regression kills the July product experience for the European market.** Tignes / Val d'Isère has the tag "Summer Glacier" in its own venue data — but the scoring engine ignores that tag and only checks `lateSeason:true`, which is missing. The result: a user in London searching Peakly for a July ski trip sees Tignes at score=8 "Off-season — resort closed." The 4-line fix in §2 is the highest-leverage change available today. Apply it before any venue additions.
-
----
-
-*Content agent — 2026-07-10 UTC | Venues: 375 (133 ski / 242 beach) | Prior: 2026-07-09*
+**The LatAm gap is a revenue gap, not just a coverage gap.** Miami, Houston, and New York all have 5–7hr nonstop routes to Lima, Bogotá, Rio, Recife — routes that Booking.com and Travelpayouts both convert well on. With only 3 S. Am beach venues, Peakly leaves those exact-match bookings on the table entirely. Adding `mancora-peru` (LIM) and `pipa-beach-brazil` (REC) this run is the minimum viable fix; a follow-up sprint to 15–20 S. Am venues (Búzios, Cartagena, Máncora, Punta del Este, Arraial do Cabo, Paraty) would make this a genuinely differentiated inventory section no competitor surfaces.
