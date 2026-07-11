@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-10
+# Peakly DevOps Report — 2026-07-11
 
-**Status: GREEN** — clean run. No new P0 or P1 issues vs July 9. Venue count 375 after July 9 Content run (+2 beach venues). `lateSeason` corrected to 9 venues (down from 28 false positives fixed July 9). **Week-2 email is P0 today — Jack must send before July 11.**
+**Status: GREEN** — two fixes shipped this run: (1) cache stamp 3 days stale → `20260711a`; (2) lateSeason regression P1 CLOSED — chamonix, mammoth, abasin, tignes all had `lateSeason:true` stripped by the July 9 Content trim and were scoring 8/100 "Off-season closed" for 48h. Restored. lateSeason count: 9 → **13**. No new P0s. No secrets exposure.
 
 ---
 
@@ -11,13 +11,14 @@
 | "VPS down / Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Verify from networked terminal only. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
 | "GEAR_ITEMS found" | **0 refs. Amazon cut for v1.** Stop. |
-| "Cache buster stale / 20260708a" | **Accurate — last code change was July 8. Bumps automatically on next code edit.** |
-| "Venue count 156 / 353 / 370 / 373" | **375 (133 ski / 242 beach) as of July 9. Eval only — grep undercounts to 156.** |
-| "lateSeason: 6 / 25 / 28 venues" | **9 venues — corrected July 9 Content run.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
-| "Plausible data-domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`.** Stop. |
+| "Cache buster stale / 20260708a" | **Bumped this run → `20260711a`.** Stop re-flagging yesterday's stamp. |
+| "Venue count 156 / 353 / 370" | **375 (133 ski / 242 beach). Eval only — grep undercounts to 156.** |
+| "lateSeason: 6 / 9 / 5 venues" | **13 — corrected this run. Previous counts were stale/miscounted.** Stop. |
+| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
+| "Plausible data-domain wrong" | **FIXED July 7.** Stop. |
 | "197 empty-tag venues" | **FALSE. All 375 have tags.** Stop. |
 | "2 dup venues pending removal" | **FIXED July 8.** Stop. |
+| "lateSeason regression open" | **FIXED this run (PM v84 Decision 1).** Stop. |
 
 ---
 
@@ -27,129 +28,113 @@
 |---|---|
 | `app.jsx` size | 13,502 lines · 676 KB |
 | Brace balance | ✅ 5,572 / 5,572 BALANCED |
-| Cache stamp (app.jsx / sw.js / index.html) | ✅ `20260708a` — accurate, last code change July 8 |
-| Venue count (eval) | ✅ **375** (133 ski / 242 beach) — +2 beach venues added July 9 (Tenerife, Crete) |
-| `.venue-baseline` | ✅ 375 (updated by Content July 9) |
-| Duplicate IDs (structural) | ✅ 0 — confirmed via eval() |
+| Cache stamp (app.jsx / sw.js / index.html) | ✅ `20260711a` (bumped this run from stale `20260708a`) |
+| Venue count (eval) | ✅ **375** (133 ski / 242 beach) |
+| `.venue-baseline` | ✅ 375 |
+| Duplicate venue IDs | ✅ 0 |
 | GEAR_ITEMS refs | ✅ 0 |
-| `lateSeason` venues | ✅ 9 (trimmed July 9 from 28 false positives) |
-| Plausible analytics | ✅ Present, uncommented, `defer`, correct domain `j1mmychu.github.io/peakly` |
+| `lateSeason` venues | ✅ **13** (restored 4 this run: chamonix, mammoth, abasin, tignes) |
+| Plausible analytics | ✅ Present, uncommented, `defer`, domain `j1mmychu.github.io/peakly` |
 | Sentry DSN | ✅ Active (`app.jsx:7`, `index.html:77`) |
-| React version | ✅ 18.3.1 UMD — current stable |
-| Babel Standalone | ⚠️ 7.29.7 — latest is 8.0.4 (major bump available, see P2) |
-| Supabase JS | ✅ 2.106.2 (lazy-loaded, CDN) |
-| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` — not raw IP, not HTTP |
-| `fetchTravelpayoutsPrice` timeout | ✅ 5s AbortController + 3-attempt retry |
-| `fetchWeather` timeout | ✅ 8s AbortController + 3-attempt retry, proxy-first with Open-Meteo fallback |
+| React version | ✅ 18.3.1 (UMD, unpkg) |
+| Babel Standalone | ⚠️ 7.29.7 — Babel 8.x available (see P2) |
+| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` (not raw IP, not HTTP) |
+| `fetchTravelpayoutsPrice` timeout | ✅ AbortController + exponential backoff |
+| `fetchWeather` / `fetchMarine` timeout | ✅ AbortController, proxy-first with Open-Meteo fallback |
 | Image lazy loading | ✅ 9 `<img>` tags use `loading="lazy"` |
 | `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, secrets |
 | Travelpayouts token in client | ✅ NOT present — server-side only |
 | Supabase anon key in client | ✅ Expected — RLS-gated, public-safe by design |
 | TP_MARKER `710303` in client | ✅ Expected — public affiliate link marker, not a secret |
-| Working tree | ✅ Clean |
 
 ---
 
-## P0 — None
+## P1 — lateSeason Regression (FIXED THIS RUN)
+
+**What was wrong:** The July 9 Content run over-trimmed `lateSeason:true`. 4 venues that legitimately need the flag had it stripped and were scoring 8/100 "Off-season — resort closed" during July 10–11 (48h).
+
+| Venue | Why it needs `lateSeason:true` |
+|---|---|
+| `chamonix` | Chamonix-Mont-Blanc — summer off-piste on Vallée Blanche when snow_depth ≥ 0.5m |
+| `mammoth` | Mammoth Mountain CA — historically open into August; tag says "Late Season" |
+| `abasin` | Arapahoe Basin CO — "Longest Season CO" (their own tag), historically into July |
+| `tignes` | Tignes / Val d'Isère — tag says "Summer Glacier", glacier skiing through July |
+
+**Fix applied:** Added `lateSeason:true` to all 4. Count: 9 → **13**.
+
+**Full 13-venue list:** whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
+
+**Note on PM v84 "target = 9":** PM said "fix restores to 9" based on Content's count of 5 current. Content was using grep (undercounts batch-format entries); actual was 9. After restoring 4, correct count is 13. PM's arithmetic was right (5 + 4 = 9) but the base was wrong. 13 is correct.
+
+---
+
+## P1 — Cache Stamp Stale 3 Days (FIXED THIS RUN)
+
+**What was wrong:** All 3 load-bearing files frozen at `20260708a` since July 8. July 9 content changes (Tenerife, Crete, lateSeason edits) were invisible to returning users with the July 8 SW install.
+
+**Fix applied:**
+```
+app.jsx  line 17:  const PEAKLY_BUILD = "20260711a"
+sw.js    line 2:   const CACHE_NAME = "peakly-20260711a"
+index.html line 395: src="./app.jsx?v=20260711a"
+```
+
+**Root cause:** `auto-push.sh` cache-bump fires only on local PostToolUse. Remote scheduled agents don't trigger it. Open #11 in CLAUDE.md.
+
+**Fix the root cause (2-minute install):**
+```bash
+crontab -e
+# add:
+45 17 * * * cd ~/peakly && bash scripts/auto-push.sh
+```
 
 ---
 
 ## P1 (Ongoing) — VPS Weather Cache: Jack-Verify Only
 
-**Unverifiable from sandbox (egress block — NOT a VPS outage per CLAUDE.md).** Day 10 post-launch. Return visitor window opens July 11–13 — cold cache is now a real risk.
+**Unverifiable from sandbox (egress block — not VPS outage).** Day 11 post-launch. **Week-2 return-visitor window is TODAY (July 11–13).** Cold cache → 375 weather fetches → Open-Meteo free-tier 429s at >66 concurrent users → all venues score 50.
 
-The in-memory LRU weather cache resets on any pm2 restart. Cold cache → 375 weather fetches hit Open-Meteo directly → free-tier quota exhausts at ~66 concurrent users → venues all score 50.
-
-**Jack: 30-second check:**
 ```bash
 curl https://peakly-api.duckdns.org/health
 # Healthy: wx_cache_size > 0, uptime > 1d
-# Cold (wx_cache_size = 0): self-heals in 2hrs as users load venues — only act if poll_errors > 50
+# Cold (wx_cache_size = 0): self-heals in 2hrs — only act if poll_errors > 50
 ```
 
 ---
 
-## P2 — Babel Standalone: Major Version Available (7.29.7 → 8.0.4)
+## P2 — Babel Standalone: Major Version Available (7.29.7 → 8.x)
 
-Confirmed via npm registry this run. Babel 8.x is a major release — breaking changes in JSX transform behavior are possible. A bad client-side Babel upgrade → blank screen, no React output.
-
-**Risk:** LOW-MEDIUM. 7.29.7 is current in the 7.x series. No known CVEs affecting browser usage.
-
-**When to upgrade:** Post-500 MAU. Test in a branch:
-```html
-<!-- index.html — branch test only, not prod -->
-<link rel="preload" href="https://unpkg.com/@babel/standalone@8.0.4/babel.min.js" as="script" crossorigin />
-<script src="https://unpkg.com/@babel/standalone@8.0.4/babel.min.js"></script>
-```
-Open app → check console for Babel parse errors → verify all 3 tabs render. Green → ship. Not green → stay on 7.x, add to `known-skipped.md`.
-
-**Fix time:** 15 min. Do not do today.
+Babel 8.x is a major release — JSX transform changes could blank the screen. Test in a branch before shipping. Post-500 MAU.
 
 ---
 
-## P2 — 5 Placeholder-Tag Ski Venues (Content Agent Task, Day 4)
+## Open Items (carry-forward)
 
-PM v83 confirms these 5 venues still carry placeholder tags: **winter-park, copper-mountain, lake-louise, palisades-tahoe, brighton**. Tag copy is ready in Content report July 9. Not a DevOps fix — flagging here to ensure the next Content run ships it.
-
----
-
-## P3 — SRI Hashes on CDN Scripts
-
-Ongoing rejected item. Babel Standalone uses `eval()` for JSX transpilation, requiring `'unsafe-eval'` in any CSP — making strict SRI moot until a build step exists. Non-issue at current scale.
-
----
-
-## Cost Projections
-
-| Scale | DO VPS | GitHub Pages | Open-Meteo | Total/mo |
+| Item | Priority | Owner | Days Open | Notes |
 |---|---|---|---|---|
-| Current (<100 MAU) | $6 | $0 | $0 (free) | **$6** |
-| 1K MAU | $6 | $0 | $0 (free tier) | **$6** |
-| 10K MAU | $12 (2GB RAM) | $0 | ~$29 | **$41** |
-| 100K MAU | $48 (4 droplets + LB) | $0 | ~$290 | **$338** |
-
-Revenue at 100K MAU: ~$758/mo ($7.58/1K). Costs $338/mo. **Margin: ~55%.**
-
----
-
-## What Breaks First at Scale
-
-**Open-Meteo free-tier exhaustion on cold cache.** At a Reddit spike (500 concurrent), the VPS proxy absorbs duplicates via in-flight dedup while cache is warm. A cold cache (pm2 restart during spike) fires 373 upstream calls simultaneously. Open-Meteo's free tier (~10K req/day) loses 3.7% of quota instantly. Sustained at 50 concurrent for 30 min → HTTP 429 → venues fallback to `score: 50` → grid looks broken → bounce.
-
-**Prevention (30 min, do before next distribution push) — add disk persistence to `server/proxy.js`:**
-
-```js
-// Near top of server/proxy.js, after _wxCache definition
-const WX_CACHE_FILE = '/tmp/peakly-wx-cache.json';
-
-// Boot: seed from disk
-try {
-  const saved = JSON.parse(require('fs').readFileSync(WX_CACHE_FILE, 'utf8'));
-  Object.entries(saved).forEach(([k, v]) => _wxCache.set(k, v));
-  console.log(`[proxy] seeded ${_wxCache.size} wx entries from disk`);
-} catch (_) {}
-
-// Flush every 30 minutes
-setInterval(() => {
-  try {
-    require('fs').writeFileSync(WX_CACHE_FILE, JSON.stringify(Object.fromEntries(_wxCache.entries())));
-  } catch (_) {}
-}, 30 * 60 * 1000);
-```
-
-Survives pm2 restarts. No new deps. File is ~100KB at steady state. Do this before the Week-2 Plausible-driven distribution push.
+| **VPS health verify** | P1 | Jack (local terminal) | Day 27 | Week-2 window is NOW. |
+| **Supabase SQL paste** (`server/sql/delete-account.sql`) | P0 (App Store) | Jack only | Day 31 | 2 minutes. Blocks iOS 5.1.1(v). |
+| **Local crontab for auto-push.sh** | P2 | Jack | — | `45 17 * * * cd ~/peakly && bash scripts/auto-push.sh` |
+| 2 remaining glacier ski venues | P2 | Content agent | — | Alpe d'Huez + Cortina d'Ampezzo not in catalog (les-deux-alpes, saas-fee, st-moritz did land). |
+| 3 generic-tag ski venues | P2 | Content agent | — | Per Content July 10 — low-signal tags. Enumerate IDs. |
+| LatAm beach gap | P3 | Content agent | — | Peru, Ecuador, Colombia, Uruguay underrepresented. |
+| Plausible dashboard domain | P2 | Jack | Day 4 | Code fixed. plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly`. |
+| SRI on CDN scripts | P3 | — | — | Deferred post-LLC. |
 
 ---
 
-## Jack: TODAY (July 10)
+## Security Audit
 
-| Item | Urgency | What |
-|------|---------|------|
-| **Send Week-1 retention email** | 🔴 **P0** | Last call. Return window opens July 11. 3 sentences, personal, ask what they searched for. |
-| **VPS health check** | 🟡 **P1** | `curl https://peakly-api.duckdns.org/health` — confirm `wx_cache_size > 0` before return visitors arrive July 11. Use `pm2 reload` not `pm2 restart` if you need to restart. |
-| **Read Plausible** | 🟡 **P1** | 9 days of real user data. Zero product decisions have been data-driven. plausible.io → `j1mmychu.github.io/peakly`. |
-| **Supabase SQL paste** | 🟠 this week | `server/sql/delete-account.sql` → SQL editor. Day 30. iOS App Store 5.1.1(v). |
+No issues. Permanent summary:
+- **Travelpayouts token:** Server-side only. ✅
+- **Supabase anon key:** In client, expected — RLS-gated. ✅
+- **TP_MARKER `710303`:** Public affiliate marker. ✅
+- **Sentry DSN:** Intentionally public. ✅
+- **`.gitignore`:** Covers all secrets. ✅
+- **Recent git log:** Clean. ✅
 
 ---
 
-*DevOps agent — 2026-07-10. Next report: 2026-07-11.*
+## What Breaks First At Scale
+
+**Open-Meteo rate limits under a spike.** The VPS weather proxy's 2hr LRU cache means N concurrent users on the same venue = 1 upstream call. A Reddit post that sends 5K visitors/hour with diverse venue sets floods the cache with cold misses and triggers 429s from Open-Meteo's free tier (~10K req/hr limit). Client falls back to direct Open-Meteo, which also 429s. Venues score 50, "conditions unavailable" banner fires — graceful degradation but conditions are gone. Fix before any viral moment: Open-Meteo commercial plan ($29/mo, 10K req/hr guaranteed). Verify VPS health today — if `wx_cache_size == 0` on a cold start under the Week-2 return window, that's the exact failure mode.
