@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260707a";
+const PEAKLY_BUILD = "20260713a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -432,6 +432,7 @@ const AP_CONTINENT = {
   "SUB":"asia",
   "SUM":"asia",
   "TFS":"europe",
+  "CHQ":"europe",
   "TKG":"asia",
   "TLV":"asia",
   "TNR":"africa",
@@ -480,7 +481,7 @@ const VENUES = [
     lat:50.1163, lon:-122.9574, ap:"YVR",
     icon:"🏔️", rating:4.97, reviews:2840,
     gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-    accent:"#6db3f2", tags:["Powder Day","All Levels"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
+    accent:"#6db3f2", tags:["Deep Powder","Blackcomb Glacier","Village Nightlife","World Cup Racing"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
   },
   {
     id:"borabora",  category:"beach",
@@ -502,7 +503,6 @@ const VENUES = [
   {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
   {id:"alta",        category:"skiing",title:"Alta / Snowbird",         location:"Utah, USA",                lat:40.5883,lon:-111.6358,ap:"SLC",icon:"⛷️",rating:4.96,reviews:2960,gradient:"linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",accent:"#78ace4",tags:["Ski Only","Deep Powder"], photo:"https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"], photo:"https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"bigsky",      category:"skiing",title:"Big Sky Resort",          location:"Montana, USA",             lat:45.2865,lon:-111.4013,ap:"BZN",icon:"⛷️",rating:4.93,reviews:2240,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Lone Peak","5,800 Acres"], photo:"https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46", skiPass:"ikon"},
   {id:"telluride",   category:"skiing",title:"Telluride Ski Resort",    location:"Colorado, USA",            lat:37.9364,lon:-107.8123,ap:"MTJ",icon:"⛷️",rating:4.96,reviews:2100,gradient:"linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",accent:"#72a8dc",tags:["Box Canyon","Ski-In/Out Town"], photo:"https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67", skiPass:"epic"},
   {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"], photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"breckenridge",category:"skiing",title:"Breckenridge",           location:"Colorado, USA",            lat:39.4817,lon:-106.0384,ap:"DEN",icon:"⛷️",rating:4.93,reviews:4820,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",tags:["Historic Town","Epic Pass"], photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49", skiPass:"epic"},
@@ -558,7 +558,6 @@ const VENUES = [
   {id:"beach_keywest",  category:"beach",title:"Key West Beaches",       location:"Florida Keys, USA",             lat:24.5551,lon:-81.7800,ap:"EYW",icon:"🏖️",rating:4.87,reviews:14200,gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",accent:"#22aacc",tags:["Southernmost Point","Duval Street"], photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"},
   {id:"beach_destin",   category:"beach",title:"Emerald Coast Destin",   location:"Florida, USA",                  lat:30.3935,lon:-86.4958,ap:"VPS",icon:"🏖️",rating:4.92,reviews:19800,gradient:"linear-gradient(160deg,#003344,#005577,#007faa)",accent:"#33bbcc",tags:["Emerald Water","Sugar-White Sand"], photo:"https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"},
   {id:"beach_myrtle",   category:"beach",title:"Myrtle Beach",           location:"South Carolina, USA",           lat:33.6891,lon:-78.8867,ap:"MYR",icon:"🏖️",rating:4.82,reviews:28600,gradient:"linear-gradient(160deg,#002244,#004477,#0066aa)",accent:"#2288cc",tags:["60 Miles of Coast","Golf & Boardwalk"], photo:"https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"},
-  {id:"beach_miami",    category:"beach",title:"South Beach Miami",      location:"Miami Beach, Florida",          lat:25.7907,lon:-80.1300,ap:"MIA",icon:"🏖️",rating:4.88,reviews:42800,gradient:"linear-gradient(160deg,#001a28,#003355,#005588)",accent:"#3399dd",tags:["Art Deco","See & Be Seen"], photo:"https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"},
   {id:"beach_lanikai",  category:"beach",title:"Lanikai Beach",          location:"Oahu, Hawaii",                  lat:21.3900,lon:-157.7200,ap:"HNL",icon:"🏖️",rating:4.98,reviews:12400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Mokulua Islands View","Powdery White Sand"], photo:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"},
   {id:"beach_hapuna",   category:"beach",title:"Hapuna Beach",           location:"Big Island, Hawaii",            lat:20.0040,lon:-155.8270,ap:"KOA",icon:"🏖️",rating:4.96,reviews:8600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["Hawaii's Best Beach","Snorkeling Coves"], photo:"https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"},
   {id:"beach_kapalua",  category:"beach",title:"Kapalua Bay",            location:"Maui, Hawaii",                  lat:20.9990,lon:-156.6750,ap:"OGG",icon:"🏖️",rating:4.95,reviews:7800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Crescent Bay","Spinner Dolphins"], photo:"https://images.unsplash.com/photo-1540202404-a2f29016b523?w=800&h=600&fit=crop"},
@@ -590,13 +589,13 @@ const VENUES = [
   {id:"beach_whitehaven",category:"beach",title:"Whitehaven Beach",      location:"Whitsundays, Queensland",       lat:-20.2788,lon:149.0416,ap:"PPP",icon:"🏖️",rating:4.98,reviews:12800,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#33ccee",tags:["Hill Inlet Swirl","99% Silica Sand"], photo:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"beach_cable",    category:"beach",title:"Cable Beach",            location:"Broome, Western Australia",     lat:-17.9500,lon:122.1800,ap:"BME",icon:"🏖️",rating:4.92,reviews:8600,gradient:"linear-gradient(160deg,#1a0d00,#4d2a00,#8c4a00)",accent:"#dd8833",tags:["Camel Sunset Ride","22km Red Pindan"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"},
   {id:"beach_portdouglas",category:"beach",title:"Four Mile Beach",      location:"Port Douglas, Queensland",      lat:-16.4840,lon:145.4640,ap:"CNS",icon:"🏖️",rating:4.91,reviews:9200,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22bbdd",tags:["Great Barrier Reef Gateway","Rainforest Meets Sea"], photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
-  {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",skiPass:"independent"},
+  {id:"zakopane",category:"skiing",title:"Zakopane",location:"Tatra Mountains, Poland",lat:49.2992,lon:19.9497,ap:"KRK",icon:"🎿",rating:4.82,reviews:1789,gradient:"linear-gradient(160deg,#0e3660,#1b63a9,#83b7e5)",accent:"#1b63a9",tags:["Tatras","Polish Alps","Cultural Hub","Ski Jumping"],photo:"https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",skiPass:"independent"},
   {id:"schweitzer-mtn",category:"skiing",title:"Schweitzer Mountain",location:"Idaho, USA",lat:48.3583,lon:-116.6272,ap:"GEG",icon:"🎿",rating:4.87,reviews:1567,gradient:"linear-gradient(160deg,#0e3b68,#1b68b5,#87bbea)",accent:"#1b68b5",tags:["Lake Pend Oreille Views","Expert","Uncrowded","Idaho Gem"],photo:"https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",skiPass:"ikon"},
   {id:"beach_spain_mallorca_es",category:"beach",title:"Es Trenc Beach, Mallorca",location:"Mallorca, Spain",lat:39.3426,lon:2.9877,ap:"PMI",icon:"🏖️",rating:4.90,reviews:2987,gradient:"linear-gradient(160deg,#0284c7,#0ea5e9,#e0f2fe)",accent:"#0ea5e9",tags:["UV 9","Naturist Area","White Sand","Crystal Sea","Undeveloped"],photo:"https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"},
   {id:"zell-am-see-s1",category:"skiing",title:"Zell am See",location:"Salzburg, Austria",lat:47.3333,lon:12.8,ap:"SZG",icon:"🏔️",rating:4.59,reviews:3214,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"independent"},
   {id:"appi-kogen-s2",category:"skiing",title:"Appi Kogen",location:"Iwate, Japan",lat:39.9711,lon:140.9317,ap:"HNA",icon:"🏔️",rating:4.76,reviews:1985,gradient:"linear-gradient(160deg,#1a0533,#4a0e8f,#7c43bd)",accent:"#ce93d8",tags:["Beginner Slopes","Ski School","Family Friendly","Tohoku Powder"],photo:"https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45", skiPass:"independent"},
   {id:"hemsedal-s3",category:"skiing",title:"Hemsedal",location:"Viken, Norway",lat:60.8631,lon:8.5647,ap:"OSL",icon:"🏔️",rating:4.75,reviews:3001,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#80ccff",tags:["Black Diamonds","Steep Chutes","Variable Terrain","Long Season"],photo:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4", skiPass:"independent"},
-  {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4", skiPass:"independent"},
+  {id:"portillo-s4",category:"skiing",title:"Portillo",location:"Valparaiso, Chile",lat:-32.8333,lon:-70.1333,ap:"SCL",icon:"🏔️",rating:4.54,reviews:446,gradient:"linear-gradient(160deg,#001a00,#1b5e20,#4caf50)",accent:"#a5d6a7",tags:["Glacial Skiing","Scenic Views","Village Base","On-Piste"],photo:"https://images.unsplash.com/photo-1606787364406-a3cdf06c6d0c?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45", skiPass:"independent"},
   {id:"big-white-ski-s5",category:"skiing",title:"Big White Ski",location:"British Columbia, Canada",lat:49.7167,lon:-118.9333,ap:"YLW",icon:"🏔️",rating:4.71,reviews:3866,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","All Levels","High Altitude","Groomed Runs"],photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45", skiPass:"ikon"},
   {id:"idre-fjall-s6",category:"skiing",title:"Idre Fjall",location:"Dalarna, Sweden",lat:61.8833,lon:12.6667,ap:"OSL",icon:"🏔️",rating:4.95,reviews:2664,gradient:"linear-gradient(160deg,#0d1b2a,#1565c0,#64b5f6)",accent:"#b3e5fc",tags:["Expert Terrain","Off-Piste","Deep Snow","Backcountry"],photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"kicking-horse-s10",category:"skiing",title:"Kicking Horse",location:"British Columbia, Canada",lat:51.2979,lon:-117.0447,ap:"YYC",icon:"🏔️",rating:4.51,reviews:2760,gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",accent:"#6db3f2",tags:["Powder Day","Expert Terrain","High Altitude","Steep Chutes"],photo:"https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop", skiPass:"epic"},
@@ -727,15 +726,16 @@ const VENUES = [
       "icon": "🏔️",
       "rating": 4.7,
       "reviews": 1820,
-      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-      "accent": "#6db3f2",
+      "gradient": "linear-gradient(160deg,#0f2a4a,#1d5291,#3a7fc1)",
+      "accent": "#5b9bd5",
       "tags": [
-        "Powder Day",
-        "All Levels"
+        "Parsenn Bowl Terrain",
+        "Beginner-Friendly Runs",
+        "Front Range Access",
+        "Ikon Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "copper-mountain",
@@ -748,15 +748,16 @@ const VENUES = [
       "icon": "🏔️",
       "rating": 4.6,
       "reviews": 1410,
-      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-      "accent": "#6db3f2",
+      "gradient": "linear-gradient(160deg,#1a2e1a,#2d5a2d,#5a9e5a)",
+      "accent": "#7ab87a",
       "tags": [
-        "Powder Day",
-        "All Levels"
+        "Natural Terrain Separation",
+        "Snowboard-Optimized Layout",
+        "Front Range Access",
+        "Ikon Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "palisades-tahoe",
@@ -769,11 +770,13 @@ const VENUES = [
       "icon": "🏔️",
       "rating": 4.7,
       "reviews": 2240,
-      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-      "accent": "#6db3f2",
+      "gradient": "linear-gradient(160deg,#0d1e40,#1a4a8a,#3a7ac0)",
+      "accent": "#6aa3d4",
       "tags": [
-        "Powder Day",
-        "All Levels"
+        "KT-22 Expert Chutes",
+        "Lake Tahoe Views",
+        "Olympic History",
+        "Ikon Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1492370361787-0cc769f11ebb?w=800&h=600&fit=crop&fp-x=0.66&fp-y=0.52",
       "skiPass": "ikon"
@@ -812,11 +815,13 @@ const VENUES = [
       "icon": "🏔️",
       "rating": 4.6,
       "reviews": 920,
-      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-      "accent": "#6db3f2",
+      "gradient": "linear-gradient(160deg,#1a1a3a,#2d3a6a,#5a6aaa)",
+      "accent": "#8898cc",
       "tags": [
-        "Powder Day",
-        "All Levels"
+        "Cottonwood Canyon Powder",
+        "Night Skiing",
+        "Family Mountain",
+        "Ikon Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
       "skiPass": "ikon"
@@ -908,7 +913,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "sugar-bowl",
@@ -1019,7 +1023,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "revelstoke",
@@ -1042,7 +1045,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "lake-louise",
@@ -1055,15 +1057,16 @@ const VENUES = [
       "icon": "🏔️",
       "rating": 4.8,
       "reviews": 1880,
-      "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-      "accent": "#6db3f2",
+      "gradient": "linear-gradient(160deg,#0a2a3a,#1a5a6a,#3a8a9a)",
+      "accent": "#60aac0",
       "tags": [
-        "Powder Day",
-        "All Levels"
+        "Glacial Lake Views",
+        "Lake Louise Village",
+        "Rocky Mountain Powder",
+        "Ikon Pass"
       ],
       "photo": "https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "cypress-mountain",
@@ -1129,7 +1132,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "crans-montana",
@@ -1152,7 +1154,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
       "skiPass": "ikon",
-      "lateSeason": true
     },
     {
       "id": "st-anton-am-arlberg",
@@ -1301,12 +1302,13 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly",
-        "Powder Day"
+        "Groomed Perfection",
+        "Birds of Prey Downhill",
+        "Ski-in/Ski-out",
+        "Uncrowded Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "park-city-mountain",
@@ -1322,12 +1324,13 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels",
-        "Family Friendly"
+        "Largest US Resort",
+        "Rock Legends Gondola",
+        "Park City Historic District",
+        "Olympic Legacy"
       ],
       "photo": "https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "northstar-california",
@@ -1636,7 +1639,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "kimberley",
@@ -1659,7 +1661,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "nakiska",
@@ -1682,7 +1683,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "verbier",
@@ -1749,7 +1749,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "les-menuires",
@@ -1772,7 +1771,6 @@ const VENUES = [
       ],
       "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
       "skiPass": "epic",
-      "lateSeason": true
     },
     {
       "id": "perisher",
@@ -4789,7 +4787,7 @@ const VENUES = [
     icon:"🏖️", rating:4.83, reviews:21400,
     gradient:"linear-gradient(160deg,#001a2e,#003060,#005898)",
     accent:"#40a0e0", tags:["Art Deco Boardwalk","Atlantic Waves","Year-Round Sun","Nightlife District"],
-    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
+    photo:"https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=800&h=600&fit=crop"},
 
   {id:"cancun-beach", category:"beach",
     title:"Cancún Beach", location:"Cancún, Quintana Roo, Mexico",
@@ -4798,6 +4796,69 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001820,#003848,#006880)",
     accent:"#30b8d8", tags:["Caribbean Sea","Hotel Zone","Direct USA Flights","Cenote Day Trips"],
     photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5"},
+
+  // ── July 2026 additions (2026-07-08) ──
+  {id:"arugam-bay-sl", category:"beach",
+    title:"Arugam Bay", location:"Eastern Province, Sri Lanka",
+    lat:6.8400, lon:81.8300, ap:"CMB",
+    icon:"🏖️", rating:4.86, reviews:9400,
+    gradient:"linear-gradient(160deg,#003322,#006644,#009966)",
+    accent:"#33cc88",
+    tags:["East Coast Dry Season","Point Surf Break","Laid-Back Village","July Peak"],
+    photo:"https://images.unsplash.com/photo-1566452348683-af04c7f8b0e8?w=800&h=600&fit=crop"},
+  {id:"essaouira-beach", category:"beach",
+    title:"Essaouira Beach", location:"Essaouira, Morocco",
+    lat:31.5085, lon:-9.7595, ap:"RAK",
+    icon:"🏖️", rating:4.79, reviews:7200,
+    gradient:"linear-gradient(160deg,#001a33,#003366,#004c99)",
+    accent:"#4499cc",
+    tags:["Atlantic Windsurf Capital","Blue Boat Harbor","Medina UNESCO","July Trade Winds"],
+    photo:"https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?w=800&h=600&fit=crop"},
+  {id:"les-deux-alpes-fr", category:"skiing",
+    title:"Les Deux Alpes", location:"Isère, France",
+    lat:45.0167, lon:6.1167, ap:"CMF",
+    icon:"🏔️", rating:4.72, reviews:2140,
+    gradient:"linear-gradient(160deg,#1c3a5f,#1f67ab,#5aaeeb)",
+    accent:"#5aaeeb",
+    tags:["July Glacier Skiing","Snowpark","Expert Terrain","3600m Summit"],
+    photo:"https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent", lateSeason:true},
+  {id:"saas-fee-ch", category:"skiing",
+    title:"Saas-Fee", location:"Valais, Switzerland",
+    lat:46.1077, lon:7.9287, ap:"ZRH",
+    icon:"🏔️", rating:4.84, reviews:3120,
+    gradient:"linear-gradient(160deg,#1a3a5c,#1e5fa8,#8bc4f0)",
+    accent:"#8bc4f0",
+    tags:["Year-Round Glacier","3500m Altitude","Car-Free Village","Fee Glacier"],
+    photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent", lateSeason:true},
+  {id:"st-moritz-ch", category:"skiing",
+    title:"St. Moritz", location:"Graubünden, Switzerland",
+    lat:46.4975, lon:9.8373, ap:"ZRH",
+    icon:"🏔️", rating:4.91, reviews:3580,
+    gradient:"linear-gradient(160deg,#1a1a3a,#2e3a8a,#5a7abf)",
+    accent:"#b0bec5",
+    tags:["Luxury Alpine Resort","Corvatsch Summer Glacier","2 Olympics Host","3303m Peak"],
+    photo:"https://images.unsplash.com/photo-1606787364406-a3cdf06c6d0c?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
+    skiPass:"independent", lateSeason:true},
+
+  // ── 2026-07-09 content sprint: PM v82 Decision 2 — TFS + CHQ new venues ─────
+  {id:"las-teresitas-tfe", category:"beach",
+    title:"Las Teresitas Beach", location:"Santa Cruz de Tenerife, Canary Islands",
+    lat:28.5100, lon:-16.1500, ap:"TFS",
+    icon:"🏖️", rating:4.82, reviews:11400,
+    gradient:"linear-gradient(160deg,#1a0a00,#3a2000,#6a4000)",
+    accent:"#d4a060",
+    tags:["Saharan Sand Imported","Calm Natural Bay","Anaga Mountains Backdrop","Year-Round Sun"],
+    photo:"https://images.unsplash.com/photo-1566452348683-af04c7f8b0e8?w=800&h=600&fit=crop"},
+  {id:"elafonissi-beach-chq", category:"beach",
+    title:"Elafonissi Beach", location:"Chania, Crete, Greece",
+    lat:35.2667, lon:23.5333, ap:"CHQ",
+    icon:"🏝️", rating:4.89, reviews:18200,
+    gradient:"linear-gradient(160deg,#001a2e,#003a6a,#0060a0)",
+    accent:"#f0b0c0",
+    tags:["Pink-Tinted Sand","Shallow Pink Lagoon","Most Searched Greek Beach","Wild Southwest Crete"],
+    photo:"https://images.unsplash.com/photo-1560903510-6c52aadbfd44?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6459,6 +6520,8 @@ const AIRPORT_COORDS = {
   // Africa — North + West (beach gateways)
   SID:{lat:16.7439,lon:-22.9494},  // Cape Verde (Santa Maria Beach)
   FUE:{lat:28.4527,lon:-13.8638},  // Fuerteventura (Corralejo)
+  TFS:{lat:28.0445,lon:-16.5726},  // Tenerife South (Las Teresitas/Playa de las Americas)
+  CHQ:{lat:35.5317,lon:24.1497},   // Chania, Crete (Elafonissi / Balos)
   DJE:{lat:33.8750,lon:10.7755},   // Tunisia (Djerba Sidi Mahrez)
   // Asia
   OKA:{lat:26.1958,lon:127.6457},  // Okinawa (Emerald Beach)

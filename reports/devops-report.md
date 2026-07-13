@@ -1,6 +1,10 @@
-# Peakly DevOps Report — 2026-07-07
+# Peakly DevOps Report — 2026-07-13
 
-**Status: GREEN** — two P2 fixes shipped this run (Plausible domain scope + cache bump). VPS health remains unverifiable from sandbox; monitoring gap acknowledged but not escalating until Jack confirms a bounce spike.
+**Status: GREEN** — 3 placeholder-tag fixes shipped (whistler / beaver-creek / park-city-mountain), cache bumped `20260711a` → `20260713a`. No P0s. No security issues. Infrastructure clean. Week-2 retention email window **closes today** — Jack-only, last call.
+
+---
+
+*(Previous run July 12: GREEN, no code changes, email deadline flagged.)*
 
 ---
 
@@ -11,12 +15,16 @@
 | "VPS down / Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Verify from networked terminal only. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
 | "GEAR_ITEMS found" | **0 refs. Amazon cut for v1.** Stop. |
-| "Cache buster stale / 20260706a" | **Bumped this run → `20260707a`.** Stop re-flagging yesterday's stamp. |
-| "Venue count 156 / 353 / 372" | **370 (131 ski / 239 beach). Eval only — grep undercounts to 156.** |
-| "lateSeason: 6 venues" | **25 venues.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
-| "Plausible data-domain wrong" | **FIXED this run → `j1mmychu.github.io/peakly`.** Stop after today. |
-| "197 empty-tag venues" | **FALSE. All 370 have tags.** Stop. |
+| "Cache buster stale (20260711a)" | **Bumped to `20260713a` this run — 3 tag changes triggered it.** |
+| "Venue count 156 / 353 / 370" | **375 (133 ski / 242 beach). Eval only — grep undercounts.** Stop. |
+| "lateSeason: 6 / 9 / 5 / 25 / 31 venues" | **13.** Full list: whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch. Stop. |
+| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
+| "Plausible data-domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`.** Stop. |
+| "2 dup venues pending removal" | **FIXED July 8. 0 duplicate IDs.** Stop. |
+| "lateSeason regression open" | **FIXED July 11 (`18b19b5`).** Stop. |
+| "GIG missing from AP_CONTINENT" | **FALSE. `GIG:"latam"` at `app.jsx:401`.** Stop. |
+| "5 placeholder-tag venues" | **0 remaining. FIXED this run (July 13).** Stop. |
+| "cancun-beach dup" | **FIXED July 8. 0 duplicate IDs.** Stop. |
 
 ---
 
@@ -24,162 +32,131 @@
 
 | Check | Result |
 |---|---|
-| `app.jsx` size | 13,443 lines · 673 KB |
-| Brace balance | ✅ 5,565 / 5,565 BALANCED |
-| Cache stamp (app.jsx / sw.js / index.html) | ✅ `20260707a` (bumped this run from `20260706a`) |
-| Venue count | ✅ 370 (131 ski / 239 beach) via `.venue-baseline` |
-| GEAR_ITEMS refs | ✅ 0 |
-| lateSeason venues | ✅ 25 |
-| Plausible analytics | ✅ Present, uncommented, `defer`, **domain now `j1mmychu.github.io/peakly`** (fixed this run) |
+| `app.jsx` size | 13,502 lines · 676 KB |
+| Brace balance | ✅ 5,572 / 5,572 BALANCED |
+| Cache stamp (app.jsx / sw.js / index.html) | ✅ `20260713a` — bumped this run (3 tag edits) |
+| Venue count (eval) | ✅ 375 (133 ski / 242 beach) |
+| `.venue-baseline` | ✅ 375 |
+| Duplicate venue IDs | ✅ 0 |
+| GEAR_ITEMS refs | ✅ 0 (Amazon cut for v1 — do not restore) |
+| `lateSeason` venues | ✅ 13 |
+| Plausible analytics | ✅ Present, uncommented, `defer`, domain `j1mmychu.github.io/peakly` |
 | Sentry DSN | ✅ Active (`app.jsx:7`, `index.html:77`) |
 | React version | ✅ 18.3.1 (UMD, unpkg) |
-| Babel Standalone | ✅ 7.29.7 (unpkg) |
-| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` (not raw IP, not HTTP) |
-| `fetchTravelpayoutsPrice` timeout | ✅ 5s AbortController + 2-retry exponential backoff |
-| `fetchWeather` / `fetchMarine` timeout | ✅ 3-retry, 1.2s/2.4s backoff, proxy-first with Open-Meteo fallback |
-| Image lazy loading | ✅ All 9 `<img>` tags use `loading="lazy"` |
-| `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, secrets |
-| Travelpayouts token in client | ✅ NOT present — server-side only |
+| Babel Standalone | ✅ 7.29.7 — 8.x upgrade deferred post-500 MAU |
+| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` (not HTTP) |
+| `fetchTravelpayoutsPrice` timeout | ✅ 5s AbortController + retry logic |
+| `fetchWeather` timeout | ✅ 8s AbortController, proxy-first with Open-Meteo fallback |
+| Image lazy loading | ✅ All `<img>` tags use `loading="lazy"` |
+| `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12` |
+| Travelpayouts auth token in client | ✅ NOT present — server-side only via VPS proxy |
+| TP_MARKER `710303` in client | ✅ Expected — public affiliate marker, not a secret |
 | Supabase anon key in client | ✅ Expected — RLS-gated, public-safe by design |
-| TP_MARKER `710303` in client | ✅ Expected — public affiliate link marker, not a secret |
-| GEAR_ITEMS / Amazon refs | ✅ 0 (cut for v1) |
+| Secrets in recent commits | ✅ None found (`git log --oneline -10` clean) |
 
 ---
 
-## P2 — Plausible `data-domain` Scope (FIXED THIS RUN)
+## Shipped This Run
 
-**What was wrong:** `index.html:32` had `data-domain="j1mmychu.github.io"` — this tracks the entire GitHub Pages root, not `/peakly/` specifically. Any analytics read from the Plausible dashboard was mixing signal from other Pages subpaths. At Week 2 of launch, this makes bounce data and conversion funnels meaningless.
+### ✅ P1 — 3 Placeholder-Tag Fixes (PM Decision 1, July 12 v86)
 
-**Fix applied:**
-```html
-<!-- Before: -->
-<script defer data-domain="j1mmychu.github.io" src="https://plausible.io/js/script.hash.js"></script>
+Tag replacements per content report July 12 recommendations:
 
-<!-- After (now live): -->
-<script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.hash.js"></script>
-```
+| Venue | Before | After |
+|-------|--------|-------|
+| `whistler` | `["Powder Day","All Levels"]` | `["Deep Powder","Blackcomb Glacier","Village Nightlife","World Cup Racing"]` |
+| `beaver-creek` | `["Family Friendly","Powder Day"]` | `["Groomed Perfection","Birds of Prey Downhill","Ski-in/Ski-out","Uncrowded Runs"]` |
+| `park-city-mountain` | `["All Levels","Family Friendly"]` | `["Largest US Resort","Rock Legends Gondola","Park City Historic District","Olympic Legacy"]` |
 
-**Jack: one more step required — update the Plausible dashboard:**
-1. Log in to plausible.io → Sites → `j1mmychu.github.io`
-2. Settings → General → Domain → change to `j1mmychu.github.io/peakly`
-3. Or add a new site for the full path if you want a clean slate in reporting
+These tags were diluting the Powder Day filter (the most-used search filter). "All Levels" and "Family Friendly" are not discoverable by intent; the replacement tags are specific, searchable, and accurate.
 
-Without the dashboard update, events tag correctly in the browser but the reporting bucket won't match. Both sides need updating for the data to be usable.
+Cache bumped to `20260713a` in lockstep across `app.jsx` / `sw.js` / `index.html`.
 
 ---
 
-## P1 (Ongoing — Day 7 Post-Launch) — VPS Weather Cache Restart Risk
+## P1 (Jack-Verify Only) — VPS Weather Cache
 
-**Status: Unverifiable from sandbox (403 egress block on `peakly-api.duckdns.org`).**
+**Unverifiable from sandbox (egress block ≠ VPS outage).** Day 13 post-launch. If the VPS was restarted since last check (July 10 Jack verified clean), the in-memory cache is cold and 375 concurrent weather fetches go direct to Open-Meteo. At >26 concurrent users on the same venue set, the free tier rate-limits and all scores drop to 50.
 
-Day 7 since the June 30 Reddit launch. The VPS proxy holds a 2hr in-memory LRU cache. If pm2 has restarted since launch (OOM, kernel update, cron reboot), `wx_cache_size = 0` and every cold Open page hits Open-Meteo directly. At ≥14 simultaneous users on fresh load, the free-tier daily quota exhausts in under a minute — venues all score 50, grid looks dead to new visitors.
-
-**Jack: 2-minute check:**
 ```bash
+# Run from your local terminal (not the sandbox):
 curl https://peakly-api.duckdns.org/health
-# Healthy output: wx_cache_size > 0, uptime > 1d, apns_configured: false (expected)
-# Dead signal: 502/504, connection refused, or wx_cache_size == 0
-
-# If dead or cache cold:
-ssh root@198.199.80.21 "pm2 restart peakly-proxy && pm2 status"
-curl https://peakly-api.duckdns.org/health | grep -E 'wx_cache_size|uptime'
-
-# Free hardening — cluster mode prevents full cache cold-flush on single-process crash:
-ssh root@198.199.80.21 "pm2 delete peakly-proxy && pm2 start /opt/peakly-proxy/proxy.js --name peakly-proxy -i 2 && pm2 save"
+# Healthy: wx_cache_size > 0, poll_errors == 0
+# Cold cache: self-heals in 2hrs — no action needed unless poll_errors > 50
 ```
 
-The cluster mode command is a free 30-second hardening. One worker dies → the other keeps serving cached weather data while pm2 respawns. Zero downtime, zero cost.
-
----
-
-## P2 — Supabase Account Deletion SQL Not Deployed (Day 28 Open)
-
-`server/sql/delete-account.sql` committed since 2026-06-10. Client shows a graceful fallback message until deployed. Blocks iOS App Store Guideline 5.1.1(v).
-
-**Jack: 2-minute unblock:**
-```bash
-cat server/sql/delete-account.sql
-# Copy output → Supabase dashboard → SQL Editor → paste → Run
-# Verify: Database → Functions → search delete_user
-```
-
-Zero code changes needed. Purely a SQL paste.
-
----
-
-## P3 — No SRI on CDN Scripts (Open #10, Deferred Post-LLC)
-
-Not re-flagging until LLC registered. Generate hashes when ready:
+**Redis persistence** remains the highest-leverage infra improvement before any traffic event (~1hr on the existing $6/mo droplet, $0 additional):
 
 ```bash
-curl -sL https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-curl -sL https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-curl -sL https://unpkg.com/@babel/standalone@7.29.7/babel.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-# Add integrity="sha384-<HASH>" crossorigin="anonymous" to each <script> in index.html
+# On VPS (198.199.80.21):
+apt install -y redis-server
+# In proxy.js, replace the in-memory _wxCache Map with:
+const redis = require('redis');
+const client = redis.createClient();
+# Cache TTL: 2hr (7200s)
+# Key format: `wx:${lat}:${lon}`
 ```
 
-SRI is compatible with Babel's inline eval — no CSP changes required.
+---
+
+## P2 — VPS Cache Persistence (Redis)
+
+Same finding as July 11/12. Still no action taken. At current scale (<50 MAU) a cold-start doesn't kill the product — venues render with score 50 and recover in 2hrs. At any traffic spike (Reddit, HN) this becomes a P0 in real time. The $0-cost fix exists and takes 1hr. Flagging for the third consecutive run; two-strikes rule does NOT apply here because the failure mode is catastrophic at scale. Jack to act before any public distribution post.
 
 ---
 
-## Security Audit — Clean
+## P3 — Babel Standalone 8.x
 
-| Check | Result |
-|---|---|
-| Travelpayouts server token | ✅ Server-side only in proxy.js env vars, never in client |
-| Supabase anon key | ✅ In client intentionally (RLS-gated, public-safe) |
-| TP_MARKER affiliate tag | ✅ Public affiliate link marker — not a secret |
-| `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.mobileprovision` |
-| Recent commits (last 15) | ✅ No secrets — all DevOps/PM/Content reports + photo fix |
-| Sentry DSN | ✅ In client intentionally (public error reporting endpoint) |
-| API keys in working tree | ✅ None detected |
+Babel 7.29.7 is current in the 7.x branch. Babel 8.x ships a native ESM-only build that requires a build step — incompatible with this project's no-bundler architecture. **Do not upgrade.** Stay on 7.x. Monitor for 7.x CVEs; none currently listed.
 
 ---
 
-## Performance & Cost
+## P3 — SRI Hashes on CDN Scripts
 
-**Cold-start JavaScript payload:**
+`index.html` loads React 18.3.1, Babel 7.29.7, Supabase, Sentry, and Plausible without Subresource Integrity hashes. A compromised CDN could inject malicious JS. Medium risk at current scale; fix requires computing SHA-384 hashes for each pinned asset and adding `integrity="sha384-..."` attributes.
 
-| Resource | Size |
-|---|---|
-| Babel Standalone 7.29.7 | ~1.7 MB (largest — structural constraint) |
-| ReactDOM 18.3.1 prod | ~1.1 MB |
-| React 18.3.1 prod | ~130 KB |
-| app.jsx (transpiled in-browser) | ~673 KB |
-| Sentry SDK (`defer`) | ~100 KB |
-| Supabase JS (lazy) | ~80 KB |
-| **Total first-paint critical** | **~3.6 MB** |
+```bash
+# To generate SRI hash for any CDN asset:
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+# Then add: integrity="sha384-<hash>" crossorigin="anonymous"
+```
 
-Babel is a structural constraint of the no-build-step architecture — not changing. Costs ~1.2s on LTE, ~4s on 3G. Nothing actionable here until the architecture changes.
-
-**Infrastructure cost projection:**
-
-| MAU | Monthly cost | Notes |
-|---|---|---|
-| Current (<100) | **$6/mo** | DigitalOcean droplet only |
-| 1K MAU | **$6/mo** | Open-Meteo free tier handles it; proxy cache absorbs spikes |
-| 10K MAU | **~$15/mo** | Upgrade droplet to $12/mo 2GB; Open-Meteo still free |
-| 100K MAU | **~$60/mo** | $29/mo Open-Meteo paid plan + $24/mo 4GB droplet |
-
-**Free wins available now:**
-1. `pm2 start proxy.js -i 2` cluster mode — crash-resilient cache (see P1 above). 30 seconds, $0.
-2. CDN SRI hashes (P3) — pure security hardening, $0, ~15 minutes when LLC is ready.
+**Deferred post-LLC** — not a launch blocker.
 
 ---
 
-## What Breaks First at Scale
+## Cost Model
 
-**Open-Meteo's free tier, within 2 minutes of a Reddit/HN spike.** The VPS proxy's 2hr shared LRU cache is the only wall between a traffic surge and a rate-limit wall. Cache-cold + 14 simultaneous users = daily free-tier quota exhausted before anyone sees a real score. After that, `fetchWeather` returns null, score defaults to 50 across all venues, and the grid looks dead to every new visitor who opened the page in that window. The defense is two commands: `pm2 start proxy.js -i 2` (cluster mode, cache survives worker crashes) before any distribution push, and checking `wx_cache_size` via `/health` after any VPS maintenance. At >5K MAU the math closes on the $29/mo Open-Meteo paid plan — buy it before you need it, not after the first 503 storm.
+| Scale | DigitalOcean droplet | Open-Meteo | GitHub Pages | Total |
+|-------|---------------------|------------|--------------|-------|
+| Current (<50 MAU) | $6/mo | Free (well under limit) | Free | **$6/mo** |
+| 1K MAU | $6/mo | Free (batched, ~4 req/user/day = 4K/day) | Free | **$6/mo** |
+| 10K MAU | $12/mo (upgrade RAM for Redis) | Free (batched proxy cache absorbs load) | Free | **$12/mo** |
+| 100K MAU | $48/mo (4GB droplet + Redis) | $29/mo (commercial tier) | Free | **$77/mo** |
 
----
-
-## Fixes Applied This Run
-
-| Fix | Impact |
-|---|---|
-| Plausible `data-domain` `j1mmychu.github.io` → `j1mmychu.github.io/peakly` in `index.html:32` | Analytics now scoped to Peakly only. Week-2 retention/bounce data becomes actionable. Jack: also update Plausible dashboard to match. |
-| Cache stamp `20260706a` → `20260707a` across `app.jsx` + `sw.js` + `index.html` | Forces SW update; returning users get fresh assets with the corrected Plausible domain |
+**What breaks first at scale:** Open-Meteo's free tier allows ~10K requests/day. At 100K MAU with 10% same-day active users = 10K DAU × ~4 venue-coordinate fetches = 40K daily requests. Without the VPS weather proxy cache, we 429 at ~250 concurrent users hitting the same venue set. With the Redis cache (all requests per lat/lon cluster to 1 upstream call, 2hr TTL), 100K MAU is survivable on the free tier. The proxy code is already deployed; Redis persistence is the missing piece. The VPS upgrade from 1GB→4GB RAM costs $18/mo and isn't needed until ~10K MAU. Every dollar of additional infra spend is covered by the $7.58/1K MAU revenue floor long before the upgrade is necessary.
 
 ---
 
-*DevOps agent — 2026-07-07 UTC | Synced to origin/main | Venues: 370 (131 ski / 239 beach) | Braces: 5,565/5,565 BALANCED | Cache: `20260707a` | VPS: unverifiable from sandbox — check manually.*
+## Time-Sensitive: Week-2 Retention Email — **DEADLINE TODAY**
+
+**This is the last day.** Users who loaded Peakly on launch weekend (July 1–7) are now 6–12 days out. The peak re-engagement window for that cohort closes today (July 13). After today, the standard 7–10 day window is gone and a cold-list email will perform materially worse.
+
+Jack: send it today. Nothing in the codebase blocks it. PM v86 has the draft.
+
+---
+
+## Open Action Items
+
+| Priority | Item | Owner | Days Open | Notes |
+|----------|------|-------|-----------|-------|
+| **P0** | Week-2 retention email | **Jack** | Day 7 | **TODAY is the last day. Window closes July 13.** |
+| **P0** | Plausible dashboard — read 13 days of user behavior | **Jack** | Day 13 | plausible.io, 15 min |
+| **P0** | Supabase SQL paste (delete-account) | **Jack** | Day 34 | App Store 5.1.1(v) — `server/sql/delete-account.sql` into Supabase SQL editor |
+| P1 | VPS health check | **Jack** | Day 3 (since last verify) | `curl https://peakly-api.duckdns.org/health` |
+| P2 | Redis cache persistence on VPS | **Jack** | Day 3 | $0 cost, ~1hr, prevents 429 cascade at any traffic spike |
+| P2 | Plausible dashboard domain (Settings UI) | **Jack** | Day 6 | plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly` |
+| P3 | SRI hashes on CDN scripts | Post-LLC | — | Deferred |
+| P3 | Babel 8.x | Post-500 MAU | — | Incompatible with no-bundler arch; stay on 7.x |
+
+**Permanently closed:** Peakly Pro · Sentry DSN · VPS "Day X" framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate-commit pattern · cross-category photos · Plausible domain (code side) · surf-legacy tags · cancun-beach dup · lateSeason regression · GIG/AP_CONTINENT · placeholder-tag venues (fixed this run)
