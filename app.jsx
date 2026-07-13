@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260711a";
+const PEAKLY_BUILD = "20260713a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -481,7 +481,7 @@ const VENUES = [
     lat:50.1163, lon:-122.9574, ap:"YVR",
     icon:"🏔️", rating:4.97, reviews:2840,
     gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-    accent:"#6db3f2", tags:["Powder Day","All Levels"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
+    accent:"#6db3f2", tags:["Deep Powder","Blackcomb Glacier","Village Nightlife","World Cup Racing"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
   },
   {
     id:"borabora",  category:"beach",
@@ -1302,8 +1302,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "Family Friendly",
-        "Powder Day"
+        "Groomed Perfection",
+        "Birds of Prey Downhill",
+        "Ski-in/Ski-out",
+        "Uncrowded Runs"
       ],
       "photo": "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
@@ -1322,8 +1324,10 @@ const VENUES = [
       "gradient": "linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
       "accent": "#6db3f2",
       "tags": [
-        "All Levels",
-        "Family Friendly"
+        "Largest US Resort",
+        "Rock Legends Gondola",
+        "Park City Historic District",
+        "Olympic Legacy"
       ],
       "photo": "https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
       "skiPass": "epic",
