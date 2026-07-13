@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-07-12 (v86)
+# Peakly PM Report — 2026-07-13 (v87)
 
-> Supersedes v85 (July 11). **Status: GREEN on code, YELLOW on distribution.** Day 12 post-launch. **Week-2 return window closes TOMORROW (July 13).** Retention email has been P0 for 6 consecutive reports. Code healthy. 3 placeholder-tag venues are today's highest-value agent fix. 5 new venue candidates unverified — held.
+> Supersedes v86 (July 12). **Status: GREEN on code, RED on distribution.** Day 13 post-launch. Code pipeline healthy — DevOps shipped 3 placeholder-tag fixes + cache bump today. **Week-2 retention window closes today.** Retention email P0 for 7 consecutive reports. Plausible still unread at Day 13.
 
 ---
 
@@ -11,55 +11,53 @@
 | "182 venues" | **375 venues (133 ski / 242 beach).** Stop. |
 | "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:7`.** Stop. |
-| "Cache buster stale" | **`20260711a` — 1 day old, correct. No code change since July 11 = no bump needed.** Stop. |
+| "Cache buster stale" | **`20260713a` — bumped today by DevOps.** Stop. |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** Stop. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
 | "2 dup venues pending removal" | **FIXED July 8.** Stop. |
-| "lateSeason regression open" | **FIXED July 11 (`18b19b5`). Count = 13.** Stop. |
-| "lateSeason: 6 / 9 / 5 / 25 / 31 venues" | **13.** Full list: whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch. Stop. |
+| "5 placeholder-tag venues" | **0 remaining — FIXED today (DevOps July 13).** Stop. |
+| "lateSeason: 25 venues" | **13 (confirmed DevOps July 11 + today). CLAUDE.md count stale.** Stop saying 25. |
+| "lateSeason regression open" | **RESOLVED July 11 (`18b19b5`). Count = 13.** Content data health score issue — not a code bug. Stop. |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "Plausible data-domain wrong" | **FIXED July 7.** Stop. |
-| "27 surf-legacy tags need removal" | **FALSE — valid beach activity tags.** Stop. |
-| "5 placeholder-tag ski venues" | **3 remaining** (whistler, beaver-creek, park-city-mountain). Stop saying 5. |
+| "27 surf-legacy tags need removal" | **FALSE — valid beach activity tags. PM v81 Decision 1.** Stop. |
 | "cancun-beach dup" | **FIXED July 8. 0 duplicate IDs.** Stop. |
 | "GIG missing from AP_CONTINENT" | **FALSE. `GIG:"latam"` at `app.jsx:401`.** Stop. |
+| "Alpe d'Huez / Cortina in catalog" | **Not yet — staged, unverified. See Bug Triage.** |
 
 ---
 
-## Shipped Since v85 (2026-07-11 → 2026-07-12)
+## Shipped Since v86 (2026-07-12 → 2026-07-13)
 
 | Commit | What | Verdict |
 |--------|------|---------|
-| `6f4617e` — DevOps July 12 | Full audit GREEN, no changes, email deadline flagged | ✅ Pipeline current |
-| `90da402` — Content July 12 | Data health 90/100, 3 placeholder-tag fixes staged, 5 new venues staged | ✅ Clean audit, actions staged |
+| `054b717` — DevOps July 13 | 3 placeholder-tag fixes (whistler / beaver-creek / park-city-mountain) + cache `20260711a`→`20260713a` | ✅ P1 closed. Powder Day filter clean. |
+| `05bc61e` — Content July 13 | 375 venues confirmed, lateSeason 13 confirmed, 9 staged venues flagged as unverified-hold | ✅ Audit current. |
 
-**No app.jsx changes today — cache `20260711a` correct.**
-
-**Code state July 12:**
-- `app.jsx`: 13,502 lines · cache `20260711a` · braces 5,572/5,572 ✅
+**Code state July 13:**
+- `app.jsx`: 13,502 lines · cache `20260713a` · braces 5,572/5,572 ✅
 - **375 venues** (133 ski / 242 beach)
-- GEAR_ITEMS: 0 · lateSeason: 13 · Sentry: active · Plausible: scoped ✅
+- GEAR_ITEMS: 0 · lateSeason: 13 · 0 placeholder-tag venues · Sentry: active · Plausible: scoped ✅
 
 ---
 
-## Bug Triage — July 12
+## Bug Triage — July 13
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Week-2 retention email unsent** | **P0** | **DAY 6. WINDOW CLOSES TOMORROW.** After July 13, the 7–10 day re-engagement window for the July 1–7 cohort is over. This is the last day to generate Week-2 return data. Jack only. |
-| **Plausible data unread** | **P0** | Day 12. 375 venues, 12 days of user behavior, zero signal. Every product decision this week is a hypothesis. Jack: plausible.io, 15 min. |
-| **3 placeholder-tag ski venues** | **P1 (pre-Reddit)** | whistler ("All Levels"), beaver-creek ("Family Friendly"), park-city-mountain ("All Levels") — dilutes the Powder Day filter. Content July 12 has exact replacement tags. Agent-executable. Ship before any more distribution. |
-| **VPS weather cache** | P1 | Unverifiable from sandbox. Jack: `curl https://peakly-api.duckdns.org/health`. |
-| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 33. 2 min. Jack only. |
-| **4 staged venues unverified** (Jul 11 batch) | P2 | alpe-d-huez, cortina-d-ampezzo, pipa-beach-brazil, punta-mita-beach — gate: `validate-venues.mjs` + photo visual check. Hold. |
-| **5 staged venues unverified** (Jul 12 batch) | P2 | essaouira, sunny-beach-bg, sango-sands, tropea-beach-it, porter-heights-nz — same gate. Hold. |
+| **Week-2 retention email** — window closes today | **P0 — LAST CALL** | 7 consecutive reports. The July 1–7 cohort's Day-7–13 return window expires tonight. Jack: 3-sentence email, personal, today. Details in Decision 1. |
+| **Plausible data unread** | **P0** | Day 13 post-launch. 13 days of user behavior unread. Every product decision this month is a hypothesis. Jack: plausible.io, 15 min. |
+| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 34. 2 minutes. Jack only. `server/sql/delete-account.sql`. |
+| **VPS weather cache** | P1 | Unverifiable from sandbox. Day 29. Jack: `curl https://peakly-api.duckdns.org/health`. If `wx_cache_size == 0`, warm it before any distribution push. |
+| **9 staged venues unverified** | P2 | Jul 11 batch (alpe-d-huez, cortina-d-ampezzo, pipa-beach-brazil, punta-mita-beach) + Jul 12 batch (essaouira, sunny-beach-bg, sango-sands, tropea-beach-it, porter-heights-nz). Gate: `validate-venues.mjs` + photo visual check. Hold until Jack verifies photos. |
+| **CLAUDE.md lateSeason count stale** | P3 | Says 25, code has 13. DevOps confirmed 13 is correct. CLAUDE.md needs a one-line correction. Agent-fixable. |
 | Babel 8.x upgrade | P2 | DEFER post-500 MAU. |
 | LatAm beach gap | P3 | DEFER until Plausible confirms demand. |
 | SRI hashes on CDN scripts | P3 | DEFER post-LLC. |
-| Plausible dashboard domain update (Settings UI) | P2 | Jack only. plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly`. |
+| Plausible dashboard domain (Settings UI) | P2 | Jack only. plausible.io → Sites → Settings → Domain → `j1mmychu.github.io/peakly`. |
 
-**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate-commit pattern · cross-category photos · Plausible domain (code side) · surf-legacy tags · cancun-beach dup (July 8) · lateSeason regression (July 11) · GIG/AP_CONTINENT (July 11)
+**Permanently closed:** Peakly Pro price · Sentry DSN · VPS "Day X" outage framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate-commit pattern · cross-category photos · Plausible domain (code) · surf-legacy tags · cancun-beach dup · bigsky dup · placeholder tags · lateSeason regression (code, July 11) · GIG/AP_CONTINENT
 
 ---
 
@@ -67,65 +65,63 @@
 
 | Blocker | What It Unlocks | Days Open |
 |---------|----------------|-----------|
-| **Week-2 email** (Jack — TODAY, closes July 13) | First real user research + return-visitor measurement | Day 6 |
-| **Plausible read** (Jack, plausible.io) | All product prioritization — **12 days blind** | Day 12 |
-| **VPS health check** (Jack, local terminal) | Weather reliability confidence for first 12 user-days | Day 28 |
-| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 33 |
+| **Week-2 email** (Jack — TODAY is the last day) | Last re-engagement chance for launch cohort + first user research | Day 7 |
+| **Plausible read** (Jack, plausible.io) | All product prioritization — 13 days blind | Day 13 |
+| **VPS health check** (Jack, local terminal) | Weather data quality confidence before any distribution push | Day 29 |
+| **Supabase SQL paste** (Jack) | iOS App Store Guideline 5.1.1(v) | Day 34 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
 
 ---
 
-## Explicit Product Decisions — July 12
+## Explicit Product Decisions — July 13
 
-### Decision 1: SHIP the 3 placeholder-tag fixes. Agent-executable. Do it this run.
+### Decision 1: Send the retention email today. Modified framing accepted.
 
-Whistler, Beaver Creek, and Park City Mountain are three of the most searched ski destinations in the catalog. They currently have tags like "All Levels" and "Family Friendly" — strings that describe roughly 40% of the ski catalog and contribute nothing to filter discrimination.
+The Day-7–10 return-rate KPI is no longer measurable — that window is gone. What the email can still do:
 
-Content July 12 has the exact replacement arrays:
-- `whistler`: `["Deep Powder", "Blackcomb Glacier", "Village Nightlife", "World Cup Racing"]`
-- `beaver-creek`: `["Groomed Perfection", "Birds of Prey Downhill", "Ski-in/Ski-out", "Uncrowded Runs"]`
-- `park-city-mountain`: `["Largest US Resort", "Rock Legends Gondola", "Park City Historic District", "Olympic Legacy"]`
+1. Drive a Day-13 return visit from lapsed users
+2. Generate the first real user replies (user research)
+3. Surface whether anyone is using Peakly as a weekly habit vs a one-time visit
 
-This is a 6-string change. The Powder Day filter result set improves. The detail sheets for three of the catalog's headline venues improve. No regression risk.
+**What to send (Jack, 3 sentences, personal):**
 
-**SHIP: DevOps or Content executes this one-time tag replacement. No new logic, no new venues. App.jsx edit only. Cache bump required on commit.**
+> "Hey — I built Peakly and you visited a couple weeks ago. Scores just updated for this weekend (July 14–17) — beach conditions in the Mediterranean look strong and Southern Hemisphere ski is at peak winter. Reply and tell me: what was one thing missing that would make you check it every week?"
 
-### Decision 2: HOLD all 9 unverified staged venues (Jul 11 batch of 4 + Jul 12 batch of 5).
+The last question is the only question that matters for 100K downloads. Every reply is a product insight you can't get any other way. Send from Jack's personal email, not a tool. Do not automate.
 
-Both batches carry Unsplash photo URLs that have not been run through `validate-venues.mjs`. The Jul 12 batch (essaouira, sunny-beach-bg, sango-sands, tropea, porter-heights) looks well-constructed — good AP coverage, real geographic gaps addressed — but the photo gate exists for a reason. A 404 image is a worse first impression than a missing venue.
+**Decision: SEND TODAY. The launch cohort is permanently uncontacted after tonight.**
 
-Before any of these 9 ship: `node scripts/validate-venues.mjs` returns all PASS. Jack or a networked agent verifies. Until then, catalog stays at 375.
+### Decision 2: HOLD all 9 staged venues until Jack verifies photos visually.
 
-**HOLD: All 9 staged venues. Gate: validate-venues.mjs pass + photo visual check.**
+Content has staged 9 venues across two batches (Jul 11 + Jul 12). The `validate-venues.mjs` gate checks structural fields — it does not verify that Unsplash photo URLs are correctly themed (no ski-photo-on-beach errors). The July 6 photo contamination incident was exactly this failure mode.
 
-### Decision 3: The LatAm beach gap is a P3, not a sprint item.
+The 9 venues include beach venues like `sango-sands` (northern Scotland), `sunny-beach-bg` (Bulgaria), `pipa-beach-brazil`. Adding them with unverified photos risks another contamination incident 7 days after the last fix.
 
-Content correctly identifies that South America has only 3 venues (all Brazil). This is a real gap. It is not, however, the reason a US-based user will bounce. The distribution channel (Reddit/HN) skews heavily North American. LatAm expansion matters at >5K users when we've confirmed international demand from Plausible.
+**Decision: HOLD. No agent pastes any staged venue until Jack confirms photo URLs visually. `validate-venues.mjs` is a necessary but not sufficient gate.**
 
-**DEFER: LatAm beach expansion. Add this to the post-500-MAU queue. Spend the time on placeholder-tag fix and retention email instead.**
+### Decision 3: Fix CLAUDE.md lateSeason count from 25 → 13 this run.
+
+CLAUDE.md says "25 venues" carry `lateSeason: true`. DevOps has confirmed code has 13. The content agent data health penalty for this "regression" is causing cascading confusion across reports. v86 declared it an "ongoing regression" when it was resolved in code on July 11.
+
+The correct 13: whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
+
+**Decision: UPDATE CLAUDE.md `lateSeason` count from 25 → 13 this run. Include the full list. End the false regression flag.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Send the retention email TODAY. The window closes tomorrow.**
+**1. Jack: Send the email today.**
 
-This is the 6th consecutive P0 flag and the last time it can be P0. By July 14, the optimal window is gone and this becomes a reengagement ask, not a return measurement. The email is 3 sentences. The reply is user research you can't buy any other way.
+Every day it goes unsent is a day the launch cohort drifts further from the product. 3 sentences. Personal. Ask the question that matters for 100K.
 
-Draft (same as v85):
-> Subject: Peakly updated for next weekend
->
-> Hey — I built Peakly and you visited last week. Scores for the July 18–20 weekend just updated — [link]. Hit reply and tell me one thing that felt off or one place you tried to find that wasn't there.
+**2. Jack: Read Plausible before the Week-3 sprint.**
 
-Send from jjciluzzi@gmail.com. Manual.
+Week-3 starts July 14. The next distribution push (if needed) should happen July 15–18. Without reading Plausible, we don't know if a second push is needed (uniques < 1K), premature (> 2K with good retention), or misdirected (wrong audience). Read the dashboard before writing any code this week.
 
-**2. Fix 3 placeholder-tag venues (agent-executable this run).**
+**3. CLAUDE.md lateSeason correction (agent-executable this run) + venue pipeline decision.**
 
-Six tag strings. Three headline ski venues. Improves filter quality immediately. Zero regression risk. Before any more distribution.
-
-**3. Jack: Read Plausible. One dashboard view determines the next 30 days.**
-
-The numbers that change everything: unique visitors Week 1, return rate Week 2, filter distribution. If Week-1 uniques are <500, a second Reddit post happens before July 18. If Beach filter is <40% in July, the landing copy has a framing mismatch. Nothing in the agent queue matters more than these 3 numbers.
+Fix CLAUDE.md (this run). Then Jack makes the photo-verify call on 9 staged venues — if he can do a visual pass this week, 4–9 of them ship immediately. If not, the backlog accumulates and agents count unverified staged items as "pending" indefinitely.
 
 ---
 
@@ -133,44 +129,45 @@ The numbers that change everything: unique visitors Week 1, return rate Week 2, 
 
 | Feature | Rejection Reason |
 |---------|-----------------|
-| 9 staged venues (unverified) | **HOLD — photo URL gate not cleared.** |
-| LatAm beach expansion (Mancora, Pipa) | **DEFER.** No demand signal at current MAU. Post-500. |
-| Automated email digest | **DEFER.** Founder email first. Prove pull before automating. |
-| JSON-LD / structured data | **DEFER.** SEO compounds on traffic. Post-1K users. |
-| Venue deep links / permalink pages | **DEFER.** No data showing >100 detail-sheet views/day per venue. |
-| Hotel integrations | **CUT for v1.** |
-| New categories | **CUT.** Ski + beach is the moat. |
-| Babel 8.x upgrade | **DEFER.** P2. Post-500 MAU, test in branch. |
-| SRI hashes on CDN scripts | **DEFER post-LLC.** |
+| Hotel integrations | **CUT for v1.** Scope creep. |
+| JSON-LD / structured data | **DEFER.** SEO compounds on traffic that doesn't exist yet. Post-100 DAU. |
+| Venue deep links / permalink pages | **DEFER.** Build after Plausible shows >100 detail-sheet views/day per venue. |
+| Photo dedup ≤2× | **DEFER.** Needs ~100 new verified Unsplash IDs. No API key in repo. |
+| New venue categories (climbing, surf, hiking) | **CUT.** Ski + beach focus is the moat. |
+| SRI hashes on CDN scripts | **DEFER post-LLC.** P3. |
+| Automated weekly email digest | **DEFER.** Manual founder email first. |
+| Second Reddit post (automated) | **DEFER pending Plausible read.** Jack calls this, not agents. |
+| Tag enrichment beyond current floor | **DEFER.** Wait for filter-click data from Plausible. |
+| Babel 8.x upgrade | **DEFER post-500 MAU.** No breaking changes in current version. |
 
 ---
 
 ## Success Criteria — 8K vs 5K
 
-**Today's measurement gate (closes July 13):**
-- Send the email. Measure replies and return rate July 13–17.
-- If organic return rate (ex-email) >15% → product has pull, hold and watch.
-- If organic return rate <15% → onboarding fix is Sprint 3, not more venues.
+**The Week-2 return rate KPI is no longer measurable** — the observation window closes today.
 
-**The fork that determines 8K vs 5K:**
-- Week-1 unique visitors <500 → second Reddit post by July 18 before building anything.
-- Week-1 uniques >2K + Week-2 return >20% → Share-a-List is the growth loop, accelerate.
-- Week-1 uniques 500–2K + return <20% → fix onboarding first, then second post.
+**Week-3 gate metrics (by July 20):**
+1. Jack reads Plausible and reports unique visitors from the launch post
+2. If uniques < 1K → second Reddit post required July 15–18 (different subreddit: r/skiing, r/travel, or r/weekendtravel)
+3. If uniques 1–2K → send email + hold on second post; Week-4 return rate is the next signal
+4. If uniques > 2K → organic retention data is the priority; email replies > second post
 
-Jack reads Plausible. Numbers land in a session comment. v87 becomes the data-driven sprint plan.
+**For 8K not 5K:** The path is a second distribution moment. Feature work compounds on traffic that already exists. At < 2K launch uniques, there is no base to compound. The email going out today + Jack reading Plausible this week are the only actions that move the needle.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**We've added 5 venues this sprint and fixed zero user-facing flows.**
+**The agent pipeline is providing false comfort while the distribution problem goes unaddressed.**
 
-July 8–12: 375→375 on the venue count (dups removed, a few added, net flat). But the catalog additions are catalog work. The return window opened July 11 and users coming back to Peakly are landing in the same onboarding, the same filter experience, the same scoring explanation they saw in Week 1. If Week-2 data shows a <15% return rate, the correct diagnosis is "the product didn't give them a reason to come back" — not "we needed more venues."
+Every day: DevOps verifies infrastructure, Content audits venues, PM lists priorities. Code is healthy. Venue count grows. Tags are clean. Cache is current.
 
-The pattern to avoid: adding venues as the default response to stagnant growth. Venue count is a catalog metric, not a user metric. The retention email and Plausible read are the two actions that tell us whether the *product* is sticky. Until we have that data, catalog additions are noise, not signal.
+We have no idea how many people are using the product because the agent team cannot read Plausible.
 
-The question nobody has answered yet: what did users *do* in Session 1? Did they open a venue detail sheet? Did they tap a filter? Did they try to book? Plausible has this. Jack has 15 minutes.
+The risk is that clean daily reports feel like progress. But the only metric that matters right now — are real users returning? — is completely invisible. A product with 375 venues, correct cache stamps, and zero placeholder tags is still a failed launch if 200 people visited once and never came back.
+
+The email goes out today. Jack reads Plausible. Those two actions determine whether this is a launch or a prototype.
 
 ---
 
-*PM agent — 2026-07-12 (v86). Recommended action this run: Content/DevOps executes the 3-venue placeholder-tag fix (Decision 1). All other opens are Jack-gated. v87 expected July 13 — if Jack shares Plausible data, v87 is the data-driven Week-2 sprint plan.*
+*PM agent — 2026-07-13 (v87). v88 expected July 14. If Jack shares Plausible data in session, v88 becomes data-driven. If not, v88 flags the gap again — but at Day 14 the signal is 2 weeks old.*
