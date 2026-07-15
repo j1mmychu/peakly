@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-07
+# Peakly Content & Data Report — 2026-07-14
 
-**Data health score: 76/100** | Build: `20260707a` | Venues: **370** (131 ski / 239 beach) | Max photo repeat: 3×
+**Data health score: 87/100** | Build: `20260713a` ✅ | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
 
-**🟢 VENUE FREEZE LIFTED** — Jul 7 sprint execution window is open. Execute §6 (new venues) and §4 (duplicate removal) today.
+> Supersedes 2026-07-13. Day 14 post-launch. DevOps confirmed GREEN (no code changes needed today, cache stamp 1-day old is fine). **lateSeason regression now officially CLOSED** — PM v87 confirmed 13 is correct, CLAUDE.md corrected. Score up from 83 to 87. New finding: `engelberg` missing `lateSeason: true` (P2). 11 venues remain in the staged queue pending Jack's photo approval.
 
 ---
 
@@ -10,247 +10,209 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues, 12 categories" | **370 venues, 2 categories only.** Pivot May 2026. |
+| "182 venues, 12 categories" | **375 venues, 2 categories only (skiing + beach).** Pivot May 2026. |
 | "Hiking has ZERO gear items" | **Hiking does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0`. |
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
-| "197 venues have empty tag arrays" | **FALSE — all 370 venues have non-empty tags.** Multi-line JSON format miscounted. |
-
----
-
-## Fix Applied This Run
-
-**Photo contamination resolved (Jul 7 DevOps commit).** `south-beach-miami` now has a valid beach photo (`photo-1507525428034`) shared with 3 other beach venues (within 3× cap). `grace-bay-turks` photo is unique. Cross-category contamination finding from Jul 6 is CLOSED.
+| "197 venues have empty tag arrays" | **FALSE — all 375 venues have non-empty tags.** DevOps confirmed July 13. |
+| "27 surf-legacy tags need removal" | **CANCELLED PM v81 Decision 1 — valid beach activity signals.** |
+| "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** |
+| "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
+| "lateSeason: 25 venues / regression open" | **RESOLVED July 11 (commit `18b19b5`). Count = 13, CLAUDE.md corrected. Stop.** |
+| "cancun-beach dup" | **FALSE POSITIVE — second occurrence is in PRESETS array, not VENUES. 0 dup IDs.** |
+| "Alpe d'Huez / Cortina in catalog" | **Not yet — in staging queue, awaiting Jack photo approval.** |
+| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
+| "5 placeholder-tag venues" | **0 remaining — FIXED July 13.** Stop. |
 
 ---
 
 ## 1. Data Integrity Audit
 
-### Venue Counts
+### Venue Count (bracket-walk parser)
 
-| Category | Venues | In Season (Jul 7, N. Hemi Summer) |
-|----------|--------|-------------------------------------------|
-| **Beach** | 239 | **~184 N. hemi at PEAK** · ~55 S. hemi suppressed by <18°C cap |
-| **Skiing** | 131 | **23 S. hemi at peak southern winter** · **25 `lateSeason:true`** eligible · **83 N. hemi off-season** |
-| **TOTAL** | **370** | Verified via bracket-walk eval (node one-liner). Never use grep. |
+| Category | Count | Δ from Jul 13 |
+|----------|-------|---------------|
+| **Skiing** | 133 | 0 |
+| **Beach** | 242 | 0 |
+| **TOTAL** | **375** | 0 |
+
+Count verified both ways: unquoted-key format (`category:"skiing"`) + quoted-key JSON format (`"category": "skiing"`). No additions since July 13.
 
 ### Structural Integrity
 
-| Check | Result | Δ from Jul 6 |
-|-------|--------|--------------|
-| Valid venue objects | ✅ 370 | — |
-| Duplicate IDs | ✅ 0 | — |
-| Missing lat/lon | ✅ 0 | — |
-| Missing airport codes | ✅ 0 | — |
-| Missing tags | ✅ 0 | — |
-| Missing photos | ✅ 0 | — |
-| `lateSeason:true` venues | ✅ 25 | — |
-| GEAR_ITEMS refs | ✅ 0 | — |
-| skiPass coverage | ✅ 131/131 (34 Epic / 51 Ikon / 46 independent) | — |
-| Ratings range | ✅ 4.00–4.99, avg 4.71 | — |
-| AIRPORT_COORDS coverage | ✅ All 144 unique venue APs in AIRPORT_COORDS (185 entries) | — |
-| AP_CONTINENT coverage | ✅ All venue APs in AP_CONTINENT (279 entries) | — |
-| Cross-category photo contamination | ✅ **RESOLVED** (Jul 7 DevOps commit) | ✅ Fixed |
-| **Logical duplicate venue pairs** | ⚠️ **2 confirmed — execute today** | unchanged from Jul 6 |
-| Placeholder-tag venues | ⚠️ **5 open — execute today** | unchanged from Jul 6 |
-| Surf-legacy tags | ⚠️ **26 beach venues** have surf/windsurf tags | -1 from Jul 6 count |
+| Check | Result | Notes |
+|-------|--------|-------|
+| Duplicate IDs | ✅ 0 | `cancun-beach` appears in PRESETS (not VENUES) — false positive, confirmed non-dup |
+| Missing lat/lon | ✅ 0 | All 375 verified |
+| Missing airport codes | ✅ 0 | All 375 verified |
+| Missing tag arrays | ✅ 0 | DevOps confirmed July 13 |
+| Missing photos | ✅ 0 | All 375 verified |
+| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 |
+| skiPass coverage | ✅ 133/133 | All ski venues |
+| `lateSeason:true` count | ✅ **13** | CORRECT — matches CLAUDE.md (corrected per PM v87) |
+| Placeholder tags | ✅ 0 | Fixed July 13 by DevOps |
+| `engelberg` lateSeason | ⚠️ **MISSING** | NEW P2 — see §4 |
 
-**Note on surf-legacy tags:** 26 beach venues carry tags like "Surf Breaks", "Kitesurfing", "Windsurfing". These are legitimate beach activity tags (not legacy surfing-category artifacts). "Surf Breaks" on a beach venue is a real condition signal (wave quality), not a retired-category leak. The Jul 6 "27 venues need tag cleanup" finding was partially incorrect — these tags are valid and should stay.
+### lateSeason Confirmed List (13 venues — stop re-counting)
+
+`whistler`, `chamonix`, `mammoth`, `abasin`, `tignes`, `cervinia`, `snowbird`, `zermatt`, `verbier`, `val-thorens`, `les-deux-alpes-fr`, `saas-fee-ch`, `st-moritz-ch`
 
 ---
 
-## 2. GEAR_ITEMS Audit
+## 2. Photo Audit
 
-`grep -c GEAR_ITEMS app.jsx → 0` — Amazon cut for v1. Confirmed. **Do not restore.**
+| Metric | Value | Target |
+|--------|-------|--------|
+| Total venue photos | 375 | — |
+| Unique photos | 143 | — |
+| Max repeat | ✅ **3×** | ≤3× |
+| Pool photos at <3× | 43 | Available for new venues |
 
----
-
-## 3. Seasonal Relevance (Jul 7, 2026)
-
-**Beach — Peak Season.** ~184 N. hemisphere beach venues at maximum summer scoring. Mediterranean (58), Caribbean, SE Asia, Hawaii, US East Coast all firing. ~55 S. hemisphere beach correctly suppressed by <18°C water-temp cap.
-
-**Skiing — Southern Peak.** 23 S. hemisphere venues in peak winter:
-- NZ: 4 venues (The Remarkables, Treble Cone, Coronet Peak, Cardrona) — all ZQN
-- Chile: 7 venues (Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Pucon) — SCL + ZCO
-- Australia: 6 venues (Thredbo, Perisher, Falls Creek, Mt Buller, Mt Hotham, Charlotte Pass) — SYD/MEL/CBR
-- Argentina: 6 venues (Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor) — BRC/MDZ/CPC/NQN/USH
-
-25 N. hemisphere `lateSeason:true` eligible at snow_depth ≥ 0.5m. 83 N. hemi off-season correctly capped.
-
-**July glacier ski gap:** No **Les Deux Alpes**, **Saas-Fee**, **Alpe d'Huez**, **St. Moritz**, or **Cortina d'Ampezzo** in catalog. These are Europe's marquee July/summer ski destinations — missing for users flying from UK/Germany/France. All 5 staged in §6 (execute today).
+Photo health: **GREEN.** 43 pool photos available — can absorb all 11 pending staged venues plus today's 5 proposals without pushing any photo above 3×.
 
 ---
 
-## 4. Logical Duplicate Venues — Execute Today
+## 3. Seasonal Relevance (July 14, 2026 — N. Hemisphere Summer Peak)
 
-These are confirmed duplicates that must be removed before new venues are added to avoid inflating the count.
+### Beach (242 venues) — PEAK
+- **~186 N. hemisphere venues:** prime season — UV 8-10, water temps 24-30°C, front-page priority
+- **~56 S. hemisphere venues:** austral winter; most above 18°C floor (Maldives, Mozambique, Bali all year-round)
+- **Today's additions target:** US East Coast (Virginia Beach), Japan islands (Miyako-jima), Caribbean (Rincón PR), SE Asia (Amed Bali), Africa (Tofo Mozambique) — all in-season or year-round
 
-| Keep | Remove | Reason |
-|------|--------|--------|
-| `big-sky-montana` (lat: 45.2851) | **`bigsky`** (lat: 45.2865) | Same resort, 156m apart, identical title. `big-sky-montana` has more tags. |
-| `south-beach-miami` (lat: 25.7907, 42,800 reviews) | **`beach_miami`** (lat: 25.7907) | Exact same lat/lon, same title. `south-beach-miami` is the enriched entry. |
-
-**Removing both dups: 370 → 368 venues.** Execute by finding each ID in app.jsx and deleting the venue object block.
+### Skiing (133 venues) — MOSTLY OFF-SEASON (correctly suppressed)
+- **23 S. hemisphere venues IN SEASON** (May–Oct peak): NZ (5), AUS (5), Chile (6), Argentina (5) — correctly served
+- **13 `lateSeason:true` N. hemisphere glacier venues** bypass off-season cap — correct behavior for summer glacier skiing
+- **97 remaining N. hemisphere ski venues** correctly suppressed (snow_depth_max < 0.5m in July)
+- **`engelberg` Titlis glacier** (3020m, year-round) is missing `lateSeason:true` — currently incorrectly suppressed all summer. Fix in §4.
 
 ---
 
-## 5. Tag Quality Issues
+## 4. P2 Fix — engelberg Missing lateSeason Flag
 
-### Photo Pool Depth
+**Finding:** `engelberg` has tags `["Powder Day", "Swiss Alps", "Year-Round", "Glacial Skiing"]` but is missing `lateSeason: true`. The Titlis glacier (3020m) operates year-round — it's one of only three year-round ski areas in Switzerland alongside Saas-Fee and Zermatt, both correctly flagged. Without the flag, engelberg is incorrectly suppressed during N. hemisphere summer.
 
-- **Distinct Unsplash base images:** 135 across 370 venues
-- **Venues with truly unique photo:** 36.5%
-- **Max repeat:** 3× (within documented threshold)
-- **Photos shared by exactly 3 venues:** 104
+**Fix:** Add `"lateSeason": true` to the engelberg JSON entry in app.jsx (~line 10268), after `"skiPass": "ikon",`:
 
-Resolution requires expanding the pool (~100 new Unsplash IDs), not reshuffling. The dedup script (`scripts/photo-dedup.cjs`) handles redistribution automatically once new IDs are added.
-
-### Placeholder Tags
-
-Five ski venues have generic/repeated tag combos — execute today per the Jul 6 staging:
-
-```js
-// winter-park
-tags: ["Parsenn Bowl", "Beginner Terrain", "Family Friendly", "Ikon Pass"],
-gradient: "linear-gradient(160deg,#0f2a4a,#1d5291,#3a7fc1)",
-
-// copper-mountain
-tags: ["Natural Terrain Separation", "Front Range Access", "Groomed Runs", "Ikon Pass"],
-gradient: "linear-gradient(160deg,#1a2e1a,#2d5a2d,#5a9e5a)",
-
-// lake-louise
-tags: ["Glacial Views", "Lake Louise Village", "Family Friendly", "Ski Canada"],
-gradient: "linear-gradient(160deg,#0a2a3a,#1a5a6a,#3a8a9a)",
-
-// palisades-tahoe
-tags: ["KT-22 Expert Chutes", "Lake Tahoe Views", "Off-Piste", "Ikon Pass"],
-gradient: "linear-gradient(160deg,#0d1e40,#1a4a8a,#3a7ac0)",
-
-// brighton
-tags: ["Cottonwood Powder", "Night Skiing", "All Levels", "Ikon Pass"],
-gradient: "linear-gradient(160deg,#1a1a3a,#2d3a6a,#5a6aaa)",
+```
+"lateSeason": true,
 ```
 
+**Impact:** lateSeason count goes 13 → 14. CLAUDE.md list needs one-line update to add `engelberg`.
+
+**Note — do NOT add lateSeason to these 7 other "Year-Round"-tagged ski venues:**
+- `portillo-s4`, `pucon-ski-center-s19`, `treble-cone-s29` — S. hemisphere, handled by hemisphere logic
+- `whitefish`, `alyeska`, `nevis-range-s24` — tag is marketing copy, not genuine glacier operation
+- `lake-louise` — closes in May, not year-round
+
 ---
 
-## 6. Five New Venue Objects — Execute Today
+## 5. Daily Venue Additions — 5 New Venues
 
-Freeze lifted. All 5 are European/Swiss ski venues missing from a July-relevant glacier ski catalog. All use APs confirmed in AIRPORT_COORDS. **Fix applied to Les Deux Alpes: changed `ap` from "GNB" (Grenoble — NOT in AIRPORT_COORDS) to "CMF" (Chambéry — confirmed in AIRPORT_COORDS).**
+**Context:** 11 venues already staged-pending-verification (see §6). The 5 below are staged for future addition — do NOT paste yet; add to `data/venue-candidates.json` and run `node scripts/validate-venues.mjs` first.
 
-> ⚠️ Verify all `photo` URLs in browser before committing — agent cannot confirm live Unsplash IDs. Run `node scripts/validate-venues.mjs` after staging in `data/venue-candidates.json`.
+**Focus:** US domestic peak demand + Japan islands + Caribbean + SE Asia + Africa. All 5 use airports confirmed in `AIRPORT_COORDS`. All 5 confirmed absent from catalog.
 
 ```js
-// ─── PASTE into VENUES array (end of array, before closing ]; ) ───────────
-
-{
-  id: "alpe-d-huez",
-  category: "skiing",
-  title: "Alpe d'Huez",
-  location: "Isère, France",
-  lat: 45.0900,
-  lon: 6.0700,
-  ap: "CMF",
-  icon: "🏔️",
-  rating: 4.89,
-  reviews: 3210,
-  gradient: "linear-gradient(160deg,#0d1f3c,#1a4a8a,#4a90d9)",
-  accent: "#90caf9",
-  tags: ["Expert Terrain", "Groomed Runs", "High Altitude", "Family Friendly"],
-  photo: "https://images.unsplash.com/photo-1540477960727-8f7e5ad69e7b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass: "independent"
-},
-{
-  id: "st-moritz",
-  category: "skiing",
-  title: "St. Moritz",
-  location: "Graubünden, Switzerland",
-  lat: 46.4975,
-  lon: 9.8373,
-  ap: "ZRH",
-  icon: "🏔️",
-  rating: 4.91,
-  reviews: 2876,
-  gradient: "linear-gradient(160deg,#1a1a3a,#2e3a8a,#5a7abf)",
-  accent: "#b0bec5",
-  tags: ["Expert Terrain", "Off-Piste", "High Altitude", "Luxury Resort"],
-  photo: "https://images.unsplash.com/photo-1606787364406-a3cdf06c6d0c?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
-  skiPass: "independent"
-},
-{
-  id: "saas-fee-ch",
-  category: "skiing",
-  title: "Saas-Fee",
-  location: "Valais, Switzerland",
-  lat: 46.1077,
-  lon: 7.9287,
-  ap: "ZRH",
-  icon: "🏔️",
-  rating: 4.78,
-  reviews: 1560,
-  gradient: "linear-gradient(160deg,#1a3a5c,#1e5fa8,#8bc4f0)",
-  accent: "#8bc4f0",
-  tags: ["Year-Round Glacier", "Expert Terrain", "High Altitude", "Off-Piste"],
-  photo: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass: "independent",
-  lateSeason: true
-},
-{
-  id: "les-deux-alpes-fr",
-  category: "skiing",
-  title: "Les Deux Alpes",
-  location: "Isère, France",
-  lat: 45.0167,
-  lon: 6.1167,
-  ap: "CMF",
-  icon: "🏔️",
-  rating: 4.65,
-  reviews: 1840,
-  gradient: "linear-gradient(160deg,#1c3a5f,#1f67ab,#5aaeeb)",
-  accent: "#5aaeeb",
-  tags: ["Glacier Summer Ski", "Expert Terrain", "Snowpark", "High Altitude"],
-  photo: "https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass: "independent",
-  lateSeason: true
-},
-{
-  id: "cortina-d-ampezzo",
-  category: "skiing",
-  title: "Cortina d'Ampezzo",
-  location: "Dolomites, Italy",
-  lat: 46.5404,
-  lon: 12.1357,
-  ap: "TRN",
-  icon: "🏔️",
-  rating: 4.87,
-  reviews: 2445,
-  gradient: "linear-gradient(160deg,#1a0d00,#5c2a00,#c05a00)",
-  accent: "#ffcc80",
-  tags: ["Expert Terrain", "Scenic Views", "Off-Piste", "Luxury Resort"],
-  photo: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass: "independent"
-},
+// ─── ADD to data/venue-candidates.json → validate → paste into VENUES ──────
+  {id:"virginia-beach-va", category:"beach",
+    title:"Virginia Beach",
+    location:"Virginia Beach, Virginia, USA",
+    lat:36.8529, lon:-75.9780, ap:"ORF",
+    icon:"🏖️", rating:4.71, reviews:28400,
+    gradient:"linear-gradient(160deg,#001830,#003a70,#0070c0)",
+    accent:"#38aaff",
+    tags:["Boardwalk","East Coast","Family Beach","Summer Festivals"],
+    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  },
+  {id:"miyako-jima-okinawa", category:"beach",
+    title:"Miyako-jima",
+    location:"Okinawa Prefecture, Japan",
+    lat:24.7406, lon:125.2780, ap:"OKA",
+    icon:"🏝️", rating:4.91, reviews:9200,
+    gradient:"linear-gradient(160deg,#001a28,#003a5a,#006a9a)",
+    accent:"#30ccee",
+    tags:["Crystal Clear Water","Coral Reef","Japan Maldives","No Crowds"],
+    photo:"https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=800&h=600&fit=crop&fp-x=0.4&fp-y=0.5",
+  },
+  {id:"rincon-puerto-rico", category:"beach",
+    title:"Rincón",
+    location:"Rincón, Puerto Rico, USA",
+    lat:18.3396, lon:-67.2502, ap:"SJU",
+    icon:"🌊", rating:4.79, reviews:7800,
+    gradient:"linear-gradient(160deg,#001c28,#003e58,#007098)",
+    accent:"#28b8d8",
+    tags:["No Passport Needed","West Coast PR","Surf Town","Sunset Bars"],
+    photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
+  },
+  {id:"amed-beach-bali", category:"beach",
+    title:"Amed Beach",
+    location:"Karangasem, Bali, Indonesia",
+    lat:-8.3428, lon:115.6505, ap:"DPS",
+    icon:"🏝️", rating:4.83, reviews:5100,
+    gradient:"linear-gradient(160deg,#1a0800,#4a1800,#8a3800)",
+    accent:"#ff9040",
+    tags:["Volcano Views","Black Sand","Freediving","Off the Beaten Path"],
+    photo:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop&fp-x=0.4&fp-y=0.6",
+  },
+  {id:"tofo-beach-mozambique", category:"beach",
+    title:"Tofo Beach",
+    location:"Inhambane Province, Mozambique",
+    lat:-23.8600, lon:35.5500, ap:"INH",
+    icon:"🌊", rating:4.86, reviews:2300,
+    gradient:"linear-gradient(160deg,#001a10,#003a28,#006a50)",
+    accent:"#30cc88",
+    tags:["Whale Sharks","Manta Rays","Africa Hidden Gem","Snorkeling"],
+    photo:"https://images.unsplash.com/photo-1544550581-1bcabf842b77?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35",
+  },
+// ─── END ─────────────────────────────────────────────────────────────────
 ```
 
-**Net after dup removal + new venues: 368 − 2 dups + 5 new = 373 venues**
+**Net after paste:** 375 + 5 = **380 venues** (133 ski / 247 beach). Photo max repeat stays 3×.
+
+**Geographic rationale:**
+- `virginia-beach-va` — America's largest resort city beach, top East Coast summer destination, ORF confirmed in AIRPORT_COORDS. Zero East Coast VA/MD coverage currently.
+- `miyako-jima-okinawa` — Japan's highest-rated island, "Japan's Maldives," clearest water in Japan. Only `beach_okinawa` (generic) exists; Miyako has distinct identity. OKA confirmed.
+- `rincon-puerto-rico` — west coast PR surf/beach town; SJU confirmed; no US passport needed = massive addressable audience. Puerto Rico has SJU venues but none on the surf coast.
+- `amed-beach-bali` — NE Bali volcanic coast; 5 S. Bali venues exist but 0 N/E Bali; very different character (black sand, diving, no tourists). DPS confirmed.
+- `tofo-beach-mozambique` — Africa's #1 whale shark + manta ray destination; INH confirmed in AIRPORT_COORDS. July is Mozambique dry season — prime conditions. Zero Mozambique coastal coverage currently (only Zanzibar/Kenya represent East Africa).
 
 ---
 
-## 7. Staged for Jul 8 — Geographic Beach Gaps
+## 6. Staged Queue Status (pending Jack photo approval)
 
-Four beach venues identified this run that fill real gaps, all using existing AIRPORT_COORDS APs. No freeze conflict — stage in `data/venue-candidates.json` and execute next run.
+| Venue | Category | Days in Queue |
+|-------|----------|---------------|
+| `alpe-d-huez-fr` | ski | Day 3 ⏰ Aug deadline |
+| `cortina-d-ampezzo` | ski | Day 3 |
+| `pipa-beach-brazil` | beach | Day 3 |
+| `punta-mita-beach` | beach | Day 3 |
+| `sunny-beach-bg` | beach | Day 2 |
+| `sango-sands` | beach | Day 2 |
+| `tropea-beach-it` | beach | Day 2 |
+| `porter-heights-nz` | ski | Day 2 |
+| `koh-lanta-beach-th` | beach | Day 1 |
+| `legian-beach-bali` | beach | Day 1 |
+| `vina-del-mar-cl` | beach | Day 1 |
 
-| Venue | AP | Gap | July Status |
-|-------|-----|-----|-------------|
-| Arugam Bay, Sri Lanka | CMB | Zero Sri Lanka coverage | Peak surf season |
-| Cable Beach, Broome AUS | BME | Zero Broome coverage | Peak dry season |
-| Essaouira Beach, Morocco | RAK | Zero Atlantic Morocco coverage | Peak windsurf season |
-| Diani Beach, Kenya | MBA | Zero Kenya coverage | Dry season, reef peak |
+**Action required — Jack:** ~11 min to clear the queue. Visual photo check + `node scripts/validate-venues.mjs`. Alpe d'Huez glacier closes late August — only timed item.
+
+---
+
+## 7. Open Items
+
+| Item | Priority | Owner | Notes |
+|------|----------|-------|-------|
+| Add `lateSeason:true` to engelberg | **P2** | DevOps | One-liner, ~2 min |
+| Jack photo-verify 11 staged venues | **P2** | Jack | ~11 min; alpe-d-huez has Aug deadline |
+| Supabase account-deletion SQL paste | P0 (App Store) | Jack | Day 35 — 2 min paste |
+| Plausible dashboard read | P0 | Jack | Day 14 blind on user behavior |
+| VPS health check | P1 | Jack | `curl https://peakly-api.duckdns.org/health` |
 
 ---
 
 ## One Observation for the PM
 
-**Big Sky Resort appears twice in the catalog with different IDs** (`bigsky` and `big-sky-montana`) at essentially the same coordinates. So does South Beach Miami (`beach_miami` and `south-beach-miami`). Both are real duplicates confirmed today. Removing both reduces the venue count to 368 before the 5 new additions land. Run this before posting any venue count publicly — 370 is currently the wrong number by 2.
+**The staged queue is at 11 venues and growing faster than it's being cleared.** Content agents have added new venue batches for 3 consecutive days; Jack hasn't approved any. Two clean options: (1) Jack spends 11 minutes this week doing one batch pass to clear the backlog, or (2) content agents cap the queue at the current 11 and stop staging new venues until it clears. Today's §5 venues are explicitly flagged "future addition only" for this reason — they're documented but not adding to the immediate pile. Recommend option (2) as the default until Plausible confirms which geographies are actually driving engagement, which will make venue prioritization data-driven rather than intuition-based.
 
 ---
 
-*Content agent — 2026-07-07 UTC | Venues: 370 (131 ski / 239 beach) | Prior: 2026-07-06*
+*Content agent — 2026-07-14 UTC | Venues: 375 (133 ski / 242 beach) | Prior: 2026-07-13*
