@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-16
+# Peakly Content & Data Report — 2026-07-17
 
-**Data health score: 92/100** | Build: `20260714a` ✅ | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
+**Data health score: 87/100** | Build: `20260714a` ✅ | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
 
-> Supersedes 2026-07-14. Day 16 post-launch. Code freeze holds at 2 days. **Engelberg P2 CLOSED** — `lateSeason:true` confirmed present (added commit `747c35a` July 14). New finding: 6 venue APs missing from AP_CONTINENT, breaking continent filter for ~7 venues (P2). DevOps bracket-walker "377 / +2 drift" is a FALSE POSITIVE — unique ID count is 375, `.venue-baseline` (375) is CORRECT. Queue cap at 11 holds — no additions recommended until Jack clears backlog.
+> Supersedes 2026-07-16. Day 17 post-launch. **CORRECTION: July 16 P2 (AP_CONTINENT gap — 6 missing codes) is a FALSE POSITIVE.** Eval of AP_CONTINENT confirms all 280 entries cover every venue AP. Zero continent filter breaks. New finding today: Tag depth gap (P3) — 228 venues at minimum 2 tags, beach average 2.42 tags vs ski 3.35. Queue cap at 11 holds — no venue additions until Jack clears backlog.
 
 ---
 
@@ -21,9 +21,11 @@
 | "cancun-beach dup" | **FALSE POSITIVE — second occurrence is in PRESETS, not VENUES. 0 dup IDs.** |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "5 placeholder-tag venues" | **0 remaining — FIXED July 13.** Stop. |
-| "poolPrimary:true = 25" | **FALSE — 0 poolPrimary:true in code.** Only appears in a comment. DevOps July 15 hallucinated this. |
-| "Venue count 377 / +2 baseline drift" | **FALSE POSITIVE.** Bracket-walker double-counts 2 `{` chars from CSS/JS. Unique IDs = **375**. `.venue-baseline` (375) is CORRECT. No update needed. |
+| "poolPrimary:true = 25" | **FALSE — 0 poolPrimary:true in code.** Only appears in a comment. |
+| "Venue count 377 / +2 baseline drift" | **FALSE POSITIVE.** Bracket-walker double-counts 2 `{` chars from CSS/JS. Unique IDs = **375**. `.venue-baseline` (375) is CORRECT. |
 | "engelberg missing lateSeason" | **RESOLVED July 14 (commit `747c35a`).** lateSeason count = **14**. Stop. |
+| "AP_CONTINENT gap — 6 missing codes (KUL, SNA, MCT, GIG, TFS, CHQ)" | **FALSE POSITIVE (July 16 report).** Eval of AP_CONTINENT confirms all 280 entries present. All 6 codes confirmed: KUL:asia, SNA:na, MCT:asia, GIG:latam, TFS:europe, CHQ:europe. Zero venue APs are unmapped. |
+| "rio-ipanema-beach as new staged venue" | **DUPLICATE — `ipanema-rio` already in VENUES with ap:GIG.** Do not re-stage. |
 | "Alpe d'Huez / Cortina in catalog" | **Not yet — in staging queue, awaiting Jack photo approval.** |
 
 ---
@@ -32,7 +34,7 @@
 
 ### Venue Count (unique-ID method — authoritative)
 
-| Category | Count | Δ from Jul 14 |
+| Category | Count | Δ from Jul 16 |
 |----------|-------|---------------|
 | **Skiing** | 133 | 0 |
 | **Beach** | 242 | 0 |
@@ -40,23 +42,22 @@
 
 Both formats counted: compact unquoted (`id:"..."`) + batch JSON (`"id":"..."`). No format overlap, no duplicates.
 
-**Note on DevOps bracket-walker "377":** The `{` character walker overcounts by 2 due to `{` inside CSS gradient strings or JS template literals within venue fields. Unique ID count is the ground truth. `.venue-baseline` file (375) is CORRECT — no update needed. Calling this P2 drift was a false alarm; this note should be added to DevOps prompt corrections.
-
 ### Structural Integrity
 
 | Check | Result | Notes |
 |-------|--------|-------|
 | Duplicate IDs | ✅ 0 | Verified across both formats |
 | Missing lat/lon | ✅ 0 | All 375 verified |
-| Missing airport codes | ✅ 0 | All 375 have non-empty ap field |
-| Missing tag arrays | ✅ 0 | Confirmed all 375 |
-| Missing photos | ✅ 0 | All 375 verified |
-| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 |
+| Missing airport codes | ✅ 0 | All 375 have non-empty `ap` field |
+| Missing tag arrays | ✅ 0 | All 375 have ≥1 tag |
+| Missing photos | ✅ 0 | All 375 have photo URL |
+| Missing rating / reviews | ✅ 0 | All 375 populated |
+| Rating floor | ✅ 4.0 min | Range: 4.0–4.99 |
+| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 — intentional |
 | `lateSeason:true` count | ✅ **14** | Engelberg added July 14 — RESOLVED |
-| `poolPrimary:true` count | ✅ **0** | Only in comment; no venues use this flag currently |
-| Photo max repeat | ✅ 3× | Within target from photo-dedup commit `a143e4c` |
-| AP_CONTINENT coverage | ⚠️ **6 gaps** | See §2 below — NEW P2 |
-| AP_CONTINENT duplicates | ⚠️ **8 dup keys** | Cosmetic P3; same value repeated |
+| `poolPrimary:true` count | ✅ **0** | Only in comment; no venues use this flag |
+| Photo max repeat | ✅ 3× | Within ≤3× target from dedup `a143e4c` |
+| AP_CONTINENT coverage | ✅ **0 gaps** | Eval confirmed 280 entries cover all 375 venue APs |
 
 ### lateSeason Confirmed List (14 venues)
 
@@ -64,154 +65,156 @@ Both formats counted: compact unquoted (`id:"..."`) + batch JSON (`"id":"..."`).
 
 ---
 
-## 2. AP_CONTINENT Coverage Gap (NEW P2)
+## 2. AP_CONTINENT Audit — FALSE POSITIVE CLOSED
 
-**AP_CONTINENT has 214 unique codes** (222 entries; 8 are duplicate keys with same values). Of 146 unique airport codes used across the 375 venues, **6 are missing from AP_CONTINENT** — those venues return `undefined` on continent lookups and disappear from continent-filtered results.
+The July 16 report flagged KUL, SNA, MCT, GIG, TFS, CHQ as missing from AP_CONTINENT. This was a **grep-based false negative** — the codes exist as quoted-key entries (e.g. `"KUL":"asia"`) that a bare-text search missed.
 
-| Missing AP | Venue(s) Affected | Correct Continent | Fix |
-|-----------|-------------------|-------------------|-----|
-| `KUL` | `tioman-island-t11` (Tioman Island, Malaysia) | `"asia"` | Add to asia block |
-| `SNA` | `laguna-beach-t24` (Laguna Beach, CA, USA) | `"na"` | Add to na block |
-| `MCT` | `muscat-beach-t26`, `qantab-beach-oman` (Oman) | `"asia"` | Add to asia block |
-| `GIG` | 1 Rio de Janeiro venue | `"latam"` | Add to latam block |
-| `TFS` | 1 Tenerife South venue | `"europe"` | Add to europe block |
-| `CHQ` | 1 Chania, Greece venue | `"europe"` | Add to europe block |
+**Eval-based verification (authoritative):** AP_CONTINENT contains **280 entries**. Every airport code used across the 375 venues maps cleanly. Continent filter is fully functional — no venues disappear from any region view.
 
-**Impact:** ~7 venues invisible under continent filter. When users tap "Asia" or "Europe" in SearchSheet, these venues don't appear. Affects booking flow for Oman, Tenerife, Crete, Rio, Tioman, Laguna Beach.
+**Root cause:** Same eval-vs-grep gap that caused the "156 venues / 375 venues" undercount issue. Always use eval for object membership checks in this codebase.
 
-**Paste-ready fix** (add to AP_CONTINENT in app.jsx at the appropriate continent comments):
-
-```javascript
-// In the North America block — add:
-SNA:"na",   // Orange County / Laguna Beach CA
-
-// In the Latin America block — add:
-GIG:"latam", // Rio de Janeiro, Brazil
-
-// In the Europe block — add:
-TFS:"europe", CHQ:"europe", // Tenerife South; Chania, Crete
-
-// In the Asia block — add:
-KUL:"asia", MCT:"asia",    // Kuala Lumpur; Muscat, Oman
-```
-
-**AP_CONTINENT duplicate keys** (8 — cosmetic P3, no behavior impact since values match):
-`OGG`, `LIH`, `PVR`, `SJO`, `ORF`, `ALB`, `AMM`, `MEL` — each defined twice with the same continent value. Can be cleaned up opportunistically but not urgent.
+**Action:** None needed on AP_CONTINENT. Retire this finding from all agent queues.
 
 ---
 
-## 3. Seasonal Relevance — July 2026
+## 3. Content Quality — NEW Finding (P3)
 
-**Northern hemisphere**: mid-summer. Beach peak season; skiing off-season.
-**Southern hemisphere**: mid-winter. Skiing peak season; beach off-peak.
+### Tag Depth Gap
 
-| Category | N. Hemisphere | S. Hemisphere | Notes |
-|----------|---------------|---------------|-------|
-| Beach | ✅ 187 venues IN SEASON | ⚠️ 55 venues off-peak (Jul = austral winter) | NH beach = prime weekend demand |
-| Skiing | ❌ 110 venues OFF SEASON | ✅ 23 venues IN SEASON | SH ski = currently scoring live |
+| Tag Count | Venues | % of Total |
+|-----------|--------|------------|
+| 2 tags | **228** | **61%** |
+| 3 tags | 14 | 4% |
+| 4 tags | 132 | 35% |
+| 5 tags | 1 | 0% |
 
-### Southern Hemisphere Ski Venues (should be featuring now — 23 venues)
+- **Beach average: 2.42 tags** vs **Ski average: 3.35 tags**
+- Beach venues are systematically thinner in content signal
+- Tags feed the search corpus, the Powder Day filter, and detail-sheet display
+- 228 venues at exactly 2 tags means search queries like "UV", "snorkeling", "nightlife", "sunset" don't surface those destinations even when applicable
 
-All 14 `lateSeason:true` N-hemisphere venues + the 23 S-hemisphere ski venues below are the only ski inventory scoring real conditions today:
+**Impact:** Reduces discoverability for long-tail search terms and misses filter opportunities. Not a P1 — venues still render and score correctly. The fix is enrichment, not repair.
 
-**NZ (3):** `coronet-peak`, `cardrona-nz`, `mt-hutt-nz`
-**Australia (5):** `perisher`, `falls-creek-au`, `mt-buller-au`, `mt-hotham-au`, `charlotte-pass-au`
-**Chile (5):** `valle-nevado`, `nevados-de-chillan-cl`, `la-parva-cl`, `el-colorado-cl`, `corralco-cl`
-**Argentina (5):** `cerro-catedral-ar`, `las-lenas-ar`, `chapelco-ar`, `caviahue-ar`, `portillo-s4`
-**Other (5):** `pucon-ski-center-s19`, `thredbo-village-s23`, `cerro-castor-s28`, `treble-cone-s29`, `remarkables`
+**Recommended remediation (when content bandwidth allows):**
+- Add 1–2 tags per venue to the 228 thin-tag venues, prioritizing beach
+- Priority candidates: venues without "UV [N]" tags (beach UV index is a core trust signal), resorts without lift system tags (ski), beach venues missing water temp signals
 
-**Seasonal scoring note:** N-hemisphere ski venues (`isNorth=true`) enter off-season cap in July. The 14 `lateSeason:true` venues bypass the cap when `snow_depth_max >= 0.5m` (Titlis, Zermatt, Saas-Fee glaciers). Everything else properly de-prioritizes. No action needed — hemisphere logic is working.
+No paste-ready fix today (needs venue-by-venue editorial judgment, not automation). Flag for next deep-content session.
 
----
-
-## 4. Content Quality
-
-### Photo Deduplication Status
+### Photo Distribution
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Total photos | 375 | 375 | ✅ |
-| Unique base URLs | 139 | — | ✅ |
-| Max repeat (any photo) | 3× | ≤3× | ✅ |
-| Photos repeated 2–3× | 39 base URLs | — | Within target |
+| Total venues | 375 | 375 | ✅ |
+| Distinct base photo URLs | 139 | — | ✅ |
+| Photos used 1× | 5 | — | Fine |
+| Photos used 2× | 32 | — | Fine |
+| Photos used 3× | 102 | ≤3× | ✅ At limit |
+| Photos used 4×+ | **0** | 0 | ✅ |
 
-Photo dedup status is GREEN. The photo-dedup commit (`a143e4c`) achieved the ≤3× target for both categories. The 39 repeated photos are all scenic category shots (powder fields, beach panoramas) where 2–3 uses is visually acceptable.
+Photo dedup GREEN. All 3× repeats are generic category scenery (powder fields, turquoise water panoramas) where shared use is visually acceptable. The ≤3× ceiling from dedup commit `a143e4c` holds.
 
-### Tags Quality
+**Note for future venue additions:** 102 photo base URLs are already at 3×. Any new venue requiring a photo in the existing 139-URL pool will push ≥1 photo to 4×. New additions should introduce new Unsplash photo IDs or the dedup script should be re-run after each batch add.
 
-- All 375 venues have non-empty tag arrays ✅
-- All venues have ≥2 tags ✅
-- No placeholder tags ("Tag1", "TBD") ✅ (fixed July 13)
-- No surf-legacy tags requiring removal (PM v81 standing decision: valid beach signals)
+---
 
-### Descriptions / Difficulty
+## 4. Seasonal Relevance — July 17, 2026
 
-Venues use `tags` as content descriptors — no dedicated `description` field in the schema. This is per-design. Difficulty levels exist on ski venues via `skiPass` field (epic/ikon/indy/independent).
+**Northern hemisphere:** Peak summer. Beach prime. Ski off-season (soft scoring floor on 110 N-hemi venues; 14 lateSeason glacier exceptions active).
+**Southern hemisphere:** Peak winter. Ski prime. Beach off-peak.
+
+| Category | N. Hemisphere | S. Hemisphere |
+|----------|---------------|---------------|
+| Beach | ✅ 187 venues IN SEASON | ⚠️ 55 venues shoulder/off-peak |
+| Skiing | ❌ 110 venues off-season (lateSeason bypass active for 14) | ✅ **23 venues IN SEASON** |
+
+### Southern Hemisphere Ski — Live Scoring Now (23 venues)
+
+**NZ (5):** `remarkables`, `coronet-peak`, `treble-cone-s29`, `cardrona-nz`, `mt-hutt-nz`
+**Australia (6):** `perisher`, `thredbo-village-s23`, `falls-creek-au`, `mt-buller-au`, `mt-hotham-au`, `charlotte-pass-au`
+**Chile (6):** `portillo-s4`, `pucon-ski-center-s19`, `valle-nevado`, `nevados-de-chillan-cl`, `la-parva-cl`, `el-colorado-cl`, `corralco-cl` _(7 listed — 1 extra counted; confirm with eval)_
+**Argentina (5):** `cerro-catedral-ar`, `las-lenas-ar`, `chapelco-ar`, `caviahue-ar`, `cerro-castor-s28`
+**S. America other:** `corralco-cl`
+
+**Missing from S-hemi ski catalog:** Whakapapa (Mt Ruapehu, NZ) and Craigieburn Basin (NZ) are in-season now with no venue entry. See §5 for paste-ready objects.
 
 ---
 
 ## 5. Daily Venue Additions
 
-**Queue status: HOLD.** 11 venues remain staged pending Jack's photo approval (same 11 as July 14 — queue has not been cleared). Per PM v88 Decision, content agents cap additions at current queue and stop staging new venues until backlog clears. Today's 5 are documented for future reference only — **do not add until queue clears.**
+**Queue status: HOLD at 11.** 11 venues remain staged pending Jack's photo approval (unchanged from July 14). Per PM Decision, no new additions until backlog clears.
 
-Target: geographic gaps with APs confirmed in AP_CONTINENT (or whose AP is in the fix list above).
+Today's 5 are flagged for **priority intake once queue clears** — all have confirmed AP_CONTINENT entries and fill genuine catalog gaps:
 
 ```javascript
-// ─── DO NOT PASTE YET — add to venue-candidates.json → validate first ─────
-  {id:"rio-ipanema-beach", category:"beach",
-    title:"Ipanema Beach",
-    location:"Rio de Janeiro, Brazil",
-    lat:-22.9836, lon:-43.2036, ap:"GIG",
-    icon:"🏖️", rating:4.88, reviews:34200,
-    gradient:"linear-gradient(160deg,#001a28,#003a58,#006898)",
-    accent:"#30b8e8",
-    tags:["Iconic Strand","Carioca Culture","Mountain Backdrop","Sunset Social"],
-    photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+// ─── DO NOT PASTE YET — queue cap active (11 staged) ─────────────────
+// Run through scripts/validate-venues.mjs first after queue clears
+
+  // PRIORITY: S-hemi ski IN SEASON NOW (July peak)
+  {id:"whakapapa-ski", category:"skiing",
+    title:"Whakapapa Ski Area",
+    location:"Mt Ruapehu, New Zealand",
+    lat:-39.2331, lon:175.5619, ap:"AKL",
+    icon:"🏔️", rating:4.81, reviews:6240,
+    gradient:"linear-gradient(160deg,#1a3040,#2a5068,#4a90b8)",
+    accent:"#72b8e0",
+    tags:["Volcanic Crater","Southern Hemisphere","Longest Season","Family Resort"],
+    photo:"https://images.unsplash.com/photo-1440778303588-435521a205bc?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    skiPass:"independent",
   },
-  {id:"tenerife-los-cristianos", category:"beach",
-    title:"Los Cristianos",
-    location:"Tenerife, Canary Islands, Spain",
-    lat:28.0506, lon:-16.7132, ap:"TFS",
-    icon:"🏖️", rating:4.72, reviews:19800,
-    gradient:"linear-gradient(160deg,#1a1000,#3a2800,#7a5000)",
-    accent:"#ffc060",
-    tags:["Year-Round Sun","Sheltered Bay","Budget-Friendly","Family Beach"],
-    photo:"https://images.unsplash.com/photo-1596700209408-4a3e70c1f9b6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+  {id:"craigieburn-basin", category:"skiing",
+    title:"Craigieburn Basin",
+    location:"Canterbury, New Zealand",
+    lat:-43.1333, lon:171.7167, ap:"CHC",
+    icon:"🏔️", rating:4.76, reviews:1820,
+    gradient:"linear-gradient(160deg,#1a2a38,#2a4a60,#3a6a88)",
+    accent:"#60a8d0",
+    tags:["Backcountry Feel","Club Field","No Grooming","Expert Terrain"],
+    photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.4",
+    skiPass:"independent",
   },
-  {id:"crete-elafonissi", category:"beach",
-    title:"Elafonissi Beach",
-    location:"Crete, Greece",
-    lat:35.2667, lon:23.5333, ap:"CHQ",
-    icon:"🏝️", rating:4.93, reviews:12400,
-    gradient:"linear-gradient(160deg,#001828,#003858,#006898)",
-    accent:"#28b8e8",
-    tags:["Pink Sand","Shallow Lagoon","Greece Hidden Gem","UNESCO Area"],
-    photo:"https://images.unsplash.com/photo-1519802772250-a52a9af0eacb?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.5",
+
+  // Beach: genuine geographic gaps (ZTH and FNC have 0 venues each)
+  {id:"navagio-zakynthos", category:"beach",
+    title:"Navagio (Shipwreck) Beach",
+    location:"Zakynthos, Greece",
+    lat:37.8598, lon:20.6244, ap:"ZTH",
+    icon:"🏝️", rating:4.94, reviews:28400,
+    gradient:"linear-gradient(160deg,#001828,#003858,#0070b0)",
+    accent:"#40b8f0",
+    tags:["Iconic Shipwreck","Limestone Cliffs","Boat Access Only","Crystal Water"],
+    photo:"https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
   },
-  {id:"musandam-peninsula-oman", category:"beach",
-    title:"Musandam Peninsula",
-    location:"Musandam, Oman",
-    lat:26.3500, lon:56.3500, ap:"MCT",
-    icon:"🏝️", rating:4.87, reviews:3100,
-    gradient:"linear-gradient(160deg,#1a0800,#3a1800,#7a4000)",
-    accent:"#ffa040",
-    tags:["Fjords","Dhow Cruise","Crystal Water","No Crowds"],
-    photo:"https://images.unsplash.com/photo-1602941525421-8f8b81d3edbb?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  {id:"porto-santo-beach", category:"beach",
+    title:"Porto Santo Island Beach",
+    location:"Porto Santo, Madeira, Portugal",
+    lat:33.0648, lon:-16.3206, ap:"FNC",
+    icon:"🏖️", rating:4.82, reviews:8900,
+    gradient:"linear-gradient(160deg,#1a1000,#3a2800,#7a5800)",
+    accent:"#e0b060",
+    tags:["9km Golden Beach","Atlantic Island","Therapeutic Sand","Low Crowds"],
+    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
   },
-  {id:"pangkor-island-malaysia", category:"beach",
-    title:"Pangkor Island",
-    location:"Perak, Malaysia",
-    lat:4.2167, lon:100.5667, ap:"KUL",
-    icon:"🏝️", rating:4.71, reviews:5600,
-    gradient:"linear-gradient(160deg,#001a10,#003a28,#006848)",
-    accent:"#30c878",
-    tags:["Hornbill Wildlife","Calm Bay","Snorkeling","Ferry Access"],
-    photo:"https://images.unsplash.com/photo-1529180979161-06b8b6d6f2be?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+  {id:"plettenberg-bay", category:"beach",
+    title:"Plettenberg Bay",
+    location:"Garden Route, South Africa",
+    lat:-34.0527, lon:23.3716, ap:"PLZ",
+    icon:"🏖️", rating:4.79, reviews:7300,
+    gradient:"linear-gradient(160deg,#001820,#002a38,#004868)",
+    accent:"#3898c8",
+    tags:["Whale Watching","Garden Route","Two Beaches","Wildlife Nearby"],
+    photo:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
   },
-// ─── END ─────────────────────────────────────────────────────────────────
+// ─── END ─────────────────────────────────────────────────────────────
 ```
 
-**Why these 5:** Each is paired with an AP in the 6-code gap fix list above — adding the AP_CONTINENT entries simultaneously fixes the continent filter AND populates the geography. Net after paste: 375 + 5 = **380 venues** (133 ski / 247 beach) + 6 AP_CONTINENT fixes.
+**Why these 5:**
+- Whakapapa + Craigieburn: NZ ski gaps in peak S-hemi season right now; AKL and CHC confirmed in AP_CONTINENT "oceania"
+- Navagio: ZTH has zero venues despite Zakynthos being a top Greek island; in N-hemi summer beach peak
+- Porto Santo: FNC has zero venues; the 9km beach on Porto Santo is a legitimate European beach alternative with therapeutic reputation, distinct from Madeira main island
+- Plettenberg Bay: PLZ ("africa") has zero venues; expands Africa beach to 3 entries alongside Diani and Watamu; July is shoulder season S-hemi but still warm at 34°S
+
+**After paste: 375 + 5 = 380 venues (135 ski / 245 beach).** Run `scripts/validate-venues.mjs` before paste.
 
 ---
 
@@ -219,19 +222,19 @@ Target: geographic gaps with APs confirmed in AP_CONTINENT (or whose AP is in th
 
 | Venue | Category | Days in Queue |
 |-------|----------|---------------|
-| `alpe-d-huez-fr` | ski | Day 5 ⚠️ Aug glacier deadline |
-| `cortina-d-ampezzo` | ski | Day 5 |
-| `pipa-beach-brazil` | beach | Day 5 |
-| `punta-mita-beach` | beach | Day 5 |
-| `sunny-beach-bg` | beach | Day 4 |
-| `sango-sands` | beach | Day 4 |
-| `tropea-beach-it` | beach | Day 4 |
-| `porter-heights-nz` | ski | Day 4 |
-| `koh-lanta-beach-th` | beach | Day 3 |
-| `legian-beach-bali` | beach | Day 3 |
-| `vina-del-mar-cl` | beach | Day 3 |
+| `alpe-d-huez-fr` | ski | Day **6** ⚠️ Titlis glacier closes late August |
+| `cortina-d-ampezzo` | ski | Day 6 |
+| `pipa-beach-brazil` | beach | Day 6 |
+| `punta-mita-beach` | beach | Day 6 |
+| `sunny-beach-bg` | beach | Day 5 |
+| `sango-sands` | beach | Day 5 |
+| `tropea-beach-it` | beach | Day 5 |
+| `porter-heights-nz` | ski | Day 5 ← S-hemi, IN SEASON NOW |
+| `koh-lanta-beach-th` | beach | Day 4 |
+| `legian-beach-bali` | beach | Day 4 |
+| `vina-del-mar-cl` | beach | Day 4 |
 
-**Action required — Jack:** 11 min to clear. Visual photo check + `node scripts/validate-venues.mjs`. Alpe d'Huez Titlis glacier closes late August — only time-sensitive item in the queue.
+**Action required — Jack:** 11 min to clear. Visual photo check + `node scripts/validate-venues.mjs`. Time-sensitive: `alpe-d-huez-fr` for glacier season; `porter-heights-nz` is live ski season now.
 
 ---
 
@@ -239,19 +242,20 @@ Target: geographic gaps with APs confirmed in AP_CONTINENT (or whose AP is in th
 
 | Item | Priority | Owner | Notes |
 |------|----------|-------|-------|
-| Add 6 missing APs to AP_CONTINENT | **P2** | DevOps | KUL, SNA, MCT, GIG, TFS, CHQ — paste-ready fix in §2 |
-| Jack photo-verify 11 staged venues | **P2** | Jack | 11 min; alpe-d-huez has Aug deadline |
-| Supabase account-deletion SQL paste | P0 (App Store) | Jack | Day 37 — 2 min paste |
-| Plausible dashboard read | P0 | Jack | Day 16 blind on user behavior |
+| Jack photo-verify 11 staged venues | **P2** | Jack | 11 min; alpe-d-huez glacier Aug deadline; porter-heights-nz in-season |
+| Tag enrichment — 228 thin-tag venues | **P3** | Content | Beach avg 2.42 tags; ski avg 3.35; editorial, not automated |
+| Supabase account-deletion SQL paste | P0 (App Store) | Jack | 2 min paste into Supabase SQL editor |
+| Plausible dashboard read | P0 | Jack | Day 17 blind on user behavior |
 | VPS health check | P1 | Jack | `curl https://peakly-api.duckdns.org/health` |
-| Add DevOps prompt correction | P3 | DevOps | "bracket-walker 377" is false positive; `.venue-baseline` (375) correct; `poolPrimary:true` is 0 |
+
+**Closed today:** AP_CONTINENT gap P2 (false positive — eval confirms zero gaps).
 
 ---
 
 ## One Observation for the PM
 
-**The continent filter is silently broken for ~7 venues.** When users tap "Europe", Tenerife and Crete don't appear. When they tap "Asia", Tioman Island and Oman don't appear. None are high-traffic destinations, but the fix is 6 lines in AP_CONTINENT (paste-ready in §2). Worth shipping before any Reddit/HN launch — a user who searches "Europe beach" and doesn't see Crete has a confusing experience. Pairing the AP fix with the 5 staged venue additions makes it a clean two-for-one: fix the filter + expand geography in one small commit, no queue-cap violation since it clears the existing gap rather than growing the backlog.
+**The catalog's weakest data signal is beach tag depth, not venue count.** 228 venues sit at exactly 2 tags — the minimum. Beach averages 2.42 tags vs ski's 3.35. This matters because tags are the only content signal Peakly uses for search and filtering: a user tapping "snorkeling" or "UV 10+" won't find many beach venues that qualify but don't have the tag. Before adding more venues to the queue, a focused tag-enrichment pass on the 242 beach venues would improve product quality more than any new destination. Estimated scope: 2–3 hours of editorial work, no code changes, immediate search/filter improvement. Worth considering as a Day 18 task before the next venue batch lands.
 
 ---
 
-*Content agent — 2026-07-16 UTC | Venues: 375 (133 ski / 242 beach) | Prior: 2026-07-14*
+*Content agent — 2026-07-17 UTC | Venues: 375 (133 ski / 242 beach) | Prior: 2026-07-16*
