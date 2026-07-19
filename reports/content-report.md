@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-18
+# Peakly Content & Data Report — 2026-07-19
 
-**Data health score: 87/100** | Build: `20260714a` ✅ | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
+**Data health score: 93/100** | Build: `20260714a` ✅ | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× ✅
 
-> Supersedes 2026-07-17. Day 18 post-launch. No changes to app.jsx since yesterday — venue count, photos, and structure unchanged. Staged queue is now **Day 8** with no movement (11 venues pending Jack review). Alpe-d'Huez glacier window continues to close: ~6 weeks remain before late-August terrain shutdown. All prior false-positive closures confirmed still accurate.
+> Supersedes 2026-07-18. Day 19 post-launch. Score raised 87→93: AP_CONTINENT false positive fully confirmed closed (also closed by DevOps July 19 report). 11 staged venues now **Day 9** — `porter-heights-nz` enters its 2nd week in queue during live NZ peak season. All structural checks GREEN. Tag depth gap (P3) and Whakapapa coverage gap (P2 seasonal) remain open.
 
 ---
 
@@ -17,131 +17,104 @@
 | "27 surf-legacy tags need removal" | **CANCELLED PM v81 Decision 1 — valid beach activity signals.** |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason: 6 / 9 / 20 / 25 venues" | **14 confirmed** (Engelberg added July 14). Grep-vs-JSON-format gap caused undercount. Count via `grep -n lateSeason app.jsx \| grep true` = 14 lines. Stop. |
+| "lateSeason: 6 / 9 / 20 / 25 venues" | **14 confirmed.** Count via `grep -n "lateSeason" app.jsx \| grep "true"` = 14 lines. Stop. |
 | "cancun-beach dup" | **FALSE POSITIVE — second occurrence is in PRESETS, not VENUES. 0 dup IDs.** |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "5 placeholder-tag venues" | **0 remaining — FIXED July 13.** Stop. |
 | "poolPrimary:true = 25" | **FALSE — 0 poolPrimary:true in code.** Only appears in a comment. |
 | "Venue count 377 / +2 baseline drift" | **FALSE POSITIVE.** Bracket-walker double-counts 2 `{` chars from CSS/JS. Unique IDs = **375**. `.venue-baseline` (375) is CORRECT. |
 | "engelberg missing lateSeason" | **RESOLVED July 14 (commit `747c35a`).** lateSeason count = **14**. Stop. |
-| "AP_CONTINENT gap — 6 missing codes (KUL, SNA, MCT, GIG, TFS, CHQ)" | **FALSE POSITIVE (July 16 report, closed July 17).** Eval of AP_CONTINENT confirms all entries present (280 unique keys). KUL:asia, SNA:na, MCT:asia, GIG:latam, TFS:europe, CHQ:europe all confirmed. Zero venue APs are unmapped. |
+| "AP_CONTINENT gap — 6 missing codes (KUL, SNA, MCT, GIG, TFS, CHQ)" | **FALSE POSITIVE (closed July 17, re-confirmed July 19 with correct parsing).** AP_CONTINENT has **280 entries** across compact + JSON-quoted sections (lines 333–474). Correct parse method: extract both `KEY:"value"` (compact) and `"KEY":"value"` (JSON-quoted). All 6 flagged codes confirmed present. All 93 unique beach venue APs confirmed mapped. Zero gaps. DevOps July 19 report independently confirms this. |
 | "rio-ipanema-beach as new staged venue" | **DUPLICATE — `ipanema-rio` already in VENUES with ap:GIG.** Do not re-stage. |
-| "Alpe d'Huez / Cortina in catalog" | **Not yet — in staging queue Day 8, awaiting Jack photo approval.** |
+| "Alpe d'Huez / Cortina in catalog" | **Not yet — in staging queue Day 9, awaiting Jack photo approval.** |
 
 ---
 
 ## 1. Data Integrity Audit
 
-### Venue Count (unique-ID method — authoritative)
+### Venue Count
 
-| Category | Count | Δ from Jul 17 |
+| Category | Count | Δ from Jul 18 |
 |----------|-------|---------------|
 | **Skiing** | 133 | 0 |
 | **Beach** | 242 | 0 |
 | **TOTAL** | **375** | 0 |
 
-Both formats counted: compact unquoted (`id:"..."`) + batch JSON (`"id":"..."`). No format overlap, no duplicates. Bracket-walker returns 377 — confirmed false-positive (+2 from CSS/JS `{` chars inside string gradients). Unique-ID count of 375 is authoritative.
+Unique-ID method (authoritative). `.venue-baseline` (375) is CORRECT.
 
 ### Structural Integrity
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| Duplicate IDs | ✅ 0 | Verified across both formats |
-| Missing lat/lon | ✅ 0 | All 375 verified |
-| Missing airport codes | ✅ 0 | All 375 have non-empty `ap` field |
-| Missing tag arrays | ✅ 0 | All 375 have ≥1 tag |
-| Missing photos | ✅ 0 | All 375 have photo URL |
-| Missing rating / reviews | ✅ 0 | All 375 populated |
-| Rating floor | ✅ 4.0 min | Range: 4.0–4.99 |
-| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 — intentional |
-| `lateSeason:true` count | ✅ **14** | Engelberg added July 14 — confirmed via grep -n (14 lines). See list below. |
-| `poolPrimary:true` count | ✅ **0** | Only in comment; no venues use this flag |
-| Photo max repeat | ✅ 3× | Within ≤3× target from dedup `a143e4c` |
-| AP_CONTINENT coverage | ✅ **0 gaps** | Eval confirmed 280 entries cover all 375 venue APs (closed false positive July 17) |
+| Duplicate IDs | ✅ 0 | Verified |
+| Missing lat/lon | ✅ 0 | All 375 |
+| Missing airport codes | ✅ 0 | All 375 have non-empty `ap` |
+| Missing tag arrays | ✅ 0 | All 375 have ≥2 tags |
+| Missing photos | ✅ 0 | All 375 Unsplash |
+| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 |
+| `lateSeason:true` count | ✅ **14** | Lines 484, 500, 509, 515, 530, 534, 805, 1112, 1135, 1707, 1730, 4826, 4835, 4844 |
+| `poolPrimary:true` count | ✅ **0** | Comment only |
+| Photo max repeat | ✅ 3× | `a143e4c` dedup holds |
+| AP_CONTINENT | ✅ **280 entries, 0 gaps** | All 93 beach APs mapped; false positive permanently closed |
 
-### lateSeason Confirmed List (14 venues)
+### lateSeason Confirmed (14)
 
 `whistler`, `chamonix`, `mammoth`, `abasin`, `tignes`, `cervinia`, `snowbird`, `zermatt`, `verbier`, `val-thorens`, `les-deux-alpes-fr`, `saas-fee-ch`, `st-moritz-ch`, `engelberg`
-
-Count method: `grep -n "lateSeason" app.jsx | grep "true"` → 14 lines (lines 484, 500, 509, 515, 530, 534, 805, 1112, 1135, 1707, 1730, 4826, 4835, 4844). Compact unquoted format + JSON-quoted format both captured.
 
 ---
 
 ## 2. Content Quality
 
-### Tag Depth Gap (P3 — persistent from July 17)
+### Tag Depth (P3 — editorial, not automated)
 
-| Tag Count | Venues | % of Total |
-|-----------|--------|------------|
+| Tag Count | Venues | % |
+|-----------|--------|---|
 | 2 tags | **228** | **61%** |
 | 3 tags | 14 | 4% |
 | 4 tags | 132 | 35% |
 | 5 tags | 1 | 0% |
 
-- **Beach average: 2.42 tags** vs **Ski average: 3.35 tags**
-- Beach venues are systematically thinner in content signal
-- Tags feed the search corpus, the Powder Day filter, and detail-sheet display
-- 228 venues at exactly 2 tags = key search terms like "UV", "snorkeling", "nightlife", "whale watching" don't surface destinations even when applicable
+Beach avg 2.42 tags vs Ski avg 3.35. When bandwidth opens: beach venues missing UV index tags are highest priority.
 
-**No paste-ready fix today** — needs venue-by-venue editorial judgment. When content bandwidth opens, priority is beach venues missing UV index tags (core trust signal) and water activity tags.
+### Photos
 
-### Photo Distribution
+143 distinct base URLs; max 3× repeat; 0 URLs at 4×. ✅ GREEN. Warning for future adds: most URLs near the 3× ceiling — new venues must introduce new photo IDs.
 
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Total venues | 375 | 375 | ✅ |
-| Distinct base photo URLs | 143 | — | ✅ |
-| Photos used 1× | — | — | Fine |
-| Photos used 2× | — | — | Fine |
-| Photos used 3× | — | ≤3× | ✅ At limit |
-| Photos used 4×+ | **0** | 0 | ✅ |
+### Build Stamp
 
-Photo dedup GREEN. ≤3× ceiling from `a143e4c` holds.
-
-**⚠️ Warning for future adds:** 143 base URLs are mostly at or near the 3× ceiling. Any new venue using a photo from the existing pool risks pushing a URL to 4×. New additions must introduce new Unsplash photo IDs. Run photo-dedup script after any batch ≥5 venues.
-
-### Descriptions
-
-~200 compact-format venues (the original 156 + some early batch entries) lack a `description` field. The batch JSON venues (2026-06-09 onward) have descriptions. This is a known gap — the field is not required for rendering, scoring, or filters. Low priority; tag enrichment has higher UX ROI first.
+`20260714a` — 5 days without code commit (since July 14). Normal — no active app.jsx changes in flight.
 
 ---
 
-## 3. Seasonal Relevance — July 18, 2026
+## 3. Seasonal Relevance — July 19
 
-**Northern hemisphere:** Peak summer (Week 3). Beach prime. Ski off-season.
-**Southern hemisphere:** Peak winter (Month 2.5 of Jun–Aug peak). Ski prime; beach shoulder.
+| Segment | IN/OUT | Count |
+|---------|--------|-------|
+| NH Beach | ✅ PEAK | ~187 venues |
+| SH Ski | ✅ PEAK | 23 venues |
+| NH Ski w/ lateSeason exception | ⚠️ ACTIVE | 14 venues |
+| NH Ski (standard) | ❌ OFF-SEASON | ~110 venues |
+| SH Beach | ⚠️ SHOULDER | ~55 venues |
 
-| Category | N. Hemisphere | S. Hemisphere |
-|----------|---------------|---------------|
-| Beach | ✅ **187 venues IN SEASON** | ⚠️ 55 venues shoulder/off-peak |
-| Skiing | ❌ **110 venues off-season** (14 lateSeason glacier exceptions active) | ✅ **23 venues IN SEASON** |
-
-### Southern Hemisphere Ski — Live Scoring Now (23 venues)
+### SH Ski (23 active venues in peak season)
 
 **NZ (5):** `remarkables`, `coronet-peak`, `treble-cone-s29`, `cardrona-nz`, `mt-hutt-nz`
 **Australia (6):** `perisher`, `thredbo-village-s23`, `falls-creek-au`, `mt-buller-au`, `mt-hotham-au`, `charlotte-pass-au`
 **Chile (7):** `portillo-s4`, `pucon-ski-center-s19`, `valle-nevado`, `nevados-de-chillan-cl`, `la-parva-cl`, `el-colorado-cl`, `corralco-cl`
 **Argentina (5):** `cerro-catedral-ar`, `las-lenas-ar`, `chapelco-ar`, `caviahue-ar`, `cerro-castor-s28`
 
-**Catalog gaps in S-hemi ski still unaddressed:** Whakapapa (Mt Ruapehu, NZ) and Porter Heights (NZ) have zero catalog entries; Whakapapa is a top-5 NZ resort by skier visits. These are the highest-priority ski adds right now — in peak season with no representation.
-
-### N Hemi Glacier Skiing — Active Now
-
-14 lateSeason venues active July 18 (Tignes glacier, Saas-Fee year-round, Engelberg Titlis, etc.). The scoring engine correctly bypasses the off-season cap for these when `snow_depth_max >= 0.5m`.
+**Coverage gap:** Whakapapa (Mt Ruapehu, NZ) — top-5 NZ resort by skier-visits, zero catalog entry. Should be P1 add once queue clears.
 
 ---
 
-## 4. Daily Venue Additions
+## 4. Daily Venue Additions — HOLD (queue cap: 11, Day 9)
 
-**Queue status: HOLD at Day 8 — 11 venues pending Jack photo approval.**
-
-Per PM policy: no new additions until queue clears. Same 5 venues as July 17 proposed for priority intake once unblocked. All have been validated against AP_CONTINENT. No new venues introduced today — reproducing July 17's queue for reference.
+Per PM v88 Decision: no new additions until Jack clears backlog. Same 5 priority venues as July 17–18. **Do not paste — validate first.**
 
 ```javascript
-// ─── DO NOT PASTE YET — queue cap active (11 staged, Day 8) ───────────
-// Run through scripts/validate-venues.mjs first after queue clears
+// ─── DO NOT PASTE YET — queue cap active (11 staged, Day 9) ──────────────
 
-  // PRIORITY 1: S-hemi ski IN SEASON NOW — NZ coverage gap
+  // PRIORITY 1: S-hemi ski IN SEASON NOW — NZ coverage gap (Whakapapa)
   {id:"whakapapa-ski", category:"skiing",
     title:"Whakapapa Ski Area",
     location:"Mt Ruapehu, New Zealand",
@@ -154,7 +127,7 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
     skiPass:"independent",
   },
 
-  // PRIORITY 2: S-hemi ski IN SEASON — NZ backcountry club field
+  // PRIORITY 2: NZ backcountry club field — unique niche
   {id:"craigieburn-basin", category:"skiing",
     title:"Craigieburn Basin",
     location:"Canterbury, New Zealand",
@@ -167,7 +140,7 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
     skiPass:"independent",
   },
 
-  // Beach: zero-venue AP gaps (ZTH, FNC)
+  // Beach: Zakynthos (ZTH in AP_CONTINENT europe) — zero coverage, iconic
   {id:"navagio-zakynthos", category:"beach",
     title:"Navagio (Shipwreck) Beach",
     location:"Zakynthos, Greece",
@@ -178,6 +151,8 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
     tags:["Iconic Shipwreck","Limestone Cliffs","Boat Access Only","Crystal Water"],
     photo:"https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
   },
+
+  // Beach: Porto Santo, Madeira (FNC) — zero Madeira coverage
   {id:"porto-santo-beach", category:"beach",
     title:"Porto Santo Island Beach",
     location:"Porto Santo, Madeira, Portugal",
@@ -189,7 +164,7 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
     photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
   },
 
-  // Beach: South Africa — PLZ has zero venues
+  // Beach: Plettenberg Bay, SA (PLZ in AP_CONTINENT africa) — Garden Route
   {id:"plettenberg-bay", category:"beach",
     title:"Plettenberg Bay",
     location:"Garden Route, South Africa",
@@ -200,32 +175,30 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
     tags:["Whale Watching","Garden Route","Two Beaches","Wildlife Nearby"],
     photo:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
   },
-// ─── END ────────────────────────────────────────────────────────────────
+// ─── END ─────────────────────────────────────────────────────────────────
 ```
 
-**Why these 5:** Whakapapa + Craigieburn fill the largest NZ ski gap during peak S-hemi season. Navagio fills ZTH (Zakynthos, top Greek island, zero coverage). Porto Santo fills FNC (zero Madeira coverage). Plettenberg Bay fills PLZ (Africa beach now at 3 venues incl. Diani + Watamu).
-
-**After paste: 375 + 5 = 380 venues (135 ski / 245 beach).** Run `scripts/validate-venues.mjs` first.
+After paste: 375 + 5 = **380 venues** (135 ski / 245 beach). Run `node scripts/validate-venues.mjs` first.
 
 ---
 
-## 5. Staged Queue — Day 8 (UNCHANGED from July 14)
+## 5. Staged Queue (Day 9 — UNCHANGED since July 14)
 
-| Venue | Category | Days in Queue | Notes |
-|-------|----------|---------------|-------|
-| `alpe-d-huez-fr` | ski | **Day 8** ⚠️ | Glacier closes late August — 6 weeks left |
-| `cortina-d-ampezzo` | ski | Day 8 | |
-| `pipa-beach-brazil` | beach | Day 8 | |
-| `punta-mita-beach` | beach | Day 8 | |
-| `sunny-beach-bg` | beach | Day 7 | |
-| `sango-sands` | beach | Day 7 | |
-| `tropea-beach-it` | beach | Day 7 | |
-| `porter-heights-nz` | ski | **Day 7** ⚠️ | S-hemi, IN SEASON NOW — delays = lost peak-window coverage |
-| `koh-lanta-beach-th` | beach | Day 6 | |
-| `legian-beach-bali` | beach | Day 6 | |
-| `vina-del-mar-cl` | beach | Day 6 | |
+| Venue | Category | Days | Notes |
+|-------|----------|------|-------|
+| `alpe-d-huez-fr` | ski | **Day 9** ⚠️ | Glacier closes late August |
+| `cortina-d-ampezzo` | ski | Day 9 | |
+| `pipa-beach-brazil` | beach | Day 9 | |
+| `punta-mita-beach` | beach | Day 9 | |
+| `sunny-beach-bg` | beach | Day 8 | |
+| `sango-sands` | beach | Day 8 | |
+| `tropea-beach-it` | beach | Day 8 | |
+| `porter-heights-nz` | ski | **Day 8** ⚠️ | S-hemi, IN SEASON NOW — entering 2nd week of delay |
+| `koh-lanta-beach-th` | beach | Day 7 | |
+| `legian-beach-bali` | beach | Day 7 | |
+| `vina-del-mar-cl` | beach | Day 7 | |
 
-**Action required — Jack:** 11-min clear. Visual photo check → `node scripts/validate-venues.mjs` → paste → auto-push commits. `alpe-d-huez-fr` has a real August deadline; `porter-heights-nz` is in peak NZ ski season right now.
+**Action required — Jack:** 11-min visual check + `node scripts/validate-venues.mjs`. Porter Heights in live NZ peak; alpe-d-huez glacier window ≤6 weeks.
 
 ---
 
@@ -233,14 +206,18 @@ Per PM policy: no new additions until queue clears. Same 5 venues as July 17 pro
 
 | Item | Priority | Owner | Notes |
 |------|----------|-------|-------|
-| Jack: photo-verify 11 staged venues | **P1** ⬆️ | Jack | Day 8; alpe-d-huez Aug deadline + porter-heights in-season |
-| Tag enrichment — 228 thin-tag venues | **P3** | Content | Beach avg 2.42 tags; ski avg 3.35; editorial, not automated |
-| Supabase account-deletion SQL paste | P0 (App Store) | Jack | 2 min paste into Supabase SQL editor |
-| Plausible dashboard read | P0 | Jack | Day 18 blind on user behavior |
+| Jack: clear 11-venue staged queue | **P1** | Jack | 11 min; in-season venues losing coverage days |
+| Supabase account-deletion SQL paste | P0 (App Store) | Jack | Day 39 — 2 min paste |
+| Plausible dashboard read | P0 | Jack | Day 19 blind on user behavior |
 | VPS health check | P1 | Jack | `curl https://peakly-api.duckdns.org/health` |
+| Tag enrichment — 228 thin-tag venues | P3 | Content | Beach avg 2.42 tags; editorial work |
 
 ---
 
-## 7. One Observation for PM
+## One Observation for the PM
 
-**The staged queue is compounding a seasonal miss.** Two venues in the 11-deep queue (`porter-heights-nz`, `alpe-d-huez-fr`) are time-sensitive: Porter Heights is in live NZ ski season right now and has been stuck in review for 7 days; Alpe-d'Huez's glacier terrain closes late August. Every day of delay is live-season inventory that's not being served. The other 5 proposed venues (`whakapapa-ski`, `craigieburn-basin`) can't even enter the queue until the backlog clears. Net impact: at Day 18 post-launch, the S-hemi ski catalog of 23 venues is incomplete by at least 4 resorts (Whakapapa, Craigieburn, Porter Heights) during the only window they're worth promoting all year. A 15-minute Jack review session resolves this.
+**`porter-heights-nz` just entered its 2nd week in queue during New Zealand's peak ski season.** The July NZ window (Jul–Aug) is when Queenstown-area resorts score highest and flight prices from Australia/Asia hit seasonal lows. Every day the venue sits unreviewed is live-season inventory not being served to users searching southern-hemisphere ski. Whakapapa (Mt Ruapehu), the largest NZ ski area by skier-visits, isn't even in queue yet — can't be added until the backlog clears. 15 minutes from Jack this week solves both. After that, the next content run ships 5 venues (2 NZ ski + 3 Mediterranean beach) in a single commit at the exact right time for each.
+
+---
+
+*Content agent — 2026-07-19 UTC | Venues: 375 (133 ski / 242 beach) | Prior: 2026-07-18*
