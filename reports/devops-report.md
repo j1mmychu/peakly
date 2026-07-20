@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-19
+# Peakly DevOps Report — 2026-07-20
 
-**Status: GREEN** — No P0 or P1 issues. Code freeze day 5 (no commits since July 14 Engelberg). Cache `20260714a` accurate — no code shipped, correct behaviour from `auto-push.sh`. Venue count 375 confirmed (133 ski / 242 beach); baseline file 375 matches. lateSeason count 14 confirmed with correct multi-format grep. AP_CONTINENT gap finding **permanently closed as false positive** (all 146 venue `ap` codes present across 280 total entries; lazy-regex scripts only read 68 entries and gave a spurious gap count). SRI/CSP remains the only open P2.
+**Status: GREEN** — No P0 or P1 issues. Code freeze day 6 (no commits since July 14 Engelberg). Cache `20260714a` accurate — no code shipped, stamp auto-bumps only on actual code change. Venue count 375 confirmed (133 ski / 242 beach); baseline 375 matches exactly. lateSeason 14 confirmed. AP_CONTINENT gap permanently closed (false positive — 280 entries, all 146 venue `ap` codes present). SRI/CSP remains the only open P2. Site is launch-ready on web.
 
 ---
 
@@ -36,7 +36,7 @@
 | `sw.js` CACHE_NAME | `peakly-20260714a` |
 | `index.html` `?v=` param | `20260714a` |
 | All 3 stamps in lockstep | ✅ |
-| Code freeze | Day 5 (no code commits since July 14 — report-only runs) |
+| Code freeze | Day 6 (no code commits since July 14 — report-only runs) |
 | Venue count (category grep) | **375** (133 ski / 242 beach) |
 | Venue baseline | `375` ✅ matches |
 | lateSeason venues (`lateSeason.*true`) | **14** ✅ |
@@ -128,7 +128,7 @@ console.log('AP_CONTINENT entries:',codes.size,'/ venue aps:',aps.size,'/ missin
 
 ## P2 — Medium
 
-### P2-A: SRI hashes missing on CDN scripts (persistent — Day 12+)
+### P2-A: SRI hashes missing on CDN scripts (persistent — Day 13+)
 
 `index.html` loads 4 external scripts with no `integrity=` SRI attributes. A compromised unpkg CDN could inject arbitrary JavaScript into every Peakly session.
 
@@ -244,4 +244,4 @@ Infrastructure stays under 10% of revenue at every tier.
 
 ---
 
-*DevOps agent — 2026-07-19. No code changes this run.*
+*DevOps agent — 2026-07-20. No code changes this run. Network-blocked sandbox — live site and VPS health checks unavailable; last confirmed live 2026-07-16.*
