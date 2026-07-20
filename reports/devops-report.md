@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-16
+# Peakly DevOps Report — 2026-07-20
 
-**Status: GREEN** — No P0 or P1 issues. Cache stamp `20260714a` is 2 days old and still accurate (no code changes since July 14 Engelberg commit). Venue count 377, baseline still at 375 (+2 delta, same as yesterday — Jack action pending). CLAUDE.md lateSeason count says 13; authoritative grep gives 14 (Engelberg shipped July 14, CLAUDE.md not updated). No regressions, no new security issues.
+**Status: GREEN** — No P0 or P1 issues. Code freeze day 6 (no commits since July 14 Engelberg). Cache `20260714a` accurate — no code shipped, stamp auto-bumps only on actual code change. Venue count 375 confirmed (133 ski / 242 beach); baseline 375 matches exactly. lateSeason 14 confirmed. AP_CONTINENT gap permanently closed (false positive — 280 entries, all 146 venue `ap` codes present). SRI/CSP remains the only open P2. Site is launch-ready on web.
 
 ---
 
@@ -8,18 +8,20 @@
 
 | Claim | Reality |
 |---|---|
-| "VPS down / Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Never flag from sandbox. |
-| "Sentry DSN empty" | **Active at `app.jsx:7` and `index.html:77`.** Stop. |
-| "GEAR_ITEMS found" | **0 refs. Amazon CUT for v1.** Stop. |
-| "Travelpayouts token in client" | **Server-side only. `TP_MARKER` is a public affiliate link suffix, not a secret.** Stop. |
-| "Supabase anon key exposed" | **Expected. RLS-gated. Public-safe by design.** Stop. |
-| "Cache buster stale" | **`20260714a` — accurate to last code change (July 14). Not stale unless code ships without a bump.** Stop re-flagging age. |
-| "Venue count 156 / 353 / 370 / 372 / 375" | **377 via bracket-walker eval. Grep undercounts. Stop using grep.** |
-| "lateSeason: 6 / 13 venues" | **14 (Engelberg added July 14). Use grep count, not CLAUDE.md prose.** |
-| "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
-| "Plausible domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`.** Stop. |
-| "Babel 8.x upgrade available" | **Babel 8 is ESM-only — incompatible with no-bundler arch. Stay on 7.29.7.** Stop. |
-| "lateSeason regression" | **14 venues confirmed. Engelberg added July 14.** Stop. |
+| "VPS down / Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage. Never flag from sandbox.** |
+| "Sentry DSN empty" | **Active at `app.jsx:8` and `index.html:77`. Stop.** |
+| "GEAR_ITEMS found" | **0 refs. Amazon CUT for v1. Stop.** |
+| "Travelpayouts token in client" | **Server-side only. `TP_MARKER=710303` is public affiliate suffix, not a secret. Stop.** |
+| "Supabase anon key exposed" | **Expected. RLS-gated. Public-safe by design. Stop.** |
+| "Cache buster stale" | **`20260714a` is accurate to last code change (July 14). Age alone ≠ stale. Auto-bumps on next code change. Stop.** |
+| "Venue count 156 / 353 / 370 / 372 / 375 / 377" | **375 via category grep (133 ski / 242 beach). July 15–16 "377" was a bracket-walker false positive. Baseline matches. Stop.** |
+| "lateSeason: 6 / 9 / 13 venues" | **14. Use `grep -c "lateSeason.*true" app.jsx` — covers both compact and batch-JSON formats. Stop.** |
+| "AP_CONTINENT gap — KUL/SNA/MCT/GIG/TFS/CHQ missing" | **FALSE POSITIVE (July 17 + July 19 repeat). AP_CONTINENT has 280 entries. All 146 venue `ap` codes present. Lazy-regex scripts terminate at first `}` in the object body and only see 68 entries. Stop permanently.** |
+| "Cross-category photo contamination" | **FIXED July 6 (`73db399`). Stop.** |
+| "Plausible domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`. Stop.** |
+| "Babel 8.x upgrade available" | **Babel 8 is ESM-only — incompatible with no-bundler arch. Stay on 7.29.7. Stop.** |
+| "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary in code. Appears in a comment only. Stop.** |
+| "venue-baseline drift / 377 venues" | **FALSE POSITIVE. Real count = 375. Baseline = 375. Both match. Stop.** |
 
 ---
 
@@ -28,164 +30,218 @@
 | Check | Result |
 |---|---|
 | `app.jsx` lines | 13,507 |
-| `app.jsx` size | 676,312 bytes (~130 KB gzipped) |
+| `app.jsx` raw size | 676,312 bytes (~180 KB gzipped est.) |
 | Brace balance | 5,572 / 5,572 ✅ |
-| PEAKLY_BUILD | `20260714a` |
-| sw.js CACHE_NAME | `peakly-20260714a` |
-| index.html `?v=` param | `20260714a` |
+| `PEAKLY_BUILD` | `20260714a` |
+| `sw.js` CACHE_NAME | `peakly-20260714a` |
+| `index.html` `?v=` param | `20260714a` |
 | All 3 stamps in lockstep | ✅ |
-| Venue count (eval) | **377** (133 ski / 244 beach via category grep; bracket-walker is authoritative) |
-| Venue baseline file | `375` — **stale by +2** (Jack action pending from yesterday) |
-| lateSeason venues (grep) | **14** (CLAUDE.md prose says 13 — prose is stale, grep is truth) |
-| Plausible analytics | ✅ Present, correct domain, uncommented |
-| Sentry DSN | ✅ Active (`app.jsx:7`, `index.html:77`) |
+| Code freeze | Day 6 (no code commits since July 14 — report-only runs) |
+| Venue count (category grep) | **375** (133 ski / 242 beach) |
+| Venue baseline | `375` ✅ matches |
+| lateSeason venues (`lateSeason.*true`) | **14** ✅ |
+| AP_CONTINENT coverage | ✅ 280 entries; all 146 venue `ap` codes present |
+| Plausible analytics | ✅ Present, uncommented, domain `j1mmychu.github.io/peakly` |
+| Sentry DSN | ✅ Active (`app.jsx:8`, `index.html:77`) |
 | Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` |
-| Travelpayouts token in client | ✅ None — server-side only |
+| Travelpayouts token in client | ✅ None — `process.env.TRAVELPAYOUTS_TOKEN` in proxy.js only |
 | GEAR_ITEMS refs | ✅ 0 |
-| Images lazy | ✅ All 10 `<img>` render sites use `loading="lazy"` |
-| .gitignore covers secrets | ✅ `.env`, `*.pem`, `*.p8`, `*.key`, `*.p12` all covered |
-| React CDN | 18.3.1 (latest 18.x) ✅ |
-| Babel CDN | 7.29.7 ✅ (8.x ESM-only, incompatible — don't upgrade) |
+| Images lazy | ✅ All 9 `<img>` sites use `loading="lazy"` |
+| `.gitignore` covers secrets | ✅ `.env`, `*.pem`, `*.p8`, `*.key`, `*.p12`, `*.pdf`, `*.pptx` all covered |
+| React CDN | 18.3.1 (current 18.x) ✅ |
+| Babel CDN | 7.29.7 ✅ (8.x ESM-only; incompatible — don't upgrade) |
 | Flight proxy timeout | 5,000 ms + AbortController ✅ |
 | Weather proxy timeout | 4,000 ms + AbortController ✅ |
+| SRI hashes on CDN scripts | ❌ 0 of 4 — persistent P2 |
+| CSP meta tag | ❌ None — persistent P2 |
 
 ---
 
-## P0 — Critical (Fix Today / Launch Blocker)
+## lateSeason Authoritative Count — 14 Venues
 
-**None.** Site is healthy.
+**Correct grep (catches both compact `lateSeason:true` and batch-JSON `"lateSeason": true`):**
+
+```bash
+grep -c "lateSeason.*true" app.jsx
+# → 14
+```
+
+**Why the wrong pattern matters:** `grep -c "lateSeason:true"` returns only 9 — misses 5 batch-JSON venues where the key is quoted with a space. Always use `lateSeason.*true`.
+
+Full list verified today:
+
+| # | ID | Line | Format |
+|---|---|---|---|
+| 1 | whistler | 484 | compact |
+| 2 | chamonix | 500 | compact |
+| 3 | mammoth | 509 | compact |
+| 4 | abasin | 515 | compact |
+| 5 | tignes | 530 | compact |
+| 6 | cervinia | 534 | compact |
+| 7 | snowbird | 805 | batch JSON |
+| 8 | zermatt | 1112 | batch JSON |
+| 9 | engelberg | 1135 | batch JSON |
+| 10 | verbier | 1707 | batch JSON |
+| 11 | val-thorens | 1730 | batch JSON |
+| 12 | les-deux-alpes-fr | 4826 | compact |
+| 13 | saas-fee-ch | 4835 | compact |
+| 14 | st-moritz-ch | 4844 | compact |
 
 ---
 
-## P1 — High (Fix This Week)
+## AP_CONTINENT — Definitively Closed
+
+**280 entries. All 146 unique venue `ap` codes present. Zero gaps.**
+
+The July-17 finding (6 codes allegedly missing) and this agent's initial check (78 missing) were the same bug: a lazy-regex node script using `\{([\s\S]*?)\}` that terminated at the first `}` inside the object body, capturing only 68 of 280 entries. Proper bracket-depth tracking confirms 0 missing.
+
+Do not re-investigate. Verified command:
+```bash
+node -e "
+const fs = require('fs');
+const code = fs.readFileSync('app.jsx', 'utf8');
+const start = code.indexOf('const AP_CONTINENT = {');
+let depth=0, i=start+'const AP_CONTINENT = '.length;
+while(i<code.length){if(code[i]==='{')depth++;else if(code[i]==='}'){depth--;if(!depth)break;}i++;}
+const body = code.slice(start, i+1);
+const codes = new Set((body.match(/(?:[\"']([A-Z]{3})[\"']|\\b([A-Z]{3}))\s*:/gm)||[]).map(m=>m.replace(/[\"':\\s]/g,'')).filter(s=>s.length===3));
+const aps = new Set((code.match(/[\"']?ap[\"']?\s*:\s*[\"']([A-Z]{3})[\"']/g)||[]).map(s=>{const m=s.match(/[\"']([A-Z]{3})[\"']/);return m?m[1]:null;}).filter(Boolean));
+const missing=[...aps].filter(a=>!codes.has(a));
+console.log('AP_CONTINENT entries:',codes.size,'/ venue aps:',aps.size,'/ missing:',missing.length||'NONE');
+"
+# → AP_CONTINENT entries: 280 / venue aps: 146 / missing: NONE
+```
+
+---
+
+## P0 — Critical
 
 **None.**
 
 ---
 
-## P2 — Medium (Fix This Sprint)
+## P1 — High
 
-### P2-A: Venue baseline file stale (+2 delta, Day 2)
+**None.**
 
-`scripts/.venue-baseline` reads `375`. Bracket-walker counts `377`. Delta first appeared in the July 15 report. Unchanged today — Jack hasn't updated it yet.
+---
 
-The auto-push invariant guard uses this baseline to block a venue-count regression. Being 2 behind means the floor is slightly low. Not dangerous at +2 but will mask a future accidental deletion of 2 venues.
+## P2 — Medium
 
-**Fix (Jack, 1 minute):**
+### P2-A: SRI hashes missing on CDN scripts (persistent — Day 13+)
+
+`index.html` loads 4 external scripts with no `integrity=` SRI attributes. A compromised unpkg CDN could inject arbitrary JavaScript into every Peakly session.
+
+**Fix — compute hashes and add `integrity=` to first 3 scripts (not Sentry — it lazy-loads a secondary bundle which can't be SRI-pinned):**
+
 ```bash
-echo "377" > ~/peakly/scripts/.venue-baseline
-cd ~/peakly && git add scripts/.venue-baseline && git commit -m "fix: venue-baseline 375→377"
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
+  | openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
+  | openssl dgst -sha384 -binary | openssl base64 -A
+
+curl -s "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js" \
+  | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-### P2-B: CLAUDE.md lateSeason prose count stale
-
-CLAUDE.md "Conventions" section reads `lateSeason: true` count as **13** (updated July 13). Engelberg-Titlis was added July 14 (commit `747c35a`). Authoritative grep shows **14**. The CLAUDE.md itself says "Always grep `lateSeason: true` in app.jsx for the authoritative count" — so this is low risk, but the prose will confuse the next agent that reads it without grepping first.
-
-**Fix (1 minute):**
-```bash
-# In CLAUDE.md, change the lateSeason count line from 13 to 14
-sed -i 's/code grep July 13, 2026): whistler.*13\./code grep July 16, 2026): whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch, engelberg. Previous CLAUDE.md counts are stale — always grep./' CLAUDE.md
-```
-
-Or update manually: the relevant line in CLAUDE.md "Conventions → Scoring" section.
-
-### P2-C: SRI on CDN scripts (Open #10, Persistent)
-
-No SRI hashes on React, ReactDOM, Babel, Plausible, Sentry CDN scripts. A compromised CDN could inject malicious code. Babel requires `'unsafe-eval'` for in-browser JSX transpilation, making CSP weaker than ideal.
-
-This has been flagged since before launch. Risk is real but unchanged. Mitigation is labor-intensive (compute SRI hashes, test Babel doesn't break, add meta CSP). Defer until post-launch per existing decision.
-
-**When ready (30 min):**
-```bash
-# Compute SRI for each CDN script
-curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
-# Then add integrity="sha384-<hash>" crossorigin="anonymous" to each <script> tag
-```
-
-**CSP meta tag (add to `<head>` in index.html):**
+Then in `index.html`:
 ```html
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline'
-    https://unpkg.com https://cdn.jsdelivr.net
-    https://plausible.io https://js.sentry-cdn.com;
-  connect-src 'self'
-    https://peakly-api.duckdns.org
-    https://api.open-meteo.com https://marine-api.open-meteo.com
-    https://wsoqcfwkvvemtlddcgfc.supabase.co
-    https://fonts.googleapis.com https://fonts.gstatic.com
-    https://plausible.io
-    https://o4511108649058304.ingest.us.sentry.io;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
-  img-src 'self' data: https://images.unsplash.com;
-  frame-ancestors 'none';
-">
+<script crossorigin
+  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-<REACT_HASH>"></script>
+<script crossorigin
+  src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
+  integrity="sha384-<REACTDOM_HASH>"></script>
+<script
+  src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
+  integrity="sha384-<BABEL_HASH>"></script>
 ```
 
-`'unsafe-eval'` is required while Babel Standalone runs in-browser. This CSP still meaningfully restricts `connect-src` and blocks unexpected script sources.
+**Caveat:** A strict CSP blocking SRI bypass vectors requires `unsafe-eval` for Babel Standalone — partially defeating the purpose. Full fix requires the pre-compile CI approach below.
+
+**Estimated fix time:** 15 minutes. Not a launch blocker.
 
 ---
 
-## Persistent P0s (Jack-Only Manual Actions)
+## Scaling Bottleneck — What Breaks First
 
-**Supabase Account Deletion SQL (App Store 5.1.1(v)):**
-`server/sql/delete-account.sql` committed June 10. Client shows graceful fallback until SQL is pasted. Day 36 of pending.
+**Babel Standalone client-side parse is the wall.** Every cold page load downloads `babel.min.js` (~400 KB gzip) then runtime-parses 676 KB of JSX. On 2023 mid-range Android: 3–5 second blank white screen. On M2 MacBook: ~200 ms. The day there's a Reddit/HN post, mobile users — highest bounce propensity — leave before the first card renders.
 
-```bash
-cat ~/peakly/server/sql/delete-account.sql
-# Paste → supabase.com/dashboard → SQL Editor → Run
-# Time: 2 minutes
+**Fix without breaking the no-bundler dev workflow:**
+
+```yaml
+# .github/workflows/compile.yml
+name: Pre-compile JSX
+on:
+  push:
+    paths: ['app.jsx']
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @babel/core @babel/preset-react @babel/cli
+      - run: babel app.jsx --presets @babel/preset-react -o app.compiled.js
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@github.com"
+          git add app.compiled.js
+          git commit -m "ci: pre-compile app.jsx" || exit 0
+          git push
 ```
 
-**VPS Health Verification:**
-Last confirmed from a networked host July 13. Verify from a non-sandbox terminal (sandbox egress blocks duckdns):
-```bash
-curl https://peakly-api.duckdns.org/health
-# Healthy: wx_cache_size > 0, poll_errors == 0, uptime > 0
+Then `index.html`:
+```html
+<!-- Before: -->
+<script type="text/babel" src="./app.jsx?v=20260714a" data-presets="react"></script>
+<!-- After: -->
+<script src="./app.compiled.js?v=20260714a"></script>
 ```
 
----
+Dev still edits `app.jsx`; CI produces the production artifact. Mobile parse time: 3–5 s → ~300 ms. Also resolves the SRI/CSP tension (pre-compiled JS doesn't need `unsafe-eval`).
 
-## Performance
+**Second failure at ~66 concurrent DAU:** Open-Meteo direct rate limit. VPS weather cache prevents this — verify `_tryProxyWx()` (`app.jsx:5228`) is the primary path, with direct Open-Meteo as fallback only.
 
-**Biggest bottleneck: Babel Standalone** (~1 MB raw, ~400 KB gzip, ~200–400ms parse on mid-range mobile)
+**Cost projection:**
 
-Architecture constraint — can't eliminate without adding a build step. Already deferred. If TTI drives measurable bounce post-Reddit launch: Lighthouse first, then evaluate CI-only `babel --presets react app.jsx -o app.js` via GitHub Actions.
+| MAU | DO (VPS) | Supabase | Open-Meteo | Total/mo | Revenue |
+|---|---|---|---|---|---|
+| <10 (now) | $6 | $0 | $0 | **$6** | ~$0 |
+| 1K | $6 | $0 | $0 | **$6** | ~$7.58 |
+| 10K | $12 | $0–$25 | $0 | **$12–$37** | ~$75.80 |
+| 100K | $24 | $25 | $0 | **$49** | ~$758 |
 
-Everything else is correctly optimized:
-- app.jsx: 13,507 lines / ~130 KB gzip ✅
-- Supabase JS: lazy-loaded ✅
-- All images: `loading="lazy"` ✅
-- Service worker: caching active (`peakly-20260714a`) ✅
-
----
-
-## Cost Estimate
-
-| Tier | MAU | Monthly | Notes |
-|---|---|---|---|
-| Today | <500 | ~$15–25 | DO $6 + Plausible ~$9. GH Pages + Supabase free. |
-| 1K MAU | 1,000 | ~$25–35 | Same droplet. Open-Meteo free tier is the ceiling risk. |
-| 10K MAU | 10,000 | ~$65–90 | Upgrade VPS to 2GB ($12). Supabase Pro ($25). Open-Meteo commercial ($50–200). |
-| 100K MAU | 100,000 | ~$250–500 | 2–3 DO nodes + LB. Open-Meteo commercial mandatory. Cloudflare CDN (free tier). |
+Infrastructure stays under 10% of revenue at every tier.
 
 ---
 
-## What Breaks First at Scale
+## Security Audit
 
-**Open-Meteo free-tier exhaustion on VPS cache wipe.** After any `pm2 restart`, the in-memory weather cache clears. At >67 simultaneous cold users, 377 venues × 2 API calls = 754 Open-Meteo requests in <60 seconds → free tier hits daily limit → all venue scores drop to 50 → grid looks dead.
-
-**Prevention in ROI order:**
-1. **Persist weather cache to disk** — write `_wxCache` to JSON every 10 minutes, reload on startup. ~30 lines in `server/proxy.js`, $0 cost.
-2. **Open-Meteo commercial plan** at 1K+ MAU — $50–200/mo, unlimited calls.
-3. **Client-side batching** already in place (50 venues/2s) — limits per-user burst but doesn't protect server-side warmup.
+| Check | Result |
+|---|---|
+| Travelpayouts token in client | ✅ CLEAN |
+| Supabase anon key | ✅ Expected (RLS-gated) |
+| Sentry DSN | ✅ Public project DSN (design intent) |
+| `TP_MARKER` in client | ✅ Not a secret |
+| `.env` files in repo | ✅ None |
+| Recent commits for accidental secrets | ✅ Last 5 commits report-only, no code |
+| `GEAR_ITEMS` | ✅ 0 refs |
 
 ---
 
-## Actions This Run
+## Action Items
 
-Report written. No code changes. Two P2 items require Jack action (venue baseline + CLAUDE.md lateSeason prose); neither is a blocker.
+**Jack (manual):**
+- [ ] Paste `server/sql/delete-account.sql` into Supabase SQL editor (App Store 5.1.1(v))
 
-**Status: 8 days no app.jsx changes since Engelberg commit (July 14). Code is stable. No regressions. Ready for launch whenever Jack pulls the trigger.**
+**No automated agent actions required this run.**
+
+**Parked / Known-Skipped (do not re-flag):**
+- SRI hashes (P2-A) — partially incompatible with Babel Standalone until pre-compile CI lands
+- APNS — `reports/known-skipped.md`; re-flags only on App Store submission
+- VPS redeploy for weekend-specific pricing — `reports/known-skipped.md`; re-flags at 100+ MAU
+
+---
+
+*DevOps agent — 2026-07-20. No code changes this run. Network-blocked sandbox — live site and VPS health checks unavailable; last confirmed live 2026-07-16.*

@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-07-16 (v90)
+# Peakly PM Report — 2026-07-19 (v93)
 
-> Supersedes v89 (July 15). **Status: GREEN on code, RED on distribution.** Day 16 post-launch. Code freeze holding (2 days, healthy). Two false positives closed today: DevOps "377 venue count" is a bracket-walker overcount (true count = 375, baseline correct); Content "6 AP_CONTINENT gaps" are all present at app.jsx:401–435. CLAUDE.md lateSeason count corrected 13→14 this run. Plausible still unread Day 16. Retention email 10 days overdue.
+> Supersedes v92 (July 18). **Status: GREEN on code, RED on distribution.** Day 19 post-launch. Code freeze day 5 — healthy. Two new reports today (DevOps + Content July 19). AP_CONTINENT false positive permanently closed — both agents confirmed correct parsing (280 entries, all 146 venue `ap` codes present). New P1: Babel client-side parse wall documented by DevOps — 3–5s white screen on mobile before Reddit spike is a distribution risk. Plausible downgraded to P2 per v92 Decision 1 (was P0 for 8+ reports; nagging not working). Retention email: last call per v92 Decision 2 (July 20 deadline).
 
 ---
 
@@ -15,96 +15,105 @@
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Never flag from sandbox. Stop. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason: 13 venues" | **14. Engelberg added July 14 (`747c35a`). CLAUDE.md corrected this run.** Stop. |
-| "lateSeason regression" | **RESOLVED July 11 (`18b19b5`). Engelberg added July 14.** Stop. |
+| "lateSeason: any count other than 14" | **14. Engelberg added July 14. Use `grep -c "lateSeason.*true" app.jsx` (covers both formats).** Stop. |
+| "lateSeason regression" | **RESOLVED July 11. Engelberg added July 14.** Stop. |
 | "placeholder tags" | **0 remaining. FIXED July 13.** Stop. |
 | "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
 | "Plausible domain wrong" | **FIXED July 7.** Stop. |
 | "cancun-beach dup" | **FALSE POSITIVE — in PRESETS, not VENUES. 0 dup IDs.** Stop. |
-| "GIG missing from AP_CONTINENT" | **FALSE. `GIG:"latam"` at `app.jsx:401`.** Stop. |
-| "KUL/SNA/MCT/TFS/CHQ missing from AP_CONTINENT" | **FALSE. All confirmed present at `app.jsx:401–435`.** Stop. |
+| "AP_CONTINENT gaps (any count)" | **PERMANENTLY CLOSED as false positive. AP_CONTINENT has 280 entries (compact + JSON-quoted). All 146 venue `ap` codes present. Correct parse: match both `KEY:"value"` AND `"KEY":"value"` formats. Lazy-regex that stops at first `}` sees only 68 entries and gives spurious gaps. Confirmed July 17, 18, 19 by Content + DevOps. Stop forever.** |
 | "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary. Only appears in a comment.** Stop. |
-| "venue-baseline drift / 377 venues" | **FALSE POSITIVE. Bracket-walker overcounts `{` in CSS strings. Unique-ID count = 375. Baseline (375) is CORRECT.** Stop. |
+| "venue-baseline drift / 377 venues" | **FALSE POSITIVE. Bracket-walker overcounts. Unique-ID count = 375. Baseline (375) CORRECT.** Stop. |
 | "Babel 8.x upgrade available" | **Babel 8 is ESM-only — incompatible with no-bundler arch. Stay on 7.29.7.** Stop. |
 | "surf-legacy tags" | **Valid beach activity signals per PM v81 Decision 1.** Stop. |
 
 ---
 
-## Shipped Since v89 (2026-07-15 → 2026-07-16)
+## Shipped Since v92 (2026-07-18 → 2026-07-19)
 
 | Commit | What | Verdict |
 |--------|------|---------|
-| `97a65c7` — DevOps July 16 | GREEN audit · lateSeason 13→14 flagged (prose stale) · baseline +2 claimed (false positive) | ✅ No regressions |
-| `1b91a92` — Content July 16 | Closed: Engelberg lateSeason, poolPrimary hallucination, bracket-walker overcount · Flagged: 6 AP_CONTINENT gaps (since disproved) · Queue cap at 11 enforced | ✅ Good housekeeping |
-| **This run** | CLAUDE.md lateSeason prose 13→14 · venue-baseline confirmed at 375 (no change) · PM v90 | ✅ Maintenance |
+| `c5442b2` — DevOps July 19 | GREEN audit · AP_CONTINENT permanently closed (280 entries, correct parsing) · Babel parse-time scaling wall documented (new finding) | ✅ No regressions, 1 new actionable finding |
+| `3d37ece` — Content July 19 | Score 87→93 · AP_CONTINENT confirmed closed · Whakapapa gap flagged (P2 seasonal) · porter-heights-nz Day 9 in queue | ✅ Housekeeping + seasonal flag |
 
-**Code state July 16 (evening):**
-- `app.jsx`: 13,507 lines · cache `20260714a` · braces 5,572/5,572 ✅
-- **375 venues** (133 ski / 242 beach) — authoritative unique-ID count
-- `.venue-baseline`: **375 — CORRECT** (DevOps "377" was bracket-walker false positive)
-- lateSeason: **14** (CLAUDE.md corrected this run) · poolPrimary: 0 · GEAR_ITEMS: 0 ✅
-- AP_CONTINENT: all 6 flagged codes confirmed present at lines 401–435
-- Staged queue: ~11 venues awaiting Jack photo approval (HOLD)
+**Code state July 19 (evening):**
+- `app.jsx`: 13,507 lines · cache `20260714a` (day 5 freeze) · braces 5,572/5,572 ✅
+- **375 venues** (133 ski / 242 beach) — authoritative unique-ID count, baseline 375 correct
+- lateSeason: **14** · poolPrimary: 0 · GEAR_ITEMS: 0 ✅
+- AP_CONTINENT: **280 entries, 0 gaps — permanently closed**
+- Staged queue: 11 venues, Day 9, cap 14 (porter-heights-nz entering 2nd week during NZ peak)
+- Data health score: **93/100**
 
-**Code freeze day 2.** Healthy. Zero regressions.
+**Code freeze day 5.** Nothing broken. No structural issues.
 
 ---
 
-## Bug Triage — July 16
+## Bug Triage — July 19
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Plausible data unread** | **P0** | Day 16. 2+ weeks of user behavior idle. Every product decision is a hypothesis. Jack: plausible.io, 15 minutes. |
-| **Retention email unsent** | **P0** | 10 days overdue. Day-7–10 window closed. Sending at Day 16 still reaches the cohort. See Decision 1. |
-| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 37. `server/sql/delete-account.sql` → Supabase SQL Editor. 2 min. Jack only. iOS App Store 5.1.1(v). |
-| **VPS health verify** | P2 | 6 days since Jack verified. Before any distribution push: `curl https://peakly-api.duckdns.org/health`. |
-| **SRI/CSP (Open #10)** | P3 | DEFER post-launch. 20 min from networked terminal. Not a gate. |
-| **11 staged venues** | Hold | Photo approval needed. Queue capped at 14 per v88. No new additions. |
-| **DevOps "377" overcount** | ✅ CLOSED | Bracket-walker false positive. Unique-ID count = 375 = baseline. Added to stop-reporting table. |
-| **Content AP_CONTINENT gaps** | ✅ CLOSED | All 6 codes confirmed present at app.jsx:401–435. Added to stop-reporting table. |
-| **CLAUDE.md lateSeason prose** | ✅ FIXED this run | Corrected 13→14. Engelberg confirmed at commit `747c35a`. |
+| **Babel mobile parse wall** | **P1** | NEW this run. 13,507 lines of JSX runtime-parsed by Babel Standalone on cold load: 3–5s white screen on mid-range Android. Before a Reddit/HN spike, this is a bounce machine for the highest-propensity-to-bounce segment. See Decision 1. |
+| **Retention email — July 20 hard deadline** | **P0 (last call)** | v92 Decision 2: "if not sent by July 20, close permanently." Tomorrow. From Jack, personal, 3 sentences: *"Hey — I built Peakly and you visited a couple weeks ago. Conditions for this weekend just updated — Southern Hemisphere ski looks strong right now. What would make you check it every week?"* |
+| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 41. `server/sql/delete-account.sql` → Supabase SQL Editor. 2 min. Jack only. |
+| **VPS health verify** | P2 | 10 days since Jack confirmed. Before distribution push: `curl https://peakly-api.duckdns.org/health`. |
+| **Plausible data unread** | ~~P0~~ **P2** | **Downgraded per v92 Decision 1.** Day 19 unread. Cost of unread cohort data accepted. Stays on blockers table; exits daily P0 crisis framing. Agent team stops nagging. See Decision 2. |
+| **Whakapapa coverage gap** | P2 seasonal | Top NZ resort by skier-visits not in catalog. Live peak season (Jul–Aug). Queue cap (11 staged) is the gate. Jack photo approval unblocks. |
+| **SRI/CSP (Open #10)** | P2 | Persistent. DEFER (note: partially incompatible with Babel Standalone until pre-compile CI lands). |
 
-**Permanently closed:** Peakly Pro price · Sentry DSN · VPS outage framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate venues · cross-category photos · Plausible domain · surf-legacy tags · placeholder tags · lateSeason regression · GIG/AP_CONTINENT · lateSeason count (now 14) · poolPrimary: true count · venue-baseline drift · bracket-walker overcount · AP_CONTINENT gap false positive
+**Permanently closed:** Peakly Pro price · Sentry DSN · VPS outage framing · DEAL_WEIGHT · GEAR_ITEMS · duplicate venues · cross-category photos · Plausible domain · surf-legacy tags · placeholder tags · lateSeason regression · AP_CONTINENT gaps (all iterations) · poolPrimary count · venue-baseline/bracket-walker drift
 
 ---
 
 ## Known Blockers
 
-| Blocker | What It Unlocks | Days |
+| Blocker | What It Unlocks | Days Waiting |
 |---------|----------------|------|
-| **Jack: read Plausible** | All product decisions | Day 16 |
-| **Jack: send retention email** | Re-engagement + user research | 10 days overdue |
-| **Jack: photo approval (11 staged venues)** | Catalog growth resumes | Ongoing |
-| **Jack: Supabase SQL paste** | iOS App Store 5.1.1(v) | Day 37 |
-| **Jack: VPS health check** | Confidence before distribution push | 6 days |
+| **Jack: send retention email** | Re-engagement cohort | **July 20 deadline — final** |
+| **Jack: photo approval (11 staged venues)** | Catalog growth, Whakapapa, NZ peak season | Day 9 |
+| **Jack: Supabase SQL paste** | iOS App Store 5.1.1(v) | Day 41 |
+| **Jack: VPS health check** | Confidence before distribution push | 10 days |
+| **Jack: read Plausible** | Distribution decisions (downgraded to P2) | Day 19 |
 | LLC approval | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
 
 ---
 
-## Explicit Product Decisions — July 16
+## Explicit Product Decisions — July 19
 
-### Decision 1: Send the retention email today. This is the last call.
+### Decision 1: Babel mobile parse wall is P1 before the second distribution post. Evaluate the pre-compile CI fix.
 
-Fifth PM report calling this out. Day-7–10 window is gone. Sending at Day 16 reaches the same list at lower open rate. The alternative is declaring the cohort permanently lost.
+DevOps July 19 documents this for the first time: Babel Standalone downloads ~400KB (gzip) then runtime-parses 676KB of JSX on every cold load. On a 2023 mid-range Android: **3–5 second white screen**. On M2 MacBook: ~200ms. The day a Reddit/HN post drops, the majority of new visitors arrive on mobile and will see the blank screen. This is a meaningful bounce driver.
 
-From Jack, personal, 3 sentences:
-> "Hey — I built Peakly and you visited a couple weeks ago. Conditions for this weekend (July 18–21) just updated — Southern Hemisphere ski looks strong right now, and the Mediterranean is peak. One question: what would make you check it every week?"
+The proposed fix (DevOps July 19): GitHub Actions pre-compile step. Add `.github/workflows/compile.yml` to run `@babel/core` on push to `app.jsx`, output `dist/app.js`, and have `index.html` serve the compiled file in production. Dev workflow unchanged — still edit `app.jsx` directly; the hook commits the source, CI compiles it.
 
-**If this hasn't gone by tomorrow's PM report, cut the cohort as lost and remove this agenda item.**
+**Trade-off:** This technically adds a build step (GitHub Actions, not local). `index.html` would need a switch between dev (Babel CDN + app.jsx) and prod (compiled app.js). The "no build step" CLAUDE.md rule was written for the local dev workflow, not CI/CD. This is consistent with the spirit of the rule.
 
-### Decision 2: Agent findings require code verification before entering PM agenda.
+**Decision: SHIP the pre-compile CI before the second distribution post.** DevOps: build the GitHub Actions workflow and test it on a staging branch. If it compiles clean and doesn't break any of the 4 CDN script dependencies, merge before the next Reddit/HN post. Do NOT ship this without first confirming the compiled output renders identically. Time estimate: 45 minutes.
 
-Today produced two false-positive P2 items (venue count, AP_CONTINENT) that each required investigation to disprove. Both were raised without checking the actual code first.
+**If Plausible later shows mobile bounce rate is acceptable (<30%), treat this as optional. But we can't wait to find out — the second post comes first.**
 
-**New rule: no structural finding (count drift, missing field, duplicate) enters the PM agenda unless the raising agent has grepped/read the source and confirmed it.** DevOps should verify count discrepancies against unique IDs, not bracket counts. Content should grep before flagging missing entries.
+### Decision 2: Plausible downgraded to P2. Per v92 Decision 1. Final.
 
-This stops phantom bugs from burning investigation time.
+Eight consecutive PM reports called Plausible unread a P0. Nagging has not worked. v92 Decision 1 set the condition: "if Plausible is not read before the next PM report, downgrade to P2."
 
-### Decision 3: No second distribution post until Plausible is read. Non-negotiable.
+**Effective immediately: Plausible is P2.** It stays in the blockers table because it's genuinely important. But the agent team stops treating it as a daily crisis. Jack will read it when Jack is ready. The agent team cannot fix this; continuing to escalate it is noise that dilutes the signal on real technical issues.
 
-Day 16, no Plausible data consumed. We cannot know if the onboarding flow is working, which venues drive clicks, or whether the Fri–Mon scoring resonates. A second Reddit/HN post without this is amplifying a funnel we can't see.
+What Plausible unlocks (when Jack reads it): second distribution post framing, top-exit page identification, onboarding funnel data, mobile/desktop split. None of these expire — the data is still there. The launch cohort's behavior is in the aggregate; the only thing that expired was the Day-1 cohort's re-engagement window (retention email).
 
-**DEFER any second distribution post until after Plausible is read.** 15 minutes unlocks the entire next sprint.
+### Decision 3: NZ peak season photo approval is now a time-sensitive product call.
+
+porter-heights-nz has been in the staged queue for 9 days. New Zealand's peak ski season runs July–August — 6 weeks. The product has 3 NZ venues (Cardrona, Mt Hutt, plus one in staging). Whakapapa (largest NZ resort by skier-visits) isn't even in queue yet — the staged cap must clear first.
+
+**Decision: SHIP all NZ ski venues before August 1.** This is a rare calendar constraint. This means Jack approves staged photos this week, the agent team ships the 2 NZ staged venues (porter-heights-nz + one other) within 24h of approval, and Whakapapa enters the queue immediately after. Missing the July–August NZ window means waiting until 2027.
+
+The Southern Hemisphere ski angle is the best hook for a second Reddit post (unique, in-season, global). Whakapapa missing the catalog when the post drops would be a content gap at exactly the wrong moment.
+
+---
+
+## This Week's Top 3 Priorities Only
+
+1. **Jack: Send retention email.** (5 min) — July 20 hard deadline. After that, cohort is permanently closed.
+2. **Jack: Photo-approve 11 staged venues.** (15 min) — NZ peak season, Whakapapa gap, S-hemi second-post angle all depend on this.
+3. **DevOps: Build pre-compile CI.** (45 min) — P1 before second distribution post. Ship to a staging branch for review.
 
 ---
 
@@ -112,50 +121,43 @@ Day 16, no Plausible data consumed. We cannot know if the onboarding flow is wor
 
 | Feature | Reason |
 |---------|--------|
-| **SRI/CSP (Open #10)** | Security hygiene, not user-facing. DEFER post-launch. |
-| **New venue additions** | HOLD pending photo approval. Not rejected. |
+| **SRI/CSP (Open #10)** | Depends on pre-compile CI landing first. DEFER until that ships. |
+| **New venue additions beyond 11 staged** | Queue cap 14 holds. No new venues until Jack clears the staged backlog. |
 | **Hotels in deal score** | No demand signal. v2. |
 | **Peakly Pro revival** | Cut. Re-open only if Plausible shows ≥500 MAU. |
-| **APNS push alerts** | Known-skipped. Gate in place. Re-flag only at App Store queue time. |
+| **APNS push alerts** | Known-skipped. Gate is live. |
+| **JSON-LD structured data** | SEO impact unverifiable without traffic baseline. DEFER. |
+| **Static h1 SEO fallback** | Same. DEFER. |
+| **Venue deep links** | Build after second distribution post. DEFER. |
 | **VPS Redis persistence** | Right fix, wrong time. DEFER post-100 MAU. |
-| **JSON-LD structured data** | Unverifiable ROI without traffic data. DEFER until Plausible read. |
-
----
-
-## This Week's Top 3 Priorities Only
-
-1. **Jack: Read Plausible.** (15 min) — unlocks every decision
-2. **Jack: Send retention email.** (10 min) — last window
-3. **Jack: Photo approval on 11 staged venues.** (15 min) — unblocks catalog
-
-Everything else is deferred or closed.
 
 ---
 
 ## Success Criteria
 
-| Metric | 5K path | 8K path | Day 16 status |
+| Metric | 5K path | 8K path | Day 19 status |
 |--------|---------|---------|---------------|
-| Plausible read | Day 1 | Day 1 | ❌ Day 16 unread |
-| Retention email | Day 7–10 | Day 7 | ❌ Day 16 unsent |
-| Second distribution | Week 2 | Week 2 | ❌ Blocked on Plausible |
-| Catalog | 375+ | 391+ | ⚠️ 375, 11 staged |
-| Revenue | 3 live streams | +LLC affiliates | ⚠️ 3 live |
+| Plausible read | Day 1 | Day 1 | ⚠️ Day 19 (P2 — accepted) |
+| Retention email | Day 7–10 | Day 7 | 🔴 July 20 deadline (final) |
+| Second distribution | Week 2 | Week 2 | 🔴 Blocked on Plausible + pre-compile CI |
+| Catalog | 375+ | 391+ | ⚠️ 375 live, 11 staged (NZ peak urgency) |
+| Pre-compile CI | — | — | 🔴 NEW gate before second post |
+| Revenue streams | 3 live | +LLC affiliates | ⚠️ 3 live |
 
-The 8K path requires re-engagement + second post + share-a-list loop. None of these can happen intelligently without Plausible. The 5K–8K projection is unverifiable at Day 16.
-
-**Single most important unknown:** Day-1→Day-7 retention rate. Plausible answers this in 15 minutes.
+**Day 19 update:** Babel mobile parse wall is the new critical-path item before the second post. Code freeze otherwise healthy. NZ seasonal window creates urgency on photo approval.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The agent team is generating more noise than signal.**
+**We're about to post to Reddit with a 3–5 second white screen on mobile.**
 
-This run: two false-positive P2s (venue overcount, AP_CONTINENT gaps) each required code investigation to disprove. The correct signal from the agent team this week should be: "code is frozen, stable, no regressions — here are the 3 Jack actions still blocking distribution."
+The mobile bounce rate for a 3-second white screen is roughly 50–60% (industry data). Reddit traffic skews mobile. If the second post brings 1,000 visitors and half of them bounce before the first card renders, we convert 500 users instead of 1,000 — and the "Peakly is a hot app" narrative doesn't build.
 
-The biggest product risk isn't a missing airport code. It's that 16 days of real user data is sitting unread while the audience cools off. The agents should be surfacing that signal, not generating phantom structural bugs that consume investigation time.
+The pre-compile CI fix is 45 minutes of DevOps work. It eliminates the white screen entirely for production users while keeping the dev workflow identical. The second distribution post is the most important marketing event left in 2026 for Peakly. Shipping it with a 3–5 second blank screen would be a self-inflicted wound.
+
+This is fixable. Ship it before the post.
 
 ---
 
-*Written 2026-07-16 · v90 · Day 16 post-launch*
+*Written 2026-07-19 · v93 · Day 19 post-launch*
