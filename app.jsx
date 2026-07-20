@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260714a";
+const PEAKLY_BUILD = "20260720a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4757,14 +4757,6 @@ const VENUES = [
   // Closes 5 high-credibility catalog gaps: top US ski resort, Austria's most famous,
   // world's #1-ranked beach (Condé Nast / TripAdvisor), most iconic US city beach,
   // and Mexico's most-visited resort. All airports already in AP_CONTINENT + AIRPORT_COORDS.
-
-  {id:"jackson-hole", category:"skiing",
-    title:"Jackson Hole Mountain Resort", location:"Teton Village, Wyoming, USA",
-    lat:43.5879, lon:-110.8279, ap:"JAC",
-    icon:"🏔️", rating:4.97, reviews:3180,
-    gradient:"linear-gradient(160deg,#0a1a2e,#1a3a6a,#2a5aa0)",
-    accent:"#6090d8", tags:["Greatest Vertical USA","Expert Terrain","IKON Pass","Teton Views"],
-    photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"ikon"},
 
   {id:"big-sky-montana", category:"skiing",
     title:"Big Sky Resort", location:"Big Sky, Montana, USA",
