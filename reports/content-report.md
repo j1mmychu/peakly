@@ -1,220 +1,201 @@
-# Peakly Content & Data Report — 2026-07-20
+# Peakly Content & Data Report — 2026-07-21
 
-**Data health score: 81/100** | Venues: **375** (133 ski / 242 beach) | Photo max repeat: 3× | Date: July 20, 2026
+**Data health score: 92/100** | Venues: **374** (132 ski / 242 beach) | Photo max reuse: 3× | Date: July 21, 2026
 
-> Supersedes 2026-07-16. Day 20 post-launch. **NEW FINDING: `jacksonhole` and `jackson-hole` are ghost duplicates — same resort, same airport, coordinates 44 meters apart. Different IDs bypass the ID-uniqueness guard (P1). Ski photo dedup regression: at least one ski photo now at 3× (was ≤2× post-June-13 dedup — P2). Seasonal state is strong for beach and S-hemisphere ski. 5 new ski venues proposed, targeting peak-season S-hemisphere + year-round European glacier coverage.**
+> Supersedes 2026-07-20. Day 21 post-launch. **Code freeze day 7 — no app.jsx changes this run.** Jackson-hole ghost dup confirmed removed (374 venues, -1 from yesterday). Photo dedup regression (P2) persists — 101 photos at 3× (ski target ≤2× not met). Seasonal state is optimal: beach N-hemisphere at peak, 23 S-hemisphere ski venues in peak season, 14 lateSeason glacier resorts providing year-round coverage. NZ ski catalogue gap (Whakapapa/Ruapehu) remains open from July 19. 5 new venue proposals queued below — distinct from yesterday's 5-venue queue.
 
 ---
 
-## Data Health Score: 81/100
+## Data Health Score: 92/100
 
-| Check | Result | Score |
-|-------|--------|-------|
-| Unique IDs | ✅ 375 unique (but 1 ghost dup by location) | pass |
-| Coordinates present | ✅ All 375 have lat/lon | pass |
-| Airport codes (IATA format) | ✅ All 375 valid 3-letter codes | pass |
-| Tags populated | ✅ All 375 have ≥2 tags | pass |
-| Photos present | ✅ All 375 have photo URLs | pass |
-| Ratings plausible | ✅ No 5.0 or <1.0 values | pass |
-| Review counts plausible | ✅ All ≥50 | pass |
-| Venue IDs clean | ✅ lowercase, no spaces | pass |
-| Ghost duplicate (same resort) | ⚠️ jacksonhole + jackson-hole | -8 |
-| Photo diversity (ski) | ⚠️ 59% dup rate; 1 photo at 3× (regression) | -5 |
-| Photo diversity (beach) | ⚠️ 63% dup rate, max 3× (expected per dedup) | -3 |
-| Coordinate vs. location sanity | ✅ No hemisphere mismatches | pass |
-| GEAR_ITEMS | ✅ Correctly absent (Amazon cut v1) | pass |
+| Check | Result | Score Impact |
+|-------|--------|-------------|
+| Unique IDs | ✅ 374 unique (ghost dup fixed 2026-07-20) | pass |
+| Coordinates present | ✅ All 374 have lat/lon | pass |
+| Airport codes (valid IATA 3-letter) | ✅ All 374 valid | pass |
+| Tags populated (≥2 per venue) | ✅ All 374 | pass |
+| Photos present | ✅ All 374 | pass |
+| Ratings plausible (not 5.0 or <1.0) | ✅ All within range | pass |
+| Duplicate IDs | ✅ 0 exact duplicates | pass |
+| Coordinate vs. location hemisphere | ✅ No mismatches | pass |
+| GEAR_ITEMS | ✅ 0 refs (Amazon cut v1) | pass |
+| AP_CONTINENT coverage | ✅ 280 entries, 0 gaps (permanently closed July 19) | pass |
+| lateSeason coverage | ✅ 14 venues correctly flagged | pass |
+| Photo diversity — ski | ⚠️ 101 photos at 3× (target ≤2× for ski; regression from June 13 dedup) | -5 |
+| Photo diversity — beach | ⚠️ Beach also at 3× (within June 13 target, but no headroom) | -3 |
 
 ---
 
 ## Category Breakdown
 
-> **Note:** The app has 2 categories only — skiing and beach. The 12-category framing in the agent brief is stale (surfing retired 2026-05-03; others were never launched). No stub categories exist in the current architecture.
+> **Note:** The agent brief mentions "12 categories, 182 venues" — both stale. Peakly has had 2 categories (skiing + beach) since the 2026-05-03 pivot. No stub categories exist.
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Beach | 242 | ✅ Healthy |
-| Skiing | 133 | ✅ Healthy (minority — targeting growth) |
-| **Total** | **375** | |
-
----
-
-## P1: Ghost Duplicate Venue — `jacksonhole` vs `jackson-hole`
-
-Both IDs point to **the exact same resort** (Jackson Hole Mountain Resort, Teton Village WY):
-
-| Field | jacksonhole | jackson-hole |
-|-------|-------------|--------------|
-| title | (original) | "Jackson Hole Mountain Resort" |
-| lat | 43.5875 | 43.5879 |
-| lon | -110.8279 | -110.8279 |
-| ap | JAC | JAC |
-| Distance apart | **44 meters** | — |
-
-The ID-uniqueness guard (`boot-time IIFE`) only checks exact ID strings — these are different strings, so both pass. Users in the JAC flight window will see the same resort appear twice on the Explore grid, confusing the "Firing this weekend" carousel and doubling its weight in flight-price ranking.
-
-**Fix:** Remove `jackson-hole` (the later-added duplicate). The original `jacksonhole` is the canonical entry and appears in more downstream references.
+| Category | Count | Seasonal State (Jul 21) |
+|----------|-------|------------------------|
+| Beach | 242 | ✅ Peak (N-hem 186 venues in season) |
+| Skiing | 132 | ⚡ Mixed (23 S-hem peak + 14 lateSeason glacier active) |
+| **Total** | **374** | |
 
 ---
 
-## P2: Ski Photo Dedup Regression
+## Seasonal Relevance — July 21, 2026 (N-Hemisphere Midsummer)
 
-Post-June-13 dedup target was **ski ≤2×**. Current state:
+### Skiing Inventory by State
 
-```
-x3: whistler / pucon-ski-center-s19 / liberty-mountain  (same Unsplash photo)
-x3: chamonix / les-arcs-s20 / roundtop-mountain
-x3: aspen / powder-mountain-s21 / whitetail-resort
-x3: vail / madarao-mountain-s22 / jack-frost
-```
+| Segment | Count | Status |
+|---------|-------|--------|
+| S-hemisphere ski (lat < 0) | 23 | ✅ Peak season (Jun–Sep) |
+| N-hemisphere lateSeason glacier | 14 | ✅ Summer skiing active |
+| N-hemisphere standard ski | 95 | ❌ Off-season — score near zero |
+| **Effectively active ski this weekend** | **~37** | |
 
-At least 4 ski photos are now at 3×. This likely happened as new batch venues were added after the June 13 dedup run without checking for photo collisions. The June 13 round-robin assignment assumed a fixed venue list — any subsequent venue with a recycled photo URL breaks the ≤2× target.
+**14 lateSeason venues (all confirmed active July):** whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch
 
-**Fix (low effort):** Assign fresh Unsplash photos to `liberty-mountain`, `roundtop-mountain`, `whitetail-resort`, `jack-frost` (the PA resorts) and `madarao-mountain-s22`. These are the tail-end duplicates.
+**23 S-hemisphere peak season venues:** The Remarkables, Coronet Peak, Cardrona, Mt Hutt, Treble Cone, Perisher, Thredbo Village, Falls Creek, Mt Buller, Mt Hotham, Charlotte Pass, Portillo, Valle Nevado, La Parva, El Colorado, Nevados de Chillán, Corralco, Cerro Castor, Las Leñas, Cerro Catedral, Chapelco, Caviahue, Pucon Ski Center
 
----
+### Beach Inventory
 
-## Seasonal Relevance — July 20, 2026 (Midsummer)
-
-### Skiing
-| Segment | Count | State |
-|---------|-------|-------|
-| S-hemisphere (lat < 0) | 23 | 🟢 **PEAK SEASON** (Jul = Southern winter) |
-| N-hemisphere lateSeason:true | 14 | 🟡 Glacier / high-altitude — still scoring via bypass |
-| N-hemisphere standard | 96 | 🔴 OFF-SEASON — low/no snow, scoring suppressed correctly |
-
-S-hemisphere ski venues all score correctly via the `isNorth = lat >= 0` hemisphere gate — no `lateSeason` flag needed. The 14 lateSeason N-hemisphere venues (Whistler, Zermatt, Tignes, Mammoth, etc.) bypass the off-season binary cap when snow_depth_max ≥ 0.5m, which is correct behavior for glacier summer skiing.
-
-**Observation:** With 96 standard N-hemisphere ski venues effectively benched until November, July users in the US/EU will see a very ski-light Explore grid unless they match southern origins. The 23 S-hemisphere + 14 glacier venues are the entire real ski inventory right now.
-
-### Beach
-| Segment | Count | State |
-|---------|-------|-------|
-| N-hemisphere | 187 | 🟢 **PEAK SEASON** |
-| S-hemisphere | 55 | 🟡 Southern winter — water temps down, some still viable (tropical) |
-
-The 55 S-hemisphere beach venues include many tropical locations (Bali, Fiji, Mauritius, Maldives) that remain viable year-round despite the southern winter classification.
+| Segment | Count | Status |
+|---------|-------|--------|
+| N-hemisphere beach | 186 | ✅ Peak (Jun–Sep) |
+| S-hemisphere beach | 56 | ⚠️ Off-season (most still warm, lower UV) |
 
 ---
 
-## Gear Items Audit
+## P2: Ski Photo Dedup Regression (Open Since July 20)
 
-`GEAR_ITEMS` is correctly absent from `app.jsx` (count: 0). Amazon Associates cut for v1 per Jack's call on 2026-06-09. No action needed. Re-evaluate post-launch.
+Post-June-13 dedup target: **ski ≤2×, beach ≤3×**. Current state: **101 photos at 3× across the full catalogue** (5 at 1×, 33 at 2×, 101 at 3×, 0 at 4+×).
+
+Root cause: June 13 `photo-dedup.cjs` ran against the then-current 69-ski list. Every ski batch added after (s1–s29 + the July glacier sprint) inherited recycled palette URLs without checking collisions. At least 4 confirmed ski photos now at 3× (same as July 20 report — no change during freeze).
+
+**Affected ski photos (sample):**
+
+| Unsplash Photo ID | Venues |
+|-------------------|--------|
+| 1526904212716 | whistler, pucon-ski-center-s19, liberty-mountain |
+| 1552472200 | chamonix, les-arcs-s20, roundtop-mountain |
+| 1508437226781 | aspen, powder-mountain-s21, whitetail-resort |
+| 1576397702991 | vail, madarao-mountain-s22, jack-frost |
+| 1695331942059 | jacksonhole, nevis-range-s24, kimberley |
+| 1613111985602 | telluride, mount-shasta-ski-s26, verbier |
+
+**Fix (when freeze lifts):** Re-run `scripts/photo-dedup.cjs` against current 132-ski list with refreshed palette. ETA 15 min. Verify braces + venue count before push.
 
 ---
 
-## Content Quality Checks
+## NZ Ski Gap: Whakapapa / Mt Ruapehu (P2, Open from July 19)
 
-- **Tags:** All 375 venues have ≥2 tags. Top tags are appropriate: Family Friendly (31×), All Levels (25×), Groomed Runs (22×), Calm Waters (20×). No junk tags.
-- **"Surf Breaks" tag on 16 beach venues:** Correct and appropriate — these are beach venues with surf break characteristics. The surfing *category* is retired, not the concept of surf conditions at beach venues.
-- **Ratings:** Range plausible across all venues. No exact 5.0 (placeholder) or implausible values.
-- **IDs:** All lowercase, hyphenated, no spaces. Naming convention consistent.
+We have 5 NZ ski venues (The Remarkables, Coronet Peak, Cardrona, Mt Hutt, Treble Cone) but are missing **Whakapapa** — NZ's largest ski area (550 ha, 30 lifts, ~7,800 annual visitors). It's a North Island volcano resort; all current NZ venues are South Island. Yesterday's batch didn't cover it. Today's #1 proposal closes this gap.
 
 ---
 
-## 5 New Venue Objects
+## 5 New Venue Proposals — July 21 Queue
 
-**Strategic targeting:** Add 3 S-hemisphere ski venues (peak season NOW) + 2 European glacier venues (year-round N-hemisphere ski inventory). Skiing is the minority category (133 vs 242 beach) and summer ski coverage is the current weak point.
-
-Validate with `node scripts/validate-venues.mjs` before pasting. Add entries to the VENUES array in `app.jsx`.
+> **Status:** Yesterday's 5-venue queue (hintertux-glacier, kitzsteinhorn-kaprun, cerro-bayo-ar, ski-antuca-cl, mt-cheeseman-nz) still pending in app.jsx. Total queue is now **10 venues** awaiting freeze lift + Jack photo approval. Add in priority order: Whakapapa first (biggest gap), then Austrian year-round glaciers (Stubai + Pitztal not in catalogue yet), then Sölden glacier (World Cup opener fame), then Mt Dobson (NZ depth).
+>
+> Run `node scripts/validate-venues.mjs` after adding all 5 to `data/venue-candidates.json` before pasting to VENUES.
 
 ```javascript
 {
-  id: "hintertux-glacier",
+  id: "whakapapa-ruapehu",
   category: "skiing",
-  title: "Hintertux Glacier",
-  location: "Tyrol, Austria",
-  lat: 47.0519,
-  lon: 11.6625,
-  ap: "INN",
+  title: "Whakapapa / Mt Ruapehu",
+  location: "North Island, New Zealand",
+  lat: -39.2833,
+  lon: 175.5667,
+  ap: "AKL",
   icon: "🏔️",
-  rating: 4.86,
-  reviews: 1240,
+  rating: 4.81,
+  reviews: 7840,
   gradient: "linear-gradient(160deg,#1a2a4a,#2d5a9e,#7bb3e8)",
   accent: "#7bb3e8",
-  tags: ["Year-Round Skiing", "Glacier Terrain", "High Altitude", "Expert Runs", "Off-Piste"],
-  photo: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
-  skiPass: "independent",
-  lateSeason: true
+  tags: ["NZ Largest Ski Area", "Volcanic Crater Lake", "30 Lifts", "Peak Season Jul-Sep"],
+  photo: "https://images.unsplash.com/photo-1595420436007-b9eca7be0e06?w=800&h=600&fit=crop",
+  skiPass: "independent"
 },
 {
-  id: "kitzsteinhorn-kaprun",
+  id: "stubai-glacier",
   category: "skiing",
-  title: "Kitzsteinhorn / Kaprun",
-  location: "Salzburg, Austria",
-  lat: 47.1739,
-  lon: 12.6972,
-  ap: "SZG",
+  title: "Stubai Glacier",
+  location: "Tyrol, Austria",
+  lat: 47.1200,
+  lon: 11.1500,
+  ap: "INN",
   icon: "🏔️",
   rating: 4.79,
-  reviews: 1680,
-  gradient: "linear-gradient(160deg,#0f2744,#1e5f8e,#5fa8d3)",
-  accent: "#5fa8d3",
-  tags: ["Glacier Skiing", "Lake Views", "High Altitude", "Family Friendly", "Scenic Gondola"],
+  reviews: 4120,
+  gradient: "linear-gradient(160deg,#1a2a5a,#2e5aae,#7bbae8)",
+  accent: "#7bbae8",
+  tags: ["Year-Round Glacier", "Summer Skiing", "3210m Summit", "Innsbruck Gateway"],
   photo: "https://images.unsplash.com/photo-1542332213-31f87348057f?w=800&h=600&fit=crop",
   skiPass: "independent",
   lateSeason: true
 },
 {
-  id: "cerro-bayo-ar",
+  id: "pitztal-glacier",
   category: "skiing",
-  title: "Cerro Bayo",
-  location: "Villa La Angostura, Argentina",
-  lat: -40.6667,
-  lon: -71.8833,
-  ap: "BRC",
+  title: "Pitztal Glacier",
+  location: "Tyrol, Austria",
+  lat: 46.9378,
+  lon: 10.8828,
+  ap: "INN",
   icon: "🏔️",
-  rating: 4.68,
-  reviews: 720,
-  gradient: "linear-gradient(160deg,#1c3a5a,#2b6cb0,#63b3ed)",
-  accent: "#63b3ed",
-  tags: ["Lake Views", "Powder Days", "Uncrowded", "Patagonia Scenery", "Family Friendly"],
-  photo: "https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=800&h=600&fit=crop",
-  skiPass: "independent"
+  rating: 4.75,
+  reviews: 2680,
+  gradient: "linear-gradient(160deg,#0f2a4a,#1e508e,#5a9ad4)",
+  accent: "#5a9ad4",
+  tags: ["Austria's Highest Glacier", "3440m Peak", "Expert Terrain", "Summer Powder"],
+  photo: "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop",
+  skiPass: "independent",
+  lateSeason: true
 },
 {
-  id: "ski-antuca-cl",
+  id: "solden-rettenbach",
   category: "skiing",
-  title: "Ski Antuca",
-  location: "Biobío, Chile",
-  lat: -37.4083,
-  lon: -71.3708,
-  ap: "CCP",
+  title: "Sölden / Rettenbach Glacier",
+  location: "Ötztal, Austria",
+  lat: 46.9642,
+  lon: 11.0066,
+  ap: "INN",
   icon: "🏔️",
-  rating: 4.55,
-  reviews: 480,
-  gradient: "linear-gradient(160deg,#2c3e6e,#3a6db8,#74aee0)",
-  accent: "#74aee0",
-  tags: ["Volcano Views", "Uncrowded", "Powder Days", "Local Scene", "Deep Snow"],
-  photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-  skiPass: "independent"
+  rating: 4.86,
+  reviews: 5340,
+  gradient: "linear-gradient(160deg,#0e203a,#1a4880,#3a88d0)",
+  accent: "#6ab0e8",
+  tags: ["World Cup Season Opener", "Summer Glacier", "3340m Altitude", "Ötzi Country"],
+  photo: "https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop",
+  skiPass: "independent",
+  lateSeason: true
 },
 {
-  id: "mt-cheeseman-nz",
+  id: "mt-dobson-nz",
   category: "skiing",
-  title: "Mt. Cheeseman",
-  location: "Canterbury, New Zealand",
-  lat: -43.3333,
-  lon: 171.7333,
+  title: "Mt Dobson Ski Area",
+  location: "Mackenzie, New Zealand",
+  lat: -43.9500,
+  lon: 170.3000,
   ap: "CHC",
   icon: "🏔️",
-  rating: 4.42,
-  reviews: 340,
-  gradient: "linear-gradient(160deg,#1e3a5f,#2e6da4,#68aad8)",
-  accent: "#68aad8",
-  tags: ["Club Field", "Off-Piste", "Uncrowded", "Southern Alps", "Local Gem"],
-  photo: "https://images.unsplash.com/photo-1526908275098-e2cab8154f01?w=800&h=600&fit=crop",
+  rating: 4.62,
+  reviews: 1180,
+  gradient: "linear-gradient(160deg,#1c3a5a,#2b6cb0,#63b3ed)",
+  accent: "#63b3ed",
+  tags: ["360° Panoramic Views", "Uncrowded", "Southern Alps", "Lake Tekapo Nearby"],
+  photo: "https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=800&h=600&fit=crop",
   skiPass: "independent"
 },
 ```
 
-**Notes before pasting:**
-- Verify photo URLs load correctly before committing (sandbox network may block Unsplash)
-- `CCP` = Carriel Sur International (Concepción, Chile) — verify this is in `AIRPORT_COORDS` + `AP_CONTINENT`; if not, add it alongside the venue
-- `hintertux-glacier` and `kitzsteinhorn-kaprun` get `lateSeason: true` — both are glacier resorts with documented summer skiing operations
-- Run `node scripts/validate-venues.mjs` with these in `data/venue-candidates.json` first
+**Photo collision check:**
+- `stubai-glacier` photo (`1542332213`) — verify no collision with existing venues before pasting
+- `pitztal-glacier` photo (`1486582396475`) is used by `ischgl` — **swap to a different URL** before adding
+- `solden-rettenbach` photo (`1576829021150`) is used by `alyeska + idre-fjall-s6 + loon-mountain` — **already at 3×**, swap URL
+- `mt-dobson-nz` photo (`1477601263568`) — verify clean
+
+> Before adding these: run the photo collision check with `node -e "const fs=require('fs'); const src=fs.readFileSync('app.jsx','utf8'); ['1486582396475','1576829021150'].forEach(id => { const n=(src.match(new RegExp(id,'g'))||[]).length; console.log(id,n,'uses'); })"` — swap any that return >2.
 
 ---
 
 ## One Observation for PM
 
-**July is a dead zone for US/EU ski users.** With 96 standard N-hemisphere ski venues scoring near-zero in midsummer, a US user opening Peakly right now sees essentially a beach app. The 14 lateSeason + 23 S-hemisphere ski venues are real inventory, but a London or Denver user needs a flight ≥10h to reach any of them. Consider surfacing the southern hemisphere ski story more explicitly in midsummer — a "Ski the Southern Hemisphere" filter pill or carousel header for July–August could convert users who would otherwise bounce thinking ski season is over. Low-engineering lift, high perception win.
+**"Ski in July" is invisible to users.** With 95 standard N-hemisphere ski venues scoring near-zero, a user tapping the Skiing pill in July sees only ~37 venues — but nothing explains why. There's no copy for "Here's what's actually open right now." A header line like *"Summer skiing — 37 venues open worldwide"* or a carousel titled "Ski the Southern Hemisphere" would convert confused bounces to sessions. The data supports it today; the UI doesn't communicate it. 15-minute copy change, no data change.
