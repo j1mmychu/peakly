@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-20
+# Peakly DevOps Report — 2026-07-21
 
-**Status: GREEN** — No P0 or P1 issues. Code freeze day 6 (no commits since July 14 Engelberg). Cache `20260714a` accurate — no code shipped, stamp auto-bumps only on actual code change. Venue count 375 confirmed (133 ski / 242 beach); baseline 375 matches exactly. lateSeason 14 confirmed. AP_CONTINENT gap permanently closed (false positive — 280 entries, all 146 venue `ap` codes present). SRI/CSP remains the only open P2. Site is launch-ready on web.
+**Status: GREEN** — No P0 or P1 issues. Code freeze day 7. Cache `20260720a` (bumped July 20 after jackson-hole dup removal). Venue count **374** (132 ski / 242 beach); baseline 374 matches. Bracket-walker false-positive class identified and closed (comment lines 4735/4746 contain `{lat:...}` syntax that fooled the depth-counter — explains every prior "drift +2" report). lateSeason 14 confirmed. AP_CONTINENT closed. SRI/CSP remains the only open P2. Launch-ready.
 
 ---
 
@@ -13,15 +13,16 @@
 | "GEAR_ITEMS found" | **0 refs. Amazon CUT for v1. Stop.** |
 | "Travelpayouts token in client" | **Server-side only. `TP_MARKER=710303` is public affiliate suffix, not a secret. Stop.** |
 | "Supabase anon key exposed" | **Expected. RLS-gated. Public-safe by design. Stop.** |
-| "Cache buster stale" | **`20260714a` is accurate to last code change (July 14). Age alone ≠ stale. Auto-bumps on next code change. Stop.** |
-| "Venue count 156 / 353 / 370 / 372 / 375 / 377" | **375 via category grep (133 ski / 242 beach). July 15–16 "377" was a bracket-walker false positive. Baseline matches. Stop.** |
+| "Cache buster stale" | **Auto-bumps only on code changes. `20260720a` is accurate to last code change (July 20). Age alone ≠ stale. Stop.** |
+| "Venue count 156 / 353 / 370 / 372 / 375 / 377" | **374 via category grep (132 ski / 242 beach). "377" was bracket-walker false positives from comment `{lat:...}` lines 4735/4746. Stop.** |
 | "lateSeason: 6 / 9 / 13 venues" | **14. Use `grep -c "lateSeason.*true" app.jsx` — covers both compact and batch-JSON formats. Stop.** |
 | "AP_CONTINENT gap — KUL/SNA/MCT/GIG/TFS/CHQ missing" | **FALSE POSITIVE (July 17 + July 19 repeat). AP_CONTINENT has 280 entries. All 146 venue `ap` codes present. Lazy-regex scripts terminate at first `}` in the object body and only see 68 entries. Stop permanently.** |
 | "Cross-category photo contamination" | **FIXED July 6 (`73db399`). Stop.** |
 | "Plausible domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`. Stop.** |
 | "Babel 8.x upgrade available" | **Babel 8 is ESM-only — incompatible with no-bundler arch. Stay on 7.29.7. Stop.** |
 | "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary in code. Appears in a comment only. Stop.** |
-| "venue-baseline drift / 377 venues" | **FALSE POSITIVE. Real count = 375. Baseline = 375. Both match. Stop.** |
+| "venue-baseline drift / 377 venues" | **FALSE POSITIVE. Bracket-walker overcounts by 2 (comment lines 4735/4746 contain `{lat:...}` syntax). Real count via category grep = 374. Baseline = 374. Both match. Stop.** |
+| "Bracket-walker says 376/377" | **False positives from `{lat:...,lon:...}` in comment lines 4735/4746 inside VENUES boundary. Use category grep for authoritative count.** |
 
 ---
 
@@ -29,16 +30,15 @@
 
 | Check | Result |
 |---|---|
-| `app.jsx` lines | 13,507 |
-| `app.jsx` raw size | 676,312 bytes (~180 KB gzipped est.) |
-| Brace balance | 5,572 / 5,572 ✅ |
-| `PEAKLY_BUILD` | `20260714a` |
-| `sw.js` CACHE_NAME | `peakly-20260714a` |
-| `index.html` `?v=` param | `20260714a` |
+| `app.jsx` lines | 13,499 |
+| `app.jsx` raw size | 675,826 bytes (~130 KB gzip est.) |
+| `PEAKLY_BUILD` | `20260720a` |
+| `sw.js` CACHE_NAME | `peakly-20260720a` |
+| `index.html` `?v=` param | `20260720a` |
 | All 3 stamps in lockstep | ✅ |
-| Code freeze | Day 6 (no code commits since July 14 — report-only runs) |
-| Venue count (category grep) | **375** (133 ski / 242 beach) |
-| Venue baseline | `375` ✅ matches |
+| Code freeze | Day 7 (last code commit July 20 — jackson-hole dup removal) |
+| Venue count (category grep, authoritative) | **374** (132 ski / 242 beach) |
+| Venue baseline | `374` ✅ matches |
 | lateSeason venues (`lateSeason.*true`) | **14** ✅ |
 | AP_CONTINENT coverage | ✅ 280 entries; all 146 venue `ap` codes present |
 | Plausible analytics | ✅ Present, uncommented, domain `j1mmychu.github.io/peakly` |
