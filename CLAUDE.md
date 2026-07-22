@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-Peakly is a **single-file React SPA** for finding the best ski or beach spot to fly to **this weekend**. It runs entirely in the browser with no build step — React and Babel are loaded via CDN and JSX is transpiled client-side.
+Peakly is a **single-file React SPA** for finding the best ski or beach spot to fly to **this weekend**. Development: Babel Standalone transpiles JSX in-browser. Production: `scripts/build-web.mjs` pre-compiles `app.jsx → dist/app.min.js` via esbuild (Babel stripped) on every push via `deploy.yml`. See architecture note below.
 
 - **Live:** https://j1mmychu.github.io/peakly/
 - **Goal:** 100K+ downloads. Steve Jobs-level quality.
@@ -40,7 +40,7 @@ peakly/
     └── archive/             # >7-day-old reports
 ```
 
-**No build step.** Babel Standalone transpiles JSX in the browser at runtime. No webpack, no Vite, no bundler, no ES module imports.
+**Production build (since 2026-06-20, commit `8ba0ca3`):** `deploy.yml` line 40 calls `node scripts/build-web.mjs` on every push. That script esbuild-compiles `app.jsx → dist/app.min.js` (439 KB minified, Babel stripped entirely) and rewrites `dist/index.html` to load it. Eliminates the 3–5s Babel parse wall on mobile. **Dev loop unchanged:** open `index.html` locally and Babel-in-browser still transpiles app.jsx. No webpack, no Vite, no ES module imports in source.
 
 ### Key Tech
 
