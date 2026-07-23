@@ -23,6 +23,8 @@
     "build:ios": "bash scripts/build-ios.sh",
     "build:web": "node scripts/build-web.mjs",
     "smoke": "bash scripts/smoke-test.sh",
-    "smoke:local": "bash scripts/smoke-test.sh --local"
+    "smoke:local": "bash scripts/smoke-test.sh --local",
+    "test": "node scripts/test-scoring.mjs",
+    "test:scoring": "node scripts/test-scoring.mjs"
   }
 }

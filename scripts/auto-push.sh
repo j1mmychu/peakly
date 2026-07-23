@@ -125,6 +125,17 @@ const a=eval("("+s.slice(start,i)+")");console.log(a.length);
     guard_fail "venue count dropped $BASELINE → $VCOUNT (limit: -5/commit)"
   fi
   [ "$VCOUNT" -gt "$BASELINE" ] && echo "$VCOUNT" > "$BASEFILE"
+
+  # 4. Scoring invariants. The smoke test only proves the app boots (headless
+  # has no weather, so the score-bearing branches never render); this exercises
+  # scoreVenue/scoreWeekend directly against fixtures. Catches a sign flip or
+  # off-by-one in the moat before it ships. Skipped only if node is missing.
+  if command -v node >/dev/null 2>&1 && [ -f "$REPO/scripts/test-scoring.mjs" ]; then
+    if ! node "$REPO/scripts/test-scoring.mjs" >/tmp/peakly-scoring.log 2>&1; then
+      tail -8 /tmp/peakly-scoring.log >&2
+      guard_fail "scoring regression (see /tmp/peakly-scoring.log)"
+    fi
+  fi
 fi
 # ─────────────────────────────────────────────────────────────────────────────
 
