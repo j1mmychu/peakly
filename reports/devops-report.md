@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-22
+# Peakly DevOps Report — 2026-07-23
 
-**Status: GREEN** — No P0 or P1 issues. Headline finding: the "P1 Babel mobile parse wall" assigned to DevOps in v93/v94/v95 is **already resolved and shipping** via `scripts/build-web.mjs` + `deploy.yml`. CI esbuild-transpiles app.jsx → app.min.js (439 KB, Babel Standalone completely removed) on every push to main. Previous devops reports (including July 21) were auditing source files only and missed the build pipeline entirely. This changes the CSP/SRI situation: `'unsafe-eval'` is no longer required in production, making a strict CSP feasible. Cache stamp `20260720a` is 2 days old. Venue count 374 matches baseline 374 ✅. Code freeze day 8.
+**Status: GREEN** — No P0 or P1 issues. Day 3 since last code change (July 20 jacksonhole dedup). All July 22 findings stand: esbuild CI pipeline is operational, Babel eliminated from prod, CSP now viable without `unsafe-eval`. Cache stamp `20260720a` is 3 days old and correct. Venue count 374 matches baseline 374 ✅. Code freeze day 9 (since July 14 major commit; July 20 was a minor dup-id fix).
 
 ---
 
@@ -230,9 +230,11 @@ Do this before, not after, a distribution push.
 
 ---
 
-## Actions This Run
+## Actions This Run (2026-07-23)
 
-- Verified `build-web.mjs` + `deploy.yml` pre-compile pipeline: operational and shipping. Babel P1 closed — was already resolved in `8ba0ca3` (June 20). Adding to stop-reporting table.
+- Full audit pass: all checks pass, no regressions since July 22 report.
 - No code changes required today.
+- Confirmed: GEAR_ITEMS = 0, lateSeason = 14, venue count = 374, baseline = 374. All in lockstep.
+- July 22 stop-reporting table entries remain accurate — no new patterns to add.
 
-**Status: GREEN. Babel P1 closed (was already shipping). P2 SRI/CSP is now much simpler without `unsafe-eval`. Day 8 code freeze. Launch-ready on web.**
+**Status: GREEN. Day 9 code freeze. No new issues. Launch-ready on web.**
