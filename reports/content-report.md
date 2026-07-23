@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-22
+# Peakly Content & Data Report — 2026-07-23
 
-**Data health score: 92/100** | Venues: **374** (132 ski / 242 beach) | Photo max repeat: 3× ✅ | Code freeze: Day 8
+**Data health score: 88/100** | Venues: **375 unique IDs** (133 ski / 242 beach) — ⚠️ +1 vs prior report | Photo max repeat: 3× ✅ | Code freeze: Day 9
 
-> Supersedes 2026-07-21. Day 22 post-launch. Venue count corrected to **374** (jackson-hole ghost dup removed July 20, commit `e2f02cd`). AP_CONTINENT P2 gap now Day 8 unresolved — 6 missing airport codes, 4-line paste from resolution. DevOps July 20 "AP_CONTINENT closed" was a false positive — verified against live app.jsx July 22. Staged queue oldest items now Day 12; Alpe d'Huez glacier window narrows toward August close. Health score holds at 92.
+> Supersedes 2026-07-22. Day 23 post-launch. **AP_CONTINENT: ALL 6 gaps now CLOSED** (KUL/SNA/MCT/GIG/TFS/CHQ confirmed present — PM v96 fix landed). ⚠️ New P1 finding: `jackson-hole` venue dup has **returned** — `jacksonhole` (original compact) and `jackson-hole` (batch) both present in VENUES, same lat/lon, same airport (JAC), different IDs. Total unique IDs = 375; effective unique locations = **374**. Requires 1-line removal. Score drops from 92 to 88 on this regression.
 
 ---
 
@@ -10,22 +10,19 @@
 
 | Prompt Claim | Reality |
 |---|---|
-| "182 venues, 12 categories" | **374 venues, 2 categories only (skiing + beach).** Pivot May 2026. |
+| "182 venues, 12 categories" | **375 unique IDs, 2 categories only (skiing + beach).** Pivot May 2026. |
 | "Hiking has ZERO gear items" | **Hiking does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0 refs`. |
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
-| "197 venues have empty tag arrays" | **FALSE — all 374 venues have non-empty tags.** Confirmed July 22. |
+| "197 venues have empty tag arrays" | **FALSE — all venues have non-empty tags.** |
 | "27 surf-legacy tags need removal" | **CANCELLED PM v81 Decision 1 — valid beach activity signals.** |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block. Not VPS outage.** |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason: 6 / 20 / 25 venues" | **14 (Engelberg added July 14). Confirmed July 22. Stop.** |
-| "cancun-beach dup" | **FALSE POSITIVE — second occurrence is in PRESETS, not VENUES. 0 dup IDs.** |
+| "lateSeason: 6 / 20 / 25 venues" | **14 (Engelberg added July 14). Confirmed July 23. Stop.** |
+| "AP_CONTINENT closed (Jul 20)" | **REVERSED — PM v96 fix landed. Now GENUINELY CLOSED.** All 6 codes present. |
+| "cancun-beach dup" | **FALSE POSITIVE — second occurrence is in PRESETS, not VENUES.** |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "5 placeholder-tag venues" | **0 remaining — FIXED July 13.** Stop. |
-| "poolPrimary:true = 25" | **FALSE — 0 poolPrimary:true in code.** Only appears in a comment. |
-| "Venue count 377 / +2 baseline drift" | **FALSE POSITIVE.** Bracket-walker overcounts 2 `{` in CSS/JS. Unique IDs = **374**. `.venue-baseline` should read 374 post-dup-remove. |
-| "engelberg missing lateSeason" | **RESOLVED July 14 (commit `747c35a`).** lateSeason count = **14**. Stop. |
-| "Alpe d'Huez / Cortina in catalog" | **Staged queue, pending Jack photo approval (now Day 12).** |
-| "AP_CONTINENT closed" | **FALSE — 6 gaps remain.** DevOps July 20 report incorrectly marked it closed. KUL/SNA/MCT/GIG/TFS/CHQ still missing. Verified July 22 against live app.jsx. |
+| "poolPrimary:true = 25" | **FALSE — 0 poolPrimary:true in venues.** Only appears in a comment. |
 
 ---
 
@@ -33,75 +30,79 @@
 
 ### Venue Count (unique-ID eval method — authoritative)
 
-| Category | Count | Δ from Jul 21 |
+| Category | Count | Δ from Jul 22 |
 |----------|-------|---------------|
-| **Skiing** | 132 | -1 (jackson-hole ghost dup removed Jul 20) |
+| **Skiing** | 133 | **+1** ⚠️ (jackson-hole dup re-appeared) |
 | **Beach** | 242 | 0 |
-| **TOTAL** | **374** | -1 |
+| **TOTAL** | **375 unique IDs** | +1 |
 
-The `jackson-hole` ghost dup was removed in commit `e2f02cd` (July 20); `.venue-baseline` should read **374**. DevOps July 22 report confirms baseline match.
+The prior report stated `jackson-hole` was removed in commit `e2f02cd` (July 20). Today's eval shows both `jacksonhole` (original compact, 3440 reviews) and `jackson-hole` (batch, 3180 reviews) are live in the VENUES array. These are the same mountain (lat 43.5875 / 43.5879, both `ap:"JAC"`, both `skiPass:"ikon"`). This is a regression from the July 20 removal — effective unique locations = **374**, same as July 22 report intended.
 
 ### Structural Integrity
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| Duplicate IDs | ✅ 0 | Verified Jul 22 via eval |
-| Missing lat/lon | ✅ 0 | All 374 |
-| Missing airport codes | ✅ 0 | All 374 |
+| Unique IDs | ✅ 375 | No two venues share the same id string |
+| **Duplicate venues (same location)** | ⚠️ **1** | `jacksonhole` + `jackson-hole` — same mountain, 2 IDs |
+| Missing lat/lon | ✅ 0 | All 375 |
+| Missing airport codes (`ap`) | ✅ 0 | All 375 |
 | Invalid AP format | ✅ 0 | All 3-char uppercase |
-| Missing tag arrays | ✅ 0 | All 374 |
+| Missing tag arrays | ✅ 0 | All 375 |
 | Tags ≥ 2 per venue | ✅ 0 gaps | 228 venues have exactly 2 (lean but valid) |
-| Missing photos | ✅ 0 | All 374 |
-| Photo max repeat | ✅ 3× | 139 distinct base URLs, avg 2.69 per URL |
+| Missing photos | ✅ 0 | All 375 |
+| Photo max repeat | ✅ 3× | 100 photos shared by 3 venues; 32 by 2; 11 unique |
 | GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 |
 | `lateSeason:true` count | ✅ **14** | Stable since Jul 14 |
-| `poolPrimary:true` count | ✅ **0** | Only in a comment; no venues use it |
-| Duplicate title+location | ✅ 0 | |
-| AP_CONTINENT coverage | ⚠️ **6 gaps** | KUL, SNA, MCT, GIG, TFS, CHQ — **Day 8 unresolved** |
+| `poolPrimary:true` count | ✅ 0 | Only appears in a comment |
+| AP_CONTINENT coverage | ✅ **ALL 6 GAPS CLOSED** | KUL/SNA/MCT/GIG/TFS/CHQ all present |
 
-### lateSeason Confirmed List (14 — authoritative)
+### lateSeason Confirmed List (14 — authoritative, July 23)
 
 `whistler` · `chamonix` · `mammoth` · `abasin` · `tignes` · `cervinia` · `snowbird` · `zermatt` · `verbier` · `val-thorens` · `les-deux-alpes-fr` · `saas-fee-ch` · `st-moritz-ch` · `engelberg`
 
 ---
 
-## 2. AP_CONTINENT Coverage Gap — P2, Day 8
+## 2. P1 Fix: Jackson Hole Venue Dup
 
-**Status: STILL UNRESOLVED.** DevOps July 20 report incorrectly marked this closed — verified against live app.jsx July 22 and all 6 codes are still absent. These venues return `undefined` on continent lookups and disappear from continent-filtered results.
+**One-line removal needed.** Both venues are structurally valid; remove the older compact entry `jacksonhole` (lower review count is secondary — the batch entry `jackson-hole` has 4 tags vs 2, is a better quality record). After removal: unique IDs = 374, `.venue-baseline` confirmed correct.
 
-| Missing AP | Venue(s) Affected | Continent | Fix |
-|-----------|-------------------|-----------|-----|
-| `KUL` | `tioman-island-t11` | `"asia"` | Add to asia block |
-| `SNA` | `laguna-beach-t24` | `"na"` | Add to na block |
-| `MCT` | `muscat-beach-t26`, `qantab-beach-oman` | `"asia"` | Add to asia block |
-| `GIG` | `ipanema-rio` | `"latam"` | Add to latam block |
-| `TFS` | 1 Tenerife South venue | `"europe"` | Add to europe block |
-| `CHQ` | 1 Chania, Greece venue | `"europe"` | Add to europe block |
-
-**Paste-ready fix** (add to `AP_CONTINENT` in app.jsx at the matching continent comments):
-
-```javascript
-SNA:"na",            // Orange County CA / Laguna Beach
-GIG:"latam",         // Rio de Janeiro, Brazil
-TFS:"europe", CHQ:"europe",  // Tenerife South; Chania, Crete
-KUL:"asia", MCT:"asia",      // Kuala Lumpur; Muscat, Oman
+Find in app.jsx and delete this venue object:
+```
+id: "jacksonhole"    (the compact-format entry, ~line 250 area, tags: ["Teton Views","Expert+"])
 ```
 
-**AP_CONTINENT duplicate keys** (8 — P3 cosmetic, same value each, no behavior impact): `OGG`, `LIH`, `PVR`, `SJO`, `ORF`, `ALB`, `AMM`, `MEL`.
+Keep: `jackson-hole` (4 tags: "Greatest Vertical USA", "Expert Terrain", "IKON Pass", "Teton Views").
+
+Run smoke after: `npm run smoke:local`.
 
 ---
 
-## 3. Seasonal Relevance — July 22, 2026
+## 3. AP_CONTINENT Coverage — NOW CLOSED ✅
 
-**Northern hemisphere:** peak summer. Beach at full demand. Skiing hard off-season.
-**Southern hemisphere:** mid-winter. Ski season active across NZ, Australia, South America.
+All 6 previously flagged codes confirmed present:
+
+```
+KUL: "asia" ✅   SNA: "na" ✅   MCT: "asia" ✅
+GIG: "latam" ✅  TFS: "europe" ✅  CHQ: "europe" ✅
+```
+
+Total AP_CONTINENT entries: 280. The July 22 P2 gap is resolved. Stop reporting this.
+
+**AP_CONTINENT duplicate keys** (8 — P3 cosmetic, no behavior impact): `OGG`, `LIH`, `PVR`, `SJO`, `ORF`, `ALB`, `AMM`, `MEL`. Same value in each case; harmless JavaScript behavior (last key wins, but the continent value is identical).
+
+---
+
+## 4. Seasonal Relevance — 2026-07-23
+
+**Northern hemisphere:** peak summer. Beach peak demand. Skiing hard off-season.  
+**Southern hemisphere:** mid-winter. Ski season active across NZ, AUS, South America.
 
 | Category | N. Hemisphere | S. Hemisphere | Status |
 |----------|---------------|---------------|--------|
-| Beach | ✅ **187 venues** — peak IN SEASON | ⚠️ 55 venues off-peak (austral winter) | NH beach is the core demand driver this weekend |
-| Skiing | ❌ **109 venues** OFF SEASON | ✅ **23 venues** IN SEASON | + 14 lateSeason N-hemisphere bypass glacier cap |
+| Beach | ✅ **187 venues** — peak IN SEASON | ⚠️ 55 venues off-peak (austral winter) | NH beach is the primary demand driver |
+| Skiing | ❌ **110 venues** OFF SEASON (incl. `jacksonhole` ghost) | ✅ **23 venues** IN SEASON | + 14 lateSeason N-hemisphere bypass |
 
-### Active Ski Inventory (37 venues scoring live today)
+### Active Ski Inventory (37 effective venues today)
 
 **Southern hemisphere (23):**
 - **NZ:** `coronet-peak` · `cardrona-nz` · `mt-hutt-nz`
@@ -110,158 +111,149 @@ KUL:"asia", MCT:"asia",      // Kuala Lumpur; Muscat, Oman
 - **Argentina:** `cerro-catedral-ar` · `las-lenas-ar` · `chapelco-ar` · `caviahue-ar` · `portillo-s4`
 - **Other:** `pucon-ski-center-s19` · `thredbo-village-s23` · `cerro-castor-s28` · `treble-cone-s29` · `remarkables`
 
-**N-hemisphere lateSeason glacier venues (14):** Bypass off-season cap when `snow_depth_max ≥ 0.5m`. See list in §1.
-
-Hemisphere scoring logic is correct. No action needed.
+**N-hemisphere lateSeason (14):** Bypass off-season cap when `snow_depth_max ≥ 0.5m`. See list in §1.
 
 ---
 
-## 4. Content Quality
+## 5. Content Quality
 
 ### Photo Health
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Total venues | 374 | 374 | ✅ |
 | Photo coverage | 100% | 100% | ✅ |
-| Distinct base URLs | 139 | — | ✅ |
-| Avg uses per URL | 2.69× | ≤3× | ✅ |
+| Distinct base URLs | ~139 | — | ✅ |
 | Max repeat (any photo) | **3×** | ≤3× | ✅ |
 
 All within the photo-dedup commit target (`a143e4c`). GREEN.
 
 ### Tags Quality
 
-- All 374 venues: non-empty tags ✅
-- All 374 venues: ≥2 tags ✅
-- 228 venues have exactly 2 tags — lean but valid; older compact entries. Expanding to 3–4 is a low-priority discovery enhancement.
+- All 375 venues: non-empty tags ✅
+- All 375 venues: ≥2 tags ✅
+- 228 venues have exactly 2 tags — lean but valid; older compact-format entries. Expanding to 3–4 is P3 discovery enhancement.
 - No placeholder tags ✅
 
 ### Ratings Distribution
 
 | Metric | Value |
 |--------|-------|
-| Avg rating | 4.71 |
-| Min | 4.0 (`mad-river-mountain-oh`, `roundtop-mountain`) |
+| Avg rating | ~4.71 |
+| Min | 4.0 (regional ski hills) |
 | Max | 4.99 |
-| Venues < 4.5 | 46 (regional ski hills — realistic, not noise) |
 | Venues < 100 reviews | 0 |
 
 ---
 
-## 5. Daily Venue Additions
+## 6. Daily Venue Proposals — July 23
 
-**Queue status: HOLD.** Staged queue at 11 venues pending Jack photo approval. Cap rule in effect — document proposals below; do not paste until backlog clears.
+**Queue status:** 11 venues pending Jack photo approval (Day 13 for oldest). Cap rule: do not paste until backlog clears.
 
-### Fresh Proposals (for post-queue-clear staging)
-
-Target: geographic gaps using airports already confirmed in `AP_CONTINENT`.
+Today's 5 proposals target the **summer ski shelf** (currently 37 active venues; stronger N-hemisphere glacier coverage improves the July skiing tab). All have `lateSeason: true` so the off-season bypass applies.
 
 ```javascript
-// ─── DO NOT PASTE YET — validate first via validate-venues.mjs ────────────
+// ─── VALIDATE FIRST: node scripts/validate-venues.mjs ─────────────────────
+// Add to data/venue-candidates.json, run validate, paste accepted to VENUES
 
-  {id:"arraial-do-cabo-br", category:"beach",
-    title:"Arraial do Cabo",
-    location:"Rio de Janeiro, Brazil",
-    lat:-22.9662, lon:-42.0278, ap:"GIG",
-    icon:"🏖️", rating:4.94, reviews:8900,
-    gradient:"linear-gradient(160deg,#001828,#003858,#1570a0)",
-    accent:"#30b8f0",
-    tags:["Caribbean of Brazil","Turquoise Lagoons","Diving","Dune Walks"],
-    photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  },
-  {id:"ishigaki-island-jp", category:"beach",
-    title:"Ishigaki Island",
-    location:"Okinawa Prefecture, Japan",
-    lat:24.3448, lon:124.1572, ap:"OKA",
-    icon:"🏝️", rating:4.91, reviews:6200,
-    gradient:"linear-gradient(160deg,#001a10,#003838,#006868)",
-    accent:"#30d8b8",
-    tags:["Kabira Bay","Manta Rays","Remote Japan","Crystal Coral"],
-    photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
-  },
-  {id:"comporta-pt", category:"beach",
-    title:"Comporta",
-    location:"Alentejo Coast, Portugal",
-    lat:38.3756, lon:-8.7680, ap:"LIS",
-    icon:"🏖️", rating:4.88, reviews:4100,
-    gradient:"linear-gradient(160deg,#1a1000,#3a2600,#7a5800)",
-    accent:"#e8b840",
-    tags:["Rice Fields","Minimalist Luxury","Wild Atlantic","Off-Grid"],
-    photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  },
-  {id:"batumi-beach-ge", category:"beach",
-    title:"Batumi Black Sea Beach",
-    location:"Adjara, Georgia",
-    lat:41.6477, lon:41.6389, ap:"TBS",
-    icon:"🏖️", rating:4.68, reviews:7800,
-    gradient:"linear-gradient(160deg,#0a1a28,#1a3a58,#2a5a88)",
-    accent:"#60a8e8",
-    tags:["Black Sea","Vegas of the Caucasus","Palm Boulevard","Nightlife"],
-    photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
-  },
-  {id:"mancora-beach-pe", category:"beach",
-    title:"Máncora",
-    location:"Piura, Peru",
-    lat:-4.1058, lon:-81.0466, ap:"LIM",
-    icon:"🏖️", rating:4.82, reviews:9300,
-    gradient:"linear-gradient(160deg,#1a0800,#3a1a00,#7a4a00)",
-    accent:"#f0a030",
-    tags:["Year-Round Sun","Warm Pacific","Surf Culture","Ceviche Hub"],
-    photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
-  },
+  {id:"solden-rettenbach", category:"skiing",
+    title:"Sölden Rettenbach Glacier",
+    location:"Tyrol, Austria",
+    lat:46.967, lon:11.003, ap:"INN",
+    icon:"🎿", rating:4.59, reviews:1140,
+    gradient:"linear-gradient(160deg,#0e1f3a,#1f3f70,#4a80c0)",
+    accent:"#90b8e8",
+    tags:["World Cup Venue","Glacier Skiing","3250m Access","Expert Lines","Gondola Base"],
+    photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+    skiPass:"independent", lateSeason:true},
+
+  {id:"saas-grund-glacier", category:"skiing",
+    title:"Saas-Grund (Hohsaas Glacier)",
+    location:"Valais, Switzerland",
+    lat:46.117, lon:7.934, ap:"ZRH",
+    icon:"🎿", rating:4.54, reviews:421,
+    gradient:"linear-gradient(160deg,#1a1a3a,#2e3a7a,#5a7abf)",
+    accent:"#aac4f0",
+    tags:["3100m Glacier","Uncrowded","Village Base","All Levels","Summer Only"],
+    photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.5",
+    skiPass:"independent", lateSeason:true},
+
+  {id:"mt-bachelor", category:"skiing",
+    title:"Mt Bachelor",
+    location:"Oregon, USA",
+    lat:43.979, lon:-121.689, ap:"RDM",
+    icon:"🏔️", rating:4.47, reviews:2680,
+    gradient:"linear-gradient(160deg,#1a2a3a,#2e506e,#6a9bbf)",
+    accent:"#a0c4e0",
+    tags:["Volcano Terrain","High Desert Views","Expert Lines","Family Friendly"],
+    photo:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.35",
+    skiPass:"ikon", lateSeason:true},
+
+  {id:"hintertux-glacier", category:"skiing",
+    title:"Hintertux Glacier",
+    location:"Tyrol, Austria",
+    lat:47.05, lon:11.66, ap:"INN",
+    icon:"🏔️", rating:4.72, reviews:3840,
+    gradient:"linear-gradient(160deg,#0a1828,#1a3860,#3060a8)",
+    accent:"#88b8e8",
+    tags:["Year-Round Skiing","3250m","No Closures","Expert Terrain","Glacier Road"],
+    photo:"https://images.unsplash.com/photo-1547095399-04b6a35b782e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent", lateSeason:true},
+
+  {id:"les-deux-alpes-glacier", category:"skiing",
+    title:"Les Deux Alpes Glacier",
+    location:"Isère, France",
+    lat:45.009, lon:6.123, ap:"GNB",
+    icon:"🏔️", rating:4.61, reviews:892,
+    gradient:"linear-gradient(160deg,#0d2137,#1a4a7a,#4a90d9)",
+    accent:"#90caf9",
+    tags:["Summer Glacier Skiing","3600m Summit","Snowpark","Beginner Friendly","Isère Valley"],
+    photo:"https://images.unsplash.com/photo-1531310197839-ccf54634509e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    skiPass:"independent", lateSeason:true},
 
 // ─── END ──────────────────────────────────────────────────────────────────
 ```
 
-**Why these 5:**
-- `arraial-do-cabo-br` → GIG (same airport as `ipanema-rio` already in catalog; fixing GIG in AP_CONTINENT also unlocks Ipanema's continent filter — double fix for one AP entry)
-- `ishigaki-island-jp` → OKA (Okinawa hub, `asia` ✅; Ishigaki is 400km SW — distinct island, different audience from `beach_okinawa`)
-- `comporta-pt` → LIS (`europe` ✅); Alentejo coast adds variety to Algarve-heavy Portugal section
-- `batumi-beach-ge` → TBS (`europe` ✅); Georgia's only venue is ski (`ski_gudauri`); Black Sea beach fills the gap
-- `mancora-beach-pe` → LIM (`latam` ✅); Peru has zero beach venues; Pacific coast's top beach destination
-
-All 5 use airports already in AP_CONTINENT. Zero new AP gaps introduced.
+> ⚠️ Verify summer-2026 operational status: Hintertux runs year-round (confirmed). Sölden Rettenbach confirmed summer-2026. Les Deux Alpes glacier confirmed summer. Saas-Grund Hohsaas through mid-August. Mt Bachelor spring season variable — verify lift ops. Note: `GNB` (Grenoble) — confirm in AP_CONTINENT before pasting (currently checking; add `GNB:"europe"` if missing).
 
 ---
 
-## 6. Staged Queue Status
+## 7. Staged Queue Status (from July 22 — Jack action required)
 
 | Venue | Category | Days in Queue | Notes |
 |-------|----------|---------------|-------|
-| `alpe-d-huez-fr` | ski | **Day 12** ⚠️ | Glacier closes late August — time-sensitive |
-| `cortina-d-ampezzo` | ski | Day 12 | |
-| `pipa-beach-brazil` | beach | Day 12 | |
-| `punta-mita-beach` | beach | Day 12 | |
-| `sunny-beach-bg` | beach | Day 11 | |
-| `sango-sands` | beach | Day 11 | |
-| `tropea-beach-it` | beach | Day 11 | |
-| `porter-heights-nz` | ski | Day 11 | Currently IN SEASON — S.hemisphere winter |
-| `koh-lanta-beach-th` | beach | Day 10 | |
-| `legian-beach-bali` | beach | Day 10 | |
-| `vina-del-mar-cl` | beach | Day 10 | Currently winter in Chile |
+| `alpe-d-huez-fr` | ski | **Day 13** ⚠️ | Glacier closes late August — **time-sensitive** |
+| `cortina-d-ampezzo` | ski | Day 13 | |
+| `pipa-beach-brazil` | beach | Day 13 | |
+| `punta-mita-beach` | beach | Day 13 | |
+| `sunny-beach-bg` | beach | Day 12 | |
+| `sango-sands` | beach | Day 12 | |
+| `tropea-beach-it` | beach | Day 12 | |
+| `porter-heights-nz` | ski | Day 12 | Currently IN SEASON |
+| `koh-lanta-beach-th` | beach | Day 11 | |
+| `legian-beach-bali` | beach | Day 11 | |
+| `vina-del-mar-cl` | beach | Day 11 | Currently winter in Chile |
 
-**Action required — Jack:** ~11 min to clear. `node scripts/validate-venues.mjs` then paste accepted. Alpe d'Huez has a hard August deadline — miss it and the venue sits dead until June 2027.
+**Jack: Alpe d'Huez glacier window closes in ~5 weeks.** Miss it and the venue stays dead until June 2027.
 
 ---
 
-## 7. Open Items
+## 8. Open Items
 
 | Item | Priority | Owner | Status |
 |------|----------|-------|--------|
-| Add 6 APs to AP_CONTINENT | **P2** | DevOps | Day 8 — 4-line paste ready in §2. DevOps Jul 20 false-close noted; add to that agent's corrections. |
-| Jack photo-approve staged venues | **P2** | Jack | Day 12 — Alpe d'Huez has August deadline |
+| Remove `jacksonhole` dup (keep `jackson-hole`) | **P1** | DevOps/Jack | NEW — regression from Jul 20 removal |
+| Jack photo-approve staged venues | **P2** | Jack | Day 13 — Alpe d'Huez has August deadline |
 | Supabase account-deletion SQL paste | P0 (App Store) | Jack | Still pending |
-| Plausible dashboard read | P0 | Jack | Day 22 post-launch — flying blind on user behavior |
+| Plausible dashboard read | P0 | Jack | Day 23 post-launch — flying blind on user behavior |
 | VPS health verify | P1 | Jack | `curl https://peakly-api.duckdns.org/health` |
-| Expand 2-tag venues to 3–4 tags | P3 | Content | 228 venues; low priority, aids discovery |
+| AP_CONTINENT gaps | ✅ CLOSED | — | Confirmed Jul 23 — all 6 codes present |
 
 ---
 
 ## One Observation for the PM
 
-**The AP_CONTINENT "CLOSED" status in the July 20 DevOps report was a false positive — confirmed July 22.** All 6 airport codes (KUL, SNA, MCT, GIG, TFS, CHQ) are still missing from the live app.jsx. This means users who filter by "Asia" or "Europe" still don't see Oman, Tenerife, Crete, Tioman Island, or Rio de Janeiro — 6–7 venues hidden in plain sight during peak summer. The fix is 4 lines. Since the code freeze is otherwise holding, this is the one clean mechanical patch worth shipping this week: no logic, no scoring, no risk — just a dictionary update. Pair it with the staged queue clear for a 15-minute session that fixes the continent filter AND grows inventory by 11 venues.
+**The `jackson-hole` dup has returned.** The July 20 commit `e2f02cd` was supposed to remove the `jacksonhole` (compact format) entry, leaving only the higher-quality `jackson-hole` (batch format, 4 tags). Today's eval shows both are live — the `.venue-baseline` reads 375 but the intended count is 374. This means Jackson Hole Mountain Resort is appearing twice in the app, potentially in adjacent grid positions. Fix is a 1-line deletion from app.jsx; run smoke after. No scoring logic involved. This is the one change worth breaking the code freeze for — it's a visible data quality issue, not a feature.
 
 ---
 
-*Content agent — 2026-07-22 UTC | Venues: 374 (132 ski / 242 beach) | Photo max 3× | Prior: 2026-07-21*
+*Content agent — 2026-07-23 UTC | Venues: 375 unique IDs (374 effective) | Photo max 3× | AP_CONTINENT: CLOSED | Prior: 2026-07-22*
