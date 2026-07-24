@@ -1,6 +1,6 @@
-# Peakly DevOps Report — 2026-07-23
+# Peakly DevOps Report — 2026-07-24
 
-**Status: GREEN** — No P0 or P1 issues. Day 3 since last code change (July 20 jacksonhole dedup). All July 22 findings stand: esbuild CI pipeline is operational, Babel eliminated from prod, CSP now viable without `unsafe-eval`. Cache stamp `20260720a` is 3 days old and correct. Venue count 374 matches baseline 374 ✅. Code freeze day 9 (since July 14 major commit; July 20 was a minor dup-id fix).
+**Status: GREEN** — No P0 or P1 issues. Day 10 code freeze (last code change July 20 jackson-hole dedup). Venue count 374 matches baseline. Cache stamp `20260720a` is 4 days old and accurate. esbuild CI pipeline operational, Babel eliminated from production. PM v95's "Jul 24 pre-compile CI deadline" was already met on June 20 (commit `8ba0ca3`) — nothing to act on today.
 
 ---
 
@@ -12,18 +12,17 @@
 | "Sentry DSN empty" | **Active at `app.jsx:8` and `index.html:77`.** Stop. |
 | "GEAR_ITEMS found" | **0 refs. Amazon CUT for v1.** Stop. |
 | "Travelpayouts token in client" | **Server-side only. `TP_MARKER=710303` is public affiliate suffix, not a secret.** Stop. |
-| "Supabase anon key exposed" | **Expected. RLS-gated. Public-safe by design.** Stop. |
-| "Cache buster stale" | **Auto-bumps on code changes only. `20260720a` = last code change (July 20). Age alone ≠ stale.** Stop. |
-| "Venue count 156 / 353 / 370 / 372 / 375 / 376 / 377" | **374 via category grep (132 ski / 242 beach) = eval bracket-walker. Bracket-walker false positive from comment lines 4735/4746 closed July 21. Stop permanently.** |
+| "Supabase anon key exposed" | **Expected. RLS-gated. Public-safe by design (`app.jsx:24`).** Stop. |
+| "Cache buster stale" | **Auto-bumps on code changes only. `20260720a` = last code change. Age alone ≠ stale.** Stop. |
+| "Venue count 156 / 353 / 370 / 372 / 375 / 376 / 377" | **374 via category grep (132 ski / 242 beach). Bracket-walker false positive closed July 21. Stop permanently.** |
 | "lateSeason: any count other than 14" | **14. Use `grep -c "lateSeason.*true" app.jsx`. Stop.** |
 | "AP_CONTINENT gaps" | **PERMANENTLY CLOSED. 280 entries, all 146 venue `ap` codes present.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
-| "Plausible domain wrong" | **FIXED July 7 → `j1mmychu.github.io/peakly`.** Stop. |
-| "Babel 8.x upgrade available" | **Babel 8 ESM-only — incompatible with no-bundler arch. Stay 7.29.7 in source; production uses esbuild already.** Stop. |
-| "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary.** Stop. |
-| "venue-baseline drift / 376 / 377 venues" | **ROOT CAUSE CLOSED July 21. Real count = 374. Baseline = 374. Both match. Stop.** |
-| "Babel mobile parse wall is unresolved / P1" | **ALREADY RESOLVED. `scripts/build-web.mjs` + `deploy.yml` ships esbuild-compiled app.min.js with no Babel. CLOSED. Stop.** |
+| "Babel mobile parse wall is unresolved / P1" | **RESOLVED. `build-web.mjs` + `deploy.yml` ships esbuild-compiled `app.min.js`. Babel not present in production. CLOSED. Stop.** |
 | "jacksonhole / jackson-hole ghost dup" | **FIXED July 20 (`e2f02cd`).** Stop. |
+| "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary.** Stop. |
+| "venue-baseline drift" | **ROOT CAUSE CLOSED July 21. Real count = 374. Baseline = 374. Both match. Stop.** |
+| "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
+| "Plausible domain wrong" | **FIXED July 7.** Stop. |
 | "retention email unsent" | **COHORT CLOSED per PM v94. Stop.** |
 
 ---
@@ -33,33 +32,31 @@
 | Check | Result |
 |---|---|
 | `app.jsx` lines | 13,499 |
-| `app.jsx` raw size | 675,826 bytes |
-| `dist/app.min.js` size (esbuild output) | **449,910 bytes (33% smaller, Babel removed)** |
+| `app.jsx` raw size | 675,826 bytes (659 KB) |
 | Brace balance | 5,571 / 5,571 ✅ |
 | `PEAKLY_BUILD` | `20260720a` |
 | `sw.js` CACHE_NAME | `peakly-20260720a` |
 | `index.html` `?v=` param | `20260720a` |
-| `dist/index.html` has Babel reference | **0 — Babel completely stripped** ✅ |
-| `dist/index.html` loads app.min.js | ✅ `<script src="./app.min.js?v=20260720a">` |
 | All 3 stamps in lockstep | ✅ |
-| Days since last stamp bump | 2 (July 20 → July 22) |
-| Venue count (eval + category grep, both methods) | **374** (132 ski / 242 beach) ✅ |
-| Venue baseline file | `374` ✅ matches |
+| Days since last stamp bump | 4 (July 20 → July 24) |
+| Venue count (category grep) | **374** (132 ski / 242 beach) ✅ |
+| Venue baseline | `374` ✅ matches |
 | lateSeason venues | **14** (`grep -c "lateSeason.*true" app.jsx`) |
-| Plausible analytics | ✅ Present, uncommented, correct domain |
+| Plausible analytics | ✅ Present, uncommented, correct domain (`j1mmychu.github.io/peakly`) |
 | Sentry DSN | ✅ Active (`app.jsx:8`, `index.html:77`) |
-| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` |
-| Any `http://` endpoints in app.jsx | ✅ None |
+| Proxy URL | ✅ HTTPS `peakly-api.duckdns.org` (no HTTP endpoints) |
 | Travelpayouts token in client | ✅ None — server-side only |
 | GEAR_ITEMS refs | ✅ 0 |
-| Images lazy-loaded | ✅ 9 `loading="lazy"` sites in app.jsx |
-| `.gitignore` covers secrets | ✅ `.env`, `*.pem`, `*.p8`, `*.key`, `*.p12`, `*.pdf` all covered |
+| Images lazy-loaded | ✅ 9 `loading="lazy"` sites |
+| `.gitignore` covers secrets | ✅ `.env`, `*.pem`, `*.p8`, `*.key`, `*.pdf` all covered |
 | React CDN | 18.3.1 ✅ |
-| Babel CDN (source only) | 7.29.7 (production bundle: **not present**) |
-| esbuild in package.json devDeps | ✅ `^0.28.1` |
+| Babel CDN (source only) | 7.29.7 (production: **not loaded** — esbuild replaces it) |
+| esbuild pipeline | ✅ `build-web.mjs` → `dist/app.min.js` (~439 KB, 33% smaller) |
+| Babel in `dist/` | ✅ 0 references (build script asserts this with `process.exit(1)` on leak) |
 | Flight proxy timeout | 5,000 ms + AbortController ✅ |
 | Weather proxy timeout | 4,000 ms + AbortController ✅ |
 | Supabase JS | Lazy-loaded ✅ |
+| VPS health | ⚠️ Cannot verify from sandbox (egress blocked — documented behavior; last verified healthy July 22) |
 
 ---
 
@@ -71,170 +68,91 @@
 
 ## P1 — High (Fix This Week)
 
-**None.** The Babel P1 is already resolved — see headline finding below.
-
----
-
-## Headline Finding: Babel P1 Already Resolved and Shipping
-
-The "P1 Babel mobile parse wall" assigned to DevOps in v93/v94/v95 with a July 24 deadline is **already fixed**. Every prior devops report diagnosed the symptom (Babel Standalone in source `index.html`) without checking the deploy pipeline output.
-
-**What's actually happening:**
-
-`deploy.yml` calls `node scripts/build-web.mjs` on every push. That script (added June 20 in `8ba0ca3`):
-1. esbuild-transpiles app.jsx (classic JSX → `React.createElement`, ES2018 target, minified)
-2. Writes `dist/app.min.js` — **449 KB** (vs 676 KB raw, 33% smaller)
-3. Rewrites `dist/index.html` to load `app.min.js` instead of `type="text/babel" app.jsx`
-4. Strips the Babel preload tag, Babel `<script>`, and its comment entirely from dist
-5. Fails loud if any Babel reference leaks into dist (verified: 0 leaks)
-
-Verified today by running the build:
-```
-[build-web] ✅ built dist/ (stamp 20260720a)
-[build-web]    app.jsx 647.8 KB → app.min.js 439.4 KB (32% smaller, Babel dropped)
-
-grep -c "babel|text/babel" dist/index.html → 0
-dist/index.html: <script src="./app.min.js?v=20260720a"></script>
-```
-
-**Performance impact:**
-- Babel download: ~400 KB gzip → **0 KB**
-- Babel parse time on mid-tier Android: 3–5 s → **0 ms**
-- Cold-load first render improvement: ~60% faster on mobile
-- `'unsafe-eval'` CSP requirement: **gone in production** (unlocks strict CSP — see P2-A)
-
-**The July 24 deadline is already met.** No action needed.
+**None.**
 
 ---
 
 ## P2 — Medium (Fix This Sprint)
 
-### P2-A: SRI + strict CSP — now feasible without `'unsafe-eval'`
+### P2-A: No SRI Hashes on CDN Scripts (Persistent, Day 10+)
 
-Previous devops reports flagged this "too risky — Babel requires `'unsafe-eval'`." That constraint is gone in production. The deployed `dist/index.html` loads pre-compiled JS. A strict CSP with SRI is now straightforward.
+**Risk:** Unpkg CDN compromise → XSS into every Peakly user. Low probability but non-zero; affects React 18.3.1 and Babel 7.29.7 (source). Without `integrity=` attributes, the browser accepts whatever the CDN serves.
 
-**Fix (45 min, post-launch):**
+**Why not done yet:** Requires a one-time hash fetch. Babel 8 is ESM-only and incompatible — stay on 7.29.7 in source. Production doesn't load Babel at all (esbuild), so Babel SRI is low-value; React SRI is the real fix.
 
-Compute SRI hashes for the CDN scripts that remain in `dist/index.html`:
+**Exact fix — fetch the hash once and paste into `index.html`:**
+
 ```bash
+# Run locally or in CI. Generates the sha384 integrity hash for each CDN script.
 curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
+  | openssl dgst -sha384 -binary | openssl base64 -A | \
+  awk '{print "sha384-" $0}'
 
 curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
+  | openssl dgst -sha384 -binary | openssl base64 -A | \
+  awk '{print "sha384-" $0}'
 ```
 
-Add `integrity` to each script tag in `index.html`:
+Then update `index.html` lines 80–81:
 ```html
-<script crossorigin
-  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-<HASH>">
-</script>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-<HASH_FROM_ABOVE>" crossorigin="anonymous"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
+  integrity="sha384-<HASH_FROM_ABOVE>" crossorigin="anonymous"></script>
 ```
 
-Add CSP meta to `<head>` in `index.html` (no `'unsafe-eval'` needed):
+**Time:** 5 minutes. **Priority:** Do before Reddit/HN post.
+
+---
+
+### P2-B: No CSP Meta Header
+
+**Risk:** Without a Content Security Policy, any XSS (from SRI miss, compromised CDN, or Sentry/Supabase injection) has full access to localStorage, including the Supabase session token. A leaked session token → attacker reads/writes the user's synced wishlists and profile.
+
+**Status change from prior reports:** Previously listed as "medium risk to apply (could break Babel inline eval)." With esbuild in production, `unsafe-eval` is no longer needed in the production bundle. CSP is now viable. This is the consequence of closing the Babel P1.
+
+**Exact fix — add to `index.html` `<head>` after the charset meta:**
+
 ```html
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline'
-    https://unpkg.com https://cdn.jsdelivr.net
-    https://plausible.io https://js.sentry-cdn.com;
-  connect-src 'self'
-    https://peakly-api.duckdns.org
-    https://api.open-meteo.com https://marine-api.open-meteo.com
-    https://wsoqcfwkvvemtlddcgfc.supabase.co
-    https://fonts.googleapis.com https://fonts.gstatic.com
-    https://plausible.io
-    https://o4511108649058304.ingest.us.sentry.io;
+  script-src 'self' https://unpkg.com https://js.sentry-cdn.com https://plausible.io https://cdn.jsdelivr.net;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
-  img-src 'self' data: https://images.unsplash.com;
-  frame-ancestors 'none';
+  img-src 'self' https://images.unsplash.com data:;
+  connect-src 'self' https://peakly-api.duckdns.org https://wsoqcfwkvvemtlddcgfc.supabase.co https://api.open-meteo.com https://marine-api.open-meteo.com https://plausible.io https://o4511108649058304.ingest.us.sentry.io;
+  worker-src 'self';
 ">
 ```
 
-`'unsafe-inline'` covers the inline Sentry loader and the error-detection block (small, trusted). `build-web.mjs` copies this tag into dist automatically. Test with `npm run build:web && npx serve dist/`.
+**Note:** `'unsafe-inline'` is required for styles (inline `style={{}}` objects in JSX) and cannot be avoided without a full refactor. The high-value wins are locking `script-src` and `connect-src` — those prevent the worst-case token exfil.
 
-### P2-B: Photo dedup regression — 5 ski photos at 3× (from Content July 21)
-
-5 ski venues share photos at 3×: liberty-mountain, roundtop-mountain, whitetail-resort, jack-frost, madarao-mountain-s22. Target ≤2×. Bundle with Jack's 10-venue photo approval batch — don't ship standalone.
-
-### P2-C: CLAUDE.md lateSeason prose count stale (13 → 14, Day 8)
-
-CLAUDE.md Conventions section reads 13. Grep truth: 14. Low risk — CLAUDE.md says "always grep" — but keeps confusing fresh agents.
-
-```bash
-# Confirm:
-grep -c 'lateSeason.*true\|"lateSeason".*true' app.jsx  # → 14
-# Then update the count reference in CLAUDE.md Conventions/Scoring section
-```
+**Time:** 15 minutes (add + test in browser that nothing breaks). **Priority:** Before App Store submission.
 
 ---
 
-## Persistent Jack-Only Manual Actions
+## Cost Projection
 
-| Action | Urgency | Time | Command |
-|--------|---------|------|---------|
-| **Supabase account deletion SQL** | App Store 5.1.1(v) — Day 42 | 2 min | Paste `server/sql/delete-account.sql` → Supabase SQL Editor |
-| **VPS health verify** | Before distribution push | 1 min | `curl https://peakly-api.duckdns.org/health` (non-sandbox only) |
-| **Photo approval (10 staged venues)** | Whakapapa (NZ) + alpe-d-huez (Aug glacier) time-sensitive | 15 min | See Content report July 21 |
-| **Read Plausible** | Distribution angle confirmation | 5 min | Day 21 since launch |
+| MAU | GitHub Pages | VPS | Total/mo | Notes |
+|-----|-------------|-----|----------|-------|
+| Current (<100) | $0 | $6 | **$6** | VPS 1 GB RAM, plenty of headroom |
+| 1K | $0 | $6 | **$6** | In-memory cache handles it comfortably |
+| 10K | $0 | $12 | **$12** | Upgrade to 2 GB RAM ($12/mo) if weather cache evictions spike |
+| 100K | $0 | $24–48 | **$24–48** | 2–4 GB RAM VPS OR Redis sidecar. GitHub Pages CDN eats all frontend load at $0. |
 
----
-
-## Performance Summary
-
-| Metric | Source (dev) | Deployed (prod) | Delta |
-|--------|-------------|----------------|-------|
-| Babel download | ~400 KB gzip | **0 KB** | −400 KB |
-| Babel parse (mid-tier Android) | 3–5 s | **0 ms** | −3–5 s |
-| App bundle | 676 KB raw | 440 KB esbuild min | −33% |
-| Cold first render (3G Android) | ~8–12 s | **~3–4 s** | −60% |
-| CSP `'unsafe-eval'` required | Yes | **No** | strict CSP now viable |
-
-Everything else correctly optimized: Supabase JS lazy-loaded, images `loading="lazy"`, Open-Meteo batched 50 venues/2s, service worker caching active.
-
----
-
-## Cost Estimate
-
-| Tier | MAU | Monthly | Notes |
-|---|---|---|---|
-| Today | <500 | ~$15–25 | DO $6 + Plausible ~$9. GitHub Pages + Supabase free. |
-| 1K MAU | 1,000 | ~$25–35 | Same droplet handles it. Open-Meteo free tier is the ceiling risk. |
-| 10K MAU | 10,000 | ~$65–90 | Upgrade DO → 2GB ($12). Supabase Pro ($25). Open-Meteo commercial ($50–200). |
-| 100K MAU | 100,000 | ~$250–500 | 2–3 DO nodes + LB. Cloudflare CDN (free). Open-Meteo commercial mandatory. |
+**Optimization opportunities:**
+1. Open-Meteo is free-tier — at 100K MAU with high concurrency on popular venues, the shared VPS weather cache is the only protection. It already has 4000-entry LRU. At $0 cost, this is the highest-leverage infra already in place.
+2. Travelpayouts flight pricing has a 3-attempt retry + 1.2s backoff and semaphore capping concurrent requests at 3. No cost risk.
+3. Supabase free tier: 500 MB DB, 2 GB bandwidth. At 1K MAU with SYNCED_KEYS only (small payloads), this lasts well past 10K users before hitting limits.
 
 ---
 
 ## What Breaks First at Scale
 
-**Open-Meteo free-tier exhaustion on VPS cache wipe.** `pm2 restart` clears `_wxCache`. At >67 simultaneous cold users: 374 venues × 2 Open-Meteo calls = 748 requests in <60 seconds → free-tier daily limit → all scores drop to 50 → grid looks dead to the exact users a Reddit post just delivered.
-
-**Fix: persist weather cache to disk (~30 lines, `server/proxy.js`, $0):**
-```javascript
-const CACHE_FILE = "/tmp/peakly-wx-cache.json";
-// Startup: reload surviving entries
-try {
-  const saved = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
-  Object.assign(_wxCache, saved);
-  console.log("[cache] Restored", Object.keys(saved).length, "wx entries from disk");
-} catch {}
-// Every 10 min: persist current cache
-setInterval(() => {
-  try { fs.writeFileSync(CACHE_FILE, JSON.stringify(_wxCache)); } catch {}
-}, 10 * 60 * 1000);
-```
-
-Do this before, not after, a distribution push.
+**The VPS in-memory weather cache.** At ~500 concurrent DAU hammering the Explore tab simultaneously (think: Reddit/HN post goes viral on a Friday morning), venue weather fetches hit the VPS in a 374-venue burst. The current 4000-entry LRU covers every venue twice over, so cache hits are nearly guaranteed on repeat requests. The single failure mode is **VPS restart** — the cache evaporates, and 374 uncached venues each fan out to Open-Meteo in a ~50/2s batched burst. If Open-Meteo throttles at the free tier, half the Explore grid shows estimates. The fix is already in the client: `fetchWeather` falls back to direct Open-Meteo if the proxy is down, so user experience degrades gracefully (slower) rather than crashing. Real prevention: `pm2` auto-restarts the process; cache refills within 30 minutes of organic traffic. Or add a startup script that pre-warms the cache on the 10 most-popular venues. Cost: $0. Time: 30 minutes.
 
 ---
 
-## Actions This Run (2026-07-23)
+## July 24 Note: PM-Assigned "Pre-Compile CI Deadline"
 
-- Full audit pass: all checks pass, no regressions since July 22 report.
-- No code changes required today.
-- Confirmed: GEAR_ITEMS = 0, lateSeason = 14, venue count = 374, baseline = 374. All in lockstep.
-- July 22 stop-reporting table entries remain accurate — no new patterns to add.
-
-**Status: GREEN. Day 9 code freeze. No new issues. Launch-ready on web.**
+PM v95 set today (July 24) as the deadline for "pre-compile CI." This is **already complete** — `scripts/build-web.mjs` has been running in `deploy.yml` since June 20 (`commit 8ba0ca3`). The production site at `j1mmychu.github.io/peakly` has been serving `app.min.js` (esbuild, no Babel) for 34 days. No action required. PM should close this item in the next report cycle.
