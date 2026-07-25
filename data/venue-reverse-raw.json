@@ -1,0 +1,1418 @@
+{
+  "aspen": {
+    "id": "aspen",
+    "title": "Aspen Snowmass",
+    "location": "Colorado, USA",
+    "category": "skiing",
+    "lat": 39.1911,
+    "lon": -106.8175,
+    "osm": {
+      "query": "Aspen Snowmass, USA",
+      "lat": 39.1857183,
+      "lon": -106.9448525,
+      "name": "Aspen Snowmass, Snowmass Village, Pitkin County, Colorado, United States",
+      "type": "winter_sports",
+      "dist": 10.992062373309048
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Aspen, Pitkin County, Colorado, United States",
+      "country": "United States",
+      "state": "Colorado",
+      "locality": "Aspen",
+      "isWater": false
+    }
+  },
+  "whitefish": {
+    "id": "whitefish",
+    "title": "Whitefish Mountain",
+    "location": "Montana, USA",
+    "category": "skiing",
+    "lat": 48.4825,
+    "lon": -114.3487,
+    "osm": {
+      "query": "Whitefish Mountain, USA",
+      "lat": 48.7535789,
+      "lon": -114.6001487,
+      "name": "Whitefish Mountain, Flathead County, Montana, United States",
+      "type": "peak",
+      "dist": 35.358375027096706
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Flathead County, Montana, United States",
+      "country": "United States",
+      "state": "Montana",
+      "locality": "Flathead County",
+      "isWater": false
+    }
+  },
+  "mthood": {
+    "id": "mthood",
+    "title": "Mt Hood Meadows",
+    "location": "Oregon, USA",
+    "category": "skiing",
+    "lat": 45.3311,
+    "lon": -121.6648,
+    "osm": {
+      "query": "Mt Hood Meadows, USA",
+      "lat": 45.4746141,
+      "lon": -122.3717319,
+      "name": "Hood Meadows, Kelly Creek, Gresham, Multnomah County, Oregon, United States",
+      "type": "residential",
+      "dist": 57.452042197021605
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Hood River County, Oregon, United States",
+      "country": "United States",
+      "state": "Oregon",
+      "locality": "Hood River County",
+      "isWater": false
+    }
+  },
+  "beach_magens": {
+    "id": "beach_magens",
+    "title": "Magens Bay",
+    "location": "St. Thomas, USVI",
+    "category": "beach",
+    "lat": 18.37,
+    "lon": -64.933,
+    "osm": {
+      "query": "Magens Bay",
+      "lat": 33.2551453,
+      "lon": -117.3143749,
+      "name": "Magens Bay, Oceanside, San Diego County, California, 92057, United States",
+      "type": "residential",
+      "dist": 5438.497299981975
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Charlotte Amalie West, Charlotte Amalie, Saint Thomas - Saint John District, United States Virgin Islands, 00803, United States",
+      "country": "United States",
+      "state": "United States Virgin Islands",
+      "locality": "Charlotte Amalie",
+      "isWater": false
+    }
+  },
+  "beach_ob": {
+    "id": "beach_ob",
+    "title": "Outer Banks OBX",
+    "location": "North Carolina, USA",
+    "category": "beach",
+    "lat": 35.5582,
+    "lon": -75.4665,
+    "osm": {
+      "query": "North Carolina, USA",
+      "lat": 35.6729639,
+      "lon": -79.0392919,
+      "name": "North Carolina, United States",
+      "type": "administrative",
+      "dist": 323.1969274271226
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Dare County, North Carolina, United States",
+      "country": "United States",
+      "state": "North Carolina",
+      "locality": "Dare County",
+      "isWater": false
+    }
+  },
+  "beach_sardinia": {
+    "id": "beach_sardinia",
+    "title": "Cala Mariolu",
+    "location": "Sardinia, Italy",
+    "category": "beach",
+    "lat": 40.098,
+    "lon": 9.56,
+    "osm": {
+      "query": "Cala Mariolu, Italy",
+      "lat": 40.1233317,
+      "lon": 9.676703,
+      "name": "Cala Mariolu, Baunei, Ogliastra, Sardinia, 08040, Italy",
+      "type": "beach",
+      "dist": 10.316637469009297
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Baunei, Ogliastra, Sardinia, 08040, Italy",
+      "country": "Italy",
+      "state": "Sardinia",
+      "locality": "Baunei",
+      "isWater": false
+    }
+  },
+  "beach_milos": {
+    "id": "beach_milos",
+    "title": "Sarakiniko Moon Beach",
+    "location": "Milos Island, Greece",
+    "category": "beach",
+    "lat": 36.757,
+    "lon": 24.39,
+    "osm": {
+      "query": "Milos Island, Greece",
+      "lat": 36.7093441,
+      "lon": 24.5068338,
+      "name": "Milos, Milos Regional Unit, South Aegean, Aegean, 848 00, Greece",
+      "type": "island",
+      "dist": 11.682570278346551
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Plaka, Municipality of Milos, Milos Regional Unit, South Aegean, Aegean, 848 00, Greece",
+      "country": "Greece",
+      "state": "South Aegean",
+      "locality": "Plaka",
+      "isWater": false
+    }
+  },
+  "beach_menorca": {
+    "id": "beach_menorca",
+    "title": "Cala Macarella",
+    "location": "Menorca, Spain",
+    "category": "beach",
+    "lat": 39.901,
+    "lon": 3.808,
+    "osm": {
+      "query": "Cala Macarella, Spain",
+      "lat": 39.936551,
+      "lon": 3.9373641,
+      "name": "Cala Macarella, Spain",
+      "type": "bay",
+      "dist": 11.719212691218647
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Spain",
+      "country": "Spain",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "beach_mauritius": {
+    "id": "beach_mauritius",
+    "title": "Belle Mare Plage",
+    "location": "Mauritius",
+    "category": "beach",
+    "lat": -20.27,
+    "lon": 57.77,
+    "osm": {
+      "query": "Belle Mare Plage, Mauritius",
+      "lat": -20.167608,
+      "lon": 57.7661859,
+      "name": "Belle Mare Plage, B59, Pointe de Flacq, Poste de Flacq VCA, Flacq, 41511, Mauritius",
+      "type": "hotel",
+      "dist": 11.392424333615086
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Bel Air Rivière Sèche VCA, Flacq, 40101, Mauritius",
+      "country": "Mauritius",
+      "state": "Flacq",
+      "locality": "Bel Air Rivière Sèche VCA",
+      "isWater": false
+    }
+  },
+  "beach_phiphi": {
+    "id": "beach_phiphi",
+    "title": "Maya Bay Phi Phi",
+    "location": "Krabi, Thailand",
+    "category": "beach",
+    "lat": 7.6775,
+    "lon": 98.7669,
+    "osm": {
+      "query": "Krabi, Thailand",
+      "lat": 8.1111653,
+      "lon": 99.1097298,
+      "name": "Krabi Province, Thailand",
+      "type": "administrative",
+      "dist": 61.246114844888424
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Ao Nang, Mueang Krabi District, Krabi Province, 81210, Thailand",
+      "country": "Thailand",
+      "state": "",
+      "locality": "Ao Nang",
+      "isWater": false
+    }
+  },
+  "beach_nusapenida": {
+    "id": "beach_nusapenida",
+    "title": "Kelingking Secret Beach",
+    "location": "Nusa Penida, Indonesia",
+    "category": "beach",
+    "lat": -8.834,
+    "lon": 115.456,
+    "osm": {
+      "query": "Nusa Penida, Indonesia",
+      "lat": -8.7455877,
+      "lon": 115.5346805,
+      "name": "Penida Island, Nusa Penida, Klungkung Regency, Bali, Lesser Sunda Islands, Indonesia",
+      "type": "island",
+      "dist": 13.092133535858068
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Bali, Lesser Sunda Islands, Indonesia",
+      "country": "Indonesia",
+      "state": "Bali",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "beach_spain_mallorca_es": {
+    "id": "beach_spain_mallorca_es",
+    "title": "Es Trenc Beach, Mallorca",
+    "location": "Mallorca, Spain",
+    "category": "beach",
+    "lat": 39.3426,
+    "lon": 2.9877,
+    "osm": {
+      "query": "Mallorca, Spain",
+      "lat": 39.613432,
+      "lon": 2.8829185,
+      "name": "Majorca, Balearic Islands, Spain",
+      "type": "island",
+      "dist": 31.429263683366088
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Campos, Migjorn, Balearic Islands, 07630, Spain",
+      "country": "Spain",
+      "state": "Balearic Islands",
+      "locality": "Campos",
+      "isWater": false
+    }
+  },
+  "kiroro-snow-world-s11": {
+    "id": "kiroro-snow-world-s11",
+    "title": "Kiroro Snow World",
+    "location": "Hokkaido, Japan",
+    "category": "skiing",
+    "lat": 43.0558,
+    "lon": 140.9656,
+    "osm": {
+      "query": "Hokkaido, Japan",
+      "lat": 43.4519831,
+      "lon": 142.8197834,
+      "name": "Hokkaido Prefecture, Hokkaido Region, Japan",
+      "type": "administrative",
+      "dist": 156.48753367366274
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Akaigawa, Yoichi County, Shiribeshi Subprefecture, Hokkaido Prefecture, Hokkaido Region, Japan",
+      "country": "Japan",
+      "state": "Hokkaido Region",
+      "locality": "Akaigawa",
+      "isWater": false
+    }
+  },
+  "stowe-mountain-s14": {
+    "id": "stowe-mountain-s14",
+    "title": "Stowe Mountain",
+    "location": "Lamoille County, Vermont",
+    "category": "skiing",
+    "lat": 44.5267,
+    "lon": -72.7817,
+    "osm": {
+      "query": "Stowe Mountain, Vermont",
+      "lat": 42.7534162,
+      "lon": -72.7445383,
+      "name": "Stowe Mountain, Halifax, Windham County, Vermont, 05358, United States",
+      "type": "peak",
+      "dist": 197.2028303230894
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Stowe, Lamoille County, Vermont, 05672, United States",
+      "country": "United States",
+      "state": "Vermont",
+      "locality": "Stowe",
+      "isWater": false
+    }
+  },
+  "pucon-ski-center-s19": {
+    "id": "pucon-ski-center-s19",
+    "title": "Pucon Ski Center",
+    "location": "Araucania, Chile",
+    "category": "skiing",
+    "lat": -39.2667,
+    "lon": -71.95,
+    "osm": {
+      "query": "Araucania, Chile",
+      "lat": -38.6678955,
+      "lon": -72.2610066,
+      "name": "Araucania Region, Chile",
+      "type": "administrative",
+      "dist": 71.80789656545245
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Pucón, Provincia de Cautín, Araucania Region, Chile",
+      "country": "Chile",
+      "state": "Araucania Region",
+      "locality": "Pucón",
+      "isWater": false
+    }
+  },
+  "les-arcs-s20": {
+    "id": "les-arcs-s20",
+    "title": "Les Arcs",
+    "location": "Savoie, France",
+    "category": "skiing",
+    "lat": 45.5,
+    "lon": 6.8333,
+    "osm": {
+      "query": "Les Arcs, France",
+      "lat": 43.4629097,
+      "lon": 6.4786269,
+      "name": "Les Arcs, Draguignan, Var, Provence-Alpes-Côte d'Azur, Metropolitan France, 83460, France",
+      "type": "administrative",
+      "dist": 228.25438007207805
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Peisey-Nancroix, Albertville, Savoy, Auvergne-Rhône-Alpes, Metropolitan France, 73210, France",
+      "country": "France",
+      "state": "Auvergne-Rhône-Alpes",
+      "locality": "Peisey-Nancroix",
+      "isWater": false
+    }
+  },
+  "madarao-mountain-s22": {
+    "id": "madarao-mountain-s22",
+    "title": "Madarao Mountain",
+    "location": "Nagano, Japan",
+    "category": "skiing",
+    "lat": 36.9847,
+    "lon": 138.3381,
+    "osm": {
+      "query": "Madarao Mountain, Japan",
+      "lat": 36.8483253,
+      "lon": 138.2799193,
+      "name": "Madarao Kogen Mountain Resort, Myoko, Kamiminotchi County, Niigata Prefecture, Japan",
+      "type": "winter_sports",
+      "dist": 16.02203048463378
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Myoko, Niigata Prefecture, Japan",
+      "country": "Japan",
+      "state": "",
+      "locality": "Myoko",
+      "isWater": false
+    }
+  },
+  "mount-shasta-ski-s26": {
+    "id": "mount-shasta-ski-s26",
+    "title": "Mount Shasta Ski",
+    "location": "Siskiyou County, California",
+    "category": "skiing",
+    "lat": 41.35,
+    "lon": -122.1833,
+    "osm": {
+      "query": "Mount Shasta Ski",
+      "lat": 41.3216008,
+      "lon": -122.3104736,
+      "name": "Ski Bowl Drive, Mount Shasta, Siskiyou County, California, 96067, United States",
+      "type": "residential",
+      "dist": 11.077473889870038
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Siskiyou County, California, United States",
+      "country": "United States",
+      "state": "California",
+      "locality": "Siskiyou County",
+      "isWater": false
+    }
+  },
+  "turquoise-bay-t8": {
+    "id": "turquoise-bay-t8",
+    "title": "Turquoise Bay",
+    "location": "Western Australia, Australia",
+    "category": "beach",
+    "lat": -21.9167,
+    "lon": 114.1167,
+    "osm": {
+      "query": "Turquoise Bay, Australia",
+      "lat": -22.0960185,
+      "lon": 113.8876247,
+      "name": "Turquoise Bay, Western Australia, Australia",
+      "type": "bay",
+      "dist": 30.90791284768356
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Exmouth, Western Australia, 6707, Australia",
+      "country": "Australia",
+      "state": "Western Australia",
+      "locality": "Exmouth",
+      "isWater": false
+    }
+  },
+  "natadola-beach-t9": {
+    "id": "natadola-beach-t9",
+    "title": "Natadola Beach",
+    "location": "Fiji",
+    "category": "beach",
+    "lat": -18.1167,
+    "lon": 177.5167,
+    "osm": {
+      "query": "Natadola Beach, Fiji",
+      "lat": -18.1036337,
+      "lon": 177.3205961,
+      "name": "Natadola Beach, Sanasana, Nadroga-Navosa, Western, Fiji",
+      "type": "beach",
+      "dist": 20.77637691154716
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Sigatoka, Nadroga-Navosa, Western, Fiji",
+      "country": "Fiji",
+      "state": "Western",
+      "locality": "Sigatoka",
+      "isWater": false
+    }
+  },
+  "bulabog-beach-boracay-t19": {
+    "id": "bulabog-beach-boracay-t19",
+    "title": "Bulabog Beach Boracay",
+    "location": "Aklan, Philippines",
+    "category": "beach",
+    "lat": 11.96,
+    "lon": 121.9342,
+    "osm": {
+      "query": "Aklan, Philippines",
+      "lat": 11.6297894,
+      "lon": 122.2481177,
+      "name": "Aklan, Western Visayas, Philippines",
+      "type": "administrative",
+      "dist": 50.156872800178554
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Malay, Aklan, Western Visayas, 5608, Philippines",
+      "country": "Philippines",
+      "state": "Aklan",
+      "locality": "Malay",
+      "isWater": false
+    }
+  },
+  "beach_maldives": {
+    "id": "beach_maldives",
+    "title": "Maldives North Malé Atoll",
+    "location": "North Malé Atoll, Maldives",
+    "category": "beach",
+    "lat": 4.1755,
+    "lon": 73.5093,
+    "osm": {
+      "query": "Maldives North Male Atoll",
+      "lat": 4.4378138,
+      "lon": 73.5396643,
+      "name": "North Malé Atoll, Malé Atoll, Maldives",
+      "type": "archipelago",
+      "dist": 29.361634561143667
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Machchangolhi, Malé, Maldives",
+      "country": "Maldives",
+      "state": "",
+      "locality": "Malé",
+      "isWater": false
+    }
+  },
+  "ski_mzaar": {
+    "id": "ski_mzaar",
+    "title": "Mzaar Kfardebian",
+    "location": "Mount Lebanon, Lebanon",
+    "category": "skiing",
+    "lat": 34.0703,
+    "lon": 35.9742,
+    "osm": {
+      "query": "Mzaar Kfardebian, Lebanon",
+      "lat": 33.9842822,
+      "lon": 35.847454,
+      "name": "Mzaar Kfardebian Ski Resort, Aayoun El Siman, Keserwan District, Keserwan-Jbeil Governorate, Lebanon",
+      "type": "winter_sports",
+      "dist": 15.096805711834609
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Jbeil District, Keserwan-Jbeil Governorate, Lebanon",
+      "country": "Lebanon",
+      "state": "Keserwan-Jbeil Governorate",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "beach_phuquoc": {
+    "id": "beach_phuquoc",
+    "title": "Long Beach Phú Quốc",
+    "location": "Kiên Giang, Vietnam",
+    "category": "beach",
+    "lat": 10.2273,
+    "lon": 103.9673,
+    "osm": {
+      "query": "Long Beach Phu Quoc, Vietnam",
+      "lat": 10.1360635,
+      "lon": 103.9763999,
+      "name": "Long beach, Phú Quốc, An Giang Province, 92516, Vietnam",
+      "type": "beach",
+      "dist": 10.193803334208148
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Phú Quốc, An Giang Province, 92516, Vietnam",
+      "country": "Vietnam",
+      "state": "An Giang Province",
+      "locality": "Phú Quốc",
+      "isWater": false
+    }
+  },
+  "brighton": {
+    "id": "brighton",
+    "title": "Brighton",
+    "location": "Utah, USA",
+    "category": "skiing",
+    "lat": 40.6017,
+    "lon": -111.5836,
+    "osm": {
+      "query": "Brighton, USA",
+      "lat": 39.983721,
+      "lon": -104.8110775,
+      "name": "Brighton, Adams County, Colorado, United States",
+      "type": "administrative",
+      "dist": 578.3526815329932
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Brighton, Salt Lake County, Utah, United States",
+      "country": "United States",
+      "state": "Utah",
+      "locality": "Brighton",
+      "isWater": false
+    }
+  },
+  "solitude": {
+    "id": "solitude",
+    "title": "Solitude",
+    "location": "Utah, USA",
+    "category": "skiing",
+    "lat": 40.6212,
+    "lon": -111.5919,
+    "osm": {
+      "query": "Solitude, USA",
+      "lat": 38.0147666,
+      "lon": -87.8989163,
+      "name": "Solitude, Posey County, Indiana, United States",
+      "type": "hamlet",
+      "dist": 2052.3389314811175
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Brighton, Salt Lake County, Utah, United States",
+      "country": "United States",
+      "state": "Utah",
+      "locality": "Brighton",
+      "isWater": false
+    }
+  },
+  "deer-valley": {
+    "id": "deer-valley",
+    "title": "Deer Valley",
+    "location": "Park City, Utah, USA",
+    "category": "skiing",
+    "lat": 40.6303,
+    "lon": -111.4781,
+    "osm": {
+      "query": "Deer Valley, USA",
+      "lat": 33.686086,
+      "lon": -112.1185607,
+      "name": "Deer Valley, Phoenix, Maricopa County, Arizona, United States",
+      "type": "administrative",
+      "dist": 774.2375473728235
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Summit County, Utah, United States",
+      "country": "United States",
+      "state": "Utah",
+      "locality": "Summit County",
+      "isWater": false
+    }
+  },
+  "sugar-bowl": {
+    "id": "sugar-bowl",
+    "title": "Sugar Bowl",
+    "location": "California, USA",
+    "category": "skiing",
+    "lat": 39.3082,
+    "lon": -120.3322,
+    "osm": {
+      "query": "Sugar Bowl, USA",
+      "lat": 42.3988698,
+      "lon": -123.337478,
+      "name": "Sugar Bowl, Josephine County, Oregon, 97527, United States",
+      "type": "path",
+      "dist": 426.5431463870488
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Placer County, California, United States",
+      "country": "United States",
+      "state": "California",
+      "locality": "Placer County",
+      "isWater": false
+    }
+  },
+  "park-city-mountain": {
+    "id": "park-city-mountain",
+    "title": "Park City Mountain",
+    "location": "Park City, Utah, USA",
+    "category": "skiing",
+    "lat": 40.6514,
+    "lon": -111.5083,
+    "osm": {
+      "query": "Park City Mountain, USA",
+      "lat": 38.6924929,
+      "lon": -106.818927,
+      "name": "Gunnison City Mountain Park, Gunnison County, Colorado, 81210, United States",
+      "type": "park",
+      "dist": 456.55939509450644
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Park City, Summit County, Utah, United States",
+      "country": "United States",
+      "state": "Utah",
+      "locality": "Park City",
+      "isWater": false
+    }
+  },
+  "northstar-california": {
+    "id": "northstar-california",
+    "title": "Northstar California",
+    "location": "Truckee, California, USA",
+    "category": "skiing",
+    "lat": 39.2747,
+    "lon": -120.1211,
+    "osm": {
+      "query": "Northstar California, USA",
+      "lat": 38.5717837,
+      "lon": -121.7504992,
+      "name": "Northstar Pond, Davis, Yolo County, California, United States",
+      "type": "lake",
+      "dist": 161.17261155621824
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Placer County, California, United States",
+      "country": "United States",
+      "state": "California",
+      "locality": "Placer County",
+      "isWater": false
+    }
+  },
+  "kirkwood": {
+    "id": "kirkwood",
+    "title": "Kirkwood",
+    "location": "California, USA",
+    "category": "skiing",
+    "lat": 38.685,
+    "lon": -120.0656,
+    "osm": {
+      "query": "Kirkwood, USA",
+      "lat": 40.8667452,
+      "lon": -90.7499415,
+      "name": "Kirkwood, Warren County, Illinois, United States",
+      "type": "administrative",
+      "dist": 2505.252586893201
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Alpine County, California, United States",
+      "country": "United States",
+      "state": "California",
+      "locality": "Alpine County",
+      "isWater": false
+    }
+  },
+  "mad-river-mountain-oh": {
+    "id": "mad-river-mountain-oh",
+    "title": "Mad River Mountain",
+    "location": "Ohio, USA",
+    "category": "skiing",
+    "lat": 40.4514,
+    "lon": -83.6722,
+    "osm": {
+      "query": "Mad River Mountain, USA",
+      "lat": 40.3172389,
+      "lon": -83.6752582,
+      "name": "Mad River Mountain, Valley Hi, Jefferson Township, Logan County, Ohio, United States",
+      "type": "winter_sports",
+      "dist": 14.920282274772449
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Rushcreek Township, Logan County, Ohio, 43347, United States",
+      "country": "United States",
+      "state": "Ohio",
+      "locality": "Rushcreek Township",
+      "isWater": false
+    }
+  },
+  "liberty-mountain": {
+    "id": "liberty-mountain",
+    "title": "Liberty Mountain",
+    "location": "Pennsylvania, USA",
+    "category": "skiing",
+    "lat": 39.7392,
+    "lon": -77.3672,
+    "osm": {
+      "query": "Liberty Mountain, USA",
+      "lat": 48.1301059,
+      "lon": -121.671235,
+      "name": "Liberty Mountain, Snohomish County, Washington, United States",
+      "type": "peak",
+      "dist": 3614.2888975640353
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Carroll Valley, Adams County, Pennsylvania, 17320, United States",
+      "country": "United States",
+      "state": "Pennsylvania",
+      "locality": "Carroll Valley",
+      "isWater": false
+    }
+  },
+  "roundtop-mountain": {
+    "id": "roundtop-mountain",
+    "title": "Roundtop Mountain",
+    "location": "Pennsylvania, USA",
+    "category": "skiing",
+    "lat": 40.1306,
+    "lon": -76.9333,
+    "osm": {
+      "query": "Roundtop Mountain, USA",
+      "lat": 43.3922914,
+      "lon": -73.9570705,
+      "name": "Roundtop Mountain, Warren County, New York, 12878, United States",
+      "type": "peak",
+      "dist": 438.65250413029804
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Monaghan Township, York County, Pennsylvania, United States",
+      "country": "United States",
+      "state": "Pennsylvania",
+      "locality": "Monaghan Township",
+      "isWater": false
+    }
+  },
+  "jack-frost": {
+    "id": "jack-frost",
+    "title": "Jack Frost Big Boulder",
+    "location": "Pennsylvania, USA",
+    "category": "skiing",
+    "lat": 41.1311,
+    "lon": -75.5336,
+    "osm": {
+      "query": "Jack Frost Big Boulder, USA",
+      "lat": 41.0498238,
+      "lon": -75.6009544,
+      "name": "Jack Frost Big Boulder Ski Area, Big Boulder Drive, Harmony Ridge Townhomes, Lake Harmony, Kidder Township, Carbon County, Pennsylvania, 18624, United States",
+      "type": "sports_centre",
+      "dist": 10.655421516277846
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Tobyhanna Township, Monroe County, Pennsylvania, United States",
+      "country": "United States",
+      "state": "Pennsylvania",
+      "locality": "Tobyhanna Township",
+      "isWater": false
+    }
+  },
+  "nakiska": {
+    "id": "nakiska",
+    "title": "Nakiska",
+    "location": "Kananaskis, Alberta, Canada",
+    "category": "skiing",
+    "lat": 50.9286,
+    "lon": -115.1456,
+    "osm": {
+      "query": "Nakiska, Canada",
+      "lat": 50.3091854,
+      "lon": -119.2095633,
+      "name": "Nakiska Drive, Foothills, Vernon, Spallumcheen, Regional District of North Okanagan, British Columbia, V1B 3P4, Canada",
+      "type": "residential",
+      "dist": 294.82900877201894
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Kananaskis Village, Kananaskis Improvement District, Alberta, Canada",
+      "country": "Canada",
+      "state": "Alberta",
+      "locality": "Kananaskis Village",
+      "isWater": false
+    }
+  },
+  "stingray-sandbar-cayman": {
+    "id": "stingray-sandbar-cayman",
+    "title": "Stingray City Sandbar",
+    "location": "Grand Cayman",
+    "category": "beach",
+    "lat": 19.3736,
+    "lon": -81.325,
+    "osm": {
+      "query": "Grand Cayman",
+      "lat": 19.3298472,
+      "lon": -81.1712216,
+      "name": "Grand Cayman, Cayman Islands",
+      "type": "island",
+      "dist": 16.850888664058363
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Cayman Islands",
+      "country": "Cayman Islands",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "long-bay-providenciales": {
+    "id": "long-bay-providenciales",
+    "title": "Long Bay Beach",
+    "location": "Providenciales, Turks & Caicos",
+    "category": "beach",
+    "lat": 21.7556,
+    "lon": -72.1986,
+    "osm": {
+      "query": "Long Bay Beach",
+      "lat": 18.0585592,
+      "lon": -63.1428752,
+      "name": "Long Bay Beach, Les Terres Basses, Saint Martin, 97150, France",
+      "type": "beach",
+      "dist": 1031.8630242252461
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Providenciales, Turks and Caicos Islands",
+      "country": "Turks and Caicos Islands",
+      "state": "",
+      "locality": "Providenciales",
+      "isWater": false
+    }
+  },
+  "honeymoon-beach-stj": {
+    "id": "honeymoon-beach-stj",
+    "title": "Honeymoon Beach",
+    "location": "St. John, USVI",
+    "category": "beach",
+    "lat": 18.3358,
+    "lon": -64.7836,
+    "osm": {
+      "query": "Honeymoon Beach",
+      "lat": 13.767246,
+      "lon": -60.9092572,
+      "name": "Honeymoon Beach, Micoud, LC14 201, Saint Lucia",
+      "type": "beach",
+      "dist": 655.248969484572
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Cruz Bay, Saint Thomas - Saint John District, United States Virgin Islands, 00831, United States",
+      "country": "United States",
+      "state": "United States Virgin Islands",
+      "locality": "Cruz Bay",
+      "isWater": false
+    }
+  },
+  "punta-mita-mexico": {
+    "id": "punta-mita-mexico",
+    "title": "Punta Mita Beach",
+    "location": "Nayarit, Mexico",
+    "category": "beach",
+    "lat": 20.7706,
+    "lon": -105.55,
+    "osm": {
+      "query": "Punta Mita Beach",
+      "lat": 20.7424938,
+      "lon": -105.4232398,
+      "name": "Nahui (beach front cafe), Carretera Punta de Mita, Crucero Palladium, La Cruz de Huanacaxtle, Bahía de Banderas, Nayarit, Mexico",
+      "type": "cafe",
+      "dist": 13.545705793190612
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Mexico",
+      "country": "Mexico",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "santa-teresa-cr": {
+    "id": "santa-teresa-cr",
+    "title": "Santa Teresa",
+    "location": "Puntarenas, Costa Rica",
+    "category": "beach",
+    "lat": 9.6431,
+    "lon": -85.1614,
+    "osm": {
+      "query": "Santa Teresa, Costa Rica",
+      "lat": 9.9915622,
+      "lon": -85.6171593,
+      "name": "Santa Teresa, Nosara, Nicoya, Guanacaste, 50206, Costa Rica",
+      "type": "hamlet",
+      "dist": 63.205570065530864
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Cóbano, Puntarenas, Puntarenas Province, 60111, Costa Rica",
+      "country": "Costa Rica",
+      "state": "",
+      "locality": "Cóbano",
+      "isWater": false
+    }
+  },
+  "big-sur-pfeiffer": {
+    "id": "big-sur-pfeiffer",
+    "title": "Pfeiffer Beach Big Sur",
+    "location": "California, USA",
+    "category": "beach",
+    "lat": 36.2378,
+    "lon": -121.8175,
+    "osm": {
+      "query": "California, USA",
+      "lat": 36.7014631,
+      "lon": -118.755997,
+      "name": "California, United States",
+      "type": "administrative",
+      "dist": 278.5584441924416
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Monterey County, California, United States",
+      "country": "United States",
+      "state": "California",
+      "locality": "Monterey County",
+      "isWater": false
+    }
+  },
+  "spiaggia-rosa-budelli": {
+    "id": "spiaggia-rosa-budelli",
+    "title": "Spiaggia Rosa Budelli",
+    "location": "Sardinia, Italy",
+    "category": "beach",
+    "lat": 41.2944,
+    "lon": 9.3458,
+    "osm": {
+      "query": "Sardinia, Italy",
+      "lat": 40.0912813,
+      "lon": 9.0305773,
+      "name": "Sardinia, Italy",
+      "type": "administrative",
+      "dist": 136.39462041267086
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Italy",
+      "country": "Italy",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "costa-smeralda-sardinia": {
+    "id": "costa-smeralda-sardinia",
+    "title": "Costa Smeralda",
+    "location": "Sardinia, Italy",
+    "category": "beach",
+    "lat": 41.1056,
+    "lon": 9.535,
+    "osm": {
+      "query": "Costa Smeralda, Italy",
+      "lat": 41.072732,
+      "lon": 9.3989366,
+      "name": "Viale Costa Smeralda, Alzachèna/Arzachena, Gallura Nord-Est Sardegna, Sardinia, 07021, Italy",
+      "type": "secondary",
+      "dist": 11.974337402057728
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Alzachèna/Arzachena, Gallura Nord-Est Sardegna, Sardinia, 07021, Italy",
+      "country": "Italy",
+      "state": "Sardinia",
+      "locality": "Alzachèna/Arzachena",
+      "isWater": false
+    }
+  },
+  "capri-marina-piccola": {
+    "id": "capri-marina-piccola",
+    "title": "Capri Marina Piccola",
+    "location": "Capri, Italy",
+    "category": "beach",
+    "lat": 40.5447,
+    "lon": 14.2342,
+    "osm": {
+      "query": "Capri Marina Piccola, Italy",
+      "lat": 40.6248778,
+      "lon": 14.3785286,
+      "name": "Capri Blu, 108-114, Via degli Aranci, Parsano, Santa Lucia, Sorrento, Naples, Campania, 80067, Italy",
+      "type": "restaurant",
+      "dist": 15.100710076532456
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Italy",
+      "country": "Italy",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "cala-tuent-mallorca": {
+    "id": "cala-tuent-mallorca",
+    "title": "Cala Tuent Mallorca",
+    "location": "Mallorca, Spain",
+    "category": "beach",
+    "lat": 39.8472,
+    "lon": 2.7853,
+    "osm": {
+      "query": "Cala Tuent Mallorca, Spain",
+      "lat": 39.5977644,
+      "lon": 2.6769029,
+      "name": "Carrer de Cala Tuent, Son Cladera, Palma de Mallorca, Palma, Balearic Islands, 07009, Spain",
+      "type": "residential",
+      "dist": 29.2443133356243
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Escorca, Serra de Tramuntana, Balearic Islands, 07315, Spain",
+      "country": "Spain",
+      "state": "Balearic Islands",
+      "locality": "Escorca",
+      "isWater": false
+    }
+  },
+  "pasjaca-beach-croatia": {
+    "id": "pasjaca-beach-croatia",
+    "title": "Pasjača Beach",
+    "location": "Konavle, Croatia",
+    "category": "beach",
+    "lat": 42.5275,
+    "lon": 18.4528,
+    "osm": {
+      "query": "Pasjaca Beach, Croatia",
+      "lat": 42.5133606,
+      "lon": 18.3212505,
+      "name": "Pasjača, Kokoti, Popovići, Općina Konavle, Dubrovnik-Neretva County, Croatia",
+      "type": "beach",
+      "dist": 10.895137189956628
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Kruševice, Herceg Novi Municipality, Montenegro",
+      "country": "Montenegro",
+      "state": "",
+      "locality": "Kruševice",
+      "isWater": false
+    }
+  },
+  "veligandu-maldives": {
+    "id": "veligandu-maldives",
+    "title": "Veligandu Island Beach",
+    "location": "Maldives",
+    "category": "beach",
+    "lat": 4.35,
+    "lon": 72.795,
+    "osm": {
+      "query": "Maldives",
+      "lat": 3.7203503,
+      "lon": 73.2244152,
+      "name": "Maldives",
+      "type": "administrative",
+      "dist": 84.67923938746438
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "North Ari Atoll, Maldives",
+      "country": "Maldives",
+      "state": "North Ari Atoll",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "baros-island-maldives": {
+    "id": "baros-island-maldives",
+    "title": "Baros Island Beach",
+    "location": "Maldives",
+    "category": "beach",
+    "lat": 4.2842,
+    "lon": 73.4264,
+    "osm": {
+      "query": "Maldives",
+      "lat": 3.7203503,
+      "lon": 73.2244152,
+      "name": "Maldives",
+      "type": "administrative",
+      "dist": 66.58016315655323
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Malé Atoll, Maldives",
+      "country": "Maldives",
+      "state": "Malé Atoll",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "coogee-beach-sydney": {
+    "id": "coogee-beach-sydney",
+    "title": "Coogee Beach",
+    "location": "Sydney, Australia",
+    "category": "beach",
+    "lat": -33.9203,
+    "lon": 151.2581,
+    "osm": {
+      "query": "Coogee Beach, Australia",
+      "lat": -32.1141831,
+      "lon": 115.7636636,
+      "name": "Coogee Beach, Dampier Row, Coogee, Western Australia, 6166, Australia",
+      "type": "emergency_access_point",
+      "dist": 3299.1014885182335
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Eastern Suburbs, Sydney, New South Wales, Australia",
+      "country": "Australia",
+      "state": "New South Wales",
+      "locality": "Sydney",
+      "isWater": false
+    }
+  },
+  "langford-island-spit": {
+    "id": "langford-island-spit",
+    "title": "Langford Island Spit",
+    "location": "Whitsundays, Australia",
+    "category": "beach",
+    "lat": -20.1158,
+    "lon": 148.8689,
+    "osm": {
+      "query": "Whitsundays, Australia",
+      "lat": -20.27917,
+      "lon": 148.91417,
+      "name": "Whitsundays, Queensland, 4802, Australia",
+      "type": "locality",
+      "dist": 18.7701640380975
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Whitsundays, Queensland, 4802, Australia",
+      "country": "Australia",
+      "state": "Queensland",
+      "locality": "",
+      "isWater": false
+    }
+  },
+  "yasawa-fiji": {
+    "id": "yasawa-fiji",
+    "title": "Yasawa Islands",
+    "location": "Fiji",
+    "category": "beach",
+    "lat": -16.8,
+    "lon": 177.3667,
+    "osm": {
+      "query": "Yasawa Islands, Fiji",
+      "lat": -17.2909471,
+      "lon": 177.1257858,
+      "name": "Yasawa Islands, Ba, Western, Fiji",
+      "type": "archipelago",
+      "dist": 60.300178811771715
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Ba, Western, Fiji",
+      "country": "Fiji",
+      "state": "Western",
+      "locality": "Ba",
+      "isWater": false
+    }
+  },
+  "mamanucas-fiji": {
+    "id": "mamanucas-fiji",
+    "title": "Mamanuca Islands",
+    "location": "Fiji",
+    "category": "beach",
+    "lat": -17.6667,
+    "lon": 177.1167,
+    "osm": {
+      "query": "Mamanuca Islands, Fiji",
+      "lat": -17.7495601,
+      "lon": 177.1706455,
+      "name": "Mamanuca Islands, Yaro, Nadroga-Navosa, Western, Fiji",
+      "type": "beach",
+      "dist": 10.841746781169064
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Nadroga-Navosa, Western, Fiji",
+      "country": "Fiji",
+      "state": "Western",
+      "locality": "Nadroga-Navosa",
+      "isWater": false
+    }
+  },
+  "coral-coast-fiji": {
+    "id": "coral-coast-fiji",
+    "title": "Coral Coast",
+    "location": "Fiji",
+    "category": "beach",
+    "lat": -18.1722,
+    "lon": 177.5667,
+    "osm": {
+      "query": "Coral Coast, Fiji",
+      "lat": -18.226368,
+      "lon": 177.7735745,
+      "name": "Coral Coast Divers, Queens Road, Namatakula, Nadroga-Navosa, Western, Fiji",
+      "type": "scuba_diving",
+      "dist": 22.667558207099123
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Sigatoka, Nadroga-Navosa, Western, Fiji",
+      "country": "Fiji",
+      "state": "Western",
+      "locality": "Sigatoka",
+      "isWater": false
+    }
+  },
+  "nevados-de-chillan-cl": {
+    "id": "nevados-de-chillan-cl",
+    "title": "Nevados de Chillán",
+    "location": "Ñuble, Chile",
+    "category": "skiing",
+    "lat": -36.91,
+    "lon": -71.4,
+    "osm": {
+      "query": "Nevados de Chillan, Chile",
+      "lat": -36.613844,
+      "lon": -72.0718055,
+      "name": "Nevados de Chillán, Lomas de Oriente, San Gabriel, Chillán, Provincia de Diguillín, Nuble Region, 3800708, Chile",
+      "type": "neighbourhood",
+      "dist": 68.3073615913213
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Pinto, Provincia de Diguillín, Nuble Region, 3880000, Chile",
+      "country": "Chile",
+      "state": "Nuble Region",
+      "locality": "Pinto",
+      "isWater": false
+    }
+  },
+  "corralco-cl": {
+    "id": "corralco-cl",
+    "title": "Corralco",
+    "location": "Araucanía, Chile",
+    "category": "skiing",
+    "lat": -38.3,
+    "lon": -71.58,
+    "osm": {
+      "query": "Corralco, Chile",
+      "lat": -38.3995589,
+      "lon": -71.5574129,
+      "name": "Corralco, Curacautín, Provincia de Malleco, Araucania Region, Chile",
+      "type": "winter_sports",
+      "dist": 11.244302284493532
+    },
+    "status": "FAR",
+    "at": {
+      "display": "Lonquimay, Provincia de Malleco, Araucania Region, 4690000, Chile",
+      "country": "Chile",
+      "state": "Araucania Region",
+      "locality": "Lonquimay",
+      "isWater": false
+    }
+  },
+  "cerro-catedral-ar": {
+    "id": "cerro-catedral-ar",
+    "title": "Cerro Catedral",
+    "location": "Bariloche, Argentina",
+    "category": "skiing",
+    "lat": -41.17,
+    "lon": -71.44,
+    "osm": {
+      "query": "Cerro Catedral, Argentina",
+      "lat": -44.9311287,
+      "lon": -71.9281077,
+      "name": "Cerro Catedral, Municipio de Alto Río Senguer, Departamento Río Senguer, Chubut, U9033, Argentina",
+      "type": "peak",
+      "dist": 420.0924302328334
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Villa Catedral, Municipio de San Carlos de Bariloche, Departamento Bariloche, Río Negro, Argentina",
+      "country": "Argentina",
+      "state": "Río Negro",
+      "locality": "Villa Catedral",
+      "isWater": false
+    }
+  },
+  "beach_okinawa": {
+    "id": "beach_okinawa",
+    "title": "Emerald Beach Okinawa",
+    "location": "Naha, Japan",
+    "category": "beach",
+    "lat": 26.334,
+    "lon": 127.801,
+    "osm": {
+      "query": "Emerald Beach Okinawa, Japan",
+      "lat": 26.6995474,
+      "lon": 127.878437,
+      "name": "Emerald beach, Prefectural Highway 114, Bise, Motobu, Kunigami, Okinawa Prefecture, 905-0206, Japan",
+      "type": "attraction",
+      "dist": 41.37080487794542
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Okinawa, Okinawa Prefecture, Japan",
+      "country": "Japan",
+      "state": "",
+      "locality": "Okinawa",
+      "isWater": false
+    }
+  },
+  "beach_cape_verde": {
+    "id": "beach_cape_verde",
+    "title": "Santa Maria Beach",
+    "location": "Sal Island, Cape Verde",
+    "category": "beach",
+    "lat": 16.856,
+    "lon": -22.932,
+    "osm": {
+      "query": "Santa Maria Beach, Cape Verde",
+      "lat": 16.59698,
+      "lon": -22.900517,
+      "name": "Aparthotel Santa Maria Beach, Rua 15 de Agosto, Leme Bedje Residence, Santa Maria, Sal, 4111, Cape Verde",
+      "type": "hotel",
+      "dist": 28.99618262615734
+    },
+    "status": "MISMATCH",
+    "at": {
+      "display": "Cape Verde",
+      "country": "Cape Verde",
+      "state": "",
+      "locality": "",
+      "isWater": false
+    }
+  }
+}

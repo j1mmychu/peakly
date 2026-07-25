@@ -1,5 +1,5 @@
 {
-  "appId": "com.peakly.app",
+  "appId": "com.stormpeak.peakly",
   "appName": "Peakly",
   "webDir": "dist",
   "plugins": {

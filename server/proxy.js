@@ -27,6 +27,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8000',
   'http://localhost:3000',
   'http://127.0.0.1:8000',
+  'capacitor://localhost',   // iOS native (Capacitor WKWebView origin)
+  'ionic://localhost',       // legacy Capacitor scheme, harmless to allow
+  'http://localhost',        // Android Capacitor origin (future)
 ];
 
 app.use((req, res, next) => {
@@ -34,7 +37,7 @@ app.use((req, res, next) => {
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
@@ -48,7 +51,11 @@ const RATE_LIMIT = 600;
 const RATE_WINDOW_MS = 60 * 1000;
 const _rateMap = new Map();
 function rateLimiter(req, res, next) {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+  // Caddy APPENDS the real client IP to any inbound XFF, so the LAST entry is
+  // the only one the client can't forge. Taking [0] let anyone bypass the
+  // limiter (and balloon _rateMap) with a random XFF per request.
+  const xff = req.headers['x-forwarded-for'];
+  const ip = (xff ? xff.split(',').pop().trim() : '') || req.socket.remoteAddress;
   const now = Date.now();
   const entry = _rateMap.get(ip);
   if (!entry || now - entry.start > RATE_WINDOW_MS) {
@@ -426,9 +433,9 @@ async function _proxyWeather(req, res, kind) {
           + `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,`
           + `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,`
           + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
-          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`
+          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=14&timezone=auto`
         : `https://marine-api.open-meteo.com/v1/marine?latitude=${latR}&longitude=${lonR}`
-          + `&daily=sea_surface_temperature_max&forecast_days=7&timezone=auto`;
+          + `&daily=sea_surface_temperature_max&forecast_days=10&timezone=auto`;
       const { status, json } = await fetchJson(url);
       if (status === 429 || status >= 500 || (json && json.error)) {
         throw new Error(`upstream ${status} ${json?.reason || ''}`);
@@ -624,7 +631,7 @@ async function checkAlerts() {
           + `snow_depth_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,`
           + `uv_index_max,weather_code,precipitation_probability_max,sunshine_duration,`
           + `rain_sum,showers_sum,relative_humidity_2m_max,cloud_cover_max`
-          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=7&timezone=auto`;
+          + `&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=14&timezone=auto`;
         const { status, json } = await fetchJson(url);
         if (status === 200 && json) { _wxCacheSet(cacheKey, json); weather = json; }
       }

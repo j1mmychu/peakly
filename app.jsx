@@ -114,7 +114,13 @@ const SYNCED_KEYS = ["peakly_wishlists", "peakly_named_lists", "peakly_alerts", 
 // before activation completes). One reload here = no manual hard-refresh.
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   let _peaklyReloadGuard = false;
+  // A page that starts UNcontrolled (first-ever visit) also fires
+  // controllerchange when the new SW calls clients.claim() — reloading there
+  // punishes every brand-new visitor with a double cold load mid-session.
+  // Only reload when an existing controller was REPLACED (i.e. a real deploy).
+  let _hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!_hadController) { _hadController = true; return; }
     if (_peaklyReloadGuard) return;
     _peaklyReloadGuard = true;
     window.location.reload();
@@ -481,7 +487,7 @@ const VENUES = [
     lat:50.1163, lon:-122.9574, ap:"YVR",
     icon:"🏔️", rating:4.97, reviews:2840,
     gradient:"linear-gradient(160deg,#1a3a5c,#2e6bbf,#6db3f2)",
-    accent:"#6db3f2", tags:["Deep Powder","Blackcomb Glacier","Village Nightlife","World Cup Racing"], photo:"https://images.unsplash.com/photo-1526904212716-2d2cb52a7258?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.65", skiPass:"epic", lateSeason:true,
+    accent:"#6db3f2", tags:["Deep Powder","Blackcomb Glacier","Village Nightlife","World Cup Racing"], photo:"https://images.unsplash.com/photo-1677164859770-9b971dd523df?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Nnx8V2hpc3RsZXIlMjBCbGFja2NvbWIlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NDk0NTg5MXww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"epic", lateSeason:true,
   },
   {
     id:"borabora",  category:"beach",
@@ -489,7 +495,7 @@ const VENUES = [
     lat:-16.5004, lon:-151.7415, ap:"BOB",
     icon:"🏝️", rating:4.96, reviews:988,
     gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",
-    accent:"#a5d6a7", tags:["UV 11","Crystal Water"], photo:"https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57",
+    accent:"#a5d6a7", tags:["UV 11","Crystal Water"], photo:"https://images.unsplash.com/photo-1738762932370-468a90e0ff68?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Qm9yYSUyMEJvcmElMjBMYWdvb24lMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1ODkxfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
   },
   {
     id:"chamonix",  category:"skiing",
@@ -497,14 +503,13 @@ const VENUES = [
     lat:45.9237, lon:6.8694, ap:"GVA",
     icon:"🎿", rating:4.94, reviews:3405,
     gradient:"linear-gradient(160deg,#0a1a3a,#1a3a6e,#3a6ebf)",
-    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47", skiPass:"ikon", lateSeason:true,
+    accent:"#90caf9", tags:["Off-Piste","Mont Blanc Views"], photo:"https://images.unsplash.com/photo-1465220183275-1faa863377e3?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Q2hhbW9uaXgtTW9udC1CbGFuYyUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1ODkyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"ikon", lateSeason:true,
   },
-  {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61", skiPass:"ikon"},
-  {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1576397702991-9d7587623713?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.39", skiPass:"epic"},
-  {id:"alta",        category:"skiing",title:"Alta / Snowbird",         location:"Utah, USA",                lat:40.5883,lon:-111.6358,ap:"SLC",icon:"⛷️",rating:4.96,reviews:2960,gradient:"linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",accent:"#78ace4",tags:["Ski Only","Deep Powder"], photo:"https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"], photo:"https://images.unsplash.com/photo-1695331942059-6bf9226ccb2b?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"aspen",       category:"skiing",title:"Aspen Snowmass",          location:"Colorado, USA",            lat:39.1911,lon:-106.8175,ap:"ASE",icon:"⛷️",rating:4.97,reviews:3210,gradient:"linear-gradient(160deg,#0d1b35,#1a3a7a,#3a6ac4)",accent:"#7eb3e8",tags:["Expert Terrain","Luxury Village"], photo:"https://images.unsplash.com/photo-1614444894791-c0c4d4286c35?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QXNwZW4lMjBTbm93bWFzcyUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1ODkyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"ikon"},
+  {id:"vail",        category:"skiing",title:"Vail Mountain",           location:"Colorado, USA",            lat:39.6433,lon:-106.3722,ap:"EGE",icon:"⛷️",rating:4.96,reviews:4120,gradient:"linear-gradient(160deg,#0d1b35,#1a3c7c,#2e68c2)",accent:"#82b4e8",tags:["Back Bowls","All Levels"], photo:"https://images.unsplash.com/photo-1771022110449-f1dea48f275b?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8VmFpbCUyME1vdW50YWluJTIwc2tpJTIwcmVzb3J0fGVufDF8MHx8fDE3ODQ5NDU4OTN8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"epic"},
+  {id:"alta",        category:"skiing",title:"Alta",              location:"Utah, USA",                lat:40.5883,lon:-111.6358,ap:"SLC",icon:"⛷️",rating:4.96,reviews:2960,gradient:"linear-gradient(160deg,#0a1828,#1a3870,#2e66be)",accent:"#78ace4",tags:["Ski Only","Deep Powder"], photo:"https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"jacksonhole", category:"skiing",title:"Jackson Hole Mountain",   location:"Wyoming, USA",             lat:43.5875,lon:-110.8279,ap:"JAC",icon:"⛷️",rating:4.97,reviews:3440,gradient:"linear-gradient(160deg,#0d1c36,#1a3c7a,#3068c4)",accent:"#76aedf",tags:["Teton Views","Expert+"], photo:"https://images.unsplash.com/photo-1778704904143-23ee6279096a?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SmFja3NvbiUyMEhvbGUlMjBNb3VudGFpbiUyMFVTQXxlbnwxfDB8fHwxNzg0OTQ1ODk0fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"ikon"},
   {id:"telluride",   category:"skiing",title:"Telluride Ski Resort",    location:"Colorado, USA",            lat:37.9364,lon:-107.8123,ap:"MTJ",icon:"⛷️",rating:4.96,reviews:2100,gradient:"linear-gradient(160deg,#0c1a34,#1a3878,#2e64c0)",accent:"#72a8dc",tags:["Box Canyon","Ski-In/Out Town"], photo:"https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67", skiPass:"epic"},
-  {id:"banff",       category:"skiing",title:"Banff / Lake Louise",     location:"Alberta, Canada",          lat:51.4254,lon:-116.1773,ap:"YYC",icon:"⛷️",rating:4.95,reviews:3560,gradient:"linear-gradient(160deg,#0d1c38,#1a3e7c,#2a6abf)",accent:"#7aacdc",tags:["Rocky Mtn Views","3 Resorts"], photo:"https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"breckenridge",category:"skiing",title:"Breckenridge",           location:"Colorado, USA",            lat:39.4817,lon:-106.0384,ap:"DEN",icon:"⛷️",rating:4.93,reviews:4820,gradient:"linear-gradient(160deg,#0e1c38,#1a3e7e,#2e6cbe)",accent:"#78aada",tags:["Historic Town","Epic Pass"], photo:"https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49", skiPass:"epic"},
   {id:"mammoth",     category:"skiing",title:"Mammoth Mountain",        location:"California, USA",          lat:37.6308,lon:-119.0326,ap:"RNO",icon:"⛷️",rating:4.94,reviews:3780,gradient:"linear-gradient(160deg,#0c1e38,#1a4280,#3270c0)",accent:"#74a6da",tags:["Sierra Nevada","Late Season"], photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33", skiPass:"ikon", lateSeason:true},
   {id:"steamboat",   category:"skiing",title:"Steamboat Springs",       location:"Colorado, USA",            lat:40.4572,lon:-106.8045,ap:"HDN",icon:"⛷️",rating:4.91,reviews:2860,gradient:"linear-gradient(160deg,#0d1e38,#1a4280,#3270be)",accent:"#72a4d8",tags:["Champagne Powder","Cowboy Style"], photo:"https://images.unsplash.com/photo-1735767976699-6096acda642d?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.30", skiPass:"ikon"},
@@ -522,12 +527,12 @@ const VENUES = [
   {id:"whitefish",   category:"skiing",title:"Whitefish Mountain",      location:"Montana, USA",             lat:48.4825,lon:-114.3487,ap:"FCA",icon:"⛷️",rating:4.92,reviews:1840,gradient:"linear-gradient(160deg,#0c1a36,#1a3878,#2e66b8)",accent:"#72a6d8",tags:["Glacier NP Gateway","3,000 Acres"], photo:"https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59", skiPass:"independent"},
   {id:"mthood",      category:"skiing",title:"Mt Hood Meadows",         location:"Oregon, USA",              lat:45.3311,lon:-121.6648,ap:"PDX",icon:"⛷️",rating:4.90,reviews:2060,gradient:"linear-gradient(160deg,#0c1c38,#1a3c7a,#2e68bc)",accent:"#74a8da",tags:["Pacific NW","2,150 Acres"], photo:"https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"alyeska",     category:"skiing",title:"Alyeska Resort",          location:"Alaska, USA",              lat:60.9697,lon:-149.0989,ap:"ANC",icon:"⛷️",rating:4.93,reviews:1320,gradient:"linear-gradient(160deg,#0a1a30,#1a3870,#2e66c0)",accent:"#74aadc",tags:["Alaska's Largest","Glacier Views"], photo:"https://images.unsplash.com/photo-1576829021150-ebc8b46b9fb9?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop", skiPass:"ikon"},
+  {id:"niseko",      category:"skiing",title:"Niseko United",           location:"Hokkaido, Japan",          lat:42.8048,lon:140.6879,ap:"CTS",icon:"⛷️",rating:4.97,reviews:3180,gradient:"linear-gradient(160deg,#0d1c40,#1a3e88,#3a78d4)",accent:"#7ab4ec",tags:["Japow","200+ Snow Days"], photo:"https://images.unsplash.com/photo-1607746672355-e467302a3600?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SG9ra2FpZG8lMjBKYXBhbiUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1ODk3fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"ikon"},
   {id:"rusutsu",     category:"skiing",title:"Rusutsu Resort",          location:"Hokkaido, Japan",          lat:42.7517,lon:140.8956,ap:"CTS",icon:"⛷️",rating:4.92,reviews:1580,gradient:"linear-gradient(160deg,#0c1c40,#1a3e88,#3876d0)",accent:"#76b0ea",tags:["Uncrowded Japow","Tree Runs"], photo:"https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop", skiPass:"ikon"},
   {id:"nozawa",      category:"skiing",title:"Nozawa Onsen",            location:"Nagano, Japan",            lat:36.9221,lon:138.4434,ap:"NRT",icon:"⛷️",rating:4.91,reviews:1260,gradient:"linear-gradient(160deg,#0e2040,#1a4088,#3878d2)",accent:"#78b2ea",tags:["Onsen Après","Authentic Village"], photo:"https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop", skiPass:"independent"},
   {id:"remarkables", category:"skiing",title:"The Remarkables",         location:"Queenstown, New Zealand",  lat:-45.0400,lon:168.7862,ap:"ZQN",icon:"⛷️",rating:4.92,reviews:1880,gradient:"linear-gradient(160deg,#0a1c2e,#1a4070,#2e74b8)",accent:"#68aadc",tags:["Queenstown Base","Scenic Views"], photo:"https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop", skiPass:"ikon"},
-  {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop", skiPass:"independent"},
-  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"independent", lateSeason:true},
+  {id:"courchevel",  category:"skiing",title:"Courchevel",              location:"Les 3 Vallées, France",    lat:45.4146,lon:6.6337,ap:"CMF",icon:"⛷️",rating:4.96,reviews:3240,gradient:"linear-gradient(160deg,#0c1432,#1e2e72,#3048c2)",accent:"#6e8ae4",tags:["Luxury Chalet","Linked Ski Area"], photo:"https://images.unsplash.com/photo-1649421811395-5bfcf16cc37a?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Q291cmNoZXZlbCUyMEZyYW5jZXxlbnwxfDB8fHwxNzg0OTQ1ODk5fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"independent"},
+  {id:"tignes",      category:"skiing",title:"Tignes / Val d'Isère",   location:"Espace Killy, France",     lat:45.4708,lon:6.9057,ap:"CMF",icon:"⛷️",rating:4.94,reviews:2960,gradient:"linear-gradient(160deg,#0c1430,#1e2c72,#3046c0)",accent:"#6c88e2",tags:["Summer Glacier","Huge Domain"], photo:"https://images.unsplash.com/photo-1740327986659-2acba8a87eb6?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8VGlnbmVzJTIwJTJGJTIwVmFsJTIwZCUyN0lzJUMzJUE4cmUlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NDk0NTg5OXww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75", skiPass:"independent", lateSeason:true},
   {id:"andermatt",   category:"skiing",title:"Andermatt",               location:"Uri, Switzerland",         lat:46.6363,lon:8.5942,ap:"ZRH",icon:"⛷️",rating:4.92,reviews:1820,gradient:"linear-gradient(160deg,#0d1832,#1a3a72,#2e62b8)",accent:"#70a8da",tags:["New World-Class","High Alpine"], photo:"https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop", skiPass:"epic"},
   {id:"ischgl",      category:"skiing",title:"Ischgl",                  location:"Silvretta Arena, Austria", lat:47.0127,lon:10.2928,ap:"INN",icon:"⛷️",rating:4.94,reviews:3120,gradient:"linear-gradient(160deg,#0d1630,#1e3070,#2c5ab2)",accent:"#6c9ed2",tags:["Nightlife","Tax-Free Shopping"], photo:"https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62", skiPass:"ikon"},
   {id:"kitzbuehel",  category:"skiing",title:"Kitzbühel",               location:"Tyrol, Austria",           lat:47.4467,lon:12.3922,ap:"SZG",icon:"⛷️",rating:4.94,reviews:3840,gradient:"linear-gradient(160deg,#0e1630,#1e3272,#2e5eb4)",accent:"#6ea0d4",tags:["Hahnenkamm Races","Historic Town"], photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5", skiPass:"ikon"},
@@ -543,7 +548,7 @@ const VENUES = [
   {id:"beach_tobago",   category:"beach",title:"Pigeon Point",           location:"Tobago",                        lat:11.1650,lon:-60.8400,ap:"TAB",icon:"🏖️",rating:4.90,reviews:5400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#00bbdd",tags:["Caribbean Soul","Offshore Coral"], photo:"https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&h=600&fit=crop"},
   {id:"beach_negril",   category:"beach",title:"Seven Mile Beach Negril", location:"Jamaica",                      lat:18.3630,lon:-78.3440,ap:"MBJ",icon:"🏖️",rating:4.92,reviews:16800,gradient:"linear-gradient(160deg,#002200,#004400,#007700)",accent:"#44cc44",tags:["Legendary Sunsets","Cliff Diving"], photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"},
   {id:"beach_holbox",   category:"beach",title:"Holbox Island",          location:"Quintana Roo, Mexico",          lat:21.5245,lon:-87.3690,ap:"CUN",icon:"🏖️",rating:4.96,reviews:9300,gradient:"linear-gradient(160deg,#002233,#005566,#0088aa)",accent:"#33bbcc",tags:["No Cars","Whale Shark Season"], photo:"https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop"},
-  {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"},
+  {id:"beach_tulum",    category:"beach",title:"Tulum Beach",            location:"Tulum, Mexico",                 lat:20.1500,lon:-87.4630,ap:"CUN",icon:"🏖️",rating:4.93,reviews:21400,gradient:"linear-gradient(160deg,#003322,#006644,#009966)",accent:"#22ccaa",tags:["Mayan Ruins Backdrop","Crystal Cenotes"], photo:"https://images.unsplash.com/photo-1605217074767-688b113d3b43?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8VHVsdW0lMjBCZWFjaCUyMGJlYWNofGVufDF8MHx8fDE3ODQ5NDU5MDB8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"beach_cozumel",  category:"beach",title:"Playa Palancar",         location:"Cozumel, Mexico",               lat:20.3500,lon:-87.0250,ap:"CZM",icon:"🏖️",rating:4.94,reviews:8900,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["2nd Largest Reef","Crystal Visibility"], photo:"https://images.unsplash.com/photo-1528913775512-624d24b27b96?w=800&h=600&fit=crop"},
   {id:"beach_rivmaya",  category:"beach",title:"Riviera Maya",           location:"Quintana Roo, Mexico",          lat:20.6300,lon:-87.0790,ap:"CUN",icon:"🏖️",rating:4.88,reviews:38400,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Resorts + Cenotes","Mesoamerican Reef"], photo:"https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"},
   {id:"beach_sayulita",category:"beach",title:"Sayulita",                location:"Nayarit, Mexico",               lat:20.8689,lon:-105.3977,ap:"PVR",icon:"🏖️",rating:4.91,reviews:11200,gradient:"linear-gradient(160deg,#332200,#665500,#998800)",accent:"#ddbb22",tags:["Bohemian Beach Town","Taco Heaven"], photo:"https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"},
@@ -564,12 +569,12 @@ const VENUES = [
   {id:"beach_positano", category:"beach",title:"Positano Beach",         location:"Amalfi Coast, Italy",           lat:40.6280,lon:14.4850,ap:"NAP",icon:"🏖️",rating:4.92,reviews:22800,gradient:"linear-gradient(160deg,#001a33,#003366,#004d99)",accent:"#3377dd",tags:["Cliffside Pastel Town","Amalfi Drive"], photo:"https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"},
   {id:"beach_sardinia", category:"beach",title:"Cala Mariolu",           location:"Sardinia, Italy",               lat:40.0980,lon:9.5600,ap:"CAG",icon:"🏖️",rating:4.98,reviews:8400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33aaff",tags:["Caribbean-Clear Water","Boulders + Coves"], photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
   {id:"beach_algarve",  category:"beach",title:"Praia da Marinha",       location:"Algarve, Portugal",             lat:37.0870,lon:-8.4110,ap:"FAO",icon:"🏖️",rating:4.96,reviews:14600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Rock Arch + Sea Caves","Top10 Europe"], photo:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"},
-  {id:"beach_santorini",category:"beach",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"},
-  {id:"beach_mykonos",  category:"beach",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"},
+  {id:"beach_santorini",category:"beach",title:"Santorini Red Beach",    location:"Santorini, Greece",             lat:36.3470,lon:25.3960,ap:"JTR",icon:"🏖️",rating:4.91,reviews:19400,gradient:"linear-gradient(160deg,#330000,#660000,#990000)",accent:"#dd4444",tags:["Volcanic Red Cliffs","Caldera Views"], photo:"https://images.unsplash.com/photo-1651617733477-6cc82ceb3730?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U2FudG9yaW5pJTIwUmVkJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTAwfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+  {id:"beach_mykonos",  category:"beach",title:"Paradise Beach Mykonos", location:"Mykonos, Greece",               lat:37.4218,lon:25.3472,ap:"JMK",icon:"🏖️",rating:4.89,reviews:21600,gradient:"linear-gradient(160deg,#003355,#0055aa,#0088dd)",accent:"#33bbff",tags:["Non-Stop Party Beach","Crystal Aegean"], photo:"https://images.unsplash.com/photo-1627243014832-c1c8bbbafff5?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8UGFyYWRpc2UlMjBCZWFjaCUyME15a29ub3MlMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTAxfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"beach_hvar",     category:"beach",title:"Hvar Hula Hula Beach",   location:"Hvar Island, Croatia",          lat:43.1730,lon:16.4410,ap:"SPU",icon:"🏖️",rating:4.90,reviews:12200,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Lavender Island","Adriatic Glamour"], photo:"https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"},
   {id:"beach_dubrovnik",category:"beach",title:"Banje Beach Dubrovnik",  location:"Dubrovnik, Croatia",            lat:42.6340,lon:18.1250,ap:"DBV",icon:"🏖️",rating:4.88,reviews:14600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#3377cc",tags:["Old City Backdrop","Adriatic Clear"], photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
   {id:"beach_milos",    category:"beach",title:"Sarakiniko Moon Beach",  location:"Milos Island, Greece",          lat:36.7570,lon:24.3900,ap:"MLO",icon:"🏖️",rating:4.97,reviews:8900,gradient:"linear-gradient(160deg,#e8e8e8,#cccccc,#aaaaaa)",accent:"#888888",tags:["White Volcanic Pumice","Lunar Landscape"], photo:"https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"},
-  {id:"beach_ibiza",    category:"beach",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"},
+  {id:"beach_ibiza",    category:"beach",title:"Ses Salines Ibiza",      location:"Ibiza, Spain",                  lat:38.8720,lon:1.3960,ap:"IBZ",icon:"🏖️",rating:4.92,reviews:18400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Natural Park Beach","White Island Vibes"], photo:"https://images.unsplash.com/photo-1661887561486-1f771e7b2cab?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U2VzJTIwU2FsaW5lcyUyMEliaXphJTIwU3BhaW58ZW58MXwwfHx8MTc4NDk0NTkwMnww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"beach_formentera",category:"beach",title:"Formentera Illetes",    location:"Formentera, Spain",             lat:38.7310,lon:1.3820,ap:"IBZ",icon:"🏖️",rating:4.97,reviews:11800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["Caribbean of Europe","Car-Free Island"], photo:"https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"},
   {id:"beach_menorca",  category:"beach",title:"Cala Macarella",         location:"Menorca, Spain",                lat:39.9010,lon:3.8080,ap:"MAH",icon:"🏖️",rating:4.96,reviews:9400,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#3399ff",tags:["Emerald Cove","Untouched Pine Forest"], photo:"https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"},
   {id:"beach_cotedazur",category:"beach",title:"Côte d'Azur Antibes",   location:"French Riviera, France",        lat:43.5806,lon:7.1287,ap:"NCE",icon:"🏖️",rating:4.88,reviews:22800,gradient:"linear-gradient(160deg,#00133d,#00266e,#0044b3)",accent:"#3366ee",tags:["French Riviera","Billionaire Yachts"], photo:"https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -582,7 +587,7 @@ const VENUES = [
   {id:"beach_kohsamui", category:"beach",title:"Chaweng Beach",          location:"Koh Samui, Thailand",           lat:9.5317,lon:100.0672,ap:"USM",icon:"🏖️",rating:4.88,reviews:24600,gradient:"linear-gradient(160deg,#002233,#004466,#0077aa)",accent:"#22aacc",tags:["Gulf of Thailand","Full Moon Parties"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"beach_phiphi",   category:"beach",title:"Maya Bay Phi Phi",       location:"Krabi, Thailand",               lat:7.6775,lon:98.7669,ap:"HKT",icon:"🏖️",rating:4.94,reviews:22800,gradient:"linear-gradient(160deg,#002233,#005566,#008888)",accent:"#22cccc",tags:["The Beach Film Location","Emerald Lagoon"], photo:"https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
   {id:"beach_elnido",   category:"beach",title:"El Nido Bacuit Bay",     location:"Palawan, Philippines",          lat:11.1784,lon:119.3944,ap:"ENI",icon:"🏖️",rating:4.98,reviews:16200,gradient:"linear-gradient(160deg,#003344,#006677,#0099aa)",accent:"#22bbcc",tags:["UNESCO Biosphere","Kayak the Lagoons"], photo:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-  {id:"beach_boracay",  category:"beach",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
+  {id:"beach_boracay",  category:"beach",title:"White Beach Boracay",    location:"Aklan, Philippines",            lat:11.9674,lon:121.9248,ap:"MPH",icon:"🏖️",rating:4.92,reviews:28800,gradient:"linear-gradient(160deg,#003355,#005588,#0088bb)",accent:"#33aadd",tags:["World Famous White Beach","4km of Sand"], photo:"https://images.unsplash.com/photo-1639526473371-e68e5336df56?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8V2hpdGUlMjBCZWFjaCUyMEJvcmFjYXklMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTAyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"beach_nusapenida",category:"beach",title:"Kelingking Secret Beach",location:"Nusa Penida, Indonesia",        lat:-8.8340,lon:115.4560,ap:"DPS",icon:"🏖️",rating:4.97,reviews:19400,gradient:"linear-gradient(160deg,#002233,#004466,#007799)",accent:"#33aacc",tags:["T-Rex Cliff","Instagram Iconic"], photo:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
   {id:"beach_gilit",    category:"beach",title:"Gili Trawangan",         location:"Lombok, Indonesia",             lat:-8.3520,lon:116.0500,ap:"LOP",icon:"🏖️",rating:4.90,reviews:14600,gradient:"linear-gradient(160deg,#003344,#006688,#0099bb)",accent:"#22ccdd",tags:["No Cars No Motorized Vehicles","Turtle Sanctuary"], photo:"https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"},
   {id:"beach_aitutaki", category:"beach",title:"Aitutaki Lagoon",        location:"Aitutaki, Cook Islands",        lat:-18.8588,lon:-159.7893,ap:"AIT",icon:"🏖️",rating:4.99,reviews:4600,gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",accent:"#33bbff",tags:["World's Most Beautiful Lagoon","Remote Paradise"], photo:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
@@ -622,7 +627,7 @@ const VENUES = [
   {id:"plage-de-pampelonne-t5",category:"beach",title:"Plage de Pampelonne",location:"Saint-Tropez, France",lat:43.25,lon:6.65,ap:"NCE",icon:"🏝️",rating:4.85,reviews:4161,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"},
   {id:"matira-beach-t6",category:"beach",title:"Matira Beach",location:"Bora Bora, French Polynesia",lat:-16.5333,lon:-151.7333,ap:"BOB",icon:"🏝️",rating:4.79,reviews:1701,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"},
   {id:"outer-banks-nags-head-t7",category:"beach",title:"Outer Banks Nags Head",location:"North Carolina, USA",lat:35.9577,lon:-75.6244,ap:"ORF",icon:"🏝️",rating:4.72,reviews:1209,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Jockey's Ridge Dunes","Hang Gliding","Family Friendly","Historic Lighthouse"],photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
-  {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-21.9167,lon:114.1167,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
+  {id:"turquoise-bay-t8",category:"beach",title:"Turquoise Bay",location:"Western Australia, Australia",lat:-22.096,lon:113.8876,ap:"LEA",icon:"🏝️",rating:4.65,reviews:3341,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Natural Beauty","Protected Bay","Coral Reef","No Crowds"],photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
   {id:"natadola-beach-t9",category:"beach",title:"Natadola Beach",location:"Fiji",lat:-18.1167,lon:177.5167,ap:"NAN",icon:"🏝️",rating:4.66,reviews:3212,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Family Friendly","Swimming Lagoon","White Sand","Fiji's Best Beach"],photo:"https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"},
   {id:"tofo-beach-t10",category:"beach",title:"Tofo Beach",location:"Inhambane, Mozambique",lat:-23.8667,lon:35.5333,ap:"INH",icon:"🏝️",rating:4.89,reviews:2799,gradient:"linear-gradient(160deg,#1a3a00,#2e7d32,#66bb6a)",accent:"#a5d6a7",tags:["UV 10+","Crystal Water","White Sand","Year-Round Sun"],photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"},
   {id:"tioman-island-t11",category:"beach",title:"Tioman Island",location:"Pahang, Malaysia",lat:2.8,lon:104.1667,ap:"KUL",icon:"🏝️",rating:4.72,reviews:3627,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"},
@@ -632,7 +637,7 @@ const VENUES = [
 
   {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["5-Star Resorts","Calm Bay","Family Friendly","Reef Snorkeling"],photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
   {id:"patara-beach-t18",category:"beach",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Ancient Lycian Ruins","Sea Turtle Nesting","6km Pristine Beach","UNESCO Protected"],photo:"https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"},
-  {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Kiteboarding Capital","Trade Winds","Windsurfing","World Cup Kite Venue"],photo:"https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"},
+  {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Kiteboarding Capital","Trade Winds","Windsurfing","World Cup Kite Venue"],photo:"https://images.unsplash.com/photo-1553195029-754fbd369560?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QnVsYWJvZyUyMEJlYWNoJTIwQm9yYWNheXxlbnwxfDB8fHwxNzg0OTQ1OTA1fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"san-vito-lo-capo-t21",category:"beach",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
   {id:"hyams-beach-t22",category:"beach",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Whitest Sand in the World","Jervis Bay","Quiet & Pristine","Kangaroo Sightings"],photo:"https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=600&fit=crop"},
   {id:"lindos-beach-t23",category:"beach",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Acropolis Backdrop","Pebble & Sand Mix","Turquoise Cove","Hilltop Village Walk"],photo:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"},
@@ -1065,7 +1070,7 @@ const VENUES = [
         "Rocky Mountain Powder",
         "Ikon Pass"
       ],
-      "photo": "https://images.unsplash.com/photo-1453745558060-956d4c4deff8?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1573060665892-333a8ba410a2?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8TGFrZSUyMExvdWlzZSUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1OTA4fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
       "skiPass": "ikon",
     },
     {
@@ -1107,7 +1112,7 @@ const VENUES = [
         "Iconic",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop",
+      "photo": "https://images.unsplash.com/photo-1743702263351-40b1b84be3a2?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8WmVybWF0dCUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1OTA5fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
       "skiPass": "ikon",
       "lateSeason": true
     },
@@ -1175,7 +1180,7 @@ const VENUES = [
         "Off-Piste",
         "Expert"
       ],
-      "photo": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://images.unsplash.com/photo-1495214401470-30a1fbcc783c?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3QuJTIwQW50b24lMjBhbSUyMEFybGJlcmclMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NDk0NTkwOXww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
       "skiPass": "ikon"
     },
     {
@@ -1330,7 +1335,7 @@ const VENUES = [
         "Park City Historic District",
         "Olympic Legacy"
       ],
-      "photo": "https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+      "photo": "https://images.unsplash.com/photo-1592428067555-fbaaa69df4b2?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8UGFyayUyMENpdHklMjBNb3VudGFpbiUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg0OTQ1OTEwfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
       "skiPass": "epic",
     },
     {
@@ -1702,7 +1707,7 @@ const VENUES = [
         "Off-Piste",
         "Late Season"
       ],
-      "photo": "https://images.unsplash.com/photo-1613111985602-c8c9873b9780?w=800&h=600&fit=crop&fp-x=0.54&fp-y=0.67",
+      "photo": "https://images.unsplash.com/photo-1662536209013-844e0a8eced8?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8M3x8VmVyYmllciUyMDQlMjBWYWxsJUMzJUE5ZXMlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NDk0NTkxMHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -2288,7 +2293,7 @@ const VENUES = [
         "Mayan Ruins Backdrop",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1666051637751-19d52e003355?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8UGxheWElMjBQYXJhaXNvJTIwVHVsdW0lMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTExfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "xpu-ha-beach",
@@ -2516,7 +2521,7 @@ const VENUES = [
         "Luxury",
         "Calm Pacific"
       ],
-      "photo": "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1665765416733-60b2b1b1f5fd?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8V2FpbGVhJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTExfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "kaanapali-beach-maui",
@@ -2535,7 +2540,7 @@ const VENUES = [
         "Cliff Dive",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://images.unsplash.com/photo-1642868972353-b4724b17c519?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8M3x8S2ElMjdhbmFwYWxpJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTEyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "coronado-beach-sd",
@@ -2725,7 +2730,7 @@ const VENUES = [
         "Amalfi Drive",
         "Pastel Cliff Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1614591184338-bd97fac10e22?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QW1hbGZpJTIwVG93biUyMEJlYWNoJTIwYmVhY2h8ZW58MXwwfHx8MTc4NDk0NTkxMnww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "scala-dei-turchi-sicily",
@@ -2820,7 +2825,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1633268118616-2cf81de89478?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8Q2FsYSUyMFNhbGFkYSUyMEliaXphJTIwU3BhaW58ZW58MXwwfHx8MTc4NDk0NTkxM3ww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "cala-comte-ibiza",
@@ -2839,7 +2844,7 @@ const VENUES = [
         "Legendary Sunsets",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1672939113907-2549a4c50c64?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8Q2FsYSUyMENvbXRlJTIwSWJpemElMjBiZWFjaHxlbnwxfDB8fHwxNzg0OTQ1OTE0fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "cala-bassa-ibiza",
@@ -2858,7 +2863,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
+      "photo": "https://images.unsplash.com/photo-1657747296876-320bd655bd23?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Q2FsYSUyMEJhc3NhJTIwSWJpemElMjBJYml6YXxlbnwxfDB8fHwxNzg0OTQ1OTE1fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
     },
     {
       "id": "cala-pregonda-menorca",
@@ -3074,8 +3079,8 @@ const VENUES = [
       "category": "beach",
       "title": "Pasjača Beach",
       "location": "Konavle, Croatia",
-      "lat": 42.5275,
-      "lon": 18.4528,
+      "lat": 42.5134,
+      "lon": 18.3213,
       "ap": "DBV",
       "icon": "🏖️",
       "rating": 4.6,
@@ -4645,14 +4650,14 @@ const VENUES = [
     photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
   {id:"beach_okinawa", category:"beach",
     title:"Emerald Beach Okinawa", location:"Naha, Japan",
-    lat:26.334, lon:127.801, ap:"OKA",
+    lat:26.6995, lon:127.8784, ap:"OKA",
     icon:"🏖️", rating:4.85, reviews:2480,
     gradient:"linear-gradient(160deg,#003333,#006666,#00aaaa)",
     accent:"#33ddcc", tags:["Subtropical Japan","Coral Reef","Ultra-Clear Water","Island Culture"],
     photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
   {id:"beach_cape_verde", category:"beach",
     title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
-    lat:16.856, lon:-22.932, ap:"SID",
+    lat:16.597, lon:-22.9005, ap:"SID",
     icon:"🏖️", rating:4.80, reviews:1860,
     gradient:"linear-gradient(160deg,#1a1a00,#4a4400,#8a7a00)",
     accent:"#d4c060", tags:["Trade Winds","Year-Round Sun","Kitesurfing Mecca","Atlantic Islands"],
@@ -5285,7 +5290,11 @@ async function fetchMarine(lat, lon) {
   const url =
     `${MARINE}/marine?latitude=${lat}&longitude=${lon}` +
     `&daily=sea_surface_temperature_max` +
-    `&forecast_days=14&timezone=auto`;
+    // Marine model horizon is shorter than the weather model's; 14 risks a 400
+    // that would silently drop the water-temp gate entirely (see the
+    // ocean_temperature_max incident above). scoreVenue already falls back to
+    // the most recent reading for days past the end.
+    `&forecast_days=10&timezone=auto`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const r = await fetch(url, { signal: controller.signal });
@@ -5421,7 +5430,7 @@ function scoreVenue(venue, wx, marine, dayIndex) {
   let bestDays = 1;
   for (let i = di + 1; i < (d.precipitation_sum?.length ?? 0); i++) {
     const dayPrecip = d.precipitation_sum[i] ?? 99;
-    const dayWind = d.wind_speed_10m_max[i] ?? 99;
+    const dayWind = d.wind_speed_10m_max?.[i] ?? 99;
     const daySnow = d.snowfall_sum?.[i] ?? 0;
     if (venue.category === "skiing") {
       if ((daySnow > 0 || dayPrecip < 3) && dayWind < 35) bestDays++;
@@ -5707,12 +5716,18 @@ function scoreVenue(venue, wx, marine, dayIndex) {
 // Upcoming Friday's YYYY-MM-DD. If today is Fri, returns today. If mid-weekend
 // (Sat/Sun), skips to NEXT Fri — same-day fares aren't a useful pricing
 // signal. Used for weekend-specific Travelpayouts queries.
+// Format a Date as YYYY-MM-DD in LOCAL time. Never use toISOString() for
+// calendar dates — it's UTC, so any US-evening browse rolls the date forward a
+// day (Friday fares priced as Saturday for everyone west of UTC after ~4pm).
+function localISODate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 function upcomingFridayISO(today) {
   const d = today.getDay(); // 0=Sun ... 6=Sat
   const daysToFri = d === 5 ? 0 : (5 - d + 7) % 7;
   const fri = new Date(today);
   fri.setDate(fri.getDate() + daysToFri);
-  return fri.toISOString().slice(0, 10);
+  return localISODate(fri);
 }
 
 // "2026-06-19" → "Fri Jun 19". Renders the actual TP-returned round-trip
@@ -5901,7 +5916,7 @@ function scoreWeekend(venue, wx, marine, todayDate) {
   const friDate = new Date(todayDate); friDate.setDate(friDate.getDate() + friDi);
   const weekendWhich = best.wkIdx === 0 ? "this" : "next";
   const period = weekendWhich === "next" ? `Next weekend · ${best.period}` : best.period;
-  return { ...best, period, weekendWhich, weekendFriISO: friDate.toISOString().slice(0, 10) };
+  return { ...best, period, weekendWhich, weekendFriISO: localISODate(friDate) };
 }
 
 // Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
@@ -5915,6 +5930,14 @@ function scoreWeekendDeal(venue, wx, marine, today, homeAirport, flight) {
   // claim a "deal" priced for the wrong trip. Surface conditions only (no deal
   // claim) until per-weekend pricing exists. Price is 25% of the score anyway.
   if (conditions.weekendWhich === "next") {
+    return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
+  }
+  // Same mismatch through the other door: on Sat/Sun, upcomingFridayISO skips
+  // to NEXT Friday (same-day fares are useless) while the scored window is
+  // still the in-progress weekend — so the fare belongs to a different trip
+  // than the conditions. No deal claim when the dates don't line up.
+  if (conditions.weekendFriISO && flight?.departDate &&
+      conditions.weekendFriISO !== flight.departDate) {
     return { score: null, conditions, priceRatio: null, isEstimate: true, label: null };
   }
   // Staleness gate: a "live" fare last seen >14 days ago is a different
@@ -6170,7 +6193,7 @@ const BASE_PRICES = {
 function getFlightDate(whenId = "anytime") {
   const now = new Date();
   const add = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return d; };
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = d => localISODate(d);   // local, not UTC — see localISODate
   const upcomingFri = () => {
     const ds = now.getDay();
     const days = ds === 5 ? 0 : (5 - ds + 7) % 7;
@@ -6759,6 +6782,19 @@ function useLocalStorage(key, initial) {
     }
     catch { return initial; }
   });
+  // Cloud-sync pull writes straight to localStorage; without this listener the
+  // React state here stays stale, and the next local write uploads that stale
+  // value over the freshly pulled cloud data (second-device sign-in = data loss).
+  useEffect(() => {
+    const onPulled = () => {
+      try {
+        const s = localStorage.getItem(key);
+        if (s) setVal(JSON.parse(s));
+      } catch {}
+    };
+    window.addEventListener("peakly-sync-pulled", onPulled);
+    return () => window.removeEventListener("peakly-sync-pulled", onPulled);
+  }, [key]);
   const save = useCallback(v => {
     setVal(prev => {
       const next = typeof v === "function" ? v(prev) : v;
@@ -8330,7 +8366,7 @@ function AccountNudgeBanner({ wishlistCount, cloudSync, onGoToProfile }) {
           <span style={{ fontSize:22 }}>🔔</span>
           <div>
             <div style={{ fontSize:13, fontWeight:800, color:"#222" }}>Save these for next time</div>
-            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>Get pushed the moment conditions are firing.</div>
+            <div style={{ fontSize:11, color:"#717171", marginTop:1 }}>{ALERTS_AVAILABLE ? "Get pushed the moment conditions are firing." : "We’ll email you the moment conditions are firing."}</div>
           </div>
         </button>
         <button onClick={recordDismiss} aria-label="Dismiss" style={{
@@ -8643,7 +8679,9 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
 // "Sync your data" section in Profile — sign-in (magic link) + sign-out + status.
 // Auto-hides when cloud sync is disabled at config time.
 function ProfileSyncSection({ cloudSync, profile }) {
-  if (!cloudSync || !cloudSync.enabled) return null;
+  // NOTE: the early return lives BELOW the hooks on purpose — bailing before
+  // them is a rules-of-hooks violation that would throw the moment `enabled`
+  // stops being a compile-time constant.
   const [email, setEmail]       = useState(profile?.email || "");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy]         = useState(false);
@@ -8659,6 +8697,7 @@ function ProfileSyncSection({ cloudSync, profile }) {
     return () => clearInterval(t);
   }, [lastSentAt]);
   const cooldownMs = lastSentAt ? Math.max(0, 30000 - (now - lastSentAt)) : 0;
+  if (!cloudSync || !cloudSync.enabled) return null;   // guard AFTER hooks — see note above
   const canSend = !busy && email.includes("@") && cooldownMs === 0;
   useEffect(() => {
     if (cloudSync.status === "checking_email") setFeedback("Check your email — we sent a magic link. It can take a minute; check spam if it's not there.");
@@ -8925,7 +8964,7 @@ function MapView({ listings, profile, onOpenDetail }) {
       marker.on("click", () => { try { onOpenDetail && onOpenDetail(v); } catch (_) {} });
       layerRef.current.addLayer(marker);
     });
-  }, [listings]);
+  }, [listings, leafletReady]);
 
   return (
     <div style={{ flex:1, position:"relative", minHeight:0 }}>
@@ -9816,7 +9855,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
           </div>
         ) : (
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, padding:"0 20px 24px" }}>
-            {listListings.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} alertedIds={alertedIds} onAlertToggle={onAlertToggle} />)}
+            {listListings.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />)}
           </div>
         )}
         <div style={{ height:32 }} />
@@ -9908,7 +9947,7 @@ function WishlistsTab({ listings, wishlists, onToggle, namedLists, setNamedLists
           </div>
         ) : (
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-            {savedAll.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} alertedIds={alertedIds} onAlertToggle={onAlertToggle} />)}
+            {savedAll.map(l => <ListingCard key={l.id} listing={l} wishlists={wishlists} onToggle={onToggle} onOpen={onOpenDetail} />)}
           </div>
         )}
       </div>
@@ -10132,7 +10171,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
   const firing = listings.filter(l =>
     userAlerts.some(a => {
       const sportMatch = a.sport === "all" || a.sport === l.category;
-      const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
+      const locationMatch = (a.locations || []).length === 0 || a.locations.includes(l.id);
       const priceMatch = l.flight.price <= a.priceMax;
       const regionMatch = !a.region || AP_CONTINENT[l.ap] === a.region;
 
@@ -10460,7 +10499,7 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
             const cat    = CATEGORIES.find(c => c.id === a.sport);
             const active = firing.some(l => {
               const sportMatch = a.sport === "all" || a.sport === l.category;
-              const locationMatch = a.locations.length === 0 || a.locations.includes(l.id);
+              const locationMatch = (a.locations || []).length === 0 || a.locations.includes(l.id);
               const priceMatch = l.flight.price <= a.priceMax;
               let scoreMatch = false;
               if (a.condition === "powder") {
@@ -13172,7 +13211,7 @@ function App() {
     haptic("medium");
     window.plausible && window.plausible('Alert Quick Add', { props: { venue: listing.title } });
     logEvent("alert_quick_add", { venue: listing.title, score: listing.conditionScore });
-  }, [userAlerts, setUserAlerts, profile?.homeAirport]);
+  }, [userAlerts, setUserAlerts, profile?.homeAirport, cloudSync]);
 
   const openDetail = useCallback(listing => {
     setDetailVenue(listing);
@@ -13371,7 +13410,7 @@ function App() {
               onOpenDetail={openDetail}
               namedLists={namedLists} setNamedLists={setNamedLists}
               wxLastUpdated={wxLastUpdated} profile={profile}
-              onRefresh={() => fetchAllWeather(false)}
+              onRefresh={() => fetchInitialWeather(true)}
               cloudSync={cloudSync}
             />
           )}

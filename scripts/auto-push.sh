@@ -109,22 +109,68 @@ if git status --porcelain | awk '{print $2}' | grep -q '^app\.jsx$'; then
   # category:, it's blind to the ~197 JSON-formatted batch entries (sees 156
   # of 353). Falls back to the old grep only if node is unavailable/errors,
   # so the guard can never block a commit on counter failure.
+  # NOTE on the walker: plain bracket counting ONLY. An earlier version also
+  # skipped quoted strings, which broke on an apostrophe inside a comment
+  # ("// don't") — the scan ran past the array end, eval threw, and the guard
+  # fell through to the grep fallback (176 vs a real 373). Since that fallback
+  # value then hit the floor check below, the guard REFUSED every app.jsx
+  # commit. Do not reintroduce quote-skipping here.
   VCOUNT=$(node -e '
 const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
 const m=s.match(/const\s+VENUES\s*=\s*\[/);if(!m){process.exit(1);}
 let i=m.index+m[0].length-1,d=0,start=i;
-while(i<s.length){const c=s[i];if(c==="[")d++;else if(c==="]"){d--;if(d===0){i++;break;}}else if(c==="\""||c==="'"'"'"||c==="`"){const q=c;i++;while(i<s.length&&s[i]!==q){if(s[i]==="\\")i++;i++;}}i++;}
+while(i<s.length){const c=s[i];if(c==="[")d++;else if(c==="]"){d--;if(d===0){i++;break;}}i++;}
 const a=eval("("+s.slice(start,i)+")");console.log(a.length);
 ' 2>/dev/null)
-  case "$VCOUNT" in
-    ''|*[!0-9]*) VCOUNT=$(grep -cE 'category: *"(skiing|beach)"' app.jsx) ;;
-  esac
   BASEFILE="$REPO/scripts/.venue-baseline"
   BASELINE=$(cat "$BASEFILE" 2>/dev/null || echo 0)
-  if [ "$VCOUNT" -lt $((BASELINE - 5)) ]; then
-    guard_fail "venue count dropped $BASELINE → $VCOUNT (limit: -5/commit)"
-  fi
-  [ "$VCOUNT" -gt "$BASELINE" ] && echo "$VCOUNT" > "$BASEFILE"
+  case "$VCOUNT" in
+    ''|*[!0-9]*)
+      # Counter itself failed. Per the stated contract, a broken counter must
+      # never block a commit — warn and skip the count check entirely rather
+      # than comparing a known-wrong grep number against the baseline.
+      echo "[auto-push] ⚠ venue counter failed; skipping count check" | tee -a /tmp/peakly-auto-push.log >&2
+      ;;
+    *)
+      if [ "$VCOUNT" -lt $((BASELINE - 5)) ]; then
+        guard_fail "venue count dropped $BASELINE → $VCOUNT (limit: -5/commit)"
+      fi
+      [ "$VCOUNT" -gt "$BASELINE" ] && echo "$VCOUNT" > "$BASEFILE"
+      ;;
+  esac
+
+  # 4. Venue data integrity — the drift class that produced Open #18 (5 airports
+  # in AP_CONTINENT but not AIRPORT_COORDS, so flightHours() returned null and
+  # those venues silently bypassed the "within N hours" filter for 38 days).
+  # Checks in one pass: every venue's `ap` resolves in BOTH lookup tables, no
+  # duplicate ids, no duplicate title+location pairs. Non-blocking if node errors.
+  INTEG=$(node -e '
+const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
+function block(name,open,close){
+  const m=s.match(new RegExp("const\\\\s+"+name+"\\\\s*=\\\\s*\\\\"+open));
+  if(!m)return null;
+  let i=m.index+m[0].length-1,d=0,start=i;
+  while(i<s.length){const c=s[i];
+    if(c===open)d++;else if(c===close){d--;if(d===0){i++;break;}}
+    i++;}
+  try{return eval("("+s.slice(start,i)+")");}catch(e){return null;}
+}
+const V=block("VENUES","[","]"), AC=block("AIRPORT_COORDS","{","}"), AP=block("AP_CONTINENT","{","}");
+if(!V||!AC||!AP)process.exit(1);
+const errs=[];
+const noCoord=[...new Set(V.map(v=>v.ap).filter(a=>a&&!AC[a]))];
+const noCont =[...new Set(V.map(v=>v.ap).filter(a=>a&&!AP[a]))];
+if(noCoord.length)errs.push("ap missing from AIRPORT_COORDS: "+noCoord.join(","));
+if(noCont.length) errs.push("ap missing from AP_CONTINENT: "+noCont.join(","));
+const ids={},tl={};
+V.forEach(v=>{ids[v.id]=(ids[v.id]||0)+1;const k=(v.title+"|"+v.location).toLowerCase();tl[k]=(tl[k]||0)+1;});
+const dupI=Object.entries(ids).filter(([,n])=>n>1).map(([k])=>k);
+const dupT=Object.entries(tl).filter(([,n])=>n>1).map(([k])=>k);
+if(dupI.length)errs.push("duplicate ids: "+dupI.join(","));
+if(dupT.length)errs.push("duplicate title+location: "+dupT.join(" / "));
+console.log(errs.join(" | "));
+' 2>/dev/null)
+  if [ -n "$INTEG" ]; then guard_fail "venue integrity: $INTEG"; fi
 fi
 # ─────────────────────────────────────────────────────────────────────────────
 

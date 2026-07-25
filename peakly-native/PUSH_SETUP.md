@@ -27,7 +27,7 @@ Production push delivery for Peakly's strike alerts. Required for App Store revi
 ## Step 1 — Apple Developer Console: Enable Push for App ID
 
 1. Apple Developer → **Certificates, Identifiers & Profiles** → Identifiers
-2. Find or create App ID for `com.peakly.app`
+2. Find or create App ID for `com.stormpeak.peakly`
 3. Edit → enable **Push Notifications** capability → Save
 
 ## Step 2 — Generate APNs Authentication Key (.p8)
@@ -59,7 +59,7 @@ Edit `/etc/environment` (or the systemd unit / pm2 ecosystem.config.js):
 ```bash
 APNS_KEY_ID=ABC123XYZ
 APNS_TEAM_ID=DEF456GHI
-APNS_BUNDLE_ID=com.peakly.app
+APNS_BUNDLE_ID=com.stormpeak.peakly
 APNS_KEY_PATH=/etc/peakly/AuthKey_ABC123XYZ.p8
 APNS_PROD=true
 ALERT_POLL_MINUTES=30

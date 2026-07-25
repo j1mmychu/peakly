@@ -127,7 +127,7 @@ PORT=3001
 # Strike-alert push (iOS APNS) — required for app store launch
 APNS_KEY_ID=ABC123XYZ                     # 10-char Key ID from Apple Dev console
 APNS_TEAM_ID=DEF456GHI                    # 10-char Team ID from Apple Dev console
-APNS_BUNDLE_ID=com.peakly.app             # iOS bundle identifier
+APNS_BUNDLE_ID=com.stormpeak.peakly             # iOS bundle identifier
 APNS_KEY_PATH=/etc/peakly/AuthKey_ABC.p8  # path to .p8 file (chmod 600, never commit)
 APNS_PROD=true                            # 'true' for production endpoint, 'false' for sandbox
 
