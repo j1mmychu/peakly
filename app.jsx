@@ -12776,6 +12776,8 @@ function App() {
   const [accountModal,   setAccountModal]   = useState(null);
   // Last payload pushed to the iOS widget — dedupes WidgetKit reloads.
   const _lastWidgetPayload = useRef(null);
+  // JS proxy for the native widget plugin — created once via registerPlugin().
+  const _widgetBridge = useRef(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
@@ -13168,7 +13170,15 @@ function App() {
   // except a native iOS build — the web app never sees this run.
   React.useEffect(() => {
     if (!window.Capacitor?.isNativePlatform?.()) return;
-    const bridge = window.Capacitor?.Plugins?.PeaklyWidgetBridge;
+    // NOTE: window.Capacitor.Plugins only contains plugins whose JS package
+    // called registerPlugin(). A native-only plugin (ours lives in the app
+    // target, no npm package) never appears there — the JS proxy has to be
+    // created explicitly. Looking it up in .Plugins silently yields undefined,
+    // which is exactly how this shipped broken the first time.
+    if (!_widgetBridge.current && window.Capacitor?.registerPlugin) {
+      try { _widgetBridge.current = window.Capacitor.registerPlugin("PeaklyWidgetBridge"); } catch {}
+    }
+    const bridge = _widgetBridge.current;
     if (!bridge?.save) return;
 
     // Same standard the front page holds itself to: real scores only, and
