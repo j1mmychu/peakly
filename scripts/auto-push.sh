@@ -38,8 +38,11 @@ trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
 INDEX_LOCK="$REPO/.git/index.lock"
 if [ -f "$INDEX_LOCK" ]; then
   LOCK_SIZE=$(wc -c < "$INDEX_LOCK" | tr -d ' ')
-  # stat differs between macOS (-f %m) and Linux (-c %Y)
-  LOCK_MTIME=$(stat -f %m "$INDEX_LOCK" 2>/dev/null || stat -c %Y "$INDEX_LOCK" 2>/dev/null || echo 0)
+  # stat differs by platform. GNU (-c %Y) MUST be tried first: BSD's `-f` is a
+  # valid flag on Linux too, but means "filesystem info" — it succeeds and
+  # returns garbage, so the fallback never fires and the age math explodes.
+  # `-c` is cleanly invalid on macOS, so this order is safe on both.
+  LOCK_MTIME=$(stat -c %Y "$INDEX_LOCK" 2>/dev/null || stat -f %m "$INDEX_LOCK" 2>/dev/null || echo 0)
   LOCK_AGE=$(( $(date +%s) - LOCK_MTIME ))
   GIT_RUNNING=$(pgrep -x git 2>/dev/null | wc -l | tr -d ' ')
   if [ "$LOCK_SIZE" = "0" ] && [ "$LOCK_AGE" -gt 300 ] && [ "$GIT_RUNNING" = "0" ]; then
