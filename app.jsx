@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260725b";
+const PEAKLY_BUILD = "20260725c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -12917,6 +12917,30 @@ function App() {
 
   const fetchInitialWeather = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
+
+    // ── Step 0: paint from cache SYNCHRONOUSLY (0 network, 0 await) ──
+    // fetchWeather already caches per-coord in localStorage for 2h. Reading it
+    // straight into state before any request means a returning user sees real
+    // scores immediately instead of staring at skeletons while 100+ requests
+    // settle. Cold first-run finds nothing here and falls through.
+    try {
+      let hits = 0;
+      for (const v of VENUES) {
+        if (wxRef.current[v.id]) continue;
+        const wx = _wxCacheGet(_wxCacheKey("weather", v.lat, v.lon));
+        if (!wx) continue;
+        wxRef.current[v.id] = wx;
+        if (v.category === "beach") {
+          marRef.current[v.id] = _wxCacheGet(_wxCacheKey("marine", v.lat, v.lon));
+        }
+        hits++;
+      }
+      if (hits > 0) {
+        setWxData({ ...wxRef.current });
+        setMarData({ ...marRef.current });
+        setLoading(false);          // content is on screen — no spinner
+      }
+    } catch {}
     // Priority tier — top 200 venues cover hero + carousel + first-grid view.
     // VPS /api/weather has a shared 2hr cache so simultaneous coord dedup
     // absorbs the larger batch. Open-Meteo free tier is 10K calls/day; even
@@ -12948,10 +12972,23 @@ function App() {
       });
     };
 
-    // ── Priority tier (blocks loading state) ──
-    for (let i = 0; i < priority.length; i += BATCH_SIZE) {
+    // ── First-paint tier: 12 venues, rendered the moment they land ──
+    // Waiting on the full 100-venue priority batch meant ~15s of skeletons on a
+    // cold start. Twelve venues fill the hero + the first screen of cards, and
+    // they resolve in about a second. Everything else streams in behind it.
+    const FIRST_PAINT = Math.min(12, priority.length);
+    if (FIRST_PAINT > 0) {
+      await runBatch(priority.slice(0, FIRST_PAINT));
+      setWxData({...wxRef.current});
+      setMarData({...marRef.current});
+      setLoading(false);
+      setWxLastUpdated(new Date());
+    }
+
+    // ── Priority tier (rest of the top 200, streams in behind first paint) ──
+    for (let i = FIRST_PAINT; i < priority.length; i += BATCH_SIZE) {
       await runBatch(priority.slice(i, i + BATCH_SIZE));
-      if (i === 0) {
+      {
         setWxData({...wxRef.current});
         setMarData({...marRef.current});
         setLoading(false);

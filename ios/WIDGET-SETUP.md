@@ -73,12 +73,37 @@ Then in Xcode: select the **App** scheme → run on a real device (widgets work 
 
 ## If the widget shows "Open Peakly to find your weekend"
 
-That's the empty state — it means no payload was found. In order of likelihood:
+That's the empty state — no payload was found in the App Group. In order of likelihood:
 
-1. **App Group mismatch.** Most common by far. Verify the identifier is byte-identical on both targets, including `group.` prefix.
-2. **App hasn't scored yet.** The bridge only writes venues with a real score, a non-"Loading…" label, and confidence above `low` — same standard the front page holds. Open the app, wait for cards to populate, then background it.
-3. **Plugin not registered.** In Safari Web Inspector on the device, run `Object.keys(window.Capacitor.Plugins)` — `PeaklyWidgetBridge` must be listed. If missing, the `.m` file isn't in the App target.
+1. **`PeaklyWidgetBridge` missing from `packageClassList`.** ← this was the real bug, and it costs hours because there is no error anywhere.
+
+   Verified against `@capacitor/ios` 6.2.1 source (`CapacitorBridge.swift:287`): Capacitor does **not** scan the Objective-C runtime for `CAPPlugin` subclasses. It reads `capacitor.config.json` from the app bundle and instantiates **only** the class names in `packageClassList` — a list `npx cap sync` generates from Capacitor packages in `node_modules`.
+
+   Our bridge lives in the app target, not an npm package, so sync never lists it. The plugin then simply doesn't exist at runtime: correct `@objc` name, `CAPBridgedPlugin` conformance, compiled into the target, entitlements all fine — and `window.Capacitor.Plugins` still won't contain it, with no error logged.
+
+   Fix (idempotent, already wired into `npm run cap:sync`):
+   ```
+   node scripts/register-widget-plugin.mjs
+   ```
+   Then verify `ios/App/App/capacitor.config.json` lists `PeaklyWidgetBridge`, and rebuild.
+
+   **Any bare `npx cap sync ios` regenerates that file and drops the registration.** Use `npm run cap:sync`, or rerun the script after.
+
+2. **App Group mismatch.** The identifier must be byte-identical on both targets, `group.` prefix included.
+
+3. **App hasn't scored yet.** The bridge only writes a venue with a real score, a non-"Loading…" label, and confidence above `low` — the same bar the front page holds itself to. Open the app, wait for cards, then background it.
+
 4. **Wrong kind string.** `PeaklyWidget.swift`'s `let kind` and the bridge's `reloadTimelines(ofKind:)` must both read `PeaklyWeekendWidget`.
+
+### Diagnosing quickly
+
+With the app running, in Safari (Develop → iPhone → Peakly) console:
+
+```js
+Object.keys(window.Capacitor.Plugins)          // PeaklyWidgetBridge must appear
+```
+
+Note that a **native-only plugin is not auto-exposed on `Capacitor.Plugins`** either — the JS proxy is created with `Capacitor.registerPlugin("PeaklyWidgetBridge")`, which is what `app.jsx` does. Both conditions must hold: registered natively (packageClassList) *and* proxied in JS (registerPlugin).
 
 ## Notes
 
