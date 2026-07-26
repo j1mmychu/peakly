@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260725a";
+const PEAKLY_BUILD = "20260725b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5761,6 +5761,29 @@ function weekendDayIndices(today) {
   return indices;
 }
 
+// Map user-local weekend dates onto the VENUE's forecast day array.
+//
+// Open-Meteo is queried with timezone=auto, so wx.daily.time[0] is the venue's
+// today — which is NOT the user's today across the dateline. A New York user
+// browsing Thursday evening sees Friday already underway in Niseko, so plain
+// offset arithmetic ("Fri = index 1") reads venue-Saturday data and labels it
+// Friday. Matching on the ISO date instead is immune to that, and to the
+// midnight-rollover case where a cached forecast shifts every venue by a day.
+function remapToVenueDays(indices, todayDate, wx) {
+  const times = wx?.daily?.time;
+  if (!Array.isArray(times) || times.length === 0) return indices;
+  const out = [];
+  for (const off of indices) {
+    const d = new Date(todayDate);
+    d.setDate(d.getDate() + off);
+    const i = times.indexOf(localISODate(d));
+    if (i >= 0) out.push(i);
+  }
+  // If the venue's forecast doesn't cover these dates at all (very stale
+  // cache), fall back to whatever offsets are still in range.
+  return out.length ? out : indices.filter(i => i >= 0 && i < times.length);
+}
+
 // Score a single weekend window (array of forecast day-indices). Returns the
 // headline conditions object for that weekend; scoreWeekend picks the best of
 // the candidate weekends.
@@ -5772,10 +5795,14 @@ function scoreOneWeekend(venue, wx, marine, todayDate, indices) {
 
   // Score each weekend day in window
   const days = indices.map(di => {
-    const dt = new Date(todayDate);
-    dt.setDate(dt.getDate() + di);
+    // Label from the forecast's own date for this slot. Parsing at noon UTC
+    // avoids the classic new Date("YYYY-MM-DD") pitfall (parsed as UTC
+    // midnight, then read back in local time = previous day west of UTC).
+    const iso = wx.daily.time?.[di];
+    const dt = iso ? new Date(iso + "T12:00:00Z")
+                   : (() => { const d = new Date(todayDate); d.setDate(d.getDate() + di); return d; })();
     const r = scoreVenue(venue, wx, marine, di);
-    return { ...r, di, dayName: dayNames[dt.getDay()] };
+    return { ...r, di, dayName: dayNames[iso ? dt.getUTCDay() : dt.getDay()] };
   });
 
   // Find best 2 days within window — score = avg of best pair.
@@ -5898,7 +5925,11 @@ function scoreWeekend(venue, wx, marine, todayDate) {
   // Only consider weekends the forecast actually covers — a stale 7-day cache
   // drops the 2nd weekend until it refreshes (graceful; behaves like before).
   const horizon = wx?.daily?.time?.length ?? 0;
-  const weekends = candidateWeekends(todayDate).filter(idxs => idxs.length >= 1 && Math.max(...idxs) < horizon);
+  // Carry wkIdx explicitly: if the first weekend drops out (dates outside the
+  // venue's forecast), positional indexing would relabel weekend 2 as "this".
+  const weekends = candidateWeekends(todayDate)
+    .map((idxs, wkIdx) => ({ wkIdx, indices: remapToVenueDays(idxs, todayDate, wx) }))
+    .filter(w => w.indices.length >= 1 && Math.max(...w.indices) < horizon);
   if (!wx?.daily || weekends.length === 0) {
     return { score:50, label:"Loading…", period:"", days:"", confidence:"low", weekendWhich:"this", weekendFriISO:null };
   }
@@ -5907,16 +5938,18 @@ function scoreWeekend(venue, wx, marine, todayDate) {
   // out-rank a solid in-forecast weekend on luck.
   const discountFor = (c) => c === "high" ? 1.0 : c === "medium" ? 0.93 : 0.82;
   let best = null;
-  weekends.forEach((indices, wkIdx) => {
+  weekends.forEach(({ wkIdx, indices }) => {
     const r = scoreOneWeekend(venue, wx, marine, todayDate, indices);
     const pick = r.score * discountFor(r.confidence);
     if (!best || pick > best.pick) best = { ...r, wkIdx, indices, pick };
   });
-  const friDi = Math.min(...best.indices);
-  const friDate = new Date(todayDate); friDate.setDate(friDate.getDate() + friDi);
+  // Indices are now positions in the VENUE's array, so the Friday date has to
+  // come from the forecast itself — today+index would be wrong by the same
+  // dateline offset we just corrected for.
+  const friISO = wx.daily.time?.[Math.min(...best.indices)] || null;
   const weekendWhich = best.wkIdx === 0 ? "this" : "next";
   const period = weekendWhich === "next" ? `Next weekend · ${best.period}` : best.period;
-  return { ...best, period, weekendWhich, weekendFriISO: localISODate(friDate) };
+  return { ...best, period, weekendWhich, weekendFriISO: friISO };
 }
 
 // Fuse weekend conditions + flight pricing into one 0–100 deal score. Live
@@ -8296,7 +8329,7 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
   // by live deal score → cheaper fare → id. Keeps the grid consistent with the
   // front page instead of ranking by today-only conditions.
   if (filters.sort === "score") out = [...out].sort((a, b) =>
-    (b.weekendScore || 0) - (a.weekendScore || 0)
+    (b.weekendRank ?? b.weekendScore ?? 0) - (a.weekendRank ?? a.weekendScore ?? 0)
     || (b.dealScore || 0) - (a.dealScore || 0)
     || (a.flight.price || 0) - (b.flight.price || 0)
     || byId(a, b)
@@ -13104,6 +13137,11 @@ function App() {
       ...v,
       conditionScore: score, conditionLabel: label, period, flight, bestWindow, flightsLoading, uv,
       weekendScore: wknd.score,
+      // Confidence-discounted ranking value. The DISPLAYED score stays honest
+      // (raw), but sorting on the raw number let a noisy day-12 outlook of 82
+      // outrank a locked-in this-weekend 78. scoreWeekend already computes
+      // this discount to choose between weekends — reuse it for ordering.
+      weekendRank: wknd.pick ?? wknd.score,
       weekendLabel: wknd.label,
       weekendPeriod: wknd.period,
       weekendDays: wknd.days,
