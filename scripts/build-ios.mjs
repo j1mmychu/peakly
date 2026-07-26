@@ -69,6 +69,17 @@ async function main() {
     fs.copyFileSync(path.join(ROOT, f), path.join(DIST, f));
   }
 
+  // sw.js precaches the Babel CDN bundle for the WEB app. The native build
+  // ships pre-transpiled app.js and never loads Babel, so that entry is both a
+  // forbidden remote ref and a wasted first-launch fetch. Empty the precache
+  // list for the bundled copy (runtime caching still works normally).
+  {
+    const swPath = path.join(DIST, "sw.js");
+    let sw = fs.readFileSync(swPath, "utf8");
+    sw = sw.replace(/const PRECACHE = \[[\s\S]*?\];/, "const PRECACHE = [];");
+    fs.writeFileSync(swPath, sw);
+  }
+
   // 2. Pre-transpile app.jsx → dist/app.js (no Babel runtime on device).
   // Also redirect the runtime Supabase lazy-loader URL to the local vendored
   // copy — the vendored <script> preloads supabase so the lazy path is dead
@@ -98,6 +109,15 @@ async function main() {
     /https:\/\/\{s\}\.basemaps\.cartocdn\.com\/light_all\/\{z\}\/\{x\}\/\{y\}\{r\}\.png/g,
     "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
   );
+  // Leaflet is lazy-loaded from unpkg in app.jsx (fine on web). index.html below
+  // vendors it eagerly so window.L already exists and ensureLeaflet() returns
+  // early — but the CDN strings still sit in the compiled output as dead code,
+  // which (rightly) trips the offline-bundle guard. Point them at the local
+  // copies so the bundle contains no remote refs at all, live or dead.
+  transpiled = transpiled
+    .replace(/https:\/\/unpkg\.com\/leaflet@[\d.]+\/dist\/leaflet\.css/g, "./vendor/leaflet.css")
+    .replace(/https:\/\/unpkg\.com\/leaflet@[\d.]+\/dist\/leaflet\.js/g, "./vendor/leaflet.js");
+
   fs.writeFileSync(path.join(DIST, "app.js"), transpiled);
 
   // 3. Vendor third-party files (curl-equivalent, cached)
