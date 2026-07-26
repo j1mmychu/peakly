@@ -12723,6 +12723,8 @@ function App() {
   // Single conversion modal surfaced from every save/alert action when the user
   // isn't signed in. `null` = closed; `{intent: "save"|"alert"}` = open.
   const [accountModal,   setAccountModal]   = useState(null);
+  // Last payload pushed to the iOS widget — dedupes WidgetKit reloads.
+  const _lastWidgetPayload = useRef(null);
 
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
@@ -13103,6 +13105,52 @@ function App() {
 
   const firingCount = React.useMemo(() => listings.filter(l => l.conditionScore >= 90).length, [listings]);
 
+  // ─── home-screen widget feed (iOS native only) ───────────────────────────
+  // The widget runs in its own process and cannot read localStorage, so we
+  // hand the current top pick to PeaklyWidgetBridge, which writes it into the
+  // shared App Group suite and asks WidgetKit to reload. No-ops everywhere
+  // except a native iOS build — the web app never sees this run.
+  React.useEffect(() => {
+    if (!window.Capacitor?.isNativePlatform?.()) return;
+    const bridge = window.Capacitor?.Plugins?.PeaklyWidgetBridge;
+    if (!bridge?.save) return;
+
+    // Same standard the front page holds itself to: real scores only, and
+    // never sell a weekend the forecast can't back.
+    const scored = listings.filter(l =>
+      typeof l.weekendScore === "number" &&
+      l.weekendLabel && l.weekendLabel !== "Loading…" &&
+      l.weekendConfidence !== "low"
+    );
+    if (!scored.length) return;
+
+    // Prefer a venue with a confirmed fare, so the widget's price is real.
+    const byScore = [...scored].sort((a, b) =>
+      (b.weekendScore - a.weekendScore) || (a.flight?.price ?? 1e9) - (b.flight?.price ?? 1e9)
+    );
+    const top = byScore.find(l => l.flight?.live === true) || byScore[0];
+    if (!top) return;
+
+    const payload = {
+      venue: top.title,
+      location: top.location,
+      score: Math.round(top.weekendScore),
+      label: top.weekendLabel,
+      conditions: top.weekendHeadline || top.conditionLabel || null,
+      price: top.flight?.price ?? null,
+      isEstimate: top.flight?.live !== true,
+      dates: top.weekendPeriod || null,
+      category: top.category,
+      venueId: top.id,
+      updatedAt: Date.now(),
+    };
+
+    const json = JSON.stringify(payload);
+    if (json === _lastWidgetPayload.current) return;   // don't thrash WidgetKit
+    _lastWidgetPayload.current = json;
+    bridge.save({ payload: json }).catch(() => {});    // never surface to the user
+  }, [listings]);
+
   const toggleWishlist = useCallback(id => {
     // Saves require a signed-in account. Unsigned users get the central
     // AccountModal — no tab bounce, no secondary prompts.
@@ -13240,6 +13288,35 @@ function App() {
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Home-screen widget taps arrive as peakly://open?venue=<id>. Translate to
+  // the hash form the handler above already understands rather than duplicating
+  // the lookup. Native iOS only; harmless no-op on web.
+  useEffect(() => {
+    if (!window.Capacitor?.isNativePlatform?.()) return;
+    let remove;
+    (async () => {
+      try {
+        const { App: CapApp } = window.Capacitor.Plugins;
+        if (!CapApp?.addListener) return;
+        const handle = await CapApp.addListener("appUrlOpen", ({ url }) => {
+          if (!url || url.indexOf("peakly://") !== 0) return;
+          const id = (url.split("venue=")[1] || "").split("&")[0];
+          if (!id) return;
+          if (window.location.hash === `#venue-${id}`) {
+            // Same venue re-tapped — hashchange won't fire, so open directly.
+            const found = VENUES.find(v => v.id === id);
+            if (found) setDetailVenue(found);
+            return;
+          }
+          window.location.hash = `#venue-${id}`;
+        });
+        remove = () => handle.remove();
+      } catch {}
+    })();
+    return () => { try { remove && remove(); } catch {} };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
