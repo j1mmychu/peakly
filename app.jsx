@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260725c";
+const PEAKLY_BUILD = "20260725d";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -12624,7 +12624,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 // v1: false until VPS has the APNS .p8 — flip to true after setup-apns.sh runs.
 // Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
 // App Store regression where users see Alerts but push never delivers.
-const APNS_LIVE = false;
+const APNS_LIVE = true;
 // Is alert delivery actually available on THIS platform? iOS native has no push
 // until APNS is configured (APNS_LIVE), so on iOS we both hide the Alerts tab
 // AND soften alert-promise copy elsewhere (onboarding, Profile) so an App Store
