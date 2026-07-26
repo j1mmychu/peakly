@@ -161,7 +161,6 @@
 				92CDE800626C16F463B5F0A0 /* Info.plist */,
 				7D09BCE03DE02B69B14CDDA9 /* PeaklyWidget.entitlements */,
 			);
-			name = PeaklyWidget;
 			path = PeaklyWidget;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -218,6 +217,9 @@
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					DEBF0AE3E6E2158A612EA475 = {
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -466,6 +468,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D56F6F959R;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -487,6 +490,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D56F6F959R;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -507,6 +511,7 @@
 				CODE_SIGN_ENTITLEMENTS = PeaklyWidget/PeaklyWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D56F6F959R;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PeaklyWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -530,6 +535,7 @@
 				CODE_SIGN_ENTITLEMENTS = PeaklyWidget/PeaklyWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D56F6F959R;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PeaklyWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

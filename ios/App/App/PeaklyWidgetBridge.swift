@@ -12,8 +12,20 @@ import WidgetKit
 /// Deliberately written as a local plugin (no npm package) to respect the
 /// project's "no new dependencies" rule. Capacitor auto-registers any
 /// CAPPlugin subclass compiled into the app target.
+/// NOTE: Capacitor 6 discovers plugins via the CAPBridgedPlugin protocol —
+/// the CAP_PLUGIN macro in the .m file alone is NOT enough, and a plugin that
+/// omits this conformance simply never appears in window.Capacitor.Plugins,
+/// with no error anywhere. Both mechanisms are kept: the protocol for
+/// Capacitor 6 discovery, the macro for ObjC runtime registration.
 @objc(PeaklyWidgetBridge)
-public class PeaklyWidgetBridge: CAPPlugin {
+public class PeaklyWidgetBridge: CAPPlugin, CAPBridgedPlugin {
+
+    public let identifier = "PeaklyWidgetBridge"
+    public let jsName = "PeaklyWidgetBridge"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "save",        returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "isAvailable", returnType: CAPPluginReturnPromise),
+    ]
 
     /// Must match the App Group added to BOTH the app and widget targets.
     static let appGroup = "group.com.stormpeak.peakly"
