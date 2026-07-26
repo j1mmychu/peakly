@@ -64,3 +64,6 @@ Peakly-Business-Plan.*
 # filesystem artifacts
 .fuse_hidden*
 *.bak
+
+# xcodeproj script backups (local safety copies, not source)
+*.pbxproj.backup-*

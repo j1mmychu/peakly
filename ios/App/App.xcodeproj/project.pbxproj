@@ -18,6 +18,8 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		A1B2C3D4E5F60718293A4B02 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B01 /* PrivacyInfo.xcprivacy */; };
+		AF7AC2B0C7D07811FF440AFC /* PeaklyWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D6940B2FE1FAF1ED4CA139 /* PeaklyWidgetBridge.swift */; };
+		B485FAF45F77D8CB52F77C59 /* PeaklyWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A3B9E5E8EC8BC6B9DFEC62FA /* PeaklyWidgetBridge.m */; };
 		D75648E58E8D1148AB5D7B20 /* PeaklyWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9DA8778A907641C2105872E4 /* PeaklyWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -59,9 +61,11 @@
 		92CDE800626C16F463B5F0A0 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9DA8778A907641C2105872E4 /* PeaklyWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PeaklyWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F60718293A4B01 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A3B9E5E8EC8BC6B9DFEC62FA /* PeaklyWidgetBridge.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PeaklyWidgetBridge.m; sourceTree = "<group>"; };
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		B5F2854AB06111A2FCAF9A9C /* PeaklyWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PeaklyWidget.swift; sourceTree = "<group>"; };
+		B7D6940B2FE1FAF1ED4CA139 /* PeaklyWidgetBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PeaklyWidgetBridge.swift; sourceTree = "<group>"; };
 		E81DB4288CD93621DC13D0C3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -135,6 +139,8 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				A1B2C3D4E5F60718293A4B01 /* PrivacyInfo.xcprivacy */,
+				B7D6940B2FE1FAF1ED4CA139 /* PeaklyWidgetBridge.swift */,
+				A3B9E5E8EC8BC6B9DFEC62FA /* PeaklyWidgetBridge.m */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -309,6 +315,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				AF7AC2B0C7D07811FF440AFC /* PeaklyWidgetBridge.swift in Sources */,
+				B485FAF45F77D8CB52F77C59 /* PeaklyWidgetBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
