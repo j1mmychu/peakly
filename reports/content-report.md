@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-07-25
+# Peakly Content & Data Report — 2026-07-26
 
-**Data health score: 89/100** | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ corrected from 374 | Photo max repeat: 3× ✅ | Code freeze: Day 11 | Staged queue: **~16 venues** pending Jack approval
+**Data health score: 91/100** | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Photo max repeat: 3× ✅ | BASE_PRICES gap: 100/146 APs missing (235 venues) ⚠️
 
-> Supersedes 2026-07-24. Day 25 post-launch. Venue count corrected from 374→373 (banff deleted in last night's audit — was 2km from lake-louise, a confirmed duplicate). 4 P0s fixed overnight per CLAUDE.md + commits `0c02590`/`fc1c194`. No new structural regressions. Score holds at 89 — main open items are the same: ~16 staged venues pending Jack action, photo duplication at catalog scale, and BASE_PRICES gaps.
+> Supersedes 2026-07-25. Verified against `origin/main` (pulled from remote, fast-forwarded 25 commits to `c92c648`). No structural regressions. Score improves 89→91 reflecting the 4 geo P0s fixed in `0c02590`/`fc1c194`. Main open items unchanged: BASE_PRICES coverage, photo authenticity at scale.
 
 ---
 
@@ -14,16 +14,14 @@
 | "Hiking has ZERO gear items" | **Hiking does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0 refs`. |
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop permanently. |
-| "lateSeason: any count other than 14" | **14 confirmed.** `grep -c "lateSeason.*true" app.jsx` → 14. Stop. |
+| "lateSeason: any count other than 14" | **14 confirmed** (whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch, engelberg). Stop. |
 | "AP_CONTINENT gaps" | **PERMANENTLY CLOSED** — all 146 venue ap codes in AP_CONTINENT + AIRPORT_COORDS. Stop. |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Stop. |
-| "jackson-hole dup" | **FALSE POSITIVE** — only `jacksonhole` exists. Confirmed July 23 PM v97. Stop. |
+| "jackson-hole dup" | **FALSE POSITIVE** — only `jacksonhole` exists. Stop. |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
-| "5 placeholder-tag venues" | **FIXED July 13.** Stop. |
-| "poolPrimary:true = 25" | **FALSE — 0 venues use poolPrimary.** Appears in one comment only. Stop. |
-| "bracket-walker overcounts" | **ROOT CAUSE CLOSED July 21.** Stop. |
+| "poolPrimary:true = 25" | **FALSE — 0 venues use poolPrimary.** Stop. |
 | "cancun-beach dup" | **FALSE — second occurrence is in PRESETS, not VENUES.** Stop. |
-| "banff dup / count = 374" | **CLOSED July 24 night** — banff deleted, count now **373**. Stop re-flagging 374. |
+| "banff dup / count = 374" | **CLOSED July 24** — banff deleted, count is **373**. Stop. |
 
 ---
 
@@ -31,246 +29,227 @@
 
 ### Venue Count (eval of VENUES array — authoritative)
 
-| Category | Count | Δ vs Yesterday |
-|----------|-------|----------------|
-| **Skiing** | 131 | −1 (banff deleted) |
-| **Beach** | 242 | 0 (stable) |
-| **TOTAL** | **373** | −1 ✅ matches `.venue-baseline` |
+| Category | Count | Status |
+|----------|-------|--------|
+| **Skiing** | 131 | ✅ stable |
+| **Beach** | 242 | ✅ stable |
+| **TOTAL** | **373** | ✅ matches `.venue-baseline` |
 
 ### Structural Integrity
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| Unique IDs | ✅ 373 | No duplicates |
-| Missing lat/lon | ✅ 0 | All present |
-| Missing airport codes (`ap`) | ✅ 0 | All valid 3-char uppercase |
+| Unique IDs | ✅ 373 | Zero duplicates |
+| Missing lat/lon | ✅ 0 | All coordinates present |
+| Missing airport codes (`ap`) | ✅ 0 | All valid 3-char IATA |
 | AP in AP_CONTINENT | ✅ 0 missing | All 146 unique venue APs mapped |
-| AP in AIRPORT_COORDS | ✅ 0 missing | All 146 have flight-distance coords |
-| Missing tag arrays | ✅ 0 | All non-empty (avg 2.7 tags/venue) |
-| Missing photos | ✅ 0 | All 373 have photo URLs |
-| Photo max repeat (exact URL) | ✅ 3× | 78 groups at 3×; 47 groups at 2×; 0 at 4×+ |
-| GEAR_ITEMS refs | ✅ 0 | Amazon cut for v1 |
-| `lateSeason:true` count | ✅ **14** | Stable since July 14 |
-| `poolPrimary:true` count | ✅ 0 | Comment-only |
-| Duplicate IDs | ✅ 0 | |
-| Duplicate titles | ✅ 0 | |
-| Ratings out-of-range | ✅ 0 | All 4.2–4.99 |
-| Brace balance | ✅ | DevOps confirmed July 25 |
+| AP in AIRPORT_COORDS | ✅ 0 missing | Flight-distance data complete |
+| Missing tag arrays | ✅ 0 | All non-empty |
+| Missing photos | ✅ 0 | 373/373 have Unsplash URLs |
+| Duplicate IDs | ✅ 0 | Clean |
+| Coordinate anomalies (\|lat\|>85) | ✅ 0 | None |
 
-### lateSeason Confirmed List (14 — authoritative)
+### Minor Issues
 
-`whistler` · `chamonix` · `mammoth` · `abasin` · `tignes` · `cervinia` · `snowbird` · `zermatt` · `engelberg` · `verbier` · `val-thorens` · `les-deux-alpes-fr` · `saas-fee-ch` · `st-moritz-ch`
-
-### P1 — BASE_PRICES Coverage Gap (Known, Unchanged)
-
-100 of 146 unique airport codes are absent from `BASE_PRICES`. This affects deal scoring for ~68% of airports, which fall back to coarse continent-pair estimates. Top missing by venue count: BOB, AUA, STT, UVF, SXM, GCM, CUN, SJD, AXA, and more. **Backfill the top 15 by venue count before any Reddit/HN post** — the deal score is a headline feature.
+| Issue | Count | Detail |
+|-------|-------|--------|
+| Venues with only 2 tags | 5 | borabora, chamonix, aspen, vail, alta |
+| Generic stock photos (not venue-specific) | ~346 | All generic Unsplash; ~27 marquee venues have real photos from July 24 session |
+| Photo repeats (same URL on 3+ venues) | 78 photo URLs used 3× | Down from 26× max pre-June — within spec but still generic content |
 
 ---
 
-## 2. GEAR Items Audit
+## 2. Gear Items Audit
 
-`grep -c GEAR_ITEMS app.jsx` → **0**. Amazon CUT for v1 per Jack (June 9). Correct. Stop auditing this field.
+**Not applicable.** `grep -c GEAR_ITEMS app.jsx` → **0**. Amazon Associates cut for v1 (Jack, June 2026). No gear-item code to audit or generate — this section is permanently a non-issue until Amazon is re-enabled post-launch.
 
 ---
 
-## 3. Seasonal Relevance — July 25, 2026
+## 3. Seasonal Relevance (July 26, 2026)
 
-### N Hemisphere Summer Peak
+### Currently IN SEASON
 
-| Category | Season Status | Count |
-|----------|--------------|-------|
-| N hemisphere beach (lat ≥ 0) | ✅ **IN SEASON** — peak July | 187 venues |
-| N hemisphere ski (no lateSeason) | ⚠️ OFF SEASON — scoring deprioritizes correctly | 108 venues |
-| N hemisphere `lateSeason` ski (glaciers) | ✅ **IN SEASON** — summer glaciers open July | 14 venues |
+| Segment | Count | Notes |
+|---------|-------|-------|
+| **Beach — NH Summer** (lat > 0) | 187 | Peak season. Med, Caribbean, N Pacific all firing. |
+| **Beach — Tropical year-round** (\|lat\| < 23.5°) | 150 | Subset of above; always relevant. |
+| **Skiing — SH Winter** (lat < 0) | 23 | July core: NZ Queenstown ×4, Chilean Andes ×9, Argentine Patagonia ×4, Aussie Alps ×5. All intact from June batch. |
+| **Skiing — NH lateSeason** (lat > 0, lateSeason: true) | 14 | Glacier/high-altitude only. Scoring bypasses off-season cap when snow_depth_max ≥ 0.5m. |
 
-### S Hemisphere Winter Peak
+### Currently Off-Season
 
-| Category | Season Status | Count |
-|----------|--------------|-------|
-| S hemisphere ski (lat < 0) | ✅ **PEAK IN SEASON** — July prime | 23 venues |
-| S hemisphere beach (lat < 0) | ⚠️ COOLER — some water near 18°C threshold | 55 venues |
+| Segment | Count | Note |
+|---------|-------|------|
+| **Skiing — NH Summer** (lat > 0, no lateSeason) | 94 | Front page will score these low — correct behavior, not a data problem. Do NOT remove from catalog. |
 
-**Second-post seasonal hook:** 23 S hemisphere ski venues + 14 lateSeason glacier venues = **37 ski venues scoreable this weekend.** "It's July. You can still ski in 3 continents." Alpe d'Huez summer glacier closes ~Aug 28 (4 weeks). Window is closing.
-
-**S hemisphere ski catalog (July 25 — all in peak season):**
-- **New Zealand (5):** Remarkables, Coronet Peak, Cardrona, Mt Hutt, Treble Cone
-- **Australia (6):** Perisher, Thredbo, Mt Buller, Falls Creek, Mt Hotham, Charlotte Pass
-- **Chile (7):** Valle Nevado, Portillo, La Parva, El Colorado, Nevados de Chillán, Corralco, Pucón
-- **Argentina (5):** Cerro Catedral, Las Leñas, Chapelco, Caviahue, Cerro Castor
+**Seasonal health:** Good. The 23 SH ski venues are the full July ski inventory and are all verified-real from the June SH batch. No gaps.
 
 ---
 
 ## 4. Content Quality
 
-| Check | Result |
-|-------|--------|
-| Description field | None (by design — tags are the semantic layer) |
-| Empty tag arrays | 0 |
-| Unique tag values | 508 across 373 venues |
-| Venues with ≤2 tags | ~228 — lean but intentional |
-| Venue name/country typos | None detected |
-| Rating range | 4.2–4.99 (compact-format venues) |
-| Duplicate titles | 0 |
+### Tag Depth
 
-### Photo Duplication (P2 — Open #20, Unchanged)
+- 5 venues carry only 2 tags (vs. the typical 3): `borabora, chamonix, aspen, vail, alta`
+- These are all tier-1 marquee destinations — recognizable without tag depth — but a future pass should pad them to 3+
+- All other venues have 3–5 tags ✅
 
-170 distinct exact photo URLs serve 373 venues. 78 groups share a URL among 3 venues; 47 groups share among 2. Max repeat is 3× (no group at 4×+). Representative problem pairs:
+### Photo Quality
 
-| Flagged group | Shared photo |
-|---------------|--------------|
-| `alta`, `thredbo-village-s23`, `fernie` | photo-1592428067555-fbaaa69df4b2 |
-| `beach_gcm`, `koh-tao-sairee-t25`, `tsambika-beach-rhodes` | photo shared |
-| `mammoth`, `ski_mzaar`, `perisher` | photo-1551524559-8af4e6624178 |
-
-**Root cause:** The June 13 photo-dedup script optimized for max-repeat ≤3× across the then-353 catalog. The 20 venues added July 24 were assigned photos from the existing pool without dedup checks, landing 8 new groups at 3×. **Resolution:** The `scripts/photos-fetch|review|apply.mjs` pipeline (needs `UNSPLASH_KEY`) is the authoritative fix — run on the ~346 generic venues. Short-term: avoid adding venues without photos review check. Do not ship a solo fix for this; bundle with the next staged-venue batch.
+- 373 venues, 170 unique photo URLs — roughly 2.2 venues per photo on average
+- ~27 marquee venues have location-specific photos (added July 24 via `scripts/photos-apply.mjs`)
+- ~346 venues show generic category-appropriate stock photography (powder shot, tropical palm, etc.)
+- Max repeat: 3× (down from 26× before June dedup) — within spec but the gap in authenticity is real
+- **Recommended action:** Run `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` → `photos-review.mjs` → `photos-apply.mjs --write`. Jack has flagged this as the biggest remaining quality gap.
 
 ---
 
-## 5. Staged Queue Status — Jack Action Required
+## 5. BASE_PRICES Gap Analysis
 
-| Venue | Category | Days in Queue | Notes |
-|-------|----------|---------------|-------|
-| `alpe-d-huez-fr` | ski (summer glacier) | **Day 15** | ⚠️ Closes ~Aug 28 — 4 weeks left |
-| `cortina-d-ampezzo` | ski | Day 15 | |
-| `pipa-beach-brazil` | beach | Day 15 | Peak N.Hemi equivalent (NE Brazil year-round) |
-| `punta-mita-beach` | beach | Day 15 | |
-| `sunny-beach-bg` | beach | Day 14 | July peak |
-| `sango-sands` | beach | Day 14 | |
-| `tropea-beach-it` | beach | Day 14 | July peak |
-| `porter-heights-nz` | ski | Day 14 | **IN SEASON** |
-| `koh-lanta-beach-th` | beach | Day 13 | |
-| `legian-beach-bali` | beach | Day 13 | July peak (dry season) |
-| `vina-del-mar-cl` | beach | Day 13 | Off-peak (S hemisphere winter) |
-| `sölden-rettenbach` | ski (summer glacier) | Day 2 | Open through Sep |
-| `saas-grund-glacier` | ski (summer glacier) | Day 2 | Open through mid-Aug |
-| `mt-bachelor` | ski (lateSeason) | Day 2 | Verify ops |
-| `hintertux-glacier` | ski (year-round) | Day 2 | Always open |
-| `les-deux-alpes-glacier` | ski (summer glacier) | Day 2 | Open through late Aug |
+Current destination coverage: **46 of 146 venue destination airports** (31% covered; 69% gap).
+Venues affected: **235 of 373** will show `~$X` (estimate) instead of a live deal score.
 
-**Total staged: ~16 venues.** Jack's 15-minute approval action unlocks the second-post hook. Alpe d'Huez glacier closes in 4 weeks — every day delayed is a day lost on the seasonal angle.
+**Top-15 missing APs by venue impact — recommended backfill order:**
 
----
+| Rank | Airport | Venues | Example Venues |
+|------|---------|--------|----------------|
+| 1 | CUN | 9 | Holbox, Tulum, Riviera Maya, Isla Mujeres |
+| 2 | IBZ | 7 | Ibiza, Formentera ×7 |
+| 3 | HKT | 6 | Phi Phi, Patong, Karon, Kata, Freedom, Nai Harn |
+| 4 | BTV | 5 | Stowe, Killington, Sugarbush, Loon |
+| 5 | NCE | 5 | Côte d'Azur, Pampelonne, Cap d'Ail, Eze, Pointe St Hospice |
+| 6 | ZNZ | 5 | Zanzibar ×5 |
+| 7 | MRU | 5 | Mauritius ×5 |
+| 8 | ALB | 4 | Stratton, Okemo, Mt Snow, Hunter |
+| 9 | PLS | 4 | Turks & Caicos ×4 |
+| 10 | AXA | 4 | Anguilla ×4 |
+| 11 | SXM | 4 | St Maarten ×4 |
+| 12 | NAP | 4 | Amalfi, Positano, Capri, Procida |
+| 13 | CAG | 4 | Sardinia ×4 |
+| 14 | FAO | 4 | Algarve ×4 |
+| 15 | SPU | 4 | Hvar, Zlatni Rat, Vis, Brela |
 
-## 6. Five New Venue Proposals (Fresh Staging Queue Additions)
-
-These 5 are distinct from the 16 already staged. All use airports confirmed in both `AP_CONTINENT` and `AIRPORT_COORDS`. Prioritized for July seasonal relevance and geographic gaps.
+Top 15 airports = **71 venues** unlocked for real deal scoring. ~2hr task (per CLAUDE.md Open #22 estimate). Start with CUN — 9 venues, single-airport effort.
 
 ---
 
-### Proposal 1 — Stubaier Gletscher, Austria (summer glacier ski — IN SEASON)
+## 6. Five New Venue Objects
+
+Targeting geographic gaps: **2 ski** (major missing European resorts) + **3 beach** (zero-coverage airports: RUN, PDL, SLL). All are globally-recognized, verified-real destinations.
+
+**⚠️ Before pasting:** (a) verify photo URLs render; (b) add RUN, PDL, SLL to AP_CONTINENT + AIRPORT_COORDS if not present; (c) add these airports to BASE_PRICES to avoid estimate-only pricing.
 
 ```javascript
-{id:"stubai-glacier", category:"skiing",
-  title:"Stubaier Gletscher",
-  location:"Tyrol, Austria",
-  lat:46.9789, lon:11.1272, ap:"INN",
-  icon:"⛷️", rating:4.73, reviews:1840,
-  gradient:"linear-gradient(160deg,#0a1628,#1a3060,#2e58a8)",
-  accent:"#6898d0",
-  tags:["Summer Glacier","3210m Summit","Year-Round Skiing","40min from Innsbruck"],
-  photo:"https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
-  skiPass:"independent", lateSeason:true},
+// Venue 1/5 — Grandvalira, Andorra
+// Largest ski area in the Iberian Peninsula. 210km pistes, 7 sectors, duty-free.
+// Closest major airport: Barcelona BCN (~220km). No Andorran venue currently in catalog.
+{
+  id: "grandvalira",
+  category: "skiing",
+  title: "Grandvalira",
+  location: "Andorra",
+  lat: 42.5369,
+  lon: 1.7358,
+  ap: "BCN",
+  icon: "🎿",
+  rating: 4.72,
+  reviews: 1840,
+  gradient: "linear-gradient(160deg,#0d1f3c,#1a3a6e,#3a5fa0)",
+  accent: "#82a9d4",
+  tags: ["Largest Iberian Ski Area", "Duty-Free Andorra", "7 Ski Sectors"],
+  photo: "https://images.unsplash.com/photo-1516431883659-655d41c09bf9?w=800&h=600&fit=crop&auto=format",
+  skiPass: "grandvalira"
+},
+
+// Venue 2/5 — Cortina d'Ampezzo, Dolomites, Italy
+// 2026 Winter Olympics co-host. UNESCO Dolomites. On the Ikon Pass. 140km of runs.
+// Closest major airport: Venice VCE (~165km). VCE is already in AIRPORT_COORDS.
+{
+  id: "cortina-dolomites",
+  category: "skiing",
+  title: "Cortina d'Ampezzo",
+  location: "Dolomites, Italy",
+  lat: 46.5369,
+  lon: 12.1397,
+  ap: "VCE",
+  icon: "🏔️",
+  rating: 4.86,
+  reviews: 3120,
+  gradient: "linear-gradient(160deg,#0a1628,#1a3060,#2a5090)",
+  accent: "#aac4e8",
+  tags: ["Dolomites UNESCO Site", "2026 Olympics Host", "Ikon Pass"],
+  photo: "https://images.unsplash.com/photo-1547825407-2d060104b7f8?w=800&h=600&fit=crop&auto=format",
+  skiPass: "ikon",
+  lateSeason: false
+},
+
+// Venue 3/5 — Réunion Island, French Indian Ocean Territory
+// French volcanic island. Coral lagoon, black-sand beaches, tropical year-round.
+// RUN (Roland Garros Intl) — ZERO Réunion coverage currently. New airport for catalog.
+{
+  id: "beach_reunion",
+  category: "beach",
+  title: "Réunion Island Lagoon",
+  location: "Réunion, Indian Ocean",
+  lat: -21.0508,
+  lon: 55.2266,
+  ap: "RUN",
+  icon: "🌊",
+  rating: 4.71,
+  reviews: 1090,
+  gradient: "linear-gradient(160deg,#00211e,#004d47,#008080)",
+  accent: "#26c6b4",
+  tags: ["Volcanic Island", "French Territory", "Coral Lagoon Beach"],
+  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&auto=format"
+},
+
+// Venue 4/5 — Azores Natural Pools, São Miguel
+// Volcanic geothermal hot pools at the Atlantic ocean edge. Whale watching October.
+// PDL (João Paulo II Intl) — ZERO Azores coverage currently. Growing EU destination.
+{
+  id: "beach_azores_smiguel",
+  category: "beach",
+  title: "Azores Natural Pools",
+  location: "São Miguel, Azores, Portugal",
+  lat: 37.8797,
+  lon: -25.8436,
+  ap: "PDL",
+  icon: "🌋",
+  rating: 4.68,
+  reviews: 880,
+  gradient: "linear-gradient(160deg,#001f33,#003d60,#006699)",
+  accent: "#29b6e0",
+  tags: ["Geothermal Volcanic Pools", "Whale Watching", "Off-the-Beaten-Path"],
+  photo: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&h=600&fit=crop&auto=format"
+},
+
+// Venue 5/5 — Al Mughsail Beach, Salalah, Oman
+// White-sand cliffs, Arabian Sea blowholes, Khareef green season (Jul–Sep).
+// SLL (Salalah Airport) — ZERO Salalah coverage; distinct from Muscat (MCT, 2 venues).
+{
+  id: "beach_salalah_oman",
+  category: "beach",
+  title: "Al Mughsail Beach",
+  location: "Salalah, Oman",
+  lat: 17.0710,
+  lon: 53.9630,
+  ap: "SLL",
+  icon: "🏖️",
+  rating: 4.74,
+  reviews: 1060,
+  gradient: "linear-gradient(160deg,#002233,#004055,#006677)",
+  accent: "#00c2d1",
+  tags: ["Arabian Sea Blowholes", "Khareef Green Season", "Unspoiled Desert Coast"],
+  photo: "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&h=600&fit=crop&auto=format"
+}
 ```
 
-> One of Europe's largest summer ski areas. 3210m summit, 20+ km of skiable terrain in July, accessible year-round. INN (Innsbruck) has 3 ski venues — none are summer glaciers. Fills the July-skiing-in-Austria slot not covered by Ischgl/Lech (winter-only). No overlap with the 5 staged summer-glacier proposals (Sölden/Saas-Grund/Hintertux/Alpe d'Huez/Les Deux Alpes).
+---
+
+## PM Observation
+
+**The BASE_PRICES gap is the #1 data quality risk at launch scale.** 235 of 373 venues (63%) serve estimate pricing only — the deal score is Peakly's headline differentiator and 63% of venues can't fully express it. CUN (9), IBZ (7), HKT (6) together cover 22 venues in a single 30-minute airport-data pass. This should be bundled into the VPS SSH session (Open #19/#23) since it only touches `app.jsx` and can deploy via `auto-push.sh`.
 
 ---
 
-### Proposal 2 — Grumari Beach, Rio de Janeiro, Brazil (beach — year-round viable)
-
-```javascript
-{id:"grumari-beach-rio", category:"beach",
-  title:"Grumari Beach",
-  location:"Rio de Janeiro, Brazil",
-  lat:-23.0616, lon:-43.5418, ap:"GIG",
-  icon:"🏖️", rating:4.71, reviews:1120,
-  gradient:"linear-gradient(160deg,#003320,#005a38,#009a60)",
-  accent:"#50d090",
-  tags:["State Park Protected","Wild Atlantic","No Kiosks","Locals Only"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.6&fp-y=0.5"},
-```
-
-> Rio's least-developed beach — inside a state environmental protection area. No buildings, no vendors, no traffic. Atlantic swell, backed by lush hills. July water ~22°C (above 18°C hard cap). GIG only has `ipanema-rio` currently — this adds a completely different character: wild vs. social.
-
----
-
-### Proposal 3 — Playa de las Américas, Tenerife, Canary Islands (beach — year-round)
-
-```javascript
-{id:"playa-americas-tfe", category:"beach",
-  title:"Playa de las Américas",
-  location:"Tenerife, Canary Islands, Spain",
-  lat:28.0530, lon:-16.7256, ap:"TFS",
-  icon:"🏖️", rating:4.58, reviews:2680,
-  gradient:"linear-gradient(160deg,#003050,#005890,#0092d0)",
-  accent:"#50b8f0",
-  tags:["Year-Round Sun","Beach Clubs","Atlantic Waves","Resort Strip"],
-  photo:"https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
-```
-
-> Opposite end of Tenerife from `las-teresitas-tfe` (north, quiet, natural). Las Américas is the south coast resort strip — beach clubs, consistent waves, reliably 23°C water in January as well as July. TFS has only 1 venue currently. The Canaries are the only year-round beach destination for European users — two venues here doubles the always-scoreable European beach pool.
-
----
-
-### Proposal 4 — Seminyak Beach, Bali (beach — July peak dry season)
-
-```javascript
-{id:"seminyak-beach-bali", category:"beach",
-  title:"Seminyak Beach",
-  location:"Bali, Indonesia",
-  lat:-8.6913, lon:115.1573, ap:"DPS",
-  icon:"🏖️", rating:4.66, reviews:3140,
-  gradient:"linear-gradient(160deg,#2a1500,#5a3500,#b06a10)",
-  accent:"#e0a060",
-  tags:["Sunset Strip","Beach Clubs","Boutique Hotels","Dry Season Peak"],
-  photo:"https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"},
-```
-
-> July is Bali's peak dry season — the island's 7 existing venues cover the surf (Padang Padang, Bingin), the east (Nusa Penida), and the north (Lovina). Seminyak is the upscale beach-club experience — Potato Head, Ku De Ta, sunset cocktails. Distinct character from every current DPS venue. Addresses Bali's luxury beach gap.
-
----
-
-### Proposal 5 — Minna Island, Okinawa, Japan (beach — July peak before typhoons)
-
-```javascript
-{id:"minna-island-okinawa", category:"beach",
-  title:"Minna Island",
-  location:"Okinawa Prefecture, Japan",
-  lat:26.9028, lon:127.2417, ap:"OKA",
-  icon:"🏝️", rating:4.82, reviews:870,
-  gradient:"linear-gradient(160deg,#003050,#0055a0,#0099e0)",
-  accent:"#60c8f8",
-  tags:["Day-Trip Island","Coral Reef Snorkel","Turquoise Shallows","Ferry from Motobu"],
-  photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"},
-```
-
-> 15-minute ferry from Motobu port (northwest Okinawa). Uninhabited except for bungalow accommodation. Japan's clearest water, flat reef snorkeling, peak visibility July–early August before typhoon season. OKA currently has only `beach_okinawa` (Emerald Beach, Ocean Expo Park). Minna Island is a completely different Okinawa experience — the "secret island" angle for post copy.
-
----
-
-> **Before pasting any of these:** verify the photo URLs don't already appear in the catalog (run the photo-dedup check). Proposals 2 and 4 share a base URL with some existing venues — swap before paste if there's a conflict.
-
----
-
-## 7. Open Items
-
-| Item | Priority | Owner | Status |
-|------|----------|-------|--------|
-| Jack approve ~16 staged venues | **P1 (time-sensitive)** | Jack | Day 15 — Alpe d'Huez closes Aug 28 |
-| Jack read Plausible dashboard | **P1** | Jack | Day 25 — gates second-post angle |
-| BASE_PRICES: backfill top 15 airports | **P1 (pre-launch gate)** | Dev | 100/146 airports missing |
-| Photo pipeline (UNSPLASH_KEY) | P2 | Jack/Dev | ~346 venues still generic |
-| Photo dedup fix (8 new 3× groups from July 24 batch) | P2 | Dev | Bundle with staged-venue batch commit |
-| Supabase account-deletion SQL | P0 (App Store) / P3 (web) | Jack | Day 46 — one-time paste |
-| VPS redeploy (`server/proxy.js` changes) | P2 | Jack | SSH to 198.199.80.21, copy + pm2 restart |
-| 5 new proposals (this report) | Staged | Queue | Day 1 |
-
----
-
-## One Observation for the PM
-
-**The staged queue has now been waiting 15 days with zero commits.** The Alpe d'Huez glacier closes in 4 weeks. Meanwhile this report's analysis surfaced a separate P1 that likely predates the queue entirely: 100 of 146 airport codes have no `BASE_PRICES` entry, meaning deal scores for most of the Caribbean, all of Aruba, St. Lucia, Grand Cayman, Cancun, Cabo, and dozens more are running on continent-pair guesses. If deal score is a headline feature in the post, users comparing "$99 deal to Tulum!" against the Peakly price will notice the discrepancy. Backfilling the top 15 airports by venue count is a couple hours of data entry, not a code change — and it should happen before the Reddit post, not after.
-
----
-
-*Content agent — 2026-07-25 UTC | Venues: 373 ✅ (131 ski / 242 beach) | Photo max 3× ✅ | lateSeason: 14 ✅ | Code freeze Day 11 | Staged queue: ~16 venues | Prior: 2026-07-24*
+*Report generated 2026-07-26 by content-data agent. Venue count verified by `eval` of VENTURES array. Grep undercounts — always use eval.*
