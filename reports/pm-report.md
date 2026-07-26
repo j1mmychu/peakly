@@ -1,38 +1,38 @@
-# Peakly PM Report — 2026-07-25 (v99)
+# Peakly PM Report — 2026-07-26 (v100)
 
-> Supersedes v98 (July 24). **Status: GREEN on code, AMBER on infrastructure, RED on distribution execution.** Day 25 post-launch. Code freeze day 11. **4 P0s shipped overnight** (commits `0c02590` / `fc1c194`). Second-post window opens in 7 days (Aug 1). Four gates now stand between this product and its next distribution push: VPS redeploy (technical, ~20 min SSH), weather cache disk persistence (~30 min code + VPS), photo approval (Jack, 15 min), and Plausible read (Jack, 15 min).
+> Supersedes v99 (July 25). **Status: AMBER on infrastructure, AMBER on distribution.** Day 26 post-launch. **New P0 introduced overnight**: `APNS_LIVE = true` flipped to client before VPS proxy fix is deployed — iOS users can now register alerts that will silently never fire. This is worse than having the tab gated. VPS redeploy is now urgent, not "pre-traffic gate."
 
 ---
 
-## Agent Prompt Corrections (permanent — stop raising these)
+## Agent Prompt Corrections (permanent — stop re-raising these)
 
 | Prompt Claim | Reality |
 |---|---|
 | "182 venues" | **373 venues (131 ski / 242 beach).** Eval-only count. Stop. |
 | "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16. 0 refs.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:8` and `index.html:77`.** Stop. |
-| "Cache buster stale" | **`20260724a` — auto-bumps on code change. Age alone ≠ stale.** Stop. |
+| "Cache buster stale" | **Auto-bumps on code change.** Age alone ≠ stale. Stop. |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Never flag from sandbox. Stop. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason: any count other than 14" | **14. Use `grep -c "lateSeason.*true" app.jsx`. Stop.** |
+| "lateSeason: any count other than 14" | **14. Use `grep -c "lateSeason.*true" app.jsx`.** Stop. |
 | "placeholder tags" | **0 remaining. FIXED July 13.** Stop. |
 | "Cross-category photo contamination" | **FIXED July 6 (`73db399`).** Stop. |
 | "Plausible domain wrong" | **FIXED July 7.** Stop. |
 | "cancun-beach dup" | **FALSE POSITIVE — in PRESETS not VENUES. 0 dup IDs.** Stop. |
-| "AP_CONTINENT gaps (KUL/SNA/MCT/GIG/TFS/CHQ)" | **PERMANENTLY CLOSED. All 6 confirmed at `app.jsx:401–435`. Verified 5× by PM. Stop.** |
+| "AP_CONTINENT gaps (KUL/SNA/MCT/GIG/TFS/CHQ)" | **PERMANENTLY CLOSED. All 6 confirmed. Verified 5× by PM. Stop.** |
 | "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary.** Stop. |
 | "venue-baseline drift / 376 / 377 venues" | **ROOT CAUSE CLOSED July 21. Real count = 373 = baseline. Stop.** |
 | "Babel 8.x upgrade available" | **Babel 8 ESM-only, incompatible with dev loop. Prod uses esbuild. Stop.** |
 | "surf-legacy tags" | **Valid beach activity signals per PM v81 Decision 1.** Stop. |
-| "jacksonhole / jackson-hole ghost dup" | **`jackson-hole` FIXED July 20. Only `jacksonhole` exists. 373 unique IDs. Stop permanently.** |
+| "jacksonhole / jackson-hole ghost dup" | **FIXED July 20. Only `jacksonhole` exists. Stop permanently.** |
 | "bracket-walker overcounts / +2 drift" | **ROOT CAUSE CLOSED July 21. Stop permanently.** |
 | "retention email unsent" | **COHORT PERMANENTLY CLOSED per v94 Decision 1. Stop flagging.** |
 | "Babel mobile parse wall (P1) unresolved" | **PERMANENTLY CLOSED July 22. esbuild ships since June 20.** Stop. |
 | "No build step / Babel in production" | **WRONG SINCE JUNE 20.** Dev: Babel-in-browser. Prod: esbuild. Stop. |
 | "venue count 374 / banff dup" | **FIXED 2026-07-24. banff deleted, count now 373. Stop.** |
 | "pre-compile CI deadline July 24" | **FALSE CLOCK. esbuild CI has shipped since June 20. No action needed. Stop.** |
-| "tahoe / palisades-tahoe dup" | **FALSE POSITIVE. Only `palisades-tahoe` exists in VENUES. grep confirms 1 result. Stop.** |
+| "tahoe / palisades-tahoe dup" | **FALSE POSITIVE. Only `palisades-tahoe` exists in VENUES. Stop.** |
 | "upcomingFridayISO UTC off-by-one" | **FIXED 2026-07-24 (`0c02590`). `localISODate()` at all 3 call sites. Stop.** |
 | "onRefresh calls non-existent fetchAllWeather" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
 | "cloud-sync pullNow state sync bug" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
@@ -40,94 +40,69 @@
 
 ---
 
-## Shipped Since v98 (2026-07-24 → 2026-07-25)
+## Shipped Since v99 (2026-07-25 → 2026-07-26)
+
+17 commits overnight. Sorted by verdict:
 
 | Commit | What | Verdict |
 |--------|------|---------|
-| `0c02590` | **4 P0 fixes + 4 coord corrections + guard repair + 27 real venue photos** | ✅ Right call — every P0 was confirmed live and broke real users. Long overdue. |
-| `fc1c194` | Cache bump `20260724a` to push fixes to existing users | ✅ Required alongside `0c02590` |
-| `b67417f` | CLAUDE.md: current state update + mandatory git-fetch-first rule | ✅ Infrastructure — stops stale-clone reruns |
-| `c885f06` | DevOps report 2026-07-25 | ✅ Routine |
-| `d72f49d` | Content report 2026-07-25 (373 venues, BASE_PRICES P1 flagged) | ✅ Routine |
+| `1959f17` / `3165c1e` | APNS delivery fix: P1363 JWT + HTTP/2, alert id `crypto.randomUUID()`, splash watchdog, error-handler scoping, stale index.lock self-heal | ✅ Right call — confirmed broken on origin; the JWT and HTTP/2 bugs would have delivered zero pushes |
+| `89cded3` | Fix: anchor weekend scoring to calendar dates (dateline bug); rank grid by confidence-discounted score | ✅ Right call — users crossing midnight would get wrong weekend window |
+| `a634b6a` | Perf: paint from cache synchronously + 12-venue first-paint tier | ✅ Good — reduces perceived first-contentful-paint, no risk |
+| `28d04b3` → `0c1c59b` → `b7cf1f9` → `991eabb` → `b529d2a` → `35ca37c` → `14d57f8` | iOS widget bridge fixes (Capacitor registration, leaflet/SW precache, pbxproj cleanup) | ⚠️ Right direction but 7 commits to fix widget bridge registration. No user-facing impact until Xcode wiring is done. Watch scope creep on iOS pre-App Store. |
+| `495a0b9` | **`APNS_LIVE = true`** — VPS APNs key configured | ❌ **Premature.** Flipped the flag while VPS still runs the old proxy (DER JWT + HTTP/1.1). iOS users now see the Alerts tab and can register — but will never receive a push. A broken promise is worse than a hidden feature. Should have been gated behind VPS redeploy confirmation. |
+| `87f8352` | chore: check in `dist/` + ios build artifacts for one-off Xcode build | ⚠️ Acceptable for the one-off. But `dist/` is gitignored and rebuilt by CI. Un-track after Xcode session: `git rm -r --cached dist/ && git commit`. |
+| `c92c648` / `e0386d3` | DevOps + Content daily reports | ✅ Routine |
 
-**Code state July 25:**
-- `app.jsx`: 13,538 lines · cache `20260724a` · venue count 373 (131 ski / 242 beach)
-- `.venue-baseline`: **373** ✅ matches
-- `dist/app.min.js`: esbuild-compiled ✅
+**Code state July 26:**
+- `app.jsx`: 13,718 lines · cache **`20260725d` — STALE (should be `20260726a`)** · 373 venues
+- `.venue-baseline`: **373** ✅
+- `dist/app.min.js`: 457 KB ✅ (esbuild)
+- `APNS_LIVE`: **true** ⚠️ (VPS not yet deployed — active broken promise)
 - lateSeason: **14** · poolPrimary: 0 · GEAR_ITEMS: 0 ✅
-- AP_CONTINENT: all codes present ✅
-- Staged queue: **~16 venues** (Day 15/13/2 mix — see below)
-
-**Verdict on overnight work:** The P0 audit and fixes were the right call. All four bugs had real user impact — wrong fare dates, dead refresh button, cloud-sync data loss, and a guaranteed ErrorBoundary crash on tab un-hide. These were confirmed present on origin before fixing and are now gone. The VPS-side fixes (items 5–15 in `AUDIT-2026-07-24.md`) are committed but require a VPS redeploy to activate.
 
 ---
 
-## Bug Triage — July 25
+## Bug Triage — July 26
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **VPS redeploy needed** | **P1 (pre-traffic gate)** | `server/proxy.js` fixes are committed but inert. Until deployed: two-weekend scoring is permanently off (proxy sends `forecast_days=7`), iOS native app CORS is blocked (`capacitor://localhost` absent from allowlist), alert deletion still fails (DELETE not in CORS methods), rate limiter is bypassable (XFF[0] vs XFF[last]). None of these are crashing the current web experience at ~0 MAU, but all four break before Reddit. SSH to 198.199.80.21: `cd /opt/peakly-proxy && [manual file copy] && pm2 restart peakly-proxy`. 20 min. |
-| **Weather cache not persisted to disk** | **P1 (pre-traffic gate)** | `pm2 restart` clears `_wxCache` → cold-cache Reddit spike → 748 Open-Meteo calls in <60s → free-tier ceiling → all scores drop to 50. ~30-line fix in `server/proxy.js`. Bundle with VPS redeploy (both are server-side, one SSH). |
-| **BASE_PRICES coverage gap** | **P1 (deal headline)** | Content correctly flagged: 100/146 venue airports absent from `BASE_PRICES`. ~68% of the catalog runs deal math on continent-pair estimates, including CUN, BOB, AUA, STT, SXM. The deal score is a headline feature — an empty or coarse estimate degrades the "cheap flight" pitch. Backfill the top 15 by venue count. ~2-hour research + data entry task. BEFORE any Reddit post. |
-| **Plausible data unread** | **P1** | Day 25. Gates second-post angle. Jack: plausible.io, 15 min. |
-| **Photo approval — ~16 staged venues** | **P1 (time-sensitive)** | Day 15. Alpe d'Huez summer glacier closes ~Aug 28. Whakapapa peaks Aug–Sep. Second-post hook dies without approval by ~July 28. Jack, 15 min. |
-| **Ski photo dedup regression** | **P2** | 5 ski photos at 3×. Bundle with staged-venue batch approval — don't ship solo. |
-| **Supabase SQL paste** | P0 (App Store) / P3 (web) | Day 46. 2-min paste. iOS 5.1.1(v). Not a web gate. |
-| **SRI/CSP (Open #10)** | P2 | Feasible now (esbuild). After second post. |
-| **APNS: DER vs P1363 + HTTP/1.1 vs HTTP/2** | P2 (inactive feature) | **Do not wire APNS until both bugs are fixed.** Not blocking v1 iOS. |
-| **Stale remote branches (15+ claude/)** | P3 | Cosmetic. After second post. |
-
-**Permanently closed:** AP_CONTINENT gaps · Babel P1 · retention email · bracket-walker · jackson-hole dup · cross-category photos · Plausible domain · placeholder tags · Peakly Pro price · Sentry DSN · VPS outage framing · DEAL_WEIGHT · GEAR_ITEMS · tahoe dup (false positive) · 4 P0s fixed 2026-07-24
+| **APNS_LIVE=true + VPS not deployed = broken alert promise to iOS users** | **P0** | Any iOS user who registers an alert today will silently never receive it. Fix: either redeploy VPS today (correct fix) or flip `APNS_LIVE = false` as a stopgap (stopgap). The VPS fix is committed in repo — it just needs to be copied to `/opt/peakly-proxy` and `pm2 restart peakly-proxy`. |
+| **Cache stamp stale: `20260725d` (yesterday)** | **P1** | 17 commits shipped overnight. Service worker won't invalidate cached assets for returning users. Bump to `20260726a` in lockstep: `app.jsx:17`, `sw.js:2`, `dist/index.html`. auto-push.sh handles on next Edit/Write. |
+| **VPS redeploy** | **P1 (now urgent)** | `server/proxy.js` has: P1363 JWT + HTTP/2 for APNs, `forecast_days=14`, CORS `capacitor://localhost`, DELETE for alerts, rate-limiter XFF last-entry. Until deployed: APNS broken, two-weekend scoring off, iOS native CORS blocked, alert deletion fails. Bundle with weather-cache disk persistence (#23). |
+| **BASE_PRICES: 68% of airports missing** | **P1 (pre-Reddit)** | Content confirmed: 100/146 venue airports absent. Deal score degrades to continent-pair estimates for CUN, BOB, AUA, STT, SXM and ~230 more venues. Backfill top 15 by venue count. ~2hr research + data entry. Before Reddit. |
+| **5 proposed venues missing AIRPORT_COORDS entries** | **P2 (blocks venue adds)** | Content proposed Grandvalira (BCN), Cortina (VCE), Réunion (RUN), Azores (PDL), Salalah (SLL). VCE and RUN are in `AP_CONTINENT` but absent from `AIRPORT_COORDS` — flight-time filter returns null. BCN, PDL, SLL fully absent. Add the 5 coord entries before adding the venues. |
+| **dist/ force-tracked in git** | **P2** | `dist/` is gitignored; CI rebuilds it. Tracking it creates repo confusion and bloat. `git rm -r --cached dist/ && git commit` after Xcode session. |
+| **Plausible data unread** | **P1** | Day 26. Jack: plausible.io, 15 min. Gates second-post targeting. |
+| **Photo batch approval (~16 staged venues)** | **P1 (time-sensitive)** | Alpe d'Huez glacier closes ~Aug 28. Jack, 15 min. Second-post hook weakens without approval by ~July 28. |
+| **Supabase delete-account SQL paste** | P0 (App Store) / P3 (web) | Day 47. 2-min paste. iOS 5.1.1(v). Not a web gate. |
+| **SRI/CSP (Open #10)** | P2 | After second post. |
 
 ---
 
-## Known Blockers
+## This Week's Top 3 Priorities
 
-| Blocker | What It Unlocks | Days Waiting |
-|---------|----------------|------|
-| **VPS redeploy** | Two-weekend scoring · iOS native CORS · alert deletion · rate limiter hardening | Day 1 (proxy.js committed but never deployed post-07-24 audit) |
-| **Weather cache disk persistence** | Reddit-spike resilience | Day 2 (first raised 07-23) — bundle with VPS redeploy |
-| **Jack: photo approval (~16 staged)** | Whakapapa/Alpe d'Huez second-post hooks · dedup fix bundled | Day 15 |
-| **Jack: read Plausible** | Second-post angle · onboarding health | Day 25 |
-| **BASE_PRICES top-15 backfill** | Deal score credibility at scale | New (content 07-25) |
-| **Jack: Supabase SQL paste** | iOS App Store 5.1.1(v) | Day 46 |
-| **LLC approval** | REI +$6.16, Backcountry +$0.64, GYG +$1.20/1K MAU | External |
+**1. VPS redeploy + APNS alignment (Jack — 25 min SSH, TODAY)**
+The APNS_LIVE=true flag with a broken VPS is an active P0. Every hour it runs, iOS users register alerts they'll never receive. Correct sequence: SSH → copy proxy files → `npm install` → `pm2 restart` → verify `/health` shows `apns: configured` → confirm `APNS_LIVE = true` is correct. Bundle weather-cache disk persistence (#23) — same session. If VPS can't happen today, flip `APNS_LIVE = false` as a stopgap commit in the next 2 hours.
 
----
+**2. BASE_PRICES backfill — top 15 airports by venue count (dev, ~2hr)**
+68% of airports return guessed deal math. The deal score is the product's core differentiator. Concrete targets: CUN (multiple beach venues), BOB, AUA, STT, SXM, and the top remaining EU/APAC gateways. Before Reddit.
 
-## Explicit Product Decisions — July 25
-
-### Decision 1: VPS redeploy is P1, not P2. Ship this weekend.
-
-DevOps called it P2 today. That's wrong. The audit confirmed: two-weekend scoring has been permanently off since launch (proxy sends `forecast_days=7`, client expects 14); the feature is dark even though the code for it shipped. Additionally, the iOS native app has never been able to reach the proxy (CORS missing `capacitor://localhost`). Alert deletion has never worked. This is not cosmetic — it's three features in the "what does Peakly do?" pitch that are silently broken.
-
-The VPS deploy is a 20-minute SSH task. Jack must do it (the VPS is not a git clone — `git pull` fails there; see CLAUDE.md). The weather cache disk persistence fix should be bundled with the same deploy to avoid two SSH sessions.
-
-**Decision: VPS redeploy is P1. Bundle with weather cache fix. Ship before second post, not after.**
-
-### Decision 2: BASE_PRICES gap is a real P1. Backfill top 15 before Reddit.
-
-Content flagged this correctly. The deal score is a headline feature — the second distribution post will almost certainly lead with "find cheap flights to great conditions." If 68% of airports return continent-pair estimates instead of real baseline prices, the deal signal is noise. Coarse estimates make "Strong deal" labels unreliable. That's a credibility problem in the thread where first impressions form.
-
-The fix is data entry, not code: look up realistic round-trip fare baselines for the top 15 missing airports by venue count (BOB, AUA, STT, UVF, SXM, GCM, CUN, SJD, AXA and ~6 more) and add them to `BASE_PRICES`. ~2 hours. No code risk.
-
-**Decision: BASE_PRICES top-15 backfill is P1. Ships before second post. Code freeze exception granted.**
-
-### Decision 3: Content's 5 new proposals — HOLD. Clear the existing 16-venue queue first.
-
-Content proposed 5 additional venues (distinct from the 16 staged). The queue is already at day 15 with no approval. Adding to it compounds the debt without fixing the root problem: Jack needs to approve what's staged before new venues matter. No new staging until the queue drops below 8.
-
-**Decision: HOLD all 5 new proposals. Unblock the 16 staged first.**
+**3. Cache stamp bump to `20260726a` + Plausible data read (dev 5 min, Jack 15 min)**
+Stale cache means 17 overnight commits aren't reaching returning users. Five-minute fix that should happen with the next any code touch. Plausible read gates second-post angle — Jack pulls top venues, traffic sources, device split, then picks subreddit and hook for the Aug 1 window.
 
 ---
 
-## This Week's Top 3 Priorities Only
+## Decisions This Report
 
-1. **VPS redeploy + weather cache disk persistence.** (~50 min total · Jack SSH) — Activates two-weekend scoring, hardens against Reddit spike, fixes iOS CORS. Both are server-side, both go in one deploy. Must land before second post.
-2. **BASE_PRICES top-15 backfill.** (~2 hours · data entry · app.jsx only) — Deals headline needs real baselines. Ship before any distribution post.
-3. **Jack: Approve 16 staged venues + read Plausible.** (~30 min combined) — Alpe d'Huez closes in 4 weeks. Plausible gates the post angle. Both are blocking.
+**Decision 1: APNS_LIVE = false stopgap OR VPS redeploy — pick one, do it today.**
+The current state (APNS_LIVE=true + broken VPS) is P0. It's not a "watch and see." If VPS redeploy can happen today: do it, verify, done. If not: flip `APNS_LIVE = false` as a one-line commit to stop the broken-promise exposure until the VPS is ready. "Both are deferred" is not an option.
 
-Everything else is frozen.
+**Decision 2: Hold the 5 proposed venues until AIRPORT_COORDS entries are confirmed.**
+Grandvalira, Cortina, Réunion, Azores, Salalah are all legitimate additions. But VCE and RUN are in `AP_CONTINENT` without `AIRPORT_COORDS` entries — the flight-time filter silently passes them as "unknown distance." Add the 5 coord rows first, then add the venues. Batching both into one commit is the right move.
+
+**Decision 3: iOS widget Xcode wiring DEFERRED until after second Reddit post.**
+The Swift code is complete. Xcode wiring is a Jack-machine manual task with zero user-facing impact until App Store submission. It does not help the 100K goal before iOS distribution is actually live. Scope it for post-second-post, pre-App Store submission sprint.
 
 ---
 
@@ -135,43 +110,39 @@ Everything else is frozen.
 
 | Feature | Reason |
 |---------|--------|
-| **5 new venue proposals (Content 07-25)** | Queue cap. Clear the 16 staged first. |
-| **tahoe / palisades-tahoe dedup** | False positive — only `palisades-tahoe` exists. No action. |
-| **Any code changes beyond VPS fixes + BASE_PRICES** | Code freeze holds. Two exceptions only. |
-| **Hotels in deal score** | No demand signal. v2. |
-| **Peakly Pro revival** | CUT. Reopen only at 500+ MAU. |
-| **APNS push alerts** | Known-skipped. Do not wire until DER/P1363 + HTTP/2 both fixed. |
-| **JSON-LD structured data** | Can't evaluate ROI without Plausible baseline. DEFER. |
-| **SRI/CSP** | After second post. |
-| **Trans-dateline day misalignment (Asia/Pacific)** | Real bug. Deferred — fix deserves its own test pass, low user impact at current scale. |
-| **poolPrimary field** | Dead — implemented in scoring, set on 0 venues. Remove in next cleanup pass. Not now. |
+| **JSON-LD structured data** | Zero organic search traffic to benefit yet. GSC isn't showing impressions because nobody is linking here. Ship after first Reddit seeding drives enough traffic that structured data has something to amplify. |
+| **Static h1 fallback** | Same reasoning as JSON-LD. SEO optimizations compound on existing traffic; premature before distribution. |
+| **Venue deep links** | Already decided post-Reddit launch. Holds. No change. |
+| **Group coordination** | Roadmap item 6. Not until 1K users. |
+| **Hotel pricing in deal score** | v2. Lean-before-launch principle holds. Flights + conditions is the v1 pitch. |
 
 ---
 
 ## Success Criteria
 
-| Metric | 5K path | 8K path | Day 25 status |
-|--------|---------|---------|---------------|
-| Plausible read | Day 1 | Day 1 | ❌ Day 25 — Jack action |
-| Second distribution | Week 2 | Week 2 | 🔴 Target Aug 1–7 · 4 gates |
-| VPS redeploy | Before second post | Before second post | 🔴 Committed, not deployed |
-| Weather cache resilience | Before first spike | Before first spike | 🔴 Not persisted to disk |
-| BASE_PRICES top-15 | Before Reddit | Before Reddit | 🔴 New gate (Content 07-25) |
-| Catalog — SH + summer ski | Jul–Aug | Jul | 🔴 16 staged, Day 15 awaiting approval |
-| Revenue streams | 3 live | +LLC affiliates | ⚠️ 3 live ($7.58/1K MAU) |
+**90-day target: 8K users (not 5K).** What has to be true for 8K vs 5K:
 
-**The 8K path is open but the clock is ticking.** Summer glaciers (Alpe d'Huez, Hintertux) close in 4–8 weeks. The seasonal angle for the second post — "you can ski in 3 continents this July" — has a hard expiry. Every week of delay on venue approval and VPS redeploy is a week of that window closing.
+1. **Two Reddit posts land well** — r/skiing (October, ski season opener) + r/travel (anytime). Each good post drives 500–2K organic. Timing the ski post to early-October season buzz is the single highest-leverage action available.
+2. **VPS is deployed before any post** — two-weekend scoring being silently off means the product's headline feature (Fri–Mon window confidence) is degraded. If a Reddit user checks back the following weekend and gets wrong window data, they churn.
+3. **Deal scores feel real** — BASE_PRICES backfill for top-traffic airports. A "Strong deal" badge on a CUN flight that's actually just a continent-pair estimate kills the trust that drives word-of-mouth.
+4. **First load works on mobile without visible errors** — especially iOS cold-start, which the App Store reviewer will see.
 
-**What has to be true for 8K, not 5K:** The second post lands Aug 1–7 (not Aug 8+), it leads with a specific seasonal angle backed by scored venues (requires Plausible read + staging approval + two-weekend scoring on), and the infrastructure doesn't crater on arrival (weather cache fix + VPS hardening deployed).
+The difference between 5K and 8K is distribution timing + product trust, not features.
+
+**Current gates to first Reddit post (Aug 1 window):**
+- [ ] VPS redeploy (Jack, 25 min) — **URGENT**
+- [ ] BASE_PRICES top-15 backfill (dev, 2hr)
+- [ ] Plausible read (Jack, 15 min)
+- [ ] Photo batch approval (Jack, 15 min)
+
+Three of four require Jack.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**Two-weekend scoring has never worked in production.**
+**The confidence-discounted grid ranking in `89cded3` is unverified across timezones.** The dateline fix + confidence-discounted sort changes which venues appear at the top of Explore on Friday/Saturday evening. A US-West user browsing at 7pm Friday and a US-East user browsing at the same clock time are now in different "weekend windows." Nobody has checked what the top-10 grid looks like from each coast after this change. If the sort buries genuinely great weekends behind low-confidence ones, first impressions on the Reddit wave will be weak and the product looks uncertain. Before the post: load Explore on mobile at ~6pm Pacific Friday and confirm the top venues make sense. Five minutes. High-leverage gut check.
 
-The proxy has always sent `forecast_days=7`. The client has always expected 14 and tried the proxy first. Since the VPS has been healthy for 44+ days, the proxy has served every weather request — with a 7-day window. The "next weekend" feature, the `confidence` flag, the whole "8-day horizon" pitch in the second-post copy: all dark. Users who checked Peakly for next weekend's conditions saw scores computed from the wrong data.
+---
 
-This isn't a new finding — AUDIT-2026-07-24.md documented it as P1. But it's been sitting for 24+ hours since the audit landed and there's still no VPS redeploy. The fix is committed. The SSH command is documented. The only thing standing between "never shipped this feature" and "feature works" is one 20-minute Jack task.
-
-Before writing any copy about Peakly's "second weekend" visibility, ship the deploy.
+*Next run: v101, 2026-07-27. Top priority: confirm APNS/VPS P0 resolved.*
