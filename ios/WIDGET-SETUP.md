@@ -1,6 +1,6 @@
 # Peakly home-screen widget — setup
 
-All the code is written. What's left is Xcode wiring, which has to be done through the GUI: adding a target rewrites `project.pbxproj`, and hand-editing that file is the classic way to corrupt an Xcode project. **~15 minutes, once.**
+All the code is written. Two scripts do the project wiring; one Xcode step remains for signing, which can't be automated. **~5 minutes.**
 
 ## What you're building
 
@@ -28,8 +28,11 @@ A native WidgetKit widget showing your best weekend pick — venue, score, condi
 Run from the repo root:
 
 ```
-ruby scripts/add-widget-target.rb
+ruby scripts/add-widget-target.rb    # creates + embeds the widget extension
+ruby scripts/add-widget-bridge.rb    # compiles the Capacitor bridge into the app
 ```
+
+Both are needed. The first creates the widget; the second makes sure `PeaklyWidgetBridge.swift/.m` are actually compiled — dropping files into `ios/App/App/` on disk does **not** add them to the Xcode project, and without them the widget would show its empty state forever with no error to explain why.
 
 This uses `xcodeproj` — the same library CocoaPods uses to rewrite Xcode projects — to create the extension target, set its build settings, wire the source file, embed it in the app, and point both targets at their entitlements. It backs up `project.pbxproj` first, is safe to re-run, and verifies its own work before exiting.
 
