@@ -1,7 +1,7 @@
 {
   "name": "peakly",
   "version": "1.0.0",
-  "description": "Peakly — discover surf, ski, and adventure spots when conditions and cheap flights align",
+  "description": "Peakly \u2014 discover surf, ski, and adventure spots when conditions and cheap flights align",
   "private": true,
   "dependencies": {
     "@capacitor/app": "^6.0.0",
@@ -19,7 +19,7 @@
   "scripts": {
     "cap:init": "npx cap init",
     "cap:ios": "npx cap add ios && npx cap sync ios",
-    "cap:sync": "npx cap sync",
+    "cap:sync": "npx cap sync && node scripts/register-widget-plugin.mjs",
     "build:ios": "bash scripts/build-ios.sh",
     "build:web": "node scripts/build-web.mjs",
     "smoke": "bash scripts/smoke-test.sh",
