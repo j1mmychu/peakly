@@ -24,6 +24,33 @@ LOCK="$REPO/.git/.auto-push.lock"
 if ! mkdir "$LOCK" 2>/dev/null; then exit 0; fi
 trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
 
+# ─── Stale .git/index.lock self-heal ─────────────────────────────────────────
+# A crashed git leaves a zero-byte index.lock behind and every later commit
+# fails with "Unable to create index.lock". This has bitten three times
+# (2026-06-11, 06-20, 07-25); the 06-20 one silently blocked EVERY auto-push
+# for a month because guard/commit failures here are quiet by design.
+#
+# Deliberately conservative — only clears a lock that is ALL of:
+#   • zero bytes (a live git writes its pid//data into it)
+#   • older than 5 minutes
+#   • not accompanied by any running git process
+# Anything else, we back off and let the real process finish.
+INDEX_LOCK="$REPO/.git/index.lock"
+if [ -f "$INDEX_LOCK" ]; then
+  LOCK_SIZE=$(wc -c < "$INDEX_LOCK" | tr -d ' ')
+  # stat differs between macOS (-f %m) and Linux (-c %Y)
+  LOCK_MTIME=$(stat -f %m "$INDEX_LOCK" 2>/dev/null || stat -c %Y "$INDEX_LOCK" 2>/dev/null || echo 0)
+  LOCK_AGE=$(( $(date +%s) - LOCK_MTIME ))
+  GIT_RUNNING=$(pgrep -x git 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$LOCK_SIZE" = "0" ] && [ "$LOCK_AGE" -gt 300 ] && [ "$GIT_RUNNING" = "0" ]; then
+    rm -f "$INDEX_LOCK"
+    echo "[auto-push] cleared stale index.lock (${LOCK_AGE}s old, 0 bytes, no git process)" | tee -a /tmp/peakly-auto-push.log >&2
+  else
+    echo "[auto-push] index.lock present (${LOCK_AGE}s, ${LOCK_SIZE}b, git procs=${GIT_RUNNING}) — backing off" | tee -a /tmp/peakly-auto-push.log >&2
+    exit 0
+  fi
+fi
+
 # Fetch latest origin/main so we don't blindly diverge.
 git fetch origin main --quiet 2>/dev/null || true
 

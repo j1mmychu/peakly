@@ -5,6 +5,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const http2 = require('http2');   // APNs is HTTP/2-only; global fetch is HTTP/1.1
 
 const app = express();
 app.use(express.json({ limit: '16kb' }));
@@ -544,9 +545,12 @@ function _signApnsJwt() {
   const headerB64 = b64url(JSON.stringify(header));
   const payloadB64 = b64url(JSON.stringify(payload));
   const signingInput = `${headerB64}.${payloadB64}`;
+  // ES256 for JWT requires the raw R‖S concatenation (IEEE P1363, 64 bytes).
+  // Node's default for EC keys is DER/ASN.1, which Apple rejects with
+  // 403 InvalidProviderToken — silently, and only once you're live.
   const signature = crypto.createSign('SHA256')
     .update(signingInput)
-    .sign(keyPem);
+    .sign({ key: keyPem, dsaEncoding: 'ieee-p1363' });
   const sigB64 = signature.toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   const jwt = `${signingInput}.${sigB64}`;
   _apnsTokenCache = { token: jwt, generatedAt: now };
@@ -581,24 +585,56 @@ async function firePush(alert, payload = {}) {
     },
   };
 
-  try {
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'authorization': `bearer ${jwt}`,
-        'apns-topic': process.env.APNS_BUNDLE_ID,
-        'apns-push-type': 'alert',
-        'apns-priority': '10',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
+  // APNs is HTTP/2-ONLY. Node's global fetch (undici) speaks HTTP/1.1, so the
+  // previous implementation could never connect — it failed at the protocol
+  // layer before any token was even evaluated. Use the built-in http2 module.
+  return _apnsPost(host, `/3/device/${alert.pushToken}`, jwt, body);
+}
+
+/** One-shot HTTP/2 POST to APNs. No deps; connection closed after each send. */
+function _apnsPost(host, path, jwt, body) {
+  return new Promise((resolve) => {
+    let client;
+    let settled = false;
+    const done = (r) => {
+      if (settled) return;
+      settled = true;
+      try { client && client.close(); } catch {}
+      resolve(r);
+    };
+
+    try {
+      client = http2.connect(`https://${host}`);
+    } catch (err) {
+      return resolve({ ok: false, reason: `http2_connect_error: ${err.message}` });
+    }
+    client.on('error', (err) => done({ ok: false, reason: `http2_error: ${err.message}` }));
+
+    const payload = Buffer.from(JSON.stringify(body));
+    const req = client.request({
+      ':method': 'POST',
+      ':path': path,
+      'authorization': `bearer ${jwt}`,
+      'apns-topic': process.env.APNS_BUNDLE_ID,
+      'apns-push-type': 'alert',
+      'apns-priority': '10',
+      'content-type': 'application/json',
+      'content-length': payload.length,
     });
-    if (r.status === 200) return { ok: true, status: 200 };
-    const errBody = await r.text();
-    return { ok: false, status: r.status, reason: errBody };
-  } catch (err) {
-    return { ok: false, reason: `fetch_error: ${err.message}` };
-  }
+    req.setTimeout(10000, () => { try { req.close(); } catch {} done({ ok: false, reason: 'apns_timeout' }); });
+
+    let status = 0, chunks = '';
+    req.on('response', (headers) => { status = headers[':status']; });
+    req.on('data', (d) => { chunks += d; });
+    req.on('error', (err) => done({ ok: false, reason: `apns_stream_error: ${err.message}` }));
+    req.on('end', () => {
+      if (status === 200) return done({ ok: true, status: 200 });
+      // APNs returns {"reason":"BadDeviceToken"} etc — surface it verbatim.
+      done({ ok: false, status, reason: chunks || `status_${status}` });
+    });
+
+    req.end(payload);
+  });
 }
 
 // ─── Polling worker ──────────────────────────────────────────────────────────
@@ -729,6 +765,15 @@ app.post('/api/alerts', (req, res) => {
     lastFiredAt:   null,
     enabled:       true,
   };
+  // Ownership check. The API is unauthenticated by design (no user accounts on
+  // the alerts path), so the random alertId acts as a capability token: holding
+  // it proves ownership. What we must still prevent is someone who learns an id
+  // re-POSTing it with THEIR push token to hijack the delivery target.
+  const existing = _alerts.get(alertId);
+  if (existing && existing.pushToken && record.pushToken && existing.pushToken !== record.pushToken) {
+    return res.status(409).json({ success: false, error: 'alertId already registered to a different device' });
+  }
+
   _alerts.set(alertId, record);
 
   console.log(`[/api/alerts] registered alert ${alertId} for platform=${pushPlatform || 'web'} venue=${venueId || 'any'}`);

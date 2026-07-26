@@ -392,7 +392,7 @@
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260724a" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260725a" data-presets="react"></script>
 
   <!-- Service Worker registration -->
   <script>
@@ -403,8 +403,36 @@
 
   <!-- Babel parse error fallback -->
   <script>
+    // Splash watchdog — if the app hasn't mounted in 12s, something upstream
+    // failed silently. Reveal whatever is underneath rather than trapping the
+    // user behind the splash indefinitely.
+    setTimeout(function () {
+      if (window.__peaklyMounted) return;
+      var sp = document.getElementById("splash");
+      if (!sp) return;
+      sp.classList.add("fade-out");
+      setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 900);
+      var root = document.getElementById("root");
+      if (root && !root.firstChild) {
+        root.innerHTML = '<div style="padding:40px;text-align:center;font-family:system-ui">' +
+          '<h2 style="color:#222;margin-bottom:12px">Peakly is having trouble loading</h2>' +
+          '<p style="color:#666;margin-bottom:8px">Check your connection and try again.</p>' +
+          '<button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;border-radius:10px;border:none;background:#0284c7;color:white;font-weight:700;cursor:pointer">Retry</button>' +
+          '</div>';
+      }
+    }, 12000);
+
     window.addEventListener("error", function(e) {
+      // Only handle PRE-MOUNT failures. After the app mounts, an uncaught
+      // "Unexpected token" is usually a runtime JSON.parse on bad data —
+      // replacing #root there would destroy a working app over a recoverable
+      // hiccup. The ErrorBoundary owns post-mount failures.
+      if (window.__peaklyMounted) return;
       if (e.message && (e.message.includes("SyntaxError") || e.message.includes("Unexpected token"))) {
+        // Kill the splash first — it's opaque and sits above #root, so the
+        // Retry button below would otherwise render underneath it, invisible.
+        var sp = document.getElementById("splash");
+        if (sp && sp.parentNode) sp.parentNode.removeChild(sp);
         var root = document.getElementById("root");
         root.innerHTML = '<div style="padding:40px;text-align:center;font-family:system-ui">' +
           '<h2 style="color:#ef4444;margin-bottom:12px">Peakly failed to load</h2>' +

@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260724a";
+const PEAKLY_BUILD = "20260725a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -10195,9 +10195,24 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
     })
   );
 
+  // 128 bits of randomness, with a fallback for older WebViews lacking randomUUID.
+  const newAlertId = () => {
+    try {
+      if (crypto?.randomUUID) return crypto.randomUUID();
+      const a = new Uint8Array(16);
+      crypto.getRandomValues(a);
+      return Array.from(a, b => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+  };
+
   const addAlert  = () => {
     if (!draft.sport) return;
-    const alertData = { ...draft, id: Date.now() };
+    // Unguessable id = capability token. `Date.now()` ids were trivially
+    // enumerable, and the alerts API has no auth — anyone could delete or
+    // hijack another user's alert by guessing a millisecond timestamp.
+    const alertData = { ...draft, id: newAlertId() };
     if (draft.condition === "custom") {
       alertData.customScore = draft.customScore || 85;
     }
@@ -12678,6 +12693,9 @@ function App() {
 
   // Dismiss the splash screen — minimum 1.5s visible, then 0.9s fade
   useEffect(() => {
+    // Tells index.html's watchdog + error handler that React is alive, so
+    // neither one tears down a working app.
+    try { window.__peaklyMounted = true; } catch {}
     const splash = document.getElementById('splash');
     if (!splash) return;
     // Record when the page started loading (approximated by performance.timing or Date.now)

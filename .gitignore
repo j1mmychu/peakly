@@ -60,3 +60,7 @@ Peakly-Business-Plan.*
 *.numbers
 *.pages
 *.keynote
+
+# filesystem artifacts
+.fuse_hidden*
+*.bak

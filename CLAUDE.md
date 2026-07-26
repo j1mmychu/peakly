@@ -28,7 +28,9 @@ peakly/
 ├── package.json             # Capacitor CLI deps only
 ├── .github/workflows/deploy.yml  # Pages auto-deploy on push to main+master
 ├── server/                  # Node.js VPS proxy source (Travelpayouts + alerts)
-├── peakly-native/           # Capacitor native project files
+├── peakly-native/           # Capacitor native project files (PUSH_SETUP.md runbook)
+├── ios/                     # NEW 2026-07-25 — PeaklyWidget (WidgetKit home-screen widget) + Capacitor bridge (App.entitlements, PeaklyWidgetBridge.swift/.m); see ios/WIDGET-SETUP.md
+├── app-store/                # NEW 2026-07-25 — LISTING-COPY.md (paste-ready App Store name/subtitle/keywords/description)
 ├── scripts/                 # auto-push.sh + status.sh (ship pipeline) + validate-venues.mjs + build-ios.mjs/.sh
 ├── data/                    # venue-candidates.example.json (input for validate-venues.mjs)
 ├── tasks/agents/            # 5 input agents + daily-briefing (canonical prompts)
@@ -155,7 +157,22 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 
 **Corollary:** the Cowork sandbox has **no network egress for git**. If `git fetch` fails there, say so out loud and treat all repo state as unverified — do not fall back to the stale ref and call it current.
 
-## Current State (2026-07-24 — networked session, verified against a fresh fetch)
+## Current State (2026-07-25 — CLAUDE.md sync agent run, `git fetch` BLOCKED — see warning)
+
+> ⚠️ **This sync ran in a Cowork sandbox with no network egress for git — `git fetch` failed with "Host key verification failed."** Per the rule above, this local state is **unverified against origin** and should not be treated as confirmed-current. Everything below is read from the local checkout only (local HEAD `060ad85`, 2026-07-25 17:56 PDT).
+>
+> **Local HEAD `060ad85`** — 6 commits ahead of the last CLAUDE.md sync point (`fc1c194`): two daily reports + PM v99 (routine), then two feature commits: `ffacbd7` **iOS home-screen widget** (WidgetKit + Capacitor bridge + `peakly://` deep links — code complete, needs ~15 min of one-time Xcode GUI wiring per `ios/WIDGET-SETUP.md`; framed as the strongest available answer to App Store Guideline 4.2 minimum-functionality risk for a Capacitor app), and `060ad85` **App Store listing copy** (`app-store/LISTING-COPY.md` — paste-ready name/subtitle/keywords/description, character-count verified).
+>
+> **Working tree is dirty (2 uncommitted files) as of this sync** — appears to be in-progress work on Open #21 (APNS/alerts security), not yet committed:
+> - `server/proxy.js`: rewrites `firePush` to use Node's built-in `http2` module instead of global `fetch` (APNs is HTTP/2-only; `fetch`/undici is HTTP/1.1 and could never have connected), and switches the JWT signature to `dsaEncoding: 'ieee-p1363'` (Apple requires raw R‖S; Node's EC default is DER, which APNs rejects). This is exactly the two-bug fix Open #21 calls for.
+> - `app.jsx`: replaces `Date.now()` alert IDs with a `crypto.randomUUID()` (with `getRandomValues`/`Math.random` fallback) `newAlertId()` helper — closes the "guessable id = capability token" hole also named in Open #21.
+> - **Neither change is committed, tested, or deployed.** Do not mark Open #21 resolved. If you're continuing this work: finish, verify (`node -e` syntax check + a real APNs sandbox send), then commit with a message that references Open #21.
+>
+> **PM v99 / DevOps / Content reports (2026-07-25, all GREEN, no new P0s):** reconfirmed 373 venues (131 ski / 242 beach), cache `20260724a`, all four `0c02590` P0 fixes verified live. Two reprioritizations worth carrying forward: (1) **VPS redeploy (Open #19) moved from P2 to P1 "pre-traffic gate"** — PM v99 groups it with weather-cache disk persistence as work that must land *before* any Reddit/HN post, not just "eventually." (2) **BASE_PRICES gap (Open #22) quantified**: Content confirms **100 of 146 venue airports (≈68%) are absent from `BASE_PRICES`**, including CUN/BOB/AUA/STT/SXM — not just the coarse "CUN/MIA/LAX" example previously listed. Backfill target unchanged: top ~15 by venue count, ~2hr task.
+> - **New item surfaced by PM v99, not previously tracked**: weather cache (`_wxCache`) is in-memory only — a `pm2 restart` (which redeploying the VPS requires) wipes it, so a cold cache hit by a traffic spike could still blow through Open-Meteo's free-tier ceiling before this refills. ~30-line fix, bundle with the VPS redeploy since both are server-side and need the same SSH session. Added as Open #23 below.
+
+<details>
+<summary>Current State (2026-07-24 — networked session, verified against a fresh fetch) — most recent verified-against-origin snapshot</summary>
 
 > **373 venues** (131 ski / 242 beach), cache `20260724a`, HEAD `fc1c194`. Counted by eval, not grep.
 >
@@ -172,7 +189,9 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 >
 > **VPS verified healthy over the network 2026-07-24**: `/health` 200, uptime 44 d, `wx_cache_size` 595, `apns: unconfigured`. Stop re-flagging it as down.
 >
-> **APNS is doubly broken — do NOT wire push until fixed**: the ES256 JWT signs with DER encoding (Apple needs raw R‖S — `dsaEncoding: 'ieee-p1363'`) and `firePush` uses global `fetch`, which is HTTP/1.1-only while APNs requires HTTP/2. Also: the alerts API is unauthenticated with `Date.now()` ids — anyone can delete or hijack another user's alert. Full detail in `AUDIT-2026-07-24.md`.
+> **APNS is doubly broken — do NOT wire push until fixed**: the ES256 JWT signs with DER encoding (Apple needs raw R‖S — `dsaEncoding: 'ieee-p1363'`) and `firePush` uses global `fetch`, which is HTTP/1.1-only while APNs requires HTTP/2. Also: the alerts API is unauthenticated with `Date.now()` ids — anyone can delete or hijack another user's alert. Full detail in `AUDIT-2026-07-24.md`. **(2026-07-25 note: an uncommitted working-tree fix for exactly this exists locally — see the 2026-07-25 block above. Not yet shipped.)**
+
+</details>
 
 <details>
 <summary>Previous state (2026-06-10) — historical</summary>
@@ -190,12 +209,13 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 
 ### What's Broken / Open (Priority Order)
 
-**Top of the list as of 2026-07-24 (all verified tonight, none are stale report noise):**
+**Top of the list as of 2026-07-25 (19/20/22 carried from 07-24, reprioritized/quantified per PM v99; 21 has an uncommitted local fix in progress; 23 is new):**
 
-19. **VPS redeploy required** — `server/proxy.js` fixes are committed but inert. Copy to `/opt/peakly-proxy` (NOT a git clone — `git pull` fails there) and `pm2 restart peakly-proxy`. Until then: two-weekend scoring stays off, iOS native can't reach the proxy, and alert deletion still silently fails. Verify after with `curl -s https://peakly-api.duckdns.org/health`.
+19. **VPS redeploy required — reclassified P1 "pre-traffic gate" by PM v99 (2026-07-25), was P2.** `server/proxy.js` fixes are committed but inert. Copy to `/opt/peakly-proxy` (NOT a git clone — `git pull` fails there) and `pm2 restart peakly-proxy`. Until then: two-weekend scoring stays off, iOS native can't reach the proxy, and alert deletion still silently fails. Verify after with `curl -s https://peakly-api.duckdns.org/health`. Bundle with #23 below (same SSH session).
 20. **Photos: ~346 of 373 venues show generic stock unrelated to the venue.** Run `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` → `photos-review.mjs` → `photos-apply.mjs --write`. This is the biggest remaining *quality* gap and Jack has flagged it directly.
-21. **APNS will deliver zero pushes if wired today** — DER-vs-P1363 JWT signature + HTTP/1.1 `fetch` against an HTTP/2-only API. Fix both before touching the .p8. Alerts API also has no auth and guessable `Date.now()` ids.
-22. **BASE_PRICES covers a minority of airports** — the rest of the catalog runs deal math on coarse continent-pair estimates, including CUN/MIA/LAX. Backfill the top ~15 by venue count before launch; the deal score is a headline feature.
+21. **APNS will deliver zero pushes if wired today** — DER-vs-P1363 JWT signature + HTTP/1.1 `fetch` against an HTTP/2-only API. Fix both before touching the .p8. Alerts API also has no auth and guessable `Date.now()` ids. **2026-07-25: an uncommitted working-tree change exists locally that appears to fix both the HTTP/2 transport and the JWT encoding (`server/proxy.js`, `http2.connect` + `dsaEncoding: 'ieee-p1363'`), plus a separate uncommitted `app.jsx` change replacing `Date.now()` alert ids with `crypto.randomUUID()`. Neither is committed or verified working — do not mark this resolved until both are committed, syntax-checked, and a real APNs sandbox send is confirmed.**
+22. **BASE_PRICES covers a minority of airports — quantified by Content 2026-07-25: 100 of 146 venue airports (≈68%) missing**, including CUN/BOB/AUA/STT/SXM (not just CUN/MIA/LAX). Backfill the top ~15 by venue count before launch; the deal score is a headline feature.
+23. **Weather cache (`_wxCache`) is in-memory only — new finding, PM v99 (2026-07-25), P1 pre-traffic gate.** A `pm2 restart` (required by the #19 redeploy) wipes it, so a cold cache hit by a traffic spike right after redeploy could still exceed Open-Meteo's free-tier ceiling before it refills. ~30-line fix (disk persistence) in `server/proxy.js`. Bundle with #19 — same SSH session, same restart.
 
 16. ~~**GEAR_ITEMS restored by DevOps agent against the documented v1 cut**~~ **RESOLVED 2026-06-10 via option (a) — re-affirmed the cut.** Commit `c112b51` had restored the Amazon gear const (treating absence as the old "revenue leak"); now reverted — const + VenueDetailSheet render gate removed, `grep -c GEAR_ITEMS app.jsx` → **0**, braces balanced, transpile clean. Root cause fixed: `tasks/agents/devops.md` carries a standing "AMAZON / gear modules — DO NOT TOUCH" directive so the findings-loop stops re-restoring it. Revenue Model stays $7.58/1K MAU; code and docs agree again.
 
@@ -215,6 +235,13 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 10. **No SRI on CDN scripts** + **no CSP meta** — security hardening; medium risk to apply (could break Babel inline eval). Flagged but not touched.
 11. **Auto-push pipeline orphans scheduled-task agent writes** — `scripts/auto-push.sh` fires from Claude Code's PostToolUse hook on Edit/Write inside `~/peakly` (hook now live in `~/.claude/settings.json` as of 2026-05-09 late evening). Catches Jack's local Claude sessions only — scheduled-task agents (devops/pm/content/revenue/ux daily runs) execute outside the hook's catchment, so their writes silently never commit until the next manual edit. Recommended supplement: add `45 17 * * * cd ~/peakly && bash scripts/auto-push.sh` to local crontab after the 17:30 daily-briefing slot. Two-minute install. Without it, every report after today reads stale state and re-surfaces findings the previous run already closed.
 12. **APNS configuration deadline 2026-05-13** (PM call 2026-05-09) — Strike Alerts code is shipped but `apns_configured: false` until Jack runs the Apple Dev console + 5 `pm2 set` calls (runbook: `peakly-native/PUSH_SETUP.md`). 72h on the critical path with no movement. PM forcing function: by end-of-day Wednesday 2026-05-13, either APNS is live (`/health` shows `apns_configured: true`) OR add `Capacitor.isNativePlatform()` gate to hide the Alerts tab on iOS specifically and ship App Store v1 without push. Web product preserved either way; polling worker preserved for future native re-enable. **RESOLVED via fallback 2026-06-08** — the `Capacitor.isNativePlatform()` gate shipped (3 sites in app.jsx); iOS v1 can launch without APNS. APNS itself remains parked in known-skipped (see #9). The deadline is moot; the fallback path is the decision.
+
+### Recently Fixed (2026-07-25 — iOS widget + App Store listing copy; sync agent note)
+
+- ✅ **iOS home-screen widget shipped in-repo** (commit `ffacbd7`) — WidgetKit small/medium widget showing the current best-weekend pick (venue, score, conditions, round-trip fare), deep-links to the venue detail sheet via `peakly://`. New `ios/` directory: `PeaklyWidgetBridge.swift`/`.m` (Capacitor plugin, writes the pick to a shared App Group + triggers a WidgetKit reload), `PeaklyWidget.swift` (timeline provider + SwiftUI layouts), entitlements + Info.plist for both the main app and the widget extension. `app.jsx` writes the top pick after every scoring pass and handles the `peakly://` tap. **Code-complete but not yet wired into Xcode** — needs a one-time ~15 min GUI step (new Widget Extension target, drag in the real files, App Group capability, deployment target iOS 17.0) documented step-by-step in `ios/WIDGET-SETUP.md`. Framed there as the strongest available mitigation for App Store Guideline 4.2 (minimum functionality) risk on a Capacitor-wrapped web app.
+- ✅ **App Store listing copy drafted** (commit `060ad85`) — `app-store/LISTING-COPY.md`: paste-ready name ("Peakly: Ski & Beach Weekends", 28/30 chars), subtitle + alternates, keywords (95/100 chars), all character-count verified against Apple's limits. Explicitly avoids claiming features that are gated off (push alerts) or venues that don't exist.
+- ⚠️ **Working tree left dirty at end of session** — `server/proxy.js` (APNs HTTP/2 + JWT P1363 fix) and `app.jsx` (alert-id `crypto.randomUUID()` fix) both have uncommitted changes that address Open #21. Not committed, not tested, not deployed — see Open #21 and the 2026-07-25 Current State block above for detail. Whoever picks this up next should finish and commit it rather than starting over.
+- **Sync-agent note:** this file was updated by an automated CLAUDE.md sync run. `git fetch` failed in the sandbox (no network egress — "Host key verification failed"), so per this file's own git-fetch-first rule, the state above is sourced from the **local checkout only** and is unverified against `origin/main`. Re-verify from a networked session before treating it as ground truth.
 
 ### Recently Fixed (2026-06-10 evening — VPS maintenance + PAT closed out, Jack hands-on)
 
