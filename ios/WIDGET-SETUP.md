@@ -15,53 +15,42 @@ A native WidgetKit widget showing your best weekend pick — venue, score, condi
 | `ios/App/App/PeaklyWidgetBridge.swift` | Capacitor plugin — receives the pick from JS, writes it to the shared App Group, tells WidgetKit to reload |
 | `ios/App/App/PeaklyWidgetBridge.m` | Registers the Swift plugin with Capacitor's ObjC runtime (without this the plugin silently never appears in JS) |
 | `ios/App/App/App.entitlements` | App Group for the main app |
-| `ios/PeaklyWidget/PeaklyWidget.swift` | The widget: model, timeline provider, SwiftUI small + medium layouts |
-| `ios/PeaklyWidget/PeaklyWidget.entitlements` | App Group for the widget |
-| `ios/PeaklyWidget/Info.plist` | Widget extension manifest |
+| `ios/App/PeaklyWidget/PeaklyWidget.swift` | The widget: model, timeline provider, SwiftUI small + medium layouts |
+| `ios/App/PeaklyWidget/PeaklyWidget.entitlements` | App Group for the widget |
+| `ios/App/PeaklyWidget/Info.plist` | Widget extension manifest |
 | `app.jsx` | Writes the top pick after every scoring pass; handles `peakly://` taps |
 | `ios/App/App/Info.plist` | `peakly://` URL scheme registered |
 
 ---
 
-## Step 1 — Create the widget target
+## Step 1 — Add the target (scripted)
 
-1. Open `ios/App/App.xcworkspace` (the **workspace**, not the project).
-2. **File → New → Target… → iOS → Widget Extension** → Next.
-3. Product Name: **`PeaklyWidget`** (exactly — it must match the folder).
-4. **Uncheck** "Include Configuration App Intent" (we use a static widget) and **uncheck** "Include Live Activity".
-5. Finish. When Xcode offers to **activate the new scheme**, click **Activate**.
+Run from the repo root:
 
-Xcode generates placeholder files. Delete them (`PeaklyWidget.swift`, `PeaklyWidgetBundle.swift`, and its `Info.plist` if created) — **Move to Trash** — then in Finder drag the repo's real `ios/PeaklyWidget/PeaklyWidget.swift` and `Info.plist` into the target, checking **"Copy items if needed"** is *off* and that **Target Membership = PeaklyWidget only**.
-
-> Tip: click each file and confirm the right-hand **Target Membership** checkbox. Widget files must belong to `PeaklyWidget` only; the bridge files to `App` only. Mixed membership causes "duplicate symbol" or "cannot find type" errors.
-
-## Step 2 — Set the widget's deployment target
-
-Select the **PeaklyWidget** target → **General** → **Minimum Deployments → iOS 17.0**.
-(The main app stays at 13.0. The widget code compiles for 14+, but 17 gets `containerBackground` and StandBy support.)
-
-## Step 3 — Add the App Group to BOTH targets
-
-This is the part that silently breaks everything if missed — it's how the app and widget share data.
-
-For the **App** target *and* the **PeaklyWidget** target:
-
-1. Select the target → **Signing & Capabilities** → **+ Capability** → **App Groups**.
-2. Click **+** under App Groups and enter: **`group.com.stormpeak.peakly`**
-3. Make sure the checkbox next to it is **ticked** on both targets.
-
-Xcode will generate/overwrite `.entitlements` files. The repo versions already contain the right value — if Xcode made new ones, just confirm the group string matches exactly.
-
-## Step 4 — Add the bridge to the App target
-
-If `PeaklyWidgetBridge.swift` and `.m` aren't already in the **App** target (check Target Membership), drag them into `ios/App/App/` in Xcode with membership = **App**.
-
-When Xcode asks about creating a **bridging header**, choose **Create** — Capacitor's ObjC macros need it. If a bridging header already exists, ensure it contains:
-```objc
-#import <Capacitor/Capacitor.h>
+```
+ruby scripts/add-widget-target.rb
 ```
 
-## Step 5 — Build and test
+This uses `xcodeproj` — the same library CocoaPods uses to rewrite Xcode projects — to create the extension target, set its build settings, wire the source file, embed it in the app, and point both targets at their entitlements. It backs up `project.pbxproj` first, is safe to re-run, and verifies its own work before exiting.
+
+If the gem is missing: `sudo gem install xcodeproj` (or `sudo gem install cocoapods`).
+
+If anything goes wrong it prints the exact `cp` command to restore the backup — and `git checkout ios/App/App.xcodeproj/project.pbxproj` also works.
+
+## Step 2 — Signing + App Group (Xcode GUI — can't be scripted)
+
+The entitlement *files* are already correct; this step tells Apple's provisioning system about them, which only Xcode can do.
+
+Open `ios/App/App.xcworkspace`, then for **both** the `App` and `PeaklyWidget` targets:
+
+1. Select the target → **Signing & Capabilities**
+2. Confirm **Team** is Storm Peak Capital and **Automatically manage signing** is ticked
+3. **+ Capability → App Groups** → tick `group.com.stormpeak.peakly`
+   (If it's not listed, click **+** under App Groups and type it exactly.)
+
+> This is the step that silently breaks the widget if skipped or mistyped. The app writes to that group and the widget reads from it — a mismatch means the widget just shows its empty state forever, with no error anywhere.
+
+## Step 3 — Build and test
 
 ```
 cd ~/peakly
