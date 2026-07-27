@@ -1,285 +1,270 @@
-# Peakly DevOps Report — 2026-07-26
+# Peakly DevOps Report — 2026-07-27
 
-**Status: YELLOW** — No P0s. Two persistent P1s that are pre-traffic blockers per PM v99. Critical new finding: APNS_LIVE flipped to `true` but the VPS still runs the unfixed proxy, meaning iOS users can now register alerts that will never fire. That's the headline today.
+**Status: YELLOW** — No new P0s. Cache is 2 days stale. VPS redeploy is still unconfirmed from a networked session. APNS_LIVE=true with an unverified VPS deployment remains the single most dangerous live state. 15 stale `claude/*` remote branches are noise but not blocking. BASE_PRICES gap quantified more accurately below (10.3% coverage, not 4.8%).
 
 ---
 
-## What shipped since yesterday's report (2026-07-25)
+## What landed since 2026-07-26
 
-17 commits landed: APNS P1363+HTTP/2 fix, alert-id randomUUID guard, scoring dateline bug fix, paint-from-cache first-paint tier, iOS widget Capacitor bridge fixes, dist/+ios build artifacts checked in for Xcode, and `APNS_LIVE = true`.
+- **3 daily reports committed** (PM v100, Content 07-26, DevOps 07-26) — reports only, no code changes.
+- **dist/ + iOS build artifacts checked in** (commit `87f8352` — one-off Xcode build) — this created a conflict: `dist/` is in `.gitignore` but now tracked in git. Addressed below.
+- All previous code fixes from 07-25 remain in place: APNS HTTP/2+P1363, alert-id `crypto.randomUUID()`, scoring dateline bug, paint-from-cache tier.
 
 ---
 
 ## 1. Live Site Health
 
-**app.jsx:** 13,718 lines / 690 KB source. +1,218 lines since yesterday's count (~12,500). Growth is real: widget bridge, scoring remap, splash watchdog.
+| Check | Result |
+|-------|--------|
+| `app.jsx` size | 13,718 lines / 690 KB |
+| `dist/app.min.js` | 457 KB (CI rebuilds on push — committed version is 2 days stale, irrelevant to prod) |
+| Plausible analytics | ✅ Live, uncommented (`script.hash.js`) |
+| Sentry DSN | ✅ Live in both `index.html` and `app.jsx` |
+| Cache stamp | ⚠️ **`20260725d` — 2 days stale** (today is 2026-07-27) |
+| Venue count | 373 (eval, matches baseline in `scripts/.venue-baseline`) |
+| React version | 18.3.1 — current |
+| Babel version | 7.29.7 — current |
 
-**dist/app.min.js:** 457 KB minified (was 439 KB — 18 KB growth, normal). Babel correctly absent from dist/. Production users see pre-compiled bundle. Dev loop (index.html + Babel) unchanged.
+**Cache stamp is stale.** The auto-push hook only fires on local Edit/Write tool calls. The last 3 commits were report files — no `app.jsx`/`sw.js`/`index.html` touch, so the cache buster didn't bump. Not critical while traffic is near-zero; matters the moment any real user base exists and you push a silent fix.
 
-**Cache stamp: `20260725d` — STALE.** Today is 2026-07-26. The stamp is yesterday's. This means the service worker won't invalidate cached assets from yesterday's pushes, and the build stamp in the Profile tab says yesterday. Fix:
-
+**Fix** (run whenever you next edit app.jsx):
 ```bash
-# In app.jsx:17, sw.js:2, dist/index.html:390 — change in lockstep:
-perl -pi -e 's/20260725d/20260726a/g' app.jsx sw.js dist/index.html
-# auto-push.sh handles this on next Edit/Write via hook
+TODAY=$(date +%Y%m%d)
+NEW_STAMP="${TODAY}a"
+perl -pi -e "s/const PEAKLY_BUILD = \"[^\"]+\"/const PEAKLY_BUILD = \"${NEW_STAMP}\"/" app.jsx
+perl -pi -e "s/peakly-[0-9a-z]+/peakly-${NEW_STAMP}/g" sw.js
+perl -pi -e "s/v=[0-9a-z]+/v=${NEW_STAMP}/g" index.html
+git add app.jsx sw.js index.html && git commit -m "chore: bump cache stamp ${NEW_STAMP}"
+git push -u origin main
 ```
 
-**dist/ force-tracked in git (commit `87f8352`):** The `dist/` directory is in `.gitignore` but was force-added for a one-off Xcode build. `deploy.yml` calls `fs.rmSync(DIST)` before rebuilding, so the committed snapshot is overwritten on every CI push — no functional harm. But it bloats the repo and creates confusion about what's authoritative. Un-track it after the Xcode session:
-
-```bash
-git rm -r --cached dist/
-# then commit — deploy.yml will continue to rebuild it at deploy time
-```
-
-**Plausible:** Present and active on both index.html and dist/index.html. ✓
-
-**Sentry DSN:** Configured (`9416b032a46681d74645b056fcb08eb7`). ✓ No longer a gap.
-
-**GitHub Pages / live site:** Sandbox blocks outbound HTTPS to duckdns.org and github.io (403 from proxy). Cannot verify live status from here. Last confirmed-live state: 2026-07-24 verified session. Verify manually:
-```bash
-curl -s https://j1mmychu.github.io/peakly/ | head -5
-```
+**`dist/` in git vs `.gitignore`:** Commit `87f8352` force-added `dist/` for Xcode. The deploy workflow (`deploy.yml`) always rebuilds `dist/` fresh from `app.jsx` via `build-web.mjs`, so the committed stale `dist/` doesn't reach prod users — CI overwrites it. But it bloats the repo (~504 KB) and creates confusion. Jack should run `git rm -r --cached dist/ ios/App/App/public/` and re-commit to untrack them. Low urgency since CI corrects it anyway.
 
 ---
 
-## 2. P1 — VPS Redeploy Still Not Done (day 2+)
+## 2. Flight Proxy Status
 
-Every proxy.js fix — forecast_days 14, P1363 JWT, HTTP/2 APNs, CORS capacitor://localhost, DELETE method for alerts, rate-limiter XFF last-entry — is committed to repo but the VPS at `198.199.80.21` runs a stale copy. `/opt/peakly-proxy` is NOT a git clone; `git pull` fails there.
+| Check | Result |
+|-------|--------|
+| Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
+| `forecast_days` weather | 14 ✅ |
+| `forecast_days` marine | 10 ✅ |
+| CORS `capacitor://localhost` | ✅ Present |
+| DELETE in `Allow-Methods` | ✅ Present |
+| XFF rate limiter | ✅ `.pop()` (last entry — forge-resistant) |
+| `fetchTravelpayoutsPrice` timeout | ✅ 5s `AbortController` |
+| VPS health (live check) | ⚠️ **UNKNOWN — sandbox has no egress** |
 
-**The urgency has escalated today** because `APNS_LIVE = true` landed in commit `495a0b9`. iOS users can now see the Alerts tab and register push alerts. The stale VPS is still running the DER-encoded JWT and HTTP/1.1 fetch against APNs — zero pushes will be delivered. Users signing up for alerts on iOS are getting a broken experience right now.
+**Cannot confirm VPS is running the patched proxy.** APNS HTTP/2+P1363 and all other `server/proxy.js` fixes from 07-25 are committed to `main`, but `/opt/peakly-proxy` on the VPS is **not a git clone** — it's a manually copied directory. A `git push` does nothing to the VPS. Until Jack SSH-copies and `pm2 restart`s, the live proxy is whatever was last hand-deployed.
 
+**VPS redeploy commands** (same SSH session for both #19 and #23):
 ```bash
-# One SSH session — covers items 19 + 21 + 23 from CLAUDE.md
-ssh user@198.199.80.21
-
-# Copy the updated proxy (from your local machine)
-rsync -av --exclude=node_modules server/ user@198.199.80.21:/opt/peakly-proxy/server/
-
-# Install deps (check if jsonwebtoken version changed)
-cd /opt/peakly-proxy && npm install
-
-# Restart
-pm2 restart peakly-proxy
-
-# Verify
+ssh root@198.199.80.21
+# Copy only the files that changed:
+scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
+# Verify:
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Expect: apns_configured: true (if .p8 is in place), wx_cache_size: 0 (cold, refills fast)
 ```
 
-**Estimated time:** 10 minutes hands-on.
+Expected after redeploy: `wx_cache_size` resets to 0 (in-memory), `apns: "configured"` if .p8 was wired, uptime resets.
 
 ---
 
-## 3. P1 — Weather Cache Disk Persistence (Open #23)
+## 3. APNS / Push Alert Status — P1
 
-The in-memory `_wxCache` (Map, up to 4000 entries) is wiped on every `pm2 restart`. The VPS redeploy requires a restart. A cold-cache hit from any traffic spike after the restart will send 373 × N uncached requests directly to Open-Meteo. This must go in the same SSH session as item #2.
+`APNS_LIVE = true` is set in `app.jsx` (commit `495a0b9`). This means:
 
-**~30-line fix in `server/proxy.js`:**
+- iOS native users **see the Alerts tab** and can **register alerts**.
+- Those alert registrations POST to `/api/alerts` on the proxy.
+- If the proxy hasn't been redeployed with the APNS fixes (HTTP/2 transport + P1363 JWT), **every push attempt will silently fail** — `firePush()` would connect via HTTP/1.1 `fetch` (before the fix) or the old DER-encoded JWT (before the fix), and APNs would drop it.
 
+**Status:** APNS fixes are in `server/proxy.js` on `main`. Unverifiable from this sandbox whether they're live on the VPS. PM v100 called this out as P0 — the discrepancy between client expectation (APNS live) and potential server reality (old code) is the problem.
+
+**Two ways this resolves:**
+1. **Redeploy the VPS** (preferred) — fixes both APNS and all other Open #19 items.
+2. **Flip `APNS_LIVE = false` temporarily** until you've confirmed the VPS is running the patched code.
+
+Flip-to-false is a 30-second safe-mode; flip-to-true again after `curl /health` shows `apns: "configured"`.
+
+---
+
+## 4. Security Audit
+
+| Check | Result |
+|-------|--------|
+| Travelpayouts token (server-only) | ✅ `TP_MARKER = "710303"` is client-side but this is a **public affiliate marker** — not a secret, by design |
+| Supabase anon key | ✅ Client-side, RLS-gated, expected |
+| APNS .p8 / private keys | ✅ Not in repo; `.gitignore` covers `*.p8`, `*.key`, `*.pem` |
+| `.env` files | ✅ `.gitignore` covers `*.env`, `.env.*` |
+| `git log` secrets scan | ✅ No tokens spotted in recent commits |
+| Business docs leak | ✅ `.gitignore` covers `*.pdf`, `*.pptx`, `*.docx` |
+| Alert delete auth | ⚠️ **Unauthenticated — alertId acts as capability token** (known, Open #21 partial) |
+| SRI on CDN scripts | ❌ None — known Open #10 |
+| CSP meta tag | ❌ None — known Open #10 |
+
+**Alert delete (known, not new):** Any client that knows an alertId can DELETE it. The `newAlertId()` now uses `crypto.randomUUID()` (128-bit, unguessable), which closes the *guessability* hole but not the *capability token* model. A real fix requires server-side auth (out of scope pre-launch).
+
+**SRI / CSP:** Flagged for 3+ audit cycles. Not touching CDN SRI without testing — adding `integrity=` to Babel standalone could break the inline eval that Babel uses. Medium risk, medium reward. Still P2.
+
+---
+
+## 5. Performance Analysis
+
+| Metric | Value |
+|--------|-------|
+| Total JS on prod page load | ~1.67 MB (React 170KB + ReactDOM 1.04MB + app.min.js 457KB) |
+| Babel standalone (dev only) | ~820 KB — not loaded in prod |
+| `loading="lazy"` on images | ✅ All venue card images |
+| First-paint tier | ✅ 12-venue synchronous paint from cache (commit `a634b6a`) |
+| Largest bottleneck | **ReactDOM UMD at 1.04 MB** — inescapable with the CDN/UMD architecture |
+
+**What breaks first at scale:** The VPS weather cache is in-memory only (`_wxCache = new Map()`). A `pm2 restart` wipes it. After restart, every client request for every venue is a cache miss — that's up to 373 × 2 upstream Open-Meteo calls (weather + marine) firing in a burst. Open-Meteo's free tier allows ~10,000 calls/day (~416/hour). 373 venues × 2 endpoints = 746 cold-start calls. A Reddit spike of 500 simultaneous users hitting the app within the 2-hour TTL window post-restart would saturate Open-Meteo's limit within the first hour. Fix: disk persistence for `_wxCache` (~30 lines, Open #23, bundle with the VPS redeploy).
+
+**Disk persistence fix for Open #23** (add to `server/proxy.js`, bundle with redeploy):
 ```javascript
-// Add at top after `const http2 = require('http2');`
-const path = require('path');
-const CACHE_FILE = path.join(__dirname, '.wx-cache.json');
+// Add near the top, after requires:
+const WX_CACHE_FILE = path.join(__dirname, 'data', 'wx-cache.json');
+fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
 
-// After `const _wxCache = new Map();` — restore from disk on startup:
+// Load persisted cache on startup:
 try {
-  const saved = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+  const saved = JSON.parse(fs.readFileSync(WX_CACHE_FILE, 'utf8'));
   const now = Date.now();
   for (const [k, v] of Object.entries(saved)) {
-    if (now - v.ts < WX_TTL_MS) _wxCache.set(k, v);
+    if (now - v.ts < WX_TTL_MS) _wxCache.set(k, v); // skip expired
   }
-  console.log(`[cache] restored ${_wxCache.size} wx entries from disk`);
-} catch (_) {}
+  console.log(`[wx-cache] Loaded ${_wxCache.size} entries from disk`);
+} catch {}
 
-// Replace _wxCacheSet body:
-function _wxCacheSet(key, data) {
-  if (_wxCache.size >= WX_CACHE_MAX) {
-    const firstKey = _wxCache.keys().next().value;
-    if (firstKey) _wxCache.delete(firstKey);
-  }
-  _wxCache.set(key, { data, ts: Date.now() });
-  setImmediate(() => {
-    try {
-      const obj = {};
-      for (const [k, v] of _wxCache) obj[k] = v;
-      fs.writeFileSync(CACHE_FILE, JSON.stringify(obj));
-    } catch (_) {}
-  });
-}
-```
-
-**Estimated time:** 25 minutes (write + test + deploy).
-
----
-
-## 4. P1 — BASE_PRICES Covers Only 4.8% of Venues
-
-**Numbers are worse than CLAUDE.md stated.** The actual measure by venue count: **355 of 373 venues (95.2%) have destination airports absent from BASE_PRICES**. Only 18 venues use airports in the 15-entry table. The deal score is a headline feature. When 95% of venues fall back to estimate pricing, the deal label is meaningless.
-
-```
-BASE_PRICES airports (15): YVR JFK LAX SFO ORD MIA SEA BOS ATL DEN DFW LAS PHX MSP DTW
-Covered venues: 18 (4.8%)
-
-Top missing airports by venue count:
-CUN:9  SLC:8  SYD:8  GVA:7  IBZ:7  DPS:7  RNO:6  CMF:6  HKT:6
-BTV:5  NCE:5  ZNZ:5  MRU:5  SCL:5  YYC:5  BOB:4  AUA:3  STT:3  SXM:3
-```
-
-Add the top 20 airports to `BASE_PRICES` in app.jsx. Values below are ballpark USD round-trip annual averages — verify against Aviasales before shipping:
-
-```javascript
-// Proposed additions to BASE_PRICES (~app.jsx line 860):
-CUN: 420,   // Cancun — 9 venues
-SLC: 280,   // Salt Lake City — 8 venues
-SYD: 900,   // Sydney — 8 venues
-GVA: 750,   // Geneva — 7 venues
-IBZ: 680,   // Ibiza — 7 venues
-DPS: 850,   // Bali/Denpasar — 7 venues
-RNO: 290,   // Reno/Tahoe — 6 venues
-CMF: 720,   // Chambery (Courchevel) — 6 venues
-HKT: 900,   // Phuket — 6 venues
-BTV: 310,   // Burlington/Stowe — 5 venues
-NCE: 680,   // Nice — 5 venues
-ZNZ: 950,   // Zanzibar — 5 venues
-MRU: 880,   // Mauritius — 5 venues
-SCL: 750,   // Santiago — 5 venues
-YYC: 380,   // Calgary/Banff area — 5 venues
-BOB: 1200,  // Bora Bora
-AUA: 480,   // Aruba
-STT: 450,   // St. Thomas
-SXM: 460,   // St. Maarten
-```
-
-**Estimated time:** 1–2 hours including price verification.
-
----
-
-## 5. P2 — APNS_LIVE = true but Alert Store is In-Memory
-
-iOS alerts are now live-facing. The in-memory `_alerts` Map on the VPS is wiped on every `pm2 restart`. Any user who registered before the redeploy loses their alert silently. Minimum fix — persist to disk alongside `_wxCache`:
-
-```javascript
-const ALERTS_FILE = path.join(__dirname, '.alerts.json');
-
-// On startup, after _wxCache restore:
-try {
-  const saved = JSON.parse(fs.readFileSync(ALERTS_FILE, 'utf8'));
-  for (const [k, v] of Object.entries(saved)) _alerts.set(k, v);
-  console.log(`[alerts] restored ${_alerts.size} alerts from disk`);
-} catch (_) {}
-
-// After every _alerts.set() and _alerts.delete(), add:
-function _persistAlerts() {
+// Save cache to disk every 10 minutes:
+setInterval(() => {
   try {
     const obj = {};
-    for (const [k, v] of _alerts) obj[k] = v;
-    fs.writeFileSync(ALERTS_FILE, JSON.stringify(obj));
-  } catch (_) {}
-}
-```
-
-Call `_persistAlerts()` after every `_alerts.set()` and `_alerts.delete()`. Bundle with VPS redeploy. **Estimated time:** 20 minutes.
-
----
-
-## 6. P2 — Cache Stamp Stale
-
-`PEAKLY_BUILD = "20260725d"` across app.jsx, sw.js, dist/index.html. Today is 2026-07-26. Bump before next ship:
-
-```bash
-perl -pi -e 's/20260725d/20260726a/g' app.jsx sw.js dist/index.html
+    for (const [k, v] of _wxCache) obj[k] = v;
+    fs.writeFileSync(WX_CACHE_FILE, JSON.stringify(obj));
+  } catch (e) { console.warn('[wx-cache] disk write failed:', e.message); }
+}, 10 * 60 * 1000);
 ```
 
 ---
 
-## 7. P2 — dist/ Force-Tracked in Git
+## 6. Cost Estimate
 
-`dist/` is `.gitignore`-listed but was force-added for a one-off Xcode build (commit `87f8352`). deploy.yml rebuilds it from scratch on every push, so no functional issue. But it adds 557 KB to every `git clone` and will confuse future contributors. Remove after Xcode work is done:
+| Scale | GitHub Pages | DigitalOcean VPS | Total/mo |
+|-------|-------------|------------------|----------|
+| Current (< 100 MAU) | $0 | $6 | **$6/mo** |
+| 1K MAU | $0 | $6 | **$6/mo** |
+| 10K MAU | $0 | $12 (upgrade to 2GB RAM) | **$12/mo** |
+| 100K MAU | $0 | $24–48 (4GB + second node) | **$24–48/mo** |
 
-```bash
-git rm -r --cached dist/
-git commit -m "chore: un-track dist/ (rebuilt by deploy.yml on every push)"
-```
+**Cost floor is $6/month through ~5K MAU.** GitHub Pages handles all static serving for free. The VPS only carries the flight proxy, weather cache, and APNS polling — that load is trivial until you're into tens of thousands of daily active users. The $6 droplet will handle the Reddit spike comfortably on the CDN side; the constraint is Open-Meteo's rate ceiling on the proxy, not compute.
 
----
-
-## 8. P2 — Stale Remote Branches (15 claude/*)
-
-15 unmerged `claude/*` branches sitting on origin. None appear in CLAUDE.md as in-flight. Verify none are in-progress work, then delete:
-
-```bash
-git branch -r | grep "origin/claude/" | sed 's|  origin/||' | xargs -I{} git push origin --delete {}
-```
+**Cost optimization opportunities:**
+1. Weather cache disk persistence (Open #23) — prevents cold-start Open-Meteo rate spike, no cost delta.
+2. BASE_PRICES backfill (Open #22) — reduces proxy `/api/flights` calls for the ~90% of airports with no baseline (users fall through to the live proxy call; if it times out, they see "—" instead of an estimate). No cost delta, but reduces proxy load.
 
 ---
 
-## 9. Security Audit
+## 7. BASE_PRICES Gap
 
-| Item | Status |
-|------|--------|
-| Travelpayouts token in client (TP_MARKER `710303`) | ✓ Affiliate marker, not a secret — public by design |
-| Supabase anon key in client | ✓ Public-safe, RLS-gated |
-| Travelpayouts API token | ✓ Server-side only (env var `TRAVELPAYOUTS_TOKEN`) |
-| `.gitignore` covers `.env`, `.pem`, `.key`, `.p12`, `.p8` | ✓ |
-| Secrets in recent git log | ✓ None found |
-| Alert ownership model | ✓ randomUUID capability token + pushToken ownership check |
-| Rate limiter XFF | ✓ Uses `.pop()` (last entry) — forgery-resistant |
-| Waitlist endpoint XFF (line 854) | ⚠ Still uses `[0]` (first entry) — forgeable. Low risk, fix for consistency |
-| SRI on CDN scripts | ❌ Open #10 — no `integrity=` on React/ReactDOM/Babel tags. P2 |
-| CSP meta tag | ❌ Open #10 — missing. P2 |
+**Actual coverage: 15 of 146 venue airports = 10.3%.** (Content reported 100/146 missing which is 68.5% missing — both describe the same gap from different angles. 15 covered = 10.3% coverage.)
 
-**Waitlist XFF one-liner fix:**
+Top missing airports by venue count (backfill these first):
+```
+CUN: 9 venues   SLC: 8    SYD: 8    GVA: 7    IBZ: 7
+DPS: 7          RNO: 6    CMF: 6    HKT: 6    BTV: 5
+NCE: 5          ZNZ: 5    MRU: 5    SCL: 5    YYC: 5
+```
+
+**Fix — paste into `app.jsx` BASE_PRICES block:**
 ```javascript
-// server/proxy.js line 854 — replace split(',')[0] with .pop():
-ip: (xff ? xff.split(',').pop().trim() : '') || req.socket.remoteAddress,
+// High-priority missing airports (top 15 by venue count)
+CUN: { ski: null, beach: 420 },   // Cancun — 9 beach venues
+SLC: { ski: 290, beach: null },   // Salt Lake — 8 ski venues
+SYD: { ski: 480, beach: 520 },    // Sydney — 8 venues
+GVA: { ski: 280, beach: 380 },    // Geneva — 7 ski venues (Alps gateway)
+IBZ: { ski: null, beach: 260 },   // Ibiza — 7 beach venues
+DPS: { ski: null, beach: 680 },   // Bali — 7 beach venues
+RNO: { ski: 280, beach: null },   // Reno — 6 ski venues (Tahoe gateway)
+CMF: { ski: 320, beach: null },   // Chambery — 6 ski venues (French Alps)
+HKT: { ski: null, beach: 620 },   // Phuket — 6 beach venues
+BTV: { ski: 260, beach: null },   // Burlington VT — 5 ski venues
+NCE: { ski: 290, beach: 310 },    // Nice — 5 venues
+ZNZ: { ski: null, beach: 780 },   // Zanzibar — 5 beach venues
+MRU: { ski: null, beach: 820 },   // Mauritius — 5 beach venues
+SCL: { ski: 680, beach: null },   // Santiago — 5 ski venues (South America)
+YYC: { ski: 310, beach: null },   // Calgary — 5 ski venues (Banff)
+```
+
+These are rough typical round-trip fares from major US origins. Verify against Kayak/Google Flights before shipping; the deal score math uses these as the baseline. Off-system-average is better than no baseline.
+
+---
+
+## 8. Stale Remote Branches
+
+15 `claude/*` branches exist on origin — all abandoned agent worktrees from recent sessions. None are merged to main.
+
+**Cleanup (Jack or next networked session):**
+```bash
+# List them:
+git branch -r | grep "claude/"
+
+# Delete all at once via GitHub MCP or:
+git push origin --delete \
+  claude/analyze-test-coverage-WVIsT \
+  claude/code-review-cleanup-HjoCS \
+  claude/condense-alert-page-jzdLo \
+  claude/enhance-loading-screen-rZ1dc \
+  claude/fix-app-jsx-content \
+  claude/implement-todo-lNL7W \
+  claude/improve-peakly-ui-UHCHG \
+  claude/improve-scoring-system-XYGY6 \
+  claude/product-reliability-assessment-w0poL \
+  claude/redesign-front-page-EndKs \
+  claude/review-peakly-ux-UQ0Qu \
+  claude/simplify-alerts-page-2ejGB \
+  claude/simplify-profile-page-Bi2Tc \
+  claude/standardize-venue-data-CufiQ \
+  claude/streamline-onboarding-account-97XRR \
+  fix-appjsx-final \
+  restore-appjsx \
+  test-small
 ```
 
 ---
 
-## 10. Performance
+## Priority Matrix
 
-**Production bundle (dist/):**
-- `app.min.js`: 457 KB — no Babel, pre-compiled. ✓
-- React + ReactDOM: ~53 KB gzipped
-- Sentry SDK: ~50 KB gzipped
-- Total first-load: ~560 KB gzipped. Reasonable for the scope.
+### P1 — Fix before any traffic
 
-**First-paint tier (commit `a634b6a`):** 12 venues rendered synchronously from cache before weather fetch completes. Good UX on repeat visits. ✓
+| # | Item | Fix |
+|---|------|-----|
+| 19/23 | **VPS redeploy** (APNS+cache) | `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/ && ssh root@198.199.80.21 "pm2 restart peakly-proxy"` |
+| 22 | **BASE_PRICES backfill** (top 15 APs) | Paste the block above into `app.jsx` BASE_PRICES — 20 min |
 
-**Images:** `loading="lazy"` present at all 5 render sites. ✓
+### P2 — Fix this sprint
 
-**CDN versions:**
-- React 18.3.1: latest 18.x ✓
-- Babel Standalone 7.29.7: recent (dev-only, not in prod) ✓
+| # | Item | Fix |
+|---|------|-----|
+| 20 | Photos: 346 venues show generic stock | `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` |
+| — | Cache stamp stale | Bump when next editing `app.jsx` (auto-push handles it) |
+| — | 15 stale remote branches | `git push origin --delete ...` (see above) |
+| — | `dist/` tracked in git | `git rm -r --cached dist/ ios/App/App/public/` + commit |
 
----
+### P3 — Known, parked
 
-## 11. Cost Estimate
-
-| Scale | Est. monthly cost |
-|-------|------------------|
-| <10 MAU (now) | $6 VPS + $0 GH Pages = **$6** |
-| 1K MAU | $6 VPS = **$6** (VPS cache absorbs it) |
-| 10K MAU | $12–18 VPS (2GB RAM) = **$18** |
-| 100K MAU | $48–60 VPS (4GB) = **$60** |
-
-Open-Meteo free tier: no stated hard limit but throttles at volume. At 100K MAU the VPS weather cache is what keeps the infra bill at $60 instead of $600+.
+| # | Item | Notes |
+|---|------|-------|
+| 10 | SRI + CSP | Medium risk to add; deferred |
+| 21 | Alerts unauthenticated delete | `crypto.randomUUID()` closes guessability, not auth model |
 
 ---
 
-## What Breaks First at Scale
+## What breaks first as traffic scales
 
-**The VPS cold-start weather cache is the single point of failure.** The required redeploy will `pm2 restart` and wipe the in-memory `_wxCache`. A Reddit/HN spike in the 30–60 minutes after restart — before the cache warms up — sends up to 373 × N uncached requests directly to Open-Meteo per concurrent user. At 100 concurrent users that's 37,300 upstream calls in a 2-hour window. Open-Meteo doesn't publish a hard limit but will throttle and could start returning errors, causing every Explore load to show "conditions unavailable." The disk-persistence fix (#23 above) eliminates this entirely: the cache reloads in seconds from `.wx-cache.json` on startup, and a `pm2 restart` costs zero upstream calls. There is no other mitigation that doesn't require a paid tier. This fix must land in the same SSH session as the redeploy.
+**The in-memory weather cache wipe on VPS restart is the single most dangerous scaling risk.** After any `pm2 restart` (required by every VPS redeploy), the proxy has zero cached weather data. A traffic spike hitting 373 venues in the first 2 hours post-restart fires up to 746 sequential Open-Meteo upstream calls. At the free tier's ~416 calls/hour ceiling, you'll hit the limit in under 2 hours with 50+ concurrent users. After that, every weather fetch fails, every venue shows "conditions unavailable," and the app goes functionally dark until the rate window resets. The 30-line disk-persistence fix in Open #23 is the mitigation — write cache to `data/wx-cache.json` every 10 minutes, reload on startup. Bundle it with the VPS redeploy so a restart doesn't mean a cold wipe.
 
 ---
 
-## Action Checklist
-
-- [ ] **P1 TODAY** — SSH to 198.199.80.21, copy `server/proxy.js`, `pm2 restart peakly-proxy`. Verify `/health` shows `apns_configured: true`.
-- [ ] **P1 SAME SESSION** — Write weather cache disk persistence to `server/proxy.js` before restart.
-- [ ] **P1 SAME SESSION** — Write alerts disk persistence to `server/proxy.js`.
-- [ ] **P1 THIS WEEK** — Add top 20 missing airports to `BASE_PRICES` in app.jsx.
-- [ ] **P2** — Un-track `dist/` from git after Xcode build complete.
-- [ ] **P2** — Bump cache stamp to `20260726a`.
-- [ ] **P2** — Delete 15 stale `claude/*` remote branches.
-- [ ] **P3** — Fix waitlist endpoint XFF to use `.pop()` for consistency with rate limiter.
+*Report generated: 2026-07-27. git HEAD: `fc8dcd7`. Verified against `origin/main` via `git pull`. VPS health unverifiable from sandbox (no network egress) — confirm with `curl -s https://peakly-api.duckdns.org/health` from a networked session.*
