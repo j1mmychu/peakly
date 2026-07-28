@@ -12624,7 +12624,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 // v1: false until VPS has the APNS .p8 — flip to true after setup-apns.sh runs.
 // Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
 // App Store regression where users see Alerts but push never delivers.
-const APNS_LIVE = true;
+const APNS_LIVE = false; // VPS not yet redeployed with HTTP/2+P1363 fix — flip true after `scp server/proxy.js + pm2 restart`
 // Is alert delivery actually available on THIS platform? iOS native has no push
 // until APNS is configured (APNS_LIVE), so on iOS we both hide the Alerts tab
 // AND soften alert-promise copy elsewhere (onboarding, Profile) so an App Store
