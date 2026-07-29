@@ -1,10 +1,8 @@
-# Peakly Content & Data Report — 2026-07-28
+# Peakly Content & Data Report — 2026-07-29
 
-**Data health score: 91/100** | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Photo coverage: 373/373 ✅ | BASE_PRICES gap: 100/146 APs missing (46 covered = 31.5%) ⚠️
+**Data health score: 89/100** | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Photo coverage: 373/373 ✅ | BASE_PRICES gap: 100/146 APs missing (63.0%) ⚠️ | **NEW: AP_CONTINENT gap 7 venues** ⚠️
 
-> Supersedes 2026-07-27. Verified against `origin/main` (fast-forwarded 31 commits from stale local to `4562f52`). No code changes to app.jsx in 3 days — cache stamp `20260725d` is correct (auto-push bumps only on edit; stale stamp ≠ stale build). Zero regressions. Score holds at 91.
->
-> **BASE_PRICES count corrected again vs yesterday.** Yesterday's report said 52 covered / 94 missing. Today's node extraction shows **46 covered / 100 missing** (31.5%). Root cause: yesterday's extraction was counting BASE_PRICES top-level keys (76 total) without filtering for which ones have actual venue `ap:` matches. Correct methodology: extract all venue APs (both quote formats = 146 unique), then intersect with BASE_PRICES keys. This session's method is authoritative. Use 46/146 (31.5%) as canonical until a fix ships.
+> Supersedes 2026-07-28. Verified against fresh `git pull` (34 commits fetched — local was 34 behind origin). No app.jsx code changes since `20260725d` cache stamp. Yesterday's 5 venue proposals (LIH/ACE/LIR/CEB/VCE) remain unimplemented — backlog now 10 proposals. AP_CONTINENT gap is a new confirmed finding that contradicts yesterday's "permanently closed" claim — see Section 1 below.
 
 ---
 
@@ -16,23 +14,22 @@
 | "Hiking has ZERO gear items" | **Hiking does not exist.** Amazon cut for v1. `GEAR_ITEMS = 0 refs`. |
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop permanently. |
-| "lateSeason count ≠ 14" | **14 confirmed** (whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). All 14 skiing. `grep` undercounts multi-line format — use node ID-mapping. |
-| "AP_CONTINENT gaps" | **PERMANENTLY CLOSED** — all 146 venue ap codes in AP_CONTINENT + AIRPORT_COORDS. |
+| "description field" | **No description field in venue schema.** Not applicable — venues use title, location, tags. |
+| "lateSeason count ≠ 14" | **14 confirmed** (whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Stop. |
 | "jackson-hole dup" | **FALSE POSITIVE** — only `jacksonhole` exists. Stop. |
 | "Cross-category photo contamination" | **FIXED July 6.** Stop. |
 | "poolPrimary:true = 25" | **FALSE — 0 venues use poolPrimary.** Stop. |
 | "cancun-beach dup" | **FALSE — second occurrence is in PRESETS, not VENUES.** Stop. |
 | "banff dup / count = 374" | **CLOSED July 24** — banff deleted, count is **373**. Stop. |
-| "Zero lon coordinate anomaly in VENUES" | **FALSE** — lon:0 at line 8956 is the UI default map center return value, not a venue. Stop. |
-| "borabora has lateSeason:true (beach venue bug)" | **FALSE** — lateSeason:true at line 490 belongs to whistler entry preceding it. Borabora has no lateSeason flag. Confirmed by node ID-mapping. Stop. |
-| "BASE_PRICES covers 52/146 (35.6%)" | **CORRECTED — 46/146 (31.5%).** Yesterday's count overcounted by extracting all BASE_PRICES keys vs venue-AP intersection. Stop re-using the 52/35.6% figure. |
+| "AP_CONTINENT gaps PERMANENTLY CLOSED" | **WRONG — 7 venues currently fail this check.** See Section 1 below. |
+| "BASE_PRICES covers 52/146 (35.6%)" | **CORRECTED — 46/146 covered = 63.0% missing.** Use this figure. |
 
 ---
 
 ## 1. Data Integrity Audit
 
-### Venue Count (authoritative)
+### Venue Count (authoritative — node eval, not grep)
 
 | Category | Count | Status |
 |----------|-------|--------|
@@ -44,249 +41,247 @@
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| Unique IDs | ✅ 373 | Zero duplicates confirmed |
-| Missing lat/lon | ✅ 0 | Checked both quote formats (176 unquoted + 197 quoted = 373) |
-| Coordinate anomalies (lat > ±85) | ✅ 0 | None |
-| Coordinate anomalies (lon > ±180) | ✅ 0 | None |
-| Zero-coord venues | ✅ 0 | Line-8956 zero lon = UI default return, not venue |
+| Unique IDs | ✅ 373 | Zero duplicates |
+| Missing lat/lon | ✅ 0 | All present |
 | Missing airport codes (`ap`) | ✅ 0 | All valid 3-char IATA |
-| AP in AP_CONTINENT | ✅ 0 missing | All 146 unique venue APs mapped (280 total AP_CONTINENT entries) |
-| AP in AIRPORT_COORDS | ✅ 0 missing | 187 AIRPORT_COORDS entries covers all 146 venue APs |
 | Missing tag arrays | ✅ 0 | All non-empty |
-| Photos (field present) | ✅ 373/373 | All venues have photo field |
+| Photos (field present) | ✅ 373/373 | All have photo field |
 | Duplicate IDs | ✅ 0 | Clean |
-| lateSeason count | ✅ 14 | All 14 are skiing venues |
+| lateSeason count | ✅ 14 | All skiing venues |
+| **AP in AP_CONTINENT** | ❌ **7 venues failing** | See fix below |
+| AP in AIRPORT_COORDS | ✅ 0 missing | All 146 venue APs in AIRPORT_COORDS |
 
-### Minor Issues
+### ❌ AP_CONTINENT Gap — New Confirmed Finding (7 venues, 6 airports)
 
-| Issue | Count | Detail |
-|-------|-------|--------|
-| Venues with only 2 tags | 5 | borabora, chamonix, aspen, vail, alta — all marquee Tier-1, discoverable without tag depth |
-| Generic stock photos | ~346 | ~27 marquee venues have real photos (July 24 session); ~346 still generic category scenery |
-| Photo repeats (3+ venues per URL) | 0 | Max repeat ~2× (170 unique base URLs across 373 venues); dedup holding ✅ |
-| Cache stamp age | ⚠️ 3 days (`20260725d`) | No code shipped in 3 days — correct behavior. Not a bug. Will auto-bump on next app.jsx edit. |
+Yesterday's report claimed this was "PERMANENTLY CLOSED." It is not. Today's node extraction confirms 7 venues use airports not in `AP_CONTINENT`:
 
-### lateSeason Venues — Authoritative List (14 total, all skiing)
+| Venue ID | AP | Correct Continent | Fix |
+|---|---|---|---|
+| `tioman-island-t11` | KUL | `asia` | Add to AP_CONTINENT |
+| `laguna-beach-t24` | SNA | `na` | Add to AP_CONTINENT |
+| `muscat-beach-t26` | MCT | `asia` | Add to AP_CONTINENT |
+| `qantab-beach-oman` | MCT | `asia` | (same fix as above) |
+| `ipanema-rio` | GIG | `latam` | Add to AP_CONTINENT |
+| `las-teresitas-tfe` | TFS | `europe` | Add to AP_CONTINENT |
+| `elafonissi-beach-chq` | CHQ | `europe` | Add to AP_CONTINENT |
 
-Confirmed via node ID-mapping of all `lateSeason:true` occurrences (grep misses multi-line format):
+All 6 missing airports ARE in AIRPORT_COORDS — flight distance calc works. Only continent filtering is broken. Impact: these 7 venues may not surface correctly when users filter by continent.
 
-> whistler · chamonix · mammoth · abasin · tignes · cervinia · snowbird · zermatt · engelberg · verbier · val-thorens · les-deux-alpes-fr · saas-fee-ch · st-moritz-ch
+**Paste-ready fix — add after the `TGD:"europe"` line in `AP_CONTINENT` (around line 479):**
+
+```javascript
+  // Malaysia, Oman, Canary Islands, Crete, Rio de Janeiro, Orange County patches
+  KUL:"asia", MCT:"asia", // Kuala Lumpur, Muscat
+  GIG:"latam",            // Rio de Janeiro
+  SNA:"na",               // Orange County (John Wayne)
+  TFS:"europe", CHQ:"europe", // Tenerife Sur, Chania (Crete)
+```
+
+This is a ~30-second paste. No brace risk. No score or logic change — only continent lookup.
 
 ---
 
 ## 2. Gear Items Audit
 
-**Not applicable.** `grep -c GEAR_ITEMS app.jsx` → **0**. Amazon Associates cut for v1 (Jack, June 2026). No gear-item code to audit or generate — permanently a non-issue until Amazon re-enabled post-launch. Stop raising.
+Not applicable. `grep -c GEAR_ITEMS app.jsx` → **0**. Amazon Associates cut for v1. Stop raising permanently.
 
 ---
 
-## 3. Seasonal Relevance — July 28, 2026
+## 3. Seasonal Relevance (2026-07-29)
 
-### Currently IN SEASON
+| Segment | Count | Season Status | Notes |
+|---|---|---|---|
+| Northern beach (lat ≥ 0) | 187 | ✅ **PEAK SEASON** | July = northern summer. All in prime window. |
+| Southern ski (lat < 0) | 23 | ✅ **IN SEASON** | July = Southern hemisphere winter. All 23 open. |
+| Southern beach (lat < 0) | 55 | ⚠️ Off-peak | S hemisphere winter. Tropical venues still warm. |
+| Northern ski (lat ≥ 0) | 108 | ❌ Off-season | Only 14 `lateSeason:true` venues still viable. |
 
-| Segment | Count | Condition Notes |
-|---------|-------|-----------------|
-| **Beach — NH Summer** | ~187 | Peak season. Mediterranean, Caribbean, North Pacific all firing. July = hottest month for most NH beach destinations. |
-| **Beach — Tropical year-round** | ~150 | Subset of above; always relevant regardless of hemisphere. |
-| **Skiing — SH Winter** | ~23 | NZ (6), Chile (7), Argentina (5), Australia (5). Late July = SH peak — deepest snowpack. All 23 should score high this weekend. |
-| **Skiing — NH lateSeason glacier** | 14 | Tignes, Saas-Fee, Zermatt most likely still skiing. mammoth/abasin borderline — conditional on snow_depth_max ≥ 0.5m per scoring rule. |
+**Southern hemisphere ski is Peakly's strongest differentiator this weekend.** 23 venues actively in-season across ZQN (4), SCL (5), MEL (3), SYD (2), ZCO (2), CHC (1), CBR (1), BRC (1), MDZ (1), CPC (1), NQN (1), USH (1). OpenSnow and OnTheSnow go dark in July — Peakly does not.
 
-### Currently OUT OF SEASON
-
-| Segment | Count | Status |
-|---------|-------|--------|
-| NH ski (non-glacier) | ~117 | Off-season. Correctly gated by scoring — will not appear as recommendations. |
-| SH beach (S. AU/NZ coast) | ~20 | SH winter, water ~14-18°C; beach scores will be low — correct. |
+**14 lateSeason northern ski venues still viable in summer:** whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
 
 ---
 
 ## 4. Content Quality
 
-### Tag Depth
+| Check | Result | Notes |
+|-------|--------|-------|
+| Venue descriptions | N/A | **No description field in schema** — by design. Title + location + tags carry the content. |
+| Tags coverage | ✅ 0 venues with empty tags | All 373 have ≥1 tag. |
+| Photo field present | ✅ 373/373 | All filled. ~346 still generic stock vs. actual venue. |
+| Photo repeats (>3 per URL) | ✅ 0 | Dedup holding after June 13 session. |
+| Duplicate IDs | ✅ 0 | Boot-time validator active. |
 
-5 venues carry only 2 tags: borabora, chamonix, aspen, vail, alta. All Tier-1 marquee — discoverable without tag depth. Low urgency.
+### BASE_PRICES Gap (Deal Scoring Coverage)
 
-### Photo Quality
+**63.0% of venues (235/373) have no deal scoring** because their airport is absent from `BASE_PRICES`.
 
-- 373 venues, 170 unique photo base URLs (avg 2.2 venues/photo)
-- ~27 marquee venues have location-specific Unsplash photos (July 24 via `scripts/photos-apply.mjs`)
-- ~346 venues show generic Unsplash category scenery — biggest remaining quality gap per Jack's own callout
-- Zero photos used 3+ times ✅ (max repeat ~2× as of July 28, dedup holding from June session)
+Top missing airports by venue count affected:
 
-### BASE_PRICES Coverage — Main Ongoing Gap
+| Airport | Venues | Category |
+|---|---|---|
+| CUN | 9 | beach |
+| IBZ | 7 | beach |
+| HKT | 6 | beach |
+| BTV | 5 | skiing |
+| NCE | 5 | beach |
+| ZNZ | 5 | beach |
+| MRU | 5 | beach |
+| ALB | 4 | skiing |
+| PLS | 4 | beach |
+| AXA | 4 | beach |
+| SXM | 4 | beach |
+| NAP | 4 | beach |
+| CAG | 4 | beach |
+| FAO | 4 | beach |
+| SPU | 4 | beach |
+| USM | 4 | beach |
+| MPH | 4 | beach |
+| DLM | 4 | beach |
+| CMB | 4 | beach |
+| GOI | 4 | beach |
 
-| Metric | Value |
-|--------|-------|
-| Total venue APs (unique, both key formats) | 146 |
-| APs covered by BASE_PRICES | **46 (31.5%)** |
-| APs missing from BASE_PRICES | **100 (68.5%)** |
-| Venues affected by missing deal math | ~240 |
-| BASE_PRICES APs with zero current venues | 30 (untapped supply) |
-
-**Top 15 missing APs by venue count** (backfill priority — maximum immediate impact):
-
-| Airport | Venues | Region |
-|---------|--------|--------|
-| CUN | 9 | Mexico Caribbean |
-| IBZ | 7 | Ibiza, Spain |
-| HKT | 6 | Phuket, Thailand |
-| BTV | 5 | Vermont, USA |
-| NCE | 5 | French Riviera |
-| ZNZ | 5 | Zanzibar |
-| MRU | 5 | Mauritius |
-| ALB | 4 | Albania |
-| PLS | 4 | Turks & Caicos |
-| AXA | 4 | Anguilla |
-| SXM | 4 | St. Maarten |
-| NAP | 4 | Naples, Italy |
-| CAG | 4 | Sardinia |
-| FAO | 4 | Algarve, Portugal |
-| SPU | 4 | Split, Croatia |
-
-**BASE_PRICES APs with zero current venues** (one new venue unlocks deal scoring for these airports):
-PPT, PUQ, AGP, LAS, PHX, DTW, HND, LIM, GRU, REC, GNB, VCE, BIQ, BIO, LIS, NQY, SNN, ACE, PLZ, AGA, WDH, LIR, SAL, OAX, LIH, PDG, CEB, OOL, PER, AKL
-
-**Action:** Backfill top-15 APs using Google Flights for current market rates (JFK/LAX/ORD/MIA at minimum). ~2hr task. P1 before Reddit/HN post. More impactful than adding 30 new venues.
+Backfilling the top 15 airports unlocks deal scoring for ~90 venues in a single 2-hour session — higher user-facing ROI than adding 30 new venues.
 
 ---
 
-## 5. Daily Venue Additions — July 28
+## 5. Daily Venue Additions
 
-**July 27 proposals status:** Malaga (AGP) / Comporta (LIS) / Biarritz (BIQ) / Porto de Galinhas (REC) / Whakapapa (AKL) — **not yet added to app.jsx**. PM marked "pending decision." All 5 remain valid, all 5 APs in BASE_PRICES + AIRPORT_COORDS, no blockers. Paste-ready in yesterday's report.
-
-**Today's 5 proposals** target BASE_PRICES APs with zero current venues (immediate deal-score benefit upon addition):
+**Pending proposals backlog:** Yesterday's 5 proposals (LIH/ACE/LIR/CEB/VCE) remain unimplemented — backlog is now 10. All proposals below use airports confirmed in **both AP_CONTINENT and AIRPORT_COORDS** for full continent-filtering and flight-distance-calc support.
 
 ---
 
-### Venue 1 — Poipu Beach, Kauai (LIH — 0 venues, in BASE_PRICES)
+### Venue 1 — Porters Ski Area, Canterbury, New Zealand (CHC)
 
 ```javascript
 {
-  id: "poipu-beach-kauai",
-  category: "beach",
-  title: "Poipu Beach",
-  location: "Kauai, Hawaii, USA",
-  lat: 21.8742,
-  lon: -159.4692,
-  ap: "LIH",
-  icon: "🏖️",
-  rating: 4.88,
-  reviews: 18200,
-  gradient: "linear-gradient(160deg,#001a10,#004d30,#00a060)",
-  accent: "#00d080",
-  tags: ["Hawaii's Sunniest Shore", "Sea Turtle Spotting", "Na Pali Sunsets", "Lee Side Calm"],
-  photo: "https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  id: "porters-ski-area-nz",
+  category: "skiing",
+  title: "Porters Ski Area",
+  location: "Canterbury, New Zealand",
+  lat: -43.5833,
+  lon: 171.7667,
+  ap: "CHC",
+  icon: "🎿",
+  rating: 4.38,
+  reviews: 720,
+  gradient: "linear-gradient(160deg,#0a1a38,#162e5e,#2d5fab)",
+  accent: "#82b4e8",
+  tags: ["Highest Base in NZ", "Powder Days", "Club Field Character", "Craigieburn Range"],
+  photo: "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+  skiPass: "independent"
 },
 ```
 
-**Rationale:** Poipu is on Kauai's south shore — the island's consistently sunny side (microclimate advantage). July avg water 27°C, sea turtles nest on the beach. LIH in BASE_PRICES — deal score fires immediately. Catalog covers OGG (Maui) but zero Kauai despite LIH being in BASE_PRICES. Hawaii is the most aspirational US domestic beach market for spontaneous weekend trips.
+**Rationale:** Porters is the closest major ski area to Christchurch (90min), at the highest base altitude of any NZ ski field (1,515m). CHC has only mt-hutt-nz — Porters creates a groomed-vs-powder pair. IN SEASON NOW (July = NZ winter peak). CHC: AP_CONTINENT=oceania ✅, AIRPORT_COORDS ✅, BASE_PRICES=NO (estimates only).
 
 ---
 
-### Venue 2 — Playa Papagayo, Lanzarote (ACE — 0 venues, in BASE_PRICES)
+### Venue 2 — Mount Selwyn, NSW, Australia (CBR)
 
 ```javascript
 {
-  id: "playa-papagayo-lanzarote",
-  category: "beach",
-  title: "Playa Papagayo",
-  location: "Lanzarote, Canary Islands, Spain",
-  lat: 28.8516,
-  lon: -13.7979,
-  ap: "ACE",
-  icon: "🏖️",
-  rating: 4.83,
-  reviews: 9400,
-  gradient: "linear-gradient(160deg,#1a0500,#6a1800,#c23000)",
-  accent: "#f5712d",
-  tags: ["Volcanic Coves", "Protected Natural Reserve", "3000hr Annual Sunshine", "Secluded Access"],
-  photo: "https://images.unsplash.com/photo-1559494007-9f5847c49d94?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  id: "mt-selwyn-au",
+  category: "skiing",
+  title: "Mount Selwyn",
+  location: "New South Wales, Australia",
+  lat: -35.9667,
+  lon: 148.3167,
+  ap: "CBR",
+  icon: "🏔️",
+  rating: 4.15,
+  reviews: 580,
+  gradient: "linear-gradient(160deg,#0c1e3a,#1a3d7a,#3270c2)",
+  accent: "#7cb9e8",
+  tags: ["Family First", "Beginner Terrain", "Snowplay Areas", "Short Drive from Canberra"],
+  photo: "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+  skiPass: "independent"
 },
 ```
 
-**Rationale:** Papagayo is a protected natural reserve of secluded coves on Lanzarote's southern tip — volcanic black rock against turquoise water, no beach clubs, accessed by unpaved road. ACE in BASE_PRICES. Canary Islands = 3,000+ hours sunshine/year, <2mm rain in July. Year-round relevant unlike seasonal destinations. The volcanic aesthetic is genuinely distinct — no other catalog venue looks like this.
+**Rationale:** Mount Selwyn is the only dedicated beginner/family ski resort in the Snowy Mountains — intentionally distinct from charlotte-pass-au (expert, remote, high-altitude). CBR has only 1 ski venue. IN SEASON NOW (Australian ski season June–Sept). CBR: AP_CONTINENT=oceania ✅, AIRPORT_COORDS ✅, BASE_PRICES=NO.
 
 ---
 
-### Venue 3 — Playa Tamarindo, Costa Rica (LIR — 0 venues, in BASE_PRICES)
+### Venue 3 — Praia do Sancho, Fernando de Noronha (FEN)
 
 ```javascript
 {
-  id: "tamarindo-beach-guanacaste",
+  id: "praia-do-sancho-fen",
   category: "beach",
-  title: "Playa Tamarindo",
-  location: "Guanacaste, Costa Rica",
-  lat: 10.2993,
-  lon: -85.8384,
-  ap: "LIR",
+  title: "Praia do Sancho",
+  location: "Fernando de Noronha, Brazil",
+  lat: -3.8878,
+  lon: -32.4244,
+  ap: "FEN",
   icon: "🏖️",
-  rating: 4.79,
-  reviews: 12600,
-  gradient: "linear-gradient(160deg,#001a33,#004d80,#0099cc)",
-  accent: "#33ccff",
-  tags: ["Pacific Dry Season", "Beginner Surf Break", "Sea Turtle Nesting", "Guanacaste Sunset"],
-  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.3&fp-y=0.5"
+  rating: 4.99,
+  reviews: 8400,
+  gradient: "linear-gradient(160deg,#001433,#003380,#0066cc)",
+  accent: "#3399ff",
+  tags: ["TripAdvisor World No.1 Beach", "Sea Turtle Nesting", "UNESCO Marine Park", "Cliffside Access"],
+  photo: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
 },
 ```
 
-**Rationale:** Tamarindo is Guanacaste's most popular beach town — July sits in the Pacific dry season (microclimate: central Pacific is rainy while Guanacaste stays sunny). Water temp 28°C, consistent beginner surf, leatherback turtle nesting. LIR (Liberia Intl, 45min drive) in BASE_PRICES. Catalog has SJO coverage (central CR) but zero Guanacaste Pacific coast — the top CR tourist draw.
+**Rationale:** Rated #1 beach in the world by TripAdvisor multiple years. Accessed via ladder through a cliff fissure. FEN has only beach_noronha (island overview) — Sancho is a distinct destination within the archipelago. UNESCO caps visitors at 420/day. FEN: AP_CONTINENT=latam ✅, AIRPORT_COORDS ✅, BASE_PRICES=NO.
 
 ---
 
-### Venue 4 — Malapascua Island, Philippines (CEB — 0 venues, in BASE_PRICES)
+### Venue 4 — Starfish Beach, Bocas del Toro (BOC)
 
 ```javascript
 {
-  id: "malapascua-island-ceb",
+  id: "starfish-beach-bocas",
   category: "beach",
-  title: "Malapascua Island",
-  location: "Cebu Province, Philippines",
-  lat: 11.3310,
-  lon: 124.1088,
-  ap: "CEB",
+  title: "Starfish Beach",
+  location: "Bocas del Toro, Panama",
+  lat: 9.3822,
+  lon: -82.2742,
+  ap: "BOC",
   icon: "🏖️",
-  rating: 4.86,
-  reviews: 7800,
-  gradient: "linear-gradient(160deg,#001433,#003d80,#007acc)",
-  accent: "#4db8ff",
-  tags: ["Thresher Shark Dives", "Powdery White Sand", "Off-the-Grid Island", "Year-Round Diving"],
-  photo: "https://images.unsplash.com/photo-1573843981267-be1480f9f994?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  rating: 4.81,
+  reviews: 11200,
+  gradient: "linear-gradient(160deg,#002b1a,#005533,#009966)",
+  accent: "#33cc88",
+  tags: ["Resident Starfish Colony", "Caribbean Jungle Shore", "Snorkeling", "Water Taxi Access"],
+  photo: "https://images.unsplash.com/photo-1596524430615-b46475ddff6e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
 },
 ```
 
-**Rationale:** Malapascua is globally famous in dive circles — one of the only places on earth to reliably see thresher sharks year-round. 2hr bus + 30min boat from Mactan-Cebu (CEB), which is in BASE_PRICES. July warm (29°C water, Visayas still cooperative weather). Philippines has zero catalog representation despite being a top-20 global beach destination. CEB = second-busiest Philippine airport with wide US connectivity via HKG/NRT/SIN.
+**Rationale:** Playa Estrella (Starfish Beach) — shallow turquoise water with hundreds of visible orange starfish from shore. 20-min water taxi from Bocas town on Bastimentos island. BOC has only beach_bocas (main island overview). BOC: AP_CONTINENT=na ✅, AIRPORT_COORDS ✅, BASE_PRICES=NO.
 
 ---
 
-### Venue 5 — Lido di Venezia, Italy (VCE — 0 venues, in BASE_PRICES)
+### Venue 5 — Cinnamon Bay, St John USVI (STT)
 
 ```javascript
 {
-  id: "lido-di-venezia-vce",
+  id: "cinnamon-bay-stjohn",
   category: "beach",
-  title: "Lido di Venezia",
-  location: "Venice Lido, Italy",
-  lat: 45.4050,
-  lon: 12.3636,
-  ap: "VCE",
+  title: "Cinnamon Bay",
+  location: "St John, U.S. Virgin Islands",
+  lat: 18.3533,
+  lon: -64.7492,
+  ap: "STT",
   icon: "🏖️",
-  rating: 4.74,
-  reviews: 11300,
-  gradient: "linear-gradient(160deg,#000d33,#002b80,#005acc)",
-  accent: "#4d99ff",
-  tags: ["Venice Film Festival Backdrop", "Belle Époque Cabins", "Adriatic July Peak", "Day-Trip to Venice"],
-  photo: "https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+  rating: 4.77,
+  reviews: 9600,
+  gradient: "linear-gradient(160deg,#002244,#004488,#0077cc)",
+  accent: "#33aaff",
+  tags: ["Longest Beach in USVI", "Virgin Islands National Park", "Snorkeling Ruins", "Campground"],
+  photo: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
 },
 ```
 
-**Rationale:** Lido di Venezia is the 11km barrier island hosting the Venice Film Festival — a historic Adriatic beach resort reachable by vaporetto from St. Mark's Square in 15 minutes. July water 26°C, 9+ hours sun. VCE (Venice Marco Polo, 20min water taxi) in BASE_PRICES. Zero northeastern Italy catalog coverage despite VCE being a major transatlantic hub. The only catalog beach where Venice is a half-day trip.
+**Rationale:** Longest beach in the Virgin Islands National Park (0.5 mile). Snorkeling over an 18th-century sugar mill ruin underwater. STT has 3 venues; Cinnamon Bay adds the park's largest, most accessible beach. 30-min ferry from St Thomas makes it day-trip viable for STT arrivals. July peak Caribbean season. STT: AP_CONTINENT=na ✅, AIRPORT_COORDS ✅, BASE_PRICES=NO.
 
 ---
 
-**Pre-add checklist for all 5 (verify before pasting into app.jsx):**
-- All 5 APs (LIH, ACE, LIR, CEB, VCE) confirmed in AIRPORT_COORDS ✅
-- All 5 APs confirmed in AP_CONTINENT (LIH:na, ACE:europe, LIR:na, CEB:asia, VCE:europe) ✅
-- All 5 APs in BASE_PRICES — deal scoring works immediately upon add ✅
+**Pre-add checklist for today's 5 (verify before pasting into app.jsx):**
+- All 5 APs (CHC, CBR, FEN, BOC, STT) confirmed in AP_CONTINENT ✅
+- All 5 APs confirmed in AIRPORT_COORDS ✅
+- All 5 APs absent from BASE_PRICES — deal scoring shows estimates only ⚠️
 - No existing venue with same `id` — confirmed clean ✅
 - Run through `scripts/validate-venues.mjs` before committing
 
@@ -294,12 +289,10 @@ PPT, PUQ, AGP, LAS, PHX, DTW, HND, LIM, GRU, REC, GNB, VCE, BIQ, BIO, LIS, NQY, 
 
 ## One Observation the PM Should Know
 
-**The venue proposal queue is growing faster than implementation cycles.** July 27 proposals (5 venues) still unimplemented. Today adds 5 more. 10 proposals sit ready to paste with no code session acting on them. The bottleneck isn't quality — it's execution.
+**The AP_CONTINENT gap is confirmed new and fast to fix.** 7 venues (tioman-island-t11, laguna-beach-t24, muscat-beach-t26, qantab-beach-oman, ipanema-rio, las-teresitas-tfe, elafonissi-beach-chq) have airports missing from `AP_CONTINENT`. Continent filtering may silently misplace these venues. The fix is 6 lines of JS — paste into the AP_CONTINENT block, no brace risk, no redeploy. This should be bundled into the next code session as a 30-second inline fix before any new venues are added, since the auto-push guard checks AP_CONTINENT membership.
 
-**Two options for PM decision:**
-1. **Content agent self-implements on daily runs** — pastes validated venue objects directly into app.jsx, triggers auto-push guard, commits. Within scope. Risk: brace balance on a 13K-line file; the guard catches failures. Reward: proposals actually ship.
-2. **Batch implementation session** — dedicate one focused code session per week to implementing the backlog.
-
-**Recommendation: Option 1**, with the guard as the safety net. The validate-venues script + brace-balance check in auto-push provide sufficient guardrails.
-
-**Also worth noting:** BASE_PRICES backfill (top-15 APs) would unlock deal scoring for ~240 venues in a single ~2hr task — more user-facing impact than adding 30 new venues. Sequence: backfill BASE_PRICES → add venues targeting those airports → see deal scores fire immediately.
+**Pre-launch priority stack (updated 2026-07-29):**
+1. **AP_CONTINENT fix** — 6 lines, 30 seconds, do immediately ← new
+2. **BASE_PRICES backfill** (top 15 airports → ~90 venues unlocked) — ~2hr task
+3. **VPS redeploy** (Open #19, P1 "pre-traffic gate") — bundles Open #23 weather cache
+4. **Venue backlog** — 10 proposals ready to paste (2 sessions worth)
