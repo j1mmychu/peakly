@@ -475,8 +475,14 @@ const AP_CONTINENT = {
   OKA:"asia",
   // Africa patch — Cape Verde (Sal), Djerba (Tunisia)
   SID:"africa", DJE:"africa",
-  // Europe patch — Montenegro
-  TGD:"europe",
+  // Europe patch — Montenegro, Tenerife Sur, Chania (Crete)
+  TGD:"europe", TFS:"europe", CHQ:"europe",
+  // Asia patch — Kuala Lumpur, Muscat
+  KUL:"asia", MCT:"asia",
+  // LatAm patch — Rio de Janeiro (Galeão)
+  GIG:"latam",
+  // NA patch — Orange County (John Wayne)
+  SNA:"na",
 };
 
 // ─── venues with real coordinates ────────────────────────────────────────────
