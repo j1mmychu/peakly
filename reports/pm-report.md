@@ -1,6 +1,6 @@
-# Peakly PM Report — 2026-07-29 (v103)
+# Peakly PM Report — 2026-07-30 (v104)
 
-> Supersedes v102 (July 28). **Status: AMBER.** Day 29. VPS unredeployed for **Day 5** — reclassified RED by DevOps. One code fix shipped this report: AP_CONTINENT gap (6 airports, 7 venues). Zero new venues — backlog at 10. BASE_PRICES at 32% coverage (42/133 venue APs). VPS redeploy remains Jack-only.
+> Supersedes v103 (July 29). **Status: RED.** Day 30. VPS unredeployed for **Day 6** — zero code commits since July 25. 15 venue proposals in backlog, zero implemented across 3 sessions. The product is stalled while the S-hemisphere ski window shrinks.
 
 ---
 
@@ -11,147 +11,159 @@
 | "182 venues" | **373 venues (131 ski / 242 beach).** Eval-only count. Stop. |
 | "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16. 0 refs.** Stop. |
 | "Sentry DSN empty" | **Active at `app.jsx:8` and `index.html:77`.** Stop. |
-| "Cache buster stale" | **Auto-bumps on code change. Stamp age = days since last code edit.** Stop. |
+| "Cache buster stale" | **Stamp age = days since last code edit. Auto-push bumps only on edit. No code since July 25 → `20260725d` is correct. Stop.** |
 | "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Never flag from sandbox. Stop. |
 | "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason: any count other than 14" | **14. Use node ID-mapping not grep.** Stop. |
+| "lateSeason: any count other than 14" | **14 confirmed** (whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). Use `grep lateSeason app.jsx`. Stop. |
 | "placeholder tags" | **FIXED July 13.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 6.** Stop. |
+| "Cross-category photo contamination (all cleared)" | **FALSE. `cancun-beach` shares Unsplash photo with `big-white-ski-s5`.** New finding July 30. Fix is a one-line URL swap. |
 | "Plausible domain wrong" | **FIXED July 7.** Stop. |
-| "cancun-beach dup" | **FALSE POSITIVE — in PRESETS not VENUES.** Stop. |
-| "AP_CONTINENT gaps (KUL/SNA/MCT/GIG/TFS/CHQ)" | **FIXED this report (v103).** Stop. |
+| "cancun-beach dup in VENUES" | **FALSE — second occurrence is in PRESETS, not VENUES.** Stop. |
+| "AP_CONTINENT gaps (any)" | **FIXED July 29. 133/133 clean.** Stop. |
 | "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary.** Stop. |
-| "venue-baseline drift / 376 / 377 venues" | **ROOT CAUSE CLOSED July 21. Real count = 373 = baseline. Stop.** |
-| "Babel 8.x upgrade available" | **Babel 8 ESM-only, incompatible with dev loop. Prod uses esbuild. Stop.** |
-| "surf-legacy tags" | **Valid beach activity signals per PM v81 Decision 1.** Stop. |
+| "venue-baseline drift / 376 / 377 venues" | **ROOT CAUSE CLOSED July 21. Real count = 373. Stop.** |
+| "Babel 8.x upgrade available" | **Incompatible with dev loop. Stop.** |
 | "jacksonhole / jackson-hole ghost dup" | **FIXED July 20.** Stop. |
-| "bracket-walker overcounts / +2 drift" | **ROOT CAUSE CLOSED July 21. Stop.** |
-| "retention email unsent" | **COHORT PERMANENTLY CLOSED per v94 Decision 1. Stop.** |
-| "Babel mobile parse wall (P1) unresolved" | **PERMANENTLY CLOSED July 22. esbuild ships since June 20.** Stop. |
+| "bracket-walker overcounts" | **ROOT CAUSE CLOSED July 21. Stop.** |
+| "retention email unsent" | **COHORT CLOSED per v94 Decision 1. Stop.** |
+| "Babel mobile parse wall unresolved" | **CLOSED July 22. esbuild ships since June 20. Stop.** |
 | "No build step / Babel in production" | **WRONG SINCE JUNE 20.** Dev: Babel-in-browser. Prod: esbuild. Stop. |
-| "venue count 374 / banff dup" | **FIXED 2026-07-24. banff deleted, count now 373. Stop.** |
-| "pre-compile CI deadline July 24" | **FALSE CLOCK. esbuild CI ships since June 20. Stop.** |
-| "tahoe / palisades-tahoe dup" | **FALSE POSITIVE. Only `palisades-tahoe` exists. Stop.** |
-| "upcomingFridayISO UTC off-by-one" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
-| "onRefresh calls non-existent fetchAllWeather" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
-| "cloud-sync pullNow state sync bug" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
-| "WishlistsTab alertedIds out-of-scope" | **FIXED 2026-07-24 (`0c02590`). Stop.** |
-| "BASE_PRICES covers only 15 airports (10.3%)" | **FALSE. 42/133 venue APs covered (32%). Node extraction only — not grep. Stop.** |
-| "Cache stale = code stale" | **WRONG. Stamp age = days since last code edit. Auto-push bumps only on edit. Stop.** |
-| "Tamarindo Costa Rica (LIR) not in catalog" | **FALSE. `tamarindo-cr` exists at ap:SJO (line 2413). Do not add a second Tamarindo entry.** Stop. |
-| "APNS_LIVE=true, VPS deployed" | **VPS NOT REDEPLOYED.** APNS_LIVE=false since v102 stopgap. Flip true only after Jack's scp + pm2 restart + `/health` confirms `apns: configured`. Stop. |
+| "venue count 374 / banff dup" | **FIXED 2026-07-24. 373. Stop.** |
+| "tahoe / palisades-tahoe dup" | **FALSE POSITIVE. Stop.** |
+| "upcomingFridayISO UTC off-by-one" | **FIXED 2026-07-24. Stop.** |
+| "onRefresh calls non-existent fetchAllWeather" | **FIXED 2026-07-24. Stop.** |
+| "cloud-sync pullNow state sync bug" | **FIXED 2026-07-24. Stop.** |
+| "WishlistsTab alertedIds out-of-scope" | **FIXED 2026-07-24. Stop.** |
+| "BASE_PRICES covers only 10.3% or 31.5%" | **FALSE. Current node eval: 46/133 venue APs = 35%. Use node, not grep.** |
+| "Tamarindo Costa Rica (LIR) not in catalog" | **FALSE. `tamarindo-cr` exists at ap:SJO.** Stop. |
+| "APNS_LIVE=true, VPS deployed" | **VPS NOT REDEPLOYED.** `APNS_LIVE = false` since v102 stopgap. Flip true only after `/health` confirms `apns: configured`. Stop. |
+| "LIH missing from BASE_PRICES and AP_CONTINENT" | **FALSE. LIH IS in BASE_PRICES and AP_CONTINENT.** Missing ONLY from AIRPORT_COORDS. One-line fix. |
 
 ---
 
-## Shipped Since v102 (2026-07-28 → 2026-07-29)
+## Shipped Since v103 (2026-07-29 → 2026-07-30)
 
 | Commit | What | Verdict |
 |--------|------|---------|
-| `4562f52` | DevOps daily report 2026-07-28 | ✅ Routine |
-| `c81f248` | Content daily report 2026-07-28 | ✅ Routine |
-| `ff3be20` | DevOps daily report 2026-07-29 (YELLOW→RED) | ✅ Routine |
-| `740e5f9` | Content daily report 2026-07-29 — 5 new venue proposals (CHC×2/FEN/BOC/STT), AP_CONTINENT gap confirmed | ✅ Routine |
-| **v103 (this report)** | **AP_CONTINENT fix — 6 airports added (KUL/MCT/GIG/SNA/TFS/CHQ), 133/133 coverage** | ✅ Correctness fix |
+| `764b94b` | DevOps daily report 2026-07-30 (RED) | ✅ Routine |
+| `5404841` | Content daily report 2026-07-30 — 5 venue proposals (GIG/CHC/BRC/TPA/KOA) | ✅ Routine |
 
-**0 venue code commits in 5 days.** 10 proposals sitting in `reports/` untouched.
+**Zero code commits in 5 days (July 26–30).** The last code changes were all on July 25: iOS widget wiring, APNS fix, paint-from-cache optimization. Since then: only daily reports. 15 venue proposals staged and unimplemented. VPS undeployed for 6 consecutive days.
 
-**Code state July 29:**
-- `app.jsx`: 13,722 lines · **373 venues** (131 ski / 242 beach)
-- `APNS_LIVE`: **false** (stopgap from v102 — unchanged)
-- `AP_CONTINENT`: **133/133 venue APs covered** ← fixed this report (was 127/133)
+**Code state July 30:**
+- `app.jsx` HEAD: **373 venues** (131 ski / 242 beach)
+- `PEAKLY_BUILD`: `20260725d` — 5 days since last code edit (expected, not broken)
+- `APNS_LIVE`: **false** (stopgap from v102)
+- `AP_CONTINENT`: **133/133 venue APs** ✅
+- `AIRPORT_COORDS`: **LIH missing** — one-line fix
 - `lateSeason`: 14 · `poolPrimary`: 0 · `GEAR_ITEMS`: 0 ✅
-- `BASE_PRICES`: **42/133 venue APs covered (32%)** — 91 APs missing
+- `BASE_PRICES`: **46/133 venue APs covered (35%)** — 87 APs missing
+- `cancun-beach`: cross-category photo shared with `big-white-ski-s5` ❌
 
 ---
 
-## Bug Triage — July 29
+## Bug Triage — July 30
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Open #19: VPS unredeployed — Day 5** | **P0 (DevOps escalating to RED)** | `server/proxy.js` fixes committed July 25. Never scp'd. Jack: 10-min SSH session closes Open #19, #21, #23. Bundle weather cache disk fix (Open #23) in the same session. |
-| **Open #23: weather cache in-memory** | **P1 (pre-traffic gate, bundles with #19)** | `pm2 restart` from VPS redeploy wipes the 373-venue cache. Fix in DevOps report — ~30 lines. Same SSH session as VPS redeploy. |
-| **BASE_PRICES: 68% of venues show estimated deal scores** | **P1 (pre-Reddit)** | 42/133 venue APs covered. Top missing by venue count: CUN (9 venues), IBZ (7), HKT (6), BTV (5), NCE/ZNZ/MRU (5 each). ~2hr research + paste. Required before any Reddit/HN post. |
-| **Supabase delete-account SQL paste** | **P0 (App Store) / P3 (web)** | Day 50. 2-min paste into Supabase SQL editor. iOS App Store gate only. |
-| **AP_CONTINENT gap (6 airports, 7 venues)** | **FIXED this report** | KUL/MCT/GIG/SNA/TFS/CHQ now in AP_CONTINENT. 133/133 coverage. |
-| **10 venue proposals unshipped** | **P2** | Backlog: July 27 (Malaga/Comporta/Biarritz/Porto de Galinhas/Whakapapa), July 28 (LIH/ACE/CEB/VCE), July 29 (Porters/Mt Selwyn/Sancho/Starfish/Cinnamon Bay). All greenlit per v102 Decision 2 (minus LIR). |
-| **18 stale remote branches** | **P3** | `git push origin --delete <branch>`. 5 minutes. Jack-optional. |
-| **Photos: ~346/373 venues show generic stock** | **P2** | Biggest remaining quality gap. Needs `UNSPLASH_KEY`. |
-| **Plausible analytics unread** | **P1** | Day 29. 15 minutes on plausible.io before next Reddit post. |
+| **Open #19: VPS unredeployed — Day 6** | **P0** | Jack-only. 10-min SSH. Six days on the list. Bundle with Open #23. |
+| **Open #23: weather cache in-memory only** | **P1 (bundle with #19)** | DevOps report has the 30-line disk-persistence fix. Same SSH session. Do NOT restart pm2 until disk persistence is added first. |
+| **BASE_PRICES: 65% of venues show `~$X` estimated fares** | **P1 (pre-Reddit gate)** | 87 of 133 venue APs missing. Top by venue count: CUN (4), BOB/BTV/ALB/PLS/AXA/SPU/IBZ/NCE/USM/MPH/OSL/DLM/CMB/RAK (2 each). ~2hr research. Deal scoring is a headline feature — estimated prices on most venues undermine the pitch. |
+| **cancun-beach cross-category photo** | **P2** | Ski photo on a beach card. One URL swap in app.jsx. Content report has the replacement. 30 seconds. |
+| **LIH missing from AIRPORT_COORDS** | **P2** | Blocks Kauai venues. Add `LIH:{lat:21.9759,lon:-159.3380}` alongside HNL/OGG/KOA. One line. |
+| **15 venue proposals unimplemented** | **P2** | 3 content sessions, 0 paste-ins. Today's 5 are paste-ready (see content report). |
+| **Grace Bay near-dup** | **P3** | `beach_grace` + `grace-bay-turks`: distinct ends of a 12-mile strip, 5.6km apart. Not a crash. Decision made below. |
+| **Supabase delete-account SQL paste** | **P0 (App Store) / P3 (web)** | 2-min paste. iOS App Store gate only. |
+| **15 stale remote branches** | **P3** | Jack-optional. Not blocking launch. |
+| **Photos: ~346/373 venues generic stock** | **P2** | Biggest quality gap. Needs `UNSPLASH_KEY`. |
+
+---
+
+## Three Product Decisions — July 30
+
+**Decision 1: Grace Bay near-dup — KEEP BOTH, add differentiation**
+
+`beach_grace` and `grace-bay-turks` are genuinely different ends of a 12-mile strip (5.6km apart). Merging loses a legitimate indexable location. Keep both. Before Reddit launch: update tags to differentiate — `beach_grace` gets "Calmer West End Waters, Sunset Views"; `grace-bay-turks` gets "Snorkeling East End, Reef Access." That's the call. Do not merge.
+
+**Decision 2: Venue proposal backlog — IMPLEMENT OR PAUSE THE PIPELINE**
+
+Content has staged 15 validated proposals across 3 consecutive sessions with zero implementations. Today's 5 (Copacabana/Porter Heights/Cerro Bayo/Fort De Soto/Kua Bay) pass all guard checks, 2 are southern ski venues in peak season **right now**. Decision: Jack pastes these 5 within 48 hours (15 minutes) or content agent suspends new proposals until the backlog clears. A growing staging queue is wasted agent effort.
+
+**Decision 3: Stale branch cleanup — DEFER until after Reddit launch**
+
+15 stale remote `claude/*` branches. No user-facing impact. DEFER until post-launch cleanup session. Don't interrupt the pre-launch push for housekeeping.
 
 ---
 
 ## This Week's Top 3 Priorities
 
-**1. Jack: VPS redeploy + APNS confirmation (10-min SSH — TODAY, Day 5)**
+**1. Jack: VPS redeploy + disk cache fix (10-min SSH — TODAY, Day 6)**
 
-Five consecutive days of broken server-side features. This is the only P0 requiring Jack. One session:
+Six consecutive days of broken server-side features. One session:
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21
-# Add disk cache while here (30 lines from DevOps report — Open #23)
+# Add disk persistence from DevOps report BEFORE restarting pm2
 pm2 restart peakly-proxy
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Verify: apns: "configured", forecast_days: 14
+# Verify: forecast_days:14, CORS includes capacitor://localhost
 ```
-After `/health` confirms `apns: configured`: flip `APNS_LIVE = true` in app.jsx, push. Closes Open #19, #21, #23 in one session. This has been on the list for 5 days.
+After `/health` confirms VPS: flip `APNS_LIVE = true` in app.jsx, push. Closes Open #19, #21, #23 in one session.
 
-**2. BASE_PRICES backfill top 15 APs (~2hr, before any Reddit/HN post)**
+**2. BASE_PRICES backfill — top 15 APs (~2hr, required before Reddit/HN post)**
 
-68% of venues display estimated deal scores. The deal score is Peakly's primary differentiator. Top 15 missing APs by venues affected: **CUN/IBZ/HKT/BTV/NCE/ZNZ/MRU/ALB/PLS/AXA/SXM/NAP/CAG/FAO/SPU**. Research round-trip fares from JFK/LAX/ORD/MIA via Google Flights, paste into `BASE_PRICES` block. Unlocks deal scoring for ~90 venues in a single session.
+65% of venues show estimated fares. The deal score is a core differentiator. Backfill CUN/BOB/BTV/ALB/PLS/AXA/SPU/IBZ/NCE/USM/MPH/OSL/DLM/CMB/RAK — covers 34 venues, flips them from `~$X` to live deal scoring. ~2hr research from Google Flights / Skyscanner spot-check. Pre-Reddit launch gate.
 
-**3. Flush the venue backlog — ship the 10 pending proposals**
+**3. Quick wins batch (45 minutes total, not blocked on VPS)**
 
-10 venue proposals are greenlit and sitting unacted on. The agent team has been blocked from proposing new venues (Decision 3, v102) pending this flush. Shipping the 10 pending venues is a direct code action that's been deferred 5 days. Each proposal has the full JS block ready in `reports/content-report.md` (July 27/28/29 editions). This is not a planning exercise — it's a paste.
-
----
-
-## Decisions This Report
-
-**Decision 1: AP_CONTINENT fix — SHIPPED.**
-Content confirmed 6 missing airports (KUL/SNA/MCT/GIG/TFS/CHQ) causing 7 venues to potentially misroute continent filtering. Fixed in this report's code change. No scoring change, no brace risk, no VPS impact. 133/133 venue AP coverage confirmed via node eval.
-
-**Decision 2: Content agent resumes venue proposals — capped at 3/run.**
-v102 Decision 3 blocked new venue proposals to clear the backlog first. The backlog hasn't cleared because dev bandwidth is the bottleneck, not proposal quality. Unblocking the agent but capping proposals at 3/run (down from 5) — this paces the queue so it stays actionable. Content agent priority order for next run: (1) BASE_PRICES fare research (top 5 APs: CUN/IBZ/HKT/BTV/NCE), (2) up to 3 new venue proposals if research is done.
-
-**Decision 3: DevOps report BASE_PRICES figure is WRONG — corrected.**
-DevOps v99/v100/v101/v102 all report "10.3% coverage (15 airports)." Correct figure from node eval: **42/133 venue APs covered (32% coverage)**. The DevOps node extraction uses a grepping method that misses some BASE_PRICES entries. Use the node bracket-walk method (same as venue counting). Update devops.md prompt to use: `node -e "const c=require('fs').readFileSync('app.jsx','utf8');const bp=c.slice(c.indexOf('const BASE_PRICES = {')).match(/^\s{2}([A-Z]{3})\s*:/gm)||[];console.log(bp.length)"`. Carry this correction to all future reports.
+Three staged fixes with zero dependencies:
+- **cancun-beach photo**: swap one Unsplash URL (ski photo on beach card) — content report has the fix
+- **LIH AIRPORT_COORDS**: `LIH:{lat:21.9759,lon:-159.3380}` — one line, unblocks Kauai
+- **5 venue paste-in**: Copacabana/Porter Heights/Cerro Bayo/Fort De Soto/Kua Bay — JS objects ready in content report, all guard checks pass
 
 ---
 
-## Features REJECTED This Week
+## Features Rejected This Week
 
 | Feature | Reason |
 |---------|--------|
-| Tamarindo Beach via LIR | `tamarindo-cr` already in catalog at ap:SJO. Same venue. Dup. |
-| Peakly Pro price fix | $0 refs. Pro UI was removed April 16. This is a ghost. |
-| Sentry DSN investigation | Already configured at app.jsx:8. Stop raising. |
-| CSP / SRI on CDN scripts | No user-facing value pre-launch. Defer post-1K. |
-| Scoring algorithm changes | Locked. Full six-hole audit required first. |
-| More venue proposals before backlog flush | Cap at 3/run effective next content run. |
+| **Venue deep links / JSON-LD structured data** | Deferred per prior decision — build after Reddit launch |
+| **Stale branch cleanup** | No user-facing impact. Not now. |
+| **Google Play Store / PWABuilder** | Needs LLC first. Not our bottleneck. |
+| **REI / Backcountry / GetYourGuide affiliate onboarding** | LLC pending — their gate, not ours. |
+| **Pro UI revival** | CUT for v1. Do not revisit until 1K MAU. |
 
 ---
 
 ## Success Criteria
 
-**90-day projection: 5K–8K users. What gets to 8K, not 5K:**
+**North star:** 100K downloads of an app people use weekly.
 
-1. **VPS fully live this week** — the server-side product (live weekend fares, weather cache, alerts) is 5 days dark. The Reddit post can't credibly pitch "live weekend pricing" while the VPS is serving stale `proxy.js`. Fix #19 first; everything else follows.
+**90-day projection: 5K–8K users. What must be true for 8K, not 5K:**
 
-2. **BASE_PRICES backfill before next post** — a Reddit comment asking "how does this compare to Hopper?" gets answered by deal scores. If 68% of venues show estimates, the first reply is "it's just guessing." CUN/IBZ/HKT are exactly the venues that show up in r/travel deal threads. Fix the data before the audience shows up.
+| Gate | Status | Impact |
+|------|--------|--------|
+| Reddit/HN launch before Aug 15 | ❌ Not yet | Primary acquisition driver. S-hemisphere ski hook expires Sept 1. |
+| VPS deployed (real pricing + two-weekend scores + iOS CORS) | ❌ Day 6 | Users seeing `~$X` + flat scores bounce. Not a soft risk. |
+| BASE_PRICES ≥80% coverage | ❌ 35% today | Deal scoring is the differentiation. Can't post on Reddit with 65% estimated. |
+| Photos: venue-specific on top 50 | ❌ ~27/373 real | First impressions compound at launch. |
+| App Store live (iOS) | ❌ APNS + LLC blocked | Not the primary 90-day driver — web/PWA is. |
 
-3. **Photos before second Reddit post** — 346/373 venues show random stock photography. The click from Reddit goes to a venue card showing a generic powder shot for Verbier. Trust broken. `UNSPLASH_KEY` + `scripts/photos-fetch.mjs` → 8K, not 5K.
+**Path to 8K over 5K:** Reddit lands before Aug 15 with VPS + BASE_PRICES already fixed so the product doesn't embarrass itself under traffic. Without those two: 5K ceiling is generous.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**Peak-season Southern hemisphere ski window is closing in 9 weeks.**
+**The southern hemisphere ski window closes in 6 weeks.**
 
-July 29. Southern hemisphere ski season peaks July–August. Peakly has 23 actively in-season Southern ski venues (ZQN/SCL/MEL/etc.) that differentiate it from OpenSnow and OnTheSnow, which go dark in northern summer. This is the strongest card in the deck for any July/August Reddit post to r/skiing or r/newzealand.
+Peakly's unique summer proposition is 23 S-hemisphere ski venues — the ones OpenSnow goes dark on in July. Peak season: July–September. The hook for a Reddit launch post is "where to ski *this weekend* when North America is off-season" — a hook that only works while those venues are actually in season.
 
-The window closes: NZ resorts close by October, Australian resorts by early September. After that, Peakly's ski inventory goes dormant again (only the 14 lateSeason northern venues survive summer). The unique timing of "world's only app combining southern ski + northern beach in peak season" is a July/August pitch only. If the Reddit post doesn't land before mid-August, this angle is gone for 9 months. VPS delay is the gating dependency.
+After September 1, the angle becomes "where to ski next winter." That's a much weaker spontaneous-weekend pitch.
+
+This is the real deadline. Not App Store review timelines. Not LLC processing. The S-hemisphere ski window is on the clock. A Reddit/HN post that lands after September loses this differentiator for a full year.
 
 ---
 
-*v103 authored 2026-07-29. `git fetch` succeeded — local HEAD verified against origin/main. Code change shipped this report: AP_CONTINENT gap fixed (6 airports — KUL/MCT/GIG/SNA/TFS/CHQ added). Cache stamp `20260725d` → auto-push will bump on commit.*
+*v104 — written 2026-07-30 by PM agent. Supersedes v103.*
