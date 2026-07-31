@@ -4799,7 +4799,7 @@ const VENUES = [
     icon:"🌊", rating:4.82, reviews:19800,
     gradient:"linear-gradient(160deg,#001820,#003848,#006880)",
     accent:"#30b8d8", tags:["Caribbean Sea","Hotel Zone","Direct USA Flights","Cenote Day Trips"],
-    photo:"https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5"},
+    photo:"https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
 
   // ── July 2026 additions (2026-07-08) ──
   {id:"arugam-bay-sl", category:"beach",
@@ -6539,7 +6539,7 @@ const AIRPORT_COORDS = {
   ASE:{lat:39.2232,lon:-106.8687}, BTV:{lat:44.4719,lon:-73.1533},  BZN:{lat:45.7775,lon:-111.1530},
   EGE:{lat:39.6426,lon:-106.9177}, EYW:{lat:24.5561,lon:-81.7595},  FCA:{lat:48.3105,lon:-114.2560},
   GUC:{lat:38.5340,lon:-106.9332}, HDN:{lat:40.4811,lon:-107.2178}, JAC:{lat:43.6073,lon:-110.7377},
-  KOA:{lat:19.7388,lon:-156.0457}, MTJ:{lat:38.5098,lon:-107.8941}, MYR:{lat:33.6797,lon:-78.9283},
+  KOA:{lat:19.7388,lon:-156.0457}, LIH:{lat:21.9759,lon:-159.3380},  MTJ:{lat:38.5098,lon:-107.8941}, MYR:{lat:33.6797,lon:-78.9283},
   OGG:{lat:20.8987,lon:-156.4305}, RDD:{lat:40.5090,lon:-122.2934}, SAF:{lat:35.6171,lon:-106.0883},
   SNA:{lat:33.6757,lon:-117.8682}, SRQ:{lat:27.3954,lon:-82.5544},  SUN:{lat:43.5044,lon:-114.2965},
   VPS:{lat:30.4832,lon:-86.5254},
