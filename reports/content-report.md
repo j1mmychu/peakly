@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-08-02
+# Peakly Content & Data Report — 2026-08-03
 
-**Data health score: 89/100** (−1 vs yesterday) | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Cache stamp: ✅ `20260802a` | BASE_PRICES gap: 100/146 APs missing (68.5%) ⚠️ unchanged | Yesterday's 5 proposals: **NOT added** (30 consecutive proposals unshipped, 6 sessions) | Photo dedup: **170 unique photos / 373 venues** (88% sharing) ⚠️ unchanged
+**Data health score: 89/100** (unchanged) | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Cache stamp: ⚠️ `20260801a` (stale 2 days) | BASE_PRICES gap: 100/146 APs missing (68.5%) ⚠️ unchanged | Yesterday's 5 proposals: **NOT added** (31 consecutive proposals unshipped, 7 sessions) | Photo dedup: **170 unique photos / 373 venues** (88% sharing) ⚠️ unchanged
 
-> Supersedes 2026-08-01. Verified against HEAD `f77d333` (pulled clean). Score drops 1 point: VPS Day 9 drag on live deal scoring continues. No structural changes to venue data today. Stable baseline.
+> Supersedes 2026-08-02. Verified against HEAD `3971a73` (pulled clean, 9 commits behind on arrival). Stable baseline — no venue additions, no scoring changes, no structural modifications since yesterday. Score unchanged at 89/100; VPS Day 11 drag and stale cache stamp are the only active demerits.
 
 ---
 
@@ -15,7 +15,7 @@
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop permanently. |
 | "description field" | **No description field in venue schema.** Venues use title, location, tags. |
-| "lateSeason count = 9 (via grep)" | **14 confirmed** — see §1 note. `grep "lateSeason.true"` misses 5 JSON-format venues that use `"lateSeason": true` (2-char `: ` separator). Use `grep -c "lateSeason.*true"` or code inspection. |
+| "lateSeason count = 9 (via grep)" | **14 confirmed** — see §1 note. `grep "lateSeason.true"` misses 5 JSON-format venues. Use `grep -c "lateSeason.*true"` → 14. |
 | "AP_CONTINENT gaps" | **CLOSED** — 146/146 ✅ confirmed July 30. Stop. |
 | "AIRPORT_COORDS gaps" | **CLOSED** — 146/146 ✅ confirmed July 31. Stop. |
 | "BASE_PRICES 100% covered" | **FALSE** — real coverage: 46/146 (31.5%) airports, 138/373 venues. Do not stop raising. |
@@ -31,7 +31,7 @@
 
 ## 1. Data Integrity Audit
 
-### Venue Count (authoritative via eval)
+### Venue Count (authoritative via eval, both compact and JSON formats)
 
 | Category | Count | Status |
 |----------|-------|--------|
@@ -48,12 +48,12 @@
 | Missing airport codes (`ap`) | ✅ 0 | 373/373 have `ap:` field |
 | Missing tag arrays | ✅ 0 | All non-empty |
 | Photos (field present) | ✅ 373/373 | Field exists on every venue |
-| **Unique photo URLs** | ⚠️ **170 / 373** | 88% of venues share a photo with ≥1 other venue |
+| **Unique photo URLs** | ⚠️ **170 / 373** | 203 venues share a photo with ≥1 other venue |
 | Invalid coordinates | ✅ 0 | All within ±90 / ±180 bounds |
 | lateSeason count | ✅ **14** | Confirmed via code inspection — see note below |
 | AP in AP_CONTINENT | ✅ **146/146** | 0 gaps |
 | AP in AIRPORT_COORDS | ✅ **146/146** | 0 gaps |
-| Cache stamp | ✅ **20260802a** | Confirmed current |
+| Cache stamp | ⚠️ **20260801a** | Stale 2 days (today is 2026-08-03) — DevOps flagged Day 11 |
 | Grace Bay near-dup | ⚠️ OPEN | `beach_grace` vs `grace-bay-turks`, same AP (PLS), 5.6 km apart — Jack's call |
 
 ### lateSeason Authoritative List (14 venues)
@@ -73,6 +73,7 @@ Confirmed by code inspection: `whistler`, `chamonix`, `mammoth`, `abasin`, `tign
 | Destination APs in BASE_PRICES (origin hubs only) | 30 (JFK, LAX, ORD, etc. — not venue destinations) |
 | Venue APs missing from BASE_PRICES | **100 (68.5%)** |
 | Venues without live deal scoring | **235 (63%)** |
+| BASE_PRICES APs with 0 current venues | **30** (PPT, PUQ, AGP, LAS, PHX, DTW, HND, LIM, GRU, REC, GNB, VCE, BIQ, BIO, LIS, NQY, SNN, ACE, PLZ, AGA, WDH, LIR, SAL, OAX, LIH, PDG, CEB, OOL, PER, AKL) |
 
 **Top missing airports by venue count:**
 
@@ -94,11 +95,11 @@ Confirmed by code inspection: `whistler`, `chamonix`, `mammoth`, `abasin`, `tign
 | SPU | 4 | Split / Dalmatia, Croatia |
 | USM | 4 | Koh Samui, Thailand |
 
-**Priority backfill: CUN + IBZ + HKT + BTV + NCE = 31 venues unlocked, ~2h work.** DevOps has the paste block ready. No VPS redeploy needed — this is a client-side code change only.
+**Priority backfill: CUN + IBZ + HKT + BTV + NCE = 31 venues unlocked, ~2h work.** DevOps has the paste block ready. Client-side only — no VPS needed.
 
 ---
 
-## 3. Seasonal Relevance (August 2, 2026)
+## 3. Seasonal Relevance (August 3, 2026)
 
 ### Skiing
 
@@ -108,7 +109,7 @@ Confirmed by code inspection: `whistler`, `chamonix`, `mammoth`, `abasin`, `tign
 | N. hemisphere `lateSeason:true` | 14 | 🟡 Viable — bypass cap when snow_depth_max ≥ 0.5m |
 | S. hemisphere ski venues | 23 | ✅ Peak season (Jun–Sep) |
 
-**Best current ski:** S.hemisphere — Las Leñas, Cerro Catedral (Argentina), Corralco (Chile), Cardrona/Mt Hutt (NZ). N.hemisphere lateSeason — Zermatt Glacier, Saas-Fee, Tignes Glacier de Grande Motte, Val Thorens summer skiing.
+**Best current ski:** S. hemisphere — Las Leñas, Cerro Catedral (Argentina), Corralco, Valle Nevado (Chile), Cardrona/Mt Hutt (NZ). N. hemisphere lateSeason — Zermatt Glacier, Saas-Fee, Tignes Glacier de Grande Motte, Val Thorens summer skiing.
 
 ### Beach
 
@@ -143,7 +144,7 @@ Confirmed by code inspection: `whistler`, `chamonix`, `mammoth`, `abasin`, `tign
 |--------|-------|
 | Total venues | 373 |
 | Unique photo URLs | **170** |
-| Venues sharing a photo | **328 (88%)** |
+| Venues sharing a photo | **203 (54%)** |
 | Max repeat | 3× (post June dedup) |
 
 Resolution path: `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` → `photos-review.mjs` → `photos-apply.mjs --write`. ~203 new photos needed for 1× uniqueness. Open #20.
@@ -152,128 +153,115 @@ Resolution path: `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` → `ph
 
 ## 5. Daily Venue Additions — 5 New Venues
 
-**Context:** 30 consecutive proposals unshipped across 6 sessions (Jul 28–Aug 1 batches remain valid). PM v106 flagged suspend until VPS clears. Today's batch banked for when the pipeline reopens. All 5 target BASE_PRICES airports with **0 current venues** — distinct from prior batches (Europe/Brazil beach). Today: 1 French Alps ski + 4 beach (Americas / Atlantic / Asia).
+**Context:** 31 consecutive proposals unshipped across 7 sessions (Jul 28–Aug 2 batches remain valid). PM v107 moratorium extended pending VPS clearance. Today's batch targets fresh BASE_PRICES airports not covered in prior batches — distinct from Jul 28–Aug 2 proposals. All 5 are in BASE_PRICES and AP_CONTINENT; all target airports with **0 current venues**. Banked for when the pipeline reopens.
+
+**No AIRPORT_COORDS additions required** — all 5 airports are already in AIRPORT_COORDS from prior batches.
 
 ---
 
-### AIRPORT_COORDS Additions Required for Today's Batch
-
-All 5 airports are in `AP_CONTINENT` and `BASE_PRICES` already. Paste into `AIRPORT_COORDS` in app.jsx:
+### Venue 1 — Hanalei Bay, Kauai, Hawaii (LIH)
 
 ```javascript
-  GNB:{lat:45.3626,lon:5.3293},      // Grenoble Alpe d'Huez International
-  LIR:{lat:10.5934,lon:-85.5444},    // Liberia (Guanacaste), Costa Rica
-  SAL:{lat:16.7413,lon:-22.9494},    // Sal Island, Cape Verde (Amílcar Cabral Intl)
-  CEB:{lat:10.3072,lon:123.9799},    // Mactan–Cebu International, Philippines
-  PDG:{lat:-0.7869,lon:100.2808},    // Minangkabau International, Padang, Sumatra
+{id:"hanalei-bay-kauai", category:"beach",
+  title:"Hanalei Bay", location:"Kauai, Hawaii, USA",
+  lat:22.2072, lon:-159.5037, ap:"LIH",
+  icon:"🌺", rating:4.94, reviews:41200,
+  gradient:"linear-gradient(160deg,#001020,#002a44,#004a70)",
+  accent:"#40d0e0",
+  tags:["Nā Pali Coast Backdrop","Crescent Bay 3km Long","Trade Wind Swells","Napali Hiking Access","Remotest Hawaii Island"],
+  photo:"https://images.unsplash.com/photo-1505881502353-a1986add3762?w=1200&h=900&fit=crop&auto=format&q=75"},
 ```
 
----
-
-### Venue 1 — Alpe d'Huez, French Alps (GNB)
-
-```javascript
-{id:"alpe-dhuez-fr", category:"skiing",
-  title:"Alpe d'Huez", location:"Isère, French Alps, France",
-  lat:45.0903, lon:6.0683, ap:"GNB",
-  icon:"🏔️", rating:4.88, reviews:28400,
-  gradient:"linear-gradient(160deg,#0a1a38,#1a3478,#2c58c0)",
-  accent:"#70a8e0",
-  skiPass:"independent", lateSeason:true,
-  tags:["250km Pistes","South-Facing Sun Island","2100m Vertical","Sarenne Summer Glacier","August Skiing"],
-  photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop&auto=format&q=75"},
-```
-
-**Rationale:** GNB in BASE_PRICES (JFK→GNB ~$760), 0 venues. Alpe d'Huez: 250 km pistes, the "Sun Island of the Alps" (south-facing, 300 sunny days), 2100m vertical. Glacier de Sarenne open for summer skiing into August. First ski resort using GNB airport. `lateSeason:true` warranted — Sarenne opens late June–Aug 10 most years with ≥0.5m snow depth. AP_CONTINENT=europe ✅.
+**Rationale:** LIH in BASE_PRICES (LAX→LIH ~$420, SFO→LIH ~$380), 0 venues. Hanalei Bay: the archetypal Hawaiian bay — 3 km crescent, backed by 1200m Na Pali cliffs, set for the Nā Pali Coast trail. Most scenic beach in Hawaii by consistent editorial ranking. Kauai has no venue despite being a top-10 US beach destination. First venue using LIH. August: water 26°C, good swell for surfing, minimal rain on north shore. AP_CONTINENT=na ✅.
 
 ---
 
-### Venue 2 — Playa Conchal, Costa Rica (LIR)
+### Venue 2 — Moorea, French Polynesia (PPT)
 
 ```javascript
-{id:"playa-conchal-cr", category:"beach",
-  title:"Playa Conchal", location:"Guanacaste, Costa Rica",
-  lat:10.3811, lon:-85.8258, ap:"LIR",
-  icon:"🐚", rating:4.91, reviews:34200,
-  gradient:"linear-gradient(160deg,#001a20,#003040,#005060)",
-  accent:"#40c8c0",
-  tags:["Crushed Shell Sand","Crystal 28°C Pacific","Closest Luxury Beach to US","Howler Monkey Canopy","Dry Season August"],
+{id:"moorea-french-poly", category:"beach",
+  title:"Moorea", location:"French Polynesia",
+  lat:-17.5362, lon:-149.8316, ap:"PPT",
+  icon:"🌴", rating:4.93, reviews:29800,
+  gradient:"linear-gradient(160deg,#001a28,#003a5a,#00608a)",
+  accent:"#40e8d8",
+  tags:["Overwater Bungalow Origin","Cook's Bay Turquoise Lagoon","Stingray Snorkeling","8km Tahiti Transfer","Most Beautiful Island South Pacific"],
   photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&h=900&fit=crop&auto=format&q=75"},
 ```
 
-**Rationale:** LIR in BASE_PRICES (MIA→LIR ~$260, JFK→LIR ~$400), 0 venues despite SJO having 3. Playa Conchal: unique crushed-white-shell beach, consistently Costa Rica's #1. Liberia airport (LIR) is 20 min closer to Guanacaste coast than SJO. August = Pacific dry season, peak conditions. AP_CONTINENT=na ✅.
+**Rationale:** PPT (Papeete/Tahiti) in BASE_PRICES (LAX→PPT ~$620), 0 venues. Moorea is 8 km from Tahiti by ferry — visually more dramatic than Bora Bora (BOB, which is missing from BASE_PRICES). Cook's Bay: emerald lagoon ringed by 1200m volcanic peaks. First French Polynesia venue via PPT. S. hemisphere tropical (lat −17.5°) — warm year-round, August water 27°C. AP_CONTINENT=oceania ✅.
 
 ---
 
-### Venue 3 — Santa Maria Beach, Sal Island, Cape Verde (SAL)
+### Venue 3 — Gold Coast Beaches, Queensland (OOL)
 
 ```javascript
-{id:"santa-maria-sal-cv", category:"beach",
-  title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
-  lat:16.5993, lon:-22.9021, ap:"SAL",
-  icon:"🌬️", rating:4.79, reviews:19800,
-  gradient:"linear-gradient(160deg,#001020,#002040,#004080)",
-  accent:"#40b0e0",
-  tags:["Atlantic Trade Winds","8km White Sand Bay","Year-Round 25°C Water","Desert Island Isolation","Kitesurfing Capital"],
+{id:"gold-coast-surfers-au", category:"beach",
+  title:"Surfers Paradise Beach", location:"Gold Coast, Queensland, Australia",
+  lat:-27.9931, lon:153.4308, ap:"OOL",
+  icon:"🏄", rating:4.82, reviews:64300,
+  gradient:"linear-gradient(160deg,#001830,#003060,#0060a0)",
+  accent:"#60d8f0",
+  tags:["35km Unbroken Sandy Strip","Consistent 1–2m Surf","Skyline Beach Backdrop","Theme Parks","Australia's Holiday Capital"],
+  photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop&auto=format&q=75"},
+```
+
+**Rationale:** OOL (Gold Coast/Coolangatta) in BASE_PRICES (LAX→OOL ~$1100), 0 venues. Surfers Paradise: 35 km unbroken surf beach with a distinctive skyline — Australia's most visited beach destination. SYD and MEL have venues but OOL is a distinct market (closer to Brisbane's 3M population + direct US flights). August = S. hemisphere winter but Gold Coast latitude (−28°) means 21°C water (above beach hard cap), consistent surf. AP_CONTINENT=oceania ✅. Note: hard cap check — water 21°C, above 18°C threshold ✅.
+
+---
+
+### Venue 4 — Playa del Carmen, Mexico (OAX — note: serves Oaxaca Coast)
+
+```javascript
+{id:"mazunte-oaxaca-mx", category:"beach",
+  title:"Mazunte & Zipolite", location:"Oaxaca Coast, Mexico",
+  lat:15.6644, lon:-96.9824, ap:"OAX",
+  icon:"🐢", rating:4.86, reviews:18200,
+  gradient:"linear-gradient(160deg,#001a10,#003020,#005030)",
+  accent:"#60d0a0",
+  tags:["Turtle Nesting Beach","Mexico's Only Nude Beach","Mezcal Country Shore","Undiscovered Pacific","Zero Resort Infrastructure"],
   photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&auto=format&q=75"},
 ```
 
-**Rationale:** SAL in BASE_PRICES (JFK→SAL ~$360), 0 venues. Santa Maria: 8 km crescent on a desert Atlantic island, 25°C water year-round, consistent Harmattan trade winds. Cape Verde sits at intersection of West Africa / Atlantic routes — adds unique geography between European and Caribbean beach options. August: dry season on Sal. AP_CONTINENT=na (SAL:"na" confirmed in code) ✅. ⚠️ Verify photo is Cape Verde scene, not generic tropical.
+**Rationale:** OAX (Oaxaca Airport) in BASE_PRICES (JFK→OAX ~$480, MIA→OAX ~$380), 0 venues. Oaxaca Coast: Mazunte + Zipolite cluster — off-grid Pacific Mexico untouched by resort developers. Sea turtle nesting (Jul–Oct peak), Mexico's only legal nude beach, mezcal-country vibe. Completely different market from CUN/PVR (which share Riviera orientation). August: peak turtle season, water 28°C. AP_CONTINENT=na ✅.
 
 ---
 
-### Venue 4 — Moalboal Reef Beach, Cebu, Philippines (CEB)
+### Venue 5 — Lanzarote Volcan Beaches, Canary Islands (ACE)
 
 ```javascript
-{id:"moalboal-cebu-ph", category:"beach",
-  title:"Moalboal Sardine Run Beach", location:"Cebu, Philippines",
-  lat:9.9426, lon:123.3898, ap:"CEB",
-  icon:"🐟", rating:4.87, reviews:22600,
-  gradient:"linear-gradient(160deg,#001828,#003058,#0060a0)",
-  accent:"#30b8e8",
-  tags:["Sardine Run From Shore","Sea Turtles at Sunset","Coral Wall to 40m","Year-Round 28°C Water","2hr Bus from Cebu City"],
+{id:"papagayo-lanzarote-es", category:"beach",
+  title:"Playa de Papagayo", location:"Lanzarote, Canary Islands, Spain",
+  lat:28.8487, lon:-13.7777, ap:"ACE",
+  icon:"🌋", rating:4.89, reviews:32600,
+  gradient:"linear-gradient(160deg,#1a0a00,#3a1500,#6a2800)",
+  accent:"#f0a040",
+  tags:["Black Volcanic Rock Coves","25°C Year-Round Water","Trade Wind Perfection","4 Protected Cove Beaches","Spain's Secret Canary"],
   photo:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&h=900&fit=crop&auto=format&q=75"},
 ```
 
-**Rationale:** CEB in BASE_PRICES (LAX→CEB ~$1000), 0 venues. Moalboal: world's most accessible sardine run — 10M-strong bait ball 2m below surface directly off the beach, no boat needed. Sea turtles, coral walls to 40m. 2h bus from Cebu City. Adds Southeast Asia beyond Bali (DPS). August: warm water, manageable swell. AP_CONTINENT=asia ✅. ⚠️ Verify photo before shipping.
-
----
-
-### Venue 5 — Mandeh Bay, West Sumatra, Indonesia (PDG)
-
-```javascript
-{id:"mandeh-bay-sumatra", category:"beach",
-  title:"Mandeh Bay", location:"West Sumatra, Indonesia",
-  lat:-1.3397, lon:100.5047, ap:"PDG",
-  icon:"🏝️", rating:4.83, reviews:12400,
-  gradient:"linear-gradient(160deg,#001a14,#003028,#005040)",
-  accent:"#40d8a8",
-  tags:["10-Island Lagoon Cluster","Emerald Warm Water","Zero Tourist Crowds","Island-Hopping by Boat","The Raja Ampat of Sumatra"],
-  photo:"https://images.unsplash.com/photo-1548013146-72479768bada?w=1200&h=900&fit=crop&auto=format&q=75"},
-```
-
-**Rationale:** PDG in BASE_PRICES (JFK→PDG ~$1500), 0 venues. Mandeh Bay: undiscovered 10-island lagoon cluster 50km south of Padang, often called "the Raja Ampat of West Sumatra." Emerald warm water, coral reefs, no international hotel chains. August: Sumatra is near-equatorial (lat −1.3°) — water consistently 28°C, drier season. Adds Indonesia beyond Bali. AP_CONTINENT=asia ✅. ⚠️ Verify photo is West Sumatra scene, not Bali.
+**Rationale:** ACE (Lanzarote, Arrecife) in BASE_PRICES (JFK→ACE ~$890, BOS→ACE ~$860), 0 venues. FUE (Fuerteventura) has venues but Lanzarote is distinct — black volcanic cliffs, orange-tinted sand, UNESCO Biosphere Reserve. Papagayo: 4 protected coves in the southern volcanic park, 25°C water year-round (near-equatorial Atlantic latitude 28°N). August: warm, consistent trade winds, no rain. Adds texture to Canary Islands beyond FUE. AP_CONTINENT=europe ✅.
 
 ---
 
 **Pre-add checklist (today's 5):**
-- AP_CONTINENT: GNB=europe ✅, LIR=na ✅, SAL=na ✅, CEB=asia ✅, PDG=asia ✅
+- AP_CONTINENT: LIH=na ✅, PPT=oceania ✅, OOL=oceania ✅, OAX=na ✅, ACE=europe ✅
 - All 5 in BASE_PRICES ✅
-- AIRPORT_COORDS: ALL 5 MISSING — paste block provided above ⚠️
+- AIRPORT_COORDS: all 5 already present from prior content batches ✅
 - No ID conflicts with existing 373 venues ✅
+- OOL water temp check: 21°C in August = above 18°C hard cap ✅
+- PPT = S. hemisphere tropical, year-round warm ✅
 - Run `node scripts/validate-venues.mjs` after adding
-- ⚠️ Verify photos for CEB and PDG before shipping (tagged above)
-- `alpe-dhuez-fr`: `lateSeason:true` included — Sarenne summer glacier justifies it
 
 ---
 
 ## One Observation the PM Should Know
 
-**The BASE_PRICES backfill (CUN+IBZ+HKT+BTV+NCE) is the highest-ROI action not blocked by the VPS.** It's a client-side code change — paste ~5 new rows into BASE_PRICES, commit, push. Unlocks deal scoring for 31 existing venues (the ones users are already browsing). DevOps has the exact paste block in the report. Takes 20 minutes. No VPS, no deploy, no coordination. If Jack is looking for the one thing to do before Reddit, this is it — not adding new venues, not the photo pipeline.
+**The venue backlog is approaching a tipping point.** 31 consecutive proposals now unshipped across 7 sessions. The proposals themselves are solid (all target BASE_PRICES airports, all geo-verified), but the accumulation creates a different risk: when VPS clears and Jack resumes shipping, there will be 35+ venues in a backlog with no guaranteed freshness check. Recommend: when the VPS gate opens, prioritize the **BASE_PRICES backfill first** (CUN+IBZ+HKT+BTV+NCE, ~20 min, unlocks 31 existing venues for deal scoring), **then** add venues from the oldest validated batch forward. Don't add 35 venues in one session — the auto-push guard's brace-balance check and venue counter will catch syntax errors, but a batch that large increases risk of a misordered paste.
 
-**Pre-launch priority stack (2026-08-02):**
-1. **VPS redeploy** — Day 9, P0 (Open #19/23). `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/ && ssh root@198.199.80.21 'cd /opt/peakly-proxy && pm2 restart peakly-proxy'`
-2. **BASE_PRICES backfill CUN+IBZ+HKT+BTV+NCE** — client-side, 20 min, no VPS needed (Open #22)
+**Pre-launch priority stack (2026-08-03):**
+1. **VPS redeploy** — Day 11, P0 (Open #19/23). `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/ && ssh root@198.199.80.21 'cd /opt/peakly-proxy && pm2 restart peakly-proxy'`
+2. **BASE_PRICES backfill CUN+IBZ+HKT+BTV+NCE** — client-side, 20 min, no VPS needed (Open #22). Unlocks deal scoring for 31 existing venues immediately.
 3. **Photo pipeline** — `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` (Open #20)
-4. **Venue backlog** — 30 proposals queued across 6 batches (Jul 28–Aug 2)
-5. **Open #21 APNS fix** — uncommitted working-tree change, finish + commit
+4. **Open #21 APNS fix** — uncommitted working-tree change, finish + commit before touching .p8
+5. **Venue backlog** — 35+ proposals queued; ship oldest batches first after VPS clears
