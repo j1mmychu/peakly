@@ -380,6 +380,29 @@ app.get('/api/flights/latest', async (req, res) => {
 const WX_TTL_MS = 2 * 60 * 60 * 1000;
 const WX_CACHE_MAX = 4000;
 const _wxCache = new Map(); // key → { data, ts }
+const WX_CACHE_FILE = process.env.WX_CACHE_PATH || path.join(__dirname, 'wx-cache.json');
+
+function _saveCacheToDisk() {
+  try {
+    const obj = {};
+    for (const [k, v] of _wxCache.entries()) obj[k] = v;
+    fs.writeFileSync(WX_CACHE_FILE, JSON.stringify(obj), 'utf8');
+  } catch (e) { console.error('[wx-cache] save failed:', e.message); }
+}
+
+function _loadCacheFromDisk() {
+  try {
+    const raw = fs.readFileSync(WX_CACHE_FILE, 'utf8');
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    let loaded = 0;
+    for (const [k, v] of Object.entries(data)) {
+      if (v && v.ts && (now - v.ts) < WX_TTL_MS) { _wxCache.set(k, v); loaded++; }
+    }
+    console.log(`[wx-cache] loaded ${loaded} warm entries from disk`);
+  } catch (e) { if (e.code !== 'ENOENT') console.error('[wx-cache] load failed:', e.message); }
+}
+_loadCacheFromDisk();
 
 const COORD_RE = /^-?\d{1,3}(\.\d+)?$/;
 
@@ -1005,3 +1028,6 @@ setTimeout(() => {
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`[proxy] Peakly proxy listening on 127.0.0.1:${PORT}`);
 });
+
+// Persist wx cache every 5 minutes — survives pm2 restart (Open #23)
+setInterval(_saveCacheToDisk, 5 * 60 * 1000);
