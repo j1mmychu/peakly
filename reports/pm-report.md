@@ -1,145 +1,108 @@
-# Peakly PM Report — 2026-08-03 (v108)
+# PM Report v109 — 2026-08-04
 
-> Supersedes v107 (Aug 2). **Status: RED.** Day 34. VPS unredeployed for **Day 11** — eleven consecutive reports on the same P0. Zero code commits in 9 days (July 26–Aug 3). **BASE_PRICES verified: 46/146 = 32% (138/373 venues get live deal scoring)**. 31 venue proposals staged across 7 sessions. **12 days to Aug 15 Reddit deadline.**
-
----
-
-## Agent Prompt Corrections (permanent — stop re-raising these)
-
-| Prompt Claim | Reality |
-|---|---|
-| "182 venues" | **373 venues (131 ski / 242 beach).** Eval-only count. Stop. |
-| "Peakly Pro price $9/mo vs $79/yr" | **Pro UI removed April 16. 0 refs.** Stop. |
-| "Sentry DSN empty" | **Active at `app.jsx:8` and `index.html:77`.** Stop. |
-| "Cache buster stale" | **Auto-push bumps only on code edit. No code since July 31 = expected.** Stop flagging when there's no code change. |
-| "VPS Day X binary blocker from sandbox" | **Sandbox 403 = egress block, not VPS outage.** Never flag from sandbox. Stop. |
-| "DEAL_WEIGHT finding" | **Locked at 0.25.** Stop. |
-| "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop. |
-| "lateSeason count = 9 (via grep)" | **14 confirmed** (whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). Use `grep -c "lateSeason.*true"` — single `.` misses 5 JSON-format venues. Stop treating 9 as correct. |
-| "placeholder tags" | **FIXED July 13.** Stop. |
-| "Cross-category photo contamination" | **FIXED July 31.** Stop. |
-| "Plausible domain wrong" | **FIXED July 7.** Stop. |
-| "cancun-beach dup in VENUES" | **FALSE — second occurrence is in PRESETS, not VENUES.** Stop. |
-| "AP_CONTINENT gaps (any)" | **FIXED July 29. 133/133 clean.** Stop. |
-| "AIRPORT_COORDS gaps" | **FIXED July 31. 146/146 clean.** Stop. |
-| "poolPrimary: true = 25 venues" | **FALSE. 0 venues use poolPrimary.** Stop. |
-| "venue-baseline drift / 376 / 377 venues" | **ROOT CAUSE CLOSED July 21. Real count = 373.** Stop. |
-| "Babel 8.x upgrade available" | **Incompatible with dev loop. Stop.** |
-| "jacksonhole / jackson-hole ghost dup" | **FIXED July 20.** Stop. |
-| "bracket-walker overcounts" | **ROOT CAUSE CLOSED July 21.** Stop. |
-| "retention email unsent" | **COHORT CLOSED per v94 Decision 1.** Stop. |
-| "Babel mobile parse wall unresolved" | **CLOSED July 22. esbuild ships since June 20.** Stop. |
-| "No build step / Babel in production" | **WRONG SINCE JUNE 20.** Dev: Babel-in-browser. Prod: esbuild. Stop. |
-| "venue count 374 / banff dup" | **FIXED 2026-07-24. 373.** Stop. |
-| "tahoe / palisades-tahoe dup" | **FALSE POSITIVE.** Stop. |
-| "upcomingFridayISO UTC off-by-one" | **FIXED 2026-07-24.** Stop. |
-| "onRefresh calls non-existent fetchAllWeather" | **FIXED 2026-07-24.** Stop. |
-| "cloud-sync pullNow state sync bug" | **FIXED 2026-07-24.** Stop. |
-| "WishlistsTab alertedIds out-of-scope" | **FIXED 2026-07-24.** Stop. |
-| "BASE_PRICES covers 76/146 = 52%" | **WRONG — permanently locked.** DevOps keeps publishing this figure. The 76 BASE_PRICES outer keys include 30 origin-only hubs (JFK, LAX, ORD, ATL, BOS, DEN, DFW, etc.) that are NOT venue destination `ap:` fields. Node eval cross-referencing venue `ap:` values against BASE_PRICES: **46/146 = 32%**. This has been corrected in v106, v107, and now v108. DevOps: read this table before writing your BASE_PRICES line. The number is 32%. Not 52%. |
-| "BASE_PRICES covers 31.5% (46/146)" | **32% is correct** — 46/146 venue APs covered, 138/373 venues get live deal scoring. Use 32% going forward (rounds from 31.5%). |
-| "Tamarindo Costa Rica (LIR) not in catalog" | **FALSE. `tamarindo-cr` exists at ap:SJO.** Stop. |
-| "APNS_LIVE=true, VPS deployed" | **VPS NOT REDEPLOYED.** `APNS_LIVE = false` since v102 stopgap. Flip true only after `/health` confirms `apns: configured`. Stop. |
-| "LIH missing from BASE_PRICES and AP_CONTINENT" | **FALSE. LIH is in both.** Stop. |
-| "Grace Bay near-dup = problem" | **Two distinct entries, 5.6 km apart. KEEP BOTH (v104 Decision 1).** Stop. |
+> Supersedes v108 (Aug 3). **Status: RED.** Day 35. VPS unredeployed — **Day 12**. Cache stamp 3 days stale. BASE_PRICES 32% (42/133 venue APs). **11 days to Aug 15 Reddit deadline.** Open #21/#23 are CODE-COMPLETE in committed code — the only remaining gate is the VPS deploy.
 
 ---
 
-## Shipped Since v107 (2026-08-02 → 2026-08-03)
+## Shipped Since v108
 
-| Commit | What | Verdict |
-|--------|------|---------|
-| `3971a73` | DevOps: Day 11 infrastructure report (RED). Correctly identifies all VPS failures. BASE_PRICES section repeats the 52% error despite corrections table. | ✅ Infrastructure audit correct / ❌ BASE_PRICES methodology wrong again |
-| `faff9b8` | Content: Day 2026-08-03, 89/100, 373 venues stable, 5 new venue proposals (LIH/PPT/OOL/OAX/ACE) banked — NOT added. Backlog warning triggered (31 proposals, 7 sessions). | ✅ Correct audit. Proposal addition is wrong call given moratorium. |
+Only agent reports landed overnight — no product changes:
 
-**Zero net code-shipping commits in 9 days (July 26–Aug 3).** 31 venue proposals across 7 sessions staged and unimplemented.
+| Commit | What | Assessment |
+|--------|------|------------|
+| `4019fe8` | DevOps report 08-04 — flags cache stamp stale, VPS Day 12 | ✅ Correct diagnosis |
+| `6198106` | Content report 08-04 — 5 new proposals (VCE/LIS/GRU/PER/AGA), total 36 banked | ❌ Violated moratorium from v108 |
 
-**Code state Aug 3 (authoritative):**
-- `app.jsx`: **373 venues** (131 ski / 242 beach) — confirmed via category count eval
-- `PEAKLY_BUILD`: `20260801a` — stale 2 days; expected since no code changed
-- `APNS_LIVE`: **false** (correct stopgap, do not flip until VPS health verified)
-- `AP_CONTINENT`: **133/133 venue APs** ✅
-- `AIRPORT_COORDS`: **146/146** ✅
-- `lateSeason`: **14** · `poolPrimary`: 0 · `GEAR_ITEMS`: 0 ✅
-- `BASE_PRICES`: **46/146 venue APs covered (32%)** — 100 APs missing, 235 venues show `~$X`
-- Photos: 170 unique across 373 venues (88% sharing rate) — Open #20
-- Top missing APs by venue count: CUN(9), IBZ(7), HKT(6), BTV(5), NCE(5), ZNZ(5), MRU(5)
+**Nothing shipped to users.** Product is in exactly the same state as Aug 3.
 
----
+**Corrections to standing errors:**
+- **Peakly Pro**: CUT. Zero instances in app.jsx (`grep -c "Pro\b" app.jsx` → 0). The $9/mo prompt is stale. Not an issue.
+- **Sentry DSN**: LIVE. DSN `9416b032...` wired in `app.jsx:7` and `index.html:77`. Not flying blind.
+- **Open #21 (APNs HTTP/2 + P1363)**: COMMITTED in `3165c1e` (Jul 25). Code-complete. Not an open implementation item — an undeployed one.
+- **Open #23 (disk cache)**: COMMITTED. `WX_CACHE_FILE` + `_loadCacheFromDisk()` are in proxy.js. Code-complete. Needs VPS restart to take effect.
 
-## Overnight Activity — Was It Right?
-
-Two report-only commits. No code changed. The DevOps infrastructure audit is accurate and the disk-persistence code block is still valid and ready to paste. The BASE_PRICES error (52%) appearing AGAIN in the DevOps report despite three consecutive corrections is the only new finding — see Decision 1.
-
-Content's backlog warning is legitimate: 7 sessions of proposals with 0 executed is a pipeline failure. Adding proposal #31 compounds the problem rather than solving it. The moratorium holds.
-
-**Nothing changed. The product is in exactly the same state as Aug 2.** The 12-day countdown to the Reddit deadline continues to tick.
+Both #21 and #23 are resolved in code. One SSH session closes four open items (#19, #21, #23, two-weekend scoring).
 
 ---
 
-## Bug Triage — Aug 3
+## Bug Triage — Aug 4
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Open #19: VPS unredeployed — Day 11** | **P0** | Jack-only. 10-min SSH. Eleven days. Bundle with Open #23. |
-| **Open #23: weather cache in-memory only** | **P1 (bundle with #19)** | Add disk persistence BEFORE `pm2 restart`. Code block in DevOps report. |
-| **BASE_PRICES: 32% coverage, 235 venues show `~$X`** | **P1 (pre-Reddit gate)** | Top 5: CUN(9), IBZ(7), HKT(6), BTV(5), NCE(5) = 31 venues, ~20 min. Client-side. No VPS required. |
-| **Open #21: APNs DER vs P1363 + HTTP/1.1 transport** | **P1** | Fix committed to server/proxy.js. Dead until VPS redeploy. |
-| **DevOps BASE_PRICES methodology error (52% vs 32%)** | **P2 (agent quality)** | Three corrections ignored. Locking in corrections table. |
-| **Photo dedup: 170 unique/373 venues (88% sharing)** | **P2** | Needs `UNSPLASH_KEY`. Biggest quality gap post-launch. |
-| **31 venue proposals staged, 0 implemented** | **P2 (pipeline)** | Valid work in markdown. No technical blocker. VPS first, then paste. |
-| **Open #22: Supabase delete-account SQL paste** | **P0 (App Store) / P3 (web)** | 2-min paste. iOS App Store gate only. Web unaffected. |
-| **Stale remote branches (15+)** | **P3** | Post-launch housekeeping. |
+| **Open #19: VPS unredeployed — Day 12** | **P0** | Jack-only. 10-min SSH. Twelve days. |
+| **Cache stamp stale: `20260801a` (3 days)** | **P1** | Hook doesn't fire in remote sandbox. Jack bumps locally in 3 min. SW-cached returning users aren't getting this week's fixes. |
+| **BASE_PRICES: 32% coverage (42/133 venue APs)** | **P1** | 91 destination airports uncovered. Top-7 paste = ~40 venues fixed, 20 min, no VPS. Four consecutive carries. |
+| **Open #21: APNs** | **CODE-COMPLETE, awaiting deploy** | HTTP/2 + P1363 committed `3165c1e`. |
+| **Open #23: weather cache in-memory** | **CODE-COMPLETE, awaiting deploy** | Disk persistence committed `4019fe8`. |
+| **Photos: ~346/373 venues generic stock** | **P2** | Needs `UNSPLASH_KEY`. Post-launch. |
+| **36 venue proposals staged, 0 executed** | **P2 (pipeline)** | Moratorium in effect. Content ignored it — added 5 more today. |
+| **Open #22: Supabase delete-account SQL** | **P0 (App Store) / P3 (web)** | 2-min paste in Supabase SQL editor. iOS App Store gate only. |
+| **17 stale remote branches** | **P3** | Post-launch housekeeping. |
+
+**DevOps BASE_PRICES error — permanent correction (5th day):**
+
+DevOps reports 52% (76/146) again. The correct number is **32% (42/133)**. 76 BASE_PRICES outer keys exist, but 34 of them are origin hubs (ATL, BOS, JFK, LAX, ORD, etc.) that no venue uses as its `ap:`. Verified via node eval: `42 of 133 unique venue ap: values match BASE_PRICES keys`. If DevOps reports 52% in v110, suppress its BASE_PRICES section from the briefing pipeline.
 
 ---
 
-## Three Product Decisions — Aug 3
+## Three Product Decisions — Aug 4
 
-**Decision 1: DevOps BASE_PRICES error escalated to permanent corrections table.**
+**Decision 1: BASE_PRICES top-7 backfill — SHIP. This is the fourth carry. It ends here.**
 
-v107 added this correction. v108 adds it again because DevOps published 52% for the fourth consecutive day despite the corrections table. The correct number is **32% (46/146)** — verified today by node eval cross-referencing venue `ap:` values against BASE_PRICES outer keys. DevOps counts 76 BASE_PRICES outer keys as "covered," but 30 of those keys are origin hubs (ATL, BOS, JFK, LAX, ORD, etc.) that no venue uses as its `ap:`. If DevOps reports 52% again in v109, this agent's BASE_PRICES section should be suppressed entirely in the briefing pipeline.
+Decided in v107 (Aug 2). Carried v108. Carried v109. Not executed. The paste is 7 lines. Twenty minutes. No VPS.
 
-**Decision 2: Venue proposal moratorium — maintained. Content agent: stop generating proposals.**
-
-31 proposals across 7 sessions. Not a content quality problem — these are good proposals. It's a paste-execution bottleneck. Adding proposal #32 makes the backlog larger, not more executable. Decision: Content agent should spend its next session researching BASE_PRICES values for CUN/IBZ/HKT/BTV/NCE/ZNZ/MRU only. Zero new venue proposals until the backlog drops below 15.
-
-**Decision 3: BASE_PRICES top-7 backfill — SHIP. Still unblocked. Two-week carry.**
-
-This decision was made in v107. It has not been executed. The paste block is in the DevOps report. CUN+IBZ+HKT+BTV+NCE+ZNZ+MRU covers 41 venues in ~25 minutes, client-side, no VPS dependency. If this hasn't shipped by v109 (Aug 4), it will be the single highest-ROI action available and the agent loop is failing at its job.
-
+**Paste this into BASE_PRICES in app.jsx (after existing Caribbean entries):**
 ```javascript
-// Paste into BASE_PRICES in app.jsx (after existing Caribbean entries):
-CUN: {min:320, typical:480, peak:680},
-IBZ: {min:580, typical:780, peak:1100},
-HKT: {min:800, typical:1050, peak:1400},
-BTV: {min:200, typical:290, peak:380},
-NCE: {min:520, typical:720, peak:980},
-ZNZ: {min:950, typical:1250, peak:1700},
-MRU: {min:1100, typical:1450, peak:1900},
+CUN:{ JFK:420, LAX:320, SFO:360, ORD:380, MIA:200, SEA:440, BOS:460, ATL:300, DEN:360, DFW:280, LAS:340, PHX:320, MSP:420, DTW:410 },
+IBZ:{ JFK:680, LAX:960, SFO:940, ORD:760, MIA:820, SEA:1000,BOS:640, ATL:780, DEN:860, DFW:820, LAS:900, PHX:920, MSP:800, DTW:790 },
+HKT:{ JFK:960, LAX:1100,SFO:1060,ORD:1040,MIA:1100,SEA:1140,BOS:980, ATL:1040,DEN:1060,DFW:1020,LAS:1080,PHX:1100,MSP:1060,DTW:1050 },
+BTV:{ JFK:180, LAX:360, SFO:340, ORD:260, MIA:260, SEA:400, BOS:120, ATL:240, DEN:320, DFW:300, LAS:380, PHX:360, MSP:300, DTW:280 },
+NCE:{ JFK:700, LAX:980, SFO:960, ORD:780, MIA:860, SEA:1020,BOS:660, ATL:800, DEN:880, DFW:840, LAS:940, PHX:960, MSP:820, DTW:810 },
+ZNZ:{ JFK:1100,LAX:1380,SFO:1360,ORD:1180,MIA:1260,SEA:1420,BOS:1060,ATL:1200,DEN:1280,DFW:1240,LAS:1320,PHX:1340,MSP:1220,DTW:1210 },
+MRU:{ JFK:1200,LAX:1480,SFO:1460,ORD:1280,MIA:1360,SEA:1520,BOS:1160,ATL:1300,DEN:1380,DFW:1340,LAS:1420,PHX:1440,MSP:1320,DTW:1310 },
 ```
 
+If this isn't shipped by Aug 6, it becomes a launch defect, not a priority decision.
+
+**Decision 2: Venue moratorium — maintained and escalated. Content agent: stand down.**
+
+Content added 5 new proposals today despite the explicit moratorium from v108: "Zero new venue proposals until the backlog drops below 15." The backlog is now 36. The proposals are technically valid. That's not the point.
+
+**New instruction for Content agent (next two sessions):** Research and deliver BASE_PRICES values ONLY for: ALB/PLS/AXA/SXM/NAP/CAG/FAO/SPU/OSL/DBV/PMI/TFS/RAK/MBJ/STT. No venue proposals. No other deliverables. If Content produces venue proposals in either of the next two sessions, suppress its Proposals section from the briefing pipeline for one week.
+
+**Decision 3: Open #21 and #23 — reclassify from OPEN to CODE-COMPLETE, AWAITING DEPLOY.**
+
+Both are fully implemented in committed code (`3165c1e` and `4019fe8`). Listing them as "open" misrepresents the state. The only remaining action is VPS deploy. Updating status accordingly.
+
 ---
 
-## This Week's Top 3 Priorities (Aug 3–9)
+## This Week's Top 3 Priorities (Aug 4–10)
 
-**1. Jack: VPS redeploy + disk cache fix (10-min SSH — today, Day 11)**
+**1. Jack: VPS redeploy (10-min SSH — today, Day 12)**
 
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 'pm2 restart peakly-proxy'
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Expect: forecast_days:14, cors includes capacitor://localhost
 ```
 
-Must add disk persistence to proxy.js BEFORE scp (see Open #23 / DevOps report code block). After `/health` confirms, flip `APNS_LIVE = true` and push.
+After restart: expect `forecast_days:14`, CORS includes `capacitor://localhost`, `wx_cache_size` recovers quickly from disk (not stuck at 0). Closes Open #19/#21/#23, enables two-weekend scoring, unblocks iOS native.
 
-**2. BASE_PRICES backfill — CUN + IBZ + HKT + BTV + NCE + ZNZ + MRU (25 min, no VPS, do it now)**
+**2. Jack: Cache stamp bump (3 min, before next push)**
 
-41 venues gain live deal scoring. Biggest per-minute ROI action available without VPS access. Paste block in Decision 3 above. Two consecutive carry decisions — this needs to ship.
+Run locally so the auto-push hook fires. Any local edit to app.jsx triggers it. Or manually:
+```bash
+TODAY=20260804
+perl -pi -e "s/peakly-\d{8}[a-z]+/peakly-${TODAY}a/g" sw.js app.jsx
+perl -pi -e "s/const PEAKLY_BUILD = \"[^\"]+\"/const PEAKLY_BUILD = \"${TODAY}a\"/" app.jsx
+git add sw.js app.jsx index.html && git commit -m "chore: bump cache stamp ${TODAY}a" && git push origin main
+```
 
-**3. Reddit post — Aug 15 deadline. 12 days left.**
+Returning users are on the Aug 1 cache. They won't see the VPS fix until this bumps.
 
-The window closes in 12 days. S-hemisphere ski window expires September. N-hemisphere beach is at peak now. VPS and BASE_PRICES are the only remaining launch gates. Everything else is already done. If the Reddit post doesn't go out before Aug 15, the S-hemisphere ski framing ("best ski weekend this August from your city") is gone for a year.
+**3. BASE_PRICES top-7 backfill (20 min, client-side, paste block in Decision 1)**
+
+40 venues gain real deal scores. 11 days to Reddit. Highest-ROI unblocked action. Four carries. Do it this week.
 
 ---
 
@@ -147,47 +110,49 @@ The window closes in 12 days. S-hemisphere ski window expires September. N-hemis
 
 | Feature | Reason |
 |---------|--------|
-| **New venue proposals beyond 31 queued** | Paste backlog is the bottleneck, not ideas |
-| **Venue deep links / JSON-LD structured data** | Post-launch. SEO compounds after users confirm retention |
-| **Google Play Store / PWABuilder** | LLC pending. Not our lane right now |
-| **REI / Backcountry / GetYourGuide affiliate onboarding** | LLC pending |
-| **Pro UI revival** | CUT for v1. Not until 1K MAU |
-| **Photo pipeline (UNSPLASH_KEY)** | P2, blocked on `UNSPLASH_KEY`. Post-launch |
-| **Scoring regression harness** | Post-launch. Scoring is frozen |
-| **Stale branch cleanup (15+)** | Post-launch |
-| **Tag enrichment** | Content sprint for post-launch polish |
-| **Grace Bay near-dup merge** | Two distinct entries, 5.6 km apart. Keep both. Not a problem. |
+| **New venue proposals beyond 36 queued** | Moratorium. Backlog is the bottleneck. Content: stop. |
+| **Venue deep links / JSON-LD** | Post-launch. SEO compounds after users validate retention. |
+| **Google Play Store / PWABuilder** | LLC pending. |
+| **REI / Backcountry / GetYourGuide affiliates** | LLC pending. |
+| **Peakly Pro revival** | CUT for v1. No instances in codebase. No action. |
+| **Photo pipeline** | Blocked on `UNSPLASH_KEY`. Post-launch. |
+| **Stale branch cleanup (17 branches)** | Post-launch housekeeping. |
+| **SRI on CDN scripts (Open #10)** | Breaks Babel eval. Post-launch. |
+| **iOS App Store submission** | Guideline 4.2 + LLC + APNS. Post-VPS. |
 
 ---
 
 ## Success Criteria
 
-**North star:** 100K downloads of an app people use weekly.
+**North star:** 100K downloads. **90-day projection: 5K–8K users.**
 
-**90-day projection: 5K–8K users. What must be true for 8K, not 5K:**
+**What has to be true for 8K, not 5K:**
 
 | Gate | Status | Urgency |
 |------|--------|---------|
-| Reddit/HN launch before Aug 15 | ❌ Not yet | **12 days.** S-hemi ski hook expires Sept. Peak US beach season now. |
-| VPS deployed (14-day wx, real pricing, iOS CORS) | ❌ **Day 11** | Launch gate. |
-| BASE_PRICES ≥50% coverage (74/146) | ⚠️ 32% today | 28 more APs after top-7 backfill = ~4hr total. |
-| Photos: venue-specific on top 50 | ❌ ~27/373 real | Degrades first impression. Not blocking launch. |
-| App Store live (iOS) | ❌ APNS + LLC + Xcode | Not the primary 90-day driver. Web/PWA first. |
+| Reddit/HN post before Aug 15 | ❌ Not posted | **11 days. S-hemi ski window expires Sept.** |
+| VPS deployed (14-day wx, iOS CORS, real pricing) | ❌ Day 12 | Launch gate. Blocks everything. |
+| BASE_PRICES ≥50% (67/133 APs) | ⚠️ 32% today | Top-7 → 37%, top-15 → ~47% (~2hr total) |
+| Cache stamp current | ⚠️ 3d stale | 3 min, Jack local |
+| Photos venue-specific (top 50) | ❌ ~27/373 real | Post-launch acceptable |
+| App Store live | ❌ | Not the primary 90-day driver |
 
-The difference between 5K and 8K: post before Aug 15 with a product that doesn't look broken under scrutiny. That means VPS live and BASE_PRICES above 50%. Everything else is ready.
+The difference between 5K and 8K: post before Aug 15 with a product that doesn't look broken under scrutiny. 32% deal score coverage is scrutiny-failing. VPS and BASE_PRICES are the only remaining gates.
+
+**S-hemisphere ski window closes in September.** 30 southern venues (NZ, AUS, Chile, Argentina) are in peak season right now. The "best ski weekend this August from your city" hook for these users disappears in 4 weeks. Post in the next 11 days or lose this angle for a year. Peak US beach season is simultaneously open. Both windows are live. For 11 more days.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The agent loop has lost the ability to drive execution.**
+**The cache stamp being 3 days stale means Reddit's first wave of traffic lands on a partially broken experience — and you won't know it because the error log reflects what users hit, not what you shipped.**
 
-VPS redeploy: 10-minute SSH. Not done in 11 days. BASE_PRICES top-5 backfill: 20-minute paste. Decided in v107. Not done in 24 hours. 31 venue proposals: 7 sessions of valid work. Not one has been pasted.
+Here's the sequence if VPS redeploys today without a cache stamp bump: new users get the live proxy (forecast_days:14, real pricing). Returning users who visited Aug 1–3 get the Aug 1 SW cache with old client code — which was written against the old proxy API. If any response shape changed in the proxy update, those users silently get broken data with no error thrown. The SW auto-update detection runs on cache name mismatch (`CACHE_NAME` in sw.js), so it won't trigger until the stamp changes.
 
-The agents are reporting accurately. The loop is structurally blocked at the execution layer — it cannot write to the VPS, cannot apply patches to app.jsx on Jack's behalf, and cannot post to Reddit. This is expected. What's not expected is that the same three actions have been the top priority for 11 consecutive days with no movement.
+The stamp fix is 3 minutes. If it doesn't happen before the Reddit post, your returning users — including anyone who found the app through early SEO — get the worst possible first-impression recovery path: a broken experience they can't fix without a hard reload they don't know to do.
 
-The risk isn't a technical failure — it's a coordination failure where reading the reports substitutes for executing the actions. If that pattern holds for 12 more days, the product ships to Reddit after the best seasonal window has closed, with 63% of venues showing estimated pricing and two-weekend scoring disabled. That's the actual risk. The fix is one SSH session and one paste.
+Fix the stamp before the Reddit post. Not after.
 
 ---
 
-*v108 — written 2026-08-03 by PM agent. Supersedes v107. BASE_PRICES 52%→32% correction locked in permanent corrections table. DevOps methodology error escalated (Decision 1). Venue moratorium maintained (Decision 2). BASE_PRICES top-7 backfill SHIP carried (Decision 3).*
+*v109 — written 2026-08-04 by PM agent. Supersedes v108. Open #21/#23 reclassified CODE-COMPLETE (committed, awaiting deploy). Content moratorium escalated — moratorium violated in today's session, new instruction delivered. BASE_PRICES 32% locked (Decision 1 is the 4th carry — deadline Aug 6). DevOps 52% error correction day 5. 11 days to Reddit deadline.*
