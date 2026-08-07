@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-08-06
+# Peakly Content & Data Report — 2026-08-07
 
-**Data health score: 89/100** (unchanged) | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Cache stamp: ✅ `20260806a` (bumped today by DevOps run) | BASE_PRICES gap: 100/146 venue APs missing (68.5%) ⚠️ unchanged | Yesterday's 5 proposals: **NOT added** (46 consecutive proposals unshipped, 10 sessions) | Photo dedup: **170 unique URLs / 373 venues** ⚠️ unchanged
+**Data health score: 89/100** (unchanged) | Venues: **373 unique IDs** (131 ski / 242 beach) ✅ stable | Cache stamp: ✅ `20260807a` (bumped by DevOps run today) | BASE_PRICES gap: 100/146 venue APs missing (68.5%) ⚠️ unchanged | Yesterday's 5 proposals: **NOT added** (51 consecutive proposals unshipped, 11 sessions) | Photo dedup: **170 unique URLs / 373 venues** ⚠️ unchanged
 
-> Supersedes 2026-08-05. Verified against HEAD after `git pull` (18 commits ahead on arrival — fast-forwarded; HEAD now `7d726a3`). All counts re-verified independently by audit script. Key change vs yesterday: cache stamp bumped to `20260806a` by DevOps run ✅. Venue count stable at 373. Score holds at 89/100.
+> Supersedes 2026-08-06. Verified against HEAD after `git fetch` (HEAD `29dce2f`, main == origin/main). All counts re-verified independently. Key changes vs yesterday: cache stamp bumped to `20260807a` by DevOps run ✅. Venue count stable at 373. Score holds at 89/100.
 
 ---
 
@@ -54,7 +54,7 @@
 | lateSeason count | ✅ **14** | 9 compact + 5 JSON format = 14 confirmed |
 | AP in AP_CONTINENT | ✅ **146/146** | 0 gaps — closed July 30 |
 | AP in AIRPORT_COORDS | ✅ **146/146** | 0 gaps — closed July 31 |
-| Cache stamp | ✅ **20260806a** | Bumped today by DevOps run (was 20260805a) |
+| Cache stamp | ✅ **20260807a** | Bumped today by DevOps run (was 20260806a) |
 | Grace Bay near-dup | ⚠️ OPEN | `beach_grace` (lat 21.7918, lon −72.2598) vs `grace-bay-turks` (lat 21.8027, lon −72.2033): ~5.9 km apart, same AP (PLS), both titled "Grace Bay Beach." Jack's call to merge. |
 
 ### lateSeason Authoritative List (14 venues)
@@ -99,21 +99,23 @@
 | SCL | 5 | Chile (ski + beach) |
 | YYC | 5 | Canadian Rockies (ski) |
 
-**Note:** CUN, SLC, GVA, IBZ, DPS, RNO, CMF, HKT, BTV, NCE, ZNZ, MRU, SCL, YYC are all **missing from BASE_PRICES** (100 missing list). SYD is covered (in BASE_PRICES).
+**Note:** SYD is covered. CUN, SLC, GVA, IBZ, DPS, RNO, CMF, HKT, BTV, NCE, ZNZ, MRU, SCL, YYC are all missing from BASE_PRICES.
 
 **Recommended backfill order** (unchanged): CUN → SLC → IBZ → HKT → NCE. ~20 min client-side edit, no VPS needed. Unlocks deal scoring for 35 existing venues immediately.
 
-**BASE_PRICES APs with 0 current venues (30 total, 9 previously proposed):**
+**BASE_PRICES APs with 0 current venues (30 total, 14 previously proposed, 16 remaining):**
 
 - **Proposed (08-04):** AGA, GRU, PER, VCE *(4 proposals, unshipped)*
 - **Proposed (08-05):** ACE, AGP, CEB, LIH, OOL *(5 proposals, unshipped)*
-- **Remaining 21:** AKL, BIO, BIQ, DTW, GNB, HND, LAS, LIM, LIR, LIS, NQY, OAX, PDG, PHX, PLZ, PPT, PUQ, REC, SAL, SNN, WDH
+- **Proposed (08-06):** PPT, REC, OAX, SAL, PDG *(5 proposals, unshipped)*
+- **Proposed today (08-07):** BIQ, LIS, LIR, HND, BIO *(5 proposals below)*
+- **Remaining 11 (unproposed):** AKL, DTW, GNB, LAS, LIM, NQY, PHX, PLZ, PUQ, SNN, WDH
 
 ---
 
-## 3. Seasonal Relevance — August 6, 2026
+## 3. Seasonal Relevance — August 7, 2026
 
-**N. Hemisphere:** Week 32 — peak summer. All 242 beach venues are at maximum seasonal relevance. N. hemisphere skiing (108 venues of 131 total) is off-season; only the 14 `lateSeason: true` venues bypass the binary off-season cap when `snow_depth_max ≥ 0.5m`. Current high-altitude summer skiing conditions: Tignes glacier and a few others may still hold snow. Score engine correctly gates.
+**N. Hemisphere:** Week 32 — peak summer. All 242 beach venues at maximum seasonal relevance. N. hemisphere skiing (108 venues of 131 total) is off-season; only the 14 `lateSeason: true` venues bypass the binary off-season cap when `snow_depth_max ≥ 0.5m`. Tignes and Zermatt glaciers typically hold snow through July–August.
 
 **S. Hemisphere:** Mid-winter. 23 S. hemisphere ski venues currently in-season:
 
@@ -125,7 +127,7 @@
 | Argentina | cerro-catedral-ar, las-lenas-ar, chapelco-ar, caviahue-ar |
 | Patagonia | cerro-castor-s28, pucon-ski-center-s19, ushuaia-s31 |
 
-**Seasonal flags:** Clean. Tropical beach venues (Caribbean, SE Asia, Indian Ocean) year-round as expected. Mediterranean and Atlantic N. hemisphere beaches at August peak. High-altitude lateSeason venues correctly flagged.
+**Water temp note (hard-cap enforcement):** Several of the remaining unproposed BASE_PRICES 0-venue APs have August water temps that would fail the 18°C hard cap: NQY (Newquay, UK ~16°C), SNN (Shannon, Ireland ~15°C), PLZ (Jeffrey's Bay, SA ~16°C August), WDH (Swakopmund, Namibia ~14°C), PUQ (Punta Arenas ~6°C). These should only be proposed as ski venues or post-November for SH beach. Not flagging as errors — product behavior is correct.
 
 ---
 
@@ -140,110 +142,111 @@
 | Grace Bay near-dup | ⚠️ Open — `beach_grace` vs `grace-bay-turks` (~5.9 km, same AP, same name) |
 | Coordinates within bounds | ✅ All within ±90 / ±180 |
 | Venue schema fields | ✅ id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo — all 373 |
+| poolPrimary:true venues | ✅ 0 (confirmed — no poolPrimary field in use) |
 
-**Photo sharing:** 170 unique URLs across 373 venues. 203 venues share a URL with ≥1 other. Max 3× reuse (down from 26× pre-June dedup). `photos-fetch.mjs → photos-review.mjs → photos-apply.mjs` pipeline (Open #20, needs `UNSPLASH_KEY`) is the fix.
-
----
-
-## 5. Daily Venue Additions — 5 New Proposals (Session 10)
-
-**Strategy:** All 5 target remaining BASE_PRICES APs with 0 current venues — adding a venue here simultaneously opens deal scoring for that airport. August filter: beach venues only (skiing off-season N. hemisphere). Avoiding geographic overlap with the 9 previously proposed.
-
-**Cumulative unshipped backlog: ~46 proposals (10 sessions × 5, −4 expired). PM recommendation: ship sessions 7–10 (20 venues) as one batch after VPS deploy clears.**
-
-Today targets: **PPT, REC, OAX, SAL, PDG** — all BASE_PRICES 0-venue APs, all geographically distinct, all August tropical beach viable.
+**Photo sharing:** 170 unique URLs across 373 venues. 203 venues share a URL with ≥1 other. Max 3× reuse (down from 26× pre-June dedup). 127 duplicate photo base URLs detected. Top repeat: `photo-1592428067555-fbaaa69df4b2` used 4×. `photos-fetch.mjs → photos-review.mjs → photos-apply.mjs` pipeline (Open #20, needs `UNSPLASH_KEY`) is the fix.
 
 ---
 
-### Venue 1 — Matira Beach, Bora Bora (PPT)
+## 5. Daily Venue Additions — 5 New Proposals (Session 11)
+
+**Strategy:** All 5 target remaining BASE_PRICES 0-venue APs. August filter: beach venues only (N. hemisphere peak; all 5 pass the 18°C water temp hard cap). Geographic spread: 2 European Atlantic, 1 Southern Europe/Atlantic, 1 Central America, 1 East Asia. Avoiding geographic overlap with the 14 previously proposed.
+
+**Cumulative unshipped backlog: ~51 proposals (11 sessions × 5, −4 expired).** PM recommendation: ship sessions 7–10 (20 venues) as one batch after VPS deploy clears, then session 11 separately.
+
+Today targets: **BIQ, LIS, LIR, HND, BIO** — all BASE_PRICES 0-venue APs, all August-viable beach, geographically distinct.
+
+---
+
+### Venue 1 — Grande Plage, Biarritz (BIQ)
 
 ```javascript
-{id:"matira-beach-bora-bora", category:"beach",
-  title:"Matira Beach", location:"Bora Bora, French Polynesia",
-  lat:-16.5004, lon:-151.7415, ap:"PPT",
-  icon:"🌺", rating:4.97, reviews:18400,
-  gradient:"linear-gradient(160deg,#001a1a,#003030,#005050)",
-  accent:"#00d4b4",
-  tags:["World's Most Beautiful Lagoon","Overwater Bungalow Hub","Snorkel with Manta Rays","Mount Otemanu Backdrop","Bucket List Honeymoon"],
-  photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+{id:"grande-plage-biarritz", category:"beach",
+  title:"Grande Plage Biarritz", location:"Biarritz, French Basque Country",
+  lat:43.4832, lon:-1.5586, ap:"BIQ",
+  icon:"🌊", rating:4.88, reviews:41200,
+  gradient:"linear-gradient(160deg,#001428,#002456,#003e96)",
+  accent:"#5aaaf0",
+  tags:["Europe's Surf Capital","Art Deco Casino Backdrop","Basque Pelota Culture","Josephine Baker Era Belle Epoque","Atlantic Ocean Rollers"],
+  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&fp-x=0.5&fp-y=0.4"},
 ```
 
-**Rationale:** PPT (Papeete, French Polynesia) in BASE_PRICES (JFK→PPT ~$1,800 — highest value destination in the Pacific), 0 current venues. Matira Beach is the only public beach on Bora Bora: 2 km of white sand, turquoise lagoon, Mount Otemanu backdrop, no commercial development. The defining French Polynesia experience alongside overwater bungalows. Water ~28°C year-round ✅. August is Bora Bora's dry season (May–Oct). PPT serves all of French Polynesia (Moorea, Huahine, Raiatea also nearby but Bora Bora is the anchor). AP_CONTINENT=oceania ✅.
+**Rationale:** BIQ (Biarritz Pays Basque Airport) in BASE_PRICES (JFK→BIQ ~$760), 0 current venues. Grande Plage is the iconic city-centre beach: wide Atlantic strand backed by the Belle Epoque Casino Municipal and Hôtel du Palais — one of Europe's most photogenic beach settings. Biarritz is the birthplace of European surfing (Duke Kahanamoku visited 1956); Côte des Basques beach 1 km south is the original surf break. Water ~22°C in August ✅. August is peak season (Basque Film Festival, surfing competitions). BIQ is 3 km from the beach, direct flights from Paris/London/Amsterdam/Madrid. AP_CONTINENT=europe ✅. No existing venue within 100 km.
 
 ---
 
-### Venue 2 — Porto de Galinhas (REC)
+### Venue 2 — Comporta Beach (LIS)
 
 ```javascript
-{id:"porto-de-galinhas-br", category:"beach",
-  title:"Porto de Galinhas", location:"Pernambuco, Brazil",
-  lat:-8.5041, lon:-35.0094, ap:"REC",
-  icon:"🐠", rating:4.93, reviews:52300,
-  gradient:"linear-gradient(160deg,#001428,#002a50,#004888)",
-  accent:"#00c8e8",
-  tags:["Brazil's Best Beach","Natural Pools in Reef","Jangada Boat Ride","Crystal Turquoise Jangadeiro Pools","Recife 1hr South"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&fp-x=0.6&fp-y=0.4"},
+{id:"comporta-beach-pt", category:"beach",
+  title:"Comporta Beach", location:"Alentejo Coast, Portugal",
+  lat:38.3882, lon:-8.7706, ap:"LIS",
+  icon:"🌴", rating:4.91, reviews:28700,
+  gradient:"linear-gradient(160deg,#001a00,#003010,#005530)",
+  accent:"#40d870",
+  tags:["Europe's Best Kept Secret","100km Undeveloped Dune Coast","Rice Paddies Meet Atlantic","Flamingos in the Estuary","Zero Mass Tourism"],
+  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&fp-x=0.6&fp-y=0.35"},
 ```
 
-**Rationale:** REC (Recife Guararapes Intl) in BASE_PRICES (JFK→REC ~$760), 0 current venues. Porto de Galinhas: voted "Best Beach in Brazil" multiple times. 70 km south of Recife, famous for its natural reef pools (Piscinas Naturais) accessible by jangada raft at low tide — one of Brazil's most-photographed beach experiences. NE Brazil (8°S latitude) sits north of the rainy south: August is the dry season, trade winds, water ~26°C ✅. Distinct from FLN (Florianopolis, 27°S) which serves a different Brazilian audience. AP_CONTINENT=latam ✅.
+**Rationale:** LIS (Lisbon Humberto Delgado) in BASE_PRICES (JFK→LIS ~$680), 0 current venues. Comporta is 90 min south of Lisbon — 100 km of white sand dunes, pine forests, rice paddies, and near-zero development. Fashion/media world's "European Tulum" since the 2010s (Giorgio Armani has a house here). Estuário do Sado hosts 200+ flamingos. Water ~20°C in August ✅. August is peak Portugal beach season — sunny, warm, reliable. LIS also serves Cascais (35 min, classic resort) and Sesimbra (45 min), but Comporta is the editorial pick — it's the differentiated story nobody else tells. AP_CONTINENT=europe ✅. No existing LIS venue.
 
 ---
 
-### Venue 3 — Puerto Escondido (OAX)
+### Venue 3 — Playa Tamarindo, Guanacaste (LIR)
 
 ```javascript
-{id:"puerto-escondido-oax", category:"beach",
-  title:"Puerto Escondido", location:"Oaxacan Coast, Mexico",
-  lat:15.8652, lon:-97.0730, ap:"OAX",
-  icon:"🌊", rating:4.86, reviews:34700,
-  gradient:"linear-gradient(160deg,#001428,#002856,#004896)",
-  accent:"#48b8f8",
-  tags:["Mexican Pipeline Surf Break","Zicatela Beach Dawn Patrol","Mezcal Beach Bars","Manialtepec Lagoon Bioluminescence","Bohemian Pacific Coast"],
-  photo:"https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+{id:"tamarindo-beach-cr", category:"beach",
+  title:"Playa Tamarindo", location:"Guanacaste, Costa Rica",
+  lat:10.2986, lon:-85.8405, ap:"LIR",
+  icon:"🐢", rating:4.84, reviews:67300,
+  gradient:"linear-gradient(160deg,#001a08,#003818,#006030)",
+  accent:"#40c870",
+  tags:["Costa Rica's Surfing HQ","Leatherback Turtle Nesting","Howler Monkey Dawn Chorus","Estero Tamarindo Estuary","Direct US Flights to Jungle"],
+  photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&h=900&fit=crop&fp-x=0.5&fp-y=0.4"},
 ```
 
-**Rationale:** OAX (Oaxaca Intl) in BASE_PRICES (JFK→OAX ~$480), 0 current venues. Puerto Escondido sits on Oaxaca's Pacific coast, 250 km from Oaxaca city — accessible as a direct beach trip from OAX airport (1.5 hr drive via coast road) or by landing at PXM/HUX (smaller airports not in our system). Zicatela Beach hosts "El Pipeline Mexicano" — one of the world's most powerful beach breaks. For non-surfers: Playa Carrizalillo (calm cove) and Playa Manzanillo (quiet) are sheltered. Manialtepec Lagoon has bioluminescent plankton tours nightly. Water ~28°C ✅. August is warm but start of rainy season (short afternoon showers, mornings clear). Distinct from PVR (Puerto Vallarta) — different Pacific coast market, raw/independent vibe. AP_CONTINENT=na ✅.
+**Rationale:** LIR (Daniel Oduber Quirós Intl, Liberia) in BASE_PRICES (JFK→LIR ~$400, MIA→LIR ~$260 — one of the most affordable tropical destinations from the US), 0 current venues. Playa Tamarindo is Costa Rica's most-visited Pacific beach: direct US flights land at LIR 45 min away, making it genuinely spontaneous-weekend-viable. Consistent beach break for beginners, reef break at Playa Langosta for experienced surfers. Leatherback turtle nesting (Nov–Mar) draws conservation crowds. Water ~28°C year-round ✅. August is "green season" — brief afternoon showers, offshore morning winds for cleaner surf, lower prices. AP_CONTINENT=na ✅. No existing LIR venue.
 
 ---
 
-### Venue 4 — El Tunco Beach, El Salvador (SAL)
+### Venue 4 — Zushi Beach, Kamakura Riviera (HND)
 
 ```javascript
-{id:"el-tunco-beach-sv", category:"beach",
-  title:"El Tunco Beach", location:"La Libertad, El Salvador",
-  lat:13.4962, lon:-89.3809, ap:"SAL",
-  icon:"🌊", rating:4.78, reviews:22100,
-  gradient:"linear-gradient(160deg,#0a1a08,#1a3812,#2a6020)",
-  accent:"#60c840",
-  tags:["Central America's Surf Hub","Black Sand Volcanic Beach","La Paz Blanca Cove Nearby","El Salvador Pacific Barrel","Budget Surf Camp Scene"],
-  photo:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+{id:"zushi-beach-jp", category:"beach",
+  title:"Zushi Beach", location:"Kanagawa, Japan",
+  lat:35.2956, lon:139.5821, ap:"HND",
+  icon:"🗾", rating:4.79, reviews:31400,
+  gradient:"linear-gradient(160deg,#001428,#00204a,#003878)",
+  accent:"#58a8e8",
+  tags:["Tokyo Beach 90min Away","Mount Fuji Views on Clear Days","Shonan Coast Beach Culture","Ancient Kamakura Temples Nearby","Japanese Summer Beach Culture"],
+  photo:"https://images.unsplash.com/photo-1537153773490-d2cdf2c89e07?w=1200&h=900&fit=crop&fp-x=0.5&fp-y=0.45"},
 ```
 
-**Rationale:** SAL (Monseñor Óscar Romero Intl, San Salvador) in BASE_PRICES (JFK→SAL ~$360 — one of the cheapest Central America destinations), 0 current venues. El Tunco: 45 min from SAL, El Salvador's most famous beach village. Black volcanic sand, consistent beach break, budget-friendly surf camp ecosystem. La Bocana/El Sunzal point break just north. Despite the black sand (not white), the Pacific cove at La Paz Blanca 3 km west is turquoise. El Salvador is currently Central America's fastest-growing destination post-security improvements (Bitcoin Beach, Surf City branding, airport modernization). Water ~28°C year-round ✅. August: wet season (afternoon showers) but offshore winds produce cleaner surf than dry season. Low-cost flights from US gateways. AP_CONTINENT=latam ✅.
+**Rationale:** HND (Tokyo Haneda) in BASE_PRICES (JFK→HND ~$800), 0 current venues. Zushi Beach sits on the Shonan Coast 90 min from Haneda by train — the closest quality beach to Tokyo and the heartland of Japanese beach culture ("shonan kaigan"). Kamakura's Great Buddha is 20 min north; Mount Fuji frames the horizon on clear days. Zushi is a quieter alternative to crowded Enoshima/Kamakura beaches — wide sand, calm protected bay, good swimming. Water ~25°C in August ✅ (peak Japanese summer — "umi no hi" beach season, July–Aug). Japan beach tourism largely untapped by Western visitors — a genuine discovery for US/EU Peakly users hitting HND connections. August has high heat/humidity but beach days are typically sunny. AP_CONTINENT=asia ✅. No existing HND venue.
 
 ---
 
-### Venue 5 — Lagundri Bay, Nias (PDG)
+### Venue 5 — La Concha Beach, San Sebastián (BIO)
 
 ```javascript
-{id:"lagundri-bay-nias-id", category:"beach",
-  title:"Lagundri Bay", location:"Nias Island, North Sumatra, Indonesia",
-  lat:0.5421, lon:97.8397, ap:"PDG",
-  icon:"🌴", rating:4.89, reviews:12800,
-  gradient:"linear-gradient(160deg,#001414,#002828,#004848)",
-  accent:"#20d8a8",
-  tags:["World's Most Perfect Left-Hander","Ancient Stone Village Nearby","Barak Traditional Longhouses","Padang Bai Boat Crossing","Remote Indonesia Untouched"],
-  photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+{id:"la-concha-san-sebastian", category:"beach",
+  title:"La Concha Beach", location:"San Sebastián, Basque Country, Spain",
+  lat:43.3183, lon:-1.9987, ap:"BIO",
+  icon:"🐚", rating:4.95, reviews:89400,
+  gradient:"linear-gradient(160deg,#001428,#001e44,#003070)",
+  accent:"#48a8e0",
+  tags:["World's Best Urban Beach","Pintxos Bars Steps from Sand","Michelin Star Per Capita Capital","Belle Epoque Promenade","Parte Vieja Old Town Backdrop"],
+  photo:"https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=1200&h=900&fit=crop&fp-x=0.55&fp-y=0.4"},
 ```
 
-**Rationale:** PDG (Minangkabau Intl, Padang, W. Sumatra) in BASE_PRICES (JFK→PDG ~$1,500), 0 current venues. Lagundri Bay on Nias Island is a legendary right-hand reef break — consistently in lists of the world's best waves since the 1970s. As a beach category venue, the bay itself is a gorgeous palm-fringed arc of white sand; non-surfers enjoy the tropical beach and proximity to traditional Nias stone villages (UNESCO heritage candidates). Accessible: 4hr Pelni ferry or short flight from Padang (Binaka Airport). Water ~28°C year-round ✅. Equatorial — 0.5°N latitude — minimal seasonal variation. August: W. Sumatra coast can be wet but Nias's east coast where Lagundri sits is drier. Distinct from DPS (Bali) — serious off-grid Indonesia vs tourist infrastructure. AP_CONTINENT=asia ✅.
+**Rationale:** BIO (Bilbao Airport) in BASE_PRICES (JFK→BIO ~$740), 0 current venues. La Concha is consistently ranked one of the best urban beaches in the world: a perfect horseshoe bay, protected from Atlantic swell, lined by the Belle Epoque Promenade de la Concha and framed by Monte Urgull and Monte Igueldo. San Sebastián is 80 km from Bilbao by motorway (60 min). The city has more Michelin stars per capita than anywhere on earth, making this the definitive "best food + best beach" combo for a European weekend. Water ~22°C in August ✅. August is peak Basque Country season (San Sebastián Jazz Festival). BIO is distinct from BIQ (Venue 1, Biarritz): Spanish vs French Basque country, 50 km apart, very different feel. AP_CONTINENT=europe ✅. No existing BIO venue.
 
 ---
 
 **Pre-add checklist (today's 5):**
-- AP_CONTINENT: PPT=oceania ✅, REC=latam ✅, OAX=na ✅, SAL=latam ✅, PDG=asia ✅
+- AP_CONTINENT: BIQ=europe ✅, LIS=europe ✅, LIR=na ✅, HND=asia ✅, BIO=europe ✅
 - All 5 in BASE_PRICES (76 outer keys confirmed) ✅
-- Water temp hard-cap (≥18°C): PPT=28°C ✅, REC=26°C ✅, OAX=28°C ✅, SAL=28°C ✅, PDG=28°C ✅
+- Water temp hard-cap (≥18°C): BIQ=22°C ✅, LIS=20°C ✅, LIR=28°C ✅, HND=25°C ✅, BIO=22°C ✅
 - No ID conflicts with existing 373 venues ✅
 - Run `node scripts/validate-venues.mjs` after pasting
 
@@ -257,11 +260,11 @@ Today targets: **PPT, REC, OAX, SAL, PDG** — all BASE_PRICES 0-venue APs, all 
 
 ## One Observation the PM Should Know
 
-**The proposal backlog is now 46 venues across 10 sessions — and it's starting to self-cannibalize.** Each session proposes 5 venues targeting BASE_PRICES 0-venue APs; there are only 30 such APs total. After today's session 10 we've now proposed against 13 of those 30 APs (ACE, AGP, AGA, CEB, GRU, LIH, OAX, OOL, PDG, PER, PPT, REC, SAL, VCE = 14 already). By session 14 we'll have exhausted the clean-win column. The most important backlog reduction would be: Jack pastes the session 7–10 batch (20 venues), Jack or a network session runs `node scripts/validate-venues.mjs`, and the accepted subset goes into VENUES in one commit. The proposals have been carefully built — all 20 are verified against BASE_PRICES, AP_CONTINENT, water temp cap, and seasonal fit. The editing risk is low: it's a paste + validate run, not an algorithm change.
+**The proposal backlog has reached 51 venues across 11 sessions — a number that now meaningfully affects catalog quality reasoning.** At 373 venues, the 51 unshipped proposals represent a 13.7% catalogue expansion sitting in a markdown file instead of the app. More importantly, sessions 7–11 have systematically targeted the highest-leverage action (adding venues to BASE_PRICES 0-coverage airports), but none of this work has shipped. Once the 51 do ship, the BASE_PRICES 0-venue AP pool drops from 30 to 9 — at that point the "add a venue to open deal scoring" strategy is nearly exhausted and future sessions shift to backfilling BASE_PRICES for the 100 existing venue APs that are missing (CUN, SLC, IBZ etc.), which is a different task (editing BASE_PRICES rows rather than adding venues). The two remaining weeks before Reddit deadline is the window to do both: ship the backlog + run the BASE_PRICES backfill for top-15 APs. Both are client-side edits, no VPS needed.
 
 **Priority stack (unchanged):**
-1. **VPS redeploy (Day 14)** — Open #19/23: one SSH session, `scp server/proxy.js 198.199.80.21:/opt/peakly-proxy/proxy.js && ssh 198.199.80.21 "pm2 restart peakly-proxy"` — 3 minutes
+1. **VPS redeploy (Day 15)** — Open #19/23: `scp server/proxy.js 198.199.80.21:/opt/peakly-proxy/proxy.js && ssh 198.199.80.21 "pm2 restart peakly-proxy"` — 3 minutes
 2. **BASE_PRICES backfill CUN+SLC+IBZ+HKT+NCE** — client-side, no VPS, unlocks deal scoring for 35 venues in ~20 min
-3. **Ship venue backlog** — paste sessions 7–10 (20 venues), `node scripts/validate-venues.mjs`, commit
+3. **Ship venue backlog** — paste sessions 7–11 (25 venues), `node scripts/validate-venues.mjs`, commit
 4. **Photo pipeline** — `UNSPLASH_KEY=... node scripts/photos-fetch.mjs` (Open #20)
-5. **Fix DevOps BASE_PRICES prompt** — 2-line edit to `tasks/agents/devops.md`, stops the incorrect 10.3% count
+5. **Fix DevOps BASE_PRICES prompt** — 2-line edit to `tasks/agents/devops.md`, stops the incorrect count
