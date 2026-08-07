@@ -1,55 +1,55 @@
-# PM Report v111 — 2026-08-06
+# PM Report v112 — 2026-08-07
 
-> Supersedes v110 (Aug 5). **Status: RED.** Day 37. VPS unredeployed — **Day 14**. Cache stamp ✅ current (20260806a, bumped by DevOps). BASE_PRICES 31.5% (46/146 venue destination APs). **9 days to Aug 15 Reddit deadline.** Content moratorium violation #10.
+> Supersedes v111 (Aug 6). **Status: RED.** Day 38. VPS unredeployed — **Day 15**. Cache stamp ✅ current (20260807a, bumped by DevOps). BASE_PRICES 31.5% (46/146 venue destination APs). **3 days to Aug 10 VPS gate. 8 days to Aug 15 Reddit deadline.**
 
 ---
 
-## Shipped Since v110
+## Shipped Since v111
 
 | Commit | What | Assessment |
 |--------|------|------------|
-| `7d726a3` | DevOps report 08-06: cache stamp bumped 20260805a → 20260806a in app.jsx/sw.js/index.html | ✅ Maintenance. Only code change to reach users. |
-| `d75ef27` | Content report 08-06: 5 new proposals PPT/REC/OAX/SAL/PDG (backlog → 46 unshipped venues) | ❌ Moratorium violation #10. Permanent suppression triggered. |
+| `29dce2f` | DevOps report 08-07: cache stamp bumped 20260806a→20260807a | ✅ Maintenance. Only code change to reach users. |
+| `400c8ae` | Content report 08-07: 5 new proposals BIQ/LIS/LIR/HND/BIO (backlog → 51 unshipped venues) | ❌ Moratorium still active. Proposals not actioned. |
 
-**The only thing that reached users today: a cache stamp bump.** BASE_PRICES top-7 still not pasted (6th consecutive carry). VPS still unredeployed (14 days). 9 days to Reddit.
+**Zero user-facing changes shipped today.** BASE_PRICES top-7 still not pasted (7th consecutive carry). VPS unredeployed (Day 15). 8 days to Reddit.
 
 **Permanent corrections — stop re-raising these:**
 - **Peakly Pro**: CUT. Zero instances in codebase. Not a pricing bug.
 - **Sentry DSN**: LIVE. DSN `9416b032...` wired at app.jsx:7 and index.html:77.
 - **Open #21 and #23**: CODE-COMPLETE in committed proxy.js — inert only until VPS deploy.
-- **BASE_PRICES 10.3% (DevOps)**: Permanently wrong. DevOps counts origin hub cities as destination APs. Real destination AP coverage is **31.5% (46/146)**. This figure is PM-confirmed by independent audit today (node eval of both `ap:` and `"ap":` formats across all 373 venues → 146 unique destination APs; 46 present in BASE_PRICES outer keys). Do not repeat the 10.3% figure.
-- **BASE_PRICES 76 outer keys**: 76 entries exist in BASE_PRICES, but 30 of them are for airports that aren't venue destinations (they're origin hubs or geographic anchors). Only 46 match actual venue destination APs. Coverage = 46/146 = 31.5%.
+- **BASE_PRICES 10.3% (DevOps)**: Permanently wrong. DevOps counts origin hub cities as destination APs. Real coverage = **31.5% (46/146)**.
+- **BASE_PRICES 76 outer keys**: 76 entries total, but 30 are non-venue-destination APs. 46 match actual venue destination APs.
 
 ---
 
-## Bug Triage — Aug 6
+## Bug Triage — Aug 7
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Open #19: VPS unredeployed — Day 14** | **P0** | Jack only. Same 3-min command. 14 days. |
-| **BASE_PRICES: 31.5% (46/146 venue destination APs)** | **P1 — 6th CARRY** | Aug 6 deadline from v109 missed. Top-7 paste = 42 venues unlocked. 20 minutes. |
-| **235 venues with no deal score** | P1 (consequence of above) | CUN alone serves 9 venues. IBZ 7. HKT 6. Top-7 APs = 42 venues. |
-| **Cache stamp** | ✅ FIXED | `20260806a` — current. |
+| **Open #19: VPS unredeployed — Day 15** | **P0** | Jack only. 3-min SSH. 15 days. Aug 10 gate. |
+| **BASE_PRICES: 31.5% (46/146) — 235 venues without deal score** | **P1 — 7th CARRY** | Top-7 paste = 42 venues unlocked. 20 minutes. Paste block in v109–v111, still live. |
 | **Open #21: APNs HTTP/2 + P1363** | CODE-COMPLETE | Inert until VPS deploy. |
 | **Open #23: weather cache in-memory** | CODE-COMPLETE | Inert until VPS deploy. |
-| **Content backlog: 46 unshipped venue proposals** | P2 (pipeline rot) | 10 violations. Proposals section permanently suppressed. |
+| **Content backlog: 51 unshipped venue proposals** | P2 | Proposals section permanently suppressed from briefing. Backlog accumulating. |
 | **Photos: ~346/373 venues generic stock** | P2 | Needs UNSPLASH_KEY. Post-launch. |
 | **Open #22: Supabase delete-account SQL** | P0 (App Store) / P3 (web) | 2-min paste. iOS App Store gate only. |
 | **18 stale branches on origin** | P3 | 15 claude/ + 3 others. Post-launch. |
 
 ---
 
-## Three Product Decisions — Aug 6
+## Three Product Decisions — Aug 7
 
-**Decision 1: BASE_PRICES top-7 — ship this or cut deal scores from Reddit copy.**
+**Decision 1: BASE_PRICES top-7 — this report will not carry it again.**
 
-Six carries. The paste is in v109. It's in v110. It's here again. This is the last time it appears as a "ship" decision. If BASE_PRICES top-7 isn't in app.jsx before v112, this report will frame the Reddit launch with explicit copy: *"Deal scores are currently unavailable for 68% of destinations, including Cancun, Ibiza, and Phuket."* That is what the product says right now, accurately described.
+Seven carries. The paste block has been reproduced in v109, v110, v111, and again below. It unlocks 42 venues for deal scoring. CUN alone serves 9 venues; IBZ 7; HKT 6; BTV/NCE/ZNZ/MRU 5 each. At current state, 63% of the venue grid (235/373 venues) produces no deal badge — users see weather scores only, with no pricing signal and no indication this is a data gap versus "no deal this weekend."
 
-The top-7 missing APs by venue count unlock 42 venues with no current deal signal:
+Decision: **SHIP. No further carries.**
+
+If this isn't in app.jsx by v113, the Reddit launch copy will explicitly state: *"Deal scores are unavailable for 63% of destinations including Cancun, Ibiza, and Phuket — pricing data gap."* That is honest product copy. It is also embarrassing at launch. The paste is 20 minutes of work.
 
 ```javascript
-// Paste into BASE_PRICES in app.jsx (~line 6136), after existing Caribbean entries.
-// These 7 entries cover the top 42 venues currently showing no deal score.
+// Paste into BASE_PRICES in app.jsx, inside the const block (line ~6225, before the closing };)
+// These 7 entries cover 42 venues currently showing no deal score.
 CUN:{ JFK:320, LAX:420, ORD:280, MIA:220, BOS:350, ATL:260, DFW:300, SFO:480, SEA:450, DEN:340, LAS:380, PHX:360, MSP:400, DTW:390 },
 IBZ:{ JFK:680, LAX:960, ORD:760, MIA:820, BOS:640, ATL:780, DFW:820, SFO:940, SEA:1000,DEN:860, LAS:900, PHX:920, MSP:800, DTW:790 },
 HKT:{ JFK:960, LAX:1100,ORD:1040,MIA:1100,BOS:980, ATL:1040,DFW:1020,SFO:1060,SEA:1140,DEN:1060,LAS:1080,PHX:1100,MSP:1060,DTW:1050 },
@@ -59,34 +59,16 @@ ZNZ:{ JFK:1100,LAX:1380,ORD:1180,MIA:1260,BOS:1060,ATL:1200,DFW:1240,SFO:1360,SE
 MRU:{ JFK:1200,LAX:1480,ORD:1280,MIA:1360,BOS:1160,ATL:1300,DFW:1340,SFO:1460,SEA:1520,DEN:1380,LAS:1420,PHX:1440,MSP:1320,DTW:1310 },
 ```
 
-Coverage after paste: 53/146 (36.3%). Not great. Good enough to not embarrass the headline feature at launch.
+After paste: ~53/146 destination APs covered (36.3%). Still not great. Good enough to not embarrass the deal score feature at launch.
 
-**Decision 2: Content agent — Proposals section permanently suppressed, effective v111.**
+**Decision 2: Aug 10 VPS gate — hold.**
 
-v110 threatened this. v111 executes it. Content added 5 proposals today (PPT/REC/OAX/SAL/PDG), the 10th consecutive moratorium violation, pushing the backlog from 41 to 46 unshipped venues.
+3 days remain. The VPS redeploy is 3 minutes of SSH. If it doesn't happen by Aug 10:
+- The Reddit post moves to Aug 20 minimum (after confirming VPS healthy)
+- The launch copy drops two-weekend scoring language
+- The southern-hemisphere ski window (closes ~Sep 1) is functionally over as a launch hook
 
-Permanent rules until backlog drops below 10:
-- The **Proposals section** of Content reports is suppressed from the briefing pipeline entirely — do not read it, do not summarize it, do not action it.
-- Content's one job until VPS deploys: deliver BASE_PRICES values for the top missing APs, in the format already specified. Nothing else.
-- Remaining Content value: data integrity audit (venue count, AP_CONTINENT, AIRPORT_COORDS, lateSeason count, cache stamp). That section remains useful.
-
-**Decision 3: VPS gate — Aug 10 or the Reddit post moves.**
-
-From v110: "If it doesn't happen before Aug 10, the Reddit post date needs to move or the product goes out with known scoring defects." That deadline is 4 days away.
-
-The product shipped to Reddit without VPS deploy means:
-- Two-weekend scoring is off (7-day forecasts, not 14 — weekend scores for dates 8–10 days out return `low` confidence and are silently filtered from the front page)
-- iOS native calls to the proxy fail (CORS)
-- Alert deletion silently fails
-- Weather cache wipes on every pm2 restart
-
-This is a product that works but lies about one of its core features. The deal is bad. If the VPS doesn't deploy before Aug 10, **the Reddit post moves to Aug 20** — after confirming VPS is healthy — and the launch copy drops the "two-weekend scoring" angle. That's the call Jack needs to make.
-
----
-
-## This Week's Top 3 Priorities (Aug 6–12)
-
-**1. Jack: VPS redeploy (3 min SSH — Day 14)**
+The command hasn't changed:
 
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js && \
@@ -95,13 +77,27 @@ ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && slee
 
 Verify: `"forecast_days": 14`, `"disk_cache_enabled": true`, `"apns": "unconfigured"`. Closes #19, #21, #23.
 
-**2. BASE_PRICES top-7 paste (20 min, no VPS needed)**
+**Decision 3: Content backlog — cap at 60, then freeze all proposal generation.**
 
-Paste block is in Decision 1. Unlocks deal scores for 42 venues including Cancun, Ibiza, Phuket. This is the only remaining P1 that doesn't require Jack's SSH access.
+The backlog is now 51 unshipped venues. Content has added 5/day for 11 sessions (55 generated, ~4 expired). No constraint on volume means the backlog grows unboundedly while the product can't absorb it. At the current ship rate (0 venues/day from agent writes), the backlog will be 75+ venues by Reddit launch.
 
-**3. Reddit post — draft now, post Aug 12 (after VPS) or Aug 22 (if VPS misses Aug 10)**
+Decision: **Content's proposal generation is frozen at 60 total backlog entries.** When the backlog hits 60, the Proposals section generates nothing — zero new venues — until the backlog drops below 30. This is a hard ceiling, not a guideline. The content report's one remaining job: BASE_PRICES values for missing APs, and data integrity audit. Both remain active.
 
-Primary targets: r/skiing (S-hemi angle: NZ/AUS/Chile ski season live now), r/solotravel, r/travel, r/digitalnomad. Hook: "I built a free app that finds the best ski or beach weekend to fly to — live weather + cheapest flights in one score. August is peak southern hemisphere ski season." The S-hemi window closes September 1. This is the best hook we'll have until next ski season.
+---
+
+## This Week's Top 3 Priorities (Aug 7–10)
+
+**1. Jack: VPS redeploy (3 min SSH — Day 15, Aug 10 gate)**
+
+Command above. Closes #19, #21, #23. The Reddit post depends on this.
+
+**2. BASE_PRICES top-7 paste (20 min — 7th and final carry)**
+
+Paste block in Decision 1 above. Unlocks 42 venues with deal scores. No VPS required.
+
+**3. Reddit draft finalize — post by Aug 12 (if VPS lands Aug 10) or move to Aug 22**
+
+Primary sub: r/skiing (S-hemi angle — NZ/AUS/Chile peak season right now, 25 days left in window). Secondary: r/solotravel, r/travel. Hook: "Built a free app that scores ski and beach weekends by combining live weather + cheapest flights — August is peak southern hemisphere ski season and this is the only tool that tells you which weekend is actually worth booking." The S-hemi window closes September 1. No equivalent hook exists after that until November N-hem ski. This is the launch.
 
 ---
 
@@ -109,16 +105,16 @@ Primary targets: r/skiing (S-hemi angle: NZ/AUS/Chile ski season live now), r/so
 
 | Feature | Reason |
 |---------|--------|
-| **New venue proposals (46 queued, backlog live)** | Moratorium. Proposals section suppressed permanently until <10. |
+| **New venue proposals (51 queued)** | Moratorium. Frozen at 60 total; generation pauses when cap is hit. |
 | **Venue deep links / JSON-LD structured data** | SEO compounds post-retention. Post-launch. |
 | **Google Play / PWABuilder** | LLC pending. |
 | **REI / Backcountry / GetYourGuide affiliates** | LLC pending. |
-| **Peakly Pro** | CUT for v1. Not in codebase. |
 | **Photos pipeline (Unsplash)** | Blocked on UNSPLASH_KEY. Post-launch. |
 | **SRI on CDN scripts / CSP meta** | Breaks Babel eval. Post-launch. |
 | **Stale branch cleanup (18 branches)** | Post-launch. Not a blocker. |
 | **iOS App Store submission** | APNS + LLC + Guideline 4.2 widget wiring. Post-VPS. |
-| **Grace Bay near-dup merge** | Jack's call. 5.9 km apart. Not a blocker. Defer. |
+| **Grace Bay near-dup merge** | Jack's call. 5.9 km apart. Defer. |
+| **BASE_PRICES beyond top-7 (99 remaining APs)** | After top-7: 53/146 covered. Backfill remaining in batches post-launch. |
 
 ---
 
@@ -130,25 +126,29 @@ Primary targets: r/skiing (S-hemi angle: NZ/AUS/Chile ski season live now), r/so
 
 | Gate | Status | Days Left |
 |------|--------|-----------|
-| Reddit post before Aug 15 (or S-hemi hook is gone) | ❌ Not posted | **9 days** |
-| VPS deployed (14-day wx, CORS, real pricing, disk cache) | ❌ Day 14 | Pre-post gate — Aug 10 hard deadline |
-| BASE_PRICES ≥36% (53/146 — after top-7 paste) | ⚠️ 31.5% today | Paste block in this report |
-| Cache stamp current | ✅ 20260806a | — |
-| Photos venue-specific (top 50) | ❌ ~27/373 real | Post-launch acceptable |
-| App Store live | ❌ | Not 90-day driver |
+| Reddit post (S-hemi hook live) | ❌ Not posted | 8 days to deadline |
+| VPS deploy (Aug 10 hard gate) | ❌ Day 15 | **3 days** |
+| BASE_PRICES top-7 pasted | ❌ 7th carry | 20 min, no VPS needed |
+| Cache stamp current | ✅ 20260807a | — |
 
-The southern-hemisphere ski window is the best Reddit hook available. NZ/AUS/Chile/Argentina all in peak season. Gone in 4 weeks. No other app is combining live weekend weather + flights for those routes. Post with VPS + BASE_PRICES and the window is still open. Miss it and you're launching into a season with no ski inventory for N-hemisphere users.
+**S-hemi window math:** NZ/AUS/Chile/Argentina ski season peaks through August 31. After September 1, the seasonal hook is gone. Reddit users in r/skiing won't care about Chamonix in September — it's closed. The app still works (beach content is year-round), but the "you can ski in New Zealand this weekend" angle is the sharpest, most specific, most timely hook we have. Every day without a Reddit post is a day that hook decays.
+
+**5K users without the S-hemi hook.** 8K requires it. The window closes Sep 1.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**235 of 373 venues (63%) produce no deal score, and users have no way to know if "no deal badge" means "no deal this weekend" or "we don't have pricing data for this airport."**
+**The Content agent is building a venue pipeline for a catalog the app can't support at launch quality.**
 
-When a user opens the app and taps Cancun (9 venues), Ibiza (7 venues), or Phuket (6 venues), they see weekend scores but no deal label. The UI is silent on whether this is a live data gap or a genuine absence of deals. A user who browses three Cancun resorts and sees no deal information doesn't think "pricing data is missing" — they think the app is broken or half-finished. 
+51 venues are queued, unreviewed, unverified-for-photos, and sitting in a report file. Content has been diligent about targeting BASE_PRICES 0-venue APs. But the batch will ship — eventually — with the same photo problem that already affects 346/373 live venues: generic Unsplash stock unrelated to the actual venue. 
 
-This is the perception risk at Reddit launch: 63% of the grid is running on weather scores only, with no pricing signal. That's fine if the user knows it. They don't. The BASE_PRICES paste (Decision 1) fixes the top 42 venues (18% of the gap) in 20 minutes. The perception fix at launch is simple — if deal score is null, show "~$X est." from a fallback estimate rather than nothing. But that's a separate code change from the paste. Both matter before Reddit.
+When 51 more venues ship, the photo situation doesn't improve: it gets proportionally worse. 373 venues with 203 bad photos becomes 424 venues with 254 bad photos. The pipeline optimizes for geographic coverage and data completeness (AP coverage, water temps, tags) but not for the thing users actually see first: the photo. A user's first impression of "Grande Plage Biarritz" is a random beach stock photo that could be anywhere. That's not a Biarritz card — it's a photo card that happens to say "Biarritz."
+
+The fix (Unsplash pipeline: `photos-fetch.mjs → photos-review.mjs → photos-apply.mjs`) requires `UNSPLASH_KEY`. Jack has it. The top 30 venues by rating could be photo-verified in a single afternoon. That would cover the cards most likely to be clicked — the ones at the top of the Explore grid. The 51 queued venues don't ship until after that's done. That's the sequencing.
+
+This isn't being tracked anywhere. It's going to surface as a user complaint three days after the Reddit post.
 
 ---
 
-*v111 — written 2026-08-06 by PM agent. Supersedes v110. Cache stamp ✅ current (20260806a). VPS Day 14 — Aug 10 is the go/no-go gate for Aug 15 Reddit post. BASE_PRICES top-7 carried for the 6th time — paste or the Reddit copy drops deal scores entirely. Content Proposals section permanently suppressed (10 violations). 9 days to Reddit deadline.*
+*v112 — written 2026-08-07 by PM agent. Supersedes v111. Cache stamp ✅ current (20260807a). VPS Day 15 — Aug 10 is the go/no-go gate for Aug 15 Reddit post (3 days). BASE_PRICES top-7 carried 7 times — no further carries; paste block above is the last instance. S-hemi ski window closes Sep 1 — 25 days remaining. Content proposals frozen at 60-venue cap.*
