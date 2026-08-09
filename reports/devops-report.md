@@ -1,8 +1,8 @@
-# DevOps Report — 2026-08-08 (RED) — Day 16 VPS Undeployed
+# DevOps Report — 2026-08-09 (RED) — Day 17 VPS Undeployed
 
 **Status: 🔴 RED**
 
-Day 16. VPS still running 2026-07-23 code. Two actionable changes shipped in this run: cache stamp bumped `20260807a → 20260808a` (lockstep across app.jsx/sw.js/index.html), and BASE_PRICES top-7 destination airports applied (PM v112 Decision 1 — CUN/IBZ/HKT/BTV/NCE/ZNZ/MRU). Both are live on main and will deploy via GitHub Actions. Zero new P0s found. The VPS redeploy remains the only thing that actually matters.
+Day 17. VPS still running 2026-07-23 code. Zero days left before the Aug 10 go/no-go gate. Two fixes shipped this run: cache stamp bumped `20260808a → 20260809a` (lockstep across app.jsx/sw.js/index.html), and BASE_PRICES S-hemi ski + Caribbean batch applied (PM v113 Decision 1 — CHC/BRC/MDZ/CPC/NQN/PLS/AXA/SXM — 17 venues unlocked for deal score). No new P0s. The VPS deploy is the only thing that matters — tomorrow the S-hemi ski window is 23 days from closing.
 
 ---
 
@@ -10,37 +10,39 @@ Day 16. VPS still running 2026-07-23 code. Two actionable changes shipped in thi
 
 | Check | Result |
 |-------|--------|
-| `app.jsx` lines | 13,732 |
-| `app.jsx` bytes | ~691 KB |
-| Cache stamp | `20260808a` ✅ (bumped this run) |
-| Plausible analytics | ✅ present, uncommented, correct domain |
-| CDN deps | React 18.3.1, Babel Standalone 7.29.7 — no SRI ⚠️ |
+| `app.jsx` lines | 13,742 |
+| `app.jsx` bytes | ~693 KB |
+| Cache stamp | `20260809a` ✅ (bumped this run) |
+| Plausible analytics | ✅ present, uncommented, correct domain (`j1mmychu.github.io/peakly`) |
+| CDN deps | React 18.3.1, Babel Standalone 7.29.7 — no SRI ⚠️ P2 |
 | Sentry DSN | ✅ live — `9416b032...` wired in index.html + app.jsx |
 | `loading="lazy"` on images | ✅ all `<img>` tags confirmed |
 | Venue count | 373 (131 ski / 242 beach) ✅ stable |
-| Brace balance | 5628/5628 ✅ |
-| Stale remote branches | ✅ **0** — only `origin/main` exists (resolved since last report) |
+| Brace balance | 5636/5636 ✅ |
+| Stale remote branches | 19 non-main branches on origin ⚠️ P1 (PM v113 Decision 2 — Jack review required) |
 
 ---
 
 ## 2. FLIGHT PROXY STATUS
 
-- **Proxy URL:** `https://peakly-api.duckdns.org` (HTTPS via Caddy + Let's Encrypt) — ✅ not HTTP
+- **Proxy URL:** `https://peakly-api.duckdns.org` (HTTPS via Caddy) — ✅ not HTTP
 - **Timeout:** 5s `AbortController` on every Travelpayouts fetch — ✅
 - **Retry logic:** 3 attempts with 429/5xx backoff — ✅
 - **Fallback:** catches all errors → returns `null` → scoring falls back to BASE_PRICES estimates — ✅
-- **VPS live state:** Unknown — no network egress in this sandbox. Last verified healthy 2026-07-24 (15 days ago).
+- **VPS live state:** Unknown — no network egress in this sandbox. Last verified healthy 2026-07-24 (16 days ago).
 
-**P0 — VPS redeploy, Day 16.** The server at `198.199.80.21` is running a 16-day-old snapshot of `server/proxy.js`. Every fix committed since 2026-07-23 is inert. This is the entire list:
+**P0 — VPS redeploy, Day 17. Aug 10 gate is TODAY.**
+
+The server at `198.199.80.21` is running 17-day-old code. Every fix below is committed to `main` and inert on the VPS:
 
 | Fix | Impact if undeployed |
 |-----|---------------------|
-| `forecast_days=14` (was 7 at both call sites) | Two-weekend scoring broken — client requests 14 days, server returns 7, second weekend scores are silent garbage |
-| `capacitor://localhost` in CORS | Every iOS native weather/flight call is blocked with no error surface |
+| `forecast_days=14` (was 7 at both call sites) | Two-weekend scoring broken — second weekend scores are silent garbage |
+| `capacitor://localhost` in CORS | Every iOS native weather/flight call blocked outright |
 | `DELETE` in CORS Allow-Methods | Alert deletion has silently returned 200 OK (OPTIONS blocked) since launch |
-| HTTP/2 APNs (`http2.connect` + `dsaEncoding: 'ieee-p1363'`) | Zero push notifications deliverable until deployed |
-| Disk cache persistence (`_loadCacheFromDisk`/`_saveCacheToDisk`) | pm2 restart wipes wx cache — cold spike after redeploy could hit Open-Meteo free tier |
-| Rate limiter reads last XFF entry | Anyone could forge X-Forwarded-For to bypass rate limiting |
+| HTTP/2 APNs (`http2.connect` + `dsaEncoding: 'ieee-p1363'`) | Zero push notifications deliverable |
+| Disk cache persistence (`_loadCacheFromDisk`/`_saveCacheToDisk`) | pm2 restart wipes wx cache — cold spike after redeploy could hit Open-Meteo free tier ceiling |
+| Rate limiter reads last XFF entry | Anyone can forge X-Forwarded-For to bypass rate limiting |
 
 **The deploy is 3 minutes:**
 
@@ -49,7 +51,9 @@ scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js && \
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && sleep 3 && curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool"
 ```
 
-Expected response after redeploy: `"forecast_days": 14`, `"disk_cache_enabled": true`, `"apns": "unconfigured"`.
+Expected after deploy: `"forecast_days": 14`, `"disk_cache_enabled": true`, `"apns": "unconfigured"`.
+
+This single command closes Open #19, #21 (APNs code path), and #23 (disk cache) simultaneously.
 
 ---
 
@@ -57,9 +61,9 @@ Expected response after redeploy: `"forecast_days": 14`, `"disk_cache_enabled": 
 
 - **Client path:** `_tryProxyWx()` (4s timeout) → direct Open-Meteo fallback — ✅ resilient
 - **Batch config:** BATCH_SIZE=100, THROTTLE_MS=500 — 373 venues = 4 batches — ✅ manageable
-- **Open-Meteo rate limit:** At <10 MAU, ~373 weather calls per user session. Free tier is 10K calls/day — safe until ~25 DAU. Proxy cache makes this irrelevant once VPS is redeployed.
-- **Marine API:** Beach-only (`v.category === 'beach'`) — ✅ not wasting calls on ski venues
-- **Disk cache (proxy.js):** `_saveCacheToDisk()` every 5 minutes on main, `_loadCacheFromDisk()` on startup. **Inert until VPS deploy.**
+- **Open-Meteo rate limit:** Free tier 10K calls/day. Safe until ~25 DAU. Proxy cache makes this a non-issue once VPS is redeployed.
+- **Marine API:** Beach-only (`v.category === 'beach'`) — ✅ no wasted calls on ski venues
+- **Disk cache (proxy.js):** `_saveCacheToDisk()` every 5 min on startup. **Inert until VPS deploy.**
 
 ---
 
@@ -72,74 +76,85 @@ Expected response after redeploy: `"forecast_days": 14`, `"disk_cache_enabled": 
 | Supabase anon key | ✅ Public-safe, RLS-gated — normal for client-side Supabase |
 | Sentry DSN | ✅ In client — normal, public-safe |
 | `.gitignore` | ✅ Covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.mobileprovision` |
-| Alert IDs | ✅ `crypto.randomUUID()` with `getRandomValues`/`Math.random()` fallback — committed |
-| Git log scan (last 10 commits) | ✅ No credentials — daily reports + cache stamp bumps only |
+| Alert IDs | ✅ `crypto.randomUUID()` with fallback — committed |
+| Git log scan (last 10 commits) | ✅ No credentials — daily reports + cache stamp bumps + BASE_PRICES only |
 | SRI on CDN scripts | ⚠️ P2 — React, ReactDOM, Babel loaded from unpkg with no integrity hash |
 
-**Open #21 (APNs security) — code-complete on main, undeployed:**
-- `server/proxy.js` uses `http2.connect` + `dsaEncoding: 'ieee-p1363'` — committed, inert
-- Alert IDs: `crypto.randomUUID()` — ✅ committed and live in app.jsx
-- Alerts API auth: still unauthenticated server-side. UUIDs shrink the brute-force surface to 2^122 but proper fix requires HMAC or user-token check on DELETE. Deferred — app isn't in production and APNS isn't live.
+**19 stale remote branches — security-adjacent concern.** The `claude/improve-scoring-system-XYGY6` branch contains unreviewed scoring rewrites (variance penalty + cap changes). If someone merges that without the documented algorithm critique, it violates CLAUDE.md explicitly. The `restore-appjsx` / `fix-appjsx-final` branches look like failed recovery attempts and should be confirmed-dead before any production incident.
 
-**P2 — No SRI on CDN scripts.** If unpkg is compromised or CDN-hijacked, users get arbitrary JS. Fix requires hashing the exact versions being loaded and adding `integrity=` attributes. Low probability, medium impact. Don't block launch over this.
+```bash
+# List all non-main remote branches with age:
+git for-each-ref --sort=-committerdate refs/remotes/origin/ --format='%(refname:short) %(committerdate:short)' | grep -v 'origin/main'
+```
 
-```html
-<!-- Example fix when ready — run this to get hashes: -->
-<!-- curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A -->
-<script crossorigin
-  src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-<hash-here>">
-</script>
+**P2 — No SRI on CDN scripts.** Medium risk, don't block launch over it.
+
+```bash
+# Get hashes when ready:
+curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
 ---
 
 ## 5. PERFORMANCE ANALYSIS
 
-**Production build (dist/) — what users on GitHub Pages actually get:**
+**Production build (what users on GitHub Pages get):**
 
 | Asset | Size |
 |-------|------|
-| `dist/app.min.js` (esbuild, Babel-free) | 457 KB |
+| `dist/app.min.js` (esbuild, Babel-free) | ~461 KB (estimated +2KB from BASE_PRICES additions) |
 | React 18.3.1 (CDN) | ~130 KB |
 | ReactDOM 18.3.1 (CDN) | ~140 KB |
 | Sentry SDK (deferred) | ~150 KB |
 | Supabase JS (lazy) | ~80 KB gzipped |
 
-**Total first-load blocking JS (production path): ~730 KB.** This is reasonable. The Babel standalone (~1MB) is only hit when loading `index.html` directly in dev mode — `dist/index.html` loads the pre-compiled `app.min.js` instead. Production users are fine.
+**Total first-load blocking JS (production): ~730 KB.** Reasonable. Babel standalone (~1MB) is dev-mode only — production loads `dist/app.min.js`.
 
-**Biggest performance bottleneck today:** Weather fetch waterfall. 373 venues × 1 API call each = 373 Open-Meteo calls per cold session. Even with batching (100/batch, 500ms throttle), a cold load with no proxy cache takes ~2s of network just for weather. This is solved by the VPS proxy cache, which is not yet deployed.
+**Biggest bottleneck:** Weather fetch waterfall on cold load. 373 venues × 1 API call each = 373 Open-Meteo calls. Batched at 100/500ms = ~2s of network. Fixed by VPS proxy cache — not yet deployed.
 
 **Images:** ✅ All `<img>` tags use `loading="lazy"`.
 
-**CDN versions — no action needed:**
+**CDN versions — current:**
 - React 18.3.1 — current stable
-- Babel Standalone 7.29.7 — current (7.29.x series)
+- Babel Standalone 7.29.7 — current
 
 ---
 
 ## 6. BASE_PRICES — PATCHED THIS RUN
 
-**This run applied PM v112 Decision 1 (no further carries).**
+**Applied PM v113 Decision 1 (S-hemi ski + Caribbean batch).**
 
-Before: 76 destination entries in BASE_PRICES, 46 matching actual venue destination APs (31.5% of 146).
-After: 83 destination entries, **49 matching actual venue destination APs** (37.6% of 133 directly counted).
+Before: 91 airport keys in BASE_PRICES (after yesterday's top-7 additions).
+After: 99 airport keys.
 
-7 airports added:
+8 airports added — 17 venues unlocked for deal scoring:
 
-| AP | Venue count | Example venues |
-|----|------------|----------------|
-| CUN | 9 | Cancun Beach, Tulum, Playa del Carmen |
-| IBZ | 7 | Ibiza, Formentera, Santa Eulalia |
-| HKT | 6 | Phuket, Karon Beach, Kata |
-| BTV | 5 | Stowe, Smugglers' Notch, Sugarbush, Bolton Valley |
-| NCE | 5 | Nice Riviera, Cannes, Monaco Beach |
-| ZNZ | 5 | Zanzibar, Nungwi, Paje |
-| MRU | 5 | Mauritius (multiple beaches) |
+| AP | Venues unlocked | Example |
+|----|----------------|---------|
+| CHC | 1 | Mt. Hutt / Cardrona (S-hemi ski, IN SEASON) |
+| BRC | 1 | Cerro Catedral / Bariloche (S-hemi ski, IN SEASON) |
+| MDZ | 1 | Las Leñas / Chapelco (S-hemi ski, IN SEASON) |
+| CPC | 1 | Caviahue / Copahue (S-hemi ski, IN SEASON) |
+| NQN | 1 | Neuquén ski region (S-hemi ski, IN SEASON) |
+| PLS | 4 | Grace Bay (Turks & Caicos) |
+| AXA | 4 | Shoal Bay East / Rendezvous Bay (Anguilla) |
+| SXM | 4 | Orient Bay (Sint Maarten) |
 
-**42 venues unlocked for deal score.** Brace balance verified: 5628/5628.
+**Coverage: 67/146 venue APs (45.9%).** The S-hemi ski venues driving the Reddit launch hook now have deal scoring. 79 venue APs remain uncovered.
 
-**Remaining gap: ~84 venue destination APs still without BASE_PRICES entries.** Coverage is ~37% of the universe. Still a visible product gap — users flying to those destinations see weather scores only, no deal badge. Top next targets by venue count (per prior analysis): `AUA`, `STT`, `SXM`, `BOB`, `JNX/JTR/JMK` (Greek islands), `KOA/OGG` (already covered), `PLS`, `MBJ`.
+**Remaining high-value gaps by venue count:**
+
+| AP | Estimated venues | Notes |
+|----|-----------------|-------|
+| AUA | 3+ | Aruba — high-traffic beach |
+| BOB | 3+ | Bora Bora — premium tier |
+| STT | 3+ | St. Thomas / USVI |
+| JNX/JTR/JMK | 6+ | Greek islands cluster |
+| KOA | 3+ | Kona, Hawaii (already have OGG/LIH — check if KOA covered) |
+| MBJ | 3+ | Montego Bay, Jamaica |
+| KUL | 2+ | Kuala Lumpur / Malaysia |
+| CMB | 2+ | Colombo / Sri Lanka |
 
 ---
 
@@ -150,15 +165,15 @@ After: 83 destination entries, **49 matching actual venue destination APs** (37.
 | Current (<10 MAU) | $6 DigitalOcean + $0 GitHub Pages = **$6** |
 | 1K MAU | $6 VPS + $0 Pages = **$6** (proxy cache absorbs load) |
 | 10K MAU | $12–18 VPS (resize to 2GB) + $0 Pages = **~$15** |
-| 100K MAU | $48 VPS (4GB) + $0 Pages + possible Open-Meteo Pro ($100+) = **~$150** |
+| 100K MAU | $48 VPS (4GB) + $0 Pages + Open-Meteo Pro ($100+) = **~$150** |
 
-**No optimization needed today.** The $6/month VPS handles everything under 10K MAU with proxy caching in place. Open-Meteo free tier (10K calls/day) is the first thing that breaks at scale — proxy cache prevents this for identical-coord venues, but at 100K DAU with diverse home airports the call count scales. Upgrade to Open-Meteo Pro (~$100/month) at that point.
+No optimization needed. VPS handles everything under 10K MAU once the proxy cache is live.
 
 ---
 
 ## 8. WHAT BREAKS FIRST AT SCALE
 
-The Open-Meteo free tier. At 10K MAU with ~25 DAU hitting the app simultaneously, the 2hr proxy cache means each unique (lat,lon) pair generates ~12 upstream calls/day. With 373 venues, that's ~4,476 calls/day — safely under 10K. But at 100K MAU with diverse user geographies, the 14-day forecast × 2 calls/venue (weather + marine for beach) = 746 calls per full cache expiry. If the cache cold-starts mid-traffic-spike (i.e., right after a VPS redeploy without disk persistence), 50 concurrent users could each trigger 373 calls = 18,650 calls in minutes — 86% over the daily free tier in one burst. **The disk persistence fix in proxy.js eliminates this entirely and takes 3 minutes to deploy.** It's already committed. The only thing preventing it from being live is the missing VPS redeploy.
+Still the Open-Meteo free tier ceiling on a cold cache restart. 373 venues × 2 calls/venue (weather + marine for beach) = 746 calls per full cache expiry. Cold-start during a traffic spike (e.g., right after a VPS redeploy without disk persistence) could trigger 18K+ calls in minutes at 50 concurrent users — 86% over the daily free tier in one burst. The disk persistence fix (`_saveCacheToDisk`/`_loadCacheFromDisk`) is committed to `server/proxy.js` and eliminates this cold-start risk entirely. It has been committed for 16 days. It is not deployed. The VPS redeploy fixes this in the same 3-minute window.
 
 ---
 
@@ -166,11 +181,14 @@ The Open-Meteo free tier. At 10K MAU with ~25 DAU hitting the app simultaneously
 
 | Action | Details |
 |--------|---------|
-| Cache stamp bumped | `20260807a → 20260808a` (app.jsx, sw.js, index.html) |
-| BASE_PRICES top-7 applied | CUN/IBZ/HKT/BTV/NCE/ZNZ/MRU — 42 venues unlocked for deal score |
-| Brace balance verified | 5628/5628 ✅ |
+| Cache stamp bumped | `20260808a → 20260809a` (app.jsx, sw.js, index.html) |
+| BASE_PRICES S-hemi ski + Caribbean batch | CHC/BRC/MDZ/CPC/NQN/PLS/AXA/SXM — 8 APs, 17 venues unlocked |
+| Brace balance verified | 5636/5636 ✅ |
+
+---
 
 ## Outstanding (Jack Only)
 
-1. **VPS redeploy** (3 min, SSH) — closes Open #19, #21, #23 simultaneously
-2. **Supabase delete-account SQL paste** — paste `server/sql/delete-account.sql` into Supabase SQL editor (App Store gate)
+1. **VPS redeploy — TODAY, Aug 10 gate** (3 min SSH) — closes Open #19, #21, #23 simultaneously
+2. **19 stale remote branches — review and close within 48h** — PM v113 Decision 2 — scoring branch must NOT merge without documented algorithm critique
+3. **Supabase delete-account SQL paste** — paste `server/sql/delete-account.sql` into Supabase SQL editor (App Store gate only)
