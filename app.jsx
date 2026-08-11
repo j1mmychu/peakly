@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260809a";
+const PEAKLY_BUILD = "20260811a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4863,6 +4863,14 @@ const VENUES = [
     accent:"#f0b0c0",
     tags:["Pink-Tinted Sand","Shallow Pink Lagoon","Most Searched Greek Beach","Wild Southwest Crete"],
     photo:"https://images.unsplash.com/photo-1560903510-6c52aadbfd44?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+  {id:"beach_poipu", category:"beach",
+    title:"Poipu Beach", location:"Kauai, Hawaii",
+    lat:21.8753, lon:-159.4685, ap:"LIH",
+    icon:"🏖️", rating:4.94, reviews:9800,
+    gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",
+    accent:"#33bbff",
+    tags:["Horseshoe Bay","Monk Seal Sanctuary","Year-Round Sun","World-Class Snorkeling"],
+    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6154,6 +6162,7 @@ const BASE_PRICES = {
   DTW:{ JFK:180, LAX:340, SFO:320, ORD:120, MIA:240, SEA:340, BOS:180, ATL:200, DEN:260, DFW:240, LAS:310, PHX:330, MSP:160, DTW:80 },
   ORF:{ JFK:200, LAX:400, SFO:380, ORD:280, MIA:220, SEA:420, BOS:220, ATL:180, DEN:360, DFW:320, LAS:380, PHX:360, MSP:320, DTW:300 },
   // North America ski airports
+  ALB:{ JFK:180, LAX:420, SFO:400, ORD:240, MIA:260, SEA:460, BOS:120, ATL:220, DEN:320, DFW:300, LAS:400, PHX:380, MSP:300, DTW:280 },
   ASE:{ JFK:550, LAX:420, SFO:390, ORD:480, MIA:620, SEA:560, BOS:600, ATL:590, DEN:160, DFW:480, LAS:340, PHX:360, MSP:520, DTW:510 },
   EGE:{ JFK:520, LAX:400, SFO:370, ORD:460, MIA:590, SEA:540, BOS:570, ATL:560, DEN:130, DFW:460, LAS:320, PHX:340, MSP:500, DTW:490 },
   JAC:{ JFK:500, LAX:380, SFO:360, ORD:440, MIA:580, SEA:340, BOS:560, ATL:550, DEN:240, DFW:440, LAS:340, PHX:360, MSP:480, DTW:470 },
