@@ -1,8 +1,8 @@
-# Peakly Content & Data Report — 2026-08-11
+# Peakly Content & Data Report — 2026-08-12
 
-**Data health score: 90/100** (stable) | Venues: **374 unique IDs** (131 ski / 243 beach) ✅ +1 from 08-11 DevOps (beach_poipu/LIH) | Cache stamp: `20260811a` | BASE_PRICES real coverage: **63/147 venue APs (43%)** | Photo dedup: **170 unique URLs / 374 venues**, max 3× reuse (within spec)
+**Data health score: 90/100** (stable — no regressions vs 08-11) | Venues: **374 unique IDs** (131 ski / 243 beach) | Cache stamp: `20260811v` | HEAD: `4cac27b` | BASE_PRICES real coverage: **63/147 venue APs (43%)** | Photo dedup: **170 unique URLs / 374 venues**, max 3× reuse (within spec)
 
-> Verified against HEAD `948d94b` (pulled from origin/main before run). All counts re-verified via node eval against app.jsx. +1 venue from DevOps 08-11 run (beach_poipu at LIH) — now 374 total. Note: DevOps report claimed 376 venues; authoritative eval count is **374**. brace balance: 5638/5638 ✅
+> Verified against HEAD `4cac27b` (pulled from origin/main before run). All counts re-verified via node eval against app.jsx. No venue count change vs 08-11 (still 374). Brace balance: 5437/5437 ✅
 
 ---
 
@@ -15,17 +15,17 @@
 | "7 categories are single-vendor stubs" | **Only skiing and beach exist.** All other categories retired. |
 | "GEAR_ITEMS" | **0 refs. Amazon cut for v1.** Stop permanently. |
 | "description field" | **No description field in venue schema.** Venues use title, location, tags. |
-| "lateSeason count = 9" | **14 confirmed today** via eval — whistler/chamonix/mammoth/abasin/tignes/cervinia/snowbird/zermatt/engelberg/verbier/val-thorens/les-deux-alpes-fr/saas-fee-ch/st-moritz-ch. Regex undercounts (format variation); always use eval. |
+| "lateSeason count = 9 (or any regex count)" | **14 confirmed via eval** — whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch. Regex undercounts due to format variation; always eval. |
 | "AP_CONTINENT gaps" | **CLOSED** — 147/147 ✅. Stop. |
 | "AIRPORT_COORDS gaps for venue APs" | **CLOSED** — 147/147 ✅. All venue APs covered. |
 | "BASE_PRICES 56.8% covered" | **CORRECTED — 43% (63/147) is real coverage.** |
-| "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** Stop. |
+| "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** VPS deployed 2026-08-11 (Jack SSH). Stop. |
 | "jackson-hole dup" | **FALSE POSITIVE.** Stop. |
 | "poolPrimary:true = 25" | **FALSE — 0 venues use poolPrimary.** Stop. |
 | "cancun-beach dup" | **FALSE — second occurrence is in PRESETS, not VENUES.** Stop. |
-| "banff dup / count = 374" | **374 is current count (post 08-11 DevOps).** Stop referencing 373. |
-| "Grace Bay near-dup" | **Two distinct entries at same AP (PLS), ~5.9 km apart.** Open — Jack's call. |
-| "EU AP mismatch batch blocked" | **FALSE POSITIVE from DevOps 08-11** — see Section 6 below. NAP/CAG/FAO/SPU/DLM/USM/MPH all correctly assigned. 28 venues currently blocked from deal scoring unnecessarily. |
+| "banff dup / count = 373" | **374 is current count.** Stop referencing 373. |
+| "Grace Bay near-dup" | **Two distinct entries at same AP (PLS), ~5.9 km apart.** Jack's call — do not auto-resolve. |
+| "EU AP mismatch batch blocked" | **FALSE POSITIVE.** NAP/CAG/FAO/SPU/DLM/USM/MPH all correctly assigned. 28 venues currently lack deal scoring unnecessarily. |
 
 ---
 
@@ -39,7 +39,7 @@
 | JSON (`"category": "..."`) | 63 | 135 | 198 |
 | **TOTAL** | **131** | **243** | **374** |
 
-+1 vs 08-10: beach_poipu (LIH) added by DevOps 08-11.
+No change vs 08-11 (374).
 
 ### Structural Integrity
 
@@ -50,40 +50,47 @@
 | Missing airport codes (`ap`) | ✅ 0 | 374/374 have `ap:` field |
 | Missing photo URL | ✅ 0 | 374/374 have `photo:` URL |
 | Missing tags | ✅ 0 | 374/374 have non-empty `tags:` array |
+| Missing title | ✅ 0 | 374/374 have `title:` field |
+| Missing location | ✅ 0 | 374/374 have `location:` field |
+| Missing icon | ✅ 0 | 374/374 have `icon:` field |
+| Missing accent | ✅ 0 | 374/374 have `accent:` field |
+| Missing rating | ✅ 0 | 374/374 have `rating:` field |
+| Missing reviews | ✅ 0 | 374/374 have `reviews:` field |
 | Bad coordinates (out of bounds) | ✅ 0 | All lat/lon within ±90/±180 |
-| Duplicate photo URLs | ⚠️ 125 | Max reuse: 3× (within spec after June dedup) |
-| Unique photo URLs | ⚠️ 170 unique / 374 venues | Open #20 — generic stock, not venue-specific |
-| lateSeason:true venues | 14 | High-altitude ski resorts (eval count — regex shows 9, wrong) |
-| poolPrimary:true venues | 0 | None in catalog |
-| Brace balance | ✅ 5638/5638 | Clean |
+| Duplicate titles | ✅ 0 | No two venues share a title |
+| Photo max reuse | ✅ 3× | Within 3× spec (0 photos used 4+×) |
+| Unique photo URLs | ⚠️ 170 of 374 | Open #20 — generic stock, not venue-specific |
+| Tag count (min) | ⚠️ 2 tags | 227/374 venues have exactly 2 tags — functional but thin |
+| lateSeason:true | 14 | Correct eval count |
+| poolPrimary:true | 0 | None in catalog |
+| Brace balance | ✅ 5437/5437 | Clean |
 | AP_CONTINENT coverage | ✅ 147/147 | All venue APs mapped |
-| AIRPORT_COORDS coverage | ✅ 147/147 | All venue APs have coords (distance filter active for all) |
+| AIRPORT_COORDS coverage | ✅ 147/147 | All venue APs have coords |
 
 ---
 
 ## 2. BASE_PRICES Coverage Audit
 
-**Methodology:** count of venue `ap:` codes that appear as destination keys in BASE_PRICES, divided by total unique venue APs (147).
-
 | Metric | Value |
 |--------|-------|
-| BASE_PRICES destination keys (outer) | **92** |
+| BASE_PRICES destination keys | **92** |
 | Unique venue APs | **147** |
 | Venue APs IN BASE_PRICES | **63 (43%)** |
 | Venue APs MISSING from BASE_PRICES | **84 (57%)** |
-| BASE_PRICES APs with ZERO venues | **29** |
+| Venues with deal scoring active | **~202** |
+| Venues without deal scoring | **~172** |
 
 ### Top Missing APs by Venue Count (top 15)
 
 | AP | Venues | Notes |
 |----|--------|-------|
-| **NAP** | 4 | Naples — Positano/Amalfi/Capri/Procida. **DevOps 08-11 incorrectly blocked** |
-| **CAG** | 4 | Cagliari — 4 Sardinia venues. **DevOps 08-11 incorrectly blocked** |
-| **FAO** | 4 | Faro — 4 Algarve venues. **DevOps 08-11 incorrectly blocked** |
-| **SPU** | 4 | Split — 4 Croatia venues. **DevOps 08-11 incorrectly blocked** |
-| **USM** | 4 | Koh Samui — 4 Thailand venues. **DevOps 08-11 incorrectly blocked** |
-| **MPH** | 4 | Caticlan — 4 Boracay venues. **DevOps 08-11 incorrectly blocked** |
-| **DLM** | 4 | Dalaman — 4 Turkish coast venues. **DevOps 08-11 incorrectly blocked** |
+| **NAP** | 4 | Naples — Amalfi Coast gateway. **Incorrectly blocked by DevOps 08-11** |
+| **CAG** | 4 | Cagliari — Sardinia gateway. **Incorrectly blocked** |
+| **FAO** | 4 | Faro — Algarve gateway. **Incorrectly blocked** |
+| **SPU** | 4 | Split — Dalmatian islands gateway. **Incorrectly blocked** |
+| **USM** | 4 | Koh Samui — Thailand island gateway. **Incorrectly blocked** |
+| **MPH** | 4 | Caticlan — Boracay gateway (literally named that). **Incorrectly blocked** |
+| **DLM** | 4 | Dalaman — Turkish Aegean coast gateway. **Incorrectly blocked** |
 | CMB | 4 | Colombo, Sri Lanka |
 | GOI | 4 | Goa, India |
 | PHL | 4 | Philadelphia — NE US beach access |
@@ -93,51 +100,50 @@
 | UVF | 3 | St. Lucia |
 | TAB | 3 | Tobago |
 
-> **Top priority for DevOps next run:** unblock the 7 incorrectly-blocked EU/Asia APs (NAP/CAG/FAO/SPU/DLM/USM/MPH). Adding these 7 BASE_PRICES entries unlocks deal scoring for **28 venues immediately** — the single highest-ROI action available without adding a single new venue.
+> **Single highest-ROI action in the catalog:** Adding the 7 blocked APs (NAP/CAG/FAO/SPU/DLM/USM/MPH) to BASE_PRICES unlocks deal scoring for **28 venues immediately** — no new venues, no code changes, just 7 price entries. Lifts coverage from 43% → ~62%.
 
 ---
 
-## 3. Seasonal Relevance (Aug 11, 2026)
+## 3. Seasonal Relevance (August 12, 2026)
 
-| Season State | Category | Count | Action |
-|---|---|---|---|
-| ✅ **PEAK** | N-hemisphere beach | 188 venues | Scoring engine promotes; app is at its best right now |
-| ✅ **PEAK** | S-hemisphere skiing | 23 venues | Best Aug ski catalog — all now have BASE_PRICES ✅ |
-| ⚠️ **OFF-SEASON** | N-hemisphere skiing | 108 venues | Suppressed by scoring; 14 lateSeason venues may surface if snowpack ≥ 0.5m |
-| ⚠️ **OFF-SEASON** | S-hemisphere beach | 55 venues | Suppressed naturally |
+| State | Category | Count | Notes |
+|-------|----------|-------|-------|
+| ✅ **PEAK** | N-hemisphere beach | 188 | Full summer — app's strongest season |
+| ✅ **PEAK** | Tropical beach | 151 | Always-on subset of above |
+| ✅ **PEAK** | S-hemisphere skiing | 23 | Peak Jul–Sep; all 23 have ZQN/SYD/MEL/SCL/BRC/MDZ/CPC/NQN/CHC/CBR/USH/ZCO in BASE_PRICES ✅ |
+| ⚠️ OFF-SEASON | N-hemisphere skiing | 108 | Suppressed; 14 lateSeason venues may surface if snow_depth ≥ 0.5m |
+| ⚠️ OFF-SEASON | S-hemisphere beach | 55 | Naturally suppressed by scoring |
 
-**August is the app's peak month** — 188 N-hemisphere beach venues fully in season. No scoring intervention needed; the seasonal logic handles all hemisphere/category combinations correctly.
+**August is the app's peak month for its core use case.** 188 N-hemisphere beach venues fully in season. No intervention needed — scoring handles seasonal suppression correctly.
+
+Notable: all 23 S-hemisphere ski venues have BASE_PRICES coverage, making them competitive for anyone flying in from NZ/AU/South America. This is correct product behavior: the app surfaces the best available option globally, not just the user's hemisphere.
 
 ---
 
 ## 4. Content Quality
 
-No new structural issues found today. Known open items:
+### Thin Tags
+- **227/374 venues (61%) have exactly 2 tags.** The schema minimum appears to be 2; the scoring/filter logic uses tags as a search corpus and for "Powder Day" / specific experience filters. 2 tags is functional but reduces search discoverability.
+- No venues have 0 or 1 tags (enforced implicitly).
+- Venues with 4+ tags: 147/374 (39%).
 
-- **Photos (Open #20):** 170 unique / 374 venues — all generic category stock (powder mountain, tropical beach), not venue-specific. Worst user trust gap remaining. Fix requires `UNSPLASH_KEY=... node scripts/photos-fetch.mjs`. ~346 venues still generic.
-- **Tag depth:** 2–4 tags per venue depending on format. Acceptable for current use (search + filters).
-- **lateSeason venue count:** 14 (authoritative eval). Do NOT rely on regex counts — format variation causes undercounts. Always eval.
+### Photos (Open #20)
+- 170 unique URLs across 374 venues — all generic category stock, not venue-specific.
+- Max reuse: 3× (within spec post June dedup).
+- Jack confirmed this is the biggest remaining quality gap. Fix requires `UNSPLASH_KEY`.
+- ~346 venues still show category-generic imagery.
+
+### Ratings / Reviews
+- All 374 venues have ratings (4.00–4.99) and review counts (280–38,400).
+- No outlier concerns detected.
 
 ---
 
 ## 5. New Venue Proposals
 
-**Strategy today:** LIH activated (beach_poipu added by DevOps 08-11). The next-best "ideal" airports (BP + AC + APC, no venues) are LAS/PHX/DTW — only DTW has a legitimate August beach destination (Lake Michigan). For the other 4, proposing OOL/AGP/LIS/ACE (in BASE_PRICES already, need AIRPORT_COORDS entry to activate distance filter).
+**Today's strategy:** same 5 as 08-11 (none were added — DevOps was sandboxed). Repeating for continuity. DTW/Sleeping Bear Dunes is the only clean "ideal" addition (BASE_PRICES + AIRPORT_COORDS + AP_CONTINENT all covered, zero venues). The other 4 require AIRPORT_COORDS additions before activating.
 
-**Note:** OOL/AGP/LIS/ACE proposals have appeared in prior reports. The AIRPORT_COORDS entries are the only barrier — DevOps should add them in the same run as the EU BP batch unblock. Once added, distance filter activates for all 4 immediately.
-
-### AIRPORT_COORDS entries required for Venues 2–5 (paste into AIRPORT_COORDS object):
-
-```js
-OOL: [-28.1644, 153.5044],   // Gold Coast, Australia
-AGP: [36.6750, -4.4990],     // Málaga, Spain
-LIS: [38.7742, -9.1342],     // Lisbon, Portugal
-ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
-```
-
----
-
-### Venue 1 — Sleeping Bear Dunes, Lake Michigan (DTW) — **IDEAL: BP + AC + APC, no venue**
+### Venue 1 — Sleeping Bear Dunes, Lake Michigan (DTW) — CLEAN ADD, no AIRPORT_COORDS needed
 
 ```js
 {id:"beach_sleeping_bear", category:"beach",
@@ -146,13 +152,22 @@ ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
   icon:"🏖️", rating:4.91, reviews:11200,
   gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",
   accent:"#33aaee",
-  tags:["GMA's Best US Beach","Freshwater Dunes","Blue Waters","No Jellyfish"],
+  tags:["GMA's Best US Beach","Freshwater Dunes","Blue August Waters","No Jellyfish"],
   photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
 ```
 
-**Rationale:** DTW is fully ideal — BASE_PRICES, AIRPORT_COORDS, and AP_CONTINENT all covered, zero venues. Sleeping Bear Dunes was named #1 beach in the US by Good Morning America and has 100K annual visitors. August is peak season: 22°C water (freshwater — above the 18°C hard cap ✅), 8hr sun, zero humidity vs coastal alternatives. Covers the large Detroit/Midwest user segment with zero Peakly representation. Deal scoring activates immediately.
+> DTW is fully pre-wired (BASE_PRICES + AIRPORT_COORDS + AP_CONTINENT). Sleeping Bear Dunes was named #1 US beach by Good Morning America. August: 22°C water ✅ (above 18°C cap), 8h sun, freshwater. Large Detroit/Midwest segment with zero current representation.
 
 ---
+
+### AIRPORT_COORDS entries needed for Venues 2–5 (paste into AIRPORT_COORDS object first):
+
+```js
+OOL: [-28.1644, 153.5044],   // Gold Coast, Australia
+AGP: [36.6750, -4.4990],     // Málaga, Spain
+LIS: [38.7742, -9.1342],     // Lisbon, Portugal
+ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
+```
 
 ### Venue 2 — Surfers Paradise, Gold Coast (OOL)
 
@@ -167,11 +182,11 @@ ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
   photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"},
 ```
 
-**Rationale:** OOL is in BASE_PRICES and AP_CONTINENT (oceania). August is Queensland's best month: 25°C air, 21°C water ✅, 8h daily sun, low humidity. The app's S-hemisphere handling makes this the peak beach window. Requires `OOL: [-28.1644, 153.5044]` in AIRPORT_COORDS (above).
+> OOL in BASE_PRICES + AP_CONTINENT. August: 25°C air, 21°C water ✅, 8h sun. Peak S-hemisphere beach window. Requires OOL entry in AIRPORT_COORDS (above).
 
 ---
 
-### Venue 3 — Burriana Beach, Nerja, Costa del Sol (AGP)
+### Venue 3 — Burriana Beach, Nerja (AGP)
 
 ```js
 {id:"beach_nerja", category:"beach",
@@ -184,7 +199,7 @@ ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
   photo:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&h=600&fit=crop"},
 ```
 
-**Rationale:** AGP (Málaga) is in BASE_PRICES and AP_CONTINENT (europe). August is definitive peak for Málaga province: 22°C water ✅, 10+ hours sun. Nerja sits 55 km east of Málaga airport. AGP is one of Europe's highest-traffic holiday airports — major user segment with zero Peakly representation. Requires `AGP: [36.6750, -4.4990]` in AIRPORT_COORDS.
+> AGP in BASE_PRICES + AP_CONTINENT. August peak: 22°C water ✅, 10h sun. Nerja 55 km east of Málaga airport. Major European holiday corridor with zero Peakly representation. Requires AGP entry in AIRPORT_COORDS.
 
 ---
 
@@ -201,7 +216,7 @@ ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
   photo:"https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=800&h=600&fit=crop"},
 ```
 
-**Rationale:** LIS is in BASE_PRICES and AP_CONTINENT (europe). August = peak Portugal beach: 10+ hours sun, 20°C Atlantic water ✅. Cascais is 30 km west of Lisbon airport. Portugal is entirely absent from the catalog despite being one of Europe's top weekend-flight destinations from the UK/Germany. Requires `LIS: [38.7742, -9.1342]` in AIRPORT_COORDS.
+> LIS in BASE_PRICES + AP_CONTINENT. August peak Portugal: 20°C Atlantic water ✅, 10h sun. Portugal entirely absent from catalog despite being top weekend-flight destination from UK/Germany. Requires LIS entry in AIRPORT_COORDS.
 
 ---
 
@@ -218,28 +233,28 @@ ACE: [28.9455, -13.6052],    // Lanzarote, Canary Islands
   photo:"https://images.unsplash.com/photo-1548781300-e30c5f8ea6d4?w=800&h=600&fit=crop"},
 ```
 
-**Rationale:** ACE is in BASE_PRICES and AP_CONTINENT (europe). The Canaries average 25°C air, 23°C water in August ✅ — genuinely year-round, not just a summer hit. Papagayo is a protected natural reserve 12 km from the airport. The volcanic gradient differentiates this card visually from the blue-ocean default — a rare honest signal of the landscape. Requires `ACE: [28.9455, -13.6052]` in AIRPORT_COORDS.
+> ACE in BASE_PRICES + AP_CONTINENT. 25°C air, 23°C water ✅ in August. Papagayo is a protected natural reserve 12 km from Lanzarote airport. Volcanic gradient is visually distinct from all other beach cards — honest signal of an unusual landscape. Requires ACE entry in AIRPORT_COORDS.
 
 ---
 
-## 6. DevOps False Positive — EU BASE_PRICES Batch Correction
+## 6. EU/Asia BASE_PRICES Block — Repeat Flag
 
-**DevOps 08-11 blocked adding NAP/CAG/FAO/SPU/DLM/USM/MPH to BASE_PRICES, citing "AP → venue mismatches."** This is incorrect. All 7 airports are correctly assigned to their venues:
+DevOps 08-11 blocked adding NAP/CAG/FAO/SPU/DLM/USM/MPH to BASE_PRICES citing "AP → venue mismatches." This was incorrect — all 7 airports are the standard commercial gateways for their destinations:
 
-| AP | Airport | Venues | Verdict |
-|----|---------|--------|---------|
-| NAP | Naples International | Positano, Amalfi, Capri, Procida | ✅ Correct — Naples is the standard gateway for all Amalfi Coast / Bay of Naples destinations |
-| CAG | Cagliari, Sardinia | 4 Sardinia venues | ✅ Correct — CAG is the main Sardinia airport |
-| FAO | Faro, Algarve | 4 Algarve venues | ✅ Correct — FAO is the only commercial airport in the Algarve |
-| SPU | Split, Croatia | Hvar, Brac, Vis, Makarska venues | ✅ Correct — Split is the standard gateway for all Dalmatian islands |
-| USM | Koh Samui | Koh Samui, Koh Phangan venues | ✅ Correct — USM serves both islands (Phangan is 40 min ferry) |
-| MPH | Caticlan (Boracay gateway) | 4 Boracay venues | ✅ Correct — MPH/Caticlan is literally named the Boracay gateway airport |
-| DLM | Dalaman, Turkey | Turkish Aegean coast venues | ✅ Correct — DLM is the standard gateway for the whole Turkish southwestern coast |
+| AP | Airport | Venues Served | Status |
+|----|---------|---------------|--------|
+| NAP | Naples International | Positano, Amalfi, Capri, Procida | ✅ Correct |
+| CAG | Cagliari Elmas | 4 Sardinia venues | ✅ Correct |
+| FAO | Faro | 4 Algarve venues | ✅ Correct — only airport in the Algarve |
+| SPU | Split | Hvar, Brac, Vis, Makarska | ✅ Correct — standard Dalmatian islands gateway |
+| USM | Koh Samui | Koh Samui + Koh Phangan (ferry) | ✅ Correct |
+| MPH | Caticlan | 4 Boracay venues | ✅ Correct — literally "Boracay gateway airport" |
+| DLM | Dalaman | 4 Turkish coast venues | ✅ Correct — standard SW Turkey gateway |
 
-**Action for DevOps next run:** add all 7 to BASE_PRICES. This is 7 entries, each is a simple key-value block. It unlocks deal scoring for **28 venues immediately** — the highest single-run ROI available. Suggest batching with the OOL/AGP/LIS/ACE AIRPORT_COORDS additions in the same run.
+Adding these 7 entries lifts BASE_PRICES coverage: 63 → 70 covered APs, 43% → ~48% of venue APs. Combined with the 4 AIRPORT_COORDS additions, one DevOps run next session could lift deal scoring from 43% to ~50%+ with no new venues needed.
 
 ---
 
 ## One Observation for the PM
 
-**The DevOps 08-11 "EU AP mismatch" block cost deal scoring for 28 venues.** The 7 airports (NAP/CAG/FAO/SPU/DLM/USM/MPH) are all correctly assigned — the DevOps agent appears to have confused "multiple venues per airport" with "mismatch." These are the top-14 airports by missing-venue-count (4 venues each). A single DevOps run adding them to BASE_PRICES would instantly lift deal scoring coverage from 43% → 62% of venue APs. Recommend the PM explicitly greenlight this in the next PM report, since the DevOps agent blocked it on its own initiative and may block again without a clear directive.
+**The catalog has been at 374 venues for two consecutive days** with no new additions (DevOps was sandboxed 08-12). The lowest-friction quality lift available isn't more venues — it's unlocking deal scoring for the **172 venues that already exist but can't generate a deal badge** because their AP is missing from BASE_PRICES. The 7 wrongly-blocked EU/Asia entries alone would unblock 28 of those 172. This is the single action with the most user-visible impact per minute of engineering time: 7 price lookups vs. authoring, validating, and inserting new venue objects. Recommend the PM greenlight these explicitly in the next report so DevOps doesn't block again.
