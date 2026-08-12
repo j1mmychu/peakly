@@ -224,6 +224,8 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 
 </details>
 
+</details>
+
 ### What's Broken / Open (Priority Order)
 
 **Top of the list as of 2026-07-25 (19/20/22 carried from 07-24, reprioritized/quantified per PM v99; 21 has an uncommitted local fix in progress; 23 is new):**
