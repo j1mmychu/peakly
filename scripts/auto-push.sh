@@ -177,7 +177,8 @@ const a=eval("("+s.slice(start,i)+")");console.log(a.length);
   INTEG=$(node -e '
 const fs=require("fs");const s=fs.readFileSync("app.jsx","utf8");
 function block(name,open,close){
-  const m=s.match(new RegExp("const\\\\s+"+name+"\\\\s*=\\\\s*\\\\"+open));
+  const esc=c=>c.replace(/[[\]{}]/g,"\\$&");
+  const m=s.match(new RegExp("const\\s+"+name+"\\s*=\\s*"+esc(open)));
   if(!m)return null;
   let i=m.index+m[0].length-1,d=0,start=i;
   while(i<s.length){const c=s[i];

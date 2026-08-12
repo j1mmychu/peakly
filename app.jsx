@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260811a";
+const PEAKLY_BUILD = "20260811v";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6395,7 +6395,9 @@ function buildFlightUrl(from, to, opts) {
   const depISO = (opts?.startDate && String(opts.startDate).length >= 10) ? opts.startDate : getFlightDate(whenId);
   const retISO = (() => {
     if (opts?.endDate && String(opts.endDate).length >= 10) return opts.endDate;
-    try { const d = new Date(depISO); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); }
+    // Fri→Mon weekend length (+3), not a full week — matches the product's
+    // actual weekend-getaway promise instead of quietly booking a longer trip.
+    try { const d = new Date(depISO); d.setDate(d.getDate() + 3); return d.toISOString().slice(0, 10); }
     catch(e) { return getFlightDate("anytime"); }
   })();
   // Aviasales date format is DDMM (4 chars), NOT YYMMDD
@@ -7409,9 +7411,7 @@ function ListingCardImpl({ listing, wishlists, onToggle, onOpen, alertedIds, onA
         <div style={{ marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
             <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-              {listing.flightsLoading && !listing.flight.live ? (
-                <span className="shimmer" style={{ width:80, height:14, borderRadius:6, display:"inline-block" }} />
-              ) : listing.flight.live ? (
+              {listing.flight.live ? (
                 <>
                   <span style={{ fontSize:14, fontWeight:800, color:"#222", fontFamily:F }}>from ${listing.flight.price}</span>
                   {listing.flight.pct >= 10 && (
@@ -7478,9 +7478,7 @@ function FeaturedCardImpl({ listing, wishlists, onToggle, onOpen }) {
           background:"#0284c7", borderRadius:20, padding:"3px 10px",
           display:"flex", alignItems:"center", gap:5,
         }}>
-          {listing.flightsLoading && !listing.flight.live ? (
-            <span className="shimmer" style={{ width:60, height:10, borderRadius:5, display:"inline-block" }} />
-          ) : listing.flight.live && listing.flight.pct >= 10 ? (
+          {listing.flight.live && listing.flight.pct >= 10 ? (
             <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ {listing.flight.pct}% off</span>
           ) : listing.flight.live ? (
             <span style={{ color:"white", fontSize:11, fontWeight:800, fontFamily:F }}>✈️ ${listing.flight.price}</span>
@@ -7512,14 +7510,10 @@ function FeaturedCardImpl({ listing, wishlists, onToggle, onOpen }) {
         </div>
         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ display:"flex", flexDirection:"column", gap:1, minWidth:0 }}>
-            {listing.flightsLoading && !listing.flight.live ? (
-              <span className="shimmer" style={{ width:90, height:14, borderRadius:6, display:"inline-block" }} />
-            ) : (
-              <div>
-                <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
-                <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
-              </div>
-            )}
+            <div>
+              <span style={{ fontWeight:800, fontSize:15, color:"#222", fontFamily:F }}>from {listing.flight.live ? '$' : '~$'}{listing.flight.price}</span>
+              <span style={{ color:"#717171", fontSize:12, fontFamily:F }}> · {listing.flight.from}</span>
+            </div>
             {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
               <div style={{ fontSize:10, fontWeight:600, color:"#888", fontFamily:F, whiteSpace:"nowrap" }}>
                 {shortDate(listing.flight.depDate)} → {shortDate(listing.flight.retDate)}
@@ -7608,22 +7602,16 @@ function CompactCardImpl({ listing, wishlists, onToggle, onOpen }) {
           </div>
         )}
         <div style={{ marginTop:5, display:"flex", alignItems:"center", gap:3 }}>
-          {listing.flightsLoading && !listing.flight.live ? (
-            <span className="shimmer" style={{ width:60, height:12, borderRadius:5, display:"inline-block" }} />
+          <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
+            from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
+          </span>
+          {listing.flight.live ? (
+            <span style={{
+              fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
+              borderRadius:5, padding:"1px 4px", fontFamily:F,
+            }}>LIVE</span>
           ) : (
-            <>
-              <span style={{ fontSize:12, fontWeight:800, color:"#222", fontFamily:F }}>
-                from {listing.flight.live ? '$' : '~$'}{listing.flight.price}
-              </span>
-              {listing.flight.live ? (
-                <span style={{
-                  fontSize:10, fontWeight:800, color:"#16a34a", background:"#dcfce7",
-                  borderRadius:5, padding:"1px 4px", fontFamily:F,
-                }}>LIVE</span>
-              ) : (
-                <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
-              )}
-            </>
+            <span style={{ fontSize:10, color:"#888", fontFamily:F }}>est.</span>
           )}
         </div>
         {listing.flight.live && listing.flight.depDate && listing.flight.retDate && (
@@ -11012,216 +11000,6 @@ function VibeSearchSheet({ listings, wishlists, onToggle, onClose, onOpenDetail 
   );
 }
 
-// ─── airport setup modal ──────────────────────────────────────────────────────
-function AccountSetupModal({ profile, setProfile, onClose, fetchInitialWeather }) {
-  const [apQuery, setApQuery] = useState("");
-  const [apFocus, setApFocus] = useState(false);
-  const [selected, setSelected] = useState(profile.homeAirport || "");
-
-  const TOP_AIRPORTS = [
-    { code:"LAX", city:"Los Angeles" },
-    { code:"JFK", city:"New York (JFK)" },
-    { code:"SFO", city:"San Francisco" },
-    { code:"ORD", city:"Chicago O'Hare" },
-    { code:"ATL", city:"Atlanta" },
-    { code:"DFW", city:"Dallas Fort Worth" },
-    { code:"MIA", city:"Miami" },
-    { code:"SEA", city:"Seattle" },
-    { code:"BOS", city:"Boston" },
-    { code:"DEN", city:"Denver" },
-    { code:"PHX", city:"Phoenix" },
-    { code:"LAS", city:"Las Vegas" },
-  ];
-
-  const apResults = apQuery.length >= 2
-    ? ALL_AIRPORTS.filter(a =>
-        a.flag === "🇺🇸" && (
-          a.city.toLowerCase().includes(apQuery.toLowerCase()) ||
-          a.code.toLowerCase().includes(apQuery.toLowerCase())
-        )
-      ).slice(0, 6)
-    : [];
-
-  const handleContinue = () => {
-    if (selected) {
-      setProfile(p => ({
-        ...p,
-        homeAirport: selected,
-        homeAirports: [...new Set([selected, ...(p.homeAirports || [])])],
-      }));
-      window.plausible && window.plausible('Airport Set', { props: { airport: selected, source: 'setup_modal' } });
-    }
-    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
-    // Pre-fetch weather during onboarding transition
-    setTimeout(() => { if (typeof fetchInitialWeather === 'function') fetchInitialWeather(false); }, 100);
-    onClose();
-  };
-
-  const handleSkip = () => {
-    try { localStorage.setItem("peakly_airport_setup_done", "1"); } catch {}
-    onClose();
-  };
-
-  return (
-    <>
-      <div style={{
-        position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:210,
-        backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
-      }} onClick={handleSkip} />
-      <div className="sheet" style={{
-        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
-        width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
-        zIndex:211, maxHeight:"88vh", overflowY:"auto",
-        paddingBottom:"max(env(safe-area-inset-bottom,0px),28px)",
-        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-      }}>
-        {/* Handle */}
-        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 6px" }}>
-          <div style={{ width:40, height:4, borderRadius:2, background:"#e0e0e0" }} />
-        </div>
-
-        <div style={{ padding:"10px 24px 0" }}>
-          {/* Icon */}
-          <div style={{
-            width:52, height:52, borderRadius:16,
-            background:"linear-gradient(135deg,#0284c7,#38bdf8)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            marginBottom:18,
-            boxShadow:"0 6px 20px rgba(2,132,199,0.32)",
-          }}>
-            <svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.19 6.19l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-
-          <div style={{ fontSize:26, fontWeight:900, color:"#111", fontFamily:F, lineHeight:1.15, marginBottom:8 }}>
-            Where are you<br/>flying from?
-          </div>
-          <div style={{ fontSize:14, color:"#717171", fontFamily:F, lineHeight:1.55, marginBottom:22 }}>
-            We'll find cheap flights from your home airport to the best conditions worldwide.
-          </div>
-
-          {/* Search input */}
-          <div style={{ position:"relative", marginBottom:16 }}>
-            <svg style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width={17} height={17} viewBox="0 0 24 24" fill="none">
-              <circle cx={11} cy={11} r={8} stroke="#aaa" strokeWidth={2}/>
-              <path d="M21 21l-4.35-4.35" stroke="#aaa" strokeWidth={2} strokeLinecap="round"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search city or airport code…"
-              value={apQuery}
-              onChange={e => setApQuery(e.target.value)}
-              onFocus={() => setApFocus(true)}
-              onBlur={() => setTimeout(() => setApFocus(false), 180)}
-              autoComplete="off"
-              style={{
-                width:"100%", padding:"13px 14px 13px 42px",
-                borderRadius:14, border:"1.5px solid #e8e8e8",
-                fontSize:15, fontFamily:F, color:"#222", background:"#fafafa",
-                outline:"none", boxSizing:"border-box",
-              }}
-            />
-          </div>
-
-          {/* Autocomplete dropdown */}
-          {apFocus && apResults.length > 0 && (
-            <div style={{
-              background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14,
-              marginBottom:12, overflow:"hidden",
-              boxShadow:"0 8px 28px rgba(0,0,0,0.12)",
-            }}>
-              {apResults.map((ap, i) => (
-                <button key={ap.code} onMouseDown={() => { setSelected(ap.code); setApQuery(""); setApFocus(false); }} style={{
-                  width:"100%", padding:"12px 16px", background: selected===ap.code ? "#f0f9ff" : "#fff",
-                  border:"none", borderBottom: i < apResults.length-1 ? "1px solid #f5f5f5" : "none",
-                  textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
-                }}>
-                  <div style={{ flex:1 }}>
-                    <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                    <span style={{ fontSize:13, color:"#717171" }}> · {ap.city}</span>
-                  </div>
-                  {selected===ap.code && (
-                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                      <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Quick-pick top airports */}
-          {!apQuery && (
-            <div>
-              <div style={{ fontSize:11, fontWeight:700, color:"#aaa", fontFamily:F, letterSpacing:"0.08em", marginBottom:10, textTransform:"uppercase" }}>
-                Popular airports
-              </div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {TOP_AIRPORTS.map(ap => {
-                  const sel = selected === ap.code;
-                  return (
-                    <button key={ap.code} onClick={() => setSelected(ap.code)} style={{
-                      padding:"9px 13px", borderRadius:20, cursor:"pointer",
-                      background: sel ? "#0284c7" : "#f5f5f5",
-                      color: sel ? "#fff" : "#444",
-                      border:"none",
-                      fontSize:13, fontWeight:700, fontFamily:F,
-                      boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.3)" : "none",
-                      transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
-                    }}>
-                      {ap.code}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Selected airport confirmation */}
-          {selected && (
-            <div style={{
-              marginTop:14, padding:"12px 16px", borderRadius:14,
-              background:"#f0f9ff", border:"1.5px solid #bae6fd",
-              display:"flex", alignItems:"center", gap:10,
-            }}>
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17l-5-5" stroke="#0284c7" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <div>
-                <span style={{ fontSize:13, fontWeight:800, color:"#0284c7", fontFamily:F }}>{selected}</span>
-                <span style={{ fontSize:13, color:"#0369a1", fontFamily:F }}>
-                  {" "}· {ALL_AIRPORTS.find(a => a.code === selected)?.city || TOP_AIRPORTS.find(a => a.code === selected)?.city || selected}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Buttons */}
-        <div style={{ padding:"20px 24px 4px" }}>
-          <button onClick={handleContinue} className="pressable" style={{
-            width:"100%", background: selected ? "#222" : "#ccc",
-            border:"none", borderRadius:16, padding:"17px 0",
-            color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
-            transition:"background 0.2s",
-          }}>
-            {selected ? "Find my flights" : "Continue"}
-          </button>
-          <div style={{ textAlign:"center", marginTop:12 }}>
-            <button onClick={handleSkip} style={{
-              background:"none", border:"none", fontSize:13, color:"#aaa",
-              fontFamily:F, cursor:"pointer", padding:"4px 12px",
-            }}>
-              Skip for now
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
 // ─── onboarding sheet ─────────────────────────────────────────────────────────
 const SKILL_LEVELS = ["Beginner","Intermediate","Advanced","Expert"];
 const AVATAR_COLORS = [
@@ -11237,39 +11015,44 @@ const AVATAR_COLORS = [
 
 function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
   const [step,        setStep]       = useState(0);
-  const [sports,      setSports]     = useState(profile.sports || []);
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
-  const [detecting,   setDetecting]  = useState(false);
+  // idle | detecting | done — drives the one-line status under the headline
+  // on the airport slide. "done" covers both success and failure/deny; either
+  // way the picker below is always right there, so there's no dead end.
+  const [geoState,    setGeoState]   = useState("idle");
   const detectAirport = () => {
-    if (!navigator.geolocation || detecting) return;
-    setDetecting(true);
+    if (!navigator.geolocation || geoState === "detecting") return;
+    setGeoState("detecting");
     navigator.geolocation.getCurrentPosition(
       pos => {
         const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
         if (code) setAirport(code);
-        setDetecting(false);
+        setGeoState("done");
       },
-      () => setDetecting(false),
-      { timeout: 4000, maximumAge: 300000 }
+      () => setGeoState("done"),
+      // 10s, not the old 4s/2s — real network-based location resolution on
+      // mobile routinely takes 3-8s; the old timeouts were dropping fixes
+      // before they could resolve, which is why "current location" so often
+      // silently failed to actually pick an airport.
+      { timeout: 10000, maximumAge: 300000 }
     );
   };
 
-  // Sync airport when geolocation resolves after onboarding opened
+  // Fire once, automatically, the moment the airport slide is reached — this
+  // is the one and only getCurrentPosition call site in the app (no more
+  // silent duplicate at app root). Tied directly to "Where do you fly from?"
+  // being on screen, matching the Info.plist location-usage string.
   useEffect(() => {
-    if (profile.homeAirport && !airport) setAirport(profile.homeAirport);
-  }, [profile.homeAirport]);
-
-  const toggleSport = id => {
-    setSports(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-  };
+    if (step === 1 && geoState === "idle") detectAirport();
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const complete = () => {
     // Email is collected in the account-creation flow (Alerts tab / nudge banner),
-    // not in onboarding. Onboarding stays friction-free: airport + sports + done.
+    // not in onboarding. Onboarding stays friction-free: airport + done.
     // onboarded_at lets the account-nudge banner know when to first prompt.
-    setProfile(p => ({ ...p, sports, homeAirport: airport, hasAccount:true, onboarded_at: Date.now() }));
+    setProfile(p => ({ ...p, homeAirport: airport, hasAccount:true, onboarded_at: Date.now() }));
     window.plausible && window.plausible('Onboarding Complete', {props: {airport: airport || 'none'}});
     onClose();
   };
@@ -11292,18 +11075,16 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
           <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
         </div>
 
-        {/* Progress dots — only show on setup steps */}
-        {step > 0 && (
-          <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-            {[1,2].map(i => (
-              <div key={i} style={{
-                width: step === i ? 20 : 6, height:6, borderRadius:3,
-                background: step >= i ? "#0284c7" : "#e8e8e8",
-                transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-              }} />
-            ))}
-          </div>
-        )}
+        {/* Progress dots — 2 slides */}
+        <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
+          {[0,1].map(i => (
+            <div key={i} style={{
+              width: step === i ? 20 : 6, height:6, borderRadius:3,
+              background: step >= i ? "#0284c7" : "#e8e8e8",
+              transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+            }} />
+          ))}
+        </div>
 
         {/* ── Step 0: Welcome ── */}
         {step === 0 && (
@@ -11348,36 +11129,23 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
           </div>
         )}
 
-        {/* ── Step 1: Airport ── */}
+        {/* ── Step 1: Airport (only remaining step — this is the ask) ── */}
         {step === 1 && (
           <div style={{ padding:"16px 24px 0" }}>
             <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.15, letterSpacing:"-0.6px" }}>
               Where do you fly from?
             </div>
-            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:22, lineHeight:1.5 }}>
-              We'll show real flight prices from your airport to every spot.
+            <div style={{ fontSize:14, fontFamily:F, marginBottom:22, lineHeight:1.5,
+              color: geoState === "done" && airport ? "#16a34a" : "#717171",
+              fontWeight: geoState === "done" && airport ? 700 : 400,
+            }}>
+              {geoState === "detecting"
+                ? "Finding your airport…"
+                : geoState === "done" && airport
+                  ? `✓ Flying from ${AIRPORT_CITY[airport] || airport} — tap another below to change`
+                  : "We'll show real flight prices from your airport to every spot. Pick one below."}
             </div>
 
-            {navigator.geolocation && (
-              <button onClick={detectAirport} disabled={detecting} className="pressable" style={{
-                width:"100%", padding:"16px 14px", marginBottom:14, borderRadius:14,
-                border:"none", background:"linear-gradient(135deg,#0284c7,#38bdf8)", color:"#fff",
-                fontSize:15, fontWeight:900, fontFamily:F, cursor: detecting ? "default" : "pointer",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-                opacity: detecting ? 0.7 : 1,
-                boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
-              }}>
-                <span style={{ fontSize:18 }}>📍</span>
-                <span>{detecting ? "Detecting your nearest airport…" : "Use my current location"}</span>
-              </button>
-            )}
-            {navigator.geolocation && (
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, color:"#bbb" }}>
-                <div style={{ flex:1, height:1, background:"#ececec" }} />
-                <span style={{ fontSize:11, fontWeight:700, fontFamily:F, letterSpacing:"0.08em" }}>OR</span>
-                <div style={{ flex:1, height:1, background:"#ececec" }} />
-              </div>
-            )}
             <div style={{ position:"relative", marginBottom:14 }}>
               <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
               <input type="text" placeholder="Search any airport worldwide…"
@@ -11386,25 +11154,25 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
               />
             </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:8 }}>
-              {US_AIRPORTS.slice(0, 10).map(ap => {
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:8 }}>
+              {US_AIRPORTS.map(ap => {
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
-                    onClick={() => { setAirport(ap.code); setApQuery(""); }} style={{
-                      padding:"10px 14px", borderRadius:20, cursor:"pointer", minHeight:42,
+                    onClick={() => { setAirport(ap.code); setApQuery(""); setGeoState("done"); }} style={{
+                      padding:"10px 6px", borderRadius:12, cursor:"pointer", minHeight:48, textAlign:"center",
                       background: sel ? "#0284c7" : "#f5f5f5", color: sel ? "#fff" : "#444",
                       border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
                       fontSize:13, fontWeight:700, fontFamily:F,
                       boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.32)" : "none",
-                  }}>{ap.flag} {ap.code} <span style={{ fontSize:10, opacity:0.7 }}>{ap.label}</span></button>
+                  }}>{ap.code}</button>
                 );
               })}
             </div>
             {apFocus && apResults.length > 0 && (
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
                 {apResults.map((ap,i) => (
-                  <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); }} style={{
+                  <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); setGeoState("done"); }} style={{
                     width:"100%", padding:"12px 16px", background: airport===ap.code?"#f0f9ff":"#fff",
                     border:"none", borderBottom: i<apResults.length-1?"1px solid #f5f5f5":"none",
                     textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
@@ -11419,54 +11187,6 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* ── Step 2: Sports + Email ── */}
-        {step === 2 && (
-          <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.15, letterSpacing:"-0.6px" }}>
-              What's your move?
-            </div>
-            <div style={{ fontSize:14, color:"#717171", fontFamily:F, marginBottom:22, lineHeight:1.5 }}>
-              Pick what you want to chase — we'll personalize your feed.
-            </div>
-            <div style={{ display:"flex", gap:12, marginBottom:24 }}>
-              {CATEGORIES.filter(c => ["skiing", "beach"].includes(c.id)).map(cat => {
-                const sel = sports.includes(cat.id);
-                const grad = cat.id === "skiing"
-                  ? "linear-gradient(135deg,#0284c7,#7dd3fc)"
-                  : "linear-gradient(135deg,#06b6d4,#fbbf24)";
-                return (
-                  <button key={cat.id} onClick={() => toggleSport(cat.id)} style={{
-                    flex:1, padding:"24px 12px 22px", borderRadius:18, cursor:"pointer",
-                    background: sel ? grad : "#f5f5f5",
-                    color: sel ? "#fff" : "#444",
-                    border:"2px solid", borderColor: sel ? "transparent" : "#ebebeb",
-                    display:"flex", flexDirection:"column", alignItems:"center", gap:10,
-                    boxShadow: sel ? "0 8px 22px rgba(2,132,199,0.30)" : "none",
-                    transition:"transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease",
-                    transform: sel ? "translateY(-1px)" : "none",
-                    position:"relative", minHeight:130,
-                  }}>
-                    <span style={{ fontSize:42, lineHeight:1, filter: sel ? "none" : "grayscale(0.25)" }}>
-                      {cat.id === "skiing" ? "🏔️" : "🏖️"}
-                    </span>
-                    <span style={{ fontSize:16, fontWeight:800, fontFamily:F }}>{cat.label}</span>
-                    {sel && (
-                      <span style={{
-                        position:"absolute", top:10, right:10,
-                        width:22, height:22, borderRadius:"50%",
-                        background:"rgba(255,255,255,0.28)", color:"#fff",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:12, fontWeight:900,
-                      }}>✓</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
           </div>
         )}
 
@@ -11488,28 +11208,18 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
           </div>
         ) : (
           <div style={{ padding:"24px 24px 8px", display:"flex", gap:10 }}>
-            <button onClick={() => setStep(s => s-1)} className="pressable" style={{
+            <button onClick={() => setStep(0)} className="pressable" style={{
               flex:"0 0 52px", background:"#f5f5f5", border:"none", borderRadius:16,
               fontSize:20, cursor:"pointer",
             }}>←</button>
-            {step < 2 ? (
-              <button onClick={() => setStep(2)} className="pressable" style={{
-                flex:1, background:"#0284c7", border:"none", borderRadius:16, padding:"17px 0",
-                color:"white", fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-                boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
-              }}>
-                Continue →
-              </button>
-            ) : (
-              <button onClick={complete} className="pressable" style={{
-                flex:1, background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none",
-                borderRadius:16, padding:"17px 0", color:"white",
-                fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-                boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
-              }}>
-                Show me what's firing
-              </button>
-            )}
+            <button onClick={complete} className="pressable" style={{
+              flex:1, background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none",
+              borderRadius:16, padding:"17px 0", color:"white",
+              fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
+              boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
+            }}>
+              Show me what's firing
+            </button>
           </div>
         )}
         {step > 0 && (
@@ -12798,7 +12508,6 @@ function App() {
   const [showVibeSearch, setShowVibeSearch] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showAirportSetup, setShowAirportSetup] = useState(false);
   const [detailVenue,    setDetailVenue]    = useState(null);
   const [wxLastUpdated,  setWxLastUpdated]  = useState(null);
   const [sharedListView, setSharedListView] = useState(null); // snapshot from ?l=<slug>
@@ -12890,21 +12599,10 @@ function App() {
     if (!showAlertsTab && activeTab === "alerts") setActiveTab("explore");
   }, [showAlertsTab, activeTab]);
 
-  // Auto-detect nearest airport for new users who haven't set one yet
-  useEffect(() => {
-    if (profile.homeAirport) return; // already set by user
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
-        if (code) {
-          setProfile(p => ({ ...p, homeAirport: code, homeAirports: [...new Set([code, ...(p.homeAirports || [])])] }));
-        }
-      },
-      () => {}, // silent fail — user denied or unavailable
-      { timeout: 2000, maximumAge: 300000 }
-    );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Airport auto-detect lives entirely inside OnboardingSheet's slide 2 now —
+  // one clear, visible getCurrentPosition call site instead of this silent
+  // duplicate (which also used a too-short 2000ms timeout that dropped most
+  // real-world fixes before they could resolve).
 
   // Init search with user's saved home airport (reads localStorage directly before profile state is set)
   const [search, setSearch] = useState(() => ({
@@ -13168,7 +12866,19 @@ function App() {
     // carousel filter) treats it as an estimate and renders ~$X / no LIVE pill.
     const duffelStale = duffelData?.foundAt
       && (Date.now() - new Date(duffelData.foundAt).getTime()) > 14 * 24 * 3600 * 1000;
-    const flight     = duffelData != null && !duffelStale
+    // The proxy's exact-date match prefers a 2-4 day (Fri-Mon-length) round trip,
+    // but falls back to whatever return date IS cached when no weekend-length
+    // fare exists for that route (server/proxy.js "Trip-length preference" —
+    // better to show a real price than none). That fallback can be a trip weeks
+    // long. Showing it as "the weekend price" with a mismatched date range is
+    // exactly the "stale/wrong price" bug users hit — so if the live fare isn't
+    // actually weekend-length, don't badge it live; fall through to the honest
+    // ~$X estimate instead.
+    const duffelTripDays = duffelData?.departDate && duffelData?.returnDate
+      ? Math.round((new Date(duffelData.returnDate) - new Date(duffelData.departDate)) / 86400000)
+      : null;
+    const duffelWrongLength = duffelTripDays != null && (duffelTripDays < 2 || duffelTripDays > 4);
+    const flight     = duffelData != null && !duffelStale && !duffelWrongLength
       ? {
           price:   duffelData.price,
           normal:  estimate.normal,
@@ -13694,24 +13404,7 @@ function App() {
             setProfile={setProfile}
             cloudSync={cloudSync}
             setImportToast={setImportToast}
-            onClose={() => {
-              setShowOnboarding(false);
-              // Show airport setup modal after onboarding if not already done
-              try {
-                if (!localStorage.getItem("peakly_airport_setup_done")) {
-                  setTimeout(() => setShowAirportSetup(true), 350);
-                }
-              } catch {}
-            }}
-          />
-        )}
-
-        {showAirportSetup && (
-          <AccountSetupModal
-            profile={profile}
-            setProfile={setProfile}
-            onClose={() => setShowAirportSetup(false)}
-            fetchInitialWeather={fetchInitialWeather}
+            onClose={() => setShowOnboarding(false)}
           />
         )}
 
