@@ -185,13 +185,26 @@ for (const v of venues) {
   if (m) usedIds.add(m[1]);
 }
 
-// Marquee first: venues users actually recognize get the best shot at a
+// --priority-file <path>: a JSON array of {id,...} (e.g. Jack's exported
+// flagged list from photo-review.html) that jumps to the FRONT of the queue,
+// ahead of even the marquee heuristic — human-confirmed-wrong beats a guess
+// at what's recognizable.
+const PRIORITY_FILE = (() => { const i = ARGS.indexOf("--priority-file"); return i >= 0 ? ARGS[i + 1] : null; })();
+const PRIORITY_IDS = PRIORITY_FILE
+  ? new Set(JSON.parse(fs.readFileSync(PRIORITY_FILE, "utf8")).map(v => v.id))
+  : new Set();
+
+// Marquee next: venues users actually recognize get the best shot at a
 // correct photo before any rate limit bites.
 const MARQUEE = /whistler|chamonix|zermatt|aspen|vail|jackson|niseko|verbier|st-anton|courchevel|val-d|banff|lake-louise|park-city|mammoth|tignes|maldives|bora|santorini|mykonos|amalfi|phuket|bali|maui|waikiki|tulum|cancun|ibiza|nice|malib/i;
+const rank = v => (PRIORITY_IDS.has(v.id) ? 2 : MARQUEE.test(v.id) ? 1 : 0);
 const queue = venues
   .filter(v => !(ONLY_MISSING && saved[v.id]?.pick))
-  .sort((a, b) => (MARQUEE.test(b.id) ? 1 : 0) - (MARQUEE.test(a.id) ? 1 : 0))
+  .sort((a, b) => rank(b) - rank(a))
   .slice(0, LIMIT);
+if (PRIORITY_IDS.size) {
+  console.log(`Priority file loaded: ${PRIORITY_IDS.size} human-flagged venues will fetch first.`);
+}
 
 console.log(`${venues.length} venues · ${Object.keys(saved).length} already fetched · ${queue.length} to do\n`);
 
