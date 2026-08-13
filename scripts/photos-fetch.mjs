@@ -143,6 +143,39 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 const saved = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : {};
 const usedIds = new Set(Object.values(saved).map(c => c?.pick?.unsplashId).filter(Boolean));
 
+// ─── --backfill-geo: retrofit geo verification onto picks from before the
+// geo-check existed (e.g. the July pilot batch) — one lightweight detail
+// lookup per already-picked photo, no search query burned.
+if (ARGS.includes("--backfill-geo")) {
+  const venueById = Object.fromEntries(venues.map(v => [v.id, v]));
+  const targets = Object.values(saved).filter(c => c.pick && c.pick.geoStatus === undefined);
+  console.log(`Backfilling geo data for ${targets.length} already-picked photo(s)…\n`);
+  for (const c of targets) {
+    const v = venueById[c.id];
+    try {
+      const res = await fetch(`https://api.unsplash.com/photos/${c.pick.unsplashId}`,
+        { headers: { Authorization: `Client-ID ${KEY}`, "Accept-Version": "v1" } });
+      const remaining = parseInt(res.headers.get("x-ratelimit-remaining") || "1", 10);
+      if (res.status === 403 || remaining <= 0) {
+        if (!WAIT) { console.log("Rate limit hit — rerun --backfill-geo later."); break; }
+        console.log("⏸  Rate limit — sleeping 1 hour…");
+        await sleep(61 * 60 * 1000);
+      }
+      if (!res.ok) { console.warn(`⚠ ${c.id}: HTTP ${res.status}`); continue; }
+      const photo = await res.json();
+      const geo = v ? geoCheck(photo, v) : { geoStatus: "unknown", geoDistanceKm: null };
+      c.pick.geoStatus = geo.geoStatus;
+      c.pick.geoDistanceKm = geo.geoDistanceKm;
+      c.pick.locationRaw = photo.location?.name || photo.location?.city || photo.location?.country || null;
+      fs.writeFileSync(OUT, JSON.stringify(saved, null, 2));
+      console.log(`${geo.geoStatus === "verified" ? "✓📍" : geo.geoStatus === "mismatch" ? "✗ MISMATCH" : "?  unknown"}  ${c.title} — ${geo.geoDistanceKm != null ? geo.geoDistanceKm + "km" : "no GPS on photo"}${photo.location?.name ? ` (tagged: ${photo.location.name})` : ""}`);
+      await sleep(120);
+    } catch (e) { console.warn(`⚠ ${c.id}: ${e.message}`); }
+  }
+  console.log("\nDone backfilling.");
+  process.exit(0);
+}
+
 // Also exclude photos ALREADY in the catalog. Without this, a search can hand
 // back an image that's already stock on other venues — that's how Park City
 // ended up sharing a photo with Alta, Thredbo and Fernie on the first run.
