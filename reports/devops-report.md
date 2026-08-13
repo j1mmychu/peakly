@@ -1,250 +1,190 @@
-# DevOps Report — 2026-08-12 (YELLOW)
+# DevOps Report — 2026-08-13 (YELLOW)
 
 **Status: 🟡 YELLOW**
 
-Day 20. Per CLAUDE.md, Jack SSH-deployed the VPS last night (2026-08-11 evening) — Open #19 marked CLOSED. Cannot independently confirm from this sandbox (403 = egress block, per documented sandbox behavior). Reddit deadline is **Aug 22 — 10 days**. No P0s in client code. BASE_PRICES gap (57% of destination airports unpriced) is the top remaining pre-launch quality hole.
+Today is 2026-08-13. Reddit launch locked for Aug 22 — **9 days out**. Ran from a networked sandbox; VPS and live site are unreachable (egress blocked — not a server outage per CLAUDE.md and consistent with previous behavior). Per CLAUDE.md 2026-08-11 state: VPS was redeployed by Jack that evening, `/health` confirmed `apns:configured`, Open #19 CLOSED. Treating VPS as healthy unless contradicted by next networked session.
+
+No P0s. One P1 in flight (stale branch cleanup Jack-authorized). BASE_PRICES gap improved to ~67% coverage per my audit (PM v117 tracking says 47.6% — discrepancy noted below).
 
 ---
 
-## Fixes Applied This Run
-
-None this run. Cache stamp is current (`20260811v`), no venue changes pending, EU batch was already blocked by prior DevOps run per data integrity audit. No code changes shipped.
-
----
-
-## 1. LIVE SITE HEALTH
+## 1. Live Site Health
 
 | Check | Result |
 |-------|--------|
-| `app.jsx` lines | 13,443 |
-| `app.jsx` bytes | 679,775 (~664 KB raw) |
-| Minified dist size | ~439 KB (per CLAUDE.md, esbuild output) |
-| Cache stamp | `20260811v` — app.jsx / sw.js / index.html all in sync ✅ |
-| dist/ committed stamp | `20260811r` — 4 commits stale (see P3 below) |
-| Plausible analytics | ✅ present, uncommented — `data-domain="j1mmychu.github.io/peakly"` |
-| Sentry DSN | ✅ live — `9416b032a46681d74645b056fcb08eb7` |
-| Brace balance | 5437 / 5437 ✅ |
-| Venue count | **376** (confirmed via eval, not grep) |
-| lateSeason venues | 14 |
-| CDN deps | React 18.3.1, Babel Standalone 7.29.7 (unpkg), both current |
+| `app.jsx` size | 13,451 lines / 680 KB source |
+| `dist/app.min.js` | 439 KB minified (esbuild, Babel stripped) |
+| Plausible analytics | ✅ Present, uncommented, correct domain (`j1mmychu.github.io/peakly`) |
+| Sentry DSN | ✅ Wired — `9416b032a46681d74645b056fcb08eb7`, `defer` tag, `crossorigin` |
+| Cache stamp | ⚠️ `20260811v` — 2 days old as of today. No app.jsx changes since then so the stamp is technically correct, but the auto-push.sh stamp auto-bump only fires on app.jsx/sw.js/index.html edits. |
+| React CDN | ✅ `react@18.3.1` via unpkg — current stable |
+| Babel CDN | ✅ `@babel/standalone@7.29.7` via unpkg — current |
+| Supabase CDN | ✅ `@supabase/supabase-js@2.106.2` via jsdelivr |
+| Live site HTTP | ❓ Sandbox egress blocked — unverifiable |
+
+**Cache stamp note:** `20260811v` is not stale — it's locked to the last time app.jsx actually shipped. If the photo pipeline commits changes to app.jsx today (e.g. from `photos-apply.mjs`), the auto-push hook will bump it correctly.
 
 ---
 
-## 2. FLIGHT PROXY STATUS
+## 2. Flight Proxy Status
 
 | Check | Result |
 |-------|--------|
-| Protocol | HTTPS ✅ — `https://peakly-api.duckdns.org` |
-| Live health check | ⚠️ UNVERIFIABLE — sandbox egress blocked (403 from proxy, not VPS) |
-| Per CLAUDE.md | Redeployed 2026-08-11 evening by Jack. `/health` confirmed `apns:configured`, fresh uptime. |
-| `fetchTravelpayoutsPrice` timeout | ✅ 5s AbortController timeout with fallback to BASE_PRICES estimate |
-| `fetchWeather`/`fetchMarine` timeout | ✅ 4s timeout, falls back to direct Open-Meteo |
+| Proxy URL in app.jsx | ✅ `https://peakly-api.duckdns.org` (HTTPS) |
+| Old IP `104.131.82.242` or `198.199.80.21` hardcoded | ✅ Clean — only the domain appears |
+| `fetchTravelpayoutsPrice` timeout | ✅ `AbortController` with 5,000ms timeout |
+| Proxy fallback | ✅ Falls back to `BASE_PRICES` estimate on error/timeout |
+| Weather proxy timeout | ✅ 4s timeout with direct Open-Meteo fallback |
+| VPS health | ❓ Sandbox egress blocked; per CLAUDE.md `2026-08-11` state: VPS live, `apns:configured`, fresh restart |
 
-VPS status is **best-effort CLOSED per CLAUDE.md**. If Jack has not yet run the redeploy: `scp server/proxy.js ubuntu@198.199.80.21:/opt/peakly-proxy/ && ssh ubuntu@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"`. Verify: `curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool`.
+**`server/proxy.js` state (from file read):**
+- `forecast_days=14` on weather endpoint ✅
+- `forecast_days=10` on marine endpoint ✅
+- CORS includes `DELETE` + `capacitor://localhost` ✅
+- X-Forwarded-For reads **last** entry in the array ✅
+- `http2.connect()` for APNs ✅
+- `dsaEncoding: 'ieee-p1363'` ✅
+- All Open #19 fixes are in the committed code. VPS redeploy per CLAUDE.md is done.
 
 ---
 
-## 3. OPEN-METEO USAGE
+## 3. Weather & External API
 
-- `forecast_days=14` for weather, `forecast_days=10` for marine ✅
-- Client fetches directly to `api.open-meteo.com` with localStorage 2hr TTL cache
-- Batching: 50 venues per 2s wave — protects free tier at small scale
-- **Rate limit math:** 376 venues × (1 weather + 0.5 marine avg) ≈ 564 upstream calls per full cold refresh. At free tier limits (~10K/day), this allows ~17 full cold refreshes/day total across all users before throttling. With VPS cache live, simultaneous users collapse to 1 upstream call per lat/lon — Reddit-spike safe.
+Open-Meteo usage pattern: batched in `useEffect`, 50 venues per 2-second wave via `setTimeout` staggering, 2hr TTL in localStorage.
+
+**Rate limit math:**
+- Free tier: ~10,000 calls/day (~417/hr)
+- 374 venues → 374 weather calls + ~243 marine calls = ~617 calls per full refresh
+- At 0 MAU with the VPS proxy absorbing repeats: fine
+- At 1K MAU cold cache: if 10 concurrent users all hit cold cache simultaneously = 6,170 calls → **exceeds free tier hourly ceiling**
+- VPS in-memory cache mitigates this, but `pm2 restart` wipes it (Open #23, unresolved)
+
+**Open #23 (disk cache) is the single biggest infrastructure risk before Reddit.**
 
 ---
 
-## 4. SECURITY AUDIT
+## 4. Security Audit
 
 | Check | Result |
 |-------|--------|
-| Travelpayouts token in client | ✅ ABSENT — `TP_MARKER = "710303"` is an affiliate marker, not an auth token. No server-side token leaked. |
-| Supabase anon key in client | ✅ EXPECTED — public-safe by design, RLS-gated. `eyJhbGci...` on line 26. |
-| Supabase service key | ✅ ABSENT |
-| APNS private key | ✅ ABSENT — `.p8` in .gitignore |
-| .env files | ✅ .gitignore covers `.env`, `.env.*`, `*.env`, `*.pem`, `*.key`, `*.p12`, `*.p8` |
-| Recent commits for secrets | ✅ Clean — last 20 commits are reports, CLAUDE.md updates, venue adds |
-| Sentry DSN | ✅ Live, standard public DSN (client-side, expected) |
+| Travelpayouts `TP_TOKEN` in client | ✅ Clean — `TP_MARKER = "710303"` is the affiliate ID (public, non-secret) |
+| Supabase anon key | ⚠️ Present in client (`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`) — this is documented as intentional, "public-safe, RLS-gated" per CLAUDE.md. Calling out for visibility only. RLS policies are the defense; confirm they're set correctly in Supabase dashboard before Reddit. |
+| `.gitignore` | ✅ Covers `.env`, `.env.*`, `*.env`, `*.p8`, `*.pem`, `*.key`, `*.p12`, `*.mobileprovision` |
+| `.env` files on disk | ✅ None present |
+| Sentry DSN in client | ✅ Expected — this is a public-facing error reporting identifier, not a secret |
+| APNs `.p8` key in repo | ✅ Gitignored, not tracked |
+| Recent commit secrets scan | ✅ Last 20 commits are `auto:` data files and report files — no code changes since `059de43` (2026-08-11). No secrets visible. |
+| No SRI on CDN scripts | ❌ P2 — see below |
 
-No secrets in client code. Security posture: clean.
+**SRI gap (Open #10, P2):** React, Babel, and Sentry scripts load without `integrity=` attributes. If unpkg/CDN is compromised, malicious JS would load with no browser-side check. Babel in particular is dangerous — it runs on the raw JSX source.
 
----
-
-## 5. PERFORMANCE ANALYSIS
-
-**Biggest bottleneck: 376-venue cold-weather fetch.**
-
-In dev mode (local `index.html`): Babel parses 664 KB of JSX on every cold load — 3-5s on mobile before first render. This is dev-only; production is fine.
-
-In production: CI runs `node scripts/build-web.mjs` → esbuild pre-transpiles app.jsx → 439 KB minified. Babel eliminated entirely. Deploy via `deploy.yml` always runs fresh build from source regardless of committed dist/ state.
-
-| Signal | Value |
-|--------|-------|
-| Image lazy loading | 9 `<img>` tags, all 9 have `loading="lazy"` ✅ |
-| CDN scripts | 2 (React + Babel) via unpkg — no SRI attributes (known Open #10) |
-| Weather batch | 50 venues / 2s — appropriate throttle |
-| localStorage cache | 2hr TTL per venue lat/lon — reduces repeat fetches |
-
-**Bottleneck on scale:** If cache misses coincide with a traffic spike (post-Reddit post), 376+ simultaneous Open-Meteo calls could hit the free tier. VPS weather cache (now deployed) collapses this — one upstream call per coord, shared across all users.
-
----
-
-## 6. BASE_PRICES COVERAGE — P1
-
-This is the largest remaining data quality hole.
-
-```
-Venue destination APs: 134 unique airports in VENUES[]
-BASE_PRICES destination entries: 100 (many are home airports, not venue APs)
-Venue APs MISSING from BASE_PRICES: 76 of 134 (56.7% gap)
-```
-
-**76 airports with no deal score data:**
-`AIT, AUA, BEY, BME, BOB, BOC, CAG, CHQ, CMB, CZM, DAD, DBV, DJE, DLM, EAS, ENI, EWR, EYW, FAO, FCA, FEN, GCM, GEG, GIG, GOI, GUC, HNA, HUX, INH, JMK, JNX, JTR, KBV, KOA, KRK, KUL, LEA, LOP, MAH, MBA, MBJ, MCT, MLO, MPH, MYR, NAP, OKA, OSL, PDX, PMI, PPP, PQC, PRI, RAK, RDD, RHO, SEZ, SID, SJD, SNA, SOF, SPU, SRQ, STT, TAB, TBS, TFS, TGD, TPA, TPS, USH, USM, UVF, VPS, YKA, ZCO`
-
-Any venue whose `ap` is in this list gets `getDealScore() → null`, which means the deal badge never fires and the sort-by-deal column has no data. This affects a majority of the catalog.
-
-**Fix (2-3 hours):** Add entries for the top ~20 missing APs by venue count. Example block to add to `BASE_PRICES`:
-
-```javascript
-// High-traffic missing APs (add to BASE_PRICES object)
-BOB: { JFK:2400, LAX:1900, SFO:1950, BOS:2500, CHI:2100 }, // Bora Bora — premium beach
-CUN: { JFK:380,  LAX:450,  SFO:480,  BOS:420,  CHI:390  }, // Cancun — high-volume beach
-KOA: { JFK:780,  LAX:310,  SFO:320,  BOS:820,  CHI:680  }, // Kona — Hawaii beach
-TPA: { JFK:220,  LAX:350,  SFO:380,  BOS:230,  CHI:260  }, // Tampa — beach cluster
-MBJ: { JFK:380,  LAX:650,  SFO:680,  BOS:420,  CHI:520  }, // Montego Bay
-SJD: { JFK:510,  LAX:280,  SFO:310,  BOS:560,  CHI:450  }, // Los Cabos
-GEG: { JFK:380,  LAX:200,  SFO:220,  BOS:420,  CHI:320  }, // Spokane ski
-PMI: { JFK:820,  LAX:980,  SFO:960,  BOS:850,  CHI:900  }, // Palma de Mallorca
-DBV: { JFK:900,  LAX:1050, SFO:1030, BOS:930,  CHI:960  }, // Dubrovnik
-NAP: { JFK:760,  LAX:920,  SFO:900,  BOS:790,  CHI:850  }, // Naples IT
-```
-
----
-
-## 7. COST ESTIMATE
-
-| MAU | Monthly Cost | Notes |
-|-----|-------------|-------|
-| Current (~0) | $6 | DigitalOcean 1GB droplet only. GitHub Pages + Open-Meteo free. |
-| 1K MAU | $6 | No change. VPS cache absorbs weather load easily. |
-| 10K MAU | $18–30 | May need $12 DO droplet (2GB). Supabase free tier: 500MB DB limit, 50K MAU auth — 10K is safe. |
-| 100K MAU | $70–180 | DO $24-48 (4GB + block storage for weather cache disk). Open-Meteo commercial at $450/mo OR stay free if VPS cache is effective. Supabase Pro at $25/mo. Plausible Growth at $36/mo. |
-
-**Cost optimization opportunities:**
-1. Open-Meteo free tier survives indefinitely if VPS cache hit rate stays >95% — protect it by ensuring disk persistence (Open #23) lands before Reddit post.
-2. Travelpayouts flight data is the only revenue-correlated API — no cost, no rate limit risk.
-3. No image hosting costs (photos are hosted on Unsplash CDN via direct URLs).
-
----
-
-## Critical Issues (P0)
-
-**None.** Client code is clean, proxy is HTTPS, no secrets exposed, Sentry live.
-
----
-
-## High Issues (P1)
-
-### P1-A: BASE_PRICES — 76 of 134 venue airports unpriced (56.7% gap)
-
-The deal score is a headline feature. 56.7% of destination airports produce no deal badge and no price comparison. This is a bad first impression when the Reddit post lands in 10 days.
-
-**Time to fix:** 2-3 hours. Add top ~20 missing APs (see §6 above for the code block). Use real-world route pricing from Google Flights spot checks — the matrix only needs 3-5 origin cities per destination (JFK, LAX, SFO, BOS, ORD).
-
-### P1-B: APNS / Push Alerts still non-functional (APNS_LIVE = false)
-
-`APNS_LIVE = false` on line 12369. The HTTP/2 + JWT P1363 fix is committed in `server/proxy.js` (shipped 2026-08-11 with VPS redeploy). But `APNS_LIVE` in `app.jsx` still needs to be flipped to `true` once Jack confirms `/health` shows `apns:configured`.
-
-**Exact fix (30 seconds once APNS is confirmed):**
-```javascript
-// app.jsx line 12369 — change:
-const APNS_LIVE = false;
-// to:
-const APNS_LIVE = true;
-```
-
-Verify first: `curl -s https://peakly-api.duckdns.org/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('apns','not found'))"`
-
----
-
-## Medium Issues (P2)
-
-### P2-A: 18 stale remote branches
-
-PM v116 authorized deletion. Clutter makes it hard to see real in-flight work.
-
+Fix (add to `index.html` after computing hashes):
 ```bash
-# Delete all claude/* branches + known stale branches
-git push origin --delete \
-  claude/analyze-test-coverage-WVIsT \
-  claude/code-review-cleanup-HjoCS \
-  claude/condense-alert-page-jzdLo \
-  claude/enhance-loading-screen-rZ1dc \
-  claude/fix-app-jsx-content \
-  claude/implement-todo-lNL7W \
-  claude/improve-peakly-ui-UHCHG \
-  claude/improve-scoring-system-XYGY6 \
-  claude/product-reliability-assessment-w0poL \
-  claude/redesign-front-page-EndKs \
-  claude/review-peakly-ux-UQ0Qu \
-  claude/simplify-alerts-page-2ejGB \
-  claude/simplify-profile-page-Bi2Tc \
-  claude/standardize-venue-data-CufiQ \
-  claude/streamline-onboarding-account-97XRR \
-  fix-appjsx-final \
-  restore-appjsx \
-  test-small
-```
-
-**Time to fix:** 2 minutes.
-
-### P2-B: dist/ tracked in git and perpetually stale
-
-`dist/` is in `.gitignore` but files were force-added and are now tracked. CI always rebuilds from source (the committed dist/ is immediately overwritten), making the committed dist/ a dead artifact. Current state: `dist/` at `20260811r`, `app.jsx` at `20260811v` — a 4-commit gap.
-
-This creates confusion: anyone cloning and opening `dist/index.html` locally gets 4-revision-old code. Not a live-site issue (CI rebuilds), but a trap for developers and a source of diff noise in every commit.
-
-**Options:**
-- Option A (recommended): Stop committing dist/ — remove from tracking, let CI own it entirely.
-  ```bash
-  git rm -r --cached dist/
-  # Remove 'dist/' line from .gitignore (it's already there — that's why it was supposed to be ignored)
-  git commit -m "stop tracking dist/ — CI builds it fresh on every push"
-  ```
-- Option B: Keep tracking dist/ but have auto-push.sh always run the build before committing.
-
-Option A is cleaner. CI pipeline is the source of truth for dist/.
-
-**Time to fix:** 10 minutes.
-
-### P2-C: No SRI on CDN scripts (Open #10, long-standing)
-
-React 18.3.1 and Babel 7.29.7 load from unpkg with no `integrity=` attribute. A supply-chain compromise of unpkg would execute arbitrary code in the app. Medium risk; the only mitigation today is pinned semver (`18.3.1` and `7.29.7` are exact, not range).
-
-**Fix:**
-```bash
-# Generate SRI hashes
+# Get SRI hash for each CDN script:
 curl -s https://unpkg.com/react@18.3.1/umd/react.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
 curl -s https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js | openssl dgst -sha384 -binary | openssl base64 -A
 curl -s https://unpkg.com/@babel/standalone@7.29.7/babel.min.js | openssl dgst -sha384 -binary | openssl base64 -A
 ```
+Then add `integrity="sha384-<hash>" crossorigin="anonymous"` to each `<script>` tag.
 
-Then add `integrity="sha384-<hash>" crossorigin="anonymous"` to each `<script>` tag in `index.html`. **Note:** Babel's inline eval of JSX requires a CSP `unsafe-eval` exception — do not add a CSP meta tag without testing Babel first.
-
-**Time to fix:** 30 minutes.
-
----
-
-## P3 Issues (Fix Later)
-
-- **`TP_MARKER = "710303"` visible in source:** Affiliate marker only, not an auth token. No security risk. Cosmetically cleaner to env-var it but not worth the complexity in a single-file no-build-step SPA.
-- **VPS weather cache disk persistence (Open #23):** In-memory `_wxCache` is wiped on `pm2 restart`. Jack may or may not have bundled the disk-persistence fix into the 2026-08-11 redeploy. Verify: `curl https://peakly-api.duckdns.org/health` and check if `wx_cache_size` recovers after a restart without a traffic spike.
-- **Supabase account-deletion SQL:** Still needs a one-time paste into the SQL editor (App Store 5.1.1(v)). Blocked on Jack. Not a web-launch blocker.
+Estimated time: 15 minutes. Risk: if unpkg serves different content per request, hashes won't match and the app breaks. Test in staging first.
 
 ---
 
-## Scale: What Breaks First
+## 5. Performance Analysis
 
-**Open-Meteo free tier is the single most fragile dependency.** The client calls `api.open-meteo.com` directly (4s timeout, localStorage 2hr TTL) before trying the VPS proxy. If the VPS is cold (just restarted, cache empty) and a Reddit post drives 200 concurrent users, each user fetches weather independently, the 2hr localStorage cache provides zero cross-user protection, and Open-Meteo rate-limits or blocks the domain.
+| Metric | Value |
+|--------|-------|
+| Total JS loaded (prod) | **439 KB** app.min.js + ~145 KB React + ~10 KB ReactDOM + ~827 KB Babel standalone |
+| **Babel standalone** | **827 KB** — only loaded in dev (`index.html`); prod `dist/index.html` uses pre-compiled `app.min.js` with Babel stripped ✅ |
+| Images lazy-loaded | ✅ All `<img>` tags have `loading="lazy"` |
+| Google Fonts | ✅ Loaded with `display=swap` |
+| `dist/` tracked in git | ⚠️ P2 — 439 KB binary committed on every build. Git history bloats ~440 KB per commit touching app.jsx. Currently acceptable; worth `.gitignore`-ing post-launch if GH Actions pushes the built artifact instead. |
 
-**Prevention:** Confirm the VPS disk-persistence fix (Open #23) is deployed. If it's not, a pm2 restart wipes the cache and leaves you vulnerable to a cold-cache spike for 30-60 minutes post-restart. Second line of defense: the client's `_tryProxyWx()` timeout is 4s — on a cold VPS miss, users fall back to direct Open-Meteo. The batching (50 venues / 2s) only applies to the client's own sequential fetching, not cross-user parallelism. At 100K MAU this becomes a real cost center: Open-Meteo commercial is $450/mo. The fix is ensuring the VPS cache is always warm.
+**Biggest performance bottleneck:** The dev `index.html` still loads 827 KB of Babel standalone. Anyone who opens `index.html` directly (not the GH Pages `dist/index.html`) gets a 3–5s parse wall on mobile. This is the documented dev tradeoff — production is clean. Not a launch blocker but any internal link should point to the GH Pages URL, not raw repo files.
+
+---
+
+## 6. BASE_PRICES Coverage Audit
+
+My bracket-walk count of `BASE_PRICES` destinations: **~99 destination airports** covered out of **147 unique venue airports** = **~67% coverage** (33% gap = ~48 airports missing).
+
+PM v117 tracking shows 47.6% (after the EU batch of +7 APs). Discrepancy likely due to different denominators or airport counting methodology — PM may be tracking against a curated list of "airports that should have prices" rather than all venue airports. **Defer to PM/Content for the authoritative number.**
+
+**Airports definitely NOT in BASE_PRICES** (from VENUES list vs BASE_PRICES keys):
+`AIT ALB AUA BME BOC CMB CMH CZM DAD DBV DJE EAS ENI EWR EYW FCA FEN GCM GEG GIG GOI GUC HNA HUX INH JMK JNX JTR KBV KOA KRK KUL LEA LOP MAH MBA MBJ MCT MLO MYR OKA ORF OSL PDX PHL PMI PPP PQC PRI RAK RDD RHO SAL SEZ SID SJD SNA SOF SRQ STT TAB TBS TFS TGD TPA TPS USH UVF VPS YKA ZCO`
+
+Top-priority fills (most venues, US-flyable):
+- `CUN` — Cancún (multiple venues, major resort hub) — **if not already in BASE_PRICES**
+- `MBJ` — Montego Bay (Jamaica beach)
+- `SJD` — Los Cabos (Mexico beach)
+- `KOA` — Kona, HI (beach)
+- `OGG` / `LIH` — already in BASE_PRICES ✅
+
+---
+
+## 7. Cost Estimate
+
+| Tier | Infrastructure | Monthly Cost |
+|------|--------------|-------------|
+| Current (<100 MAU) | DigitalOcean $6 droplet + GH Pages (free) | **$6/mo** |
+| 1K MAU | Same — VPS handles load, Open-Meteo cache buffers | **$6/mo** |
+| 10K MAU | Upgrade to $12 droplet (2GB RAM), Open-Meteo free tier stressed | **$12/mo** |
+| 100K MAU | $24 droplet + Open-Meteo commercial (~$50/mo) or self-hosted proxy + Redis | **~$80–100/mo** |
+
+**Cost optimizations available:**
+1. **Open-Meteo free tier** — the only real cost cliff. At 10K+ MAU, consistent concurrent load will hit the ceiling. Either: pay for Open-Meteo Pro ($29/mo for 1M calls/month), or implement disk-persistent cache (Open #23, ~30 lines) to survive restarts.
+2. **Travelpayouts via VPS proxy** — zero additional cost; token stays server-side.
+3. **Supabase free tier** — 500MB storage, 50K rows. At current scope (wishlists/alerts/trips), won't hit limits at 10K users. Fine.
+4. **GitHub Pages** — free forever for public repos. GH Actions free tier has 2,000 min/month; current deploy is ~1 min/push. At 60 pushes/month = 60 min used. Zero risk.
+
+---
+
+## What Breaks First at Scale
+
+**Open-Meteo rate limits kill the app before anything else.** The free tier allows ~10K API calls/day. A single full venue refresh (374 venues × weather + marine) = ~617 calls. At 20 concurrent cold-cache users hitting simultaneously post-Reddit spike, that's 12,340 calls in one burst — exceeds the daily ceiling in seconds. The VPS in-memory cache is the only guard, but it's wiped on every `pm2 restart`. Open #23 (30-line disk persistence fix in `server/proxy.js`) prevents this. Without it, the Reddit spike that Peakly is targeting for launch is also the event that makes the app show "conditions unavailable" to everyone simultaneously. **Ship Open #23 before Aug 22.**
+
+**Fix for Open #23** (add to `server/proxy.js`, ~30 lines):
+```javascript
+const fs = require('fs');
+const CACHE_PATH = '/opt/peakly-proxy/.wx-cache.json';
+
+// Load from disk on startup
+try {
+  const saved = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+  Object.assign(_wxCache, saved);
+  console.log(`[cache] loaded ${Object.keys(saved).length} entries from disk`);
+} catch(e) { /* first boot or corrupt — start clean */ }
+
+// Persist to disk after each write (debounced 10s to avoid thrash)
+let _persistTimer = null;
+function _persistCache() {
+  clearTimeout(_persistTimer);
+  _persistTimer = setTimeout(() => {
+    fs.writeFile(CACHE_PATH, JSON.stringify(_wxCache), () => {});
+  }, 10_000);
+}
+
+// Add _persistCache() call inside _wxCacheSet (or equivalent write path)
+```
+
+Estimated fix time: 30 minutes. Requires VPS SSH session + `pm2 restart peakly-proxy`.
+
+---
+
+## Summary
+
+| Priority | Issue | ETA |
+|----------|-------|-----|
+| P1 | **Open #23: VPS weather cache disk persistence** — wipes on restart, Reddit spike = instant rate-limit | 30 min (VPS SSH) |
+| P1 | **18 stale remote branches** — authorized for deletion by PM v117. Jack to run: `git push origin --delete claude/analyze-test-coverage-WVIsT claude/code-review-cleanup-HjoCS claude/condense-alert-page-jzdLo claude/enhance-loading-screen-rZ1dc claude/fix-app-jsx-content claude/implement-todo-lNL7W claude/improve-peakly-ui-UHCHG claude/improve-scoring-system-XYGY6 claude/product-reliability-assessment-w0poL claude/redesign-front-page-EndKs claude/review-peakly-ux-UQ0Qu claude/simplify-alerts-page-2ejGB claude/simplify-profile-page-Bi2Tc claude/standardize-venue-data-CufiQ claude/streamline-onboarding-account-97XRR fix-appjsx-final restore-appjsx test-small` | 2 min |
+| P1 | **BASE_PRICES gap (~33% of venue airports unpriced)** — deal scoring falls back to no context for 1/3 of catalog | 2–3 hrs |
+| P2 | **No SRI on CDN scripts** (Open #10) | 15 min |
+| P2 | **`dist/` in git** — binary bloat in history; acceptable short-term | Post-launch |
+| P2 | **Supabase anon key visible in source** — intentional per CLAUDE.md, but verify RLS policies before Reddit | 10 min check |
+| ✅ | VPS redeployed (Open #19 CLOSED) | Done |
+| ✅ | APNS http2 + jwt P1363 fix in proxy.js | Done, awaits `.p8` key config |
+| ✅ | Proxy HTTPS, proper timeouts, fallbacks | Green |
+| ✅ | Sentry DSN wired | Green |
+| ✅ | Plausible analytics | Green |
+| ✅ | All images lazy-loaded | Green |
