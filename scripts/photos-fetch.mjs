@@ -170,20 +170,31 @@ for (const v of queue) {
     for (const q of queriesFor(v)) {
       const { results, remaining } = await search(q);
       tried.push({ q, hits: results.length });
-      const fresh = results.filter(r => !usedIds.has(r.id));
+      // Auto-reject anything whose own embedded GPS proves it's the wrong
+      // place (>120km away) — a caption/tag match can't override real
+      // coordinates. Among what's left, geo-verified hits go first so a
+      // provably-correct photo wins over a merely plausibly-titled one.
+      const candidates = results
+        .filter(r => !usedIds.has(r.id))
+        .map(r => ({ r, geo: geoCheck(r, v) }))
+        .filter(({ geo }) => geo.geoStatus !== "mismatch");
+      candidates.sort((a, b) => (a.geo.geoStatus === "verified" ? -1 : 0) - (b.geo.geoStatus === "verified" ? -1 : 0));
+      const fresh = candidates.map(c => c.r);
       if (fresh.length) {
-        const best = fresh[0];
+        const best = candidates[0];
         pick = {
-          unsplashId: best.id,
-          url: `${best.urls.raw}&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75`,
-          thumb: best.urls.small,
-          description: best.description || best.alt_description || "",
-          photographer: best.user?.name || "",
-          photographerUrl: best.user?.links?.html || "",
-          link: best.links?.html || "",
+          unsplashId: best.r.id,
+          url: `${best.r.urls.raw}&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75`,
+          thumb: best.r.urls.small,
+          description: best.r.description || best.r.alt_description || "",
+          photographer: best.r.user?.name || "",
+          photographerUrl: best.r.user?.links?.html || "",
+          link: best.r.links?.html || "",
           matchedQuery: q,
+          geoStatus: best.geo.geoStatus,
+          geoDistanceKm: best.geo.geoDistanceKm,
         };
-        alternates = fresh.slice(1, 6).map(r => ({
+        alternates = candidates.slice(1, 6).map(({ r, geo }) => ({
           unsplashId: r.id,
           url: `${r.urls.raw}&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75`,
           thumb: r.urls.small,
@@ -191,8 +202,10 @@ for (const v of queue) {
           photographer: r.user?.name || "",
           link: r.links?.html || "",
           matchedQuery: q,
+          geoStatus: geo.geoStatus,
+          geoDistanceKm: geo.geoDistanceKm,
         }));
-        usedIds.add(best.id);
+        usedIds.add(best.r.id);
         break;
       }
       await sleep(120);
