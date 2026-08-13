@@ -91,6 +91,34 @@ function queriesFor(v) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ─── geo verification ─────────────────────────────────────────────────────
+// Unsplash photos sometimes carry photographer-tagged location.position
+// {latitude, longitude}. When present, this is a real, checkable signal —
+// unlike a caption/tag match, GPS coordinates can't be miscaptioned into
+// looking right. Distance in km via haversine; a candidate whose own GPS
+// puts it >120km from the venue's known lat/lon is provably the wrong
+// place regardless of what the search query matched on.
+const GEO_REJECT_KM = 120;
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+// geoStatus: "verified" (has GPS, within range), "mismatch" (has GPS, too
+// far — should be auto-rejected as a candidate), "unknown" (no GPS on the
+// photo — needs a human/AI look against a real reference before trusting it).
+function geoCheck(photo, venue) {
+  const pos = photo?.location?.position;
+  if (!pos || typeof pos.latitude !== "number" || typeof pos.longitude !== "number") {
+    return { geoStatus: "unknown", geoDistanceKm: null };
+  }
+  const km = haversineKm(venue.lat, venue.lon, pos.latitude, pos.longitude);
+  return { geoStatus: km <= GEO_REJECT_KM ? "verified" : "mismatch", geoDistanceKm: Math.round(km) };
+}
+
 async function search(query, page = 1) {
   const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}`
     + `&per_page=10&orientation=landscape&content_filter=high&page=${page}`;
