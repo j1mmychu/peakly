@@ -228,8 +228,8 @@ for (const v of queue) {
   };
   fs.writeFileSync(OUT, JSON.stringify(saved, null, 2));
   done++;
-  const mark = pick ? "✓" : "·";
-  console.log(`${mark} ${String(done).padStart(3)}/${queue.length}  ${v.title} — ${pick ? `"${pick.matchedQuery}"` : "no match"}`);
+  const mark = pick ? (pick.geoStatus === "verified" ? "✓📍" : "✓  ") : "·  ";
+  console.log(`${mark} ${String(done).padStart(3)}/${queue.length}  ${v.title} — ${pick ? `"${pick.matchedQuery}"${pick.geoStatus === "verified" ? ` [GPS ${pick.geoDistanceKm}km]` : " [needs manual check]"}` : "no match"}`);
 }
 
 console.log(`\nDone. ${Object.values(saved).filter(c => c.pick).length}/${venues.length} venues have candidates.`);
