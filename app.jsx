@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260814a";
+const PEAKLY_BUILD = "20260814b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4871,6 +4871,103 @@ const VENUES = [
     accent:"#33bbff",
     tags:["Horseshoe Bay","Monk Seal Sanctuary","Year-Round Sun","World-Class Snorkeling"],
     photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
+
+  // ── 5 venue additions — 2026-08-13 Content agent (PM-authorized, DevOps-skipped) ──
+  {id:"beach_tamarindo", category:"beach", title:"Tamarindo Beach",
+    location:"Guanacaste, Costa Rica",
+    lat:10.2990, lon:-85.8348, ap:"LIR",
+    icon:"🏖️", rating:4.87, reviews:14800,
+    gradient:"linear-gradient(160deg,#002200,#005500,#008800)",
+    accent:"#44cc66",
+    tags:["Surf Town Vibes","Howler Monkeys","Year-Round Sun","Dry Season Sep-Apr"],
+    photo:"https://images.unsplash.com/photo-1566438480900-0609be27a4be?w=800&h=600&fit=crop"},
+
+  {id:"beach_puerto_escondido", category:"beach", title:"Puerto Escondido",
+    location:"Oaxaca, Mexico",
+    lat:15.8667, lon:-97.0667, ap:"OAX",
+    icon:"🏖️", rating:4.89, reviews:11600,
+    gradient:"linear-gradient(160deg,#1a0a00,#3d1a00,#6b3000)",
+    accent:"#ff9933",
+    tags:["Mexican Pipeline","Surf Culture","Mezcal & Seafood","Bohemian"],
+    photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"},
+
+  {id:"beach_lanzarote", category:"beach", title:"Papagayo Beach",
+    location:"Lanzarote, Canary Islands, Spain",
+    lat:28.8446, lon:-13.8239, ap:"ACE",
+    icon:"🏖️", rating:4.91, reviews:9200,
+    gradient:"linear-gradient(160deg,#1a0f00,#3d2200,#7a4400)",
+    accent:"#ffaa33",
+    tags:["Volcanic Landscape","Year-Round Warmth","Volcanic Black Sand","EU Paradise"],
+    photo:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"},
+
+  {id:"beach_gold_coast", category:"beach", title:"Surfers Paradise",
+    location:"Gold Coast, Queensland, Australia",
+    lat:-28.0023, lon:153.4145, ap:"OOL",
+    icon:"🏖️", rating:4.85, reviews:18900,
+    gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",
+    accent:"#33aaff",
+    tags:["Iconic Skyline","World-Class Surf","Nightlife","Theme Parks"],
+    photo:"https://images.unsplash.com/photo-1524293763594-7a2a4e24e80f?w=800&h=600&fit=crop"},
+
+  {id:"beach_agadir", category:"beach", title:"Agadir Beach",
+    location:"Souss-Massa, Morocco",
+    lat:30.4278, lon:-9.5981, ap:"AGA",
+    icon:"🏖️", rating:4.82, reviews:13400,
+    gradient:"linear-gradient(160deg,#1a0a00,#3d2200,#804400)",
+    accent:"#ee9922",
+    tags:["Saharan Sun","Year-Round Beach","Surf in Winter","North Africa"],
+    photo:"https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&h=600&fit=crop"},
+
+  // ── 5 venue additions — 2026-08-14 Content agent (PM v119-authorized) ──
+  {id:"beach_moorea", category:"beach",
+    title:"Temae Beach, Moorea",
+    location:"Moorea, French Polynesia",
+    lat:-17.5012, lon:-149.7651, ap:"PPT",
+    icon:"🏝️", rating:4.96, reviews:8400,
+    gradient:"linear-gradient(160deg,#001a33,#003d66,#0066aa)",
+    accent:"#33ccee",
+    tags:["Crystal Lagoon","Overwater Bungalows","Cook's Bay Views","World's Most Beautiful Island"],
+    photo:"https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=800&h=600&fit=crop"},
+
+  {id:"beach_cascais", category:"beach",
+    title:"Cascais Beach",
+    location:"Cascais, Lisbon Region, Portugal",
+    lat:38.6981, lon:-9.4192, ap:"LIS",
+    icon:"🏖️", rating:4.83, reviews:14200,
+    gradient:"linear-gradient(160deg,#001a33,#003d8a,#0055cc)",
+    accent:"#ffcc33",
+    tags:["Portuguese Riviera","30 Min from Lisbon","Estoril Casino Nearby","Year-Round Mild"],
+    photo:"https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&h=600&fit=crop"},
+
+  {id:"beach_biarritz", category:"beach",
+    title:"Biarritz Grande Plage",
+    location:"Biarritz, Pyrénées-Atlantiques, France",
+    lat:43.4833, lon:-1.5606, ap:"BIQ",
+    icon:"🏖️", rating:4.87, reviews:17800,
+    gradient:"linear-gradient(160deg,#001033,#002266,#0044aa)",
+    accent:"#66bbee",
+    tags:["Surf Capital France","Belle Époque Grandeur","Basque Country","Atlantic Waves"],
+    photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop"},
+
+  {id:"beach_porto_galinhas", category:"beach",
+    title:"Porto de Galinhas",
+    location:"Ipojuca, Pernambuco, Brazil",
+    lat:-8.7003, lon:-35.0115, ap:"REC",
+    icon:"🏝️", rating:4.94, reviews:21600,
+    gradient:"linear-gradient(160deg,#1a0500,#3d1000,#7a2200)",
+    accent:"#ff7722",
+    tags:["Natural Pools in Reef","Jangada Boat Rides","Voted Best Beach Brazil","Transparent Water"],
+    photo:"https://images.unsplash.com/photo-1565118531796-763e5082d113?w=800&h=600&fit=crop"},
+
+  {id:"beach_malapascua", category:"beach",
+    title:"Malapascua Island",
+    location:"Cebu, Philippines",
+    lat:11.3280, lon:124.1128, ap:"CEB",
+    icon:"🏝️", rating:4.91, reviews:6800,
+    gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",
+    accent:"#33ddcc",
+    tags:["Thresher Shark Dives","Pristine Reef","White Sand Bounty Beach","Remote Island Escape"],
+    photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6268,6 +6365,16 @@ const BASE_PRICES = {
   FCA:{ JFK:440, LAX:340, SFO:320, ORD:400, MIA:540, SEA:300, BOS:500, ATL:520, DEN:220, DFW:400, LAS:300, PHX:320, MSP:440, DTW:430 },
   PDX:{ JFK:320, LAX:160, SFO:140, ORD:280, MIA:380, SEA:120, BOS:360, ATL:380, DEN:200, DFW:280, LAS:180, PHX:200, MSP:300, DTW:310 },
   TPA:{ JFK:180, LAX:360, SFO:380, ORD:180, MIA:120, SEA:400, BOS:200, ATL:100, DEN:240, DFW:220, LAS:320, PHX:280, MSP:240, DTW:220 },
+  // ── EU/Asia/Indian Ocean batch — 2026-08-14 (PM v119 Decision 1) ──
+  GOI:{ JFK:900, LAX:740, SFO:700, ORD:860, MIA:1000,SEA:760, BOS:960, ATL:960, DEN:860, DFW:900, LAS:820, PHX:840, MSP:900, DTW:890 },
+  PHL:{ JFK:140, LAX:260, SFO:280, ORD:160, MIA:180, SEA:300, BOS:120, ATL:160, DEN:240, DFW:220, LAS:280, PHX:260, MSP:200, DTW:160 },
+  CMB:{ JFK:1020,LAX:860, SFO:820, ORD:980, MIA:1060,SEA:880, BOS:1080,ATL:1060,DEN:980, DFW:1020,LAS:940, PHX:960, MSP:1020,DTW:1010 },
+  PMI:{ JFK:660, LAX:940, SFO:920, ORD:740, MIA:800, SEA:980, BOS:620, ATL:760, DEN:840, DFW:800, LAS:880, PHX:900, MSP:780, DTW:770 },
+  DAD:{ JFK:920, LAX:1060,SFO:1020,ORD:1000,MIA:1060,SEA:1100,BOS:940, ATL:1000,DEN:1020,DFW:980, LAS:1040,PHX:1060,MSP:1020,DTW:1010 },
+  LOP:{ JFK:1380,LAX:1080,SFO:1040,ORD:1320,MIA:1460,SEA:1180,BOS:1440,ATL:1460,DEN:1300,DFW:1360,LAS:1260,PHX:1240,MSP:1370,DTW:1360 },
+  UVF:{ JFK:480, LAX:720, SFO:760, ORD:620, MIA:340, SEA:820, BOS:520, ATL:480, DEN:640, DFW:580, LAS:660, PHX:640, MSP:640, DTW:630 },
+  SEZ:{ JFK:1080,LAX:1360,SFO:1340,ORD:1160,MIA:1240,SEA:1420,BOS:1120,ATL:1180,DEN:1260,DFW:1220,LAS:1320,PHX:1340,MSP:1200,DTW:1190 },
+  GCM:{ JFK:400, LAX:620, SFO:660, ORD:520, MIA:260, SEA:720, BOS:440, ATL:400, DEN:560, DFW:500, LAS:580, PHX:560, MSP:560, DTW:550 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).
