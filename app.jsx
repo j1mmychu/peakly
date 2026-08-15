@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260815a";
+const PEAKLY_BUILD = "20260815b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -4968,6 +4968,57 @@ const VENUES = [
     accent:"#33ddcc",
     tags:["Thresher Shark Dives","Pristine Reef","White Sand Bounty Beach","Remote Island Escape"],
     photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+
+  // ── Mediterranean beach additions — 2026-08-15 (Content agent / PM v120) ──
+  {id:"beach_capri", category:"beach",
+    title:"Capri Marina Piccola",
+    location:"Capri Island, Campania, Italy",
+    lat:40.5462, lon:14.2320, ap:"NAP",
+    icon:"🏝️", rating:4.94, reviews:19400,
+    gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",
+    accent:"#33eecc",
+    tags:["Blue Grotto Island","Faraglioni Rock Stacks","Dolce Vita Escape","Capri Town Cliffside"],
+    photo:"https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=600&fit=crop"},
+
+  {id:"beach_tavira_island", category:"beach",
+    title:"Ilha de Tavira",
+    location:"Tavira, Algarve, Portugal",
+    lat:37.1070, lon:-7.6430, ap:"FAO",
+    icon:"🏖️", rating:4.91, reviews:11200,
+    gradient:"linear-gradient(160deg,#001a33,#003366,#005599)",
+    accent:"#ffcc33",
+    tags:["Barrier Island","Flat Calm Lagoon","Roman Heritage Town","Algarve Hidden Gem"],
+    photo:"https://images.unsplash.com/photo-1527490087278-9c75be0b8052?w=800&h=600&fit=crop"},
+
+  {id:"beach_villasimius", category:"beach",
+    title:"Villasimius Coast",
+    location:"Villasimius, Southern Sardinia, Italy",
+    lat:39.1147, lon:9.5108, ap:"CAG",
+    icon:"🏝️", rating:4.93, reviews:16800,
+    gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",
+    accent:"#33bbff",
+    tags:["Caribbean Sardinia","Turquoise Lagoons","Pellicano Park","Kite & Wind Surf"],
+    photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
+
+  {id:"beach_san_vito_lo_capo", category:"beach",
+    title:"San Vito Lo Capo",
+    location:"Trapani Province, Sicily, Italy",
+    lat:38.1742, lon:12.7326, ap:"TPS",
+    icon:"🏖️", rating:4.96, reviews:24600,
+    gradient:"linear-gradient(160deg,#001833,#003366,#0066aa)",
+    accent:"#55ddff",
+    tags:["Italy's #1 Beach","Cous Cous Festival","Zingaro Nature Reserve","Limestone Headland"],
+    photo:"https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop"},
+
+  {id:"beach_budva", category:"beach",
+    title:"Budva Riviera",
+    location:"Budva, Montenegro",
+    lat:42.2819, lon:18.8377, ap:"TGD",
+    icon:"🏖️", rating:4.87, reviews:13800,
+    gradient:"linear-gradient(160deg,#001a22,#003344,#004466)",
+    accent:"#66ccee",
+    tags:["Adriatic Party Scene","Old Town Walls","20 Riviera Beaches","Montenegro's Ibiza"],
+    photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6384,6 +6435,11 @@ const BASE_PRICES = {
   PPP:{ JFK:2000,LAX:1420,SFO:1480,ORD:1940,MIA:1920,SEA:1760,BOS:2100,ATL:1960,DEN:1840,DFW:1900,LAS:1760,PHX:1780,MSP:1980, DTW:1970 },
   PRI:{ JFK:1180,LAX:1460,SFO:1440,ORD:1260,MIA:1340,SEA:1520,BOS:1220,ATL:1280,DEN:1360,DFW:1320,LAS:1420,PHX:1440,MSP:1300, DTW:1290 },
   PQC:{ JFK:1060,LAX:1200,SFO:1160,ORD:1140,MIA:1200,SEA:1240,BOS:1080,ATL:1140,DEN:1160,DFW:1120,LAS:1180,PHX:1200,MSP:1160, DTW:1150 },
+  // ── Rio/Kona/Dubrovnik/Marrakech — 2026-08-15 (Content agent / PM v120) ──
+  GIG:{ JFK:620, LAX:860, SFO:880, ORD:760, MIA:480, SEA:940, BOS:680, ATL:620, DEN:780, DFW:720, LAS:820, PHX:840, MSP:800, DTW:790 },
+  KOA:{ JFK:820, LAX:340, SFO:380, ORD:720, MIA:760, SEA:540, BOS:880, ATL:780, DEN:620, DFW:680, LAS:380, PHX:400, MSP:760, DTW:750 },
+  DBV:{ JFK:740, LAX:1020,SFO:980, ORD:820, MIA:900, SEA:1080,BOS:700, ATL:840, DEN:920, DFW:880, LAS:960, PHX:980, MSP:860, DTW:850 },
+  RAK:{ JFK:700, LAX:980, SFO:960, ORD:780, MIA:860, SEA:1040,BOS:660, ATL:800, DEN:880, DFW:840, LAS:920, PHX:940, MSP:820, DTW:810 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).
