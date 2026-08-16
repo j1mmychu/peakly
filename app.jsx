@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260816a";
+const PEAKLY_BUILD = "20260816b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -469,6 +469,7 @@ const AP_CONTINENT = {
   BEY:"asia", CMB:"asia", AMM:"asia",
   // Latin America
   MDZ:"latam", ZCO:"latam", USH:"latam", BRC:"latam", CPC:"latam", NQN:"latam",
+  CTG:"latam", SMR:"latam", GPS:"latam",  // Colombia (Cartagena/Santa Marta) + Galápagos
   // North America patch — mid-Atlantic / Ohio (liberty-mountain, roundtop, whitetail, jack-frost, mad-river-mountain)
   PHL:"na", CMH:"na", EWR:"na",
   // Asia-Pacific patch — Okinawa
@@ -5019,6 +5020,60 @@ const VENUES = [
     accent:"#66ccee",
     tags:["Adriatic Party Scene","Old Town Walls","20 Riviera Beaches","Montenegro's Ibiza"],
     photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
+
+  // ── Latin America expansion — 2026-08-16 (Content agent) — 5 new venues ──
+  // latam is the most underrepresented continent (was 4 venues). All 5 APs now
+  // in AP_CONTINENT + AIRPORT_COORDS above → distance filter + continent pricing active.
+  // CTG/SMR/GPS/FOR/NAT also in BASE_PRICES below → deal badges live immediately.
+  {id:"beach_jericoacoara", category:"beach",
+    title:"Jericoacoara Beach",
+    location:"Ceará, Brazil",
+    lat:-2.7972, lon:-40.5127, ap:"FOR",
+    icon:"🏖️", rating:4.93, reviews:18600,
+    gradient:"linear-gradient(160deg,#001a3a,#003466,#005599)",
+    accent:"#ffcc44",
+    tags:["Kite & Wind Capital","Sunsetter Dune","Lagoa do Paraíso","Brazil's Most Bohemian Beach"],
+    photo:"https://images.unsplash.com/photo-1504870553739-5945b7df3f85?w=800&h=600&fit=crop"},
+
+  {id:"beach_pipa_brazil", category:"beach",
+    title:"Pipa Beach",
+    location:"Rio Grande do Norte, Brazil",
+    lat:-6.2282, lon:-35.0537, ap:"NAT",
+    icon:"🐬", rating:4.91, reviews:14200,
+    gradient:"linear-gradient(160deg,#001833,#003066,#0055aa)",
+    accent:"#33ddff",
+    tags:["Dolphin Bay","Madeiro Cliff Beach","Bohemian Village","Red-Sand Cliffs"],
+    photo:"https://images.unsplash.com/photo-1527523612741-9e7b12893cac?w=800&h=600&fit=crop"},
+
+  {id:"beach_cartagena", category:"beach",
+    title:"Cartagena de Indias Beaches",
+    location:"Bolívar, Colombia",
+    lat:10.3910, lon:-75.4794, ap:"CTG",
+    icon:"🏝️", rating:4.88, reviews:22400,
+    gradient:"linear-gradient(160deg,#1a0a00,#3a1c00,#604020)",
+    accent:"#ffaa33",
+    tags:["UNESCO Walled City","Caribbean Gateway","Bocagrande Strip","Colombia's Crown Jewel"],
+    photo:"https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=800&h=600&fit=crop"},
+
+  {id:"beach_tayrona", category:"beach",
+    title:"Tayrona National Park",
+    location:"Magdalena, Colombia",
+    lat:11.3170, lon:-73.9100, ap:"SMR",
+    icon:"🌿", rating:4.95, reviews:19800,
+    gradient:"linear-gradient(160deg,#001a00,#003300,#005500)",
+    accent:"#66ff88",
+    tags:["Jungle Meets Caribbean","La Piscina Natural Pool","Howler Monkey Mornings","UNESCO Biosphere"],
+    photo:"https://images.unsplash.com/photo-1558618047-3c8e6f6b55e3?w=800&h=600&fit=crop"},
+
+  {id:"beach_galapagos", category:"beach",
+    title:"Galápagos Islands",
+    location:"Galápagos Province, Ecuador",
+    lat:-0.5396, lon:-90.3186, ap:"GPS",
+    icon:"🐢", rating:4.97, reviews:8900,
+    gradient:"linear-gradient(160deg,#001a2a,#003344,#005566)",
+    accent:"#44eebb",
+    tags:["Sea Lions on the Beach","Marine Iguanas","Charles Darwin Legacy","UNESCO World Heritage"],
+    photo:"https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=800&h=600&fit=crop"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
@@ -6458,6 +6513,13 @@ const BASE_PRICES = {
   TFS:{ JFK:680, LAX:940, SFO:960, ORD:760, MIA:760, SEA:1020,BOS:640, ATL:780, DEN:860, DFW:820, LAS:900, PHX:920, MSP:800, DTW:790 },
   CHQ:{ JFK:760, LAX:1040,SFO:1020,ORD:840, MIA:820, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900, LAS:980, PHX:1000,MSP:880, DTW:870 },
   EWR:{ JFK:80,  LAX:280, SFO:280, ORD:160, MIA:200, SEA:320, BOS:120, ATL:180, DEN:240, DFW:200, LAS:260, PHX:240, MSP:200, DTW:180 },
+  // ── Latin America expansion — 2026-08-16 (Content agent) ──
+  // Colombia: direct/1-stop from MIA; US West via BOG connection. Galápagos premium (double-hop via GYE/UIO).
+  CTG:{ JFK:460, LAX:620, SFO:680, ORD:560, MIA:340, SEA:720, BOS:480, ATL:420, DEN:580, DFW:520, LAS:640, PHX:600, MSP:580, DTW:550 },
+  SMR:{ JFK:520, LAX:700, SFO:740, ORD:620, MIA:400, SEA:800, BOS:540, ATL:480, DEN:640, DFW:580, LAS:720, PHX:680, MSP:640, DTW:620 },
+  GPS:{ JFK:760, LAX:680, SFO:700, ORD:780, MIA:640, SEA:720, BOS:800, ATL:720, DEN:700, DFW:720, LAS:660, PHX:680, MSP:800, DTW:780 },
+  FOR:{ JFK:680, LAX:840, SFO:880, ORD:740, MIA:520, SEA:920, BOS:700, ATL:600, DEN:760, DFW:720, LAS:820, PHX:840, MSP:780, DTW:760 },
+  NAT:{ JFK:700, LAX:880, SFO:920, ORD:760, MIA:560, SEA:960, BOS:720, ATL:620, DEN:780, DFW:740, LAS:860, PHX:860, MSP:800, DTW:780 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).
@@ -6796,6 +6858,10 @@ const AIRPORT_COORDS = {
   USH:{lat:-54.8433,lon:-68.2958}, ZCO:{lat:-38.9263,lon:-72.6517},
   BRC:{lat:-41.1512,lon:-71.1575}, MDZ:{lat:-32.8317,lon:-68.7928}, CPC:{lat:-40.0754,lon:-71.1373},
   NQN:{lat:-38.9490,lon:-68.1557},
+  // Northeast Brazil + Colombia + Galápagos — 2026-08-16 (Content agent)
+  FOR:{lat:-3.7762,lon:-38.5322},  NAT:{lat:-5.9111,lon:-35.2476},  // Fortaleza / Natal gateways
+  CTG:{lat:10.4424,lon:-75.5131},  SMR:{lat:11.1196,lon:-74.2306},  // Cartagena / Santa Marta
+  GPS:{lat:-0.4538,lon:-90.2659},  // Galápagos / Baltra Island
   // Europe — ski gateways
   CMF:{lat:45.6381,lon:5.8800},    GVA:{lat:46.2381,lon:6.1090},    INN:{lat:47.2603,lon:11.3438},
   INV:{lat:57.5425,lon:-4.0475},   KRK:{lat:50.0777,lon:19.7848},   OSL:{lat:60.1939,lon:11.1004},
