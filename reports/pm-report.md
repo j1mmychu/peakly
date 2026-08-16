@@ -1,86 +1,70 @@
-# PM Report v120 — 2026-08-15
+# PM Report v121 — 2026-08-16
 
-> Supersedes v119 (Aug 14). **Status: YELLOW.** Day 45. Reddit deadline Aug 22 — **7 days out**. Cache stamp: `20260815b`. Venues: **389** (131 ski / 258 beach). BASE_PRICES: **~111/159 unique APs (~70%)** — 70% sprint target reached. Photo gap: 329/384 generic stock (UNSPLASH_KEY still blocking).
+> Supersedes v120 (Aug 15). **Status: YELLOW.** Day 46. Reddit deadline Aug 22 — **6 days out**. Cache stamp: `20260816b`. Venues: **394** (131 ski / 263 beach). BASE_PRICES: **~133/162 unique APs (~82%)** — 75% target blown past. Photo gap: ~213 duplicate / generic photos across 394 venues (UNSPLASH_KEY still not received — T-6 days warning issued).
 
 ---
 
-## Shipped Since v119
+## Shipped Since v120
 
 | Commit | What | Assessment |
 |--------|------|------------|
-| `140641e` | DevOps 08-15: BASE_PRICES +8 APs (TAB/JMK/JTR/MAH/ENI/PPP/PRI/PQC), cache stamp 20260815a | ✅ **Execution loop is fixed.** First clean DevOps execution since the prompt fix in v119. Coverage lifted 89→97/157 (60.5%→66%). |
-| `2d7f367` | Content 08-15: 5 Mediterranean venue proposals (NAP/FAO/CAG/TPS/TGD), +6 BASE_PRICES batch (GIG/KOA/DBV/RAK/NAP/CAG), confirmed 68% coverage | ✅ Good data. NAP/CAG already covered, FAO now covered per DevOps run. |
-| **PM v120 (this run)** | BASE_PRICES +4 APs (GIG/KOA/DBV/RAK); 5 venues (beach_capri/beach_tavira_island/beach_villasimius/beach_san_vito_lo_capo/beach_budva); cache stamp 20260815b; `.venue-baseline` → 389 | ✅ **70% BASE_PRICES target reached (~111/159).** 5 venues all Mediterranean peak-season, 3/5 APs immediately deal-scored (NAP/FAO/CAG). |
-
-**What this run did NOT ship:** TPS and TGD BASE_PRICES entries. Both are small-airport European destinations (Trapani, Tivat) with 1 venue each and limited US-direct routing. Content flagged them as continent-fallback — $X pricing will show, no deal badge. Acceptable tradeoff: real fares from those 2 airports to 14 US origins are scarce and unreliable. Defer indefinitely.
+| `30d448a` | DevOps 08-16: BASE_PRICES +17 APs (KBV/JNX/HUX/TPS/MLO/MBA/AIT/OSL/YKA/ZCO/RHO/MCT/TGD/SNA/TFS/CHQ/EWR), cache stamp 20260816a | ✅ **Best single-day BASE_PRICES execution to date.** Prioritized multi-venue APs first (KBV×3, JNX×3, HUX×3, TPS×3) — correct triage. Coverage 75%→85% against the pre-Content denominator of 157. |
+| `323f232` | Content 08-16: +5 latam beach venues (latam was at 4 venues, now 9), full infrastructure (AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES), cache stamp 20260816b | ⚠️ **Bent the v120 moratorium, but the result is defensible.** 4 venues covering all of Latin America was an embarrassing gap. These 5 came with full deal badge coverage from day 1, satisfying the spirit of the moratorium exception. Venue moratorium is now **re-affirmed hard** — 394 is the final pre-Reddit count. |
 
 **Permanent corrections — stop re-raising these:**
 - **Open #23 (disk cache):** ✅ CLOSED. VPS 2026-08-11. Add to known-skipped.
 - **Peakly Pro:** CUT. Zero instances in codebase. Not a bug.
 - **Sentry DSN:** LIVE.
-- **"182 venues / 12 categories":** 389 venues (as of this run), 2 categories.
+- **"182 venues / 12 categories":** 394 venues, 2 categories.
 - **VPS down:** VPS CLOSED 2026-08-11 (Jack SSH). Sandbox 403 ≠ VPS outage.
-- **DevOps execution failure:** RESOLVED in v119. First clean run today.
+- **BASE_PRICES discrepancy (DevOps 85% vs Content 82%):** DevOps ran before Content added 5 venues with 5 new APs, raising the denominator from 157→162. Both counts are correct for their moment in time. Content's final figure (133/162 = 82%) is authoritative.
 
 ---
 
-## Bug Triage — Aug 15
+## Bug Triage — Aug 16
 
 | Bug | Severity | Status |
 |-----|----------|--------|
-| **Photos: 329+ of 389 generic stock** | P0 (Reddit gate) | UNSPLASH_KEY from Jack is the single remaining blocker. No code work needed — pipeline ready. Aug 22 deadline is hard. Slip to Aug 29 only if UNSPLASH_KEY arrives by Aug 20. |
-| **TPS/TGD venues: no deal badge** | P3 | Accepted. Continent-fallback pricing active. ~$X shows, no "Strong deal" label. 2 venues out of 389. |
-| **Open #22: Supabase delete-account SQL** | P0 (App Store only) | Jack-only, 2-min paste. Not a web Reddit launch blocker. |
-| **BASE_PRICES photo-count drift** | P3 | Content report used 157 unique venue APs; actual count after today is 159 (2 new APs: TPS/TGD). Reports should recount after every venue batch. |
+| **Photos: ~213 duplicates / generic stock across 394 venues** | P0 (Reddit gate) | **T-6 days. UNSPLASH_KEY still not received.** Pipeline code-complete; runtime is ~2 hours. Miss Aug 18 EOD → Reddit post slips to Aug 29. Not negotiable. |
+| **BASE_PRICES: 29 APs still uncovered (18%)** | P2 | All 29 are single-venue destinations (Key West, Bocas del Toro, Kraków, etc.). Continent-fallback `~$X` pricing active. Deal badge absent but `~$X` shows. Acceptable pre-launch — 82% coverage means the hero feature works for >4 in 5 venues. |
+| **Supabase delete-account SQL** | P0 (App Store only) | Jack-only, 2-min paste. Web Reddit launch unaffected. |
+| **16 stale claude/* branches on origin** | P3 | Messy but not blocking. Cleanup post-Reddit. |
 
 ---
 
-## Three Product Decisions — Aug 15
+## Three Product Decisions — Aug 16
 
-### Decision 1: 70% BASE_PRICES target REACHED — next sprint to 75% targets OSL/TFS/SPU/SOF/TBS
+### Decision 1: BASE_PRICES sprint is OVER — declare victory at 82%
 
-We hit 70% coverage (~111/159) this run. The sprint that started Aug 9 is complete. The deal badge is now visible on 70%+ of the catalog — the hero feature works for the majority of venues.
+We set a 75% target in v119. We hit 70% in v120, 82% today. The remaining 29 uncovered APs are all single-venue destinations with limited direct US routing. Marginal ROI on the next few APs is low, and the hours are better spent on photo pipeline prep.
 
-**DECISION: Next batch targets the 5 multi-venue APs still uncovered.** DevOps executes next run with this paste-ready data:
-
-```javascript
-  // ── BASE_PRICES batch — PM v120 Decision 1 — OSL/TFS/SPU/SOF/TBS ──
-  OSL:{ JFK:700, LAX:980, SFO:960, ORD:780, MIA:880, SEA:1040, BOS:660, ATL:820, DEN:900, DFW:860, LAS:940, PHX:960, MSP:820, DTW:810 },
-  TFS:{ JFK:780, LAX:1060,SFO:1020,ORD:860, MIA:960, SEA:1120,BOS:740, ATL:880, DEN:960, DFW:920, LAS:1000,PHX:1020,MSP:900, DTW:890 },
-  SPU:{ JFK:760, LAX:1040,SFO:1000,ORD:840, MIA:940, SEA:1100,BOS:720, ATL:860, DEN:940, DFW:900, LAS:980, PHX:1000,MSP:880, DTW:870 },
-  SOF:{ JFK:780, LAX:1060,SFO:1020,ORD:860, MIA:960, SEA:1120,BOS:740, ATL:880, DEN:960, DFW:920, LAS:1000,PHX:1020,MSP:900, DTW:890 },
-  TBS:{ JFK:920, LAX:1200,SFO:1160,ORD:1000,MIA:1080,SEA:1260,BOS:880, ATL:1020,DEN:1100,DFW:1060,LAS:1160,PHX:1180,MSP:1040,DTW:1030 },
-```
-
-These 5 APs unlock deal badges for ~10 more venues. Gets us to ~75%. Paste inside `const BASE_PRICES = { ... }` before closing `};`. Bump cache stamp to `20260815c` in app.jsx + sw.js + index.html.
+**DECISION: No further BASE_PRICES work until post-Reddit launch.** DevOps should NOT chase the remaining 29 APs as a top priority. If a Content run happens to include a paste-ready batch for a multi-venue AP, accept it. Otherwise, stop. The deal-score feature is functional at 82% — that's a win, not a gap.
 
 ---
 
-### Decision 2: Venue moratorium holds — no more additions until quality catches up
+### Decision 2: 394 venues is the pre-Reddit catalog — moratorium re-affirmed HARD
 
-389 venues is a credible catalog. Adding more venues without fixing photos is the wrong trade: each new venue at 1920×1080 generic Unsplash is one more broken window on launch day.
+Content bent the moratorium today (latam gap justified the exception). The result is 394 venues, which is an excellent catalog for a spontaneous weekend app. Adding more without photo fixes is adding broken windows.
 
-**DECISION: Moratorium until post-Reddit launch OR UNSPLASH_KEY arrives.** If UNSPLASH_KEY arrives, photo pipeline runs first, THEN venue additions resume. Content agent can continue surfacing candidates but none land in app.jsx until photos are fixed or Jack explicitly overrides.
-
-Exception: if a venue's AP has BASE_PRICES coverage AND a verified venue-specific photo URL, DevOps may add it in the same run without PM approval.
+**DECISION: ZERO new venue additions until after Reddit launch.** No exceptions. Content can pipeline candidates for post-launch. The v120 moratorium exception (BASE_PRICES + verified photo) is also suspended — even good-data venues don't ship until photos are fixed or the Reddit post is live. 394 is the number.
 
 ---
 
-### Decision 3: Photo gate is the ONLY Reddit launch blocker — escalate now
+### Decision 3: Photo gate is a countdown — Aug 18 EOD is the hard slip date
 
-The pipeline is code-complete. `scripts/photos-fetch.mjs`, `photos-review.mjs`, `photos-apply.mjs` are all ready. The only missing input is `UNSPLASH_KEY` from Jack's Apple Dev account or a personal Unsplash API key (free, no LLC required). Time to run: ~2 hours. Photos on 50 marquee venues transforms the app from "template demo" to "real product."
+Six days to Reddit. The photo pipeline is code-complete. UNSPLASH_KEY is the only input missing. Time to run once key arrives: ~2 hours.
 
-**DECISION: Reddit post slips to Aug 29 if UNSPLASH_KEY isn't received by Aug 20.** Not negotiable. Launching to r/skiing or r/travel with 329 generic stock photos will crater the conversion that makes the 8K user path possible. One bad first impression in a subreddit can't be un-done with a patch the next day.
+**DECISION: If UNSPLASH_KEY is not received by EOD Monday Aug 18, the Reddit launch date officially moves to Aug 29.** This is not a warning — it is the decision. The 8K user path requires a first impression that converts. Launching to r/skiing with 213 duplicate generic photos is a one-shot chance to get laughed off a 100K-member subreddit. We don't get a second first impression.
 
-**Jack: the ask is your Unsplash API key (or create one at unsplash.com/developers, it's free and takes 5 minutes).**
+Jack: create a free Unsplash developer account at unsplash.com/developers (5 minutes, no LLC required, demo access tier works), share the `Access Key`. That's it. No other action needed from you.
 
 ---
 
 ## This Week's Top 3 Priorities
 
-1. **Jack: UNSPLASH_KEY or Unsplash dev account** — Reddit launch gate. Hard deadline Aug 20 for Aug 22 launch. No code work needed on our end.
-2. **DevOps: OSL/TFS/SPU/SOF/TBS BASE_PRICES batch (paste-ready above)** — execute next run, gets coverage to ~75%. Same pattern as today — execute, don't report.
-3. **Jack: Supabase delete-account SQL paste** — 2-min task, App Store Guideline 5.1.1(v). Not a web launch blocker but required before any iOS App Store submission.
+1. **Jack: UNSPLASH_KEY by EOD Aug 18** — Reddit launch gate. Countdown is live. Slip to Aug 29 is automatic otherwise.
+2. **Dry-run the launch-day grid** — Before the Reddit post, someone (Jack or an agent) should load the live app on Aug 21, screenshot the Explore grid's top 10 cards, and verify they show compelling scores with real data. The smoke test doesn't cover this. If the top 10 are all "Score: 50" on a bad data day, delay 24h rather than post.
+3. **Jack: Supabase delete-account SQL paste** — 2-min task, required before any iOS App Store submission. Not blocking web launch but clears the App Store path.
 
 ---
 
@@ -88,28 +72,30 @@ The pipeline is code-complete. `scripts/photos-fetch.mjs`, `photos-review.mjs`, 
 
 | Feature | Reason |
 |---------|--------|
-| **TPS/TGD BASE_PRICES entries** | US-direct flights to Trapani and Tivat are scarce. Unreliable price data would show misleading fares. Continent-fallback pricing is honest and sufficient. |
-| **SRI on CDN scripts** | Could break Babel eval. Post-launch. |
-| **JSON-LD / h1 SEO** | Zero conversion impact at <100 MAU. Post-Reddit cleanup. |
-| **iOS App Store submission** | Needs Jack + Xcode. Not blocking web launch. |
-| **Venue deep links** | Decided AFTER Reddit launch. Decision stands. |
-| **More venue additions** | Moratorium. Quality before quantity. |
+| **More venue additions (any)** | Moratorium. 394 is the number. |
+| **Remaining 29 BASE_PRICES APs** | Diminishing returns. 82% coverage is good enough. Move on. |
+| **SRI on CDN scripts** | Medium risk to Babel eval. Post-launch hardening. |
+| **JSON-LD / h1 static SEO** | Zero conversion impact at <100 MAU. Post-Reddit cleanup. |
+| **iOS App Store submission** | Jack + Xcode dependency. Post-Reddit. |
+| **Venue deep links** | Committed: build AFTER Reddit launch. Decision stands. |
+| **Stale branch cleanup (16 claude/* branches)** | P3. Post-Reddit housekeeping. |
 
 ---
 
 ## Success Criteria
 
-**90-day target: 5K–8K users.** Reddit launch Aug 22 (hard slip to Aug 29 if no UNSPLASH_KEY by Aug 20).
+**90-day target: 5K–8K users.** Reddit launch Aug 22 (hard slip to Aug 29 if no UNSPLASH_KEY by Aug 18 EOD).
 
 | Driver | 5K path | 8K path |
 |--------|---------|---------|
 | Reddit post quality | 1 post, r/skiing or r/travel | **3 posts same week** (r/skiing + r/travel + r/frugaltravel) |
-| Photo quality at launch | 329+ generic | **Top 50 venues real photos** (UNSPLASH_KEY gate) |
-| BASE_PRICES coverage | ~70% (today) | **~75%+ before Reddit** (OSL/TFS/SPU batch) |
-| Venue catalog | 389 (today) | **389 — moratorium, focus on quality** |
+| Photo quality at launch | 213+ duplicates (current) | **Top 50 marquee venues with real photos** (UNSPLASH_KEY gate) |
+| BASE_PRICES coverage | 82% (today) | **82% — sprint closed, 8K path doesn't require more** |
+| Venue catalog | 394 (moratorium) | **394 — quality over quantity, moratorium holds** |
+| Launch-day grid dry-run | Skipped | **Done Aug 21 — verify top 10 show compelling scores** |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-The Explore grid default sort is "Best weekend" (weekendScore). In August, N-hemisphere ski venues correctly score low (off-season cap). What actually surfaces: ~258 beach venues competing head-to-head. The top-of-grid venues on Reddit launch day will be determined entirely by beach scoring quality — wave height, UV, water temp, sun hours. If Open-Meteo has a bad data day for Mediterranean beach venues (which dominate the top-scroll), the first 20 cards a Reddit user sees could all be showing "Score: 50" with no confidence, defeating the entire product pitch in 3 seconds. We don't have a rehearsal mechanism for this. The smoke test verifies "app renders, no ErrorBoundary" — it doesn't verify "grid shows compelling scores." Consider a dry-run where someone loads the live app on the day before Reddit post, screenshots the actual Explore grid, and sanity-checks that the top 10 venues look genuinely worth clicking.
+The Aug 22 Reddit launch assumes a single post. The 8K path requires 3 subreddit posts in the same week (r/skiing, r/travel, r/frugaltravel). Posting the same link on the same day to multiple subreddits is a near-certain spam flag — Reddit's algorithm detects it and shadow-removes one or more posts silently, with no notification. The 3-post strategy needs to be staggered (Day 1 / Day 3 / Day 5), uses different angles for each community (skiing-centric vs travel deal vs budget travel), and the account posting needs some history. If Jack is posting from a fresh account, it's worth spending 2 days commenting in these subreddits before the post. One silently shadow-banned post is invisible to us and kills the 8K path without any warning signal.
