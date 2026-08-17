@@ -272,6 +272,46 @@ let done = 0;
 for (const v of queue) {
   const tried = [];
   let pick = null, alternates = [];
+
+  // Try Commons first — structurally geo-verified, no rate-limit wall.
+  // Widen the radius progressively rather than one big search so a tight
+  // hit (500m away) is always preferred over a loose one (10km away).
+  try {
+    for (const radiusKm of [1, 3, 10]) {
+      const hits = (await commonsGeoSearch(v, radiusKm)).filter(h => !usedIds.has(h.url));
+      tried.push({ q: `commons r=${radiusKm}km`, hits: hits.length });
+      if (hits.length) {
+        const best = hits[0];
+        pick = {
+          unsplashId: best.url, // reused field name; holds the Commons URL as the dedupe key
+          url: best.url, thumb: best.thumb, description: best.description,
+          photographer: best.photographer, photographerUrl: best.photographerUrl, link: best.link,
+          matchedQuery: `Commons GeoSearch (${radiusKm}km)`,
+          geoStatus: "verified", geoDistanceKm: best.geoDistanceKm,
+          source: "commons",
+        };
+        alternates = hits.slice(1, 6).map(h => ({
+          unsplashId: h.url, url: h.url, thumb: h.thumb, description: h.description,
+          photographer: h.photographer, link: h.link, matchedQuery: `Commons GeoSearch (${radiusKm}km)`,
+          geoStatus: "verified", geoDistanceKm: h.geoDistanceKm, source: "commons",
+        }));
+        usedIds.add(best.url);
+        break;
+      }
+      await sleep(150); // polite pacing on Commons, not required but courteous
+    }
+  } catch (e) { console.warn(`⚠ ${v.id} (commons): ${e.message}`); }
+
+  if (pick) {
+    saved[v.id] = { id: v.id, title: v.title, location: v.location, category: v.category, current: v.photo, pick, alternates, tried };
+    fs.writeFileSync(OUT, JSON.stringify(saved, null, 2));
+    done++;
+    console.log(`✓📍 ${String(done).padStart(3)}/${queue.length}  ${v.title} — Commons [${pick.geoDistanceKm}km]`);
+    continue;
+  }
+
+  // Nothing on Commons within 10km — fall back to Unsplash text search
+  // (rate-limited, "unknown" geo confidence, needs a human/AI check).
   try {
     for (const q of queriesFor(v)) {
       const { results, remaining } = await search(q);
