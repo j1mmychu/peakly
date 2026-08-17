@@ -137,6 +137,66 @@ async function search(query, page = 1) {
   return { results: json.results || [], remaining };
 }
 
+// ─── Wikimedia Commons GeoSearch — no key, no meaningful rate limit ───────────
+// Unsplash's own embedded location data turned out to cover ~0% of results in
+// practice (checked 34 candidates, zero had usable GPS) — the geoCheck() above
+// is correct but starved for input. Commons GeoSearch flips that: every result
+// is returned BECAUSE it's tagged within a real radius of the coordinates we
+// pass in, so verification isn't a lucky metadata hit, it's structural. Free,
+// no application/approval needed (unlike Unsplash production access), and
+// commons.wikimedia.org has no comparable per-hour ceiling for this volume.
+// Tradeoff: Commons' index includes a lot of non-photo content (aerial survey
+// tiles, scanned documents, maps) mixed in with real photography, so results
+// need filtering — real image extensions only, reasonable size, skip diagrams.
+const COMMONS_SKIP_EXT = /\.(svg|pdf|tif|tiff|ogv|webm|djvu|xcf)$/i;
+const COMMONS_SKIP_TITLE = /\b(map|diagram|chart|graph|logo|flag|coat of arms|plan|survey|orthophoto|lidar|elevation)\b/i;
+
+async function commonsGeoSearch(venue, radiusKm) {
+  const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch`
+    + `&gscoord=${venue.lat}|${venue.lon}&gsradius=${Math.min(radiusKm * 1000, 10000)}`
+    + `&gslimit=30&gsnamespace=6&format=json`;
+  const res = await fetch(url, { headers: { "User-Agent": "PeaklyPhotoSourcing/1.0 (travel app, non-commercial venue photo research)" } });
+  if (!res.ok) return [];
+  const json = await res.json();
+  const hits = (json.query?.geosearch || [])
+    .filter(h => !COMMONS_SKIP_EXT.test(h.title) && !COMMONS_SKIP_TITLE.test(h.title));
+  if (!hits.length) return [];
+
+  // Batch imageinfo lookup (url, dimensions, license) for up to 30 titles at once.
+  const titles = hits.map(h => h.title).join("|");
+  const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}`
+    + `&prop=imageinfo&iiprop=url|size|extmetadata&iiurlwidth=1200&format=json`;
+  const infoRes = await fetch(infoUrl, { headers: { "User-Agent": "PeaklyPhotoSourcing/1.0 (travel app, non-commercial venue photo research)" } });
+  if (!infoRes.ok) return [];
+  const infoJson = await infoRes.json();
+  const pages = Object.values(infoJson.query?.pages || {});
+
+  return hits
+    .map(h => {
+      const page = pages.find(p => p.title === h.title);
+      const info = page?.imageinfo?.[0];
+      if (!info || !info.thumburl) return null;
+      // Skip tiny images (icons/thumbnails masquerading as photos) and
+      // extreme aspect ratios (panorama strips, scan artifacts).
+      if ((info.width || 0) < 800 || (info.height || 0) < 500) return null;
+      const ratio = info.width / info.height;
+      if (ratio > 2.4 || ratio < 0.5) return null;
+      return {
+        source: "commons",
+        title: h.title,
+        url: info.thumburl,
+        thumb: info.thumburl.replace("1200px", "400px"),
+        description: info.extmetadata?.ImageDescription?.value?.replace(/<[^>]+>/g, "").slice(0, 200) || "",
+        photographer: info.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "") || "",
+        photographerUrl: info.descriptionurl || "",
+        link: info.descriptionurl || "",
+        geoDistanceKm: Math.round(h.dist / 1000 * 10) / 10,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.geoDistanceKm - b.geoDistanceKm);
+}
+
 // ─── main ────────────────────────────────────────────────────────────────────
 const venues = readVenues();
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
