@@ -8648,10 +8648,21 @@ function applyFilters(listings, activeCat, filters, search = {}, homeAirport = n
   // without a confirmed same-day price. Filter to live fares once they've
   // loaded; degrade gracefully if Travelpayouts returns nothing for ANY
   // venue (proxy/upstream down) by showing the full list with estimates.
+  //
+  // 2026-08-18 fix: the old "liveOnly.length > 0" check didn't actually
+  // implement that graceful-degradation promise — Travelpayouts route
+  // coverage is partial (measured live: ~20 of 394 venues get a real fare),
+  // so the instant even a handful of fares came back live, the OTHER
+  // hundreds of legitimately-listed, honestly ~$X-estimate venues vanished
+  // from the grid — "All experiences" settled at 20/394 (~5%) after full
+  // load, not a loading glitch. Requiring a real majority (>=40%) of the
+  // on-screen set to have live fares before committing to exact-fares-only
+  // keeps the honesty promise when Travelpayouts is actually healthy for
+  // this category, without letting a coverage gap hide most of the catalog.
   const anyFlightLoading = out.some(l => l.flightsLoading);
   if (!anyFlightLoading) {
     const liveOnly = out.filter(l => l.flight?.live === true);
-    if (liveOnly.length > 0) out = liveOnly;
+    if (liveOnly.length > 0 && liveOnly.length / out.length >= 0.4) out = liveOnly;
   }
   return out;
 }
