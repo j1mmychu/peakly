@@ -78,5 +78,317 @@
     "category": "beach",
     "photo": "https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop",
     "reason": "candidate is an inland hillside neighborhood aerial, no beach visible at all"
+  },
+  {
+    "id": "alta",
+    "title": "Alta",
+    "location": "Utah, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1644768606813-72eca4750d8d?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QWx0YSUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg2NTgzOTQ4fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says Snowbird ski resort, not Alta"
+  },
+  {
+    "id": "rusutsu",
+    "title": "Rusutsu Resort",
+    "location": "Hokkaido, Japan",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8UnVzdXRzdSUyMEphcGFufGVufDF8MHx8fDE3ODY1ODc1MDF8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is a random Japan travel shot, no connection to Rusutsu"
+  },
+  {
+    "id": "ischgl",
+    "title": "Ischgl",
+    "location": "Silvretta Arena, Austria",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1597086831879-756db15e81d3?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SXNjaGdsJTIwQXVzdHJpYXxlbnwxfDB8fHwxNzg2NTg3NTAyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is Hallstatt, Austria — a different town entirely"
+  },
+  {
+    "id": "beach_rivmaya",
+    "title": "Riviera Maya",
+    "location": "Quintana Roo, Mexico",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1666051637751-19d52e003355?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Uml2aWVyYSUyME1heWElMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTA0fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is Tulum Ruins, a specific different landmark"
+  },
+  {
+    "id": "appi-kogen-s2",
+    "title": "Appi Kogen",
+    "location": "Iwate, Japan",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1681317474435-91e0f5065abf?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QXBwaSUyMEtvZ2VuJTIwSmFwYW58ZW58MXwwfHx8MTc4NjkyNzQxMXww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is Oshino Hakkai / Mt Fuji, nowhere near Appi Kogen (Iwate)"
+  },
+  {
+    "id": "big-white-ski-s5",
+    "title": "Big White Ski",
+    "location": "British Columbia, Canada",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1646090184113-0a31dc373cf5?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QmlnJTIwV2hpdGUlMjBTa2l8ZW58MXwwfHx8MTc4NjkyNzQyNHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says Big Sky, Montana — different resort/state"
+  },
+  {
+    "id": "ski_oukaimeden",
+    "title": "Oukaimeden Ski Resort",
+    "location": "High Atlas Mountains, Morocco",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1546706442-373624e9c90b?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8T3VrYWltZWRlbiUyMFNraSUyMFJlc29ydCUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg2OTI3NDgzfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says German mountains, not Morocco"
+  },
+  {
+    "id": "sugarbush",
+    "title": "Sugarbush Resort",
+    "location": "Vermont, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1576189407232-a93b7f502295?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3VnYXJidXNoJTIwVmVybW9udHxlbnwxfDB8fHwxNzg2NTgzOTU4fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is unrelated Vermont real-estate/autumn shot, no ski connection"
+  },
+  {
+    "id": "beach_destin",
+    "title": "Emerald Coast Destin",
+    "location": "Florida, USA",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1686080188018-54c7d792d040?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8RW1lcmFsZCUyMENvYXN0JTIwRGVzdGluJTIwVVNBfGVufDF8MHx8fDE3ODY1ODc1MDl8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is Miami, a different part of Florida"
+  },
+  {
+    "id": "stratton",
+    "title": "Stratton Mountain",
+    "location": "Vermont, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1695758985810-3f971a26f400?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3RyYXR0b24lMjBVU0F8ZW58MXwwfHx8MTc4NjU4NzQ5N3ww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is a US flag close-up, no location relevance"
+  },
+  {
+    "id": "beach_cable",
+    "title": "Cable Beach",
+    "location": "Broome, Western Australia",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1582076197950-7a1dcdd1e07f?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Q2FibGUlMjBCZWFjaCUyMGJlYWNofGVufDF8MHx8fDE3ODY1ODc1MjR8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says Bondi Beach, Sydney — different beach/state"
+  },
+  {
+    "id": "telluride",
+    "title": "Telluride Ski Resort",
+    "location": "Colorado, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1608972141671-d26e7a0a2062?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8VGVsbHVyaWRlJTIwU2tpJTIwUmVzb3J0JTIwc2tpJTIwcmVzb3J0fGVufDF8MHx8fDE3ODY1ODM5NDl8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is a generic road photo, no location relevance"
+  },
+  {
+    "id": "steamboat",
+    "title": "Steamboat Springs",
+    "location": "Colorado, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1743350867659-5c7e126afa26?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3RlYW1ib2F0JTIwU3ByaW5ncyUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg2NTgzOTUwfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Steamboat Springs specifically"
+  },
+  {
+    "id": "sunvalley",
+    "title": "Sun Valley",
+    "location": "Idaho, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1699894068149-7a1f43e33a6b?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3VuJTIwVmFsbGV5JTIwc2tpJTIwcmVzb3J0fGVufDF8MHx8fDE3ODY1ODM5NTF8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Sun Valley specifically"
+  },
+  {
+    "id": "snowbasin",
+    "title": "Snowbasin",
+    "location": "Utah, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1517598338100-3473a463668e?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U25vd2Jhc2luJTIwVVNBfGVufDF8MHx8fDE3ODY1ODM5NTJ8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is a generic person portrait, unrelated"
+  },
+  {
+    "id": "keystone",
+    "title": "Keystone Resort",
+    "location": "Colorado, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1705205148375-a845e74dbe4b?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8S2V5c3RvbmUlMjBSZXNvcnQlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NjU4NzQ5OHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Keystone Resort specifically"
+  },
+  {
+    "id": "whitefish",
+    "title": "Whitefish Mountain",
+    "location": "Montana, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1708640577840-a25684a2e822?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8V2hpdGVmaXNoJTIwTW91bnRhaW4lMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NjU4NzUwMHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is a generic grassy lake shot, no mountain/ski relevance"
+  },
+  {
+    "id": "beach_gcm",
+    "title": "Seven Mile Beach",
+    "location": "Grand Cayman, Cayman Islands",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1662666625842-0d2f1bf1a931?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U2V2ZW4lMjBNaWxlJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTA0fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Grand Cayman/Seven Mile Beach specifically"
+  },
+  {
+    "id": "beach_noronha",
+    "title": "Fernando de Noronha",
+    "location": "Pernambuco, Brazil",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1728571812263-770017729f48?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8RmVybmFuZG8lMjBkZSUyME5vcm9uaGElMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTA2fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Fernando de Noronha specifically"
+  },
+  {
+    "id": "beach_ob",
+    "title": "Outer Banks OBX",
+    "location": "North Carolina, USA",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1628814707477-59e4171eb767?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8T3V0ZXIlMjBCYW5rcyUyME9CWCUyMGJlYWNofGVufDF8MHx8fDE3ODY1ODc1MDZ8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Outer Banks specifically"
+  },
+  {
+    "id": "beach_clearwater",
+    "title": "Clearwater Beach",
+    "location": "Florida, USA",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1658157799932-eef5dee4118c?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8Q2xlYXJ3YXRlciUyMEJlYWNoJTIwYmVhY2h8ZW58MXwwfHx8MTc4NjU4NzUwOHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Clearwater Beach specifically"
+  },
+  {
+    "id": "beach_myrtle",
+    "title": "Myrtle Beach",
+    "location": "South Carolina, USA",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1574421624183-fa5b6250d896?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8TXlydGxlJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTEwfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Myrtle Beach specifically"
+  },
+  {
+    "id": "beach_sardinia",
+    "title": "Cala Mariolu",
+    "location": "Sardinia, Italy",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1688142819011-200dbbd01049?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8Q2FsYSUyME1hcmlvbHUlMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTEyfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Cala Mariolu/Sardinia specifically"
+  },
+  {
+    "id": "beach_hvar",
+    "title": "Hvar Hula Hula Beach",
+    "location": "Hvar Island, Croatia",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1738675326350-aff65cc55000?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SHZhciUyMEh1bGElMjBIdWxhJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTEzfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says Albanian Riviera near Himara/Jala — wrong country"
+  },
+  {
+    "id": "beach_zanzibar",
+    "title": "Nungwi Beach",
+    "location": "Zanzibar, Tanzania",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1667935837291-1dc178866251?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8TnVuZ3dpJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2NTg3NTE1fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says south coast of Kenya — wrong country"
+  },
+  {
+    "id": "beach_praslin",
+    "title": "Anse Lazio",
+    "location": "Praslin, Seychelles",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1682197295558-1b978e8b11ba?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QW5zZSUyMExhemlvJTIwYmVhY2h8ZW58MXwwfHx8MTc4NjU4NzUxNnww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Anse Lazio/Praslin specifically"
+  },
+  {
+    "id": "zakopane",
+    "title": "Zakopane",
+    "location": "Tatra Mountains, Poland",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1581700904289-4035b68a5e02?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8WmFrb3BhbmUlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NjU4NzUyNXww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Zakopane specifically"
+  },
+  {
+    "id": "idre-fjall-s6",
+    "title": "Idre Fjall",
+    "location": "Dalarna, Sweden",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1482867996988-29ec3a0f1aac?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SWRyZSUyMEZqYWxsJTIwc2tpJTIwcmVzb3J0fGVufDF8MHx8fDE3ODY5Mjc0MjV8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Idre Fjall specifically"
+  },
+  {
+    "id": "morzine-s12",
+    "title": "Morzine",
+    "location": "Haute-Savoie, France",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1674043613875-eabfa5a45425?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8TW9yemluZSUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg2OTI3NDMxfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate caption says Avoriaz — a different (linked) resort"
+  },
+  {
+    "id": "sun-peaks-resort-s17",
+    "title": "Sun Peaks Resort",
+    "location": "British Columbia, Canada",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1547810171-6c95be001b7c?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U3VuJTIwUGVha3MlMjBSZXNvcnQlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NjkyNzQ0MHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Sun Peaks specifically"
+  },
+  {
+    "id": "plage-de-pampelonne-t5",
+    "title": "Plage de Pampelonne",
+    "location": "Saint-Tropez, France",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1707209909974-37339b05400e?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U2FpbnQtVHJvcGV6JTIwRnJhbmNlJTIwYmVhY2h8ZW58MXwwfHx8MTc4NjkyNzQ2MHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Pampelonne/Saint-Tropez specifically"
+  },
+  {
+    "id": "matira-beach-t6",
+    "title": "Matira Beach",
+    "location": "Bora Bora, French Polynesia",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1468413253725-0d5181091126?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8TWF0aXJhJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2OTI3NDYxfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Matira Beach/Bora Bora specifically"
+  },
+  {
+    "id": "hyams-beach-t22",
+    "title": "Hyams Beach",
+    "location": "New South Wales, Australia",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1579425018591-181e9f63f9de?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8SHlhbXMlMjBCZWFjaCUyMGJlYWNofGVufDF8MHx8fDE3ODY5Mjc0Njl8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Hyams Beach specifically"
+  },
+  {
+    "id": "lindos-beach-t23",
+    "title": "Lindos Beach",
+    "location": "Rhodes, Greece",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1512315427855-3d993142e230?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8TGluZG9zJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2OTI3NDcxfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Lindos/Rhodes specifically"
+  },
+  {
+    "id": "laguna-beach-t24",
+    "title": "Laguna Beach",
+    "location": "California, USA",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1637027996996-b6db80d1a66b?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8TGFndW5hJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2OTI3NDc2fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Laguna Beach specifically"
+  },
+  {
+    "id": "ski_gudauri",
+    "title": "Gudauri Ski Resort",
+    "location": "Kazbegi Region, Georgia",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1646381691174-db8e14c943d5?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8R3VkYXVyaSUyMFNraSUyMFJlc29ydCUyMHNraSUyMHJlc29ydHxlbnwxfDB8fHwxNzg2OTI3NDkzfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Gudauri specifically"
+  },
+  {
+    "id": "solitude",
+    "title": "Solitude",
+    "location": "Utah, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1600356604423-426d3363ffb7?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8Mnx8U29saXR1ZGUlMjBza2klMjByZXNvcnR8ZW58MXwwfHx8MTc4NjkyNzUwMHww&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Solitude (Utah) specifically"
+  },
+  {
+    "id": "an-bang-beach-t29",
+    "title": "An Bang Beach",
+    "location": "Quang Nam, Vietnam",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1660885420316-914e6633e5c9?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QW4lMjBCYW5nJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2OTI3NDgwfDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "candidate is an unrelated stock portrait with spam keyword caption"
+  },
+  {
+    "id": "beach_milos",
+    "title": "Sarakiniko Moon Beach",
+    "location": "Milos Island, Greece",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1695072348608-730ebc94e34c?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8U2FyYWtpbmlrbyUyME1vb24lMjBCZWFjaCUyMGJlYWNofGVufDF8MHx8fDE3ODY1ODc1MTR8MA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
+    "reason": "no candidate confirms Sarakiniko/Milos specifically"
   }
 ]
