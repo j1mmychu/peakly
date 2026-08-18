@@ -1,254 +1,215 @@
-# Peakly Content & Data Report — 2026-08-17
+# Peakly Content & Data Report — 2026-08-18
 
-**Data health score: 88/100** (-2 vs yesterday — photo dup count corrected upward) | Venues: **394** (131 skiing / 263 beach) | Cache: `20260816b` | BASE_PRICES: **139/162 unique venue APs (86%)** | Photo uniqueness: **186 unique / 394 total (~208 duplicate instances)**
+## Data Health Score: 72/100
 
-> No venue changes today — photo moratorium was lifted per DevOps, but with T-5 days to photo gate (Aug 22 deadline), holding additions until photo pass completes. Score drops 2 pts because a corrected photo-dup count (208 instances, not 213) reveals the methodology was inconsistent yesterday; today's count is verified with the correct dual-format regex.
+**Deductions:**
+- Photo deduplication: 83 sharing groups, 186 of 394 venues (47%) sharing photos with ≥1 other venue (-18 pts)
+- BASE_PRICES airport coverage: only 14 of 162 unique airport codes covered (9%) — deal scores unreliable for most venues (-10 pts)
 
----
-
-## Permanent Corrections (stop re-raising these)
-
-| Prompt Claim | Reality |
-|---|---|
-| "182 venues, 12 categories" | **394 venues, 2 categories (skiing + beach only).** |
-| "Hiking has ZERO gear items" | **Hiking does not exist. Amazon cut for v1. GEAR_ITEMS = 0 refs.** |
-| "7 categories are single-vendor stubs" | **Only skiing and beach exist.** |
-| "GEAR_ITEMS" | **0 refs. Amazon cut for v1. Stop permanently.** |
-| "description field" | **No description field in venue schema.** Venues use title, location, tags. |
-| "lateSeason count via regex" | **14 confirmed** — grep both formats: `lateSeason:true` (compact, 9) + `"lateSeason": true` (JSON, 5) = 14. |
-| "AP_CONTINENT gaps" | **CLOSED — 283 entries.** All 162 venue APs covered. Stop. |
-| "VPS Day X binary blocker" | **Sandbox 403 = egress block, not VPS outage.** VPS deployed 2026-08-11 (Jack SSH). Stop. |
-| "cancun-beach dup in VENUES" | **FALSE — second occurrence is in ALERT_TEMPLATES, not VENUES.** Stop. |
-| "poolPrimary:true = 25" | **FALSE — 0 venues use poolPrimary.** Stop. |
-| "Grace Bay near-dup" | **Two distinct entries at same AP (PLS), ~5.9 km apart.** Jack's call — do not auto-resolve. |
-| "venue count = 182 / 373 / 353 / 374 / 384 / 389 / 394" | **394 is today's authoritative count.** Always eval the VENUES array — both compact and JSON formats; grep/regex that only checks one format undercounts. |
-| "Open #23 disk cache" | **CLOSED.** VPS 2026-08-11 Jack SSH confirmed. Stop. |
-| "BASE_PRICES = 82%" | **Corrected to 86% today (139/162)** — yesterday's 133/162 figure was from an incomplete airport set. |
+**Clean:**
+- 0 duplicate IDs
+- 100% field coverage across all required fields (id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo)
+- 0 coordinate anomalies
+- 0 missing airports or tags
 
 ---
 
-## 1 · Data Integrity Audit
+## Category Breakdown
 
-### Venue Counts (authoritative — eval-verified, both compact + JSON formats)
+The scheduled prompt references 12 categories and a 182-venue catalog — **that state is months stale.** Current reality as of today:
 
-| Category | Count |
-|----------|-------|
-| Skiing | 131 |
-| Beach | 263 |
-| **Total** | **394** |
+| Category | Venues | Status |
+|----------|--------|--------|
+| Beach    | 263    | ✅ Healthy |
+| Skiing   | 131    | ✅ Healthy |
+| **Total** | **394** | |
 
-**No duplicate IDs** ✅ — 394 unique venue IDs confirmed via boot-time dedup check.
-
-**No stub categories** — skiing (131) and beach (263) both well above the 10-venue floor.
-
-**Counting note:** app.jsx uses TWO venue object formats. Compact: `id:"whistler", category:"skiing"` (unquoted keys). JSON: `"id": "beach_gcm", "category": "beach"` (quoted keys). A regex that only anchors on `\b` or `["']id["']` will miss the other half and report 197 instead of 394. Always use the eval bracket-walker or grep both patterns.
-
-### Field Coverage
-
-| Field | Coverage |
-|-------|----------|
-| `id` | 394/394 ✅ |
-| `category` | 394/394 ✅ |
-| `photo` | 394/394 ✅ |
-| `ap` | 394/394 ✅ |
-| `lat` / `lon` | 394/394 ✅ |
-| `tags` | 394/394 ✅ |
-| `title` | 394/394 ✅ |
-| AP in `AP_CONTINENT` | 162/162 unique venue APs covered ✅ (283 total AP_CONTINENT entries) |
-| AP in `AIRPORT_COORDS` | 162/162 ✅ (193 AIRPORT_COORDS entries) |
-| AP in `BASE_PRICES` (dest) | **139/162 unique venue APs (86%)** — 23 gaps remain |
-
-### lateSeason Verification
-
-**14 venues** confirmed with `lateSeason:true`. Correct grep:
-```bash
-grep -c "lateSeason:true" app.jsx    # compact (9)
-grep -c '"lateSeason": true' app.jsx  # JSON (5)
-# Total: 14
-```
-
-### Photo Duplication (ongoing gap — Open #20, photo gate T-5 days)
-
-- **186 unique photos / 394 venues → 208 duplicate instances** (125 Unsplash photo IDs reused 2–4×)
-- Worst offenders: 4 photos each reused 4×; ~10 photos reused 3×
-- This is the **#1 data quality gap** — every duplicate degrades user trust and looks cheap
-- Fix: `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` → review → apply
-- **Jack must provide UNSPLASH_KEY to unblock.** DevOps T-5 day deadline is Aug 22.
-
-### BASE_PRICES Gaps (23 destination APs missing — 86% covered)
-
-All 23 airports already have venues in the catalog — these are existing venues that serve estimates-only (no `LIVE` deal badge possible):
-
-| Airport | Venue example | Notes |
-|---------|--------------|-------|
-| BEY | Beirut beaches | Middle East |
-| BME | Broome, Australia | Remote WA |
-| BOC | Bocas del Toro | Panama |
-| CMH | (no venue yet) | Columbus OH — only true gap |
-| DJE | Djerba | Tunisia |
-| EAS | San Sebastián | Basque Country |
-| EYW | Key West | Florida Keys |
-| FEN | Fernando de Noronha | Brazil |
-| GEG | Mt. Spokane area | WA ski |
-| HNA | Hanamaki / Iwate | Japan |
-| INH | Inhambane | Mozambique |
-| KRK | Zakopane area | Poland ski |
-| KUL | Malaysian beaches | SE Asia |
-| LEA | Exmouth/Turquoise Bay | W. Australia |
-| MYR | Myrtle Beach | South Carolina |
-| OKA | Okinawa | Japan |
-| RDD | Shasta/Redding | CA |
-| SID | Sal Island | Cape Verde |
-| SOF | Bansko ski | Bulgaria |
-| SRQ | Siesta Key | Florida |
-| TBS | Gudauri ski | Georgia (country) |
-| USH | Ushuaia | Argentina ski |
-| VPS | Destin | Florida |
-
-**Backfill priority** (venues with highest review counts, most user-visible impact):
-1. SRQ (Siesta Key — 16,800 reviews)
-2. EYW (Key West)
-3. MYR (Myrtle Beach)
-4. VPS (Destin)
-5. OKA (Okinawa)
+Surfing was retired 2026-05-03. All other categories (hiking, climbing, MTB, etc.) were never launched. No stub categories — only two live categories and both are well-populated. Geographic concentration is the real gap, not category breadth.
 
 ---
 
-## 2 · GEAR ITEMS AUDIT
+## GEAR_ITEMS Audit
 
-**Not applicable.** Amazon affiliate cut for v1 per Jack's decision (2026-06-09). Zero refs in app.jsx. Revisit post-launch.
-
----
-
-## 3 · Seasonal Relevance (August 17, 2026)
-
-**Today:** Late northern summer, early southern hemisphere winter.
-
-| Segment | Status | Notes |
-|---------|--------|-------|
-| Beach — N hemisphere | ✅ **PEAK SEASON** | Mediterranean, Caribbean, US Gulf/Atlantic coasts all firing |
-| Beach — S hemisphere | 🟡 Off-season | Australian/NZ beaches are winter; still show for pool/year-round venues |
-| Skiing — N hemisphere | ❌ **OFF-SEASON** | Lifts closed except late-season high-altitude (Tignes glacier, Saas-Fee, Mammoth late) |
-| Skiing — S hemisphere | ✅ **IN-SEASON** | 6 venues: Remarkables, Cardrona, Mt Hutt (NZ), Falls Creek, Buller, Hotham (AU), Catedral/Las Leñas (AR), Chillán (CL) |
-
-**Highlight for Jack:** August is prime time for the 263 beach venues. The front page will naturally lead with beach results. The 14 `lateSeason:true` ski venues (Tignes, Mammoth, Saas-Fee, etc.) may still score high if glacier conditions hold — these are correct to show. Do NOT suppress skiing from front page globally — the S hemisphere and lateSeason venues are legitimate August options.
+GEAR_ITEMS was **intentionally removed for v1** (Amazon Associates formally cut by Jack on 2026-06-09 — see CLAUDE.md Open #13/#16). `grep -c GEAR_ITEMS app.jsx` → 0. This is a documented decision, not a gap. Do not restore. Revisit post-launch if revenue gap justifies it.
 
 ---
 
-## 4 · Content Quality
+## Seasonal Relevance (2026-08-18 — Northern Summer)
 
-- **Tags:** 394/394 venues have tags ✅. Spot-checked 20 random venues — tags are accurate and specific (no generic "Nice beach" filler).
-- **Ratings:** Range 4.85–4.99. No obvious gaming (no round numbers like 5.00 or 4.00).
-- **Review counts:** Range 988–38,400. Plausible distribution.
-- **Photo format consistency:** All 394 venues have an Unsplash photo URL. The uniqueness gap (208 dups) is a quality issue but not a broken-field issue.
+| Segment | Venues | Status |
+|---------|--------|--------|
+| N. hemisphere beach | 202 | 🟢 Peak season |
+| S. hemisphere ski | 23 | 🟢 Peak season (Andes + NZ/AU) |
+| N. hemisphere ski | 108 | 🔴 Off-season (expected low scores) |
+| S. hemisphere beach | 61 | 🟡 Off-season |
 
----
+**lateSeason flag** covers 14 high-altitude N. hemisphere resorts (whistler, mammoth, tignes, zermatt, etc.) — these bypass the off-season binary cap when snow depth ≥ 0.5m, which is correct for glacier skiing in August. No action needed.
 
-## 5 · Daily Venue Additions — 5 New Venue Objects
-
-**Geographic targeting:** Greek Ionian islands, Bahamas, Bermuda — all excellent US-weekend destinations currently missing from the catalog. All are peak summer beach season in August.
-
-**Infrastructure note:** Each venue below lists which AP infrastructure already exists and what needs adding before paste. ZTH is fully wired; GGT has AP_CONTINENT only; CFU, BDA, GGT need AIRPORT_COORDS; all 5 need BASE_PRICES destination entries.
+**Note for PM:** In August the Explore tab shows ~225 in-season venues (202 N. beach + 23 S. ski). N. ski venues will mostly score low and filter to the bottom unless lateSeason-flagged. Scoring behavior is working as designed.
 
 ---
 
-### Venue 1 — Navagio (Shipwreck) Beach, Zakynthos, Greece (ap: ZTH)
-**AP status:** ✅ ZTH already in AP_CONTINENT (`europe`), AIRPORT_COORDS, and airport list. Just needs venue + BASE_PRICES.
+## Photo Duplication Audit — Primary Quality Gap
 
-```javascript
-{id:"beach_navagio",category:"beach",title:"Navagio Shipwreck Beach",location:"Zakynthos, Greece",lat:37.8556,lon:20.6224,ap:"ZTH",icon:"🏖️",rating:4.96,reviews:8400,gradient:"linear-gradient(160deg,#001a44,#003388,#0055cc)",accent:"#3388ff",tags:["World's Most Photographed Beach","Turquoise Cove","Cliffside Views","Boat Access Only"],photo:"https://images.unsplash.com/photo-1504602770439-2c9f91dbef0b?w=800&h=600&fit=crop"},
-```
+**83 groups of 2–4 venues share the same photo.** 186 venues (47%) are affected. Worst offenders:
 
-**BASE_PRICES entry to add:**
-```javascript
-ZTH:{ JFK:1380, LAX:1580, SFO:1620, ORD:1440, MIA:1350, SEA:1660, BOS:1350, ATL:1400, DEN:1480, DFW:1420, LAS:1560, PHX:1540, MSP:1460, DTW:1430 },
-```
+| Venues sharing one photo | Count |
+|--------------------------|-------|
+| beach_sardinia, playa-maroma-mexico, unawatuna-sri-lanka, beach_villasimius | 4 |
+| steamboat, ski_oukaimeden, cardrona-nz | 3 |
+| sunvalley, ski_gudauri, mt-hutt-nz | 3 |
+| keystone, solitude, el-colorado-cl | 3 |
+| beach_rivmaya, bathsheba-barbados, ao-nang-beach-krabi | 3 |
+| beach_noronha, trunk-bay-st-john, bai-khem-phu-quoc | 3 |
+| beach_clearwater, baby-beach-aruba, kuta-beach-bali | 3 |
+| beach_myrtle, reduit-beach-st-lucia, tanjung-aan-lombok | 3 |
+| beach_lanikai, maho-beach-sxm, nacpan-beach-palawan | 3 |
 
----
-
-### Venue 2 — Exuma Cays (Compass Cay), Bahamas (ap: GGT)
-**AP status:** ⚠️ GGT in AP_CONTINENT (`na`) only. Need to add to AIRPORT_COORDS and BASE_PRICES.
-
-```javascript
-{id:"beach_exuma",category:"beach",title:"Exuma Cays",location:"Great Exuma, Bahamas",lat:23.5633,lon:-75.8329,ap:"GGT",icon:"🏖️",rating:4.95,reviews:5600,gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",accent:"#33aaff",tags:["Swimming Pigs","Shark Ray Alley","Emerald Sandbars","Most Pristine Bahamas"],photo:"https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"},
-```
-
-**AIRPORT_COORDS entry to add:**
-```javascript
-GGT:{ lat:23.5626, lon:-75.8776 },
-```
-
-**BASE_PRICES entry to add:**
-```javascript
-GGT:{ JFK:520, LAX:750, SFO:780, ORD:620, MIA:430, SEA:820, BOS:550, ATL:520, DEN:680, DFW:600, LAS:740, PHX:720, MSP:640, DTW:580 },
-```
+**82 more 2-way pairs not listed.** Run `scripts/photos-fetch.mjs` → `photos-review.mjs` → `photos-apply.mjs --write` with `UNSPLASH_KEY` set to fix. This is the biggest remaining quality gap Jack flagged directly — 27 marquee venues already got real photos; 186 still need them.
 
 ---
 
-### Venue 3 — Paleokastritsa Beach, Corfu, Greece (ap: CFU)
-**AP status:** ❌ CFU not yet in infrastructure. Need AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES.
+## BASE_PRICES Coverage — Secondary Quality Gap
 
-```javascript
-{id:"beach_corfu",category:"beach",title:"Paleokastritsa Beach",location:"Corfu, Greece",lat:39.6680,lon:19.7060,ap:"CFU",icon:"🏖️",rating:4.93,reviews:7200,gradient:"linear-gradient(160deg,#001a3a,#003377,#0055bb)",accent:"#3399ee",tags:["Ionian Emerald Waters","Byzantine Monastery Views","Snorkeling Caves","Olive Grove Backdrop"],photo:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&h=600&fit=crop"},
-```
+Only **14 of 162 unique airport codes** appear in BASE_PRICES (9%). All 14 are US hubs.
 
-**Infrastructure to add:**
-```javascript
-// AP_CONTINENT (inside the AP_CONTINENT object):
-CFU:"europe",
+**Top missing airports by venue count (backfill priority):**
 
-// AIRPORT_COORDS:
-CFU:{ lat:39.6019, lon:19.9115 },
+| AP | Venues | Region |
+|----|--------|--------|
+| CUN | 9 | Mexico/Caribbean |
+| SLC | 8 | Utah ski |
+| SYD | 8 | Australia |
+| GVA | 7 | Alps |
+| IBZ | 7 | Ibiza/Spain |
+| DPS | 7 | Bali/Indonesia |
+| RNO | 6 | Reno/Tahoe |
+| CMF | 6 | Chambéry/French Alps |
+| HKT | 6 | Phuket/Thailand |
+| BTV | 5 | Vermont ski |
+| NAP | 5 | Naples/Italy |
+| CAG | 5 | Sardinia |
+| FAO | 5 | Algarve/Portugal |
+| NCE | 5 | Nice/French Riviera |
+| ZNZ | 5 | Zanzibar |
+| MRU | 5 | Mauritius |
+| SCL | 5 | Chile ski |
+| YYC | 5 | Calgary/Canada ski |
+| NAN | 5 | Fiji |
+| ALB | 4 | Vermont/Albany |
 
-// BASE_PRICES:
-CFU:{ JFK:1320, LAX:1520, SFO:1560, ORD:1380, MIA:1300, SEA:1600, BOS:1290, ATL:1340, DEN:1420, DFW:1360, LAS:1500, PHX:1480, MSP:1400, DTW:1370 },
-```
-
----
-
-### Venue 4 — Horseshoe Bay Beach, Bermuda (ap: BDA)
-**AP status:** ❌ BDA not yet in infrastructure. Need AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES.
-
-```javascript
-{id:"beach_bermuda",category:"beach",title:"Horseshoe Bay Beach",location:"Southampton, Bermuda",lat:32.2524,lon:-64.8271,ap:"BDA",icon:"🏖️",rating:4.94,reviews:9100,gradient:"linear-gradient(160deg,#001a2e,#003366,#0055aa)",accent:"#ff9999",tags:["Famous Pink Sand","Turquoise Bermuda Waters","Easy US Weekend","Crystal Rock Formations"],photo:"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop"},
-```
-
-**Infrastructure to add:**
-```javascript
-// AP_CONTINENT:
-BDA:"na",
-
-// AIRPORT_COORDS:
-BDA:{ lat:32.3640, lon:-64.6787 },
-
-// BASE_PRICES:
-BDA:{ JFK:560, LAX:780, SFO:820, ORD:640, MIA:580, SEA:860, BOS:530, ATL:560, DEN:700, DFW:620, LAS:760, PHX:740, MSP:660, DTW:600 },
-```
+Backfilling the top 15 (~2hr task) would cover ~90 additional venues. The deal score is a headline feature — these all show `~$X` estimates which undermine trust.
 
 ---
 
-### Venue 5 — Lara Beach, Antalya, Turkey (ap: AYT)
-**AP status:** ❌ AYT not yet in infrastructure. Need AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES.
-**Note:** Turkey is currently Level 2 (Exercise Increased Caution) per US State Dept — same advisory level as dozens of existing venues (France, Mexico, etc.). The Turkish Riviera receives 15M+ tourists/year and is peak season in August.
+## Geographic Concentration Flags
 
-```javascript
-{id:"beach_lara",category:"beach",title:"Lara Beach",location:"Antalya, Turkey",lat:36.8495,lon:30.8509,ap:"AYT",icon:"🏖️",rating:4.91,reviews:11800,gradient:"linear-gradient(160deg,#002233,#004466,#006699)",accent:"#3399cc",tags:["Endless Mediterranean Shore","All-Inclusive Resorts","Taurus Mountain Backdrop","Top European Summer Pick"],photo:"https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&h=600&fit=crop"},
-```
-
-**Infrastructure to add:**
-```javascript
-// AP_CONTINENT:
-AYT:"europe",
-
-// AIRPORT_COORDS:
-AYT:{ lat:36.8987, lon:30.7992 },
-
-// BASE_PRICES:
-AYT:{ JFK:1280, LAX:1480, SFO:1520, ORD:1340, MIA:1260, SEA:1560, BOS:1250, ATL:1300, DEN:1380, DFW:1320, LAS:1460, PHX:1440, MSP:1360, DTW:1330 },
-```
+- **US ski: 53 of 131 ski venues (40%)** — significantly overweight. No action needed for v1 but worth flagging before any major venue push.
+- **Italy ski: only 2 venues** (cervinia, champoluc-monterosa-s15) — extremely underrepresented for a top-3 global ski destination. Cortina, Val Gardena, Livigno, Sestriere, Courmayeur all absent.
+- **Peru: 0 beach venues** despite LIM being in AP_CONTINENT. Máncora is a well-known South American beach draw.
+- **Norway ski: only 1 venue** (hemsedal) — Trysil (Norway's largest), Geilo, and Hafjell all absent.
+- **Americas-Pacific beach: 25 of 263 (9%)** — lowest of 4 regions despite including Mexico Pacific, Central America, and South America's entire Pacific coast.
 
 ---
 
-## 6 · One Observation for the PM
+## 5 New Venue Objects (Copy-Paste Ready)
 
-**The photo problem is getting worse proportionally as the venue count grows.** When the catalog was at 353 venues, there were ~181 unique photos (51% uniqueness). Now at 394 venues with 186 unique photos, the ratio has held roughly flat — meaning most of the 41 new venues added since then reused existing photos rather than introducing new ones. Without the UNSPLASH_KEY unblock, every batch of new venues just deepens the duplicate pool. The Aug 22 photo gate should be treated as a firm deadline, not a soft target — at the current photo reuse rate, adding 20 more venues before the photo pass would put ~70% of the catalog showing duplicate imagery, which is a user-facing trust issue as much as a data quality one.
+Targeting Italy ski gap (2 → 5 venues), Norway ski gap (1 → 2), and Peru beach gap (0 → 1). All use airport codes already in AP_CONTINENT.
+
+```js
+{
+  id: "cortina-it",
+  category: "skiing",
+  title: "Cortina d'Ampezzo",
+  location: "Veneto, Italy",
+  lat: 46.5365,
+  lon: 12.1357,
+  ap: "VCE",
+  icon: "⛷️",
+  rating: 4.88,
+  reviews: 2140,
+  gradient: "linear-gradient(160deg,#1a2535,#2d558e,#5b8ed5)",
+  accent: "#7db3f5",
+  tags: ["Dolomites UNESCO", "2026 Olympics Host", "Tofane Glacier", "Italian Alps"],
+  photo: "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=800&h=600&fit=crop",
+},
+{
+  id: "val-gardena-it",
+  category: "skiing",
+  title: "Val Gardena",
+  location: "South Tyrol, Italy",
+  lat: 46.5768,
+  lon: 11.6741,
+  ap: "VCE",
+  icon: "⛷️",
+  rating: 4.85,
+  reviews: 1760,
+  gradient: "linear-gradient(160deg,#1e2a40,#345c9c,#6899d4)",
+  accent: "#8ab9f0",
+  tags: ["Sella Ronda Circuit", "Dolomites UNESCO", "Ortisei Village", "500km Pistes"],
+  photo: "https://images.unsplash.com/photo-1604537466573-5e94508fd243?w=800&h=600&fit=crop",
+},
+{
+  id: "trysil-no",
+  category: "skiing",
+  title: "Trysil",
+  location: "Innlandet, Norway",
+  lat: 61.3285,
+  lon: 12.0614,
+  ap: "OSL",
+  icon: "⛷️",
+  rating: 4.71,
+  reviews: 920,
+  gradient: "linear-gradient(160deg,#0d1b2a,#1a3d6b,#3a7aaa)",
+  accent: "#6aaddd",
+  tags: ["Norway's Largest Resort", "Family Friendly", "Nordic Powder", "Long Season"],
+  photo: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop",
+},
+{
+  id: "mancora-pe",
+  category: "beach",
+  title: "Máncora",
+  location: "Piura, Peru",
+  lat: -4.1053,
+  lon: -81.0396,
+  ap: "LIM",
+  icon: "🏖️",
+  rating: 4.62,
+  reviews: 1350,
+  gradient: "linear-gradient(160deg,#3a1a00,#7a4a10,#c88830)",
+  accent: "#f5b040",
+  tags: ["Year-Round Sun", "Pacific Warmth", "South America's Best Beach", "Surfers & Families"],
+  photo: "https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=600&fit=crop",
+},
+{
+  id: "nazare-pt",
+  category: "beach",
+  title: "Nazaré",
+  location: "Leiria, Portugal",
+  lat: 39.6010,
+  lon: -9.0703,
+  ap: "LIS",
+  icon: "🌊",
+  rating: 4.74,
+  reviews: 2480,
+  gradient: "linear-gradient(160deg,#00112a,#003080,#0055cc)",
+  accent: "#4da8ff",
+  tags: ["World's Biggest Waves", "Atlantic Drama", "Historic Fishing Town", "60-Foot Surf"],
+  photo: "https://images.unsplash.com/photo-1565006270193-b49b1f07e75b?w=800&h=600&fit=crop",
+},
+```
+
+**Notes before pasting:**
+- All 5 use airports already in `AP_CONTINENT` — venue integrity guard will pass
+- VCE (Venice) for both Italy ski venues: 150–165km drive, standard gateway for Dolomites
+- OSL for Trysil: 150km, same as hemsedal which already uses OSL
+- LIM for Máncora: 1,100km but Lima is Peru's only international hub — consistent with how Patagonia venues use distant airports
+- LIS for Nazaré: 130km, solid day-trip or 2hr drive
+- Verify photo URLs resolve before shipping — these are representative Unsplash IDs
+- Add BASE_PRICES entries for LIM and LIS if backfilling that batch (LIS ≈ $720 JFK-LIS typical; LIM ≈ $640 JFK-LIM typical)
+
+---
+
+## One Observation for PM
+
+**The photo dedup is now the #1 trust issue, not pricing.** After the 2026-08-18 DevOps work that bumped photos for 90 venues (commits 0dcb301 + 73415a5), there are still 83 sharing groups. A user clicking from Kuta Beach (Bali) to Baby Beach (Aruba) and seeing the *exact same photo* destroys the app's credibility as a curated product — it reads as a scraper, not a premium travel tool. The `scripts/photos-*` pipeline exists; it just needs an Unsplash API key and an hour of Jack's time. This is the highest-leverage quality action remaining before any Reddit/HN post.
