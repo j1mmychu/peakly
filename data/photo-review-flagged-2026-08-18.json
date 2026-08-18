@@ -1,0 +1,82 @@
+[
+  {
+    "id": "mammoth",
+    "title": "Mammoth Mountain",
+    "location": "California, USA",
+    "category": "skiing",
+    "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
+    "reason": "candidate was a generic ski-chalet interior, not the mountain"
+  },
+  {
+    "id": "super-paradise-mykonos",
+    "title": "Super Paradise Mykonos",
+    "location": "Mykonos, Greece",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1716997338016-93b456b3ea8f?w=800&h=600&fit=crop",
+    "reason": "candidate is Mykonos Little Venice restaurant patio, not Super Paradise Beach"
+  },
+  {
+    "id": "perissa-beach-santorini",
+    "title": "Perissa Beach",
+    "location": "Santorini, Greece",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1593007466861-7707b21b81c0?w=800&h=600&fit=crop",
+    "reason": "candidate is Calangute Beach, Goa, India (per photographer caption)"
+  },
+  {
+    "id": "karon-beach-phuket",
+    "title": "Karon Beach",
+    "location": "Phuket, Thailand",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop",
+    "reason": "candidate is a duplicate of the Patong Beach photo, wrong beach"
+  },
+  {
+    "id": "kata-beach-phuket",
+    "title": "Kata Beach",
+    "location": "Phuket, Thailand",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1562708851-9c2c2768e277?w=800&h=600&fit=crop",
+    "reason": "candidate is an unidentifiable generic B&W beach photo"
+  },
+  {
+    "id": "freedom-beach-phuket",
+    "title": "Freedom Beach",
+    "location": "Phuket, Thailand",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop",
+    "reason": "candidate looks like an East African beach shack scene, not Thailand"
+  },
+  {
+    "id": "kuta-beach-bali",
+    "title": "Kuta Beach",
+    "location": "Bali, Indonesia",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop",
+    "reason": "candidate shows a steep-hilled remote cove; real Kuta Beach is flat and urban"
+  },
+  {
+    "id": "diniwid-boracay",
+    "title": "Diniwid Beach",
+    "location": "Boracay, Philippines",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop",
+    "reason": "candidate photographer caption says \"Diani Beach, Kenya\""
+  },
+  {
+    "id": "baros-island-maldives",
+    "title": "Baros Island Beach",
+    "location": "Maldives",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop",
+    "reason": "candidate is White Beach, Boracay (wind turbines visible), not the Maldives"
+  },
+  {
+    "id": "zuma-beach-malibu",
+    "title": "Zuma Beach Malibu",
+    "location": "Malibu, California",
+    "category": "beach",
+    "photo": "https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop",
+    "reason": "candidate is an inland hillside neighborhood aerial, no beach visible at all"
+  }
+]
