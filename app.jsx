@@ -9424,8 +9424,20 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const heroPickFiltered = [...bestPool]
     .filter(l => l.conditionLabel !== "Checking conditions…")
     .sort((a, b) => b.conditionScore - a.conditionScore);
-  const heroLive = heroPickFiltered.filter(l => l.flight?.live === true);
-  const heroPick = (heroLive.length > 0 ? heroLive[0] : heroPickFiltered[0]) || null;
+  const heroBest = heroPickFiltered[0] || null;
+  // Bug fix 2026-08-19: this used to take heroLive[0] unconditionally, so ANY
+  // venue with a resolved live fare — even an off-season/closed resort scoring
+  // 8/100 — could bump the actual best pick out of the hero slot the instant
+  // its Travelpayouts price resolved (confirmed live: Alta, Utah showing as
+  // "best window right now" for an LA user in August while flagged "Off-season
+  // — resort closed"). Live pricing should break ties among comparably-good
+  // options, not override the conditions ranking entirely. Only let a
+  // live-priced venue take the hero slot if it's within 10pts of the best
+  // available score — otherwise keep the honest top pick, live price or not.
+  const heroLive = heroPickFiltered.filter(l =>
+    l.flight?.live === true && l.conditionScore >= (heroBest?.conditionScore ?? 0) - 10
+  );
+  const heroPick = (heroLive.length > 0 ? heroLive[0] : heroBest) || null;
 
   // "Firing this weekend" carousel — Fri–Mon best-2-of-4 score >= 75 with
   // medium-or-better forecast confidence. Excludes "low" confidence (next
