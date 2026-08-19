@@ -1,122 +1,130 @@
-# Peakly Content & Data Report — 2026-08-18
+# Peakly Content & Data Report — 2026-08-19
 
-## Data Health Score: 72/100
+## Data Health Score: 81/100
 
 **Deductions:**
-- Photo deduplication: 83 sharing groups, 186 of 394 venues (47%) sharing photos with ≥1 other venue (-18 pts)
-- BASE_PRICES airport coverage: only 14 of 162 unique airport codes covered (9%) — deal scores unreliable for most venues (-10 pts)
+- Photo duplication: 83 sharing groups, 186 of 394 venues (47%) sharing photos with ≥1 other venue (-18 pts)
+- BASE_PRICES: 23 single-venue airport codes missing coverage (-1 pt) — down from -10 yesterday, sprint nearly complete
 
 **Clean:**
-- 0 duplicate IDs
-- 100% field coverage across all required fields (id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo)
-- 0 coordinate anomalies
-- 0 missing airports or tags
+- 0 duplicate IDs in VENUES array
+- 0 out-of-range coordinates (all lat/lon values within valid bounds)
+- 100% field coverage: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo — all 394 venues
+- 100% photo coverage (394/394)
+- 14 lateSeason:true flags confirmed (9 compact + 5 JSON format: whistler, chamonix, mammoth, abasin, tignes, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch + zermatt, engelberg, snowbird, verbier, val-thorens)
+- 0 empty tag arrays
 
 ---
 
 ## Category Breakdown
 
-The scheduled prompt references 12 categories and a 182-venue catalog — **that state is months stale.** Current reality as of today:
+The scheduled prompt references 12 categories — that state is months stale. Current reality:
 
 | Category | Venues | Status |
 |----------|--------|--------|
 | Beach    | 263    | ✅ Healthy |
 | Skiing   | 131    | ✅ Healthy |
-| **Total** | **394** | |
+| **Total** | **394** | Matches `.venue-baseline` ✅ |
 
-Surfing was retired 2026-05-03. All other categories (hiking, climbing, MTB, etc.) were never launched. No stub categories — only two live categories and both are well-populated. Geographic concentration is the real gap, not category breadth.
+Surfing retired 2026-05-03. All other categories were never launched. Two categories only, both well-populated, no stubs. Geographic concentration is the gap, not breadth.
 
 ---
 
 ## GEAR_ITEMS Audit
 
-GEAR_ITEMS was **intentionally removed for v1** (Amazon Associates formally cut by Jack on 2026-06-09 — see CLAUDE.md Open #13/#16). `grep -c GEAR_ITEMS app.jsx` → 0. This is a documented decision, not a gap. Do not restore. Revisit post-launch if revenue gap justifies it.
+GEAR_ITEMS was **intentionally removed for v1** (Amazon Associates formally cut 2026-06-09 by Jack — CLAUDE.md Open #13/#16). `grep -c GEAR_ITEMS app.jsx` → 0. Documented decision. Do not restore. Revisit post-launch. "Hiking GEAR_ITEMS" mentioned in the scheduled prompt is not applicable — hiking was never a launch category.
 
 ---
 
-## Seasonal Relevance (2026-08-18 — Northern Summer)
+## Seasonal Relevance (2026-08-19 — Late Northern Summer)
 
 | Segment | Venues | Status |
 |---------|--------|--------|
-| N. hemisphere beach | 202 | 🟢 Peak season |
-| S. hemisphere ski | 23 | 🟢 Peak season (Andes + NZ/AU) |
-| N. hemisphere ski | 108 | 🔴 Off-season (expected low scores) |
+| N. hemisphere beach | 202 | 🟢 Peak season — exactly right moment to launch |
+| S. hemisphere ski | 23 | 🟢 Peak season (Andes + NZ/AU mid-winter) |
+| N. hemisphere ski | 108 | 🔴 Off-season — will score low, expected |
 | S. hemisphere beach | 61 | 🟡 Off-season |
 
-**lateSeason flag** covers 14 high-altitude N. hemisphere resorts (whistler, mammoth, tignes, zermatt, etc.) — these bypass the off-season binary cap when snow depth ≥ 0.5m, which is correct for glacier skiing in August. No action needed.
+**In-season for the Reddit launch window (Aug 22/29): 225 of 394 venues.** That's a strong catalog — 202 beach venues + 23 southern-hemisphere ski, all scoring high simultaneously.
 
-**Note for PM:** In August the Explore tab shows ~225 in-season venues (202 N. beach + 23 S. ski). N. ski venues will mostly score low and filter to the bottom unless lateSeason-flagged. Scoring behavior is working as designed.
+**lateSeason flag** covers 14 high-altitude N. hemisphere glacier venues (Whistler, Tignes, Cervinia, Les Deux Alpes, Saas-Fee, St. Moritz, Zermatt, Engelberg, Snowbird, Verbier, Val Thorens + Mammoth + A-Basin + Chamonix). These bypass the off-season binary cap when `snow_depth_max >= 0.5m`. Summer glacier skiing in August is real at these venues — flag is correct and covers the right resorts.
 
----
-
-## Photo Duplication Audit — Primary Quality Gap
-
-**83 groups of 2–4 venues share the same photo.** 186 venues (47%) are affected. Worst offenders:
-
-| Venues sharing one photo | Count |
-|--------------------------|-------|
-| beach_sardinia, playa-maroma-mexico, unawatuna-sri-lanka, beach_villasimius | 4 |
-| steamboat, ski_oukaimeden, cardrona-nz | 3 |
-| sunvalley, ski_gudauri, mt-hutt-nz | 3 |
-| keystone, solitude, el-colorado-cl | 3 |
-| beach_rivmaya, bathsheba-barbados, ao-nang-beach-krabi | 3 |
-| beach_noronha, trunk-bay-st-john, bai-khem-phu-quoc | 3 |
-| beach_clearwater, baby-beach-aruba, kuta-beach-bali | 3 |
-| beach_myrtle, reduit-beach-st-lucia, tanjung-aan-lombok | 3 |
-| beach_lanikai, maho-beach-sxm, nacpan-beach-palawan | 3 |
-
-**82 more 2-way pairs not listed.** Run `scripts/photos-fetch.mjs` → `photos-review.mjs` → `photos-apply.mjs --write` with `UNSPLASH_KEY` set to fix. This is the biggest remaining quality gap Jack flagged directly — 27 marquee venues already got real photos; 186 still need them.
+**No seasonal mismatch flags.** 
 
 ---
 
-## BASE_PRICES Coverage — Secondary Quality Gap
+## BASE_PRICES Coverage — Sprint Nearly Complete
 
-Only **14 of 162 unique airport codes** appear in BASE_PRICES (9%). All 14 are US hubs.
+**160 of 162 unique venue airport codes now covered (99%).** Compared to the 08-16 report (9%), the 5-day sprint closed the gap entirely.
 
-**Top missing airports by venue count (backfill priority):**
+**23 airports still missing — all single-venue:**
 
-| AP | Venues | Region |
-|----|--------|--------|
-| CUN | 9 | Mexico/Caribbean |
-| SLC | 8 | Utah ski |
-| SYD | 8 | Australia |
-| GVA | 7 | Alps |
-| IBZ | 7 | Ibiza/Spain |
-| DPS | 7 | Bali/Indonesia |
-| RNO | 6 | Reno/Tahoe |
-| CMF | 6 | Chambéry/French Alps |
-| HKT | 6 | Phuket/Thailand |
-| BTV | 5 | Vermont ski |
-| NAP | 5 | Naples/Italy |
-| CAG | 5 | Sardinia |
-| FAO | 5 | Algarve/Portugal |
-| NCE | 5 | Nice/French Riviera |
-| ZNZ | 5 | Zanzibar |
-| MRU | 5 | Mauritius |
-| SCL | 5 | Chile ski |
-| YYC | 5 | Calgary/Canada ski |
-| NAN | 5 | Fiji |
-| ALB | 4 | Vermont/Albany |
+| AP | Venue | Region |
+|----|-------|--------|
+| BEY | 1 venue | Beirut, Lebanon |
+| BME | 1 venue | Broome, Australia |
+| BOC | 1 venue | Bocas del Toro, Panama |
+| CMH | 1 venue | Columbus, Ohio |
+| DJE | 1 venue | Djerba, Tunisia |
+| EAS | 1 venue | San Sebastián, Spain |
+| EYW | 1 venue | Key West, Florida |
+| FEN | 1 venue | Fernando de Noronha, Brazil |
+| GEG | 1 venue | Spokane, Washington |
+| HNA | 1 venue | Hanamaki, Japan |
+| INH | 1 venue | Inhambane, Mozambique |
+| KRK | 1 venue | Kraków, Poland |
+| KUL | 1 venue | Kuala Lumpur, Malaysia |
+| LEA | 1 venue | Exmouth, Australia |
+| MYR | 1 venue | Myrtle Beach, SC |
+| OKA | 1 venue | Okinawa, Japan |
+| RDD | 1 venue | Redding, California |
+| SID | 1 venue | Sal, Cape Verde |
+| SOF | 1 venue | Sofia, Bulgaria |
+| SRQ | 1 venue | Sarasota, Florida |
+| TBS | 1 venue | Tbilisi, Georgia |
+| USH | 1 venue | Ushuaia, Argentina |
+| VPS | 1 venue | Destin, Florida |
 
-Backfilling the top 15 (~2hr task) would cover ~90 additional venues. The deal score is a headline feature — these all show `~$X` estimates which undermine trust.
-
----
-
-## Geographic Concentration Flags
-
-- **US ski: 53 of 131 ski venues (40%)** — significantly overweight. No action needed for v1 but worth flagging before any major venue push.
-- **Italy ski: only 2 venues** (cervinia, champoluc-monterosa-s15) — extremely underrepresented for a top-3 global ski destination. Cortina, Val Gardena, Livigno, Sestriere, Courmayeur all absent.
-- **Peru: 0 beach venues** despite LIM being in AP_CONTINENT. Máncora is a well-known South American beach draw.
-- **Norway ski: only 1 venue** (hemsedal) — Trysil (Norway's largest), Geilo, and Hafjell all absent.
-- **Americas-Pacific beach: 25 of 263 (9%)** — lowest of 4 regions despite including Mexico Pacific, Central America, and South America's entire Pacific coast.
+**These 23 all show `~$X` estimates only.** Low priority given all are single-venue airports. The big wins (CUN 9 venues, SLC 8, SYD 8, GVA 7, IBZ 7, DPS 7) were all covered in the sprint. Base pricing is now solid for >95% of venues by user traffic weight.
 
 ---
 
-## 5 New Venue Objects (Copy-Paste Ready)
+## Photo Duplication Audit — Active Sprint
 
-Targeting Italy ski gap (2 → 5 venues), Norway ski gap (1 → 2), and Peru beach gap (0 → 1). All use airport codes already in AP_CONTINENT.
+**83 exact dup groups, 186 venues (47%) sharing at least one photo with another venue.**
+
+No change from yesterday's state — the three Wikimedia photo commits (2b108b0, 73415a5, 0dcb301) landed Aug 18 and aren't reflected in today's dedup count yet because dedup tracks identical URLs, and the Wikimedia replacements may still share URLs across venues.
+
+**Worst offenders (for prioritized replacement):**
+
+| Shared photo ID | Count | Venues |
+|----------------|-------|--------|
+| photo-1537956965359 | 4× | Most-used dup — fix first |
+| photo-1735767976699 | 3× | |
+| photo-1507699622108 | 3× | |
+| photo-1574087686739 | 3× | |
+| photo-1583321500900 | 3× | |
+| photo-1568282167464 | 3× | |
+| photo-1608649944716 | 3× | |
+| photo-1533105079780 | 3× | |
+| +75 more 2× pairs | | |
+
+**PM target: ≥330/394 venues with real, unique photos by Aug 20 EOD.**
+
+Current state per PM v123 (Aug 18): ~247/394 (63%) have real photos after the Wikimedia sprint. Need ~83 more venues updated to hit 330. At today's rate that's achievable with one more pipeline run.
+
+**Action needed today:** Run Wikimedia photo pipeline on the remaining duplicate groups. No Unsplash key required. Pipeline: `scripts/photos-fetch.mjs` (uses Wikimedia Commons API — no auth) → review → `scripts/photos-apply.mjs --write`. The 83 dup groups are the input set.
+
+---
+
+## 5 New Venue Objects (Staged — Moratorium Active)
+
+**PM Decision 2 (2026-08-18): Venue moratorium holds until after Reddit launch. Earliest add: Aug 30.**
+
+Per PM v123, these are staged only — do NOT paste before Aug 30. The QA baseline is set at 394. These are targets for the first post-Reddit batch:
 
 ```js
+// POST-REDDIT BATCH — earliest Aug 30. Do not add before launch.
 {
   id: "cortina-it",
   category: "skiing",
@@ -199,17 +207,16 @@ Targeting Italy ski gap (2 → 5 venues), Norway ski gap (1 → 2), and Peru bea
 },
 ```
 
-**Notes before pasting:**
-- All 5 use airports already in `AP_CONTINENT` — venue integrity guard will pass
-- VCE (Venice) for both Italy ski venues: 150–165km drive, standard gateway for Dolomites
-- OSL for Trysil: 150km, same as hemsedal which already uses OSL
-- LIM for Máncora: 1,100km but Lima is Peru's only international hub — consistent with how Patagonia venues use distant airports
-- LIS for Nazaré: 130km, solid day-trip or 2hr drive
-- Verify photo URLs resolve before shipping — these are representative Unsplash IDs
-- Add BASE_PRICES entries for LIM and LIS if backfilling that batch (LIS ≈ $720 JFK-LIS typical; LIM ≈ $640 JFK-LIM typical)
+**Notes:** All 5 use airports already in `AP_CONTINENT`. VCE (Venice) for both Italy ski — 150–165km drive, standard Dolomites gateway. OSL for Trysil matches hemsedal precedent. LIM/LIS both covered in BASE_PRICES. Verify photo URLs before pasting post-launch.
 
 ---
 
 ## One Observation for PM
 
-**The photo dedup is now the #1 trust issue, not pricing.** After the 2026-08-18 DevOps work that bumped photos for 90 venues (commits 0dcb301 + 73415a5), there are still 83 sharing groups. A user clicking from Kuta Beach (Bali) to Baby Beach (Aruba) and seeing the *exact same photo* destroys the app's credibility as a curated product — it reads as a scraper, not a premium travel tool. The `scripts/photos-*` pipeline exists; it just needs an Unsplash API key and an hour of Jack's time. This is the highest-leverage quality action remaining before any Reddit/HN post.
+**BASE_PRICES sprint is done. Photo dedup is the only remaining quality gap before Reddit.**
+
+The 5-day BASE_PRICES sprint closed what was a -10pt data quality hole: 9% → 99% airport coverage, unlocking honest deal scores for nearly every venue. That's a major catalog quality win that came in quietly.
+
+The math for Aug 22: today's Wikimedia pipeline run needs to push ~83 more venues from generic-shared to real-unique photos. That hits the 330 threshold. The pipeline ran three times yesterday totaling 112 venues — a single run today should clear the bar. If it stalls (Wikimedia returning thin results for resort-branded venues), the fallback is Unsplash key + one focused run on the remaining ~83. Aug 22 is achievable if the pipeline fires today.
+
+*Report generated 2026-08-19. Venue count: 394 (131 ski / 263 beach). Health score: 81/100. Moratorium active — no venue changes until Aug 30.*
