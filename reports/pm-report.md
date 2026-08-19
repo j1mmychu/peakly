@@ -1,108 +1,102 @@
-# Peakly PM Report v123 — 2026-08-18
+# Peakly PM Report v124 — 2026-08-19
 
-**Status: YELLOW → GREEN path visible. Launch gate is Jack's photo review hour, not the Unsplash key.**
+**Status: YELLOW. Photo dedup is the only launch gate. Aug 22 is still possible. Cloudflare remains the only Jack-owned blocker.**
 
 ---
 
-## Shipped Since Last Report (since Aug 17 PM)
+## Shipped Since Last Report (since Aug 18 PM)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `6e45fee` | **P0 fix: exact-fares grid filter was hiding 95% of venues** | YES — critical. See below. |
-| `2b108b0` | Photos: 22 venues updated via Wikimedia Commons | YES — right tool, no API key needed |
-| `73415a5` | Photos: 34 more venues + 39 wrong candidates flagged | YES |
-| `0dcb301` | Photos: 56 more venues (Wikimedia) | YES |
-| `dbeffa2` | DevOps report + cache stamp bump 20260818a | YES |
-| `5ac9657` | Content report | YES |
+| `6073bb1` | DevOps report 2026-08-19 — no code changes, YELLOW status | YES — accurate state capture |
+| `05f59b9` | Content report 2026-08-19 — 394 venues, 81/100 health, photo dedup 47%, BASE_PRICES 99% | YES |
 
-**Photo sprint progress: 112 venues updated today. Estimated real-photo coverage: ~247/394 (63%). 83 duplicate groups remain.**
+**No code commits overnight.** Agents ran, confirmed state, no regressions. That's exactly right behavior with 3 days to launch.
 
 ---
 
-## The Silent P0 That Was Live on Production
+## Bug Triage
 
-`6e45fee` fixed a bug that was hiding ~95% of the venue catalog from any user who loaded the app after Travelpayouts finished loading prices.
+### Peakly Pro price discrepancy ($9/mo vs $79/yr) — Not a real bug.
 
-**What happened:** The `applyFilters()` function promised graceful degradation — "show full list with estimates when Travelpayouts returns nothing." But its condition was `if (liveOnly.length > 0)`, meaning the instant even ONE venue got a live fare, the grid demoted to live-only mode. Travelpayouts returns live fares for ~20 of 394 venues (partial route coverage, not an outage). Result: every user who waited for flight prices to load saw 20 venues instead of 394.
+Peakly Pro UI was **removed on 2026-04-16** and formally CUT for v1 in PM decision (CLAUDE.md open item, Revenue Model table). `grep "PEAKLY_PRO\|isPro\|pro.*UI" app.jsx` returns zero code-level Pro references. There is no $9/mo or $79/yr showing anywhere. This was stale context in the scheduled prompt — **not actionable, severity: none.**
 
-**Severity:** P0, live on production. Any user session during daytime hours — when the Travelpayouts batch load completes — saw a 20-card grid. This is the explore page. The core product. Hidden.
+### Sentry DSN — confirmed live.
 
-**Fix:** Requires live fares to cover ≥40% of the on-screen set before committing to exact-fares-only mode. Correct call, conservative threshold (40% means Travelpayouts must be genuinely healthy for a category before we hide estimates).
+DevOps 2026-08-19 verified: `9416b032a46681d74645b056fcb08eb7` in `index.html:77` + `app.jsx:7–8`, `Sentry.captureException` wired at `app.jsx:174`. **We are not flying blind.**
 
-**Product question nobody asked:** How long was this live? The `applyFilters` logic with the `> 0` threshold appears to have been there since the exact-fares feature shipped. Every session during price-load was affected. We don't know from Plausible alone — but bounce rates from load → no action could reflect this. Worth checking Plausible for any "all experiences" → zero-card sessions in the last 2 weeks.
+### Cache buster stale — not stale.
 
----
-
-## Blocked
-
-| Blocker | Owner | Unblocks |
-|---------|-------|---------|
-| Unsplash API key + production access | Jack | ~150 remaining venues that Wikimedia Commons can't cover well (indoor spa, specific branded resorts, etc.) |
-| Cloudflare CDN setup | Jack | Reddit spike protection. 30-minute browser task. |
-| VPS photo cache pre-warm | Jack (SSH, day before Reddit post) | "conditions unavailable" at traffic spike |
-
-**Revised assessment on Unsplash:** The Wikimedia pipeline is covering real ground without it. Today's 112-venue run proves the pipeline works and Wikimedia images are available for most outdoor/geographic venues. The remaining ~150 without real photos skew toward venues where Wikimedia has thin coverage (Caribbean resorts, branded ski areas). The Unsplash key is still needed to hit 90%+ quality — but it's no longer blocking 394 venues, it's blocking the last ~150.
+Cache stamp is `20260818a`. No app.jsx/sw.js/index.html commits landed Aug 19 that would need a bump. DevOps confirmed no action required. **Not a bug.**
 
 ---
 
-## Three Product Decisions — Aug 18
+## Current Launch State (2026-08-19)
 
-### Decision 1: Aug 22 Reddit launch is alive. Aug 29 remains the safety date.
-
-Yesterday's report killed Aug 22 due to the Wikimedia-only pipeline covering only 135/394 venues. Today's 112 additional updates change the math:
-
-**New state:**
-- ~247/394 venues have real photos (63%) — after today's 3 commits
-- Wikimedia pipeline can run again tomorrow at 0 cost, covering more of the ~150 remaining
-- At today's rate (112/day), by Aug 21 we could reach 370+ venues with real photos
-- The Unsplash key accelerates the tail; it doesn't block progress anymore
-
-**Revised decision:** Wikimedia can carry the photo sprint to ~90% by Aug 20–21. If the pipeline runs again tomorrow (Aug 19) and gets another 80–100 venues, we'll be at ~330/394 (~84%). That's a viable launch state — not perfect, but credible.
-
-**DECISION: Aug 22 Reddit launch is back on the table. Contingency: if Wikimedia pipeline covers ≥330/394 venues by Aug 20 EOD, post Aug 22. If coverage stalls below 310, post Aug 29. This is now a content-pipeline decision, not a key-waiting decision. Daily photo commit progress is the signal.**
-
-Jack: if you want to accelerate the tail (resorts with poor Wikimedia coverage), get the Unsplash key + production access. But the launch date no longer depends on it the way it did yesterday.
+| Metric | Status | Note |
+|--------|--------|------|
+| Venues | **394** (131 ski / 263 beach) | Moratorium active — no changes until Aug 30 |
+| Photo coverage | **394/394 have a URL (100%)** | But 186/394 (47%) share a URL with ≥1 other venue |
+| Photo dedup | **47% sharing / 83 duplicate groups** | Critical UX gap — scrolling Explore shows same shot 2-4× |
+| BASE_PRICES | **160/162 APs covered (99%)** | 23 single-venue airports still missing, low impact |
+| Exact-fares filter | **Fixed (6e45fee)** | ≥40% live coverage required before grid goes exact-fares-only |
+| Sentry | ✅ Live | Error monitoring confirmed |
+| Plausible | ✅ Live | Events: book_click, cloud_sync, install_pwa, scoring_explainer |
+| Cloudflare | ❌ Outstanding | Jack's 30-min browser task. Needed before Reddit post. |
+| VPS | ✅ Verified healthy 2026-08-11 | disk cache, CORS, DELETE alerts, apns:configured |
+| Peakly Pro | ✅ CUT for v1, no code remaining | Nothing to fix |
 
 ---
 
-### Decision 2: Venue moratorium holds until after Reddit launch. No exceptions.
+## Three Product Decisions — Aug 19
 
-Five new venue objects appeared in the Content report (ZTH/GGT/CFU/BDA/AYT) and in the content report tail I can see full venue objects ready to paste. They look good. AYT (Antalya) and CFU (Corfu) are high-quality Mediterranean beach venues.
+### Decision 1: Photo dedup must drop below 25% before the Reddit post. Pipeline runs today.
 
-**But: moratorium is moratorium.** Reasons it holds:
-- 394 is the established QA baseline. DevOps smoke tests, integrity guards, brace-balance checks all ran against 394.
-- Adding venues 4 days before Reddit launch introduces a new failure mode (bad coordinates, broken photo URL, off-season score anomaly).
-- The photo sprint is optimizing for 394 venues. Adding 5 more means 5 more generic photos on day one.
-- The risk-reward is wrong: 5 more venues at launch = ~0.01% catalog improvement, but adds one more thing to break.
+The current state — 186/394 venues (47%) sharing a photo with at least one other venue — is unacceptable for a first impression on Reddit. Users landing from r/skiing or r/frugaltravel will scroll the Explore grid and hit the same beach shot 3 times in a row. That's a trust signal failure before they ever tap a venue.
 
-**DECISION: Venue moratorium holds. ZTH/GGT/CFU/BDA/AYT staged for first post-Reddit batch. Earliest add: Aug 30.**
+The Content agent's report identifies the fix path: run `scripts/photos-fetch.mjs` (Wikimedia Commons, no API key) against the 83 dup groups, then `scripts/photos-apply.mjs --write`. Yesterday's three-commit Wikimedia sprint replaced 112 venues — a single run today should clear the majority of the 83 remaining dup groups.
+
+**DECISION: Run the Wikimedia photo pipeline today (Aug 19), targeting the 83 dup groups specifically. If dedup coverage drops below 25% (≤100 venues sharing), Aug 22 is approved. If it stalls above 30% (>120 still sharing), push to Aug 29 and plan a focused Unsplash-key run on branded resort venues Wikimedia doesn't cover well.**
+
+Success metric for today's run: 83 dup groups → <25 remaining. This is achievable based on yesterday's rate.
 
 ---
 
-### Decision 3: Plausible funnel audit before Reddit post
+### Decision 2: Aug 22 vs Aug 29 — the gate is now dedup, not raw photo coverage.
 
-The exact-fares P0 fix raises a question: are there other silent UX failures we're not measuring? We have Plausible events for `book_click`, `cloud_sync`, `install_pwa`, `scoring_explainer`. We don't have events for:
-- Zero-venue empty state shown (filter collapse)
-- Carousel not rendered (carouselReady=false at session end)
-- Detail sheet opened (are users actually clicking into venues?)
-- Flight-link clicked (did they actually go to Aviasales?)
+The PM v123 framing was "≥330/394 venues with real photos." That metric was measuring unique-URL coverage. But DevOps 2026-08-19 clarifies: **all 394 venues already have a URL (100%)** — the issue is 186 sharing URLs, not 186 having no photo. The v123 goal was based on a misread of the metric.
 
-Without these, we're launching into Reddit and reading bounce rate as a proxy for "did it work." That's too blunt.
+Revised gate for Aug 22:
+- **Photo dedup drops to <25% sharing after today's pipeline run** (≤100 venues with duplicate photos)
+- **Cloudflare DNS configured** (Jack, 30-min browser task, confirmed by DNS lookup)
+- **No P0 bugs introduced by today's pipeline commit** (auto-push smoke test passes)
 
-**DECISION: DEFER detailed Plausible event additions until post-Reddit (they require app.jsx edits, which touches the smoke-test pipeline days before launch). BUT: Jack should manually check Plausible right now for the last 14 days — specifically session length and bounce rate. If avg session < 30 seconds and bounce > 70%, the exact-fares P0 was likely a major driver. Knowing this before the Reddit post helps calibrate "how good is 'baseline good'."**
+If all three hold by Aug 20 EOD, post to r/skiing + r/frugaltravel on Aug 22, weekday morning 9–11am ET, staggered 48h.
+
+**DECISION: Aug 22 is the target. Aug 29 is the fallback. The gate is photo dedup + Cloudflare. Not venue count. Not Unsplash key. Not BASE_PRICES (99% done — close enough).**
+
+---
+
+### Decision 3: The 23 remaining BASE_PRICES airports — stage for first post-Reddit cycle, not pre-launch.
+
+The Content sprint went from 9% to 99% airport coverage in 5 days. The remaining 23 airports are all single-venue codes (BEY, BME, BOC, EYW, FEN, INH, etc.) in niche or emerging markets. These are legitimate destinations but their absence from BASE_PRICES means the deal score for those venues shows estimates instead of calibrated typical prices.
+
+The impact: 23 venues out of 394 show slightly less calibrated deal scores. Users looking at Bocas del Toro or Fernando de Noronha will see `~$X` estimates instead of `DEAL` or `STRONG DEAL` badges. Not a launch blocker.
+
+**DECISION: DEFER the remaining 23 to the first post-Reddit week. One agent run after Aug 22 can close these. Ship with 99% coverage — that's more than good enough.**
 
 ---
 
 ## This Week's Top 3 Priorities
 
-**1. Photo sprint: keep the Wikimedia pipeline running daily through Aug 20.**
-Target: ≥330/394 venues with real photos. Today's 3-commit run proved the pipeline outputs clean results. Run again Aug 19. DevOps or Content agent can automate this — it requires no API key and produces high-confidence results (Wikimedia Commons attribution + known-good images). This is now the critical path to Aug 22 launch.
+**1. Photo dedup pipeline — run today against the 83 dup groups.**
+Target: ≤100 venues still sharing after today's run (<25%). Content agent at 15:00 UTC is positioned to execute. This is the critical path to Aug 22.
 
-**2. Jack: Cloudflare CDN before Reddit post.**
-30-minute browser task, $0. Unchanged from yesterday. The exact-fares P0 meant users were seeing 20 venues — a Reddit-scale spike on 20 venues is better than on 394, so the risk was actually lower. But now that 394 venues render, a traffic spike needs CDN protection. This needs to be done Aug 19–20 at the latest.
+**2. Jack: Cloudflare CDN — 30 minutes, Aug 19 or Aug 20 at the latest.**
+CNAME peakly → j1mmychu.github.io through Cloudflare free tier. SSL: Full strict. Cache: max-age=3600 for static assets. Without this, a Reddit spike (even 2K concurrent) hits GitHub Pages directly. GitHub Pages is generous but not guaranteed at spike scale.
 
-**3. Jack: manual Plausible check + VPS health verification.**
-Before the Reddit post: (a) log into Plausible, check bounce rate and session length for the last 14 days, (b) SSH to VPS and verify `/health` shows `wx_cache_size > 200` and `apns: configured` status. If cache is cold (< 50), trigger a manual warm by hitting the top 50 venue coordinates through the proxy endpoint. Docs: `curl -s https://peakly-api.duckdns.org/health`.
+**3. Jack: Plausible audit + VPS pre-warm before posting.**
+Log into Plausible: check bounce rate and avg session length for the last 14 days. If bounce > 70% or avg session < 30s, the exact-fares P0 (fixed Aug 18) was likely the driver — baseline will improve. SSH to VPS the morning of the post: `curl -s https://peakly-api.duckdns.org/health` — verify `wx_cache_size > 200`. If cold, hit the top 50 venue coords manually to warm the cache before traffic hits.
 
 ---
 
@@ -110,43 +104,60 @@ Before the Reddit post: (a) log into Plausible, check bounce rate and session le
 
 | Feature | Reason |
 |---------|--------|
-| **Venue additions (ZTH/GGT/CFU/BDA/AYT)** | Moratorium holds. Post-Reddit batch. |
-| **Plausible custom events (detail-sheet, flight-link)** | App.jsx edits too close to launch. Post-Reddit. |
-| **SRI / CSP hardening** | Post-launch. Medium risk to apply, zero launch impact. |
-| **JSON-LD / static h1 SEO** | Zero conversion impact at <100 MAU. |
+| **Venue additions (ZTH/GGT/CFU/BDA/AYT + staged others)** | Moratorium holds. QA baseline is 394. Earliest add: Aug 30. |
+| **JSON-LD structured data / static h1** | Zero conversion impact at <100 MAU. Post-launch SEO pass. |
+| **Plausible custom events (detail-sheet tap, flight-link click)** | App.jsx edits 3 days before launch. Post-Reddit. |
+| **SRI / CSP hardening** | Medium risk to apply, zero launch-day user impact. Post-launch. |
 | **iOS App Store submission** | Requires Jack + Mac + Xcode. Post-Reddit. |
-| **APNS / push alerts** | Uncommitted fix for HTTP/2 + JWT P1363 issues. Do not touch pre-launch. |
-| **Unsplash photo pipeline for remaining ~150** | Wikimedia is covering ground without it. Not the launch gate anymore. |
+| **APNS / push alerts** | Two open bugs (HTTP/2 transport, JWT DER vs P1363). Do not touch pre-launch. |
+| **Peakly Pro / subscription UI** | CUT for v1 since April. Not in product. Not re-evaluating pre-launch. |
+| **BASE_PRICES for remaining 23 airports** | 99% coverage is ship-ready. Post-Reddit cycle. |
 
 ---
 
 ## Success Criteria
 
-**Primary launch date: Aug 22 (if Wikimedia covers ≥330/394 by Aug 20 EOD). Backup: Aug 29.**
+**What does 8K users look like vs 5K?**
 
 | Driver | 5K path | 8K path |
 |--------|---------|---------|
-| Photo quality | 247/394 (63%) real — today | **330/394 (84%) by Aug 20 via Wikimedia pipeline** |
-| Exact-fares filter | Was showing 20/394 (BROKEN) | **Fixed: 6e45fee live on origin — all 394 visible** |
-| Cloudflare CDN | Not set up | **Jack browser task, Aug 19** |
-| Plausible data | No session/funnel data | **Jack checks before Reddit post — bounce rate baseline** |
-| Reddit post timing | Any time | **Weekday morning 9–11am ET, r/skiing + r/frugaltravel staggered 48h** |
-| VPS pre-warmed | Default | **SSH verify wx_cache_size >200 same morning** |
+| Photo dedup | 30–40% sharing at launch | **<25% sharing — users scroll grid without repetition** |
+| Post timing | Any afternoon | **Weekday 9–11am ET, r/skiing + r/frugaltravel staggered 48h** |
+| Cloudflare | Not configured | **Live before post — no 429s during spike** |
+| Viral hook | Standard Reddit post | **Post body includes 2-3 real screenshots of good venue cards** |
+| Retention signal | Single-session | **Users check back next weekend — alerts tab as the retention mechanism** |
+| VPS warm | Cold cache | **wx_cache_size >200 morning of post** |
+
+The 5K→8K delta is almost entirely post quality and timing, not product features. A great post with good screenshots on a Wednesday morning beats a mediocre post on a Sunday. Jack owns the post; PM owns making sure the product looks good in those screenshots.
+
+---
+
+## Blocked
+
+| Blocker | Owner | Unblocks |
+|---------|-------|---------|
+| Cloudflare DNS config | Jack (30 min, browser) | Reddit spike protection |
+| Photo pipeline run for 83 dup groups | Content agent / this session | Aug 22 photo gate |
+| Unsplash key + production access | Jack | ~50 branded resort venues Wikimedia can't cover (post-Reddit) |
+| VPS pre-warm (morning of post) | Jack (SSH) | Cold cache on day-one traffic |
+| LLC formation | Jack | REI / Backcountry / GetYourGuide affiliate approvals |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 40% exact-fares threshold may be too high or too low, and we have no data to calibrate it.**
+**We have no idea what users actually do in the app.**
 
-The fix in `6e45fee` chose 40% as the threshold for "Travelpayouts is healthy enough to go exact-fares-only." 40% means: if more than 4 in 10 venues in the current filtered view have live fares, hide the venues with estimates.
+We have Plausible pageviews and four events (book_click, cloud_sync, install_pwa, scoring_explainer). We don't know:
+- Whether users open venue detail sheets (is the card clickable CTA discoverable?)
+- Whether users tap through to Aviasales (is the Book button visible?)
+- Whether any user has ever set an alert (the core retention mechanism)
+- Whether the carousel loads before users bounce (carouselReady timing)
 
-The problem: we don't know what the actual live coverage rate is per category, per home airport, per time of day. It's possible that for skiing from JFK in winter, Travelpayouts returns live fares for 60% of venues — which means the fix correctly shows exact-fares-only. But for beach from a smaller airport like BNA, coverage might be 15% — in which case the fix correctly shows estimates for everyone.
+The exact-fares P0 was live for weeks and we had no signal it was happening from Plausible. We fixed it from code review, not data. If there's a similar silent failure in the venue detail flow or the alert flow, we'll find out from Reddit comments ("why can't I click through?") rather than from data.
 
-If coverage for common routes on common days is between 40–60%, the threshold will flip the grid in and out of exact-fares mode as prices load — some users see 394 venues, others see 200. That's not a bug, but it's an inconsistent experience we can't observe without Plausible events tracking it.
-
-The fix is better than before. But the 40% number is a product decision masquerading as an implementation detail, and nobody picked it with data. Watch for post-Reddit user feedback about "the app shows different numbers of venues." If it surfaces, the threshold needs data, not intuition.
+The fix is a 20-minute app.jsx edit to add 4 Plausible events (detail-sheet-open, book-click-sheet, alert-set, carousel-rendered). That's post-Reddit by PM decision — but Jack should know going in that the first 48h of Reddit traffic will be the first time we actually know what users do. Watch the Plausible dashboard live when the post goes up.
 
 ---
 
-*Report generated 2026-08-18. One P0 fixed overnight (exact-fares grid, 95% of catalog hidden — now resolved). Photo sprint at 63% real coverage. Aug 22 launch back on the table pending Wikimedia pipeline progress. Cloudflare still outstanding (Jack, 30 min).*
+*Report generated 2026-08-19 (v124). No code commits overnight — agents ran, state confirmed. Photo dedup (47% sharing / 83 groups) is the one quality gate between here and Aug 22. Pipeline run today should clear the bar. Cloudflare remains the only Jack-owned P1 before the post.*
