@@ -967,7 +967,7 @@ const VENUES = [
         "Expert Terrain",
         "East Coast Best"
       ],
-      "photo": "https://images.unsplash.com/photo-1582013216055-477035bf7186?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Killington_Ski_Area_Green_Mountains_Rutland_County_Central_Vermont.jpg/1280px-Killington_Ski_Area_Green_Mountains_Rutland_County_Central_Vermont.jpg",
       "skiPass": "ikon"
     },
     {
@@ -1011,7 +1011,7 @@ const VENUES = [
         "Groomed Runs",
         "East Coast Best"
       ],
-      "photo": "https://images.unsplash.com/photo-1512926121941-82b4da1b0abf?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Doppelmayr_Chondola_Sunday_River_Maine_2009.JPG/1280px-Doppelmayr_Chondola_Sunday_River_Maine_2009.JPG",
       "skiPass": "ikon"
     },
     {
@@ -1033,7 +1033,7 @@ const VENUES = [
         "Expert Terrain",
         "Groomed Runs"
       ],
-      "photo": "https://images.unsplash.com/photo-1543796766-8098f2f29f66?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Sugarloaf_ski_resort_Maine.JPG/1280px-Sugarloaf_ski_resort_Maine.JPG",
       "skiPass": "ikon",
     },
     {
@@ -1055,7 +1055,7 @@ const VENUES = [
         "Deep Powder",
         "Backcountry"
       ],
-      "photo": "https://images.unsplash.com/photo-1516384819783-928bb6d6ebea?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Revelstoke_Mountain_off_piste.jpg/1280px-Revelstoke_Mountain_off_piste.jpg",
       "skiPass": "ikon",
     },
     {
@@ -1099,7 +1099,7 @@ const VENUES = [
         "Olympic Venue",
         "Family Resort"
       ],
-      "photo": "https://images.unsplash.com/photo-1570877316396-0477e81e9d8d?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Cypress_Mountain%2C_1974_04.jpg/1280px-Cypress_Mountain%2C_1974_04.jpg",
       "skiPass": "ikon"
     },
     {
@@ -1142,7 +1142,7 @@ const VENUES = [
         "Year-Round",
         "Glacial Skiing"
       ],
-      "photo": "https://images.unsplash.com/photo-1531743672295-bbd901790069?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/FIS_Ski_Jumping_Worldcup_Engelberg_2014_%2815907180608%29.jpg/1280px-FIS_Ski_Jumping_Worldcup_Engelberg_2014_%2815907180608%29.jpg",
       "skiPass": "ikon",
       "lateSeason": true,
     },
@@ -1165,7 +1165,7 @@ const VENUES = [
         "Luxury Chalet",
         "Scenic Views"
       ],
-      "photo": "https://images.unsplash.com/photo-1486582396475-fe5c7f2c1526?w=800&h=600&fit=crop&fp-x=0.56&fp-y=0.62",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Crans-Montana_-_Ski_track_-_Cry_d%27Er.jpg/1280px-Crans-Montana_-_Ski_track_-_Cry_d%27Er.jpg",
       "skiPass": "ikon",
     },
     {
@@ -1209,7 +1209,7 @@ const VENUES = [
         "Après-Ski Village",
         "Ski Circus"
       ],
-      "photo": "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Saalbach_Ski_Center_%28AUT%29_2010.jpg/1280px-Saalbach_Ski_Center_%28AUT%29_2010.jpg",
       "skiPass": "ikon"
     },
     {
@@ -1231,7 +1231,7 @@ const VENUES = [
         "Olympic Venue",
         "Nagano Backcountry"
       ],
-      "photo": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Hakuba_Happo-one_Winter_Resort.JPG/1280px-Hakuba_Happo-one_Winter_Resort.JPG",
       "skiPass": "ikon"
     },
     {
@@ -1253,7 +1253,7 @@ const VENUES = [
         "Uncrowded",
         "Deep Snow"
       ],
-      "photo": "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Furano_Snow_Resort_view2.JPG/1280px-Furano_Snow_Resort_view2.JPG",
       "skiPass": "ikon"
     },
     {
@@ -1275,7 +1275,7 @@ const VENUES = [
         "Groomed Runs",
         "Night Skiing"
       ],
-      "photo": "https://images.unsplash.com/photo-1524673450801-b5aa9b621b76?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Ski-ing_%28Skiing%29_at_Coronet_Peak%2C_Queenstown._%2828499753151%29.jpg/1280px-Ski-ing_%28Skiing%29_at_Coronet_Peak%2C_Queenstown._%2828499753151%29.jpg",
       "skiPass": "ikon"
     },
     {
@@ -1297,7 +1297,7 @@ const VENUES = [
         "Off-Piste",
         "Andes Powder"
       ],
-      "photo": "https://images.unsplash.com/photo-1518281420975-50db6e5d0a97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Lo_Barnechea_-Valle_Nevado_-_2009_-_03.jpg/1280px-Lo_Barnechea_-Valle_Nevado_-_2009_-_03.jpg",
       "skiPass": "ikon"
     },
   // ── Epic Pass batch (added 2026-06-08) ──
@@ -1320,7 +1320,7 @@ const VENUES = [
         "Ski-in/Ski-out",
         "Uncrowded Runs"
       ],
-      "photo": "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Beaver_Creek_Resort_I_%2832899538373%29.jpg/1280px-Beaver_Creek_Resort_I_%2832899538373%29.jpg",
       "skiPass": "epic",
     },
     {
@@ -1364,7 +1364,7 @@ const VENUES = [
         "Groomed Runs",
         "IKON Pass"
       ],
-      "photo": "https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Northstar_California_Resort%2C_California%2C_US.jpg/1280px-Northstar_California_Resort%2C_California%2C_US.jpg",
       "skiPass": "epic"
     },
     {
@@ -1386,7 +1386,7 @@ const VENUES = [
         "Deep Snow",
         "Expert Terrain"
       ],
-      "photo": "https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Kirkwood_Mountain_Resort%2C_Kirkwood%2C_California_%2821385611049%29.jpg/1280px-Kirkwood_Mountain_Resort%2C_Kirkwood%2C_California_%2821385611049%29.jpg",
       "skiPass": "epic"
     },
     {
@@ -1408,7 +1408,7 @@ const VENUES = [
         "Tree Skiing",
         "Seattle Day Trip"
       ],
-      "photo": "https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Stevens_Pass_Ski_Area_on_Skyline_Express_Washington.jpg/1280px-Stevens_Pass_Ski_Area_on_Skyline_Express_Washington.jpg",
       "skiPass": "epic"
     },
     {
@@ -1430,7 +1430,7 @@ const VENUES = [
         "Snowboard Birthplace",
         "Family Resort"
       ],
-      "photo": "https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Mount_Snow_ski_aerial.jpg/1280px-Mount_Snow_ski_aerial.jpg",
       "skiPass": "epic"
     },
     {
@@ -1452,7 +1452,7 @@ const VENUES = [
         "Night Skiing",
         "Family Resort"
       ],
-      "photo": "https://images.unsplash.com/photo-1517490232338-06b912a786b5?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Hunter_Mountain_ski_area.jpg/1280px-Hunter_Mountain_ski_area.jpg",
       "skiPass": "epic"
     },
     {
@@ -1496,7 +1496,7 @@ const VENUES = [
         "Chicago Day Trip",
         "Beginner Slopes"
       ],
-      "photo": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Wilmot-Mountain-Ski-Racer-Start.jpg/1280px-Wilmot-Mountain-Ski-Racer-Start.jpg",
       "skiPass": "epic"
     },
     {
@@ -1518,7 +1518,7 @@ const VENUES = [
         "Twin Cities",
         "Beginner Slopes"
       ],
-      "photo": "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Afton_Alps%2C_January_2014%2C_Highlands_run.jpg/1280px-Afton_Alps%2C_January_2014%2C_Highlands_run.jpg",
       "skiPass": "epic"
     },
     {
@@ -1540,7 +1540,7 @@ const VENUES = [
         "Beginner Slopes",
         "Groomed Runs"
       ],
-      "photo": "https://images.unsplash.com/photo-1551582045-6ec9c11d8697?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Mad_River_Mountain_from_the_air_-_main_runs_-_panoramio.jpg/1280px-Mad_River_Mountain_from_the_air_-_main_runs_-_panoramio.jpg",
       "skiPass": "epic"
     },
     {
@@ -1584,7 +1584,7 @@ const VENUES = [
         "Groomed Runs",
         "Mid-Atlantic"
       ],
-      "photo": "https://images.unsplash.com/photo-1552472200-78d2ad19d2ce?w=800&h=600&fit=crop&fp-x=0.50&fp-y=0.47",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Roundtop_Mountain_Aerial_%2851146269883%29.jpg/1280px-Roundtop_Mountain_Aerial_%2851146269883%29.jpg",
       "skiPass": "epic"
     },
     {
@@ -1606,7 +1606,7 @@ const VENUES = [
         "Groomed Runs",
         "Mid-Atlantic"
       ],
-      "photo": "https://images.unsplash.com/photo-1508437226781-7cdb8043d2a8?w=800&h=600&fit=crop&fp-x=0.48&fp-y=0.61",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Whitetail_base_area_PA_2026-01-21_12-53-54_1.jpg/1280px-Whitetail_base_area_PA_2026-01-21_12-53-54_1.jpg",
       "skiPass": "epic"
     },
     {
@@ -1694,7 +1694,7 @@ const VENUES = [
         "Olympic Venue",
         "Beginner Slopes"
       ],
-      "photo": "https://images.unsplash.com/photo-1481285184914-8a731806bbf8?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Kananaskis-Nakiska_Ski.JPG/1280px-Kananaskis-Nakiska_Ski.JPG",
       "skiPass": "epic",
     },
     {
@@ -1737,7 +1737,7 @@ const VENUES = [
         "Year-Round",
         "Linked Ski Area"
       ],
-      "photo": "https://images.unsplash.com/photo-1532478421036-1e0aa1afacea?w=800&h=600&fit=crop",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Val-thorens-panorama.jpg/1280px-Val-thorens-panorama.jpg",
       "skiPass": "epic",
       "lateSeason": true
     },
@@ -1760,7 +1760,7 @@ const VENUES = [
         "Luxury Chalet",
         "Les Trois Vallées"
       ],
-      "photo": "https://images.unsplash.com/photo-1738489886397-f1101f1637f8?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.49",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/M%C3%A9ribel_Village.jpg/1280px-M%C3%A9ribel_Village.jpg",
       "skiPass": "epic",
     },
     {
@@ -1782,7 +1782,7 @@ const VENUES = [
         "Budget Pick",
         "Family Resort"
       ],
-      "photo": "https://images.unsplash.com/photo-1490640956035-66426af34621?w=800&h=600&fit=crop&fp-x=0.38&fp-y=0.63",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Overview_of_Les_Menuires_and_the_Belleville_valley.jpg/1280px-Overview_of_Les_Menuires_and_the_Belleville_valley.jpg",
       "skiPass": "epic",
     },
     {
@@ -1804,7 +1804,7 @@ const VENUES = [
         "Family Resort",
         "Groomed Runs"
       ],
-      "photo": "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.33",
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Perisher_from_Mount_Perisher.jpg/1280px-Perisher_from_Mount_Perisher.jpg",
       "skiPass": "epic"
     },
   // ── Global beach batch (added 2026-06-08) ──
@@ -1863,7 +1863,7 @@ const VENUES = [
         "Pink Sand",
         "Coral Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Crane_Beach_Barbados.jpg/1280px-Crane_Beach_Barbados.jpg"
     },
     {
       "id": "mullins-beach-barbados",
@@ -1901,7 +1901,7 @@ const VENUES = [
         "Surf Breaks",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Bathsheba%2C_Barbados_08.jpg/1280px-Bathsheba%2C_Barbados_08.jpg"
     },
     {
       "id": "smith-cove-grand-cayman",
@@ -1920,7 +1920,7 @@ const VENUES = [
         "Snorkeling",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Smith_Cove_%285193361743%29.jpg/1280px-Smith_Cove_%285193361743%29.jpg"
     },
     {
       "id": "stingray-sandbar-cayman",
@@ -1939,7 +1939,7 @@ const VENUES = [
         "Wildlife Everywhere",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Stingray_City%2C_Cayman_Islands.jpg/1280px-Stingray_City%2C_Cayman_Islands.jpg"
     },
     {
       "id": "bambarra-beach-tci",
@@ -1977,7 +1977,7 @@ const VENUES = [
         "Kiteboarding Capital",
         "Shallow Clear Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Long_Bay_Beach%2C_Turks_and_Caicos_Islands_%28Unsplash%29.jpg/1280px-Long_Bay_Beach%2C_Turks_and_Caicos_Islands_%28Unsplash%29.jpg"
     },
     {
       "id": "trunk-bay-st-john",
@@ -1996,7 +1996,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Voted #1 USA Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Trunk_Bay%2C_St._John_USVI_02.jpg/1280px-Trunk_Bay%2C_St._John_USVI_02.jpg"
     },
     {
       "id": "honeymoon-beach-stj",
@@ -2015,7 +2015,7 @@ const VENUES = [
         "Calm Waters",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Honeymoon_Beach%2C_St_John%2C_USVI_-_panoramio.jpg/1280px-Honeymoon_Beach%2C_St_John%2C_USVI_-_panoramio.jpg"
     },
     {
       "id": "boston-bay-jamaica",
@@ -2053,7 +2053,7 @@ const VENUES = [
         "Fishing Village Vibe",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Treasure_Beach_Jamaica_2023.jpg/1280px-Treasure_Beach_Jamaica_2023.jpg"
     },
     {
       "id": "baby-beach-aruba",
@@ -2072,7 +2072,7 @@ const VENUES = [
         "Calm Bay",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/View_of_Baby_Beach%2C_Aruba_%282026%29_01.jpg/1280px-View_of_Baby_Beach%2C_Aruba_%282026%29_01.jpg"
     },
     {
       "id": "arashi-beach-aruba",
@@ -2091,7 +2091,7 @@ const VENUES = [
         "Calm Waters",
         "Snorkeling"
       ],
-      "photo": "https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/20190428_Arashi_beach_Aruba_-_overview.jpg/1280px-20190428_Arashi_beach_Aruba_-_overview.jpg"
     },
     {
       "id": "sugar-beach-st-lucia",
@@ -2110,7 +2110,7 @@ const VENUES = [
         "Piton Views",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Sugar_Beach_Viceroy_Resort_%2823622514754%29.jpg/1280px-Sugar_Beach_Viceroy_Resort_%2823622514754%29.jpg"
     },
     {
       "id": "reduit-beach-st-lucia",
@@ -2129,7 +2129,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Reduit_Beach%2C_Rodney_Bay%2C_St._Lucia_11.jpg/1280px-Reduit_Beach%2C_Rodney_Bay%2C_St._Lucia_11.jpg"
     },
     {
       "id": "mullet-bay-sxm",
@@ -2148,7 +2148,7 @@ const VENUES = [
         "Calm Waters",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Mullet_Bay%2C_St_Maarten%2C_Oct_2014_%2815740985106%29.jpg/1280px-Mullet_Bay%2C_St_Maarten%2C_Oct_2014_%2815740985106%29.jpg"
     },
     {
       "id": "maho-beach-sxm",
@@ -2167,7 +2167,7 @@ const VENUES = [
         "Iconic",
         "Plane Spotting"
       ],
-      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Maho_Beach%2C_St_Maarten%2C_Oct_2014_%2815472388628%29.jpg/1280px-Maho_Beach%2C_St_Maarten%2C_Oct_2014_%2815472388628%29.jpg"
     },
     {
       "id": "simpson-bay-sxm",
@@ -2186,7 +2186,7 @@ const VENUES = [
         "Beach Bars",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Simpson_Bay_Beach_%286543951073%29.jpg/1280px-Simpson_Bay_Beach_%286543951073%29.jpg"
     },
     {
       "id": "pirates-bay-tobago",
@@ -2224,7 +2224,7 @@ const VENUES = [
         "Crescent Bay",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1589384241900-0aa66639ff8e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Englishmans_bay_tobago_dec_2008.jpg/1280px-Englishmans_bay_tobago_dec_2008.jpg"
     },
     {
       "id": "playa-maroma-mexico",
@@ -2262,7 +2262,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Akumal_Beach_-_Mexico_Pano_%284302455471%29.jpg/1280px-Akumal_Beach_-_Mexico_Pano_%284302455471%29.jpg"
     },
     {
       "id": "isla-mujeres-norte",
@@ -2281,7 +2281,7 @@ const VENUES = [
         "Calm Waters",
         "Crystal Caribbean"
       ],
-      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Playa_Norte%2C_Isla_Mujeres_QR_2020_01.jpg/1280px-Playa_Norte%2C_Isla_Mujeres_QR_2020_01.jpg"
     },
     {
       "id": "playa-paraiso-tulum",
@@ -2319,7 +2319,7 @@ const VENUES = [
         "Crystal Caribbean",
         "Calm Bay"
       ],
-      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Xpu-Ha.jpg/1280px-Xpu-Ha.jpg"
     },
     {
       "id": "punta-mita-mexico",
@@ -2338,7 +2338,7 @@ const VENUES = [
         "Surf Breaks",
         "Luxury"
       ],
-      "photo": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Praia-Destiladeras-Punta-Mita-8.jpg/1280px-Praia-Destiladeras-Punta-Mita-8.jpg"
     },
     {
       "id": "san-pancho-mexico",
@@ -2357,7 +2357,7 @@ const VENUES = [
         "Bohemian Beach Town",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1604988162322-d5d678a1d993?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/San_Pancho_Beach.jpg/1280px-San_Pancho_Beach.jpg"
     },
     {
       "id": "mazunte-mexico",
@@ -2376,7 +2376,7 @@ const VENUES = [
         "Sea Turtle Nesting",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Beach_Scene_-_Playa_Mazunte_-_Oaxaca_-_Mexico_-_01_%286523040101%29.jpg/1280px-Beach_Scene_-_Playa_Mazunte_-_Oaxaca_-_Mexico_-_01_%286523040101%29.jpg"
     },
     {
       "id": "zipolite-mexico",
@@ -2395,7 +2395,7 @@ const VENUES = [
         "Naturist Area",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Zipolite_View.jpg/1280px-Zipolite_View.jpg"
     },
     {
       "id": "cabo-pulmo",
@@ -2414,7 +2414,7 @@ const VENUES = [
         "Coral Reef",
         "Snorkeling Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Cabo_Pulmo.jpg/1280px-Cabo_Pulmo.jpg"
     },
     {
       "id": "tamarindo-cr",
@@ -2433,7 +2433,7 @@ const VENUES = [
         "Surf Breaks",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tamarindo_beach-Guanacaste-Costa_Rica.jpg/1280px-Tamarindo_beach-Guanacaste-Costa_Rica.jpg"
     },
     {
       "id": "santa-teresa-cr",
@@ -2452,7 +2452,7 @@ const VENUES = [
         "Surf Breaks",
         "Yoga on the Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Fishermen_at_Sunset%2C_Playa_Santa_Teresa%2C_Costa_Rica.jpg/1280px-Fishermen_at_Sunset%2C_Playa_Santa_Teresa%2C_Costa_Rica.jpg"
     },
     {
       "id": "hanauma-bay-oahu",
@@ -2471,7 +2471,7 @@ const VENUES = [
         "Snorkeling Reef",
         "Marine Preserve"
       ],
-      "photo": "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Hanauma_Bay%2C_Oahu%2C_Hawaii%2C_USA2.jpg/1280px-Hanauma_Bay%2C_Oahu%2C_Hawaii%2C_USA2.jpg"
     },
     {
       "id": "waimea-bay-oahu",
@@ -2490,7 +2490,7 @@ const VENUES = [
         "Surf Breaks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/A183%2C_Oahu%2C_Hawaii%2C_USA%2C_Waimea_Bay%2C_2007.JPG/1280px-A183%2C_Oahu%2C_Hawaii%2C_USA%2C_Waimea_Bay%2C_2007.JPG"
     },
     {
       "id": "makena-big-beach",
@@ -2509,7 +2509,7 @@ const VENUES = [
         "Golden Sand",
         "Pacific Bluffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Hawaii_Maui_Makena_Big_Beach_%28127199853%29.jpeg/1280px-Hawaii_Maui_Makena_Big_Beach_%28127199853%29.jpeg"
     },
     {
       "id": "wailea-beach-maui",
@@ -2566,7 +2566,7 @@ const VENUES = [
         "Pacific Bluffs",
         "Hotel del Coronado"
       ],
-      "photo": "https://images.unsplash.com/photo-1502209524164-acea936639a2?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Municipal_Beach_-_Coronado_-_San_Diego%2C_CA_-_USA_-_02_%286927467281%29.jpg/1280px-Municipal_Beach_-_Coronado_-_San_Diego%2C_CA_-_USA_-_02_%286927467281%29.jpg"
     },
     {
       "id": "la-jolla-cove",
@@ -2585,7 +2585,7 @@ const VENUES = [
         "Snorkeling Coves",
         "Sea Lions"
       ],
-      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/La_Jolla_Cove_cliff_diving_-_02.jpg/1280px-La_Jolla_Cove_cliff_diving_-_02.jpg"
     },
     {
       "id": "manhattan-beach-ca",
@@ -2604,7 +2604,7 @@ const VENUES = [
         "Pier 60 Sunsets",
         "Beach Volleyball"
       ],
-      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Manhattan_Beach%2C_California_%286026565975%29.jpg/1280px-Manhattan_Beach%2C_California_%286026565975%29.jpg"
     },
     {
       "id": "big-sur-pfeiffer",
@@ -2623,7 +2623,7 @@ const VENUES = [
         "Purple Sand",
         "Sea Cave Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Portal_of_the_Sun%2C_Pfeiffer_Beach%2C_Big_Sur%2C_California.jpg/1280px-Portal_of_the_Sun%2C_Pfeiffer_Beach%2C_Big_Sur%2C_California.jpg"
     },
     {
       "id": "cala-goloritze-sardinia",
@@ -2642,7 +2642,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Cala_Goloritz%C3%A9_%28arco%29.jpg/1280px-Cala_Goloritz%C3%A9_%28arco%29.jpg"
     },
     {
       "id": "spiaggia-rosa-budelli",
@@ -2661,7 +2661,7 @@ const VENUES = [
         "Pink Sand",
         "UNESCO Protected"
       ],
-      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Spiaggia_Rosa%2C_Cala_di_Roto_%28Isola_di_Budelli%29%2C_Arcipelago_di_La_Maddalena%2C_Sardegna%2C_Italia%2C_Mar_Mediterraneo.jpg/1280px-Spiaggia_Rosa%2C_Cala_di_Roto_%28Isola_di_Budelli%29%2C_Arcipelago_di_La_Maddalena%2C_Sardegna%2C_Italia%2C_Mar_Mediterraneo.jpg"
     },
     {
       "id": "costa-smeralda-sardinia",
@@ -2699,7 +2699,7 @@ const VENUES = [
         "Faraglioni Rocks",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Capri-marina_piccola.jpg/1280px-Capri-marina_piccola.jpg"
     },
     {
       "id": "procida-italy",
@@ -2718,7 +2718,7 @@ const VENUES = [
         "Pastel Houses",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Wide_angle_view_of_Cala_Pozzo_Vecchio_-_Island_of_Procida_Italy.jpg/1280px-Wide_angle_view_of_Cala_Pozzo_Vecchio_-_Island_of_Procida_Italy.jpg"
     },
     {
       "id": "amalfi-beach",
@@ -2756,7 +2756,7 @@ const VENUES = [
         "White Marl Cliffs",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Scala_dei_Turchi_panorama.jpg/1280px-Scala_dei_Turchi_panorama.jpg"
     },
     {
       "id": "plage-mala-cap-dail",
@@ -2775,7 +2775,7 @@ const VENUES = [
         "Hidden Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Plage_Mala_%C3%A0_Cap_d%27ail.jpg/1280px-Plage_Mala_%C3%A0_Cap_d%27ail.jpg"
     },
     {
       "id": "eze-beach-france",
@@ -2813,7 +2813,7 @@ const VENUES = [
         "Pine Forest Path",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Pointe_Sainte-Hospice.jpg/1280px-Pointe_Sainte-Hospice.jpg"
     },
     {
       "id": "cala-salada-ibiza",
@@ -2889,7 +2889,7 @@ const VENUES = [
         "Red Volcanic Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Cala_Pregonda%2C_Menorca_-_50245703838.jpg/1280px-Cala_Pregonda%2C_Menorca_-_50245703838.jpg"
     },
     {
       "id": "cala-mitjana-menorca",
@@ -2908,7 +2908,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Turquoise Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cala_Mitjana%2C_Menorca_-_50127521481.jpg/1280px-Cala_Mitjana%2C_Menorca_-_50127521481.jpg"
     },
     {
       "id": "cala-saona-formentera",
@@ -2927,7 +2927,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Cala_Saona%2C_Formentera_%2879840691%29.jpg/1280px-Cala_Saona%2C_Formentera_%2879840691%29.jpg"
     },
     {
       "id": "ses-illetes-formentera",
@@ -2946,7 +2946,7 @@ const VENUES = [
         "World's Finest Sand",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Formentera_-_Platja_De_Ses_Illetes_-_panoramio.jpg/1280px-Formentera_-_Platja_De_Ses_Illetes_-_panoramio.jpg"
     },
     {
       "id": "cala-mondrago-mallorca",
@@ -2965,7 +2965,7 @@ const VENUES = [
         "Natural Park Beach",
         "Pine Forest"
       ],
-      "photo": "https://images.unsplash.com/photo-1502209524164-acea936639a2?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Cala_Mondrag%C3%B3_07.jpg/1280px-Cala_Mondrag%C3%B3_07.jpg"
     },
     {
       "id": "cala-tuent-mallorca",
@@ -2984,7 +2984,7 @@ const VENUES = [
         "Tramuntana Cliffs",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Cala_Tuent_Mallorca_msu-2018-4132.jpg/1280px-Cala_Tuent_Mallorca_msu-2018-4132.jpg"
     },
     {
       "id": "praia-do-carvalho-algarve",
@@ -3003,7 +3003,7 @@ const VENUES = [
         "Sea Cave Access",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1544550581-1bcabf842b77?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Praia_do_Carvalho%2C_Carvoeiro%2C_Algarve%2C_Portugal_2017-04.jpg/1280px-Praia_do_Carvalho%2C_Carvoeiro%2C_Algarve%2C_Portugal_2017-04.jpg"
     },
     {
       "id": "praia-da-falesia-algarve",
@@ -3022,7 +3022,7 @@ const VENUES = [
         "Red Cliffs",
         "6km Pristine Beach"
       ],
-      "photo": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Falesia_Beach_seen_from_sea.JPG/1280px-Falesia_Beach_seen_from_sea.JPG"
     },
     {
       "id": "praia-da-rocha-algarve",
@@ -3041,7 +3041,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Praia_da_Rocha%2C_Portim%C3%A3o_2.jpg/1280px-Praia_da_Rocha%2C_Portim%C3%A3o_2.jpg"
     },
     {
       "id": "stiniva-beach-vis",
@@ -3060,7 +3060,7 @@ const VENUES = [
         "Cliff-Locked Cove",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1437846972679-9e6e537be46e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Stiniva_beach%2C_island_of_Vis%2C_Croatia_%285%29.jpg/1280px-Stiniva_beach%2C_island_of_Vis%2C_Croatia_%285%29.jpg"
     },
     {
       "id": "punta-rata-brela",
@@ -3079,7 +3079,7 @@ const VENUES = [
         "Pine-Lined Cove",
         "Crystal Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Brela_BW_2024-10-04_09-30-05.jpg/1280px-Brela_BW_2024-10-04_09-30-05.jpg"
     },
     {
       "id": "pasjaca-beach-croatia",
@@ -3098,7 +3098,7 @@ const VENUES = [
         "Cliffside Stairs",
         "Hidden Cove"
       ],
-      "photo": "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Pasjacha_%28Pasja%C4%8Da%29_Beach_-_panoramio.jpg/1280px-Pasjacha_%28Pasja%C4%8Da%29_Beach_-_panoramio.jpg"
     },
     {
       "id": "plaka-beach-naxos",
@@ -3117,7 +3117,7 @@ const VENUES = [
         "4km of Sand",
         "Dune-Backed"
       ],
-      "photo": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Sunset_from_Plaka_beach%2C_Naxos_island%2C_Greece_-_panoramio.jpg/1280px-Sunset_from_Plaka_beach%2C_Naxos_island%2C_Greece_-_panoramio.jpg"
     },
     {
       "id": "mikri-vigla-naxos",
@@ -3136,7 +3136,7 @@ const VENUES = [
         "Kitesurfing",
         "White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1508855173839-a6d69c12573a?w=800&h=600&fit=crop&fp-x=0.65&fp-y=0.57"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Naxos_Mikri_Vigla_2025-06-27_1586.jpg/1280px-Naxos_Mikri_Vigla_2025-06-27_1586.jpg"
     },
     {
       "id": "tsambika-beach-rhodes",
@@ -3155,7 +3155,7 @@ const VENUES = [
         "Monastery Backdrop",
         "Golden Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tsambika_Beach%2C_Rhodes%2C_Greece_%2851699438035%29.jpg/1280px-Tsambika_Beach%2C_Rhodes%2C_Greece_%2851699438035%29.jpg"
     },
     {
       "id": "firiplaka-milos",
@@ -3174,7 +3174,7 @@ const VENUES = [
         "Volcanic Pumice",
         "Crystal Aegean"
       ],
-      "photo": "https://images.unsplash.com/photo-1536276214783-1ae17228588a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Firiplaka_beach.jpg/1280px-Firiplaka_beach.jpg"
     },
     {
       "id": "amoudi-bay-santorini",
@@ -3269,7 +3269,7 @@ const VENUES = [
         "Turquoise Cove",
         "Limestone Cliffs"
       ],
-      "photo": "https://images.unsplash.com/photo-1615390395406-444bf2fb297f?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Kaputas_Beach.JPG/1280px-Kaputas_Beach.JPG"
     },
     {
       "id": "iztuzu-beach-turkey",
@@ -3288,7 +3288,7 @@ const VENUES = [
         "Turtle Nesting",
         "4km of Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1513178062314-949b0c622fed?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Dalyan_Iztuzu_Beach_in_1998_cattle_pen_in_hill_behind_184.jpg/1280px-Dalyan_Iztuzu_Beach_in_1998_cattle_pen_in_hill_behind_184.jpg"
     },
     {
       "id": "patong-beach-phuket",
@@ -3402,7 +3402,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Long-Tail Boat Hub"
       ],
-      "photo": "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Ao_Nang_beach_panorama_3.jpg/1280px-Ao_Nang_beach_panorama_3.jpg"
     },
     {
       "id": "phra-nang-beach-krabi",
@@ -3421,7 +3421,7 @@ const VENUES = [
         "Limestone Cliffs",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Phra_Nang_beach_panorama_edit.jpg/1280px-Phra_Nang_beach_panorama_edit.jpg"
     },
     {
       "id": "lamai-beach-koh-samui",
@@ -3440,7 +3440,7 @@ const VENUES = [
         "Calmer Than Chaweng",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1593810659067-3abb9b4dfa4c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Lamai_Beach%2C_Koh_Samui_%2848107434707%29.jpg/1280px-Lamai_Beach%2C_Koh_Samui_%2848107434707%29.jpg"
     },
     {
       "id": "haad-rin-koh-phangan",
@@ -3459,7 +3459,7 @@ const VENUES = [
         "Full Moon Parties",
         "Nightlife"
       ],
-      "photo": "https://images.unsplash.com/photo-1576122800181-bc3194265f27?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Koh_Phangan%2C_Haad_Rin_Sunrise_Beach_%286218403786%29.jpg/1280px-Koh_Phangan%2C_Haad_Rin_Sunrise_Beach_%286218403786%29.jpg"
     },
     {
       "id": "sao-beach-phu-quoc",
@@ -3478,7 +3478,7 @@ const VENUES = [
         "Powdery White Sand",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1541480551145-2370a440d585?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Phu_quoc_plage_sao.jpg/1280px-Phu_quoc_plage_sao.jpg"
     },
     {
       "id": "bai-khem-phu-quoc",
@@ -3497,7 +3497,7 @@ const VENUES = [
         "Powdery White Sand",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1568282167464-cb0d811b05c2?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Jw-marriott-phu-quoc-bai-kem.jpg/1280px-Jw-marriott-phu-quoc-bai-kem.jpg"
     },
     {
       "id": "my-khe-beach-danang",
@@ -3516,7 +3516,7 @@ const VENUES = [
         "20km Coastline",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1591103000599-50f5b4ec7d3d?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/My_Khe_Beach%2C_Da_Nang%2C_Vietnam.jpg/1280px-My_Khe_Beach%2C_Da_Nang%2C_Vietnam.jpg"
     },
     {
       "id": "cua-dai-hoi-an",
@@ -3535,7 +3535,7 @@ const VENUES = [
         "Hoi An Doorstep",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1608649944716-228404a0a8bb?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Cua_Dai_Beach_01.jpg/1280px-Cua_Dai_Beach_01.jpg"
     },
     {
       "id": "padang-padang-bali",
@@ -3630,7 +3630,7 @@ const VENUES = [
         "Pepper Sand",
         "Twin Bays"
       ],
-      "photo": "https://images.unsplash.com/photo-1530878955558-a6c31b9c97db?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Silent_Tanjung_Aan_Lombok_-_panoramio.jpg/1280px-Silent_Tanjung_Aan_Lombok_-_panoramio.jpg"
     },
     {
       "id": "pink-beach-lombok",
@@ -3668,7 +3668,7 @@ const VENUES = [
         "4km of Sand",
         "Uncrowded"
       ],
-      "photo": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Nacpan_Beach%2C_El_Nido%2C_Philippines_%2837099953655%29.jpg/1280px-Nacpan_Beach%2C_El_Nido%2C_Philippines_%2837099953655%29.jpg"
     },
     {
       "id": "las-cabanas-elnido",
@@ -3687,7 +3687,7 @@ const VENUES = [
         "Island-Hopping Hub",
         "Sunset West-Facing"
       ],
-      "photo": "https://images.unsplash.com/photo-1618822461310-da1be362e30c?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Las_Cabanas_Beach_-_panoramio.jpg/1280px-Las_Cabanas_Beach_-_panoramio.jpg"
     },
     {
       "id": "puka-shell-boracay",
@@ -3744,7 +3744,7 @@ const VENUES = [
         "Crescent Bay",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Unawatuna_Beach%2C_Galle.jpg/1280px-Unawatuna_Beach%2C_Galle.jpg"
     },
     {
       "id": "hikkaduwa-sri-lanka",
@@ -3763,7 +3763,7 @@ const VENUES = [
         "Surf Breaks",
         "Coral Reef"
       ],
-      "photo": "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Hikkaduwa_Beach_Sri_Lanka.jpg/1280px-Hikkaduwa_Beach_Sri_Lanka.jpg"
     },
     {
       "id": "anjuna-beach-goa",
@@ -3782,7 +3782,7 @@ const VENUES = [
         "Hippie Heritage",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1695051702427-1c24ce3682e7?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Anjuna_Beach%2C_Goa%2C_India%2C_Legendary_Curlies_beach_shack.jpg/1280px-Anjuna_Beach%2C_Goa%2C_India%2C_Legendary_Curlies_beach_shack.jpg"
     },
     {
       "id": "calangute-beach-goa",
@@ -3801,7 +3801,7 @@ const VENUES = [
         "Family Friendly",
         "Beach Shacks"
       ],
-      "photo": "https://images.unsplash.com/photo-1556741533-411cf82e4e2d?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Goa%2C_India_--_Restaurant_at_the_Calangute_beach.jpg/1280px-Goa%2C_India_--_Restaurant_at_the_Calangute_beach.jpg"
     },
     {
       "id": "vagator-beach-goa",
@@ -3820,7 +3820,7 @@ const VENUES = [
         "Cliffside Views",
         "Bohemian Beach Town"
       ],
-      "photo": "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Vagator_Beach%2C_Goa%2C_India.jpg/1280px-Vagator_Beach%2C_Goa%2C_India.jpg"
     },
     {
       "id": "veligandu-maldives",
@@ -3877,7 +3877,7 @@ const VENUES = [
         "Calm Bay",
         "Desert Meets Sea"
       ],
-      "photo": "https://images.unsplash.com/photo-1561027104-aa69b72a7174?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Qantab_Beach%2C_Muscat_Oman_%285402203009%29.jpg/1280px-Qantab_Beach%2C_Muscat_Oman_%285402203009%29.jpg"
     },
     {
       "id": "bondi-beach-sydney",
@@ -3896,7 +3896,7 @@ const VENUES = [
         "Iconic",
         "Coastal Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Sydney_%28AU%29%2C_Bondi_Beach_--_2019_--_2354.jpg/1280px-Sydney_%28AU%29%2C_Bondi_Beach_--_2019_--_2354.jpg"
     },
     {
       "id": "manly-beach-sydney",
@@ -3915,7 +3915,7 @@ const VENUES = [
         "Ferry From CBD",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1627990493469-95d51823a423?w=800&h=600&fit=crop&fp-x=0.69&fp-y=0.67"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/2020-10-24_Manly_Beach_3.jpg/1280px-2020-10-24_Manly_Beach_3.jpg"
     },
     {
       "id": "bronte-beach-sydney",
@@ -3934,7 +3934,7 @@ const VENUES = [
         "Ocean Pool",
         "Local Vibe"
       ],
-      "photo": "https://images.unsplash.com/photo-1477120128765-a0528148fed2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Bronte_Beach%2C_north_view_20230224_2.jpg/1280px-Bronte_Beach%2C_north_view_20230224_2.jpg"
     },
     {
       "id": "tamarama-sydney",
@@ -3953,7 +3953,7 @@ const VENUES = [
         "Compact Cove",
         "Bronte Walk"
       ],
-      "photo": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Tamarama_Beach_Sydney_2019_03.jpg/1280px-Tamarama_Beach_Sydney_2019_03.jpg"
     },
     {
       "id": "palm-beach-sydney",
@@ -3991,7 +3991,7 @@ const VENUES = [
         "Family Friendly",
         "Ocean Pools"
       ],
-      "photo": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Coogee_Beach_NSW.jpg/1280px-Coogee_Beach_NSW.jpg"
     },
     {
       "id": "hill-inlet-lookout",
@@ -4010,7 +4010,7 @@ const VENUES = [
         "Hill Inlet Swirl",
         "Iconic"
       ],
-      "photo": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Hill_Inlet_and_Whitehaven_Beach.jpg/1280px-Hill_Inlet_and_Whitehaven_Beach.jpg"
     },
     {
       "id": "langford-island-spit",
@@ -4048,7 +4048,7 @@ const VENUES = [
         "Castaway Vibe",
         "Crystal Water"
       ],
-      "photo": "https://images.unsplash.com/photo-1506477331477-33d5d8b3dc85?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Yasawa_Islands%2C_Fiji_-_August_2016.jpg/1280px-Yasawa_Islands%2C_Fiji_-_August_2016.jpg"
     },
     {
       "id": "mamanucas-fiji",
@@ -4067,7 +4067,7 @@ const VENUES = [
         "Reef Snorkeling",
         "Surf Breaks"
       ],
-      "photo": "https://images.unsplash.com/photo-1506406732395-fe23dc14fa48?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mamanuca_Islands_-_panoramio.jpg/1280px-Mamanuca_Islands_-_panoramio.jpg"
     },
     {
       "id": "coral-coast-fiji",
@@ -4086,7 +4086,7 @@ const VENUES = [
         "Coral Reef",
         "Family Resorts"
       ],
-      "photo": "https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/2019-01-31_Coral_coast%2C_Viti_Levu%2C_Fiji_01.jpg/1280px-2019-01-31_Coral_coast%2C_Viti_Levu%2C_Fiji_01.jpg"
     },
     {
       "id": "muri-beach-rarotonga",
@@ -4105,7 +4105,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Muri_Beach%2C_Rarotonga%2C_Cook_Islands.jpg/1280px-Muri_Beach%2C_Rarotonga%2C_Cook_Islands.jpg"
     },
     {
       "id": "trou-aux-biches-mauritius",
@@ -4124,7 +4124,7 @@ const VENUES = [
         "Turquoise Lagoon",
         "Family Friendly"
       ],
-      "photo": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Trou_aux_Biches%2C_Mauritius_-_Welcome_Sign.jpg/1280px-Trou_aux_Biches%2C_Mauritius_-_Welcome_Sign.jpg"
     },
     {
       "id": "le-morne-mauritius",
@@ -4143,7 +4143,7 @@ const VENUES = [
         "UNESCO Protected",
         "Kitesurfing"
       ],
-      "photo": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Le_Morne_Beach_Mauritius_%2853698222865%29.jpg/1280px-Le_Morne_Beach_Mauritius_%2853698222865%29.jpg"
     },
     {
       "id": "flic-en-flac-mauritius",
@@ -4162,7 +4162,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.55"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Mauritius_flic_en_flac_beach.jpg/1280px-Mauritius_flic_en_flac_beach.jpg"
     },
     {
       "id": "ile-aux-cerfs-mauritius",
@@ -4181,7 +4181,7 @@ const VENUES = [
         "Day Trip Island",
         "Crystal Lagoon"
       ],
-      "photo": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Mauritius_%C3%8Ele_aux_Cerfs.jpg/1280px-Mauritius_%C3%8Ele_aux_Cerfs.jpg"
     },
     {
       "id": "anse-georgette-praslin",
@@ -4200,7 +4200,7 @@ const VENUES = [
         "Granite Boulders",
         "Quiet & Pristine"
       ],
-      "photo": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.5"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Anse_Georgette_beach_Praslin_Seychelles.jpg/1280px-Anse_Georgette_beach_Praslin_Seychelles.jpg"
     },
     {
       "id": "anse-volbert-praslin",
@@ -4219,7 +4219,7 @@ const VENUES = [
         "Long Curve",
         "Calm Waters"
       ],
-      "photo": "https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Cote_D%27Or_Beach_-_Anse_Volbert_-_Praslin_-_Seychelles.jpg/1280px-Cote_D%27Or_Beach_-_Anse_Volbert_-_Praslin_-_Seychelles.jpg"
     },
     {
       "id": "beau-vallon-mahe",
@@ -4238,7 +4238,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Beach Bars"
       ],
-      "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Beau_Vallon_beach_Mahe_Seychelles.jpg/1280px-Beau_Vallon_beach_Mahe_Seychelles.jpg"
     },
     {
       "id": "anse-severe-la-digue",
@@ -4257,7 +4257,7 @@ const VENUES = [
         "Calm Reef",
         "Bicycle Access"
       ],
-      "photo": "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Anse_Severe_-_La_Digue_-_Seychelles_-_02.jpg/1280px-Anse_Severe_-_La_Digue_-_Seychelles_-_02.jpg"
     },
     {
       "id": "kendwa-zanzibar",
@@ -4276,7 +4276,7 @@ const VENUES = [
         "Sunset West-Facing",
         "Calm Tides"
       ],
-      "photo": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Kendwa_Beach_%28Sunset_Kendwa_Hotel%29.JPG/1280px-Kendwa_Beach_%28Sunset_Kendwa_Hotel%29.JPG"
     },
     {
       "id": "matemwe-zanzibar",
@@ -4295,7 +4295,7 @@ const VENUES = [
         "Pristine",
         "Mnemba Atoll Dives"
       ],
-      "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Beach_at_Matemwe.jpg/1280px-Beach_at_Matemwe.jpg"
     },
     {
       "id": "paje-zanzibar",
@@ -4314,7 +4314,7 @@ const VENUES = [
         "Kitesurfing",
         "Powdery White Sand"
       ],
-      "photo": "https://images.unsplash.com/photo-1502117859338-fd9daa518a9a?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Paje_beach_at_low_tide.jpg/1280px-Paje_beach_at_low_tide.jpg"
     },
     {
       "id": "jambiani-zanzibar",
@@ -4333,7 +4333,7 @@ const VENUES = [
         "Village Vibe",
         "Low Tide Walks"
       ],
-      "photo": "https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Jambiani_beach.jpg/1280px-Jambiani_beach.jpg"
     },
     {
       "id": "watamu-kenya",
@@ -4352,7 +4352,7 @@ const VENUES = [
         "Marine Park",
         "Tide Pool Coves"
       ],
-      "photo": "https://images.unsplash.com/photo-1602867741746-6df80f40b3f6?w=800&h=600&fit=crop"
+      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Watamu_Beach%2C_Kenya_01.jpg/1280px-Watamu_Beach%2C_Kenya_01.jpg"
     },
   {
     "id": "cardrona-nz",
@@ -4414,7 +4414,7 @@ const VENUES = [
       "Village Base",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1482784160316-6eb046863ece?w=800&h=600&fit=crop",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cloud_9_at_dusk%2C_Falls_Creek.jpg/1280px-Cloud_9_at_dusk%2C_Falls_Creek.jpg",
     "skiPass": "independent",
   },
   {
@@ -4435,7 +4435,7 @@ const VENUES = [
       "Groomed Runs",
       "Village Base"
     ],
-    "photo": "https://images.unsplash.com/photo-1643529740561-c87a7d3ad61d?w=800&h=600&fit=crop&fp-x=0.49&fp-y=0.57",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Mt._Buller_Village_Entrance.jpg/1280px-Mt._Buller_Village_Entrance.jpg",
     "skiPass": "independent",
   },
   {
@@ -4456,7 +4456,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1740597191367-640c3f0d176b?w=800&h=600&fit=crop&fp-x=0.45&fp-y=0.46",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Mt_hotham.jpg/1280px-Mt_hotham.jpg",
     "skiPass": "independent",
   },
   {
@@ -4519,7 +4519,7 @@ const VENUES = [
       "Expert Terrain",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1516551060028-cdb0d3323879?w=800&h=600&fit=crop&fp-x=0.47&fp-y=0.33",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/La_Parva.jpg/1280px-La_Parva.jpg",
     "skiPass": "independent",
   },
   {
@@ -4540,7 +4540,7 @@ const VENUES = [
       "High Altitude",
       "Groomed Runs"
     ],
-    "photo": "https://images.unsplash.com/photo-1574087686739-f877bdcc35dc?w=800&h=600&fit=crop&fp-x=0.33&fp-y=0.52",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/El_Colorado_ski.jpg/1280px-El_Colorado_ski.jpg",
     "skiPass": "independent",
   },
   {
@@ -4582,7 +4582,7 @@ const VENUES = [
       "Village Base",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop&fp-x=0.41&fp-y=0.63",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Base_del_Cerro_Catedral_en_Bariloche._%28Patagonia_Argentina%29_05.JPG/1280px-Base_del_Cerro_Catedral_en_Bariloche._%28Patagonia_Argentina%29_05.JPG",
     "skiPass": "independent",
   },
   {
@@ -4603,7 +4603,7 @@ const VENUES = [
       "Off-Piste",
       "Expert Terrain"
     ],
-    "photo": "https://images.unsplash.com/photo-1521325213791-4d8df00eee81?w=800&h=600&fit=crop&fp-x=0.52&fp-y=0.32",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Las_Le%C3%B1as_Mendoza_Argentina_by_Andre_Charland.jpg/1280px-Las_Le%C3%B1as_Mendoza_Argentina_by_Andre_Charland.jpg",
     "skiPass": "independent",
   },
   {
@@ -4624,7 +4624,7 @@ const VENUES = [
       "Family Friendly",
       "Scenic Views"
     ],
-    "photo": "https://images.unsplash.com/photo-1528913010160-240d3500c209?w=800&h=600&fit=crop&fp-x=0.53&fp-y=0.59",
+    "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Cerro_Chapelco_Paisaje.jpg/1280px-Cerro_Chapelco_Paisaje.jpg",
     "skiPass": "independent",
   },
   {
@@ -4654,28 +4654,28 @@ const VENUES = [
     icon:"🏖️", rating:4.82, reviews:1140,
     gradient:"linear-gradient(160deg,#0a2e1a,#1a5c3a,#2e9c6a)",
     accent:"#5ec494", tags:["Adriatic Riviera","Historic Island","Pebble Beach","Crystal Clear Water"],
-    photo:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Sveti_Stefan_beach.JPG/1280px-Sveti_Stefan_beach.JPG"},
   {id:"beach_okinawa", category:"beach",
     title:"Emerald Beach Okinawa", location:"Naha, Japan",
     lat:26.6995, lon:127.8784, ap:"OKA",
     icon:"🏖️", rating:4.85, reviews:2480,
     gradient:"linear-gradient(160deg,#003333,#006666,#00aaaa)",
     accent:"#33ddcc", tags:["Subtropical Japan","Coral Reef","Ultra-Clear Water","Island Culture"],
-    photo:"https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Okinawa_Ocean_Expo_Park_Emerald_Beach_hdsr_Vlux5_06.jpg/1280px-Okinawa_Ocean_Expo_Park_Emerald_Beach_hdsr_Vlux5_06.jpg"},
   {id:"beach_cape_verde", category:"beach",
     title:"Santa Maria Beach", location:"Sal Island, Cape Verde",
     lat:16.597, lon:-22.9005, ap:"SID",
     icon:"🏖️", rating:4.80, reviews:1860,
     gradient:"linear-gradient(160deg,#1a1a00,#4a4400,#8a7a00)",
     accent:"#d4c060", tags:["Trade Winds","Year-Round Sun","Kitesurfing Mecca","Atlantic Islands"],
-    photo:"https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Sal_cape_verde_santa_maria_-_panoramio.jpg/1280px-Sal_cape_verde_santa_maria_-_panoramio.jpg"},
   {id:"beach_fuerteventura", category:"beach",
     title:"Corralejo Beach", location:"Fuerteventura, Canary Islands",
     lat:28.737, lon:-13.866, ap:"FUE",
     icon:"🏖️", rating:4.83, reviews:3120,
     gradient:"linear-gradient(160deg,#2a1800,#6a4000,#c47a00)",
     accent:"#f0b040", tags:["White Sand Dunes","Year-Round Warm","Windsurfing","European Gem"],
-    photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Corralejo_Beach_Fuerteventura_%2833210974814%29.jpg/1280px-Corralejo_Beach_Fuerteventura_%2833210974814%29.jpg"},
   {id:"beach_djerba", category:"beach",
     title:"Djerba Sidi Mahrez", location:"Djerba, Tunisia",
     lat:33.784, lon:10.987, ap:"DJE",
@@ -4690,7 +4690,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001428,#003060,#0060a0)",
     accent:"#60b0e0",
     tags:["Cape Cod National Seashore","Classic New England Summer","Whale Watch Gateway","BOS Weekend Escape"],
-    photo:"https://images.unsplash.com/photo-1560903510-6c52aadbfd44?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Race_Point_Beach_-_Provincetown%2C_Massachusetts%2C_USA_-_August_14%2C_2015_-_panoramio.jpg/1280px-Race_Point_Beach_-_Provincetown%2C_Massachusetts%2C_USA_-_August_14%2C_2015_-_panoramio.jpg"},
   {id:"beach_hamptons", category:"beach",
     title:"Cooper's Beach", location:"Southampton, New York",
     lat:40.8728, lon:-72.3937, ap:"JFK",
@@ -4698,7 +4698,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001020,#002040,#004080)",
     accent:"#40a0d0",
     tags:["Hamptons","Pristine Atlantic Shore","NYC Weekend Escape","Peak Summer Scene"],
-    photo:"https://images.unsplash.com/photo-1472745942893-4b9f730c7668?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Cooper%27s_Beach_Southampton.jpg/1280px-Cooper%27s_Beach_Southampton.jpg"},
   {id:"beach_luquillo", category:"beach",
     title:"Luquillo Beach", location:"Luquillo, Puerto Rico",
     lat:18.3746, lon:-65.7169, ap:"SJU",
@@ -4706,7 +4706,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001c10,#003828,#006848)",
     accent:"#30c070",
     tags:["US Territory No Passport","El Yunque Rainforest Backdrop","Caribbean Water","Direct All East Coast Hubs"],
-    photo:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.45"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Luquillo_Beach%2C_Luquillo%2C_Puerto_Rico.jpg/1280px-Luquillo_Beach%2C_Luquillo%2C_Puerto_Rico.jpg"},
 
   // ── 2026-06-23 content sprint: 3 US domestic + Cape Town + Rio ───────────────
   // PM v66 priority: close "no US East Coast boardwalk / no iconic global beach" gap
@@ -4721,7 +4721,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001828,#003050,#005080)",
     accent:"#4090c0",
     tags:["NYC Day Trip","Boardwalk Revival","Atlantic Waves","Music Scene"],
-    photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/On_a_beach%2C_Asbury_Park%2C_New_Jersey.jpg/1280px-On_a_beach%2C_Asbury_Park%2C_New_Jersey.jpg"},
 
   // 2. Flamenco Beach, Culebra, PR — consistently ranked #1 US beach, no car, snorkel
   {id:"flamenco-beach-culebra", category:"beach",
@@ -4731,7 +4731,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#002040,#004080,#0070c0)",
     accent:"#40a8e0",
     tags:["Caribbean Turquoise","Ranked US Best Beach","Car-Free Island","Snorkeling Reefs"],
-    photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Flamenco_Beach%2C_Culebra_Island%2C_Puerto_Rico.jpg/1280px-Flamenco_Beach%2C_Culebra_Island%2C_Puerto_Rico.jpg"},
 
   // 3. Zuma Beach, Malibu — LA's PCH beach, Pacific sunset gold, surf break
   {id:"zuma-beach-malibu", category:"beach",
@@ -4763,7 +4763,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001830,#003060,#005898)",
     accent:"#42a2d8",
     tags:["Iconic Urban Beach","Year-Round Sun","Sunset Caipirinha Scene","Sugarloaf Views"],
-    photo:"https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Ipanema_beach_03.jpg/1280px-Ipanema_beach_03.jpg"},
 
   // ── 2026-06-24 content sprint: Jackson Hole + Kitzbühel + Grace Bay + South Beach + Cancún ──
   // Closes 5 high-credibility catalog gaps: top US ski resort, Austria's most famous,
@@ -4776,7 +4776,7 @@ const VENUES = [
     icon:"🏔️", rating:4.93, reviews:2640,
     gradient:"linear-gradient(160deg,#0a1e30,#1a3c60,#2a5a90)",
     accent:"#70a8d8", tags:["Biggest Skiing USA","Lone Peak Aerial Tram","Low Crowds","IKON Pass"],
-    photo:"https://images.unsplash.com/photo-1663321060226-65c5c8c48636?w=800&h=600&fit=crop", skiPass:"ikon"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Big_Sky_resort.jpg/1280px-Big_Sky_resort.jpg", skiPass:"ikon"},
 
   {id:"grace-bay-turks", category:"beach",
     title:"Grace Bay Beach", location:"Providenciales, Turks & Caicos",
@@ -4784,7 +4784,7 @@ const VENUES = [
     icon:"🏝️", rating:4.96, reviews:12500,
     gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
     accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
-    photo:"https://images.unsplash.com/photo-1414609245224-aea9a7afaef8?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg/1280px-Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg"},
 
   {id:"south-beach-miami", category:"beach",
     title:"South Beach", location:"Miami Beach, Florida, USA",
@@ -4792,7 +4792,7 @@ const VENUES = [
     icon:"🏖️", rating:4.83, reviews:21400,
     gradient:"linear-gradient(160deg,#001a2e,#003060,#005898)",
     accent:"#40a0e0", tags:["Art Deco Boardwalk","Atlantic Waves","Year-Round Sun","Nightlife District"],
-    photo:"https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/MiamiSouthBeachPanoramaEdit.jpg/1280px-MiamiSouthBeachPanoramaEdit.jpg"},
 
   {id:"cancun-beach", category:"beach",
     title:"Cancún Beach", location:"Cancún, Quintana Roo, Mexico",
@@ -4810,7 +4810,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#003322,#006644,#009966)",
     accent:"#33cc88",
     tags:["East Coast Dry Season","Point Surf Break","Laid-Back Village","July Peak"],
-    photo:"https://images.unsplash.com/photo-1566452348683-af04c7f8b0e8?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Arugam_bay_beach.jpg/1280px-Arugam_bay_beach.jpg"},
   {id:"essaouira-beach", category:"beach",
     title:"Essaouira Beach", location:"Essaouira, Morocco",
     lat:31.5085, lon:-9.7595, ap:"RAK",
@@ -4818,7 +4818,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a33,#003366,#004c99)",
     accent:"#4499cc",
     tags:["Atlantic Windsurf Capital","Blue Boat Harbor","Medina UNESCO","July Trade Winds"],
-    photo:"https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Essaouira_Beach%2C_Morocco_-_panoramio_%284%29.jpg/1280px-Essaouira_Beach%2C_Morocco_-_panoramio_%284%29.jpg"},
   {id:"les-deux-alpes-fr", category:"skiing",
     title:"Les Deux Alpes", location:"Isère, France",
     lat:45.0167, lon:6.1167, ap:"CMF",
@@ -4826,7 +4826,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1c3a5f,#1f67ab,#5aaeeb)",
     accent:"#5aaeeb",
     tags:["July Glacier Skiing","Snowpark","Expert Terrain","3600m Summit"],
-    photo:"https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Les_Deux_Alpes_lift.JPG/1280px-Les_Deux_Alpes_lift.JPG",
     skiPass:"independent", lateSeason:true},
   {id:"saas-fee-ch", category:"skiing",
     title:"Saas-Fee", location:"Valais, Switzerland",
@@ -4835,7 +4835,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a3a5c,#1e5fa8,#8bc4f0)",
     accent:"#8bc4f0",
     tags:["Year-Round Glacier","3500m Altitude","Car-Free Village","Fee Glacier"],
-    photo:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4",
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Saas-fee-2008_img_6221.jpg/1280px-Saas-fee-2008_img_6221.jpg",
     skiPass:"independent", lateSeason:true},
   {id:"st-moritz-ch", category:"skiing",
     title:"St. Moritz", location:"Graubünden, Switzerland",
@@ -4844,7 +4844,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a1a3a,#2e3a8a,#5a7abf)",
     accent:"#b0bec5",
     tags:["Luxury Alpine Resort","Corvatsch Summer Glacier","2 Olympics Host","3303m Peak"],
-    photo:"https://images.unsplash.com/photo-1606787364406-a3cdf06c6d0c?w=800&h=600&fit=crop&fp-x=0.55&fp-y=0.45",
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/St_Moritz_Muottas.jpg/1280px-St_Moritz_Muottas.jpg",
     skiPass:"independent", lateSeason:true},
 
   // ── 2026-07-09 content sprint: PM v82 Decision 2 — TFS + CHQ new venues ─────
@@ -4855,7 +4855,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0a00,#3a2000,#6a4000)",
     accent:"#d4a060",
     tags:["Saharan Sand Imported","Calm Natural Bay","Anaga Mountains Backdrop","Year-Round Sun"],
-    photo:"https://images.unsplash.com/photo-1566452348683-af04c7f8b0e8?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/At_Playa_de_Las_Teresitas%2C_Tenerife_2021_040.jpg/1280px-At_Playa_de_Las_Teresitas%2C_Tenerife_2021_040.jpg"},
   {id:"elafonissi-beach-chq", category:"beach",
     title:"Elafonissi Beach", location:"Chania, Crete, Greece",
     lat:35.2667, lon:23.5333, ap:"CHQ",
@@ -4863,7 +4863,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a2e,#003a6a,#0060a0)",
     accent:"#f0b0c0",
     tags:["Pink-Tinted Sand","Shallow Pink Lagoon","Most Searched Greek Beach","Wild Southwest Crete"],
-    photo:"https://images.unsplash.com/photo-1560903510-6c52aadbfd44?w=800&h=600&fit=crop&fp-x=0.5&fp-y=0.4"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Elafonissi_in_Crete%2C_Greece_-_panoramio.jpg/1280px-Elafonissi_in_Crete%2C_Greece_-_panoramio.jpg"},
   {id:"beach_poipu", category:"beach",
     title:"Poipu Beach", location:"Kauai, Hawaii",
     lat:21.8753, lon:-159.4685, ap:"LIH",
@@ -4871,7 +4871,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",
     accent:"#33bbff",
     tags:["Horseshoe Bay","Monk Seal Sanctuary","Year-Round Sun","World-Class Snorkeling"],
-    photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Aerial-Poipu-Beach-Park-Kauai.jpg/1280px-Aerial-Poipu-Beach-Park-Kauai.jpg"},
 
   // ── 5 venue additions — 2026-08-13 Content agent (PM-authorized, DevOps-skipped) ──
   {id:"beach_tamarindo", category:"beach", title:"Tamarindo Beach",
@@ -4881,7 +4881,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#002200,#005500,#008800)",
     accent:"#44cc66",
     tags:["Surf Town Vibes","Howler Monkeys","Year-Round Sun","Dry Season Sep-Apr"],
-    photo:"https://images.unsplash.com/photo-1566438480900-0609be27a4be?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tamarindo_beach-Guanacaste-Costa_Rica.jpg/1280px-Tamarindo_beach-Guanacaste-Costa_Rica.jpg"},
 
   {id:"beach_puerto_escondido", category:"beach", title:"Puerto Escondido",
     location:"Oaxaca, Mexico",
@@ -4890,7 +4890,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0a00,#3d1a00,#6b3000)",
     accent:"#ff9933",
     tags:["Mexican Pipeline","Surf Culture","Mezcal & Seafood","Bohemian"],
-    photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Playa_de_puerto_escondido_mexico.jpg/1280px-Playa_de_puerto_escondido_mexico.jpg"},
 
   {id:"beach_lanzarote", category:"beach", title:"Papagayo Beach",
     location:"Lanzarote, Canary Islands, Spain",
@@ -4899,7 +4899,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0f00,#3d2200,#7a4400)",
     accent:"#ffaa33",
     tags:["Volcanic Landscape","Year-Round Warmth","Volcanic Black Sand","EU Paradise"],
-    photo:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Lanzarote_Playas_de_Papagayo_R09.jpg/1280px-Lanzarote_Playas_de_Papagayo_R09.jpg"},
 
   {id:"beach_gold_coast", category:"beach", title:"Surfers Paradise",
     location:"Gold Coast, Queensland, Australia",
@@ -4908,7 +4908,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a33,#003366,#0055aa)",
     accent:"#33aaff",
     tags:["Iconic Skyline","World-Class Surf","Nightlife","Theme Parks"],
-    photo:"https://images.unsplash.com/photo-1524293763594-7a2a4e24e80f?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Surfers_Paradise%2C_Gold_Coast%2C_Australia_%28Ank_Kumar%29_05.jpg/1280px-Surfers_Paradise%2C_Gold_Coast%2C_Australia_%28Ank_Kumar%29_05.jpg"},
 
   {id:"beach_agadir", category:"beach", title:"Agadir Beach",
     location:"Souss-Massa, Morocco",
@@ -4917,7 +4917,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0a00,#3d2200,#804400)",
     accent:"#ee9922",
     tags:["Saharan Sun","Year-Round Beach","Surf in Winter","North Africa"],
-    photo:"https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Agadir_beach%2C_Morocco.JPG/1280px-Agadir_beach%2C_Morocco.JPG"},
 
   // ── 5 venue additions — 2026-08-14 Content agent (PM v119-authorized) ──
   {id:"beach_moorea", category:"beach",
@@ -4928,7 +4928,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a33,#003d66,#0066aa)",
     accent:"#33ccee",
     tags:["Crystal Lagoon","Overwater Bungalows","Cook's Bay Views","World's Most Beautiful Island"],
-    photo:"https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Lagon_de_Temae_%C3%A0_Moorea.jpg/1280px-Lagon_de_Temae_%C3%A0_Moorea.jpg"},
 
   {id:"beach_cascais", category:"beach",
     title:"Cascais Beach",
@@ -4948,7 +4948,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001033,#002266,#0044aa)",
     accent:"#66bbee",
     tags:["Surf Capital France","Belle Époque Grandeur","Basque Country","Atlantic Waves"],
-    photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Grande_plage_de_Biarritz_en_2025.jpg/1280px-Grande_plage_de_Biarritz_en_2025.jpg"},
 
   {id:"beach_porto_galinhas", category:"beach",
     title:"Porto de Galinhas",
@@ -4958,7 +4958,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0500,#3d1000,#7a2200)",
     accent:"#ff7722",
     tags:["Natural Pools in Reef","Jangada Boat Rides","Voted Best Beach Brazil","Transparent Water"],
-    photo:"https://images.unsplash.com/photo-1565118531796-763e5082d113?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Porto_de_galinhas%2C_Pernambuco.jpg/1280px-Porto_de_galinhas%2C_Pernambuco.jpg"},
 
   {id:"beach_malapascua", category:"beach",
     title:"Malapascua Island",
@@ -4968,7 +4968,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",
     accent:"#33ddcc",
     tags:["Thresher Shark Dives","Pristine Reef","White Sand Bounty Beach","Remote Island Escape"],
-    photo:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Malapascua_Island%2C_Sunset_on_the_beach_2%2C_Philippines.jpg/1280px-Malapascua_Island%2C_Sunset_on_the_beach_2%2C_Philippines.jpg"},
 
   // ── Mediterranean beach additions — 2026-08-15 (Content agent / PM v120) ──
   {id:"beach_capri", category:"beach",
@@ -4979,7 +4979,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a22,#003344,#005566)",
     accent:"#33eecc",
     tags:["Blue Grotto Island","Faraglioni Rock Stacks","Dolce Vita Escape","Capri Town Cliffside"],
-    photo:"https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Capri-marina_piccola.jpg/1280px-Capri-marina_piccola.jpg"},
 
   {id:"beach_tavira_island", category:"beach",
     title:"Ilha de Tavira",
@@ -4989,7 +4989,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a33,#003366,#005599)",
     accent:"#ffcc33",
     tags:["Barrier Island","Flat Calm Lagoon","Roman Heritage Town","Algarve Hidden Gem"],
-    photo:"https://images.unsplash.com/photo-1527490087278-9c75be0b8052?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Praia_da_Ilha_de_Tavira_-_Portugal_%2816284157822%29.jpg/1280px-Praia_da_Ilha_de_Tavira_-_Portugal_%2816284157822%29.jpg"},
 
   {id:"beach_villasimius", category:"beach",
     title:"Villasimius Coast",
@@ -4999,7 +4999,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#002244,#004488,#0077cc)",
     accent:"#33bbff",
     tags:["Caribbean Sardinia","Turquoise Lagoons","Pellicano Park","Kite & Wind Surf"],
-    photo:"https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Simius_Beach_-_Villasimius_%282%29.jpg/1280px-Simius_Beach_-_Villasimius_%282%29.jpg"},
 
   {id:"beach_san_vito_lo_capo", category:"beach",
     title:"San Vito Lo Capo",
@@ -5009,7 +5009,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001833,#003366,#0066aa)",
     accent:"#55ddff",
     tags:["Italy's #1 Beach","Cous Cous Festival","Zingaro Nature Reserve","Limestone Headland"],
-    photo:"https://images.unsplash.com/photo-1504446533425-7ce4af7bee53?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/San_Vito_Lo_Capo_-_Sicily_2008.jpg/1280px-San_Vito_Lo_Capo_-_Sicily_2008.jpg"},
 
   {id:"beach_budva", category:"beach",
     title:"Budva Riviera",
@@ -5019,7 +5019,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a22,#003344,#004466)",
     accent:"#66ccee",
     tags:["Adriatic Party Scene","Old Town Walls","20 Riviera Beaches","Montenegro's Ibiza"],
-    photo:"https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Budva_Riviera._%D0%91%D1%83%D0%B4%D0%B2%D0%B0%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%D0%A0%D0%B8%D0%B2%D1%8C%D0%B5%D1%80%D0%B0_-_panoramio.jpg/1280px-Budva_Riviera._%D0%91%D1%83%D0%B4%D0%B2%D0%B0%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%D0%A0%D0%B8%D0%B2%D1%8C%D0%B5%D1%80%D0%B0_-_panoramio.jpg"},
 
   // ── Latin America expansion — 2026-08-16 (Content agent) — 5 new venues ──
   // latam is the most underrepresented continent (was 4 venues). All 5 APs now
@@ -5033,7 +5033,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a3a,#003466,#005599)",
     accent:"#ffcc44",
     tags:["Kite & Wind Capital","Sunsetter Dune","Lagoa do Paraíso","Brazil's Most Bohemian Beach"],
-    photo:"https://images.unsplash.com/photo-1504870553739-5945b7df3f85?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Jericoacoara_Beach_%2889772%29.jpg/1280px-Jericoacoara_Beach_%2889772%29.jpg"},
 
   {id:"beach_pipa_brazil", category:"beach",
     title:"Pipa Beach",
@@ -5043,7 +5043,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001833,#003066,#0055aa)",
     accent:"#33ddff",
     tags:["Dolphin Bay","Madeiro Cliff Beach","Bohemian Village","Red-Sand Cliffs"],
-    photo:"https://images.unsplash.com/photo-1527523612741-9e7b12893cac?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Praia_de_Pipa_banner_Beach_and_town.JPG/1280px-Praia_de_Pipa_banner_Beach_and_town.JPG"},
 
   {id:"beach_cartagena", category:"beach",
     title:"Cartagena de Indias Beaches",
@@ -5053,7 +5053,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#1a0a00,#3a1c00,#604020)",
     accent:"#ffaa33",
     tags:["UNESCO Walled City","Caribbean Gateway","Bocagrande Strip","Colombia's Crown Jewel"],
-    photo:"https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Playas_de_Bocagrande%2C_Cartagena_de_Indias_%28Colombia%29.jpg/1280px-Playas_de_Bocagrande%2C_Cartagena_de_Indias_%28Colombia%29.jpg"},
 
   {id:"beach_tayrona", category:"beach",
     title:"Tayrona National Park",
@@ -5063,7 +5063,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a00,#003300,#005500)",
     accent:"#66ff88",
     tags:["Jungle Meets Caribbean","La Piscina Natural Pool","Howler Monkey Mornings","UNESCO Biosphere"],
-    photo:"https://images.unsplash.com/photo-1558618047-3c8e6f6b55e3?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Tayrona_National_Park_utanf%C3%B6r_Santa_Marta.jpg/1280px-Tayrona_National_Park_utanf%C3%B6r_Santa_Marta.jpg"},
 
   {id:"beach_galapagos", category:"beach",
     title:"Galápagos Islands",
@@ -5073,7 +5073,7 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#001a2a,#003344,#005566)",
     accent:"#44eebb",
     tags:["Sea Lions on the Beach","Marine Iguanas","Charles Darwin Legacy","UNESCO World Heritage"],
-    photo:"https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=800&h=600&fit=crop"},
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Puerto_Chino_Beach%2C_San_Cristobal%2C_Galapagos_Islands_2013.JPG/1280px-Puerto_Chino_Beach%2C_San_Cristobal%2C_Galapagos_Islands_2013.JPG"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
