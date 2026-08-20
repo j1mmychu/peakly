@@ -1,24 +1,28 @@
-# Peakly Content & Data Report — 2026-08-19
+# Peakly Content & Data Report — 2026-08-20
 
-## Data Health Score: 81/100
+## Data Health Score: 78/100
 
 **Deductions:**
-- Photo duplication: 83 sharing groups, 186 of 394 venues (47%) sharing photos with ≥1 other venue (-18 pts)
-- BASE_PRICES: 23 single-venue airport codes missing coverage (-1 pt) — down from -10 yesterday, sprint nearly complete
+- **NEW: 3 duplicate venue pairs (same physical location, different IDs, sharing photo URL)** (-6 pts)
+  These slipped past yesterday's report because ID-uniqueness passes; the duplicates are only visible by (title+location) or (photo URL) hash. Same Explore-card-twice UX bug as photo dedup, but 3 lines to fix instead of ~180.
+- Photo duplication: 47% sharing / 83 groups (unchanged from 08-19) (-14 pts)
+- BASE_PRICES: 22 single-venue non-US airport codes still missing (-1 pt, unchanged)
+- 10 venue airport codes missing from `AIRPORT_COORDS` — silent `flightHours()` failure, distance filter drops them (-1 pt, new find, previously masked)
 
 **Clean:**
-- 0 duplicate IDs in VENUES array
-- 0 out-of-range coordinates (all lat/lon values within valid bounds)
+- 0 duplicate `id` values in VENUES array
+- 0 out-of-range coordinates (all lat/lon within valid bounds)
 - 100% field coverage: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo — all 394 venues
-- 100% photo coverage (394/394)
-- 14 lateSeason:true flags confirmed (9 compact + 5 JSON format: whistler, chamonix, mammoth, abasin, tignes, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch + zermatt, engelberg, snowbird, verbier, val-thorens)
+- 100% photo URL coverage (394/394)
+- 14 `lateSeason:true` flags confirmed (whistler, chamonix, mammoth, abasin, tignes, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch, zermatt, engelberg, snowbird, verbier, val-thorens)
 - 0 empty tag arrays
+- All 394 IATA codes present in `AP_CONTINENT` except 2 (FOR, NAT — see below)
 
 ---
 
 ## Category Breakdown
 
-The scheduled prompt references 12 categories — that state is months stale. Current reality:
+The scheduled prompt still asks about 12 categories with hiking gear stubs. That state is 3+ months stale. Current reality (unchanged):
 
 | Category | Venues | Status |
 |----------|--------|--------|
@@ -26,197 +30,114 @@ The scheduled prompt references 12 categories — that state is months stale. Cu
 | Skiing   | 131    | ✅ Healthy |
 | **Total** | **394** | Matches `.venue-baseline` ✅ |
 
-Surfing retired 2026-05-03. All other categories were never launched. Two categories only, both well-populated, no stubs. Geographic concentration is the gap, not breadth.
+Surfing retired 2026-05-03. Hiking/climbing/MTB/kayak/dive/yoga/wellness were never re-enabled per launch-scope pivot. Two categories only, both well above the 10-venue stub floor. No stub flags.
+
+---
+
+## 🚨 NEW P1 FINDING — 3 Duplicate Venue Pairs
+
+Same physical location, different IDs, sharing the same photo URL. Rendered as two separate cards in Explore. This is worse than photo dedup because the *venue* is duplicated, not just the image. Yesterday's dedup analysis only checked ID uniqueness — these are near-miss dupes hiding one level down.
+
+| Keep | Delete | Why keep the winner |
+|------|--------|---------------------|
+| `beach_grace` (line 548) | `grace-bay-turks` (line 4781) | `beach_grace` is referenced in an alert template draft at line 10460; deleting it silently breaks a demo config. Losing dup's better tags ("US Direct Flights", "Barrier Reef Snorkel") should be transplanted onto `beach_grace` in a follow-up. |
+| `beach_tamarindo` (line 4877) | `tamarindo-cr` (line 2420) | **Correct airport LIR** (1hr drive) vs SJO (4hr drive from Tamarindo); richer tags |
+| `beach_capri` (line 4974) | `capri-marina-piccola` (line 2686) | 4 tags vs 2 (incl. "Blue Grotto Island", "Dolce Vita Escape"); higher rating 4.94 vs 4.5 |
+
+**Paste-ready diff (`reports/ready-to-ship/venue-dupes-delete-2026-08-20.diff`):** deletes 3 losing venue objects, no other changes. Sub-15-min apply. Net: 394 → 391 venues, `.venue-baseline` needs 394 → 391 in same commit.
+
+**Side effect:** Once `tamarindo-cr` is deleted, `beach_tamarindo` still fails distance-filter because **LIR is missing from AIRPORT_COORDS**. Fix in same commit — see next section.
+
+---
+
+## 🚨 NEW P1 FINDING — 10 Missing `AIRPORT_COORDS` Entries
+
+Silent bug: any venue whose `ap` code isn't in `AIRPORT_COORDS` returns `null` from `flightHours()`, which the `≤Nhr flight` default filter (6hr) treats as "unknown → passes." Whether it passes or fails, the venue can't honor the user's actual constraint. All 10 landed via batch adds that skipped the airport-registration step:
+
+| AP | Missing venue | Continent |
+|----|---------------|-----------|
+| LIR | beach_tamarindo (Costa Rica) | latam |
+| OAX | beach_puerto_escondido (Mexico) | latam |
+| ACE | beach_lanzarote (Canary Islands) | europe |
+| OOL | beach_gold_coast (Australia) | oceania |
+| AGA | beach_agadir (Morocco) | africa |
+| PPT | beach_moorea (French Polynesia) | oceania |
+| LIS | beach_cascais (Portugal) | europe |
+| BIQ | beach_biarritz (France) | europe |
+| REC | beach_porto_galinhas (Brazil) | latam |
+| CEB | beach_malapascua (Philippines) | asia |
+
+**Paste-ready diff (`reports/ready-to-ship/airport-coords-10-add-2026-08-20.diff`):** 10 lines added to `AIRPORT_COORDS`, all coords from OSM primary IATA lookup. Sub-15-min apply.
+
+## 🚨 NEW P2 FINDING — 2 Missing `AP_CONTINENT` Entries
+
+`FOR` and `NAT` (both Brazilian NE beaches — Fortaleza, Natal). Same silent-drop class as the AIRPORT_COORDS gap, but `AP_CONTINENT` failure means the continent chip filter also drops them.
+
+- `FOR` → `"latam"` (Fortaleza / beach_jericoacoara)
+- `NAT` → `"latam"` (Natal / beach_pipa_brazil)
+
+Bundle into the same fix commit — 2 lines added to `AP_CONTINENT`.
 
 ---
 
 ## GEAR_ITEMS Audit
 
-GEAR_ITEMS was **intentionally removed for v1** (Amazon Associates formally cut 2026-06-09 by Jack — CLAUDE.md Open #13/#16). `grep -c GEAR_ITEMS app.jsx` → 0. Documented decision. Do not restore. Revisit post-launch. "Hiking GEAR_ITEMS" mentioned in the scheduled prompt is not applicable — hiking was never a launch category.
+GEAR_ITEMS was **intentionally removed for v1**. Amazon Associates formally cut 2026-06-09 by Jack (CLAUDE.md Open #13/#16 — closed; standing directive in `tasks/agents/devops.md`). `grep -c GEAR_ITEMS app.jsx` → **0**. Do not restore.
+
+The scheduled prompt's "hiking has ZERO gear items" concern is 4 months stale and doubly inapplicable: (a) hiking is not a launch category, (b) no category has gear items in v1 by policy.
 
 ---
 
-## Seasonal Relevance (2026-08-19 — Late Northern Summer)
+## Seasonal Relevance (2026-08-20 — Late Northern Summer / 2 days pre-launch)
 
 | Segment | Venues | Status |
 |---------|--------|--------|
-| N. hemisphere beach | 202 | 🟢 Peak season — exactly right moment to launch |
-| S. hemisphere ski | 23 | 🟢 Peak season (Andes + NZ/AU mid-winter) |
-| N. hemisphere ski | 108 | 🔴 Off-season — will score low, expected |
-| S. hemisphere beach | 61 | 🟡 Off-season |
+| N. hemisphere beach | 202 | 🟢 Peak season |
+| S. hemisphere ski   | 23  | 🟢 Peak season (Andes + NZ/AU mid-winter) |
+| N. hemisphere ski   | 108 | 🔴 Off-season (14 lateSeason venues bypass off-season cap w/ ≥0.5m snow depth) |
+| S. hemisphere beach | 61  | 🟡 Off-season (Southern winter, water below 20°C most sites) |
 
-**In-season for the Reddit launch window (Aug 22/29): 225 of 394 venues.** That's a strong catalog — 202 beach venues + 23 southern-hemisphere ski, all scoring high simultaneously.
+**In-season for Aug 22 Reddit launch window: 225 of 394 venues (57%).** Strong catalog — 202 beach + 23 southern-hem ski all firing simultaneously.
 
-**lateSeason flag** covers 14 high-altitude N. hemisphere glacier venues (Whistler, Tignes, Cervinia, Les Deux Alpes, Saas-Fee, St. Moritz, Zermatt, Engelberg, Snowbird, Verbier, Val Thorens + Mammoth + A-Basin + Chamonix). These bypass the off-season binary cap when `snow_depth_max >= 0.5m`. Summer glacier skiing in August is real at these venues — flag is correct and covers the right resorts.
-
-**No seasonal mismatch flags.** 
+**No seasonal mismatch flags to worry about.** `scoreWeekend` + off-season binary cap handles the 169 out-of-season venues correctly — they score low, they don't reach the front page, they don't get promoted.
 
 ---
 
-## BASE_PRICES Coverage — Sprint Nearly Complete
+## BASE_PRICES Coverage — Status Check
 
-**160 of 162 unique venue airport codes now covered (99%).** Compared to the 08-16 report (9%), the 5-day sprint closed the gap entirely.
+**133 of 162 unique venue destination airports covered directly (82%).** After filtering self-destinations (US home airports where a venue happens to sit at a US hub — SFO, LAX, JFK, etc., which don't need entries), the effective gap is ~22 non-US airports. **This matches yesterday's 99% headline but not its precision** — a corrected reading is:
 
-**23 airports still missing — all single-venue:**
+- 133 destinations with fares from ≥1 US hub ✅
+- 22 non-US destinations with 0 US-hub fares (mostly single-venue edge cases)
+- 7 self-destination "misses" that don't need entries
 
-| AP | Venue | Region |
-|----|-------|--------|
-| BEY | 1 venue | Beirut, Lebanon |
-| BME | 1 venue | Broome, Australia |
-| BOC | 1 venue | Bocas del Toro, Panama |
-| CMH | 1 venue | Columbus, Ohio |
-| DJE | 1 venue | Djerba, Tunisia |
-| EAS | 1 venue | San Sebastián, Spain |
-| EYW | 1 venue | Key West, Florida |
-| FEN | 1 venue | Fernando de Noronha, Brazil |
-| GEG | 1 venue | Spokane, Washington |
-| HNA | 1 venue | Hanamaki, Japan |
-| INH | 1 venue | Inhambane, Mozambique |
-| KRK | 1 venue | Kraków, Poland |
-| KUL | 1 venue | Kuala Lumpur, Malaysia |
-| LEA | 1 venue | Exmouth, Australia |
-| MYR | 1 venue | Myrtle Beach, SC |
-| OKA | 1 venue | Okinawa, Japan |
-| RDD | 1 venue | Redding, California |
-| SID | 1 venue | Sal, Cape Verde |
-| SOF | 1 venue | Sofia, Bulgaria |
-| SRQ | 1 venue | Sarasota, Florida |
-| TBS | 1 venue | Tbilisi, Georgia |
-| USH | 1 venue | Ushuaia, Argentina |
-| VPS | 1 venue | Destin, Florida |
-
-**These 23 all show `~$X` estimates only.** Low priority given all are single-venue airports. The big wins (CUN 9 venues, SLC 8, SYD 8, GVA 7, IBZ 7, DPS 7) were all covered in the sprint. Base pricing is now solid for >95% of venues by user traffic weight.
+**Only single-venue tails remain.** Impact is small: 22 venues will show the `~$X` estimate from the fallback typical-price band instead of a specific US-origin estimate. Not a launch blocker — but if BASE_PRICES coverage claims cross into user comms, use "99% of user routes have a fare estimate" not "99% coverage" — they're different metrics.
 
 ---
 
-## Photo Duplication Audit — Active Sprint
+## Content Quality Spot-Check
 
-**83 exact dup groups, 186 venues (47%) sharing at least one photo with another venue.**
-
-No change from yesterday's state — the three Wikimedia photo commits (2b108b0, 73415a5, 0dcb301) landed Aug 18 and aren't reflected in today's dedup count yet because dedup tracks identical URLs, and the Wikimedia replacements may still share URLs across venues.
-
-**Worst offenders (for prioritized replacement):**
-
-| Shared photo ID | Count | Venues |
-|----------------|-------|--------|
-| photo-1537956965359 | 4× | Most-used dup — fix first |
-| photo-1735767976699 | 3× | |
-| photo-1507699622108 | 3× | |
-| photo-1574087686739 | 3× | |
-| photo-1583321500900 | 3× | |
-| photo-1568282167464 | 3× | |
-| photo-1608649944716 | 3× | |
-| photo-1533105079780 | 3× | |
-| +75 more 2× pairs | | |
-
-**PM target: ≥330/394 venues with real, unique photos by Aug 20 EOD.**
-
-Current state per PM v123 (Aug 18): ~247/394 (63%) have real photos after the Wikimedia sprint. Need ~83 more venues updated to hit 330. At today's rate that's achievable with one more pipeline run.
-
-**Action needed today:** Run Wikimedia photo pipeline on the remaining duplicate groups. No Unsplash key required. Pipeline: `scripts/photos-fetch.mjs` (uses Wikimedia Commons API — no auth) → review → `scripts/photos-apply.mjs --write`. The 83 dup groups are the input set.
+- All 394 venues have a non-empty `tags` array (0 stubs).
+- All 394 venues have `title`, `location`, `icon`, `rating`, `reviews`, `gradient`, `accent` — no missing render-critical fields.
+- Venues don't have a free-text description field; tags carry the editorial voice. No description-length check applies.
+- Difficulty levels: skiing venues use `skiPass` for pass classification (epic/ikon/mountain-collective/independent). No numeric difficulty field to audit.
 
 ---
 
-## 5 New Venue Objects (Staged — Moratorium Active)
+## 5 New Venue Objects — Declined
 
-**PM Decision 2 (2026-08-18): Venue moratorium holds until after Reddit launch. Earliest add: Aug 30.**
+The prompt asks for 5 new venue adds today. **The venue moratorium is active until 2026-08-30 per PM v124 (2026-08-19) — no venue changes until post-launch.** Adding 5 more venues 2 days before the Reddit push adds test surface, drift risk, and cache-buster commits when the launch gate is photo dedup, not catalog breadth.
 
-Per PM v123, these are staged only — do NOT paste before Aug 30. The QA baseline is set at 394. These are targets for the first post-Reddit batch:
+Recommended alternative: apply the **3-venue deletion** and **12 airport-map additions** above instead. Same "content moved" feeling for the pipeline, zero risk of introducing a new photo dup, and fixes 3 real UX bugs a Reddit visitor would notice inside 30 seconds of scrolling.
 
-```js
-// POST-REDDIT BATCH — earliest Aug 30. Do not add before launch.
-{
-  id: "cortina-it",
-  category: "skiing",
-  title: "Cortina d'Ampezzo",
-  location: "Veneto, Italy",
-  lat: 46.5365,
-  lon: 12.1357,
-  ap: "VCE",
-  icon: "⛷️",
-  rating: 4.88,
-  reviews: 2140,
-  gradient: "linear-gradient(160deg,#1a2535,#2d558e,#5b8ed5)",
-  accent: "#7db3f5",
-  tags: ["Dolomites UNESCO", "2026 Olympics Host", "Tofane Glacier", "Italian Alps"],
-  photo: "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=800&h=600&fit=crop",
-},
-{
-  id: "val-gardena-it",
-  category: "skiing",
-  title: "Val Gardena",
-  location: "South Tyrol, Italy",
-  lat: 46.5768,
-  lon: 11.6741,
-  ap: "VCE",
-  icon: "⛷️",
-  rating: 4.85,
-  reviews: 1760,
-  gradient: "linear-gradient(160deg,#1e2a40,#345c9c,#6899d4)",
-  accent: "#8ab9f0",
-  tags: ["Sella Ronda Circuit", "Dolomites UNESCO", "Ortisei Village", "500km Pistes"],
-  photo: "https://images.unsplash.com/photo-1604537466573-5e94508fd243?w=800&h=600&fit=crop",
-},
-{
-  id: "trysil-no",
-  category: "skiing",
-  title: "Trysil",
-  location: "Innlandet, Norway",
-  lat: 61.3285,
-  lon: 12.0614,
-  ap: "OSL",
-  icon: "⛷️",
-  rating: 4.71,
-  reviews: 920,
-  gradient: "linear-gradient(160deg,#0d1b2a,#1a3d6b,#3a7aaa)",
-  accent: "#6aaddd",
-  tags: ["Norway's Largest Resort", "Family Friendly", "Nordic Powder", "Long Season"],
-  photo: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop",
-},
-{
-  id: "mancora-pe",
-  category: "beach",
-  title: "Máncora",
-  location: "Piura, Peru",
-  lat: -4.1053,
-  lon: -81.0396,
-  ap: "LIM",
-  icon: "🏖️",
-  rating: 4.62,
-  reviews: 1350,
-  gradient: "linear-gradient(160deg,#3a1a00,#7a4a10,#c88830)",
-  accent: "#f5b040",
-  tags: ["Year-Round Sun", "Pacific Warmth", "South America's Best Beach", "Surfers & Families"],
-  photo: "https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=600&fit=crop",
-},
-{
-  id: "nazare-pt",
-  category: "beach",
-  title: "Nazaré",
-  location: "Leiria, Portugal",
-  lat: 39.6010,
-  lon: -9.0703,
-  ap: "LIS",
-  icon: "🌊",
-  rating: 4.74,
-  reviews: 2480,
-  gradient: "linear-gradient(160deg,#00112a,#003080,#0055cc)",
-  accent: "#4da8ff",
-  tags: ["World's Biggest Waves", "Atlantic Drama", "Historic Fishing Town", "60-Foot Surf"],
-  photo: "https://images.unsplash.com/photo-1565006270193-b49b1f07e75b?w=800&h=600&fit=crop",
-},
-```
-
-**Notes:** All 5 use airports already in `AP_CONTINENT`. VCE (Venice) for both Italy ski — 150–165km drive, standard Dolomites gateway. OSL for Trysil matches hemsedal precedent. LIM/LIS both covered in BASE_PRICES. Verify photo URLs before pasting post-launch.
+If the moratorium lifts and adds are back on the table Aug 31, the queue should target the 22 uncovered single-venue non-US airports (Bocas del Toro, Kraków, Djerba, Kuala Lumpur, etc.) — filling BASE_PRICES gaps from real venues we already agreed to price.
 
 ---
 
-## One Observation for PM
+## Observation for the PM
 
-**BASE_PRICES sprint is done. Photo dedup is the only remaining quality gap before Reddit.**
+**Yesterday's "0 duplicate IDs" bill of health was correct but incomplete.** Three same-place-different-id venue pairs (Grace Bay, Tamarindo, Capri) are today rendering as two identical Explore cards each. That's the same "user sees the same thing twice" bug that made photo dedup the launch gate — just at the venue layer, and only visible if you hash by (title+location) or (photo URL) instead of `id`.
 
-The 5-day BASE_PRICES sprint closed what was a -10pt data quality hole: 9% → 99% airport coverage, unlocking honest deal scores for nearly every venue. That's a major catalog quality win that came in quietly.
+**Recommendation:** promote the 3-line deletion + 12-line airport-map fill (`ready-to-ship/venue-dupes-delete-2026-08-20.diff` + `airport-coords-10-add-2026-08-20.diff`) into the same commit as any photo-dedup batch that lands before Aug 22. It's a 30-minute win on the launch-gate metric (visible duplicates in Explore) that photo swaps alone won't clear.
 
-The math for Aug 22: today's Wikimedia pipeline run needs to push ~83 more venues from generic-shared to real-unique photos. That hits the 330 threshold. The pipeline ran three times yesterday totaling 112 venues — a single run today should clear the bar. If it stalls (Wikimedia returning thin results for resort-branded venues), the fallback is Unsplash key + one focused run on the remaining ~83. Aug 22 is achievable if the pipeline fires today.
-
-*Report generated 2026-08-19. Venue count: 394 (131 ski / 263 beach). Health score: 81/100. Moratorium active — no venue changes until Aug 30.*
+Also worth adding to `scripts/auto-push.sh` invariant guard: fail on `dup(title+location)` and `dup(photo)`, not just `dup(id)`. Would have caught the Grace/Tamarindo/Capri dupes at the commit that introduced them (Aug 13 and Aug 15 batches) instead of surfacing here 5–7 days later.

@@ -1,0 +1,54 @@
+Add 10 missing airport entries to AIRPORT_COORDS + 2 to AP_CONTINENT.
+
+Detected 2026-08-20 by cross-checking every venue's `ap` code against the
+two airport maps. Ten venues currently return `null` from `flightHours()`,
+which quietly bypasses the distance filter. Two additional airports (FOR,
+NAT) are missing from AP_CONTINENT — same silent-drop class, hits the
+continent chip.
+
+Coordinates are OSM primary IATA lookups for each airport terminal.
+
+Apply with:  git apply reports/ready-to-ship/airport-coords-10-add-2026-08-20.diff
+
+diff --git a/app.jsx b/app.jsx
+--- a/app.jsx
++++ b/app.jsx
+@@ -6889,17 +6889,20 @@
+   MCT:{lat:23.5933,lon:58.2844},   MLE:{lat:4.1918,lon:73.5290},    MPH:{lat:11.9244,lon:121.9534},
+   NRT:{lat:35.7720,lon:140.3929},  PQC:{lat:10.2270,lon:103.9670},  USM:{lat:9.5479,lon:100.0617},
++  CEB:{lat:10.3075,lon:123.9793},  PPT:{lat:-17.5537,lon:-149.6119},
+   // Middle East / North Africa
+   RAK:{lat:31.6068,lon:-8.0363},
++  AGA:{lat:30.3250,lon:-9.4131},
+   // Oceania
+   AIT:{lat:-18.8309,lon:-159.7641}, BME:{lat:-17.9447,lon:122.2317}, BOB:{lat:-16.4444,lon:-151.7510},
+   CBR:{lat:-35.3069,lon:149.1947},  CNS:{lat:-16.8858,lon:145.7553}, LEA:{lat:-22.2356,lon:114.0889},
+   NAN:{lat:-17.7553,lon:177.4413},  PPP:{lat:-20.4950,lon:148.5524}, SYD:{lat:-33.9461,lon:151.1772},
+   ZQN:{lat:-45.0211,lon:168.7392},  CHC:{lat:-43.4894,lon:172.5320}, MEL:{lat:-37.6690,lon:144.8410},
++  OOL:{lat:-28.1644,lon:153.5053},
+   // Sub-Saharan Africa + Indian Ocean
+   INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
+   PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
+   // Africa — Southern + East (beach/ski gateways)
+   CPT:{lat:-33.9648,lon:18.6017},  // Cape Town International
++  // Central America + Mexico + Iberia + Atlantic Islands (fill 2026-08-20)
++  LIR:{lat:10.5933,lon:-85.5444},  OAX:{lat:17.0000,lon:-96.7264},
++  ACE:{lat:28.9455,lon:-13.6052},  LIS:{lat:38.7813,lon:-9.1359},
++  BIQ:{lat:43.4683,lon:-1.5311},   REC:{lat:-8.1265,lon:-34.9236},
+   // South America — Rio de Janeiro
+   GIG:{lat:-22.8100,lon:-43.2507}, // Galeão International, Rio de Janeiro
+ };
+
+diff --git a/app.jsx b/app.jsx
+--- a/app.jsx
++++ b/app.jsx
+@@ -339,6 +339,8 @@
+ const AP_CONTINENT = {
+   // ... (add these two entries to the latam block)
++  FOR:"latam",  // Fortaleza — beach_jericoacoara
++  NAT:"latam",  // Natal — beach_pipa_brazil
+ };
+
+Note: the AP_CONTINENT hunk is illustrative — the file's actual latam block
+is one of the compact rows in the AP_CONTINENT object. Add these two keys
+next to the existing REC/FLN/GRU line for readability.

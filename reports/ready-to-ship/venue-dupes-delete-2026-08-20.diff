@@ -1,0 +1,96 @@
+Delete 3 duplicate venue objects that render as duplicate Explore cards.
+
+Same physical location + same photo URL, different IDs, added across
+different batches. Detected 2026-08-20 by (title+location) and (photo URL)
+hash — ID-uniqueness check passes so yesterday's audit didn't flag them.
+
+Keep decisions:
+- Grace Bay: keep `beach_grace` (referenced in alert template line 10460).
+- Tamarindo: keep `beach_tamarindo` (correct LIR airport, 1hr drive vs
+  SJO's 4hr drive; batch-added entry `tamarindo-cr` had the wrong AP).
+- Capri:    keep `beach_capri` (4 tags vs 2, higher rating 4.94 vs 4.5).
+
+Also bump `.venue-baseline` from 394 to 391 so auto-push guard stays green.
+
+Apply with:  git apply reports/ready-to-ship/venue-dupes-delete-2026-08-20.diff
+
+diff --git a/app.jsx b/app.jsx
+--- a/app.jsx
++++ b/app.jsx
+@@ -2416,26 +2416,6 @@
+       ],
+       "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Cabo_Pulmo.jpg/1280px-Cabo_Pulmo.jpg"
+     },
+-    {
+-      "id": "tamarindo-cr",
+-      "category": "beach",
+-      "title": "Tamarindo Beach",
+-      "location": "Guanacaste, Costa Rica",
+-      "lat": 10.3022,
+-      "lon": -85.8408,
+-      "ap": "SJO",
+-      "icon": "🏖️",
+-      "rating": 4.6,
+-      "reviews": 1584,
+-      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
+-      "accent": "#7fd4e5",
+-      "tags": [
+-        "Surf Breaks",
+-        "Beach Bars"
+-      ],
+-      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tamarindo_beach-Guanacaste-Costa_Rica.jpg/1280px-Tamarindo_beach-Guanacaste-Costa_Rica.jpg"
+-    },
+     {
+       "id": "santa-teresa-cr",
+       "category": "beach",
+@@ -2682,25 +2662,6 @@
+       ],
+       "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Costa_Smeralda.jpg/1280px-Costa_Smeralda.jpg"
+     },
+-    {
+-      "id": "capri-marina-piccola",
+-      "category": "beach",
+-      "title": "Capri Marina Piccola",
+-      "location": "Capri, Italy",
+-      "lat": 40.5447,
+-      "lon": 14.2342,
+-      "ap": "NAP",
+-      "icon": "🏖️",
+-      "rating": 4.5,
+-      "reviews": 2102,
+-      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
+-      "accent": "#7fd4e5",
+-      "tags": [
+-        "Faraglioni Rocks",
+-        "Iconic"
+-      ],
+-      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Capri-marina_piccola.jpg/1280px-Capri-marina_piccola.jpg"
+-    },
+     {
+       "id": "procida-italy",
+       "category": "beach",
+@@ -4778,14 +4739,6 @@
+     photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Big_Sky_resort.jpg/1280px-Big_Sky_resort.jpg", skiPass:"ikon"},
+
+-  {id:"grace-bay-turks", category:"beach",
+-    title:"Grace Bay Beach", location:"Providenciales, Turks & Caicos",
+-    lat:21.8027, lon:-72.2033, ap:"PLS",
+-    icon:"🏝️", rating:4.96, reviews:12500,
+-    gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
+-    accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
+-    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg/1280px-Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg"},
+-
+   {id:"south-beach-miami", category:"beach",
+     title:"South Beach", location:"Miami Beach, Florida, USA",
+     lat:25.7907, lon:-80.1300, ap:"MIA",
+
+diff --git a/scripts/.venue-baseline b/scripts/.venue-baseline
+--- a/scripts/.venue-baseline
++++ b/scripts/.venue-baseline
+@@ -1 +1 @@
+-394
++391
+
+Note: line numbers in the second and third hunks assume the earlier hunks
+have already been applied. If `git apply` complains, apply the file with
+`git apply --3way` or run the hunks in bottom-up order manually.
