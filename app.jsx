@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260821a";
+const PEAKLY_BUILD = "20260821b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6212,8 +6212,12 @@ const FLIGHT_PROXY = "https://peakly-api.duckdns.org";
 let _flightApiStatus = "unknown"; // "live", "down", "unknown"
 function getFlightApiStatus() { return _flightApiStatus; }
 
-// Semaphore: max 3 concurrent flight API requests
-const _flightSem = { count: 0, max: 3, queue: [] };
+// Semaphore: max concurrent flight API requests. Raised 3→8 (2026-08-21) —
+// the VPS proxy just forwards to Travelpayouts, 8 concurrent forwards is
+// nothing for a 1GB box, and serializing at 3 was the single biggest
+// contributor to "prices take forever": with ~10 priority airports × up to
+// 2 home airports = ~20 requests all queuing 3-at-a-time behind each other.
+const _flightSem = { count: 0, max: 8, queue: [] };
 function _flightAcquire() {
   return new Promise(resolve => {
     if (_flightSem.count < _flightSem.max) { _flightSem.count++; resolve(); }
@@ -6226,8 +6230,18 @@ function _flightRelease() {
 }
 
 // Returns price number or null — caller falls back to BASE_PRICES estimate
-// Includes retry with exponential backoff (up to 2 retries)
-// Checks localStorage cache (15-min TTL) before hitting the API
+// Includes 1 fast retry on failure. Checks localStorage cache (15-min TTL)
+// before hitting the API.
+//
+// Timeout tightened 5000ms→1500ms and retries 3→2 attempts with a flat 250ms
+// backoff (was up to 2400ms) on 2026-08-21 — a stalled request used to be
+// able to hold its semaphore slot for ~18.6s (5s×3 + 1.2s+2.4s backoff),
+// which is what "prices take forever" actually was: one slow route blocking
+// the 2 others behind it in the queue. The caller also now races the whole
+// priority fetch against a 2s deadline (see the price-fetch effect below),
+// so a single request is never allowed to hold up what's on screen — the
+// `~$X` BASE_PRICES estimate is already showing with zero network cost, and
+// live prices upgrade it in place whenever they land, fast or slow.
 //
 // When departDate is provided (YYYY-MM-DD), the proxy filters month-matrix to
 // entries on that exact depart and returns a single weekend-specific price —
@@ -6240,10 +6254,10 @@ async function fetchTravelpayoutsPrice(origin, destination, departDate, returnDa
 
   await _flightAcquire();
   try {
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
+        const timeout = setTimeout(() => controller.abort(), 1500);
 
         let url = `${FLIGHT_PROXY}/api/flights`
           + `?origin=${encodeURIComponent(origin)}`
@@ -6256,8 +6270,8 @@ async function fetchTravelpayoutsPrice(origin, destination, departDate, returnDa
 
         if (r.status === 429 || r.status >= 500) {
           // Rate limited or server error — back off and retry
-          if (attempt < 2) {
-            await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
+          if (attempt < 1) {
+            await new Promise(res => setTimeout(res, 250));
             continue;
           }
           _flightApiStatus = "down"; return null;
@@ -6285,8 +6299,8 @@ async function fetchTravelpayoutsPrice(origin, destination, departDate, returnDa
         _flightCacheSet(origin, destination, result, departDate);
         return result;
       } catch (err) {
-        if (attempt < 2 && err.name !== "AbortError") {
-          await new Promise(res => setTimeout(res, (attempt + 1) * 1200));
+        if (attempt < 1 && err.name !== "AbortError") {
+          await new Promise(res => setTimeout(res, 250));
           continue;
         }
         _flightApiStatus = "down";
@@ -8976,8 +8990,27 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
     const r = await cloudSync.signIn(trimmedEmail, { name: trimmedName, phone: trimmedPhone });
     setBusy(false);
     if (!r?.ok) setFeedback(r?.error || "Couldn't send. Try again.");
-    else { setLastSentAt(Date.now()); setFeedback("Check your email for a one-tap link. (Spam folder too — Supabase mail loves it.)"); }
+    else {
+      setLastSentAt(Date.now());
+      setFeedback("Check your email for a one-tap link. (Spam folder too — Supabase mail loves it.)");
+      // Bug fix 2026-08-21: on send, the keyboard was still up from the
+      // inputs above (autoFocus on Full name keeps it there through the
+      // whole flow) — real report: "the screen scrolled down after trying
+      // to create an account but i still had to tap out to exit that page."
+      // A taller sheet (the new feedback line) appearing while the mobile
+      // keyboard is still open is what pushed the page around. Dismissing
+      // the keyboard the moment we have something to say removes the cause
+      // instead of just reacting to the scroll.
+      try { document.activeElement instanceof HTMLElement && document.activeElement.blur(); } catch {}
+    }
   };
+  // True once a link has been successfully sent at least once. Keyed on
+  // lastSentAt alone (not the current feedback text) so a resend-in-flight —
+  // which briefly clears feedback — doesn't flicker "Done ✓" back to "Maybe
+  // later" mid-request; a failed resend still shows its red error text below
+  // an otherwise-unchanged "Done ✓" primary action, since the user did get a
+  // working link on the first send.
+  const sent = lastSentAt > 0;
   const headline = intent === "save"  ? "Save it."
                  : intent === "alert" ? "Get the alert."
                  :                      "Save it. Get the alert.";
@@ -9028,13 +9061,17 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
             </div>
           </div>
 
-          <button onClick={send} disabled={!canSend} className="pressable" style={{
+          {/* Once the link is actually sent, "Done" replaces "Create account" as
+              the primary action — closing is the obvious next step at that
+              point, not something to hunt for behind a small text link below.
+              Bug fix 2026-08-21, see the `sent` comment above for the report. */}
+          <button onClick={sent ? triggerClose : send} disabled={!sent && !canSend} className="pressable" style={{
             width:"100%", marginTop:16,
-            background: canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
+            background: sent ? "#16a34a" : canSend ? "#0284c7" : "#cfcfcf", color:"#fff", border:"none",
             borderRadius:14, padding:"14px 18px", fontSize:14, fontWeight:800, fontFamily:F,
-            cursor: canSend ? "pointer" : "default",
+            cursor: (sent || canSend) ? "pointer" : "default",
           }}>
-            {busy ? "Sending…" : cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs/1000)}s` : lastSentAt ? "Resend link" : "Create account"}
+            {busy ? "Sending…" : sent ? "Done ✓" : cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs/1000)}s` : "Create account"}
           </button>
 
           {feedback && (
@@ -9043,13 +9080,24 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
             </div>
           )}
 
-          <button onClick={triggerClose} className="pressable" style={{
-            marginTop:14, background:"none", border:"none", padding:0,
-            fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
-            textDecoration:"underline", textUnderlineOffset:"3px",
-          }}>
-            Maybe later
-          </button>
+          {sent ? (
+            <button onClick={send} disabled={cooldownMs > 0} className="pressable" style={{
+              marginTop:14, background:"none", border:"none", padding:0,
+              fontSize:12, fontWeight:600, color: cooldownMs > 0 ? "#ccc" : "#888", fontFamily:F,
+              cursor: cooldownMs > 0 ? "default" : "pointer",
+              textDecoration:"underline", textUnderlineOffset:"3px",
+            }}>
+              {cooldownMs > 0 ? `Resend in ${Math.ceil(cooldownMs/1000)}s` : "Didn't get it? Resend"}
+            </button>
+          ) : (
+            <button onClick={triggerClose} className="pressable" style={{
+              marginTop:14, background:"none", border:"none", padding:0,
+              fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
+              textDecoration:"underline", textUnderlineOffset:"3px",
+            }}>
+              Maybe later
+            </button>
+          )}
         </div>
       </div>
     </>
@@ -10772,27 +10820,51 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
                   <button onClick={() => setDraft(d => ({...d, locations:[]}))} style={{
                     ...pillBase(draft.locations.length === 0), fontSize:12, padding:"6px 11px", marginBottom:6,
                   }}>Any</button>
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                    {listings
-                      .filter(l => draft.sport === "all" || l.category === draft.sport)
-                      .map(venue => (
-                        <button key={venue.id} onClick={() => {
-                          setDraft(d => {
-                            const locs = [...d.locations];
-                            const idx = locs.indexOf(venue.id);
-                            if (idx >= 0) locs.splice(idx, 1);
-                            else locs.push(venue.id);
-                            return {...d, locations: locs};
-                          });
-                        }} style={{
-                          padding:"5px 10px", borderRadius:14, border:"1.5px solid", cursor:"pointer", fontFamily:F,
-                          background: draft.locations.includes(venue.id) ? "#0284c7" : "#f7f7f7",
-                          color: draft.locations.includes(venue.id) ? "#fff" : "#222",
-                          borderColor: draft.locations.includes(venue.id) ? "#0284c7" : "#e8e8e8",
-                          fontSize:12, fontWeight:600,
-                        }}>{venue.title.split(",")[0]}</button>
-                      ))}
-                  </div>
+                  {/* Perf/freeze fix 2026-08-21: with 391 venues, "Any sport,
+                      Anywhere" used to render every matching venue as a button
+                      in one shot — up to ~390 of them — which is real jank on
+                      an older phone mid-animation. Now also filters by the
+                      Region pill above (previously only wired the sport
+                      filter) and hard-caps the render to 80, with a hint
+                      pointing at Region to narrow further instead of paying
+                      for hundreds of off-screen buttons nobody's tapping. */}
+                  {(() => {
+                    const matches = listings.filter(l =>
+                      (draft.sport === "all" || l.category === draft.sport)
+                      && (!draft.region || AP_CONTINENT[l.ap] === draft.region)
+                    );
+                    const VENUE_PICKER_CAP = 80;
+                    const shown = matches.slice(0, VENUE_PICKER_CAP);
+                    const hidden = matches.length - shown.length;
+                    return (
+                      <>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                          {shown.map(venue => (
+                            <button key={venue.id} onClick={() => {
+                              setDraft(d => {
+                                const locs = [...d.locations];
+                                const idx = locs.indexOf(venue.id);
+                                if (idx >= 0) locs.splice(idx, 1);
+                                else locs.push(venue.id);
+                                return {...d, locations: locs};
+                              });
+                            }} style={{
+                              padding:"5px 10px", borderRadius:14, border:"1.5px solid", cursor:"pointer", fontFamily:F,
+                              background: draft.locations.includes(venue.id) ? "#0284c7" : "#f7f7f7",
+                              color: draft.locations.includes(venue.id) ? "#fff" : "#222",
+                              borderColor: draft.locations.includes(venue.id) ? "#0284c7" : "#e8e8e8",
+                              fontSize:12, fontWeight:600,
+                            }}>{venue.title.split(",")[0]}</button>
+                          ))}
+                        </div>
+                        {hidden > 0 && (
+                          <div style={{ fontSize:11, color:"#999", fontFamily:F, marginTop:8 }}>
+                            +{hidden} more — narrow by Region above to find one
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   <div style={{ ...sectionLabel, marginTop:14 }}>Travel window (optional)</div>
                   <div style={{ display:"flex", gap:8 }}>
@@ -11832,10 +11904,23 @@ function useSwipeSheet(onClose, scrollRef) {
   const sheetRef = useRef(null);
   const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
   const [closing, setClosing] = useState(false);
+  // Bug fix 2026-08-21: most sheets using this hook unmount when closed, so a
+  // fresh mount always starts with closing=false — but AccountModal stays
+  // permanently mounted (`open` is just a prop, gated by `if (!open) return
+  // null` AFTER the hooks), so its component instance — and this `closing`
+  // state — persists across opens. Without the reset below, closing latched
+  // `true` forever after the FIRST close: the sheet re-rendered stuck in its
+  // "sheet-exit" (off-screen) position on every later open, and the full-
+  // screen backdrop's triggerClose became a permanent no-op (`if (closing)
+  // return`) — a real report: tapping "+ New Alert" opened this modal a
+  // second time, the sheet was invisible off-screen, and the invisible
+  // backdrop ate every tap with no way to dismiss it ("the app froze").
+  // Resetting closing back to false once the close animation completes make
+  // the hook safe for both mount patterns.
   const triggerClose = useCallback(() => {
     if (closing) return;
     setClosing(true);
-    setTimeout(onClose, 440);
+    setTimeout(() => { setClosing(false); onClose(); }, 440);
   }, [closing, onClose]);
   const onTouchStart = useCallback((e) => {
     if (scrollRef && (!scrollRef.current || scrollRef.current.scrollTop > 5)) return; // only swipe when at top
@@ -11861,7 +11946,15 @@ function useSwipeSheet(onClose, scrollRef) {
         sheetRef.current.style.transform = "translateX(-50%) translateY(105%)";
         sheetRef.current.style.transition = "transform 0.46s cubic-bezier(0.36,0,0.66,1)";
       }
-      setTimeout(onClose, 440);
+      // Clear the imperative transition override once the close finishes —
+      // for a permanently-mounted sheet (AccountModal) this DOM node gets
+      // reused on the next open, and a stale inline `transition` would
+      // otherwise linger past this gesture (see the triggerClose fix above
+      // for the matching `closing`-state version of this bug).
+      setTimeout(() => {
+        if (sheetRef.current) sheetRef.current.style.transition = "";
+        onClose();
+      }, 440);
     } else if (sheetRef.current) {
       sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
       sheetRef.current.style.transition = "transform 0.5s cubic-bezier(0.22,1.06,0.36,1)";
@@ -13159,6 +13252,19 @@ function App() {
   // Fetch real Travelpayouts prices after weather loads (re-fetches when home airport changes)
   // Optimized: deduplicate airport codes → only ~15 API calls instead of 250+
   // Priority: top 10 airports by weather score fetched first for fast hero/carousel load
+  //
+  // Rewritten 2026-08-21 to fix "prices take forever": the old version fired
+  // requests in hand-rolled batches of 3 with a 400ms pause between batches —
+  // extra throttling ON TOP OF the semaphore that was already capping
+  // concurrency, and it awaited each whole batch (so one slow/stuck request
+  // stalled the two others queued behind it, and the next batch couldn't
+  // start until the pause elapsed). Now every priority-tier request fires
+  // immediately (the semaphore is the only throttle), each result publishes
+  // to the UI the instant it lands instead of waiting for its batch, and a
+  // hard 2-second deadline flips the loading flag regardless of what's still
+  // in flight. The `~$X` BASE_PRICES estimate is already on screen with zero
+  // network cost, so a straggler request just upgrades the price quietly
+  // whenever it finishes — nothing ever blocks the UI past ~2s.
   useEffect(() => {
     if (loading) return;
     let alive = true;
@@ -13185,62 +13291,58 @@ function App() {
       const priorityAps = scoredAirports.slice(0, 10).map(x => x.ap);
       const remainingAps = scoredAirports.slice(10).map(x => x.ap);
 
-      // 3. Fetch prices only for unique airports, batched in groups of 3
-      // (semaphore in fetchTravelpayoutsPrice caps concurrent requests at 3)
-      // If two home airports are set, fetch both and use the cheaper price.
-      // Pass upcoming Fri's date so proxy filters month-matrix to that exact
-      // depart instead of returning whatever month-cheapest fare it happens
-      // to have (which could be a random Tuesday red-eye 3 weeks out).
+      // 3. Fetch prices — concurrency is bounded only by the semaphore inside
+      // fetchTravelpayoutsPrice (8 at a time). If two home airports are set,
+      // fetch both and use the cheaper price. Pass upcoming Fri's date so the
+      // proxy filters month-matrix to that exact depart instead of returning
+      // whatever month-cheapest fare it happens to have.
       const apPrices = {}; // airport code → { price, foundAt, departDate, returnDate }
       const origins = [profile.homeAirport || "JFK"];
       if (profile.homeAirport2) origins.push(profile.homeAirport2);
       const departDate = upcomingFridayISO(new Date());
 
-      const fetchBatch = async (airports) => {
-        for (let i = 0; i < airports.length; i += 3) {
-          if (!alive) return;
-          const batch = airports.slice(i, i + 3);
-          const results = await Promise.allSettled(
-            batch.flatMap(ap =>
-              origins.map(async origin => {
-                const result = await fetchTravelpayoutsPrice(origin, ap, departDate);
-                return { ap, result };
-              })
-            )
-          );
-          if (!alive) return;
-          results.forEach(r => {
-            if (r.status === "fulfilled" && r.value.result !== null) {
-              const { ap, result } = r.value;
-              if (apPrices[ap] == null || result.price < apPrices[ap].price) apPrices[ap] = result;
-            }
-          });
-          if (i + 3 < airports.length) await new Promise(r => setTimeout(r, 400));
-        }
+      // Publishes as each result lands (merges into existing state) rather
+      // than replacing the whole map — lets fast routes appear immediately
+      // while slower ones are still in flight.
+      const publish = (ap, data) => {
+        if (!alive) return;
+        const venueIds = apToVenues[ap] || [];
+        if (venueIds.length === 0) return;
+        setDuffelPrices(prev => {
+          const next = { ...prev };
+          venueIds.forEach(venueId => { next[venueId] = data; });
+          return next;
+        });
       };
 
-      // 4. Fetch priority airports first — hero + carousel populate fast
-      await fetchBatch(priorityAps);
-      if (!alive) return;
+      const runAirports = (airports) => airports.flatMap(ap =>
+        origins.map(origin =>
+          fetchTravelpayoutsPrice(origin, ap, departDate)
+            .then(result => {
+              if (!alive || result === null) return;
+              if (apPrices[ap] == null || result.price < apPrices[ap].price) {
+                apPrices[ap] = result;
+                publish(ap, result);
+              }
+            })
+            .catch(() => {})
+        )
+      );
 
-      // Publish priority prices immediately so visible cards snap in
-      const priorityPrices = {};
-      Object.entries(apPrices).forEach(([ap, data]) => {
-        apToVenues[ap].forEach(venueId => { priorityPrices[venueId] = data; });
-      });
-      if (Object.keys(priorityPrices).length > 0) setDuffelPrices({ ...priorityPrices });
+      // 4. Fire every priority-tier request now; race against a hard 2s
+      // deadline so a slow route can never hold the UI in a loading state —
+      // whatever's landed by then is on screen, and stragglers still publish
+      // themselves via `publish()` the moment they resolve afterward.
+      await Promise.race([
+        Promise.allSettled(runAirports(priorityAps)),
+        new Promise(resolve => setTimeout(resolve, 2000)),
+      ]);
+      if (!alive) return;
       setFlightsLoading(false);
 
-      // 5. Fetch remaining airports in background
-      await fetchBatch(remainingAps);
-      if (!alive) return;
-
-      // 6. Publish full price set
-      const prices = {};
-      Object.entries(apPrices).forEach(([ap, data]) => {
-        apToVenues[ap].forEach(venueId => { prices[venueId] = data; });
-      });
-      if (alive && Object.keys(prices).length > 0) setDuffelPrices(prices);
+      // 5. Remaining (non-priority) airports — always background, fire now,
+      // never blocks the UI. Each result publishes itself as it lands.
+      runAirports(remainingAps);
     })();
     return () => { alive = false; };
   }, [loading, profile.homeAirport, profile.homeAirport2]); // eslint-disable-line react-hooks/exhaustive-deps
