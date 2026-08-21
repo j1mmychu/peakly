@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260820a";
+const PEAKLY_BUILD = "20260821a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -277,9 +277,9 @@ async function forceCleanReload() {
     @keyframes scoreCount { from{opacity:0;transform:scale(0.7) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .tab-fade { animation: tabFade 0.18s ease-out; }
     @keyframes tabFade { from{opacity:0} to{opacity:1} }
-    .sheet { animation: sheetUp 0.44s cubic-bezier(0.32,1.2,0.4,1); will-change: transform; }
+    .sheet { animation: sheetUp 0.5s cubic-bezier(0.22,1.06,0.36,1); will-change: transform; }
     @keyframes sheetUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
-    .sheet-exit { animation: sheetDown 0.3s cubic-bezier(0.4,0,0.8,1) forwards; will-change: transform; }
+    .sheet-exit { animation: sheetDown 0.46s cubic-bezier(0.36,0,0.66,1) forwards; will-change: transform; }
     @keyframes sheetDown { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(105%)} }
     .backdrop { animation: bdFade 0.22s ease; }
     @keyframes bdFade { from{opacity:0} to{opacity:1} }
@@ -376,6 +376,7 @@ const AP_CONTINENT = {
   LST:"oceania", AIT:"oceania", SON:"oceania", PPP:"oceania", BME:"oceania",
   // Latin America / S. America
   SCL:"latam", PUQ:"latam", CUZ:"latam", LIM:"latam", GRU:"latam", FLN:"latam", REC:"latam",
+  // FOR/NAT already present (quoted-format block below) — not re-added here.
   // Africa
   CPT:"africa", PLZ:"africa", AGA:"africa", WDH:"africa",
   JRO:"africa", MBA:"africa", ZNZ:"africa", SEZ:"africa",
@@ -2417,25 +2418,6 @@ const VENUES = [
       "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Cabo_Pulmo.jpg/1280px-Cabo_Pulmo.jpg"
     },
     {
-      "id": "tamarindo-cr",
-      "category": "beach",
-      "title": "Tamarindo Beach",
-      "location": "Guanacaste, Costa Rica",
-      "lat": 10.3022,
-      "lon": -85.8408,
-      "ap": "SJO",
-      "icon": "🏖️",
-      "rating": 4.6,
-      "reviews": 1584,
-      "gradient": "linear-gradient(160deg,#0066a0,#00a2c5,#7bd5e8)",
-      "accent": "#7fd4e5",
-      "tags": [
-        "Surf Breaks",
-        "Beach Bars"
-      ],
-      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tamarindo_beach-Guanacaste-Costa_Rica.jpg/1280px-Tamarindo_beach-Guanacaste-Costa_Rica.jpg"
-    },
-    {
       "id": "santa-teresa-cr",
       "category": "beach",
       "title": "Santa Teresa",
@@ -2681,25 +2663,6 @@ const VENUES = [
         "Crystal Sea"
       ],
       "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Costa_Smeralda.jpg/1280px-Costa_Smeralda.jpg"
-    },
-    {
-      "id": "capri-marina-piccola",
-      "category": "beach",
-      "title": "Capri Marina Piccola",
-      "location": "Capri, Italy",
-      "lat": 40.5447,
-      "lon": 14.2342,
-      "ap": "NAP",
-      "icon": "🏖️",
-      "rating": 4.5,
-      "reviews": 2102,
-      "gradient": "linear-gradient(160deg,#003a64,#0078a8,#56b7d8)",
-      "accent": "#7fd4e5",
-      "tags": [
-        "Faraglioni Rocks",
-        "Iconic"
-      ],
-      "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Capri-marina_piccola.jpg/1280px-Capri-marina_piccola.jpg"
     },
     {
       "id": "procida-italy",
@@ -4777,14 +4740,6 @@ const VENUES = [
     gradient:"linear-gradient(160deg,#0a1e30,#1a3c60,#2a5a90)",
     accent:"#70a8d8", tags:["Biggest Skiing USA","Lone Peak Aerial Tram","Low Crowds","IKON Pass"],
     photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Big_Sky_resort.jpg/1280px-Big_Sky_resort.jpg", skiPass:"ikon"},
-
-  {id:"grace-bay-turks", category:"beach",
-    title:"Grace Bay Beach", location:"Providenciales, Turks & Caicos",
-    lat:21.8027, lon:-72.2033, ap:"PLS",
-    icon:"🏝️", rating:4.96, reviews:12500,
-    gradient:"linear-gradient(160deg,#001428,#002a50,#004878)",
-    accent:"#40c8f8", tags:["World #1 Ranked Beach","Barrier Reef Snorkel","Crystal Turquoise","US Direct Flights"],
-    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg/1280px-Sunset_in_Grace_Bay%2C_Turks_and_Caicos_Islands.jpg"},
 
   {id:"south-beach-miami", category:"beach",
     title:"South Beach", location:"Miami Beach, Florida, USA",
@@ -6889,18 +6844,25 @@ const AIRPORT_COORDS = {
   KBV:{lat:8.0991,lon:98.9862},    KUL:{lat:2.7456,lon:101.7099},   LOP:{lat:-8.7572,lon:116.2769},
   MCT:{lat:23.5933,lon:58.2844},   MLE:{lat:4.1918,lon:73.5290},    MPH:{lat:11.9244,lon:121.9534},
   NRT:{lat:35.7720,lon:140.3929},  PQC:{lat:10.2270,lon:103.9670},  USM:{lat:9.5479,lon:100.0617},
+  CEB:{lat:10.3075,lon:123.9793},  PPT:{lat:-17.5537,lon:-149.6119},
   // Middle East / North Africa
   RAK:{lat:31.6068,lon:-8.0363},
+  AGA:{lat:30.3250,lon:-9.4131},
   // Oceania
   AIT:{lat:-18.8309,lon:-159.7641}, BME:{lat:-17.9447,lon:122.2317}, BOB:{lat:-16.4444,lon:-151.7510},
   CBR:{lat:-35.3069,lon:149.1947},  CNS:{lat:-16.8858,lon:145.7553}, LEA:{lat:-22.2356,lon:114.0889},
   NAN:{lat:-17.7553,lon:177.4413},  PPP:{lat:-20.4950,lon:148.5524}, SYD:{lat:-33.9461,lon:151.1772},
   ZQN:{lat:-45.0211,lon:168.7392},  CHC:{lat:-43.4894,lon:172.5320}, MEL:{lat:-37.6690,lon:144.8410},
+  OOL:{lat:-28.1644,lon:153.5053},
   // Sub-Saharan Africa + Indian Ocean
   INH:{lat:-23.8764,lon:35.4085},  MBA:{lat:-4.0348,lon:39.5942},   MRU:{lat:-20.4302,lon:57.6836},
   PRI:{lat:-4.3193,lon:55.6914},   SEZ:{lat:-4.6743,lon:55.5217},   ZNZ:{lat:-6.2222,lon:39.2249},
   // Africa — Southern + East (beach/ski gateways)
   CPT:{lat:-33.9648,lon:18.6017},  // Cape Town International
+  // Central America + Mexico + Iberia + Atlantic Islands (fill 2026-08-20)
+  LIR:{lat:10.5933,lon:-85.5444},  OAX:{lat:17.0000,lon:-96.7264},
+  ACE:{lat:28.9455,lon:-13.6052},  LIS:{lat:38.7813,lon:-9.1359},
+  BIQ:{lat:43.4683,lon:-1.5311},   REC:{lat:-8.1265,lon:-34.9236},
   // South America — Rio de Janeiro
   GIG:{lat:-22.8100,lon:-43.2507}, // Galeão International, Rio de Janeiro
 };
@@ -7990,19 +7952,24 @@ function SearchSheet({ search, setSearch, onApply, onClose, listings, filters, s
     </div>
   );
 
+  // Swipe-down-to-dismiss lives on the handle/header only (not the whole
+  // scrollable body below it) so dragging the filter list doesn't fight the
+  // sheet's own scroll.
+  const { sheetRef, closing, triggerClose, onTouchStart, onTouchMove, onTouchEnd } = useSwipeSheet(onClose);
+
   return (
     <>
-      <div className="backdrop" onClick={onClose} style={{
+      <div className={"backdrop" + (closing ? " backdrop-exit" : "")} onClick={triggerClose} style={{
         position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:100,
       }} />
-      <div className="sheet" style={{
+      <div ref={sheetRef} className={"sheet" + (closing ? " sheet-exit" : "")} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff",
         borderRadius:"28px 28px 0 0", zIndex:101, maxHeight:"92vh", overflowY:"auto",
         paddingBottom:"max(env(safe-area-inset-bottom,0px), 24px)",
       }}>
-        {/* Handle + header */}
-        <div style={{
+        {/* Handle + header — swipe target */}
+        <div onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{
           position:"sticky", top:0, background:"#fff", zIndex:2,
           borderBottom:"1px solid #f0f0f0", paddingBottom:10,
         }}>
@@ -8806,6 +8773,75 @@ function InstallNudge({ wishlistCount }) {
   );
 }
 
+// ── Home-screen widget nudge (iOS only) ──────────────────────────────────
+// There is no public iOS API to auto-add a widget to the home screen —
+// WidgetKit only lets a user add one manually (long-press → + → search →
+// add). So the only honest move is the same "ask, don't force" pattern as
+// InstallNudge: a dismissible nudge that appears after real engagement
+// (not on first launch), a 14-day re-prompt decay if dismissed, and a
+// permanent fallback the user can find on their own in Profile whenever
+// they're ready (see the "Add Home Screen Widget" row in ProfileTab).
+function WidgetNudge({ wishlistCount }) {
+  const DISMISS_TTL_MS = 14 * 24 * 3600 * 1000;
+  const isDismissedNow = () => {
+    try {
+      const raw = localStorage.getItem("peakly_widget_nudge_dismissed");
+      if (!raw) return false;
+      const ts = parseInt(raw, 10);
+      return Number.isFinite(ts) && (Date.now() - ts) < DISMISS_TTL_MS;
+    } catch { return false; }
+  };
+  const [dismissed, setDismissed] = useState(isDismissedNow);
+  const [expanded, setExpanded] = useState(false);
+  // Native iOS only — the widget target doesn't exist on web/Android.
+  // Gated a step past InstallNudge (2 saves, not 1) so it doesn't compete
+  // for attention with the install nudge on someone's very first session.
+  const show = window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.() === "ios" && !dismissed && wishlistCount >= 2;
+  useEffect(() => {
+    if (show) logEvent("widget_nudge", { stage: "shown" });
+  }, [show]);
+  if (!show) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("peakly_widget_nudge_dismissed", String(Date.now())); } catch {}
+    logEvent("widget_nudge", { stage: "dismissed" });
+  };
+
+  return (
+    <div style={{
+      margin:"12px 14px 0", padding:"12px 14px", borderRadius:14,
+      background:"#fff", border:"1.5px solid #e0f2fe",
+    }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ fontSize:20 }}>📱</div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#222", fontFamily:F }}>Add the Peakly widget</div>
+          <div style={{ fontSize:11, fontWeight:600, color:"#666", fontFamily:F, marginTop:2 }}>
+            See your best weekend right on your home screen.
+          </div>
+        </div>
+        <button onClick={() => { setExpanded(e => !e); if (!expanded) logEvent("widget_nudge", { stage: "how_to_expanded" }); }} className="pressable" style={{
+          background:"#0284c7", color:"#fff", border:"none", borderRadius:10,
+          padding:"7px 14px", fontSize:12, fontWeight:800, fontFamily:F, cursor:"pointer", whiteSpace:"nowrap",
+        }}>{expanded ? "Got it" : "How"}</button>
+        <button onClick={dismiss} aria-label="Dismiss" style={{
+          background:"none", border:"none", color:"#bbb",
+          fontSize:18, fontWeight:600, padding:"0 2px", cursor:"pointer", lineHeight:1,
+        }}>×</button>
+      </div>
+      {expanded && (
+        <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid #f0f0f0", fontSize:12, color:"#555", fontFamily:F, lineHeight:1.9 }}>
+          1. Long-press an empty spot on your home screen<br/>
+          2. Tap the <strong>+</strong> in the top corner<br/>
+          3. Search for <strong>Peakly</strong> and pick a size<br/>
+          4. Tap <strong>Add Widget</strong>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Tiny pill showing cloud-sync status. Hidden when sync is disabled
 // (placeholder constants) so existing users see no change.
 // Diagnostic pill — surfaces VPS proxy + flight + APNS state at a glance.
@@ -8904,12 +8940,17 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
   const [lastSentAt, setLastSentAt] = useState(0);
   const [now, setNow]     = useState(Date.now());
   const [feedback, setFeedback] = useState("");
+  // Hooks must run unconditionally (before the `!open` early return below), so
+  // this is called every render — cheap when the modal is closed. Declared
+  // before the Escape-key effect so that effect can route through the same
+  // animated close as the swipe gesture and the "Maybe later" button.
+  const { sheetRef, closing, triggerClose, onTouchStart, onTouchMove, onTouchEnd } = useSwipeSheet(onClose);
   useEffect(() => {
     if (!open) return;
-    const onKey = e => { if (e.key === "Escape") onClose(); };
+    const onKey = e => { if (e.key === "Escape") triggerClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, triggerClose]);
   useEffect(() => {
     if (!lastSentAt) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -8949,15 +8990,15 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
   };
   return (
     <>
-      <div onClick={onClose} className="backdrop" style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:200 }} />
-      <div className="sheet" style={{
+      <div onClick={triggerClose} className={"backdrop" + (closing ? " backdrop-exit" : "")} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:200 }} />
+      <div ref={sheetRef} className={"sheet" + (closing ? " sheet-exit" : "")} style={{
         position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"min(430px,100vw)", background:"#fff", borderRadius:"28px 28px 0 0",
         zIndex:201, maxHeight:"82vh", overflowY:"auto",
         paddingBottom:"max(env(safe-area-inset-bottom,0px),24px)",
       }}>
-        {/* Handle */}
-        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 4px" }}>
+        {/* Handle — swipe target */}
+        <div onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{ display:"flex", justifyContent:"center", padding:"14px 0 4px" }}>
           <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
         </div>
         <div style={{ padding:"14px 24px 12px" }}>
@@ -9002,7 +9043,7 @@ function AccountModal({ open, intent, onClose, cloudSync, profile, setProfile })
             </div>
           )}
 
-          <button onClick={onClose} className="pressable" style={{
+          <button onClick={triggerClose} className="pressable" style={{
             marginTop:14, background:"none", border:"none", padding:0,
             fontSize:12, fontWeight:600, color:"#888", fontFamily:F, cursor:"pointer",
             textDecoration:"underline", textUnderlineOffset:"3px",
@@ -9843,6 +9884,9 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
         {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
         <InstallNudge wishlistCount={wishlists.length} />
+
+        {/* ── Widget nudge — iOS native only, appears after deeper engagement ── */}
+        <WidgetNudge wishlistCount={wishlists.length} />
 
         {/* ── Account nudge — surfaces after 3+ wishlists when not signed in ── */}
         <AccountNudgeBanner wishlistCount={wishlists.length} cloudSync={cloudSync} onGoToProfile={onViewProfile} />
@@ -10912,6 +10956,35 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 }
 
 // ─── profile tab ──────────────────────────────────────────────────────────────
+// Permanent, always-findable "how to add the widget" card for Profile — the
+// counterpart to WidgetNudge above. iOS gives apps no way to trigger the add-
+// widget picker or auto-install one, so this is the durable fallback for
+// anyone who dismissed the nudge (or never got engaged enough to see it).
+function WidgetHowToRow() {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div style={{ marginTop:28 }}>
+      <button onClick={() => setExpanded(e => !e)} className="pressable" style={{
+        width:"100%", display:"flex", alignItems:"center", gap:10,
+        background:"#f9f9f9", border:"1px solid #ececec", borderRadius:12,
+        padding:"12px 14px", cursor:"pointer", fontFamily:F, textAlign:"left",
+      }}>
+        <span style={{ fontSize:16 }}>📱</span>
+        <span style={{ flex:1, fontSize:13, fontWeight:700, color:"#222" }}>Add Home Screen Widget</span>
+        <span style={{ fontSize:12, color:"#888" }}>{expanded ? "▲" : "▼"}</span>
+      </button>
+      {expanded && (
+        <div style={{ marginTop:6, padding:"12px 14px", background:"#fff", border:"1px solid #ececec", borderRadius:12, fontFamily:F, fontSize:12, color:"#555", lineHeight:1.9 }}>
+          1. Long-press an empty spot on your home screen<br/>
+          2. Tap the <strong>+</strong> in the top corner<br/>
+          3. Search for <strong>Peakly</strong> and pick a size<br/>
+          4. Tap <strong>Add Widget</strong>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAccountModal, listings, wishlists, onToggle, onOpenDetail }) {
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const signedIn = !!cloudSync?.user;
@@ -11003,6 +11076,13 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── Home Screen Widget — iOS native only, always here even after any
+            nudge is dismissed, since there's no OS-level "add widget" API to
+            trigger from the app; this is the honest permanent fallback. ── */}
+      {window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.() === "ios" && (
+        <WidgetHowToRow />
       )}
 
       {/* Tiny footer links — sit at the very bottom */}
@@ -11320,11 +11400,21 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
   // on the airport slide. "done" covers both success and failure/deny; either
   // way the picker below is always right there, so there's no dead end.
   const [geoState,    setGeoState]   = useState("idle");
+  // Bug fix 2026-08-20: geolocation can take up to the full 10s timeout to
+  // resolve. If the user manually taps an airport (grid or search) WHILE it's
+  // still resolving, the async success callback used to fire afterward and
+  // silently overwrite their manual pick with the geolocated one — confirmed
+  // report: user picked LAX, app kept quoting flights from a NY-area airport
+  // because a slow/late geolocation fix clobbered it seconds later. This ref
+  // is set the instant the user picks manually, and the geolocation callback
+  // below now checks it before ever calling setAirport.
+  const manualPickRef = useRef(false);
   const detectAirport = () => {
     if (!navigator.geolocation || geoState === "detecting") return;
     setGeoState("detecting");
     navigator.geolocation.getCurrentPosition(
       pos => {
+        if (manualPickRef.current) { setGeoState("done"); return; } // user already chose — never override
         const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
         if (code) setAirport(code);
         setGeoState("done");
@@ -11457,7 +11547,7 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 const sel = airport === ap.code;
                 return (
                   <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
-                    onClick={() => { setAirport(ap.code); setApQuery(""); setGeoState("done"); }} style={{
+                    onClick={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setGeoState("done"); }} style={{
                       padding:"10px 6px", borderRadius:12, cursor:"pointer", minHeight:48, textAlign:"center",
                       background: sel ? "#0284c7" : "#f5f5f5", color: sel ? "#fff" : "#444",
                       border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
@@ -11470,7 +11560,7 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
             {apFocus && apResults.length > 0 && (
               <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
                 {apResults.map((ap,i) => (
-                  <button key={ap.code} onMouseDown={() => { setAirport(ap.code); setApQuery(""); setApFocus(false); setGeoState("done"); }} style={{
+                  <button key={ap.code} onMouseDown={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setApFocus(false); setGeoState("done"); }} style={{
                     width:"100%", padding:"12px 16px", background: airport===ap.code?"#f0f9ff":"#fff",
                     border:"none", borderBottom: i<apResults.length-1?"1px solid #f5f5f5":"none",
                     textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
@@ -11730,36 +11820,27 @@ function BookingConfirmSheet({ partner, url, label, kind, isEstimate, onConfirm,
   );
 }
 
-// ─── venue detail sheet ────────────────────────────────────────────────────────
-function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
-  const [showSharePanel, setShowSharePanel] = useState(false);
-  const [shareVenueCopied, setShareVenueCopied] = useState(false);
-  const [closing, setClosing] = useState(false);
-  // Confirmation sheet for outbound booking handoff. Holds the partner name +
-  // target URL until the user confirms or cancels.
-  const [bookConfirm, setBookConfirm] = useState(null); // { partner, url, label }
-  const saved = wishlists.includes(listing.id);
-
-  const triggerClose = useCallback(() => {
-    setClosing(true);
-    setTimeout(onClose, 270);
-  }, [onClose]);
-
-  // ─── Swipe-down-to-dismiss ──────────────────────────────────────────────────
+// ─── shared swipe-to-dismiss for bottom sheets ───────────────────────────────
+// 2026-08-20: slowed down + lengthened per direct feedback that the swipe felt
+// too quick/twitchy. Dismiss threshold raised 120px→170px (needs a genuinely
+// deliberate drag, not a light flick) and every transition now runs
+// 0.42–0.5s instead of 0.28–0.3s, so open/close/snap-back all read as one
+// unhurried motion instead of a snap. Pass a scrollRef when the sheet has a
+// tall scrollable body (only start the drag when that's scrolled to the top);
+// omit it for sheets without meaningful internal scroll.
+function useSwipeSheet(onClose, scrollRef) {
   const sheetRef = useRef(null);
-  const scrollRef = useRef(null);
   const dragRef  = useRef({ startY:0, currentY:0, dragging:false });
-
-  // Scroll back to top whenever the user navigates to a different venue
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [listing.id]);
-
+  const [closing, setClosing] = useState(false);
+  const triggerClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(onClose, 440);
+  }, [closing, onClose]);
   const onTouchStart = useCallback((e) => {
-    const el = scrollRef.current;
-    if (!el || el.scrollTop > 5) return; // only swipe when at top
+    if (scrollRef && (!scrollRef.current || scrollRef.current.scrollTop > 5)) return; // only swipe when at top
     dragRef.current = { startY: e.touches[0].clientY, currentY: e.touches[0].clientY, dragging:true };
-  }, []);
+  }, [scrollRef]);
   const onTouchMove = useCallback((e) => {
     const d = dragRef.current;
     if (!d.dragging) return;
@@ -11775,17 +11856,37 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
     if (!d.dragging) return;
     d.dragging = false;
     const dy = d.currentY - d.startY;
-    if (dy > 120) {
+    if (dy > 170) {
       if (sheetRef.current) {
         sheetRef.current.style.transform = "translateX(-50%) translateY(105%)";
-        sheetRef.current.style.transition = "transform 0.3s cubic-bezier(0.4,0,0.8,1)";
+        sheetRef.current.style.transition = "transform 0.46s cubic-bezier(0.36,0,0.66,1)";
       }
-      setTimeout(onClose, 280);
+      setTimeout(onClose, 440);
     } else if (sheetRef.current) {
       sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
-      sheetRef.current.style.transition = "transform 0.42s cubic-bezier(0.32,1.2,0.4,1)";
+      sheetRef.current.style.transition = "transform 0.5s cubic-bezier(0.22,1.06,0.36,1)";
     }
   }, [onClose]);
+  return { sheetRef, closing, triggerClose, onTouchStart, onTouchMove, onTouchEnd };
+}
+
+// ─── venue detail sheet ────────────────────────────────────────────────────────
+function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose, namedLists, setNamedLists, listings, onAlert, onOpenDetail, filters, search }) {
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [shareVenueCopied, setShareVenueCopied] = useState(false);
+  // Confirmation sheet for outbound booking handoff. Holds the partner name +
+  // target URL until the user confirms or cancels.
+  const [bookConfirm, setBookConfirm] = useState(null); // { partner, url, label }
+  const saved = wishlists.includes(listing.id);
+
+  const scrollRef = useRef(null);
+  const { sheetRef, closing, triggerClose, onTouchStart, onTouchMove, onTouchEnd } = useSwipeSheet(onClose, scrollRef);
+
+  // Scroll back to top whenever the user navigates to a different venue
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [listing.id]);
+
   const d  = rawWx?.daily;
   const md = rawMar?.daily;
 
@@ -12664,7 +12765,7 @@ function GuidesTab({ listings, onOpenDetail, wishlists, onToggle }) {
 // v1: false until VPS has the APNS .p8 — flip to true after setup-apns.sh runs.
 // Hides the Alerts tab on native iOS (web/PWA Alerts unaffected). Blocks the
 // App Store regression where users see Alerts but push never delivers.
-const APNS_LIVE = false; // VPS not yet redeployed with HTTP/2+P1363 fix — flip true after `scp server/proxy.js + pm2 restart`
+const APNS_LIVE = true; // Flipped 2026-08-20 — VPS /health confirms apns:"configured" (HTTP/2+P1363 fix deployed 2026-08-11)
 // Is alert delivery actually available on THIS platform? iOS native has no push
 // until APNS is configured (APNS_LIVE), so on iOS we both hide the Alerts tab
 // AND soften alert-promise copy elsewhere (onboarding, Profile) so an App Store

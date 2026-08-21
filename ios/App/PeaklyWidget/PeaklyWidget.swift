@@ -129,6 +129,10 @@ struct SmallView: View {
                 Text(loc).font(.system(size: 10)).foregroundColor(Brand.sub).lineLimit(1)
             }
 
+            if let cond = pick.conditions {
+                Text(cond).font(.system(size: 10, weight: .semibold)).foregroundColor(Brand.ink).lineLimit(1)
+            }
+
             Spacer(minLength: 4)
 
             if let price = pick.price {
