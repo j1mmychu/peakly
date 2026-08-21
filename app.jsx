@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260821b";
+const PEAKLY_BUILD = "20260821c";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -231,7 +231,20 @@ async function forceCleanReload() {
   s.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { background: #f5f5f5; }
+    /* Bug fix 2026-08-21: "screen scrolled down after creating an account,
+       had to tap out" + "couldn't scroll" reports. Root cause — nothing here
+       ever locked html/body, so on iOS WKWebView the OS's own keyboard-
+       avoidance behavior (auto-scrolling the DOCUMENT to keep a focused input
+       above the keyboard) was scrolling the real page underneath our
+       position:fixed sheets/backdrops. Blurring the input on send() removed
+       the keyboard but never reversed that document scroll, so the whole app
+       stayed visually offset with nothing left to scroll back — this is what
+       read as "couldn't scroll". Locking html/body to the viewport (the
+       standard fix for every mobile-web framework) makes that document-level
+       scroll impossible, so all scrolling is forced through the explicit
+       overflowY:"auto" containers we already manage ourselves, which are
+       unaffected by keyboard show/hide.  */
+    html, body { position: fixed; overflow: hidden; width: 100%; height: 100%; overscroll-behavior: none; background: #f5f5f5; }
     ::-webkit-scrollbar { display: none; }
     button, a, [role=button] { touch-action: manipulation; }
     /* ── tap states (mobile-first) ── */
@@ -10736,7 +10749,11 @@ function AlertsTab({ listings, userAlerts, setUserAlerts, profile, onShowOnboard
 
     return (
       <div style={{ flex:1, overflowY:"auto" }}>
-        <div style={{ padding:"14px 18px 0" }}>
+        {/* Bottom padding added 2026-08-21 — this container had none, so the
+            Create Alert button (last element) sat flush against the very end
+            of scrollable content with no safe-area clearance, right where a
+            report of "couldn't scroll [to reach it]" would come from. */}
+        <div style={{ padding:"14px 18px max(env(safe-area-inset-bottom,0px),24px)" }}>
           <button onClick={() => setAdding(false)} style={{
             background:"none", border:"none", fontSize:13, color:"#717171", cursor:"pointer", fontFamily:F,
             display:"flex", alignItems:"center", gap:4, padding:0,
