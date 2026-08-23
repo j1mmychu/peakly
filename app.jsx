@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260821c";
+const PEAKLY_BUILD = "20260823a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -11481,7 +11481,6 @@ const AVATAR_COLORS = [
 ];
 
 function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClose }) {
-  const [step,        setStep]       = useState(0);
   const [airport,     setAirport]    = useState(profile.homeAirport || "");
   const [apQuery,     setApQuery]    = useState("");
   const [apFocus,     setApFocus]    = useState(false);
@@ -11517,13 +11516,25 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
     );
   };
 
-  // Fire once, automatically, the moment the airport slide is reached — this
-  // is the one and only getCurrentPosition call site in the app (no more
-  // silent duplicate at app root). Tied directly to "Where do you fly from?"
-  // being on screen, matching the Info.plist location-usage string.
+  // Bug fix 2026-08-23, direct request: onboarding used to force a full
+  // second screen ("Where do you fly from?") before geolocation ever fired —
+  // an extra tap for the common case where someone just hits Allow on the
+  // permission prompt. Now this fires the instant the sheet mounts (no more
+  // step gate), and the welcome screen's own "Get Started" button completes
+  // onboarding directly — treating a location share as the default path
+  // instead of a whole separate slide to click through. Denial/failure still
+  // lands you on the airport picker below via the inline fallback, so nobody
+  // gets stuck with no way to set a departure airport.
   useEffect(() => {
-    if (step === 1 && geoState === "idle") detectAirport();
-  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (geoState === "idle") detectAirport();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Only the denial/failure/override path still needs the manual picker —
+  // shown inline on the one screen instead of gating a second slide behind it.
+  const [showManualPicker, setShowManualPicker] = useState(false);
+  useEffect(() => {
+    if (geoState === "done" && !airport) setShowManualPicker(true);
+  }, [geoState, airport]);
 
   const complete = () => {
     // Email is collected in the account-creation flow (Alerts tab / nudge banner),
@@ -11552,20 +11563,10 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
           <div style={{ width:40, height:4, borderRadius:2, background:"#ddd" }} />
         </div>
 
-        {/* Progress dots — 2 slides */}
-        <div style={{ display:"flex", justifyContent:"center", gap:6, paddingBottom:4 }}>
-          {[0,1].map(i => (
-            <div key={i} style={{
-              width: step === i ? 20 : 6, height:6, borderRadius:3,
-              background: step >= i ? "#0284c7" : "#e8e8e8",
-              transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-            }} />
-          ))}
-        </div>
-
-        {/* ── Step 0: Welcome ── */}
-        {step === 0 && (
-          <div style={{ padding:"32px 28px 8px" }}>
+        {/* Single onboarding screen as of 2026-08-23 — was 2 slides (Welcome →
+            "Where do you fly from?"); collapsed into one since geolocation now
+            fires immediately on mount instead of waiting for a second slide. */}
+        <div style={{ padding:"32px 28px 8px" }}>
             {/* Brand mark */}
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40 }}>
               <div style={{
@@ -11603,109 +11604,95 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* ── Step 1: Airport (only remaining step — this is the ask) ── */}
-        {step === 1 && (
-          <div style={{ padding:"16px 24px 0" }}>
-            <div style={{ fontSize:28, fontWeight:900, color:"#222", fontFamily:F, marginBottom:8, lineHeight:1.15, letterSpacing:"-0.6px" }}>
-              Where do you fly from?
-            </div>
-            <div style={{ fontSize:14, fontFamily:F, marginBottom:22, lineHeight:1.5,
-              color: geoState === "done" && airport ? "#16a34a" : "#717171",
-              fontWeight: geoState === "done" && airport ? 700 : 400,
+            {/* Location status — no separate slide, just a quiet inline line.
+                Assumes the "Allow" tap is the common case; the manual picker
+                only appears if that assumption doesn't hold (denied/failed). */}
+            <div style={{ fontSize:12.5, fontFamily:F, marginTop:14,
+              color: geoState === "done" && airport ? "#16a34a" : "#999",
+              fontWeight: geoState === "done" && airport ? 700 : 500,
             }}>
               {geoState === "detecting"
                 ? "Finding your airport…"
                 : geoState === "done" && airport
-                  ? `✓ Flying from ${AIRPORT_CITY[airport] || airport} — tap another below to change`
-                  : "We'll show real flight prices from your airport to every spot. Pick one below."}
+                  ? `✓ Flying from ${AIRPORT_CITY[airport] || airport}`
+                  : null}
             </div>
+            {!showManualPicker && geoState !== "idle" && (
+              <button onClick={() => setShowManualPicker(true)} style={{
+                background:"none", border:"none", padding:0, marginTop:6,
+                fontSize:12, color:"#0284c7", fontWeight:700, fontFamily:F, cursor:"pointer",
+                textDecoration:"underline", textUnderlineOffset:"3px",
+              }}>
+                {airport ? "Not your airport?" : "Set it manually"}
+              </button>
+            )}
 
-            <div style={{ position:"relative", marginBottom:14 }}>
-              <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
-              <input type="text" placeholder="Search any airport worldwide…"
-                value={apQuery} onChange={e => setApQuery(e.target.value)}
-                onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
-                style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
-              />
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:8 }}>
-              {US_AIRPORTS.map(ap => {
-                const sel = airport === ap.code;
-                return (
-                  <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
-                    onClick={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setGeoState("done"); }} style={{
-                      padding:"10px 6px", borderRadius:12, cursor:"pointer", minHeight:48, textAlign:"center",
-                      background: sel ? "#0284c7" : "#f5f5f5", color: sel ? "#fff" : "#444",
-                      border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
-                      fontSize:13, fontWeight:700, fontFamily:F,
-                      boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.32)" : "none",
-                  }}>{ap.code}</button>
-                );
-              })}
-            </div>
-            {apFocus && apResults.length > 0 && (
-              <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
-                {apResults.map((ap,i) => (
-                  <button key={ap.code} onMouseDown={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setApFocus(false); setGeoState("done"); }} style={{
-                    width:"100%", padding:"12px 16px", background: airport===ap.code?"#f0f9ff":"#fff",
-                    border:"none", borderBottom: i<apResults.length-1?"1px solid #f5f5f5":"none",
-                    textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
-                  }}>
-                    <span style={{ fontSize:20 }}>{ap.flag}</span>
-                    <div style={{ flex:1 }}>
-                      <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
-                      <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
-                    </div>
-                    {airport===ap.code && <span style={{ color:"#0284c7", fontSize:16, fontWeight:800 }}>✓</span>}
-                  </button>
-                ))}
+            {/* Manual override — reachable via the link above, or shown by
+                default the moment geolocation comes back with no airport
+                (denied/failed), so nobody gets stuck with no way to set one. */}
+            {showManualPicker && (
+              <div style={{ marginTop:14 }}>
+                <div style={{ position:"relative", marginBottom:14 }}>
+                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:16, pointerEvents:"none" }}>🔍</span>
+                  <input type="text" placeholder="Search any airport worldwide…"
+                    value={apQuery} onChange={e => setApQuery(e.target.value)}
+                    onFocus={() => setApFocus(true)} onBlur={() => setTimeout(() => setApFocus(false), 180)}
+                    style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:14, border:"1.5px solid #e8e8e8", fontSize:14, fontFamily:F, color:"#222", background:"#fafafa" }}
+                  />
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:8 }}>
+                  {US_AIRPORTS.map(ap => {
+                    const sel = airport === ap.code;
+                    return (
+                      <button key={ap.code} className={"pill" + (sel ? " pill-selected" : "")}
+                        onClick={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setGeoState("done"); }} style={{
+                          padding:"10px 6px", borderRadius:12, cursor:"pointer", minHeight:48, textAlign:"center",
+                          background: sel ? "#0284c7" : "#f5f5f5", color: sel ? "#fff" : "#444",
+                          border:"2px solid", borderColor: sel ? "#0284c7" : "transparent",
+                          fontSize:13, fontWeight:700, fontFamily:F,
+                          boxShadow: sel ? "0 2px 10px rgba(2,132,199,0.32)" : "none",
+                      }}>{ap.code}</button>
+                    );
+                  })}
+                </div>
+                {apFocus && apResults.length > 0 && (
+                  <div style={{ background:"#fff", border:"1.5px solid #e8e8e8", borderRadius:14, marginTop:6, overflow:"hidden", boxShadow:"0 8px 28px rgba(0,0,0,0.14)" }}>
+                    {apResults.map((ap,i) => (
+                      <button key={ap.code} onMouseDown={() => { manualPickRef.current = true; setAirport(ap.code); setApQuery(""); setApFocus(false); setGeoState("done"); }} style={{
+                        width:"100%", padding:"12px 16px", background: airport===ap.code?"#f0f9ff":"#fff",
+                        border:"none", borderBottom: i<apResults.length-1?"1px solid #f5f5f5":"none",
+                        textAlign:"left", cursor:"pointer", fontFamily:F, display:"flex", alignItems:"center", gap:12, minHeight:48,
+                      }}>
+                        <span style={{ fontSize:20 }}>{ap.flag}</span>
+                        <div style={{ flex:1 }}>
+                          <span style={{ fontSize:14, fontWeight:800, color:"#222" }}>{ap.code}</span>
+                          <span style={{ fontSize:12, color:"#717171" }}> · {ap.city}</span>
+                        </div>
+                        {airport===ap.code && <span style={{ color:"#0284c7", fontSize:16, fontWeight:800 }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
 
-        {/* Nav buttons */}
-        {step === 0 ? (
-          <div style={{ padding:"28px 24px 8px" }}>
-            <button onClick={() => setStep(1)} className="pressable" style={{
-              width:"100%", background:"#0284c7", border:"none", borderRadius:16, padding:"18px 0",
-              color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
-              boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
-            }}>
-              Get Started
-            </button>
-            <div style={{ textAlign:"center", paddingTop:10 }}>
-              <button onClick={onClose} style={{ background:"none", border:"none", fontSize:12, color:"#bbb", fontFamily:F, cursor:"pointer" }}>
-                Skip for now
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ padding:"24px 24px 8px", display:"flex", gap:10 }}>
-            <button onClick={() => setStep(0)} className="pressable" style={{
-              flex:"0 0 52px", background:"#f5f5f5", border:"none", borderRadius:16,
-              fontSize:20, cursor:"pointer",
-            }}>←</button>
-            <button onClick={complete} className="pressable" style={{
-              flex:1, background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none",
-              borderRadius:16, padding:"17px 0", color:"white",
-              fontSize:15, fontWeight:900, fontFamily:F, cursor:"pointer",
-              boxShadow:"0 4px 20px rgba(2,132,199,0.4)",
-            }}>
-              Show me what's firing
-            </button>
-          </div>
-        )}
-        {step > 0 && (
-          <div style={{ textAlign:"center", padding:"6px 0 4px" }}>
+        {/* Nav — single button now that onboarding is one screen. */}
+        <div style={{ padding:"28px 24px 8px" }}>
+          <button onClick={complete} className="pressable" style={{
+            width:"100%", background:"linear-gradient(135deg,#0284c7,#38bdf8)", border:"none", borderRadius:16, padding:"18px 0",
+            color:"white", fontSize:16, fontWeight:900, fontFamily:F, cursor:"pointer",
+            boxShadow:"0 4px 18px rgba(2,132,199,0.30)",
+          }}>
+            Get Started
+          </button>
+          <div style={{ textAlign:"center", paddingTop:10 }}>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:12, color:"#bbb", fontFamily:F, cursor:"pointer" }}>
               Skip for now
             </button>
           </div>
-        )}
+        </div>
       </div>
     </>
   );
@@ -13467,13 +13454,22 @@ function App() {
   // except a native iOS build — the web app never sees this run.
   React.useEffect(() => {
     if (!window.Capacitor?.isNativePlatform?.()) return;
-    // NOTE: window.Capacitor.Plugins only contains plugins whose JS package
-    // called registerPlugin(). A native-only plugin (ours lives in the app
-    // target, no npm package) never appears there — the JS proxy has to be
-    // created explicitly. Looking it up in .Plugins silently yields undefined,
-    // which is exactly how this shipped broken the first time.
-    if (!_widgetBridge.current && window.Capacitor?.registerPlugin) {
-      try { _widgetBridge.current = window.Capacitor.registerPlugin("PeaklyWidgetBridge"); } catch {}
+    // Bug fix 2026-08-23 — real on-device diagnostic (Safari Web Inspector)
+    // showed window.Capacitor.registerPlugin is NOT a function on this app's
+    // bundled Capacitor runtime, so the old `if (registerPlugin) { ... }`
+    // guard below was silently false on every single run — bridge.save() has
+    // never actually fired, on any device, ever. The same diagnostic showed
+    // window.Capacitor.Plugins.PeaklyWidgetBridge already exists directly
+    // (Capacitor exposes natively-registered plugins there without needing a
+    // separate registerPlugin() call) — so check that FIRST, and only fall
+    // back to registerPlugin() for engines where it's actually present.
+    if (!_widgetBridge.current) {
+      const already = window.Capacitor?.Plugins?.PeaklyWidgetBridge;
+      if (already?.save) {
+        _widgetBridge.current = already;
+      } else if (window.Capacitor?.registerPlugin) {
+        try { _widgetBridge.current = window.Capacitor.registerPlugin("PeaklyWidgetBridge"); } catch {}
+      }
     }
     const bridge = _widgetBridge.current;
     if (!bridge?.save) return;
