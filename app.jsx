@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260823a";
+const PEAKLY_BUILD = "20260823b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -8808,6 +8808,10 @@ function InstallNudge({ wishlistCount }) {
 // (not on first launch), a 14-day re-prompt decay if dismissed, and a
 // permanent fallback the user can find on their own in Profile whenever
 // they're ready (see the "Add Home Screen Widget" row in ProfileTab).
+// Minimum app opens before the widget is ever mentioned. Direct product call
+// 2026-08-23: "I want the widget to be an option after they've used the app a
+// couple times, don't want it forced on someone during downloading."
+const WIDGET_NUDGE_MIN_SESSIONS = 3;
 function WidgetNudge({ wishlistCount }) {
   const DISMISS_TTL_MS = 14 * 24 * 3600 * 1000;
   const isDismissedNow = () => {
@@ -8820,10 +8824,31 @@ function WidgetNudge({ wishlistCount }) {
   };
   const [dismissed, setDismissed] = useState(isDismissedNow);
   const [expanded, setExpanded] = useState(false);
+  const sessions = (() => {
+    try { return parseInt(localStorage.getItem("peakly_session_count") || "0", 10) || 0; }
+    catch { return 0; }
+  })();
+  // Has the app ever SUCCESSFULLY handed a real pick to the widget? Set only
+  // in the bridge effect's .then(), so it proves the native save resolved.
+  //
+  // This is the fix for "the widget says 'Open Peakly to find your weekend'
+  // instead of the venue the preview showed". The add-widget gallery renders
+  // Provider.placeholder() — hardcoded sample data — which is why it always
+  // looks populated there. Once added, the widget renders getTimeline(), which
+  // reads the App Group and shows the empty state if nothing was ever written.
+  // Rather than fake it with placeholder data (which would be lying about
+  // conditions), we simply never invite anyone to add the widget until real
+  // data is sitting in the App Group waiting for it.
+  const widgetHasData = (() => {
+    try { return localStorage.getItem("peakly_widget_ready") === "1"; } catch { return false; }
+  })();
   // Native iOS only — the widget target doesn't exist on web/Android.
-  // Gated a step past InstallNudge (2 saves, not 1) so it doesn't compete
-  // for attention with the install nudge on someone's very first session.
-  const show = window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.() === "ios" && !dismissed && wishlistCount >= 2;
+  // Engagement gate is "a couple of real sessions" OR the old 2-saves signal;
+  // either way it can never appear on a first launch, and never before the
+  // widget has something true to show.
+  const engaged = sessions >= WIDGET_NUDGE_MIN_SESSIONS || wishlistCount >= 2;
+  const show = window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.() === "ios"
+    && !dismissed && engaged && widgetHasData;
   useEffect(() => {
     if (show) logEvent("widget_nudge", { stage: "shown" });
   }, [show]);
@@ -13016,6 +13041,19 @@ function App() {
   // JS proxy for the native widget plugin — created once via registerPlugin().
   const _widgetBridge = useRef(null);
 
+  // ─── session counter ───────────────────────────────────────────────────────
+  // "A couple of times through the app" needs an actual number behind it, and
+  // nothing was counting opens. Bumped once per mount (StrictMode double-mount
+  // in dev would double-count; harmless, and production doesn't StrictMode).
+  // Read by WidgetNudge so the widget is offered to someone who has actually
+  // used the app, never to someone who just finished downloading it.
+  React.useEffect(() => {
+    try {
+      const n = parseInt(localStorage.getItem("peakly_session_count") || "0", 10) || 0;
+      localStorage.setItem("peakly_session_count", String(n + 1));
+    } catch {}
+  }, []);
+
   const [wishlists,    setWishlists]    = useLocalStorage("peakly_wishlists", []);
   // Derived flat array of saved venue IDs — handles both legacy flat array and new [{name,venues}] format
   const wishlistIds = React.useMemo(() => {
@@ -13507,7 +13545,14 @@ function App() {
     const json = JSON.stringify(payload);
     if (json === _lastWidgetPayload.current) return;   // don't thrash WidgetKit
     _lastWidgetPayload.current = json;
-    bridge.save({ payload: json }).catch(() => {});    // never surface to the user
+    bridge.save({ payload: json })
+      // Only now is it true that the widget has a real venue to render. The
+      // nudge that invites the user to add it reads this flag, so nobody is
+      // ever pointed at a widget that would come up empty. Set after the
+      // native call RESOLVES — a rejection here means the App Group isn't
+      // reachable, in which case the widget genuinely can't show anything.
+      .then(() => { try { localStorage.setItem("peakly_widget_ready", "1"); } catch {} })
+      .catch(() => {});                                // never surface to the user
   }, [listings]);
 
   const toggleWishlist = useCallback(id => {
