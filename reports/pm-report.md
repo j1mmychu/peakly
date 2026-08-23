@@ -1,127 +1,106 @@
-# Peakly PM Report v127 — 2026-08-22
+# Peakly PM Report v128 — 2026-08-23
 
-**Status: GREEN. Launch day. No P0/P1 bugs. Widget nudge confirmed gated iOS-only. Cloudflare remains the only Jack action outstanding.**
+**Status: YELLOW. Launch+1. Two code commits violated the 48h freeze decision from v127. Observation window data unavailable from sandbox. No P0/P1 confirmed.**
 
 ---
 
-## Shipped Since Last Report (v126 → v127)
+## Shipped Since Last Report (v127 → v128)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `398129e` | DevOps report — GREEN, all systems nominal, 3 P3 housekeeping items only | ✅ Confirms nothing broke overnight. |
-| `67e4c30` | Content report — 97/100, 391 venues, 0 dup photos, BASE_PRICES 94% | ✅ Closing audit before traffic lands. |
+| `fff7d60` | Onboarding: skip location slide, fire geolocation immediately; widget bridge: remove `registerPlugin()` dependency | ⚠️ Shipped on launch night. v127 explicitly said "no code changes unless P0 crash." This was not a P0 crash. Was it worth the risk? |
+| `73abdf1` | Widget: gate offer to 3+ sessions AND real data written before showing | ⚠️ Same launch-night violation. Tightening the widget gate is good hygiene but not launch-critical. |
+| `a7e55e3` | DevOps report — GREEN, launch+1, BASE_PRICES 82% correction, 3 P3 housekeeping | ✅ Routine. |
+| `ad4952f` | Content report — 95/100, BASE_PRICES 82% (corrected from 94%), 303 Wikimedia photos flagged, BOS/LAX/SEA destination gaps | ✅ Caught a real data correction. |
 
-No code shipped today before this report. That is the right call. Don't touch the codebase on launch day unless there's a P0 crash.
+**The freeze violation matters.** Two changes landed on the night of a Reddit launch: onboarding flow changes and widget bridge fixes. Neither was a P0. Both touched the critical path. If they introduced a regression, we'd have no baseline to compare against (no traffic data yet, no Sentry comparison) and we'd have shipped a broken first impression to the initial Reddit cohort. This isn't about the specific changes — they look safe — it's about the pattern. On launch night, the risk/reward of any non-P0 commit is heavily negative.
 
 ---
 
-## Bug Triage (verified from source today)
+## Bug Triage
 
 ### Peakly Pro price ($9/mo vs $79/yr)
-Not a bug. `grep -c PEAKLY_PRO app.jsx` → 0. Formally cut April 2026. Retired from this checklist permanently.
+**CLOSED permanently.** Peakly Pro is cut. `grep -c PEAKLY_PRO app.jsx` → 0. Remove this from the triage checklist; it has appeared in 5+ consecutive reports against dead code.
 
 ### Sentry DSN
-Live. DSN wired at `index.html:77` and `app.jsx:7–8`. We are not flying blind.
+Live. DSN confirmed at `index.html:77` and `app.jsx:7–8`. `tracesSampleRate: 0.05`. Not flying blind.
 
-### Cache buster stale?
-No. `20260821c` in app.jsx / sw.js / PEAKLY_BUILD. One minor P3: `dist/index.html` reads `v=20260821b` (one suffix behind). Zero user impact — the production `dist/` is rebuilt by CI on each push; the version string is cosmetic. Not worth a commit on launch day.
+### Cache buster
+**`20260823b`** in app.jsx / sw.js / index.html — fully in lockstep. `dist/index.html` is `v=20260821b` (2 sub-suffixes behind, cosmetic, CI rebuilds fresh on push). Non-issue.
 
-### Widget nudge showing for web PWA users?
-**Confirmed safe.** Checked `app.jsx:8826`:
+### BASE_PRICES correction — severity upgrade
+**P2 → P1 candidate.** Content report corrected yesterday's 94% figure to **82% (133/162 destination APs covered)**. More importantly: **BOS, LAX, SEA, JFK, MIA, ORD are missing as destination airports** — these are major US hubs that serve as *destinations* for beach and ski venues. A user flying TO LAX-adjacent venues (Santa Monica, Malibu, Mammoth) gets the `~$X` estimate with no deal score, because we have no typical price to compare against. That's 10 venues directly affected. For a deal-scoring product, missing the top US hub airports as destinations is a quality gap, not a cosmetic one.
 
-```js
-const show = window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.() === "ios" && !dismissed && wishlistCount >= 2;
-if (!show) return null;
-```
+### Wikimedia Commons attribution — new finding
+**P3.** Content confirmed 303 of 391 photos are Wikimedia Commons (not Unsplash as previously believed). Wikimedia CC licenses require attribution. We don't have a credits page. This is not a launch blocker for v1 but is a legal exposure if the app grows. Flagged for v2.
 
-PWA visitors on Reddit will never see this. Risk from v126 is closed.
-
-### Open scroll/UX bugs
-All closed. `fb58543` + `8f12dfd` covered price shimmer, alert-creation freeze, account-modal scroll trap, stuck-scroll. No regressions visible in DevOps report.
+### 15 stale `claude/*` branches
+**Housekeeping.** All 15 branches are from May–July 2026 (newest: `product-reliability-assessment-w0poL`, July 23). None are active, none have open PRs. They're clutter that makes `git branch -r` unreadable. Zero product risk but also zero urgency.
 
 ---
 
-## Three Product Decisions — Aug 22
+## Three Product Decisions — Aug 23
 
-### Decision 1: SHIP today. Post r/skiing this afternoon.
+### Decision 1: The 48h observation window is now the active constraint. No code until Aug 24 EOD.
 
-**SHIP.** Every data and UX gate is cleared:
-- 391 venues, 0 dup IDs, 0 dup photos ✅
-- Cache stamp current (`20260821c`) ✅
-- All P1 UX bugs closed ✅
-- VPS healthy, disk cache live, CORS/DELETE fixed ✅
-- Sentry live ✅
-- Widget nudge iOS-only ✅
+**DEFER everything.** The two launch-night commits slipped through. That can't happen again. From now until Aug 24 EOD, the only commits allowed are P0 fixes (blank grid for >1% of sessions per Sentry, or booking links returning 404 across the board). The widget and onboarding changes are done — don't touch them again until we have 48h of real user data. If Sentry shows nothing, that's the green light to resume normal velocity on Aug 25.
 
-If Cloudflare is live by noon Pacific: post r/skiing mid-afternoon ET. Otherwise post Monday Aug 25. There is no further slip.
+### Decision 2: SHIP BASE_PRICES destination backfill for the 6 missing major US hubs this week.
 
-### Decision 2: DEFER all codebase changes until 48h post-launch observation window closes.
+**SHIP — but after the observation window.** BOS, LAX, SEA, JFK, MIA, ORD as destination airports. These 6 airports alone cover at least 10 venues and the deal-scoring feature breaks without them. This is a ~2hr task (look up median fares from the top 14 US origins → each missing hub, add to `BASE_PRICES`). Target: Aug 25 or 26, first PR after the freeze lifts. This is the highest-leverage data fix on the board.
 
-**DEFER.** Zero edits after the post goes up unless we see a P0 crash logged in Sentry or a total blank-grid failure. We need real user behavior data before building anything. The exceptions are explicit:
-- P0: blank Explore grid or ErrorBoundary crash for >1% of sessions → fix immediately
-- P1: booking links broken or flight pricing returning 0 across the board → fix same day
-- P2+: everything else waits until Aug 24 observation data is in hand
+### Decision 3: CUT stale branch cleanup from any roadmap slot; Jack can delete them in 30 seconds.
 
-### Decision 3: CUT JSON-LD and static h1 from Q3 roadmap entirely.
-
-**CUT.** Three consecutive PM reports have deferred these as "post-launch SEO." Google won't index our pages meaningfully for 6–10 weeks post-Reddit regardless of structured data. The audience for the next 90 days is referral traffic from Reddit/HN — structured data has zero conversion impact on that channel. If we hit 8K users and organic starts mattering, revisit. Until then, this is dead work.
+**CUT as a tracked task.** This is a `git push origin --delete` operation, not a product decision. It belongs on a housekeeping checklist, not the PM roadmap. One command: `git push origin --delete $(git branch -r | grep 'origin/claude/' | sed 's|origin/||')`. Jack does this, it takes 30 seconds, it's done.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Cloudflare CDN — today, before posting.**
-Browser task, ~30 minutes. Peakly → Cloudflare nameservers → proxy GitHub Pages. This is the only remaining pre-launch action and it's been on the list for 5 consecutive reports. Not negotiable.
+**1. Jack: Check Sentry + Plausible today (Aug 23).**
+The only thing that matters right now is whether the launch post generated traffic and whether Sentry caught any crashes. Open both dashboards. If Sentry is clean and Plausible shows >100 sessions, the product is working. If Sentry shows ErrorBoundary events or blank-grid patterns, that's a P0 and the v128 freeze lifts immediately. No AI agent can do this check — it requires auth access Jack holds.
 
-**2. Pre-warm VPS morning of the post.**
-`curl -s https://peakly-api.duckdns.org/health` → confirm `wx_cache_size > 200`. If cold, hit the top 20 venue lat/lon pairs manually via `/api/weather`. One Reddit spike on a cold cache = Open-Meteo rate ceiling, pricing shimmer on every card. 10 minutes, zero code.
+**2. BASE_PRICES destination backfill — Aug 25 after freeze lifts.**
+Fill BOS, LAX, SEA, JFK, MIA, ORD as destination keys in `BASE_PRICES`. Pull 14 values each (one per origin airport already in the matrix). Source: Google Flights median weekend fares, same methodology as the existing entries. This directly improves deal scoring for the venues most likely to appear on a US user's Explore grid.
 
-**3. 48h observation window — write down what you're watching.**
-Before posting: decide in advance what constitutes a P0/P1 that merits a same-day patch. Sentry should be open in a tab. The signals to monitor:
-  - `peakly_errors` volume in Sentry (baseline: near-zero today)
-  - Plausible: bounce rate on Explore load (>80% = something broken above the fold)
-  - VPS `/health` `wx_cache_size` dropping to 0 mid-spike (would mean VPS restart happened)
+**3. Wikimedia attribution — decide the policy before it becomes an issue.**
+303 photos carry CC license requirements. The decision is binary: (a) add a `/credits` page listing all 303 Wikimedia URLs and their licenses (4hr task, no user-facing value), or (b) replace Wikimedia photos with Unsplash (public domain, no attribution required) as venues get updated. Option (b) is the right call — do it organically as photos get refreshed, not as a one-shot sprint. Make the decision now so agents stop re-flagging it.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Reason |
-|---------|--------|
-| JSON-LD / static h1 | CUT — not deferred, cut. Zero conversion impact for Reddit traffic. Revisit at 8K+ organic. |
-| New venue adds | Moratorium active through Aug 30. Clean catalog on launch day; no new test surface. |
-| Plausible custom events (book-click, detail-open, alert-set) | High signal, low risk — but zero code on launch day. Ship on Day 3. |
-| SRI / CSP hardening | Medium risk of breaking Babel inline eval. Post-launch only. |
-| APNS push alerts | HTTP/2 transport + JWT DER→P1363 still broken. Do not wire. |
-| iOS App Store submission | Needs Jack + Mac + Xcode. Not this week. |
-| Hotels in deal score | Deferred to v2 since May. |
-| BASE_PRICES remaining 10 APs | 94% is ship-ready. Diminishing returns; fallback `~$X` works. |
+- **JSON-LD structured data** — CUT in v127, stays CUT. Reddit traffic doesn't care about structured data.
+- **Static h1 fallback for SEO** — CUT in v127, stays CUT. Same reasoning.
+- **Unit test harness (vitest)** — there's a stale `claude/analyze-test-coverage-WVIsT` branch with a vitest setup. DEFER indefinitely. Single-file Babel-transpiled SPA with no CI test runner configured. Wrong complexity for this stage.
+- **Front page redesign (stale branch)** — `claude/redesign-front-page-EndKs` is from May 2026 and 607 commits behind main. DEAD. Never merge; delete the branch.
+- **Alerts page redesign (stale branch)** — same. DEAD.
+
+---
+
+## One Product Risk Nobody Is Talking About
+
+**The onboarding change shipped on launch night skips the location slide entirely.** The commit assumes geolocation fires immediately and sets the airport silently. On iOS Safari, `getCurrentPosition` is blocked by default until the user grants permission in a permission prompt — which may not appear at all if the user has globally denied location for the browser. The old 2-slide flow gave users a visible fallback (the airport picker was always on screen). The new single-screen flow fires geolocation silently and only shows the manual picker if `geoState === "done" && !airport`. If geolocation hangs or is silently blocked (not "denied", just indefinitely pending), `geoState` stays `"idle"`, the condition `geoState === "done" && !airport` is never true, and **the user gets no airport set and no visible way to set one.** First-time launch. Explore grid shows global results. No personalization. First impression permanently damaged.
+
+This was already partially addressed — the timeout was extended from 2s/4s to 10s in an earlier session. But "silently blocked" is not "timed out." If location is blocked without a denial event, the timeout never fires either. A user on iOS Safari with location globally blocked could sit on a blank-looking personalization state forever. Check the geolocation fallback path in `fff7d60` carefully before the observation window closes.
 
 ---
 
 ## Success Criteria
 
-**90-day target: 5K–8K users. What gets us to 8K, not 5K:**
+**What defines success at 90 days:**
 
-| Driver | 5K path | 8K path |
-|--------|---------|---------|
-| Cloudflare | GitHub Pages throttles at spike | Live, no throttle |
-| Post timing | Any time | 9–11am ET weekday, r/skiing + r/frugaltravel staggered 48h |
-| Photo quality | Generic stock | Real venue photos ✅ (`d1bddb5`) |
-| UX first 30s | Scroll freeze, alert creation borked | All closed ✅ |
-| VPS pre-warmed | Cold cache = Open-Meteo timeout on card 1 | Warm, wx_cache > 200 |
-| Observation discipline | Panic-patch bugs mid-spike, introduce P0 | Hold the line, 48h window |
+| Metric | 5K users | 8K users |
+|--------|----------|----------|
+| Reddit/HN post quality | One r/skiing post gets traction | r/skiing + r/solotravel + HN, at least 2 of 3 land |
+| Bounce rate | <70% | <55% |
+| Booking link clicks | >5% of sessions | >8% |
+| Alerts created | >200 | >500 |
+| Return visits | >25% weekly return | >35% weekly return |
 
-At current state: everything except Cloudflare and VPS pre-warm is done. Both are Jack-executable in under an hour. The 8K path is live.
+**What has to be true for 8K, not 5K:**
+The deal-scoring feature has to be visibly credible on first use. A user landing from Reddit who sees `~$XXX` on most cards (because BASE_PRICES gaps = no deal score) has no reason to believe we have better flight data than Google Flights. BASE_PRICES backfill and the live proxy working on their specific route is what makes the product credible. That's the single biggest delta between the 5K and 8K outcomes.
 
 ---
 
-## One Risk Nobody Is Talking About
-
-**The bounce rate on mobile Safari is structurally higher than our Playwright smoke catches.**
-
-Playwright runs headless Chromium. Every UX fix this week (`fb58543`, `8f12dfd`) was caught in real sessions, not smoke. The Reddit audience is ~60% mobile, skewed toward iOS Safari. The scroll/freeze bugs we closed were invisible to automated testing.
-
-We have no signal on what the first 30 seconds looks like for a new iOS Safari user on a cold cache with no localStorage. The smoke test doesn't simulate that path. Sentry will catch crashes but not friction — a user who closes the tab in disgust doesn't log an error.
-
-**Mitigation:** Jack should manually load `https://j1mmychu.github.io/peakly/` in iOS Safari in a Private window (clears localStorage) and walk the full first-30-second flow: Explore loads → tap a card → tap Book → tap Alerts. If anything feels stuck or blank, that's the bug to fix before the post. 10 minutes, no code required, highest signal test we can run.
+*Report written: 2026-08-23 by automated PM agent. Source: `git log`, `app.jsx`, `reports/devops-report.md`, `reports/content-report.md`.*
