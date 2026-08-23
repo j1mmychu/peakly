@@ -1,27 +1,29 @@
-# Peakly Content & Data Report — 2026-08-22
+# Peakly Content & Data Report — 2026-08-23
 
-## Data Health Score: 97/100
+## Data Health Score: 95/100
 
 **Deductions:**
-- BASE_PRICES: 10 unique destination APs not covered (down from 29 yesterday — 152/162 APs = 94%) (−2 pts)
-- 3 US hub airports (BOS, SEA, LAX) used as venue destination APs aren't in BASE_PRICES as destinations (−1 pt)
+- BASE_PRICES: 29 unique destination APs uncovered; 133/162 = 82.1% (−3 pts). Yesterday's report incorrectly stated 94% — see correction below.
+- 6 major US hub airports (BOS, LAX, SEA, JFK, MIA, ORD) missing from BASE_PRICES as destination APs, collectively affecting 10 domestic venues (−2 pts)
 
 **Clean:**
 - 0 duplicate `id` values (391 unique IDs)
 - 0 duplicate title+location combos
-- 0 duplicate photo URLs (391/391 unique)
+- 0 duplicate photo URLs (391/391 unique across all sources)
 - 100% AIRPORT_COORDS coverage (203 entries, 0 venue APs missing)
 - 100% AP_CONTINENT coverage (0 venue APs missing)
 - 100% field coverage: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo — all 391 venues
 - 14 `lateSeason:true` flags: whistler, chamonix, mammoth, abasin, tignes, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch
-- 0 empty tag arrays
+- 0 empty tag arrays; avg 2.8 tags/venue (min 2, max 5)
+- 100% skiPass coverage on all 131 ski venues (epic: 34, ikon: 48, independent: 49)
 - `.venue-baseline` = 391 ✅ matches actual venue count
+- PEAKLY_BUILD: `20260823b` ✅
 
 ---
 
 ## Category Breakdown
 
-The scheduled prompt references 12 categories and hiking gear stubs. That state is ~4 months stale. Current reality per the 2026-05-03 pivot:
+The scheduled prompt references 12 categories and hiking gear stubs — that state is ~4 months stale. Current reality per the 2026-05-03 pivot:
 
 | Category | Venues | Status |
 |----------|--------|--------|
@@ -39,54 +41,89 @@ GEAR_ITEMS was **intentionally cut for v1** (2026-06-09, Jack — CLAUDE.md Open
 
 ---
 
-## Seasonal Relevance (2026-08-22 — Launch Day)
+## Photo Sources — Correction
 
-| Segment | Venues | Status |
-|---------|--------|--------|
-| N. hemisphere beach | 162 | 🟢 **Prime season** — peak UV, warmest water temps |
-| S. hemisphere ski   | 23  | 🟢 **In season** — Andes/NZ/AU mid-winter, peak powder |
-| N. hemisphere ski   | 108 | 🔴 Off-season — summer; 14 `lateSeason` venues bypass cap if snow depth ≥0.5m |
-| S. hemisphere beach | 52  | 🟡 Winter — water below 18°C hard cap excludes most from scoring |
+Yesterday's report stated "391/391 unique Unsplash URLs." That was **incorrect**. Actual breakdown:
 
-**In-season total: 185 of 391 (47%).** Ideal for a Reddit launch today — 162 N-hemisphere beach venues firing in peak European/US summer heat, backed by 23 live S-hemisphere ski destinations for any skiing-minded visitor.
+| Source | Count |
+|--------|-------|
+| Unsplash | 88 |
+| Wikimedia Commons | 303 |
+| Missing | 0 |
+| **Total unique** | **391** |
 
-No seasonal mismatch flags. `scoreWeekend` + off-season binary cap correctly deprioritizes the 160 out-of-season venues.
+All 391 photo URLs are unique (0 duplicates). Wikimedia Commons photos were introduced in an earlier session — the previous report failed to detect them. No action required: both sources render correctly, and all URLs are unique.
+
+**Note:** Wikimedia Commons images carry CC attribution requirements that Unsplash images do not. If Peakly ever adds an attribution or credits page, the 303 Wikimedia photos would need attribution listed. Not a launch blocker, but worth tracking as a v2 consideration.
 
 ---
 
-## BASE_PRICES Coverage
+## BASE_PRICES Coverage — Corrected
 
-**152 of 162 unique venue airport codes are in BASE_PRICES (94% coverage).** Remaining gaps are 10 APs affecting single venues each — mostly remote eco destinations (Fernando de Noronha, Bocas del Toro, Broome) where no hub price proxy is clean. Users see `~$X` estimate from the typical-price band, not a blank.
+**Actual: 133 of 162 unique venue destination APs are in BASE_PRICES = 82.1%**
 
-**Not a launch blocker.** Post-launch priority if filling: BOC, FEN, KRK, KUL.
+Yesterday's report stated 94% (152/162). That was a measurement error — it counted the number of BASE_PRICES entries (152) rather than the number of *venue* destination APs that match a BASE_PRICES key (133). Today's DevOps report (82%) and today's audit independently confirm 82.1%.
+
+### High-impact gaps (major US hubs)
+
+| AP | Venues affected | Notes |
+|----|----------------|-------|
+| BOS | 3 (Sunday River, Sugarloaf, Cape Cod) | NE ski + beach, likely high-traffic US users |
+| LAX | 2 (Manhattan Beach CA, Zuma/Malibu) | LA beaches — high weekend search probability |
+| SEA | 2 (Crystal Mountain WA, Stevens Pass) | WA ski |
+| JFK | 1 (Hamptons) | High-value beach destination |
+| MIA | 1 (South Beach Miami) | High-value beach destination |
+| ORD | 1 (Wilmot Mountain WI) | Midwest ski |
+| CMH | 1 (Mad River Mountain OH) | Midwest ski |
+
+**Total: 11 venues showing `~$X` estimates instead of deal scores** — all in the US domestic market where real-deal comparisons matter most. BOS/LAX/SEA are the immediate targets; JFK/MIA are prestige destinations. Adding these 6 APs to BASE_PRICES is a 30-minute task with outsize UX impact.
+
+### Remaining 22 single-venue gaps
+
+BOC (Bocas del Toro), FEN (Fernando de Noronha), SRQ (Sarasota), EYW (Key West), VPS (Destin FL), MYR (Myrtle Beach), BME (Broome AU), KRK (Kraków), GEG (Spokane), HNA (Hanamaki/Iwate), RDD (Redding CA), USH (Ushuaia), EAS (San Sebastián), LEA (Exmouth AU), INH (Inhambane MZ), KUL (Kuala Lumpur), BEY (Beirut), TBS (Tbilisi), SOF (Sofia), OKA (Okinawa), SID (Sal Cape Verde), DJE (Djerba).
+
+These are lower priority — mostly remote eco or emerging destinations where users expect estimates.
+
+---
+
+## Seasonal Relevance (2026-08-23 — Launch +1)
+
+| Segment | Venues | Season status |
+|---------|--------|--------------|
+| N. hemisphere beach | 199 | 🟢 **Prime** — peak UV + warmest water |
+| S. hemisphere ski   | 23  | 🟢 **In season** — Andes/NZ/AU mid-winter |
+| N. hemisphere ski   | 108 | 🔴 Off-season — 14 `lateSeason` venues may fire if snow depth ≥0.5m |
+| S. hemisphere beach | 61  | 🟡 Cooler — water-temp hard cap will exclude most |
+
+**In-season total: 222 of 391 (56.8%)** — 199 N-hemisphere beach venues at summer peak is an excellent launch backdrop. `scoreWeekend` + off-season binary cap correctly handles the rest.
 
 ---
 
 ## Content Quality
 
-- All 391 venues: non-empty `tags` arrays. Zero stubs.
-- No free-text `description` field — tags carry editorial voice by design.
-- `skiPass` on all skiing venues (epic/ikon/mountain-collective/independent).
-- `poolPrimary:true`: 0 venues (flag available for future hotel-pool beach additions).
-- Photos: 391/391 unique Unsplash URLs. Zero repeats.
+- All 391 venues have non-empty `tags` arrays (avg 2.8 per venue)
+- No `description` field in data model — tags carry editorial voice by design
+- `skiPass` on 100% of skiing venues
+- `poolPrimary:true`: 0 venues (available for future hotel-pool beach additions)
+- `lateSeason:true`: 14 high-altitude ski venues (list verified stable)
 
 ---
 
 ## Venue Addition Status — MORATORIUM ACTIVE
 
-Per PM v124 (2026-08-19): **venue moratorium through 2026-08-30, pre-launch.** No venue additions until post-launch.
+Per PM v124 (2026-08-19): **venue moratorium through 2026-08-30, pre-launch.** No venue additions until post-launch. Declining the scheduled prompt's 5-venue-addition request.
 
-The scheduled prompt requests 5 new venue objects. Declining — adding pre-launch adds test surface, drift risk, and cache-buster commits when the launch gate is stability, not catalog breadth.
-
-**Post-Aug-30 queue** (suggested priorities if moratorium lifts):
-1. BOC — Bocas del Toro, Panama (BASE_PRICES entry also needed)
-2. FEN — Fernando de Noronha, Brazil (premium eco destination, BASE_PRICES needed)
-3. Zakynthos Shipwreck Beach / Navagio (ZTH — add to AIRPORT_COORDS; AP_CONTINENT entry exists)
-4. Kefalonia Myrtos Beach (EFL — add to AIRPORT_COORDS + AP_CONTINENT)
-5. Corfu Paleokastritsa (CFU — add to AIRPORT_COORDS + AP_CONTINENT)
+**Post-Aug-30 queue (suggested priorities):**
+1. BOS/LAX/SEA/JFK/MIA base-price entries first — fix deal score for 11 existing venues before adding more
+2. BOC — Bocas del Toro, Panama (BASE_PRICES entry also needed)
+3. FEN — Fernando de Noronha, Brazil (premium eco, BASE_PRICES needed)
+4. Zakynthos Shipwreck Beach / Navagio (ZTH — already in AIRPORT_COORDS)
+5. Kefalonia Myrtos Beach (EFL — add to AIRPORT_COORDS + AP_CONTINENT)
 
 ---
 
 ## Observation for the PM
 
-**Today is the Aug 22 Reddit launch.** Catalog health is launch-ready: 97/100, zero structural issues, 185/391 venues in prime season, BASE_PRICES at 94% coverage. The one pre-launch guard worth adding post-launch: extend `scripts/auto-push.sh` to catch duplicate photo URLs and duplicate title+location combos (not just duplicate IDs) — this would have surfaced yesterday's venue-pair issues in ~5 days less time. Low-risk, one-session fix, queue for week 1 post-launch.
+**Launch is +1 day and catalog health is solid at 95/100.** The single highest-ROI fix post-moratorium is filling BOS, LAX, SEA, JFK, and MIA into BASE_PRICES — these 6 entries restore deal-score coverage for 11 domestic US venues (Cape Cod, LA beaches, Maine ski, Hamptons, South Beach) that are the most likely first searches by the Reddit/US audience who just discovered the app. 30-minute task, immediate visible improvement for high-intent users. Queue for week 1 post-launch.
+
+**Housekeeping flag:** yesterday's content report overstated BASE_PRICES coverage (94% vs actual 82%) due to a measurement error. Today's audit re-established the correct baseline. DevOps was right.
