@@ -1,5 +1,5 @@
 // Peakly Service Worker — lightweight cache-first for static assets + web push handler
-const CACHE_NAME = "peakly-20260823b";
+const CACHE_NAME = "peakly-20260825a";
 const PRECACHE = [
   "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
 ];

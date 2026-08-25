@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260823b";
+const PEAKLY_BUILD = "20260825a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6526,6 +6526,11 @@ const BASE_PRICES = {
   SID:{ JFK:1100,LAX:1400,ORD:1200,MIA:1000,BOS:1050,ATL:1100,DFW:1200,SFO:1500,SEA:1550,DEN:1350,LAS:1400,PHX:1380,MSP:1300,DTW:1280 },
   DJE:{ JFK:900, LAX:1200,ORD:960, MIA:1020,BOS:860, ATL:960, DFW:1020,SFO:1200,SEA:1250,DEN:1080,LAS:1140,PHX:1160,MSP:1040,DTW:1020 },
   CMH:{ JFK:240, LAX:380, ORD:160, MIA:320, BOS:280, ATL:200, DFW:280, SFO:420, SEA:440, DEN:300, LAS:320, PHX:300, MSP:260, DTW:200 },
+  // ── Domestic hub venues — 2026-08-25 (DevOps agent) — closes BOS/JFK/LAX/MIA gap ──
+  BOS:{ JFK:120, LAX:280, SFO:340, ORD:180, MIA:220, SEA:360, ATL:200, DEN:300, DFW:280, LAS:320, PHX:300, MSP:240, DTW:200 },
+  JFK:{ BOS:120, LAX:280, SFO:320, ORD:180, MIA:200, SEA:360, ATL:180, DEN:280, DFW:260, LAS:300, PHX:280, MSP:220, DTW:180 },
+  LAX:{ JFK:280, BOS:300, SFO:80,  ORD:240, MIA:320, SEA:140, ATL:300, DEN:160, DFW:180, LAS:80,  PHX:100, MSP:260, DTW:280 },
+  MIA:{ JFK:200, BOS:220, LAX:320, SFO:360, ORD:240, SEA:400, ATL:160, DEN:280, DFW:240, LAS:280, PHX:260, MSP:280, DTW:240 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).
