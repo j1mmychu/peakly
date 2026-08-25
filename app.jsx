@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260825a";
+const PEAKLY_BUILD = "20260825b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -6531,6 +6531,8 @@ const BASE_PRICES = {
   JFK:{ BOS:120, LAX:280, SFO:320, ORD:180, MIA:200, SEA:360, ATL:180, DEN:280, DFW:260, LAS:300, PHX:280, MSP:220, DTW:180 },
   LAX:{ JFK:280, BOS:300, SFO:80,  ORD:240, MIA:320, SEA:140, ATL:300, DEN:160, DFW:180, LAS:80,  PHX:100, MSP:260, DTW:280 },
   MIA:{ JFK:200, BOS:220, LAX:320, SFO:360, ORD:240, SEA:400, ATL:160, DEN:280, DFW:240, LAS:280, PHX:260, MSP:280, DTW:240 },
+  SEA:{ JFK:360, BOS:360, LAX:140, SFO:220, ORD:280, MIA:400, ATL:380, DEN:260, DFW:300, LAS:180, PHX:220, MSP:300, DTW:340 },
+  ORD:{ JFK:180, BOS:180, LAX:240, SFO:280, MIA:240, SEA:280, ATL:160, DEN:160, DFW:160, LAS:200, PHX:200, MSP:160, DTW:140 },
 };
 
 // Converts a WHEN_OPTIONS id to a departure date string (YYYY-MM-DD).

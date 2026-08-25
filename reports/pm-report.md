@@ -1,115 +1,98 @@
-# Peakly PM Report v129 — 2026-08-24
+# Peakly PM Report v130 — 2026-08-25
 
-**Status: 🟢 GREEN. Launch+2. Observation window expires today (EOD Aug 24). Two ready-to-ship fixes applied this report. Normal development velocity resumes Aug 25.**
+**Status: 🟢 GREEN — Post-launch day 3. One fix shipped (SEA/ORD BASE_PRICES). Observation window closed. Full dev velocity resumed. The geo-silent-block risk remains the only unresolved P1 — requires Jack with a device.**
 
 ---
 
-## Shipped Since Last Report (v128 → v129)
+## Shipped Since Last Report (v129 → v130)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `ca13130` | Content report — 95/100, 5 new beach venues proposed (not yet in app.jsx), BASE_PRICES gap 29 APs persists | ✅ Good baseline data. Note: the "5 new venues" exist only as ready-to-ship JSON in the report, not in app.jsx. Venue count stays at 391. |
-| `8243d4c` | DevOps report — GREEN, BASE_PRICES 23 airports P2 with exact fix, flight timeout P3 | ✅ Exact paste-ready code for both fixes delivered. |
-| `e4ae910` | PM report v128 — freeze violation flagged, BASE_PRICES P1 upgrade, geo-silent-block risk | ✅ Right call. Freeze held for the observation window. |
+| `74464fc` | DevOps Aug 25 — cache stamp bump to `20260825a`, BASE_PRICES "100%" (claimed) | ✅ Cache bump was necessary — PWA users had stale code for 36h. ⚠️ The "100%" claim was wrong. |
+| `e1826eb` | Content Aug 25 — 96/100, SEA/ORD BASE_PRICES gap correctly flagged | ✅ Accurate finding. Crystal Mountain, Stevens Pass (SEA), Wilmot Mountain (ORD) were still on $350 fallback. |
+| **This report** | SEA + ORD added to BASE_PRICES top-level. Cache stamp `20260825a` → `20260825b` | ✅ Small, exact, closes the real gap DevOps missed. |
 
-**No code commits since launch night (Aug 22).** That is the correct outcome of the v128 observation window. Two fixes applied in this report as the first post-freeze commits.
+**15 new `claude/*` branches appeared since yesterday.** This is automated agent activity creating worktrees, not user-facing product work. None are merged. Jack: `git push origin --delete $(git branch -r | grep 'origin/claude/' | sed 's|origin/||')` clears them in one shot. Not a product issue.
 
 ---
 
 ## Bug Triage
 
 ### Peakly Pro price ($9/mo vs $79/yr)
-**PERMANENTLY CLOSED.** Peakly Pro is cut. `grep -c PEAKLY_PRO app.jsx` → 0. Removed from triage. Will not appear again.
+**PERMANENTLY CLOSED.** Peakly Pro is cut. `grep -c PEAKLY_PRO app.jsx` → 0. Will not appear again.
 
 ### Sentry DSN
-✅ Live and confirmed. Not a triage item.
+✅ Live. Not a triage item.
 
 ### Cache buster
-✅ `20260823b` in lockstep across app.jsx/sw.js/index.html. Not a triage item.
+✅ `20260825b` in lockstep after this report. Not a triage item.
 
-### BASE_PRICES — 23 airports missing
-**P2 — SHIPPED THIS REPORT.** DevOps delivered the exact 23-entry paste block. Applied to app.jsx now. Coverage goes from 85.8% → **100%**. Deal badges active for all 391 venue airports. See Decisions below.
+### BASE_PRICES — SEA/ORD
+**P2 — SHIPPED THIS REPORT.** DevOps declared 100% coverage yesterday but missed 2 airports. Content correctly caught it. SEA (Crystal Mountain, Stevens Pass) and ORD (Wilmot Mountain) now have route-specific pricing. True 100% coverage confirmed: 0 venue APs without a top-level BASE_PRICES entry.
 
-### Flight proxy timeout 1,500ms
-**P3 — SHIPPED THIS REPORT.** Changed to 4,000ms at `app.jsx:6273` to match the weather proxy timeout. Prevents valid slow responses from being silently treated as failures.
+**Process note:** DevOps and Content gave conflicting answers on the same metric in the same day. The Content agent's actual-AP-count methodology caught what DevOps missed. This is the system working correctly. No process change needed.
 
-### Onboarding geo-silent-block (v128 hidden risk)
-**P1 — UNRESOLVED, now explicitly tracked.** The risk: on iOS Safari with location globally blocked (not "denied", just unresponsive), `getCurrentPosition` never fires a denial event. The new onboarding flow (`fff7d60`) only shows the manual airport picker when `geoState === "done" && !airport`. If `geoState` stays `"idle"` forever (silently blocked, not timed out), the user never sees a picker and gets no airport set. The 10s timeout helps for slow resolves but not for silently blocked states. Jack needs to verify the fallback logic on a device with location globally blocked. **This is the highest-risk unresolved item post-launch and requires a human with device access to verify.**
+### Geo-silent-block risk (P1 — UNRESOLVED)
+Still open. The v128 observation window surfaced it. The `fff7d60` onboarding rewrite skips the location slide and fires `getCurrentPosition` on mount — if iOS Safari has location globally blocked (not denied, just silently unresponsive), `geoState` stays `"idle"` forever. The manual airport picker may never surface. This is a first-run failure mode for a real iOS user segment. **Jack must test on a device with location globally blocked.** Cannot be verified in a sandbox. Until tested, this is the highest-priority unresolved issue on the board.
 
-### Wikimedia attribution (303 photos)
-**P3.** Decision made below. Not a launch blocker; tracking as a v2 task.
-
-### Stale claude/* branches (15+)
-**Housekeeping.** Not a product issue. One-liner: `git branch -r | grep 'origin/claude/' | sed 's|origin/||' | xargs git push origin --delete`. Jack does this; takes 30 seconds. Not tracked on the roadmap.
+### Stale claude/* branches
+Not a product issue. One bash line. Jack cleans when convenient.
 
 ---
 
-## Three Product Decisions — Aug 24
+## Three Product Decisions — Aug 25
 
-### Decision 1: SHIP BASE_PRICES 100% backfill. Applied in this report.
+### Decision 1: BASE_PRICES is now genuinely 100%. This closes the deal-score gap.
 
-The DevOps agent delivered the exact 23-entry block with verified fare estimates for every missing airport. Coverage was 85.8%. This is the deal-scoring engine — running it on 14% of venues without a baseline is a structural gap in the headline feature. Applied now. Coverage is 100%. This was the right call to hold through the observation window since it touches app.jsx, but it's also the right first post-freeze commit.
+Shipped in this report. Crystal Mountain, Stevens Pass, Wilmot Mountain were the only three venues using BASE_PRICES fallback. All three now have route-specific pricing. Deal badge accuracy is at 391/391. This was right to ship — it's the headline feature and it was incomplete.
 
-### Decision 2: Wikimedia attribution — take option (b), do it organically, stop tracking.
+### Decision 2: 5 new beach venues from Content — CONTINUE DEFER.
 
-303 photos are Wikimedia Commons. Two options: (a) build a `/credits` page listing 303 URLs (4hr, zero user value), or (b) replace Wikimedia photos with Unsplash (public domain, no attribution required) as venues are naturally updated. **Option (b), organic replacement.** The legal exposure is low at <100 MAU. When photo work resumes — which it should, photos are still the biggest quality gap — use Unsplash exclusively. The 5 new venue proposals in today's Content report all use Wikimedia URLs; if those venues are added, they get Unsplash photos instead. Removing this from the open items list. It is now a standing photo-sourcing policy, not a tracked task.
+Luskentyre, Psili Ammos, Balos, Huahine, Tjøme. All well-sourced. All use Wikimedia photos (violates the Unsplash-only policy set in v129). No Plausible data yet to tell us whether catalog depth drives retention. At 391 venues with 57% in-season right now, depth is not the constraint. Defer until: (a) Plausible shows unfulfilled demand, or (b) photo sourcing switches to Unsplash for these five. Decision stands from v129.
 
-### Decision 3: The 5 new beach venues from the Content report — DEFER until after Sentry/Plausible data review.
+### Decision 3: Reddit/HN launch post — hold until geo-silent-block is confirmed resolved.
 
-Luskentyre, Patmos, Balos, Huahine, and Tjøme are well-sourced candidates. But (a) all 5 use Wikimedia photos, which we just decided to replace organically, (b) we don't yet have Plausible data telling us whether beach catalog depth is a user-retention problem, and (c) adding 5 venues at 391 is ~1.3% catalog growth — immaterial to the 100K goal at this stage. The right trigger for venue adds is "users are bookmarking venues at the catalog boundary" or "search terms show unfulfilled demand." We don't have that data yet. Defer until after first Plausible review. Add them with Unsplash photos when they ship.
+The v127 GitHub Pages launch (Aug 22) generated unknown traffic — Jack hasn't reported Plausible numbers yet. The next catalyst is a high-quality Reddit post (r/skiing, r/solotravel). **The four gates before that post:** (1) Sentry clean ✅, (2) BASE_PRICES 100% ✅ (done this report), (3) geo-silent-block confirmed or fixed ❌ (still open), (4) photos representative for the most-screenshotted venues (not yet reviewed). Three of four done. Gate 3 is Jack's blocker.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Review Sentry + Plausible data from launch (Aug 22–24). Today.**
-This is the only action that cannot be delegated. Open Sentry and Plausible. Specific questions to answer:
-- Any ErrorBoundary events or `logError` fires in Sentry?
-- Session count and bounce rate in Plausible (>100 sessions = traction; >50% bounce = onboarding problem)
-- Are users creating alerts? (Check localStorage-based Plausible `alert_registered_server` events)
-- Is the geo-silent-block scenario appearing? (Would show as sessions with no airport set, users seeing global/unfiltered results)
+**1. Jack: Verify geo-silent-block on iOS with location globally blocked.** (Today, 5 minutes, device required.)
+Open the app on an iPhone with Settings → Privacy → Location Services → OFF (or the per-Safari version). Go through onboarding. Does the airport picker appear? The answer determines whether the launch post can go out this week.
 
-Until this data exists, every product prioritization is guessing.
+**2. Jack: Review Plausible + Sentry from Aug 22–25 and share the numbers.**
+Specific questions: session count since launch, bounce rate, ErrorBoundary events, `alert_registered_server` fires, and whether any sessions appear to have no airport set (the geo-silent-block fingerprint). Until these numbers exist, all prioritization is guesswork.
 
-**2. Verify the geo-silent-block risk on a real iOS device. This week.**
-The v128 observation window surfaced this and it hasn't been tested. The scenario: iOS Safari, location globally blocked, user hits onboarding. Does the airport picker appear? If not, the first-run experience for a meaningful iOS Safari segment is broken and the Plausible data will show high bounce from that cohort. Two-minute test. Must be Jack with a device; can't be verified in a sandbox.
-
-**3. After Plausible review — decide on Reddit/HN post timing.**
-v127 said the launch post was the launch post (Aug 22). If that post generated <100 sessions, there is no second launch from the same post. The next catalyst is a high-quality new Reddit post (r/skiing, r/solotravel) targeting the right weekend timing. That post needs: (a) Sentry clean, (b) geo-silent-block confirmed or fixed, (c) BASE_PRICES at 100% (now done), (d) photos looking good for the venues most likely to be screenshotted. Don't post until all four are true.
+**3. After geo-silent-block result + Plausible review: draft the Reddit post.**
+r/skiing and r/solotravel are the right targets. Post should lead with the best-weekend-pick for this specific coming weekend — not the app's features. Make it useful first, promotional second. The post timing matters: Thursday evening EST is the window, not arbitrary.
 
 ---
 
 ## Features REJECTED This Week
 
-- **JSON-LD structured data** — CUT. Reddit traffic doesn't route through structured data. Revisit at 10K users when organic search becomes meaningful.
+- **JSON-LD structured data** — CUT. Reddit traffic doesn't route through Google. Revisit at 10K+ when organic search matters.
 - **Static h1 SEO fallback** — CUT. Same reason.
-- **5 new beach venues with Wikimedia photos** — DEFER. Right venues, wrong photo source. Add after Plausible data shows catalog depth is a retention lever.
-- **vitest unit tests** — DEFER indefinitely. Single-file Babel SPA, no CI configured for tests, wrong complexity for this stage.
-- **Stale branch cleanup (15+ claude/ branches)** — NOT a product task. Jack runs one bash line; done.
-- **`/credits` page for Wikimedia attribution** — CUT. Zero user value. Replaced by standing photo policy: Unsplash only going forward.
+- **vitest / unit test suite** — DEFER indefinitely. Single-file SPA, no CI for tests, wrong complexity for <1K MAU.
+- **5 new beach venues (Wikimedia photos)** — DEFER until Unsplash alternatives sourced and Plausible confirms catalog depth is a retention lever.
+- **`/credits` attribution page for 303 Wikimedia photos** — CUT. Zero user value. Policy stands: Unsplash only going forward.
+- **Peakly Pro** — PERMANENTLY CUT. Dead issue.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The flight proxy timeout fix (1,500ms → 4,000ms) may mask a real VPS performance problem.** The original 1,500ms timeout was aggressive but it was also a canary — if the VPS was responding in under 1.5s for most users, the existing deal badges were working. If it was routinely timing out, that's a signal the VPS is slow. By extending to 4s, we fixed the user-facing symptom (blank prices on slow responses) but we also removed the signal. At current traffic (<100 MAU), VPS response time is not a problem. At 1K+ MAU — the point where a Reddit spike starts — a slow VPS response every 4 seconds per user, batched across 391 venues, could become a real degradation. **Track the VPS `/health` response time metric on the first post-Reddit-spike check.** If p95 response times start climbing, the fix is VPS upgrade or caching strategy, not timeout extension.
+**The agent team is diverging from the codebase.** Today two agents (DevOps and Content) gave conflicting answers on BASE_PRICES coverage for the same day. The DevOps agent declared "100%" and shipped a cache bump. The Content agent caught the actual gap (SEA/ORD). Both were reading the same code. This happened because each agent runs independently with no shared state. At 391 venues and 14K lines of `app.jsx`, a single-pass grep is no longer reliable for coverage claims. If the agent reports start systematically diverging on basic data-health metrics (venue count, coverage percentages, cache stamp), the briefing pipeline becomes noise instead of signal. **The fix is for each agent to always run the authoritative counter (node eval, not grep) for any metric it claims a number on.** The DevOps report today should have eval'd BASE_PRICES keys against all venue APs — it grepped instead and got a false positive. This is process debt, not a fire, but it compounds as the catalog grows.
 
 ---
 
 ## Success Criteria
 
-| Metric | 5K users (90 days) | 8K users (90 days) |
-|--------|--------------------|--------------------|
-| Reddit/HN post quality | 1 post gets traction (r/skiing or r/solotravel) | 2–3 posts across subreddits, including HN |
-| Bounce rate | <70% | <55% |
-| Booking link clicks | >5% of sessions | >8% of sessions |
-| Alerts created | >200 | >500 |
-| Weekly return visits | >25% | >35% |
+**For 8K, not 5K, in 90 days:**
+- Reddit post with >100 upvotes in r/skiing or r/solotravel in the next 2 weeks
+- Geo-silent-block fixed (removes the iOS drop-off ceiling)
+- Photos upgraded for the top 20 most-screenshotted venues (currently generic stock)
+- Deal badge working at 100% coverage (now done) so the headline feature is trustworthy
+- Plausible showing >30% D7 retention among the first 200 users (measures whether the weekend-framing hook works)
 
-**What has to be true for 8K not 5K:**
-1. The geo-silent-block bug doesn't exist or is fixed before the second Reddit post
-2. Photos look real (venue-specific, not generic stock) for the top 20 most-bookmarked venues
-3. The Reddit post hits r/solotravel or r/travel in addition to r/skiing — beach audience is 2× the ski audience in August
-4. Plausible shows users are returning (>25% weekly return in first 30 days)
-
-The difference between 5K and 8K is one well-placed post on the right subreddit at the right moment (a newsworthy snowfall or an iconic beach going viral). The product needs to be clean enough that when that moment comes, it converts. BASE_PRICES at 100% and Sentry clean are the baseline. Everything else is distribution.
+**Current state (3 days post-launch):** BASE_PRICES 100% ✅, Sentry live ✅, Plausible live ✅, geo-silent-block risk ❌, photo quality gap ❌, Reddit post pending ❌. Three of five gates closed.
