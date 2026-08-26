@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260825b";
+const PEAKLY_BUILD = "20260826a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -11556,14 +11556,20 @@ function OnboardingSheet({ profile, setProfile, cloudSync, setImportToast, onClo
   const detectAirport = () => {
     if (!navigator.geolocation || geoState === "detecting") return;
     setGeoState("detecting");
+    // JS-level fallback: iOS with location services globally OFF can silently
+    // swallow getCurrentPosition — neither callback fires, geoState stays
+    // "detecting" forever, and the manual picker never surfaces. Force "done"
+    // after 12s (10s API timeout + 2s buffer) so the picker always appears.
+    const geoFallback = setTimeout(() => setGeoState(s => s === "detecting" ? "done" : s), 12000);
     navigator.geolocation.getCurrentPosition(
       pos => {
+        clearTimeout(geoFallback);
         if (manualPickRef.current) { setGeoState("done"); return; } // user already chose — never override
         const code = findNearestAirport(pos.coords.latitude, pos.coords.longitude);
         if (code) setAirport(code);
         setGeoState("done");
       },
-      () => setGeoState("done"),
+      () => { clearTimeout(geoFallback); setGeoState("done"); },
       // 10s, not the old 4s/2s — real network-based location resolution on
       // mobile routinely takes 3-8s; the old timeouts were dropping fixes
       // before they could resolve, which is why "current location" so often
