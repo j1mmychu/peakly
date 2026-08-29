@@ -1,98 +1,95 @@
-# Peakly PM Report v133 — 2026-08-28
+# Peakly PM Report v134 — 2026-08-29
 
-**Status: 🟡 YELLOW — Post-launch day 6. Hintertux finally shipped. 4 beach carry-overs are now on their 5th day unpasted — and today is the last viable day for those venues' peak season. Reddit still hasn't fired. Plausible data: still dark.**
+**Status: 🟡 YELLOW — Day 7 post-launch. Last summer Saturday. Three carry-overs shipped overnight by the DevOps agent. 5 new venue proposals queued. Reddit window closing fast — today's r/skiing slot is the last viable summer Saturday, and it's already past prime. Plausible: still dark at day 7. Jack's to-do list is identical to v133.**
 
 ---
 
-## Shipped Since Last Report (v132 → v133)
+## Shipped Since Last Report (v133 → v134)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `e50e017` | Hintertux Glacier + cache bump + CLAUDE.md venue count fix | ✅ Right call, 2 days late. In August, this is the only correct answer to "where can I ski in Europe this weekend." Worth the wait. |
-| `d1ed2cd` | Content report Aug 28 — 97/100, 392 venues, 4 carry-overs Day 4 | ✅ Accurate verification. The "Day 4" callout in the report title is correct editorial pressure. |
+| `9297230` | 3 carry-over beach venues (Praia do Camilo, Nusa Penida, Gili Trawangan) + cache `20260829a` + DevOps report | ✅ Right call. These were SHIP or lose-until-2027 and the DevOps agent executed the v133 call correctly. Count: 392 → 395. |
+| `2e7534a` | Content report Aug 29 — 96/100, 395 venues, Arolla Day 5 carry-over, 5 new proposals | ✅ Good quality report. 5 well-researched proposals. One gradient typo flagged inline (Perhentian Islands: `#2888508` → `#288850`) — needs fix before paste. |
 
-No code shipped by Jack. No Reddit post. No Plausible numbers surfaced. Six days post-launch, the pattern is: agents ship what Jack doesn't, Jack ships nothing.
+**Jack shipped: nothing. Reddit: not posted. Plausible: not checked. VPS disk cache: not deployed. 7 days in a row.**
+
+The agents are running the product. That's not a compliment — it means the human decisions blocking growth (post, analytics, infra) are 7 days overdue.
 
 ---
 
 ## Bug Triage
 
 ### Peakly Pro price ($9/mo vs $79/yr) — CLOSED
-Pro is cut. Not in app.jsx. Final closure.
+Pro cut. Not in app.jsx. Done.
 
 ### Sentry DSN — CLOSED
 Live, wired.
 
 ### Cache buster — CLOSED
-`20260828a` in lockstep.
+`20260829a` in lockstep.
 
-### Geo-silent-block — CLOSED
-12s JS timeout fallback shipped Aug 26. Device test remains Jack's gate pre-post.
+### VPS Disk Cache — Open #23 (P1, P0 the moment Reddit fires)
+Unchanged for 7 days. The 30-line patch is in `server/proxy.js` (DevOps Aug 27). It takes one SSH session. Today's Reddit window — if Jack chooses to post — makes this a pre-condition, not an enhancement. A traffic spike without disk cache = `pm2 restart` during the spike window = cold cache = 429s from Open-Meteo = every new visitor sees "conditions unavailable." That is a product-ending first impression.
 
-### VPS disk cache — Open #23 (P1 → P0 the moment Reddit fires)
-Status unchanged since v129. In-memory only. At 6 days post-launch with sub-10 confirmed sessions, `pm2 restart` refills in minutes — tolerable at current MAU. The day a Reddit post drives 100+ concurrent users, a single VPS restart during that window 429s Open-Meteo and every new visitor sees "conditions unavailable." **This is Jack's only infrastructure task before the post and it takes one SSH session.** DevOps Aug 27 included the exact 30-line patch in `server/proxy.js`. The constraint is Jack's time, not the code.
+### Arolla Ski Area — Day 5 Carry-Over, Scheduled DEFER
+Correctly deferred by PM v133. Ski season starts December. Content agent re-proposed it today. Still defer. Will include in the October batch when pre-booking intent is actually live.
 
-### 4 Carry-Over Venues — Day 5 (DEADLINE: TODAY)
-Praia do Camilo (FAO), Nusa Penida (DPS), Gili Trawangan (DPS), Arolla (GVA). All verified, all objects ready in `reports/content-report.md` (Aug 28 batch). Today is **Aug 28 — the last Friday of meteorological summer.** Praia do Camilo and Nusa Penida are peak-season venues. If they're not in the app by Sunday Aug 31, they won't be in their peak window again until summer 2027. This is the most expensive missed paste in the project's history, measured in seasonal relevance.
-
-### Zombie Branches — P2 (Jack, 2 min)
-Same 15+ `claude/*` branches on origin. Same risk of accidental stomp. Same one-liner in v132. Won't repeat it again after today — if it's not done by v134, it gets removed from the report permanently.
+### Zombie Branches — P2
+15+ `claude/*` branches on origin. This note has now appeared in 4 consecutive reports with no action. Removing from the open-issues block after today. It's documented. If it matters, it'll get fixed. If it doesn't get fixed, it wasn't actually P2.
 
 ---
 
-## Three Product Decisions — Aug 28
+## Three Product Decisions — Aug 29
 
-### Decision 1: 4 carry-over venues — SHIP TODAY or DEFER TO SUMMER 2027
+### Decision 1: 5 New Venue Proposals — Batch Ruling
 
-This is not a drill. The calendar makes this decision, not me:
+Content agent delivered 5 proposals (1 carry-over + 4 new). Here's the call on each:
 
-- **Praia do Camilo:** Peak season ends Aug 31. The Algarve sees 75% of its annual beach traffic June–August. A Friday-before-Labor-Day weekend is maximum booking intent. If this venue isn't in the app today, it sits dormant for 10 months.
-- **Nusa Penida / Gili Trawangan:** Indonesia's dry season (May–Oct) continues, but the post-Labor-Day drop in US beach search intent is real. These venues still get traffic in September but the urgency case for pasting them drops significantly after this weekend.
-- **Arolla:** Ski season doesn't start until December. This one can wait.
+| Venue | Decision | Reason |
+|-------|----------|--------|
+| Arolla Ski Area (carry-over) | **DEFER to October** | Ski season starts December. Posting in the sorted venue grid in August is dead screen real estate for 3 months. Same call as v133. |
+| Trysil, Norway | **SHIP** | Norway's largest ski resort, zero catalog representation until now. September is the pre-booking window for European ski — this exact venue is what r/skiing users search in September. Paste it. |
+| Camps Bay Beach, Cape Town | **SHIP** | Cape Town spring starts September. CPT is a real travel hub. Distinct vibe from Clifton (already in catalog). Scoring engine will surface it at the right moment. |
+| Perhentian Islands, Malaysia | **SHIP — fix gradient first** | September dry season tail makes this timely. **However: the code object has a gradient typo: `#2888508` (7-digit invalid hex) → must be `#288850` before paste.** Content agent flagged this but left the typo in the code block. Fix inline before pasting. |
+| Nusa Lembongan, Bali | **SHIP** | Third DPS venue but genuinely distinct: surf culture + no-cars island vs. Penida (cliffs) vs. Gili T (party island). The DPS cluster is the right depth — Bali is the world's most searched island destination. |
 
-**Call: SHIP Praia do Camilo, Nusa Penida, and Gili Trawangan today. DEFER Arolla to next ski season paste batch.** Three venues, one paste, 10 minutes.
+**Net: 4 SHIP, 1 DEFER. Eval count goes 395 → 399.** Jack pastes 4 venues. Auto-push handles the rest.
 
-### Decision 2: Reddit post — fire today by 11am ET or commit to September
+**Note on the 400-venue milestone:** 395 + Arolla (deferred) = 400 exactly. But shipping 4 today gets to 399, not 400. Don't hold the deferred venue just to hit a round number — the milestone is a marketing asset, not a product constraint. When Arolla ships in October, that's the 400 callout moment.
 
-The window is not "closing." It is closed after this weekend for ski and beach simultaneously.
+### Decision 2: Reddit Post — Today's Window is Closing. Name the Date or Commit to October.
 
-Current viable slots in order of preference:
-1. **Today (Fri Aug 28), 9–11am ET, r/skiing + r/solotravel.** Best remaining slot. Ski crowd browses Friday afternoon planning the weekend.
-2. **Tomorrow (Sat Aug 29), 8–10am ET, r/skiing only.** Acceptable. Ski crowd is actively planning. Do NOT do r/solotravel on Saturday — travel subreddits are destination research, not weekend planning.
-3. **September.** Legitimate product decision — ski season kicks in mid-October in the Alps, beach season peaks again in Southern Hemisphere. A Sept 15 post on r/skiing with "ski season is coming, here's how to find a cheap opening weekend" is a stronger editorial hook than a late August post in August's end-of-season malaise.
+**Today's status (Sat Aug 29, late morning):** The Saturday r/skiing window (8–10am ET) from v133's analysis is now past or closing depending on time zone. This is the last summer Saturday with any plausible "ski this weekend" hook. After today:
 
-**Jack's three pre-post gates:**
-1. Device-test geo-silent-block with iPhone Location Services OFF. If the airport picker surfaces within 12 seconds → cleared.
-2. VPS disk cache deployed (Open #23). 30-line patch already written.
-3. One good screenshot of a real weekend pick for the post body.
+- **Sep 1–14:** Dead zone. Meteorological autumn but no ski season. r/skiing is full of "season opener" anticipation content — a Peakly post about "where to ski this weekend" lands in that feed as irrelevant noise. Beach search intent collapses. This is the worst possible fortnight to post.
+- **Sep 15:** Content agent floated this. Still risky — NH ski intent is building but not live. SH ski season is ending. The only editorial hook that works in mid-September is "plan your opening weekend now" and Peakly doesn't have a planning mode, it has a "this weekend" mode.
+- **Oct 10–31:** The correct Reddit window for ski. First NH lifts spinning (Mammoth, Snowbird, Arapahoe Basin), r/skiing goes from anticipation to active planning. "What if you could see which resorts have the best conditions THIS weekend?" is a genuinely strong hook in that context, backed by real forecast data.
 
-**If none of those three things happen today, explicitly decide: September post. Name the target date. "We'll see" is not a decision.**
+**The call:** If the v133 pre-post gates (device test geo-block, VPS disk cache, one good screenshot) haven't happened by end of today, the decision is **October, not September 15.** September 15 is a trap — it's the trough between beach intent and ski intent and a weak post in that window is worse than no post (subreddit downvotes train the algorithm against Peakly before the real audience shows up).
 
-### Decision 3: FREEZE all new venue research until Plausible data arrives
+**Jack's action:** Pick today or October. "We'll see" is now 7 days old and it's not a decision.
 
-Six days post-launch, zero sessions confirmed in Plausible. The content agent is producing perfect 97/100 quality reports and has 4+ venues queued. None of it matters if we don't know:
-- Are any humans hitting the site?
-- What's the bounce rate?
-- What categories are they filtering?
-- Are they completing onboarding?
+### Decision 3: Plausible Data — This Is Now P1, Not a Reminder
 
-**Decision: No new venue research until Jack pulls Plausible numbers and reports them.** Content agent effort should pivot to photo backfill prep (UNSPLASH_KEY workflow is documented — this is the quality gap Jack himself flagged) until demand data validates where to focus venue expansion.
+7 days post-launch, zero analytics data reviewed. This has been in every report since Aug 22 as "Priority 1." It's being treated as a reminder. It's not a reminder. **Plausible's free plan shows unique visitors, pageviews, bounce rate, and top sources in a public dashboard that takes 30 seconds to read.** If the number is zero unique visitors in 7 days, that's a P0 bug — either the script isn't firing or GitHub Pages deployment broke something. If it's >0, every product decision from here forward (venue focus, Reddit timing, photo investment) should be made against that number.
+
+**Decision: Plausible data is now the highest-priority input to every call in this report. Until it's reviewed, every other roadmap decision is speculation.**
 
 ---
 
 ## This Week's Top 3 Priorities
 
-**1. Jack: pull Plausible data from Aug 22–28. Report total sessions, bounce rate, airport set rate.**
+**1. Jack: read Plausible dashboard for Aug 22–29. Report total sessions, bounce rate, airport set rate, top traffic source.**
 
-This is the only input that gates every other product decision. Without it, we're adding venues, planning Reddit posts, and making roadmap calls in a complete information vacuum. It takes 3 minutes at plausible.io. If the number is zero, that tells us something critical: either the live site isn't indexed yet, the Plausible script isn't firing, or the post genuinely hasn't driven any traffic. Each of those has a different fix. "I haven't checked" is not an option on day 6.
+Not a suggestion. Every roadmap call in this report is blocked behind this number. 30 seconds at plausible.io.
 
-**2. Jack: SSH + deploy VPS disk cache (Open #23) before firing the Reddit post.**
+**2. Paste 4 venues into app.jsx (Trysil, Camps Bay, Perhentian Islands [fix gradient], Nusa Lembongan).**
 
-30-line patch already written in `server/proxy.js` (DevOps Aug 27). Blocks Reddit post from becoming an infrastructure incident instead of a growth event.
+September transition = ski pre-booking + tropical beach. These 4 are timed correctly. Perhentian Islands: fix `#2888508` → `#288850` in the gradient string before pasting.
 
-**3. Paste 3 venues (Praia do Camilo, Nusa Penida, Gili Trawangan) into `app.jsx` today.**
+**3. Name the Reddit post date. Today or October — pick one.**
 
-Last viable window for peak-season relevance. Objects are in `reports/content-report.md`, Aug 28 batch. Eval count goes to 395. Auto-push handles the rest.
+The September 15 option from v133 is off the table. If today's pre-post gates (device test + VPS cache + screenshot) aren't done, October is the correct call and it's a better hook. "We'll see" doesn't get to v136.
 
 ---
 
@@ -100,11 +97,12 @@ Last viable window for peak-season relevance. Objects are in `reports/content-re
 
 | Feature | Decision | Reason |
 |---------|----------|--------|
-| Arolla Ski Area (paste now) | DEFER to October | Ski season doesn't start until December; pasting in August wastes prime position in the sorted venue grid for 3 months |
-| New venue research (any category) | DEFER until Plausible data | Zero analytics data = zero signal on where demand actually exists |
-| JSON-LD structured data | DEFER | SEO benefit is real but accrues over months; not a week-1 lever |
-| Static h1 fallback | DEFER | Same reason as JSON-LD |
-| Zombie branch cleanup | JACK-ONLY, 2 min | Not a feature, but it leaves origin in a state where one accidental merge stomps 4 months of work. After today it leaves the report — if it happens, it happens. |
+| Arolla Ski Area (paste now) | DEFER to October | Ski season December start; August paste is dead inventory for 3 months |
+| September 15 Reddit post | REJECTED as an option | Dead zone between beach intent and ski intent; subreddit downvotes during trough train algorithm against Peakly before real audience shows up |
+| JSON-LD structured data | DEFER | No analytics data to validate whether SEO gap is a real traffic driver; accrues over months, not weeks |
+| Static h1 fallback | DEFER | Same as JSON-LD |
+| Score calibration anchors ("only 12% of venues score above 80") | DEFER until Plausible shows bounce rate | Strong idea (v133 risk section). Can't validate if score trust is the bounce cause without data. |
+| Zombie branch cleanup | REMOVED FROM REPORT | Has been P2 in 4 consecutive reports, no action taken. Jack knows. |
 
 ---
 
@@ -112,32 +110,30 @@ Last viable window for peak-season relevance. Objects are in `reports/content-re
 
 **90-day projection: 5K–8K users. What has to be true for 8K, not 5K?**
 
-For 8K (not 5K), three things must be true that aren't true today:
+Same framework as v133, updated for today's reality:
 
-1. **Reddit post drives a real spike (500+ sessions in 48h) and bounce rate is <65%.** A high-bounce spike means the product doesn't land on first visit. If bounce > 65% from the first Reddit post, that's a product problem, not a traffic problem. No amount of additional posts fixes it.
+1. **Reddit post in October, not September.** A September post in the trough window could actively hurt — a bad initial velocity signal trains subreddit algorithms against the post before the ski audience is watching. October post with a genuine "first powder weekend" hook is the 8K path; a September post that goes 0.1K is the 5K ceiling.
 
-2. **Plausible shows meaningful onboarding completion (>30% airport set rate).** The geo-silent-block fix should help. But if users aren't setting an airport, they're seeing global unsorted venues with no pricing — a meaningless list. Onboarding completion is the funnel's throat.
+2. **Plausible shows >30% airport set rate from the Reddit cohort.** Users who set an airport get personalized pricing and geo-sorted venues. Users who don't see a globally unsorted list with no pricing. The onboarding completion rate is the funnel bottleneck. If the geo-silent-block fix (shipped Aug 26) worked, location detection completes within 12s and onboarding converts. If it didn't, the entire Reddit-driven cohort bounces with no venue relevance signal.
 
-3. **At least one organic share/secondary post within 14 days of Reddit launch.** The 5K path assumes the Reddit post drives its own traffic and dies. 8K requires the product to be share-worthy — someone posts a screenshot, a comment thread links to Peakly, a ski forum picks it up. That only happens if the product delivers a genuinely surprising result to the first 100 users.
+3. **Score trust problem stays theoretical.** v133 identified score calibration as a product risk. If Plausible shows >65% bounce rate on Reddit traffic, that's the hypothesis to test. If bounce is <55%, the product lands and score trust isn't the issue. Right now it's a hypothesis, not a confirmed problem.
 
-None of these can be validated until Plausible data exists. The 5K vs 8K question is currently unanswerable.
+**None of these can be confirmed until Plausible data exists.** 7 days post-launch.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Weekend Score is the moat but users have no reason to trust it.**
+**We have 395 venues and no search.**
 
-The `<ScoringExplainer>` card shipped in June. It explains HOW the score works. It doesn't explain WHY users should trust it over just looking at a weather app.
+Every venue discovery path is scoring, filtering, and sorting. There is no text search. A user who arrives from a Reddit post about "ski this weekend" and types "Mammoth" into any input box gets... nothing, or a filter they don't understand. The venue is in the catalog but inaccessible by name.
 
-First-time users from Reddit will arrive with zero context. They'll see "87 — GO" on Whistler for this weekend. They have no way to verify it. If they open a weather app and it says "light snow, 28°F" they might think: "cool, but is 87 actually good or is every result 87?" If they open a second result and it says "82 — GO" they have no reference point.
+This matters at the moment Reddit traffic arrives. Reddit users are specific — they think in named mountains and beaches, not algorithm scores. A Mammoth local who reads the post and searches "Mammoth Mountain" and can't find it will post "it doesn't even have Mammoth" in the comment thread. One comment like that tanks upvote velocity.
 
-The risk: the score looks like a fake engagement mechanism (common in travel apps) and users discount it. The product's core differentiation becomes invisible.
+The fix isn't complex — a simple name-match filter on the Explore grid (or an autosuggest on the search bar) with fuzzy matching against `venue.title + venue.location + venue.tags`. But it's not trivial either — the SearchSheet is designed around region/filter discovery, not named search.
 
-The fix isn't more explanation — it's calibration anchors. One line under the score: "Today, only 12% of venues score above 80" or "This is the 3rd-best ski weekend in Europe this month." That turns an abstract number into a relative signal. It's a one-commit change and it's more powerful than any onboarding tooltip.
-
-Not filing this as a priority today — no analytics data to validate whether score trust is actually the problem. Filing it as the hypothesis to test the moment Plausible data shows bounce rate.
+**This isn't a P0 today because the live site has no Reddit traffic.** The moment the post goes up, it becomes a first-session product problem. Filing it as the pre-post risk to evaluate before the October post, not a roadmap item yet.
 
 ---
 
-*v133 — written 2026-08-28. Next report due 2026-08-29.*
+*v134 — written 2026-08-29. Next report due 2026-08-30.*
