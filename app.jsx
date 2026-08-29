@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260828a";
+const PEAKLY_BUILD = "20260829a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -5043,6 +5043,30 @@ const VENUES = [
     accent:"#44eebb",
     tags:["Sea Lions on the Beach","Marine Iguanas","Charles Darwin Legacy","UNESCO World Heritage"],
     photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Puerto_Chino_Beach%2C_San_Cristobal%2C_Galapagos_Islands_2013.JPG/1280px-Puerto_Chino_Beach%2C_San_Cristobal%2C_Galapagos_Islands_2013.JPG"},
+  {id:"praia-camilo-lagos", category:"beach",
+    title:"Praia do Camilo", location:"Lagos, Algarve, Portugal",
+    lat:37.0778, lon:-8.6710, ap:"FAO",
+    icon:"🏖️", rating:4.89, reviews:2340,
+    gradient:"linear-gradient(160deg,#0a1a38,#1a3a70,#2468b8)",
+    accent:"#70b8e8",
+    tags:["Sea Stacks","Hidden Cove","Wooden Staircase","Western Algarve"],
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Praia_do_Camilo_Lagos.jpg/1280px-Praia_do_Camilo_Lagos.jpg"},
+  {id:"nusa-penida-bali", category:"beach",
+    title:"Nusa Penida", location:"Nusa Penida Island, Bali, Indonesia",
+    lat:-8.7272, lon:115.5444, ap:"DPS",
+    icon:"🏝️", rating:4.86, reviews:4120,
+    gradient:"linear-gradient(160deg,#0a2a1a,#1a5838,#2e8058)",
+    accent:"#5cbc8a",
+    tags:["Kelingking Cliff","Manta Snorkeling","Island Escape","Instagram Landmark"],
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Kelingking_Beach_Nusa_Penida.jpg/1280px-Kelingking_Beach_Nusa_Penida.jpg"},
+  {id:"gili-trawangan", category:"beach",
+    title:"Gili Trawangan", location:"West Lombok, Indonesia",
+    lat:-8.3500, lon:116.0353, ap:"DPS",
+    icon:"🏝️", rating:4.80, reviews:5670,
+    gradient:"linear-gradient(160deg,#0a1e32,#1a4868,#2888b0)",
+    accent:"#5ab2d8",
+    tags:["No Cars","Turtle Snorkeling","Beach Bars","Island Hopping"],
+    photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Gili_Trawangan_Beach.jpg/1280px-Gili_Trawangan_Beach.jpg"},
 ];
 
 // Boot-time duplicate-id smoke alarm. Dup ids silently clobber wishlist saves
