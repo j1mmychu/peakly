@@ -63,7 +63,7 @@ peakly/
 
 1. Error monitoring & crash detection (~lines 1–66)
 2. CSS injection (~lines 68–136)
-3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (392), `AVATAR_COLORS`, weather code maps
+3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (395), `AVATAR_COLORS`, weather code maps
 4. Utility functions (~lines 860–1260): `useLocalStorage` (with tanning→beach migration), `fetchWeather`, `fetchMarine` (beach water-temp only), `fetchTravelpayoutsPrice`, `scoreVenue` (per-day), `scoreWeekend` (Fri–Mon window — front page), `weekendDayIndices`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
 5. UI components (~lines 1260–4900)
 6. App root + `ErrorBoundary` (~lines 4900–end)
@@ -142,7 +142,7 @@ Late-season skiing exception: high-altitude resorts marked `lateSeason: true` in
 6. **Travelpayouts token off the client** — always via VPS proxy.
 7. **Mobile-first** — safe area insets matter.
 8. **Test in browser** after changes — check console for Babel parse errors.
-9. **Venue data is hardcoded** — `VENUES` array has **392 entries** (2 launch categories: skiing and beach — 132 skiing, 260 beach; surfing retired 2026-05-03). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL. Marine API only fetched for beach venues (water temp only).
+9. **Venue data is hardcoded** — `VENUES` array has **395 entries** (2 launch categories: skiing and beach — 132 skiing, 263 beach; surfing retired 2026-05-03). Weather fetching is batched (50/2s) to avoid Open-Meteo rate limits. Cached in localStorage with 2hr TTL. Marine API only fetched for beach venues (water temp only).
 10. **Error boundary** wraps the app root with a fallback UI.
 11. **Prior conversation context** — at session start, check `context/*.md` for relevant past discussions, design calls, decision rationale that didn't make it into CLAUDE.md or CHANGELOG.md. Most recent first.
 12. **Pre-deploy smoke test** runs automatically via `scripts/auto-push.sh` → Playwright headless against the live URL after each push that touches app.jsx/sw.js/index.html. If you see `❌ DEPLOY SMOKE FAILED` in the auto-push output (or `/tmp/peakly-smoke.log`), the live site likely has a runtime error — diagnose before more pushes. Manual run: `npm run smoke` (live) or `npm run smoke:local` (dist/ on :8002). Catches "parses but throws on first render" bugs (TDZ, undefined refs).
