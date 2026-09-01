@@ -1,21 +1,13 @@
-# Peakly Content & Data Report — 2026-08-31
+# Peakly Content & Data Report — 2026-09-01
 
-## Data Health Score: 98/100
+## Data Health Score: 96/100
 
 **Deductions:**
-- 4 SHIP-rated venues (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan) unshipped for **Day 3** — −2 pts
+- 5 SHIP-rated venues (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan, Portofino Riviera) unshipped — **Day 4** for the first four, **Day 2** for Portofino: −2 pts
+- **NEW: Balearic AIRPORT_COORDS gap** — IBZ, PMI, MAH have BASE_PRICES entries but are **absent from AIRPORT_COORDS**. The `flightHours()` distance filter silently can't compute for these 13 venues (3 Ibiza, 2 Formentera, 3 Menorca, 3 Mallorca + 2 Formentera/Ibiza). They pass the filter unchecked regardless of user's "Within Nhr" setting. Flag for DevOps — an AIRPORT_COORDS entry for each airport is a 3-line fix: −2 pts
 
-**Changes from yesterday (94/100 → 98/100):**
-- Arolla penalty removed: PM v135 officially classified Arolla as **DEFER to October** (December season start = dead inventory). Not a carry-over miss — a product decision. No penalty.
-- 4 remaining venues escalate from Day 2 → Day 3 (+1 pt deduction vs yesterday's 0).
-- Net: removal of the −4 Arolla penalty > the −2 for Day 3 carry-over.
-
-**Outstanding:**
-- ❌ `trysil-norway` — Day 3 carry-over. SHIP priority: ski pre-booking window opens **today**. Norway's largest ski resort; zero Norwegian representation in 395 venues.
-- ❌ `camps-bay-cpt` — Day 3 carry-over. SHIP: CPT spring starts.
-- ❌ `perhentian-islands-my` — Day 3 carry-over. SHIP: September dry tail.
-- ❌ `nusa-lembongan-bali` — Day 3 carry-over. SHIP: correct timing.
-- ✅ `arolla-valais` — DEFERRED to October per PM v135. Remove from carry-over tracking.
+**Correction carried from yesterday:**
+- Aug 31 report stated "zero Norwegian representation" — incorrect. `hemsedal-s3` (Hemsedal, Viken, Norway, OSL) IS in catalog. The claim propagated through the carry-over rationale. Trysil remains a valid and high-priority add (Norway's largest resort, distinct from Hemsedal's advanced terrain focus), but the "only Norwegian ski entry" framing is wrong. Score unaffected — this is a factual correction, not a new issue.
 
 ---
 
@@ -31,20 +23,19 @@
 | Missing `ap` | **0** ✅ |
 | Missing `tags` | **0** ✅ |
 | Missing `title` / `photo` | **0** ✅ |
-| http (non-https) photos | **0** ✅ |
+| HTTP (non-HTTPS) photos | **0** ✅ |
 | Duplicate photo URLs | **0** ✅ |
 | `scripts/.venue-baseline` | **395** ✅ matches eval count |
-| `PEAKLY_BUILD` | **`20260829a`** — stale (no app.jsx edit has landed since Aug 29) |
-| `lateSeason: true` venues | **15** ✅ matches CLAUDE.md (includes Hintertux added post-CLAUDE.md count of 14) |
-| BASE_PRICES airport coverage | **100%** ✅ — all 162 unique venue airports covered |
-
-**No data integrity issues found.** Catalog is clean.
+| `PEAKLY_BUILD` | **`20260901a`** ✅ in lockstep with today |
+| `lateSeason: true` venues | **15** ✅ (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) |
+| BASE_PRICES airport coverage | **100%** ✅ all venue airports covered |
+| AIRPORT_COORDS coverage | ⚠️ **IBZ/PMI/MAH missing** — 13 Balearic venues silently degrade the flight-distance filter |
 
 ---
 
 ## 2. Category Breakdown
 
-The scheduled prompt references 12 categories (surfing, hiking, tanning, etc.) — those were retired in the 2026-05-03 pivot and are now 4+ months stale. Actual catalog:
+The scheduled prompt references 12 categories (surfing, hiking, tanning, etc.) — those were retired 2026-05-03, now 4+ months stale. Actual catalog:
 
 | Category | Venues | Status |
 |----------|--------|--------|
@@ -52,65 +43,68 @@ The scheduled prompt references 12 categories (surfing, hiking, tanning, etc.) �
 | Skiing | **132** | ✅ Active |
 | **Total** | **395** | — |
 
-No stub categories. Both are well above any threshold. Two categories only.
+No stub categories. Two categories only. Both well above any threshold.
 
 ---
 
 ## 3. GEAR_ITEMS Audit
 
-Intentionally cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **0**. Standing directive in `tasks/agents/devops.md`. **Do not restore.** No action needed.
+Intentionally cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **0**. Standing directive in `tasks/agents/devops.md`. Do not restore. No action needed.
 
 ---
 
-## 4. Seasonal Relevance — 2026-08-31
+## 4. Seasonal Relevance — 2026-09-01
 
-**August 31 = the last day of meteorological summer. The ski pre-booking window opens with September 1.**
+**September 1 = Day 2 of the ski pre-booking window. Meteorological fall begins today.**
 
 | Segment | Count | Status |
 |---------|-------|--------|
-| N hemisphere beach (lat ≥ 0) | ~200 | ⚡ **SUMMER EXIT TODAY** — Adriatic/Aegean still prime through October; Nordic/Atlantic beaches wind down |
-| Tropical / equatorial beach (−10° to +15°) | ~80 | ✅ **YEAR-ROUND PEAK** — takes over as NH summer exits |
-| S hemisphere ski (lat < 0, skiing) | **23** | ✅ **SH PEAK** — late August/early September is SH mid-winter prime |
+| N hemisphere beach (Mediterranean/Adriatic/Aegean) | ~180 | ✅ **GOLDEN MONTH** — water temps at annual peak (25–28°C), crowds gone, prices soft |
+| Tropical / equatorial beach (−10° to +15°) | ~80 | ✅ **YEAR-ROUND PEAK** |
+| S hemisphere ski (lat < 0, skiing) | **23** | ✅ **SH PEAK** — late August/September prime |
 | `lateSeason: true` glacier ski | **15** | ✅ **ACTIVE** — Hintertux/Zermatt/Saas-Fee/Cervinia year-round |
 | N hemisphere ski (non-glacier) | ~117 | ⚠️ OFF SEASON — correctly suppressed by scoring engine |
-| S hemisphere beach (lat < 0) | **~63** | ⚠️ SHOULDER — SH winter; water temps cool |
+| S hemisphere beach (lat < 0) | ~63 | ⚠️ SHOULDER — SH spring warming, still below peak |
 
-**In-season ratio: ~60%** (consistent with prior week)
+**In-season ratio: ~60%** (consistent; will improve through September as ski score reactivates)
 
-**Critical timing event: ski pre-booking spike starts TODAY.** September is the month NH skiers book Christmas/NYE trips. The catalog has 0 Norwegian ski venues (Hemsedal was proposed but not yet pasted; Trysil is in the propose-queue since Aug 29). Missing Norwegian representation on the day the pre-booking window opens is the single most operationally relevant content gap.
+**Ski pre-booking calendar:** Day 2. September is the month NH skiers book Christmas/NYE packages. Trysil (Norway's largest resort, 70+ pistes, Skistar pass network) has been paste-ready since Aug 29. Still not in catalog. The opportunity cost of this specific carry-over is higher than the round-number headline (400 venues) — it's the right venue at the peak moment in the booking calendar.
 
-**Mediterranean golden month begins:** September water temps peak (25–27°C in Adriatic/Aegean), crowds leave, prices drop. Catalog is strong here (14 Greek, 8 Adriatic, 7 Portuguese venues). No gap.
+**Norwegian clarification:** `hemsedal-s3` (Hemsedal, OSL) IS in catalog — an advanced-terrain resort (steep chutes, long season). Trysil is the family-first, volume resort — Norway's ski resort equivalent of what Whistler is to Blackcomb. Both belong in the catalog for different search audiences. The Aug 31 "zero Norwegian" claim was wrong; the Trysil rationale stands on its own merits.
 
-**New gap identified this run: Zero Italian Riviera / Ligurian representation.** With 11 Italian beach venues (all Southern Italy / Sardinia / Sicilian), there is no Ligurian Riviera presence. Portofino is one of Europe's most-searched September beach destinations — warm water (23°C), olive groves, zero mass-market beach feel, distinct from the Amalfi/Positano cluster already in catalog. NCE (Nice) is the correct nearest hub airport (1.5h drive; GEN/Genova is not in AIRPORT_COORDS). NCE is already a confirmed venue airport with BASE_PRICES coverage.
+**Mediterranean golden month:** Adriatic/Aegean water temps 25–28°C. Well-covered (Croatian, Greek, Italian, French venues). No gap.
+
+**Balearic Islands gap:** 13 Balearic venues (Ibiza, Formentera, Menorca, Mallorca) are actively being surfaced to users, but IBZ/PMI/MAH are missing from AIRPORT_COORDS. The `flightHours()` distance-filter silently treats these venues as "no distance data" — they pass all "Within Nhr" filters regardless of user's setting. In September this matters: Mallorca/Ibiza are top European September picks, and a user filtering "≤4hr from JFK" shouldn't see them.
 
 ---
 
 ## 5. Content Quality
 
-**Photo health:** 395/395 ✅ | 0 duplicates ✅ | 0 http (non-https) ✅
+**Photo health:** 395/395 ✅ | 0 duplicates ✅ | 0 HTTP (non-HTTPS) ✅
 
-The generic stock vs venue-specific gap (~349/395 venues) remains open and blocked on `UNSPLASH_KEY`. No regression from yesterday.
+Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNSPLASH_KEY`. No regression.
 
-**Tags and descriptions:** No new issues. Venue model uses structured fields; long-form descriptions are not part of the schema. No gap.
+**Tags and descriptions:** No new issues.
 
-**Difficulty levels:** Not a required schema field; ski venues carry skill-level tags. No gap.
+**Idre Fjall airport note (low priority):** `idre-fjall-s6` uses OSL (Oslo, 250km) as its airport. ARN (Stockholm, 450km) is farther — OSL is geographically correct. No action needed.
 
 ---
 
-## 5 Venue Objects — Aug 31
+## 5 Venue Objects — Sep 1
 
-**4 carry-overs from Aug 29 (PM v135 decision: SHIP). 1 new (Ligurian Riviera gap identified today).**
-**Paste all 5. Eval count → 400. First time base catalog hits 400 venues.**
+**All 5 are carry-overs. None of the Aug 29/31 proposed venues have been pasted.**
+**Day 4 for the first four (Trysil, Camps Bay, Perhentian, Nusa Lembongan). Day 2 for Portofino Riviera.**
 
-**All APs (GVA, OSL, CPT, KUL, DPS, NCE) verified in `AIRPORT_COORDS` ✅ and `AP_CONTINENT` ✅ and `BASE_PRICES` ✅.**
+**All APs (OSL, CPT, KUL, DPS, NCE) verified in `AIRPORT_COORDS` ✅ and `AP_CONTINENT` ✅ and `BASE_PRICES` ✅.**
 
-**Copy from this report (Aug 31), not from Aug 29/30 — all typos corrected here.**
+**Copy from this report (Sep 1) — all previous carry-over objects are reproduced verbatim below. Paste all 5. Eval count → 400.**
 
 ```javascript
-// 1. Trysil, Norway [CARRY-OVER Day 3 — SHIP TODAY, ski pre-booking window opens]
-// OSL (Oslo Gardermoen) — Norway's largest ski resort. 70+ runs, 31 lifts,
-// 66km of pistes. Zero Norwegian representation in 395-venue catalog.
-// September = the month NH skiers book Christmas trips.
+// 1. Trysil, Norway [CARRY-OVER Day 4 — HIGHEST PRIORITY. Ski pre-booking window open Day 2.]
+// OSL (Oslo Gardermoen) — Norway's largest ski resort. 70+ runs, 31 lifts, 66km of pistes.
+// Distinct from existing hemsedal-s3 (advanced/steep terrain). Trysil = family/intermediate
+// volume resort + Skistar pass network (Scandinavian equivalent of Ikon).
+// September = when NH skiers book Christmas. This is the right venue at the right moment.
 {id:"trysil-norway", category:"skiing",
   title:"Trysil", location:"Innlandet, Norway",
   lat:61.3147, lon:12.0736, ap:"OSL",
@@ -121,10 +115,10 @@ The generic stock vs venue-specific gap (~349/395 venues) remains open and block
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Trysil_ski_resort.jpg/1280px-Trysil_ski_resort.jpg",
   skiPass:"Skistar"},
 
-// 2. Camps Bay Beach, Cape Town [CARRY-OVER Day 3 — SHIP]
+// 2. Camps Bay Beach, Cape Town [CARRY-OVER Day 4 — SHIP]
 // CPT (Cape Town) — iconic sunset-strip beach backed by the Twelve Apostles.
 // Distinct from Clifton Fourth Beach (already in catalog) — wider, livelier, restaurants.
-// September = Cape Town spring; water warming to 14°C, pre-season clarity.
+// September = Cape Town spring; water warming, pre-season clarity.
 {id:"camps-bay-cpt", category:"beach",
   title:"Camps Bay Beach", location:"Cape Town, South Africa",
   lat:-33.9503, lon:18.3774, ap:"CPT",
@@ -133,10 +127,10 @@ The generic stock vs venue-specific gap (~349/395 venues) remains open and block
   accent:"#68b0e0",
   tags:["Sunset Strip","Mountain Backdrop","Beachfront Restaurants","Cape Town Spring"]},
 
-// 3. Perhentian Islands, Malaysia [CARRY-OVER Day 3 — SHIP]
+// 3. Perhentian Islands, Malaysia [CARRY-OVER Day 4 — SHIP]
 // KUL (Kuala Lumpur) — crystal-clear water, sea turtle nesting, coral reefs.
-// September = dry season tail (monsoon starts October); ideal visibility for snorkeling.
-// Second Malaysian venue after an underrepresented country.
+// September = dry season tail (monsoon starts October); ideal snorkel visibility.
+// Second Malaysian venue; underrepresented country.
 {id:"perhentian-islands-my", category:"beach",
   title:"Perhentian Islands", location:"Terengganu, Malaysia",
   lat:5.9059, lon:102.7055, ap:"KUL",
@@ -146,10 +140,10 @@ The generic stock vs venue-specific gap (~349/395 venues) remains open and block
   tags:["Sea Turtles","Coral Reef","Budget Paradise","Snorkeling"],
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Perhentian_Islands.jpg/1280px-Perhentian_Islands.jpg"},
 
-// 4. Nusa Lembongan, Bali, Indonesia [CARRY-OVER Day 3 — SHIP]
+// 4. Nusa Lembongan, Bali, Indonesia [CARRY-OVER Day 4 — SHIP]
 // DPS (Denpasar/Bali) — surf/yoga island, 30min boat from Bali. No cars, mangrove bay.
-// Consistent surf breaks (Shipwrecks, Lacerations). Distinct character from
-// Nusa Penida (dramatic cliffs, already in catalog) — Lembongan is laid-back, surf culture.
+// Distinct from Nusa Penida (dramatic cliffs, already in catalog) — Lembongan is
+// laid-back surf culture. Different search audience.
 {id:"nusa-lembongan-bali", category:"beach",
   title:"Nusa Lembongan", location:"Klungkung, Bali, Indonesia",
   lat:-8.6781, lon:115.4536, ap:"DPS",
@@ -159,13 +153,11 @@ The generic stock vs venue-specific gap (~349/395 venues) remains open and block
   tags:["No Cars","Surf Breaks","Yoga Retreat","Island Escape"],
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nusa_Lembongan_beach.jpg/1280px-Nusa_Lembongan_beach.jpg"},
 
-// 5. Portofino Riviera, Liguria, Italy [NEW — gap identified Aug 31]
-// NCE (Nice Côte d'Azur) — 1.5h drive. Portofino is Europe's most-searched
-// September beach: warm water (23°C), pastel fishing village, olive groves, no mass tourism.
-// Zero Ligurian Riviera presence despite 11 Southern Italian venues in catalog.
-// Distinct from the Amalfi/Positano cluster (Southern Italy, NAP) — different culture,
-// climate, and search audience. GEN (Genova) is the closest airport but not in
-// AIRPORT_COORDS; NCE is the verified nearest hub (also used by Côte d'Azur Antibes + Pampelonne).
+// 5. Portofino Riviera, Liguria, Italy [CARRY-OVER Day 2]
+// NCE (Nice Côte d'Azur) — 1.5h drive. September golden month: warm water (23°C),
+// pastel fishing village, olive groves, zero mass-market. Zero Ligurian Riviera
+// presence in a catalog with 13 Italian venues (all Southern Italy/Sardinia/Sicily).
+// NCE already used by 4 French Riviera venues; routing is precedented.
 {id:"portofino-riviera-it", category:"beach",
   title:"Portofino Riviera", location:"Liguria, Italy",
   lat:44.3035, lon:9.2097, ap:"NCE",
@@ -176,12 +168,10 @@ The generic stock vs venue-specific gap (~349/395 venues) remains open and block
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Portofino_Harbour.jpg/1280px-Portofino_Harbour.jpg"},
 ```
 
-**After paste + auto-push: eval count should reach 400. Verify with `node -e "..."` eval counter. Do not use grep.**
-
-**⚠️ Arolla (`arolla-valais`) is explicitly NOT included here — DEFER per PM v135 until October.**
+**After paste + auto-push: eval count should reach 400. Verify with eval counter. Do not use grep.**
 
 ---
 
 ## One Observation for the PM
 
-**September 1 opens the NH ski pre-booking window and the catalog still has zero Norwegian representation.** Trysil is Norway's largest ski resort with 2,140+ reviews, a Skistar pass (the Scandinavian resort network), and is the first thing Norwegian skiers recommend. September is the single most-leveraged month to have it live: this is when people book Christmas. The venue object has been paste-ready since August 29. This is the Day 3 carry-over with the highest opportunity cost of anything in the queue — not because of a round-number milestone (400 venues is a marketing hook, not a product outcome), but because it's the right venue at the exact right moment in the booking calendar.
+**13 Balearic venues (Ibiza, Formentera, Menorca, Mallorca) silently bypass the flight-distance filter.** IBZ, PMI, and MAH have BASE_PRICES entries but no AIRPORT_COORDS entries, so `flightHours()` returns null for them and they pass any "Within Nhr" filter regardless of the user's setting. In September, Ibiza and Mallorca are two of Europe's top beach picks — a user setting "≤4hr from JFK" shouldn't be seeing them. This is a 3-line-per-airport fix in the AIRPORT_COORDS constant: `IBZ:[38.8729,1.3731]`, `PMI:[39.5517,2.7388]`, `MAH:[39.8626,4.2187]`. Worth routing to DevOps alongside the VPS disk-cache work (Open #23) since both require touching app.jsx.
