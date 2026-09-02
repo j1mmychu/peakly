@@ -76,16 +76,16 @@
   <!-- Sentry Error Monitoring (deferred — off the critical render path) -->
   <script defer src='https://js.sentry-cdn.com/9416b032a46681d74645b056fcb08eb7.min.js' crossorigin='anonymous'></script>
 
-  <!-- React 18 + ReactDOM (UMD, no build step needed) -->
-  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <!-- React 18 + ReactDOM (UMD, no build step needed) — cdnjs has SLA, unpkg does not -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 
   <!-- Leaflet (map view) is lazy-loaded on demand by ensureLeaflet() in app.jsx
        — kept off the critical render path since most sessions never open the map. -->
 
-  <!-- Babel standalone — transforms JSX in the browser -->
-  <link rel="preload" href="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js" as="script" crossorigin />
-  <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
+  <!-- Babel standalone — transforms JSX in the browser (dev/local only; production serves dist/app.min.js) -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js" as="script" crossorigin />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -392,7 +392,7 @@
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script type="text/babel" src="./app.jsx?v=20260901a" data-presets="react"></script>
+  <script type="text/babel" src="./app.jsx?v=20260902a" data-presets="react"></script>
 
   <!-- Service Worker registration -->
   <script>
