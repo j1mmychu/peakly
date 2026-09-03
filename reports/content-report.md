@@ -1,20 +1,19 @@
-# Peakly Content & Data Report — 2026-09-02
+# Peakly Content & Data Report — 2026-09-03
 
-## Data Health Score: 97/100
+## Data Health Score: 98/100
 
 **Deductions:**
-- 5 carry-over venues (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan, Portofino Riviera) unshipped — **Day 5** for first four, **Day 3** for Portofino: −2 pts
-- **NEW: FOR/NAT missing from AP_CONTINENT** — `beach_jericoacoara` (Fortaleza, Brazil, ap:`FOR`) and `beach_pipa_brazil` (Natal, Brazil, ap:`NAT`) are both present in AIRPORT_COORDS and BASE_PRICES but absent from AP_CONTINENT. The continent-based home-airport filtering silently can't assign a continent to either venue. A 2-line fix: `FOR:"latam"` and `NAT:"latam"`. Low severity but a genuine gap: −1 pt
+- 5 carry-over venues (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan, Portofino Riviera) unshipped — **Day 6** for first four, **Day 4** for Portofino: −2 pts
 
-**Correction from yesterday:**
-- Sep 1 report deducted 2 pts for a "Balearic AIRPORT_COORDS gap" (IBZ/PMI/MAH missing). **This was a false alarm — now confirmed closed.** DevOps report today verified all three airports at lines 6911/6913/6914 of app.jsx. The `-2` deduction was incorrect. Today's score is rebased accordingly.
-- **Lesson for future runs:** Before filing a missing-airport finding, run `grep -n "IBZ\|PMI\|MAH" app.jsx` to verify absence in the actual file. The two-format catalog (unquoted vs. quoted JSON keys) can defeat a casual regex; `eval` or `grep -n` against the full file is the authoritative check.
+**Closures since yesterday:**
+- **FOR/NAT AP_CONTINENT**: PERMANENTLY CLOSED. Sep 2 content report flagged this as missing and deducted −1 pt. Today's verification confirms both `FOR:"latam"` (line 419) and `NAT:"latam"` (line 439) are present in the current file. This was a false alarm — the entries predate the Sep 2 report. PM v138 and DevOps Sep 3 both concur. No deduction today.
+- **BASE_PRICES**: Open #22 closed per DevOps Sep 3 — authoritative check shows all 123 venue `ap` codes present in BASE_PRICES. Not a content issue.
 
 ---
 
 ## 1. Data Integrity Audit
 
-**Verified via `eval` of VENUES array (authoritative):**
+**Verified via source file regex covering both catalog formats (unquoted key + quoted JSON key):**
 
 | Check | Result |
 |-------|--------|
@@ -23,59 +22,55 @@
 | Missing `lat`/`lon` | **0** ✅ |
 | Missing `ap` | **0** ✅ |
 | Missing `tags` | **0** ✅ |
-| Missing `title` / `photo` | **0** ✅ |
+| Missing `photo` | **0** ✅ (395/395 covered) |
 | HTTP (non-HTTPS) photos | **0** ✅ |
 | Duplicate photo URLs | **0** ✅ |
-| `scripts/.venue-baseline` | **395** ✅ matches eval count |
-| `PEAKLY_BUILD` | **`20260902a`** ✅ in lockstep with sw.js + index.html |
-| `lateSeason: true` venues (eval) | **15** ✅ (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) |
-| AIRPORT_COORDS coverage | **162/162** ✅ all venue airports covered |
-| AP_CONTINENT coverage | ⚠️ **FOR/NAT missing** — 2 Brazilian beach venues (see above) |
-| BASE_PRICES coverage | ✅ FOR and NAT have BASE_PRICES entries |
+| `scripts/.venue-baseline` | **395** ✅ matches count |
+| `PEAKLY_BUILD` | **`20260902a`** — unchanged (no app.jsx commits today) |
+| `lateSeason: true` venues | **15** ✅ (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) |
+| AIRPORT_COORDS coverage | **All venue APs covered** ✅ |
+| AP_CONTINENT — FOR/NAT | ✅ **CONFIRMED PRESENT** lines 419/439 — false alarm closed |
+| BASE_PRICES coverage | ✅ All 123 venue APs covered — Open #22 resolved |
 | GEAR_ITEMS | **0** ✅ intentionally cut for v1 (Jack, 2026-06-09) — do not restore |
-
-**lateSeason count note:** A raw regex on the source file returns 10 (the unquoted-key format venues only). The correct count is **15** via `eval` — 5 venues use the quoted JSON key format (`"lateSeason": true`). Always use eval, not grep, for counts that span both catalog formats.
 
 ---
 
 ## 2. Category Breakdown
 
-The scheduled prompt references 12 categories (surfing, hiking, tanning, etc.) — those were retired 2026-05-03, now >4 months stale. Actual catalog:
+The scheduled prompt references 12 categories from a pre-May 2026 era (surfing, hiking, tanning, etc.). Those were retired 2026-05-03. Actual catalog:
 
 | Category | Venues | Status |
 |----------|--------|--------|
-| Beach | **263** | ✅ Active |
-| Skiing | **132** | ✅ Active |
+| Beach | **263** | ✅ Active — 100% above minimum threshold |
+| Skiing | **132** | ✅ Active — 100% above minimum threshold |
 | **Total** | **395** | — |
 
-No stub categories. Both well above any threshold.
+No stub categories. Nothing to fix.
 
 ---
 
 ## 3. GEAR_ITEMS Audit
 
-Intentionally cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **0**. Standing directive in `tasks/agents/devops.md` and CLAUDE.md. Do not restore without a product decision. No action needed.
+Intentionally cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **0**. Standing directive in CLAUDE.md: do not restore without a product decision. No action needed.
 
 ---
 
-## 4. Seasonal Relevance — 2026-09-02
+## 4. Seasonal Relevance — 2026-09-03
 
-**September 2 = Day 3 of the ski pre-booking window. Mediterranean golden month peak.**
+**September 3 = Day 6 of ski pre-booking window. Mediterranean golden month. SH ski prime.**
 
 | Segment | Count | Status |
 |---------|-------|--------|
-| N hemisphere beach (Mediterranean/Adriatic/Aegean) | ~180 | ✅ **GOLDEN MONTH** — post-crowd, pre-rain; water temps annual peak (25–28°C) |
+| N hemisphere beach (Mediterranean/Adriatic/Aegean) | ~180 | ✅ **GOLDEN MONTH** — post-tourist-peak, water at annual high (25–28°C) |
 | Tropical/equatorial beach (−10° to +15°) | ~80 | ✅ **YEAR-ROUND PEAK** |
-| S hemisphere ski (lat < 0, skiing) | ~23 | ✅ **SH PEAK** — late August/September is SH prime ski season |
-| `lateSeason: true` glacier ski | **15** | ✅ **ACTIVE** — Hintertux/Zermatt/Saas-Fee year-round |
+| S hemisphere ski (lat < 0, skiing) | ~23 | ✅ **SH PEAK** — September is late SH prime ski season |
+| `lateSeason: true` glacier ski | **15** | ✅ **ACTIVE** — Hintertux/Zermatt/Saas-Fee year-round glaciers |
 | N hemisphere ski (non-glacier) | ~117 | ⚠️ OFF SEASON — correctly suppressed by scoring engine |
-| S hemisphere beach (lat < 0) | ~63 | ⚠️ SHOULDER — SH spring warming, still below peak |
+| S hemisphere beach (lat < 0) | ~63 | ⚠️ SHOULDER — SH spring warming, sea temps below peak |
 
 **In-season ratio: ~60%**
 
-**Ski pre-booking urgency:** Day 3. Norwegian families book Christmas packages in September. Trysil is paste-ready and the strongest single venue add right now — Norway's largest resort (70+ pistes, 31 lifts, 66km), Skistar pass network, distinct from `hemsedal-s3` (advanced terrain) already in the catalog. Family-first, volume resort. Five days in the queue.
-
-**Brazilian beach gap:** Two Brazilian venues (`beach_jericoacoara` and `beach_pipa_brazil`) use airports FOR (Fortaleza) and NAT (Natal) that are missing from AP_CONTINENT. These are legitimate tropical beach destinations — Jericoacoara is a UNESCO-protected dune lagoon system, Pipa is a high-cliff whale-watching village. Both are in their shoulder season (September) but will be at peak November–March. The 2-line AP_CONTINENT fix is worth routing to DevOps.
+**Ski pre-booking urgency — Day 6:** Norwegian and Swedish families lock Christmas packages in September. Trysil (Norway's largest resort: 70+ runs, 31 lifts, 66km of pistes, Skistar pass) has been paste-ready for 6 days with no action. The ski pre-booking window is already open; every day without it is a missed search intent.
 
 ---
 
@@ -83,22 +78,22 @@ Intentionally cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → **
 
 **Photo health:** 395/395 ✅ | 0 duplicates ✅ | 0 HTTP (non-HTTPS) ✅
 
-Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNSPLASH_KEY` (Open #20). No regression. No action this run.
+Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNSPLASH_KEY` (Open #20). No regression.
 
 **Tags and descriptions:** No new issues found. Field completeness is 100%.
 
-**FOR/NAT continent gap:** The two affected venues (`beach_jericoacoara`, `beach_pipa_brazil`) are otherwise clean — lat/lon correct (Jericoacoara at −2.79, −40.51; Pipa at −6.23, −35.04), tags accurate, photos HTTPS. Only AP_CONTINENT is missing.
+**No new content quality issues this run.** Catalog is clean.
 
 ---
 
-## 5 Venue Objects — Sep 2
+## 5 Venue Objects — Sep 3
 
-**All 5 are carry-overs. Day 5 for the first four; Day 3 for Portofino. These are paste-ready and verified. Paste all 5. Eval count → 400.**
-
-**All APs (OSL, CPT, KUL, DPS, NCE) verified in `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.**
+**All 5 are carry-overs. Day 6 for the first four; Day 4 for Portofino. These are paste-ready and verified.**
+**All APs (OSL, CPT, KUL, DPS, NCE) confirmed in `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.**
+**After paste + auto-push: eval count should reach 400.**
 
 ```javascript
-// 1. Trysil, Norway [CARRY-OVER Day 5 — HIGHEST PRIORITY. Ski pre-booking Day 3.]
+// 1. Trysil, Norway [CARRY-OVER Day 6 — HIGHEST PRIORITY. Ski pre-booking Day 6.]
 // OSL (Oslo Gardermoen) — Norway's largest ski resort. 70+ runs, 31 lifts, 66km pistes.
 // Family/intermediate + Skistar pass. Distinct from hemsedal-s3 (steep/advanced).
 {id:"trysil-norway", category:"skiing",
@@ -111,7 +106,7 @@ Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNS
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Trysil_ski_resort.jpg/1280px-Trysil_ski_resort.jpg",
   skiPass:"Skistar"},
 
-// 2. Camps Bay Beach, Cape Town [CARRY-OVER Day 5 — SHIP]
+// 2. Camps Bay Beach, Cape Town [CARRY-OVER Day 6 — SHIP]
 // CPT (Cape Town) — Twelve Apostles backdrop, sunset strip, beachfront restaurants.
 // Distinct from Clifton Fourth Beach (already in catalog). SH spring, pre-season clarity.
 {id:"camps-bay-cpt", category:"beach",
@@ -120,9 +115,10 @@ Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNS
   icon:"🏖️", rating:4.78, reviews:6720,
   gradient:"linear-gradient(160deg,#0a1a30,#1a3a68,#2870b8)",
   accent:"#68b0e0",
-  tags:["Sunset Strip","Mountain Backdrop","Beachfront Restaurants","Cape Town Spring"]},
+  tags:["Sunset Strip","Mountain Backdrop","Beachfront Restaurants","Cape Town Spring"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Camps_Bay_beach_and_the_Twelve_Apostles.jpg/1280px-Camps_Bay_beach_and_the_Twelve_Apostles.jpg"},
 
-// 3. Perhentian Islands, Malaysia [CARRY-OVER Day 5 — SHIP]
+// 3. Perhentian Islands, Malaysia [CARRY-OVER Day 6 — SHIP]
 // KUL (Kuala Lumpur) — sea turtle nesting, coral reefs, dry-season tail (monsoon Oct).
 // Second Malaysian venue; underrepresented country.
 {id:"perhentian-islands-my", category:"beach",
@@ -134,7 +130,7 @@ Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNS
   tags:["Sea Turtles","Coral Reef","Budget Paradise","Snorkeling"],
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Perhentian_Islands.jpg/1280px-Perhentian_Islands.jpg"},
 
-// 4. Nusa Lembongan, Bali, Indonesia [CARRY-OVER Day 5 — SHIP]
+// 4. Nusa Lembongan, Bali, Indonesia [CARRY-OVER Day 6 — SHIP]
 // DPS (Denpasar/Bali) — no cars, surf culture, mangrove bay. 30min boat from Bali.
 // Distinct from Nusa Penida (dramatic cliffs, already in catalog).
 {id:"nusa-lembongan-bali", category:"beach",
@@ -146,7 +142,7 @@ Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNS
   tags:["No Cars","Surf Breaks","Yoga Retreat","Island Escape"],
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nusa_Lembongan_beach.jpg/1280px-Nusa_Lembongan_beach.jpg"},
 
-// 5. Portofino Riviera, Liguria, Italy [CARRY-OVER Day 3]
+// 5. Portofino Riviera, Liguria, Italy [CARRY-OVER Day 4]
 // NCE (Nice, 1.5h drive) — pastel fishing village, olive groves, 23°C water in September.
 // Zero Ligurian representation in 13 Italian venues (all Southern Italy/Sardinia/Sicily).
 // NCE routing already used by 4 French Riviera venues — precedented.
@@ -160,10 +156,8 @@ Generic stock vs. venue-specific (~349/395 venues) remains open, blocked on `UNS
   photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Portofino_Harbour.jpg/1280px-Portofino_Harbour.jpg"},
 ```
 
-**After paste + auto-push: eval count should reach 400. Verify with eval counter. Do not use grep.**
-
 ---
 
 ## One Observation for the PM
 
-**FOR and NAT are missing from AP_CONTINENT.** `beach_jericoacoara` (Fortaleza) and `beach_pipa_brazil` (Natal) both have correct AIRPORT_COORDS and BASE_PRICES entries but no AP_CONTINENT entry, so the continent-based home-airport logic can't assign a continent for either venue. The fix is 2 lines in the AP_CONTINENT constant — `FOR:"latam"` and `NAT:"latam"` — and can be bundled with any next app.jsx touch. Low severity (these venues still load and score correctly; only the continent-based origin-airport filter is affected), but worth closing before the catalog grows further.
+**The carry-over queue is now at Day 6.** Five paste-ready venues — all verified, all APs confirmed — have been in successive daily reports since Aug 28 without landing. The ski pre-booking urgency angle that justified Trysil's original inclusion is weakening daily: Norwegian families booking Christmas packages act in September, and we are now a week into that window. At Day 7 tomorrow, recommend either (a) Jack pastes all 5 in a single session (15-minute task) or (b) the content agent gets authorized to commit venue additions directly. Carrying 5 verified venues in report-only limbo is the biggest quality gap in the current pipeline.
