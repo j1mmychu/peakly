@@ -1,168 +1,156 @@
-# Peakly PM Report v138 — 2026-09-02
+# Peakly PM Report v139 — 2026-09-03
 
-**Status: 🟡 YELLOW — Zero code shipped in 6 days. 5 venues Day 5 (Trysil) carry-over. Venue search not started (Sep 14 deadline). Three false alarms in 2 days from agent team. VPS open items Day 39. October 11 Reddit date holds.**
+**Status: 🔴 RED → Escalated from YELLOW. Seven consecutive days with zero code shipped. Carry-over venues hit Day 6. Open-Meteo free tier at 95% capacity with zero users — Reddit post kills the site within hours. VPS P1 items Day 41. September 14 venue search deadline in 11 days.**
 
 ---
 
-## Shipped Since Last Report (v137 → v138)
+## Shipped Since Last Report (v138 → v139)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `a509db4` | DevOps report 2026-09-02 — React/Babel unpkg finding (false alarm — see below) | ⚠️ Report infrastructure is working; finding was wrong. |
-| `66e4aca` | Content report 2026-09-02 — FOR/NAT AP_CONTINENT finding (false alarm — see below) | ⚠️ Report infrastructure is working; finding was wrong. |
+| `931aec4` | Content report 2026-09-03 — FOR/NAT false alarm permanently closed, Base Prices Open #22 resolved | ✅ Two genuine open items closed. |
+| `e964948` | DevOps report 2026-09-03 — BASE_PRICES Open #22 definitively resolved, cdnjs confirmed live | ✅ Clean audit. |
 
-**Code shipped: nothing.** Six consecutive days of reports with no app.jsx commits. Venues still not pasted.
+**Code shipped: nothing.** Seven consecutive days of reports with zero app.jsx commits. This is no longer a streak. This is a pattern.
+
+The venue queue is paste-ready JSON sitting in a report. The venue search spec fits in an afternoon. The VPS fix requires one SSH session Jack has not taken. None of these are blocked on technical unknowns.
 
 ---
 
 ## Bug Triage
 
-### React/Babel loading from unpkg — CLOSED (DevOps false alarm)
-
-DevOps v138 flagged React 18 + ReactDOM + Babel as loading from unpkg ("no SLA, blank-page risk"). **They already load from cdnjs.cloudflare.com.** Verified at `index.html:79-88`:
-
-```
-line 79:  <!-- React 18 + ReactDOM (UMD, no build step needed) — cdnjs has SLA, unpkg does not -->
-line 80:  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-line 81:  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-line 87:  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js" ...
-line 88:  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
-```
-
-The comment on line 79 even explains why cdnjs. DevOps agent is reading a stale snapshot. **No action needed.** This is false alarm #2 in 2 days.
-
-### FOR/NAT missing from AP_CONTINENT — CLOSED (Content false alarm)
-
-Content report deducted 1pt for `FOR` (Fortaleza) and `NAT` (Natal) being absent from AP_CONTINENT. **They are present.** Confirmed at `app.jsx:419` (`"FOR":"latam"`) and `app.jsx:439` (`"NAT":"latam"`). Line 392 even has an explicit comment: `// FOR/NAT already present (quoted-format block below) — not re-added here.`
-
-Content agent failed the same check pattern that caught the Balearic false alarm yesterday (Sep 1): not running `grep -n` against the actual file before filing a missing-key finding. The two-format catalog (unquoted vs. quoted JSON keys) requires searching both blocks. **No action needed.** This is false alarm #3 in 2 days.
-
-**Pattern:** Three consecutive false alarms — IBZ/PMI/MAH (Sep 1), unpkg (Sep 2), FOR/NAT (Sep 2). The agent correction loop is working (PM closes them), but each one costs a triage cycle. The fix is in the agent prompts: add an explicit `grep -n "<KEY>" app.jsx | head` step before filing any "missing" finding. **Jack: update `tasks/agents/content-data.md` and `tasks/agents/devops.md` to require a live grep before filing missing-key/CDN findings.**
-
 ### Peakly Pro price ($9/mo vs $79/yr) — CLOSED
 
-Pro was cut. Not in app.jsx. Non-issue.
+Pro was cut. `grep -c "Peakly Pro" app.jsx` returns references to a removed constant. Non-issue.
 
-### Sentry DSN — CLOSED
+### Sentry DSN empty — CLOSED
 
-DSN wired at `index.html:77` and `app.jsx:7-9`. Confirmed.
+DSN `9416b032a46681d74645b056fcb08eb7` wired at `index.html:77` and `app.jsx:7-9`. Confirmed live.
 
-### Cache stamp — CONFIRMED LIVE
+### Cache stamp stale — CLOSED
 
-`PEAKLY_BUILD` = `20260902a` at `app.jsx:17`. `CACHE_NAME` = `peakly-20260902a` at `sw.js:2`. `index.html` query param = `?v=20260902a` at `index.html:395`. All in lockstep. ✅
+`PEAKLY_BUILD` = `20260902a` at `app.jsx:17`. `CACHE_NAME` = `peakly-20260902a` at `sw.js:2`. `index.html` = `?v=20260902a` at line 395. In lockstep. Stamp is correct: no code shipped today, no bump needed.
 
-### Plausible Analytics — P1, Jack-side action still outstanding
+### BASE_PRICES coverage (Open #22) — CLOSED
 
-Fixed Aug 31 (`script.js` variant). DevOps confirms the correct script is in `index.html:32`. The verification step is Jack: log into plausible.io and confirm the site registration is exactly `j1mmychu.github.io/peakly`. **Day 11 post-launch without confirmed analytics data is a real problem.** 60-second check.
+DevOps Sep 3 ran the authoritative check: 123 unique venue airport codes, 181 BASE_PRICES destination keys. Every venue ap resolves. Open #22 is closed. Stop reporting it.
 
-### VPS Disk Cache — Open #23 (P1, pre-Reddit gate, Day 39)
+### FOR/NAT AP_CONTINENT — CLOSED PERMANENTLY
 
-Unchanged. In-memory only. Jack SSH required.
+`FOR:"latam"` at `app.jsx:419`, `NAT:"latam"` at `app.jsx:439`. Confirmed present in both AP_CONTINENT and AIRPORT_COORDS and BASE_PRICES. This false alarm appeared in 3 consecutive Content reports. It is now closed as a finding class — the agent prompt needs a grep verification step before filing any "missing key" finding.
 
-### VPS Redeploy — Open #19 (P1, pre-Reddit gate, Day 39)
+### Open-Meteo capacity — P0 ESCALATED
 
-Unchanged. `forecast_days:14`, iOS CORS fix, alert deletion fix committed but not deployed.
+DevOps Sep 3 confirmed the math:
+- 395 venues × ~2 API calls (weather + marine for beach) = ~790 requests per cold refresh
+- 2hr TTL = 12 refreshes/day = **9,480 requests/day at zero users**
+- Free tier limit: **10,000 requests/day**
+- **Running at 95% of free tier with zero users**
 
----
+A single Reddit post with 50 simultaneous cold visitors hits Open-Meteo rate limits within the first hour. The VPS proxy cache (Open #23) is the fix. It's code-complete but not deployed — needs the same SSH session as Open #19. This is now the **highest-severity technical item for the Reddit launch**, above venue search.
 
-## Three Product Decisions — Sep 2
+### VPS Redeploy (Open #19) — P0 (re-rated from P1)
 
-### Decision 1: Agent false alarm protocol — ENFORCE starting today
+Day 41. `server/proxy.js` has committed fixes: `forecast_days:14`, iOS CORS (`capacitor://localhost`), alert deletion (`DELETE` method). Not deployed. Two-weekend scoring is off. iOS native API calls blocked. But the real escalation is the coupling to Open #23: the disk cache fix needed to survive the Reddit spike lives in the same file, needs the same `pm2 restart`. You cannot ship one without the other. The VPS SSH session is now a pre-Reddit-gate hard blocker.
 
-Three false alarms in 2 days (Balearic, unpkg, FOR/NAT). The PM has closed all three, but the cost is real: each false alarm triggers a triage cycle in this report, a response from Content/DevOps in the next cycle, and a correction finding the cycle after. In a 5-agent team producing daily reports, a 3-false-alarm streak is a signal the verification step is broken, not the agents.
+Jack: `ssh root@198.199.80.21`, `cd /opt/peakly-proxy`, copy updated `proxy.js` (or `git clone` and wire it properly this time), `pm2 restart peakly-proxy`. One session. Both Open #19 and #23 closed.
 
-**Decision: add an explicit verification step to both agent prompts.** Content and DevOps must run `grep -n "<KEY>" app.jsx | head` (or equivalent) before filing any "missing" finding. Correcting a finding in the same run it was flagged is a pass; filing a finding without checking the file is a failure.
+### Carry-over venues — P1
 
-**Jack action: edit `tasks/agents/content-data.md` and `tasks/agents/devops.md` to add the grep verification step. This prevents repeat false alarms from the same category.**
+Five paste-ready JSON objects. Day 6 (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan) and Day 4 (Portofino). All APs confirmed in AIRPORT_COORDS, AP_CONTINENT, BASE_PRICES. No technical barriers.
 
-### Decision 2: Carry-over venues — hard DEFER deadline set
+Trysil urgency: Norwegian ski pre-booking window opened Sep 1. Norwegian families locking Christmas packages act now, not in October. Every day without Trysil is lost search intent in the specific time window that justified adding it.
 
-Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan: **Day 5**. Portofino: **Day 3**. These are paste-ready JSON objects sitting in `reports/content-report.md`.
+### Venue text search — P1
 
-**Decision: hard deadline — September 7 for the first four, September 10 for Portofino.** If not pasted by those dates, the venues are formally DEFERRED to the October catalog batch and will not appear in the carry-over list again until October. The ski pre-booking window for Norway (Trysil's peak add value) runs through mid-October. After September 7, the urgency signal weakens materially.
+Not started. Deadline: September 14 (11 days). Minimum viable spec is 1–2 hours of work. A Reddit post where someone searches for their favorite resort and gets nothing is a thread killer.
 
-**Jack action: paste the 5 JSON objects from `reports/content-report.md` into `app.jsx` VENUES array. 5 minutes. Auto-push handles the rest.**
-
-### Decision 3: Venue text search — September 14 deadline is the Reddit gate
-
-Venue search is the difference between the 5K and 8K paths. A Reddit commenter who searches for a specific resort and finds nothing kills the thread. This is not a nice-to-have.
-
-**Decision: September 14 deadline holds. If venue search is not live by September 14, the Reddit gate moves to October 18 and the pre-post window shrinks from 7 to 3 days.** That's the consequence, stated plainly.
-
-Minimum viable spec (2hr build, no new dependencies):
-- Client-side `toLowerCase()` filter on `venue.title + venue.location + venue.tags.join(' ')`
-- Single text input above category pills in ExploreTab
+Spec (no new deps, no backend):
+- `toLowerCase()` client filter on `venue.title + venue.location + venue.tags.join(' ')`
+- Text input above category pills in ExploreTab
 - Shows count when active ("Showing 3 of 395")
 - Clears on category pill change
-- No backend, no fuzzy matching
-
-The build is unblocked and well-understood. The only blocker is starting it.
 
 ---
 
-## This Week's Top 3 Priorities
+## Three Product Decisions — Sep 3
 
-**1. Jack: Plausible dashboard — 60 seconds. Now 11 days dark.**
+### Decision 1: VPS SSH session — SHIP TODAY (Jack-only action)
 
-plausible.io → Sites → verify `j1mmychu.github.io/peakly`. Every product decision about the Reddit post is made blind without this.
+The VPS item has been P1 for 41 days. Today it escalates to pre-launch blocker because it couples directly to the Reddit spike survival plan.
 
-**2. Jack: Paste the 5 venues — 5 minutes, September 7 hard deadline.**
+**Decision: the VPS SSH session must happen before the Reddit post. Not "eventually." Not next sprint. Before October 11.** The consequence of skipping it: the Reddit post rate-limits Open-Meteo within the first hour, the weather data goes blank for all users, and the app shows "conditions unavailable" to the exact audience we're trying to convert. That is a catastrophic first impression with no recovery.
 
-Trysil/Camps Bay/Perhentian/Nusa/Portofino JSON objects are in `reports/content-report.md`. Paste → auto-push does the rest. Trysil is Day 5 into ski pre-booking window. After September 7, it formally defers.
+Jack action: SSH session to complete Open #19 + Open #23 together. Single `pm2 restart`. Verify with `curl -s https://peakly-api.duckdns.org/health`.
 
-**3. Build venue text search — ship before September 14.**
+### Decision 2: Carry-over venues — HARD CUT if not shipped by Sep 7
 
-Two-hour build. Client-side. No new dependencies. Spec above. September 14 is the Reddit gate. The Reddit post lives or dies on the first 20 comments, and a commenter who can't find their resort is a negative comment.
+Five venues have been paste-ready for 6 days. The September 7 deadline set in v138 holds.
+
+**Decision: if Trysil/Camps Bay/Perhentian/Nusa Lembongan are not pasted by September 7, they are formally DEFERRED to October batch and removed from carry-over tracking.** The ski pre-booking urgency argument weakens materially after that date. Portofino gets until September 10.
+
+If Jack wants a faster path: authorize the content agent to commit venue additions directly (bypasses the paste bottleneck entirely). The validate-venues pipeline already exists. The only missing piece is commit permission.
+
+**Jack action: either paste the 5 JSON objects (15 minutes, `reports/content-report.md` has them ready), or explicitly authorize the content agent to commit.**
+
+### Decision 3: Venue text search — SHIP or PUSH REDDIT TO OCTOBER 18
+
+The September 14 deadline means venue search is built and live 4 weeks before the Reddit post.
+
+**Decision: if venue search is not live by September 14, the Reddit date moves from October 11 to October 18. That is the stated consequence.** The minimum spec is small enough that missing the deadline is a scheduling failure, not a technical one.
+
+A clear decision: either this gets built by September 14, or we accept the timeline slip and tell the team now so expectations are set.
+
+---
+
+## 90-Day Success Criteria
+
+**5K path (baseline):** Reddit post + organic growth, current catalog, venue search live, clean first impression.
+
+**8K path (stretch):** Requires all of the above PLUS:
+1. VPS deployed before the post (Open #23 disk cache = capacity to survive the spike)
+2. Analytics confirmed in Plausible before the post (Jack: 60 seconds to verify site registration)
+3. Venue search live by September 14 (thread survival depends on specific resort search working)
+4. 400+ venues in catalog (carry-overs shipped)
+
+The delta between 5K and 8K is not a feature. It's operational execution: the SSH session, the paste, the analytics verification. These are all Jack-only actions that have been open for 6–41 days.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Decision | Reason |
-|---------|----------|--------|
-| Arolla Ski Area | **DEFER to October** | December season start; zero user value before November |
-| FOR/NAT AP_CONTINENT fix | **CLOSED — FALSE ALARM** | Both keys present at lines 419 and 439. Content prompt needs the grep verification step. |
-| unpkg → cdnjs CDN swap | **CLOSED — FALSE ALARM** | Already on cdnjs at lines 79-88. DevOps agent read a stale file. |
-| APNS fix commit | **DEFER** | Uncommitted since July 25 but VPS not deployed anyway; commit value is low until Open #19 lands |
-
----
-
-## October 11 Reddit Gate — Pre-Post Checklist
-
-**Date: Saturday October 11, 2026, r/skiing, 8–10am ET. Date does not move.**
-
-Pre-post gate checklist starts **October 4** (7 days out):
-- [ ] Plausible verified (Jack dashboard check — **currently unverified**)
-- [ ] VPS disk cache deployed (Jack SSH — Open #23, Day 39)
-- [ ] Venue text search live (September 14 gate — not started)
-- [ ] Hero screenshot with real NH first-snow conditions
-- [ ] Device test on iOS + Android
-- [ ] 3 mock comments answered (Mammoth? Vail? where's Park City?)
-
-**Current gate status: 0/6 confirmed.** Venue search is the only one an agent can ship directly.
-
----
-
-## Success Criteria — 90-Day Projection
-
-**5K–8K users — what gets us to 8K, not 5K:**
-
-| Factor | 5K path | 8K path |
-|--------|---------|---------|
-| Reddit post performance | 500-800 upvotes, thread dies after 48h | 800+ upvotes, venue search works in comments, two follow-up posts |
-| Venue search | Missing — first bad comment within 20 minutes | Live — "I searched for Vail and it worked" in first 10 comments |
-| Plausible data | Dark — making decisions blind | Verified — know which venue cards convert before the spike |
-| Catalog depth | 395 venues, 5 pending paste | 400+ venues, Trysil in pre-booking window |
-| Score trust | Users bounce after one uncertain forecast | Confidence badge keeps them coming back Friday after Friday |
+| Feature | Verdict | Reason |
+|---------|---------|--------|
+| Photo venue-specificity sprint (Open #20) | **DEFER** | Requires UNSPLASH_KEY Jack doesn't have wired. Not a launch blocker — generic stock doesn't kill conversions; wrong weather data does. |
+| APNS push alerts wiring (Open #21) | **DEFER** | Uncommitted local fix exists. iOS v1 gate already in place. Don't wire push until after Reddit launch proves demand. |
+| Structured data / JSON-LD (SEO) | **DEFER** | SEO is a 30-day lag signal. Reddit launch is 38 days out. Ship search first, structured data second. |
+| Static h1 fallback | **DEFER** | Same as above. SEO improvements compound post-launch; pre-launch SEO work at current zero-traffic state has zero marginal impact. |
+| Zombie branch cleanup (18 branches) | **CUT** | Cosmetic. Zero user-facing impact. DevOps can stop reporting it. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The agent team is becoming a noise machine.**
+**The Reddit post is 38 days away and the analytics setup isn't confirmed.**
 
-Three false alarms in 2 days means the PM's primary job is closing false alarms, not making product decisions. The actual product decisions this run (Plausible, venue pastes, venue search) are unchanged from v136 and v137. The agents are generating reports, but the reports aren't moving the product.
+Plausible script is live in `index.html:32`. The script variant is correct. But Jack has not confirmed the site is registered in Plausible as `j1mmychu.github.io/peakly`. If the site slug is wrong in the dashboard (a trailing slash, a different subdomain, a typo), every pageview for the last 11 days is dropping into a bucket nobody can see.
 
-The root cause: agents file findings based on pattern-matching against description files and prior reports rather than running verification steps against the actual codebase. A DevOps agent that doesn't `grep index.html` before flagging a CDN source isn't a DevOps agent — it's a memory bot.
+The Reddit post is how we get the first 1,000 users. If analytics aren't confirmed before that post, we fly blind through the only high-signal event we'll have for weeks. We cannot A/B test, can't see which venues get clicked, can't see bounce rate, can't tell if the app is actually converting.
 
-The fix is cheap: add mandatory verification steps to the agent prompts. But if it doesn't happen, the agent reports will continue to require PM triage every day even when nothing is wrong. At 100K users, that's the daily 30 minutes that should be spent on real product decisions.
+Sixty seconds. Log into plausible.io. Verify the site slug is exactly `j1mmychu.github.io/peakly`. That's it.
+
+---
+
+## Running Open Items (Priority Order)
+
+| # | Item | Status | Days Open |
+|---|------|--------|-----------|
+| #19 | VPS redeploy (`forecast_days:14`, iOS CORS, alert deletion) | ⚠️ Committed, not deployed | Day 41 |
+| #23 | VPS disk cache (Open-Meteo in-memory wipe on restart) | ⚠️ Unbuilt | Day 41 |
+| — | Carry-over venues (5, paste-ready) | ⚠️ Day 6 | Day 6 |
+| — | Venue text search | ⚠️ Not started | Sep 14 deadline |
+| — | Plausible site slug confirmation | ⚠️ Unverified | Jack action |
+| #21 | APNS fix (uncommitted local change) | ⏸ Deferred | Day 40 |
+| #20 | Photos (venue-specific) | ⏸ Deferred | Needs UNSPLASH_KEY |
+
+Items #9, #10, #11, #12, #22 are closed. Do not report them again.
