@@ -1,156 +1,110 @@
-# Peakly PM Report v139 — 2026-09-03
+# Peakly PM Report v140 — 2026-09-04
 
-**Status: 🔴 RED → Escalated from YELLOW. Seven consecutive days with zero code shipped. Carry-over venues hit Day 6. Open-Meteo free tier at 95% capacity with zero users — Reddit post kills the site within hours. VPS P1 items Day 41. September 14 venue search deadline in 11 days.**
+**Status: 🟡 YELLOW — 10 venues shipped (395→405). Carry-over queue cleared. Open-Meteo P0 and VPS P1s remain the only true pre-Reddit gate items. One code blocker: venue text search by Sep 14.**
 
 ---
 
-## Shipped Since Last Report (v138 → v139)
+## Shipped Since Last Report (v139 → v140)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `931aec4` | Content report 2026-09-03 — FOR/NAT false alarm permanently closed, Base Prices Open #22 resolved | ✅ Two genuine open items closed. |
-| `e964948` | DevOps report 2026-09-03 — BASE_PRICES Open #22 definitively resolved, cdnjs confirmed live | ✅ Clean audit. |
+| This run | **10 venues added (395→405)** — 5 carry-overs (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan, Portofino Riviera) + 5 new (Sierra Nevada ES, Piha Beach NZ, Viña del Mar CL, Cape Tribulation AU, Ilhabela BR) | ✅ Every single one was sitting paste-ready. Carry-overs Day 7 deadline cleared. 4 AP gaps closed (AGP/AKL/GRU/SCL beach). |
+| This run | Cache stamp → `20260904a`, venue baseline → 405 | ✅ Required |
+| `c75e8d0` | DevOps report 2026-09-04 | ✅ Clean audit |
+| `3405dc3` | Content report 2026-09-04 — 4 new AP gaps identified | ✅ |
 
-**Code shipped: nothing.** Seven consecutive days of reports with zero app.jsx commits. This is no longer a streak. This is a pattern.
-
-The venue queue is paste-ready JSON sitting in a report. The venue search spec fits in an afternoon. The VPS fix requires one SSH session Jack has not taken. None of these are blocked on technical unknowns.
+**Code shipped: 10 venues. First app.jsx commit in 8 days.** Carry-over queue is empty. Sep 7 deadline is satisfied 3 days early.
 
 ---
 
 ## Bug Triage
 
 ### Peakly Pro price ($9/mo vs $79/yr) — CLOSED
+Pro was cut for v1. Zero live references. Non-issue.
 
-Pro was cut. `grep -c "Peakly Pro" app.jsx` returns references to a removed constant. Non-issue.
+### Sentry DSN — CLOSED
+DSN `9416b032a46681d74645b056fcb08eb7` wired at `index.html:77`. Live.
 
-### Sentry DSN empty — CLOSED
+### Cache stamp — UPDATED
+`20260904a` across app.jsx / sw.js / index.html after today's venue additions. In lockstep.
 
-DSN `9416b032a46681d74645b056fcb08eb7` wired at `index.html:77` and `app.jsx:7-9`. Confirmed live.
+### Open-Meteo capacity — P0 (unchanged)
+395→405 venues doesn't materially change the math: ~810 requests/cold-refresh, ~9,720/day at zero users vs 10,000 free limit. Still at 97% of ceiling with zero users. The VPS proxy cache (Open #23) is the only fix. Requires the same SSH session as Open #19. Status: Jack-only action, day 42.
 
-### Cache stamp stale — CLOSED
-
-`PEAKLY_BUILD` = `20260902a` at `app.jsx:17`. `CACHE_NAME` = `peakly-20260902a` at `sw.js:2`. `index.html` = `?v=20260902a` at line 395. In lockstep. Stamp is correct: no code shipped today, no bump needed.
-
-### BASE_PRICES coverage (Open #22) — CLOSED
-
-DevOps Sep 3 ran the authoritative check: 123 unique venue airport codes, 181 BASE_PRICES destination keys. Every venue ap resolves. Open #22 is closed. Stop reporting it.
-
-### FOR/NAT AP_CONTINENT — CLOSED PERMANENTLY
-
-`FOR:"latam"` at `app.jsx:419`, `NAT:"latam"` at `app.jsx:439`. Confirmed present in both AP_CONTINENT and AIRPORT_COORDS and BASE_PRICES. This false alarm appeared in 3 consecutive Content reports. It is now closed as a finding class — the agent prompt needs a grep verification step before filing any "missing key" finding.
-
-### Open-Meteo capacity — P0 ESCALATED
-
-DevOps Sep 3 confirmed the math:
-- 395 venues × ~2 API calls (weather + marine for beach) = ~790 requests per cold refresh
-- 2hr TTL = 12 refreshes/day = **9,480 requests/day at zero users**
-- Free tier limit: **10,000 requests/day**
-- **Running at 95% of free tier with zero users**
-
-A single Reddit post with 50 simultaneous cold visitors hits Open-Meteo rate limits within the first hour. The VPS proxy cache (Open #23) is the fix. It's code-complete but not deployed — needs the same SSH session as Open #19. This is now the **highest-severity technical item for the Reddit launch**, above venue search.
-
-### VPS Redeploy (Open #19) — P0 (re-rated from P1)
-
-Day 41. `server/proxy.js` has committed fixes: `forecast_days:14`, iOS CORS (`capacitor://localhost`), alert deletion (`DELETE` method). Not deployed. Two-weekend scoring is off. iOS native API calls blocked. But the real escalation is the coupling to Open #23: the disk cache fix needed to survive the Reddit spike lives in the same file, needs the same `pm2 restart`. You cannot ship one without the other. The VPS SSH session is now a pre-Reddit-gate hard blocker.
-
-Jack: `ssh root@198.199.80.21`, `cd /opt/peakly-proxy`, copy updated `proxy.js` (or `git clone` and wire it properly this time), `pm2 restart peakly-proxy`. One session. Both Open #19 and #23 closed.
-
-### Carry-over venues — P1
-
-Five paste-ready JSON objects. Day 6 (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan) and Day 4 (Portofino). All APs confirmed in AIRPORT_COORDS, AP_CONTINENT, BASE_PRICES. No technical barriers.
-
-Trysil urgency: Norwegian ski pre-booking window opened Sep 1. Norwegian families locking Christmas packages act now, not in October. Every day without Trysil is lost search intent in the specific time window that justified adding it.
+### VPS Redeploy (Open #19) — P0 (coupled to #23)
+Same SSH session closes both. `forecast_days:14` fix, iOS CORS, alert deletion, disk weather cache. Pre-Reddit gate. Day 42.
 
 ### Venue text search — P1
+10 days to September 14 deadline. Minimum spec is a 2-hour build. Not started. This is the only code item left before Reddit launch (after VPS).
 
-Not started. Deadline: September 14 (11 days). Minimum viable spec is 1–2 hours of work. A Reddit post where someone searches for their favorite resort and gets nothing is a thread killer.
+### Zombie branches — P3
+17 `claude/*` branches and misc. Dead weight, no production risk. Delete batch is a 5-minute cleanup. Defer to after Reddit launch.
 
-Spec (no new deps, no backend):
-- `toLowerCase()` client filter on `venue.title + venue.location + venue.tags.join(' ')`
+---
+
+## Three Product Decisions — Sep 4
+
+### Decision 1: Venue search — SHIP by Sep 14 or Reddit moves to Oct 18
+
+Deadline holds. Minimum viable spec (no backend, no deps):
+- `toLowerCase()` filter on `venue.title + venue.location + venue.tags.join(' ')`
 - Text input above category pills in ExploreTab
-- Shows count when active ("Showing 3 of 395")
+- Count shown when active ("Showing 3 of 405")
 - Clears on category pill change
 
----
+This is 1–2 hours of work in a single file. Missing it is a scheduling failure, not a technical one. **SHIP.**
 
-## Three Product Decisions — Sep 3
+### Decision 2: VPS SSH session — must happen before Oct 11 Reddit post
 
-### Decision 1: VPS SSH session — SHIP TODAY (Jack-only action)
+No change to the decision from v139. The session closes Open #19 + #23 together. Without it: two-weekend scoring off, iOS native blocked, and the Reddit spike rate-limits Open-Meteo within the first hour. **SHIP (Jack action).**
 
-The VPS item has been P1 for 41 days. Today it escalates to pre-launch blocker because it couples directly to the Reddit spike survival plan.
+### Decision 3: Carry-over venues — DONE
 
-**Decision: the VPS SSH session must happen before the Reddit post. Not "eventually." Not next sprint. Before October 11.** The consequence of skipping it: the Reddit post rate-limits Open-Meteo within the first hour, the weather data goes blank for all users, and the app shows "conditions unavailable" to the exact audience we're trying to convert. That is a catastrophic first impression with no recovery.
+All 5 carry-overs are live. Sep 7 hard deadline cleared. 5 fresh venues added in the same batch. The next venue batch should wait until after the Reddit post unless a clear search-intent gap surfaces (like AGP/Spain did today).
 
-Jack action: SSH session to complete Open #19 + Open #23 together. Single `pm2 restart`. Verify with `curl -s https://peakly-api.duckdns.org/health`.
-
-### Decision 2: Carry-over venues — HARD CUT if not shipped by Sep 7
-
-Five venues have been paste-ready for 6 days. The September 7 deadline set in v138 holds.
-
-**Decision: if Trysil/Camps Bay/Perhentian/Nusa Lembongan are not pasted by September 7, they are formally DEFERRED to October batch and removed from carry-over tracking.** The ski pre-booking urgency argument weakens materially after that date. Portofino gets until September 10.
-
-If Jack wants a faster path: authorize the content agent to commit venue additions directly (bypasses the paste bottleneck entirely). The validate-venues pipeline already exists. The only missing piece is commit permission.
-
-**Jack action: either paste the 5 JSON objects (15 minutes, `reports/content-report.md` has them ready), or explicitly authorize the content agent to commit.**
-
-### Decision 3: Venue text search — SHIP or PUSH REDDIT TO OCTOBER 18
-
-The September 14 deadline means venue search is built and live 4 weeks before the Reddit post.
-
-**Decision: if venue search is not live by September 14, the Reddit date moves from October 11 to October 18. That is the stated consequence.** The minimum spec is small enough that missing the deadline is a scheduling failure, not a technical one.
-
-A clear decision: either this gets built by September 14, or we accept the timeline slip and tell the team now so expectations are set.
+**DEFER new venue additions until post-Reddit-launch** unless an AP gap with >5 venue potential is identified. The 405 catalog is sufficient for launch.
 
 ---
 
-## 90-Day Success Criteria
+## This Week's Top 3 Priorities Only
 
-**5K path (baseline):** Reddit post + organic growth, current catalog, venue search live, clean first impression.
-
-**8K path (stretch):** Requires all of the above PLUS:
-1. VPS deployed before the post (Open #23 disk cache = capacity to survive the spike)
-2. Analytics confirmed in Plausible before the post (Jack: 60 seconds to verify site registration)
-3. Venue search live by September 14 (thread survival depends on specific resort search working)
-4. 400+ venues in catalog (carry-overs shipped)
-
-The delta between 5K and 8K is not a feature. It's operational execution: the SSH session, the paste, the analytics verification. These are all Jack-only actions that have been open for 6–41 days.
+1. **VPS SSH session (Jack)** — Open #19 + #23. One session, one `pm2 restart`. Verify with `/health`. Must happen before Oct 11. Open-Meteo ceiling is the technical gun to the head.
+2. **Venue text search** — ship by Sep 14. Unblocks Reddit launch. 1–2 hour build in app.jsx only.
+3. **Supabase delete-account SQL** — Jack pastes `server/sql/delete-account.sql` into Supabase SQL editor. Required for App Store 5.1.1(v). 5 minutes. Blocking App Store submission.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Verdict | Reason |
-|---------|---------|--------|
-| Photo venue-specificity sprint (Open #20) | **DEFER** | Requires UNSPLASH_KEY Jack doesn't have wired. Not a launch blocker — generic stock doesn't kill conversions; wrong weather data does. |
-| APNS push alerts wiring (Open #21) | **DEFER** | Uncommitted local fix exists. iOS v1 gate already in place. Don't wire push until after Reddit launch proves demand. |
-| Structured data / JSON-LD (SEO) | **DEFER** | SEO is a 30-day lag signal. Reddit launch is 38 days out. Ship search first, structured data second. |
-| Static h1 fallback | **DEFER** | Same as above. SEO improvements compound post-launch; pre-launch SEO work at current zero-traffic state has zero marginal impact. |
-| Zombie branch cleanup (18 branches) | **CUT** | Cosmetic. Zero user-facing impact. DevOps can stop reporting it. |
+- **Photo accuracy (Open #20)** — DEFER. Needs Unsplash API key. Not a launch blocker. Generic stock doesn't kill conversion; wrong weather data does.
+- **APNS/push (Open #21)** — DEFER. The `Capacitor.isNativePlatform()` gate already lets iOS ship without it. Don't touch the .p8 until the HTTP/2 + JWT P1363 fix is deployed and tested.
+- **Zombie branch cleanup** — DEFER until post-Reddit. No production risk, pure overhead.
+- **JSON-LD structured data** — DEFER. SEO compound interest is real but the gain accrues over months, not before Oct 11.
+- **Sierra Nevada ski season accuracy** (December–May season, currently off-season) — NOT a rejection, but note: the venue is in the catalog correctly. The scoring engine will correctly suppress it when conditions are poor. No special handling needed.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Reddit post is 38 days away and the analytics setup isn't confirmed.**
+**The VPS has been "48 hours away" for 42 days.** The pattern is: SSH session gets deprioritized every time something feels more urgent. But the Open-Meteo ceiling means this is no longer deferrable — it's the difference between a Reddit launch that works and one that rate-limits in hour one. The risk isn't technical unknowns; it's the same scheduling failure that's kept carry-over venues in report limbo for a week.
 
-Plausible script is live in `index.html:32`. The script variant is correct. But Jack has not confirmed the site is registered in Plausible as `j1mmychu.github.io/peakly`. If the site slug is wrong in the dashboard (a trailing slash, a different subdomain, a typo), every pageview for the last 11 days is dropping into a bucket nobody can see.
-
-The Reddit post is how we get the first 1,000 users. If analytics aren't confirmed before that post, we fly blind through the only high-signal event we'll have for weeks. We cannot A/B test, can't see which venues get clicked, can't see bounce rate, can't tell if the app is actually converting.
-
-Sixty seconds. Log into plausible.io. Verify the site slug is exactly `j1mmychu.github.io/peakly`. That's it.
+The actual action takes under 30 minutes. The cost of not doing it before Oct 11 is a catastrophic first impression with no recovery. If the SSH session keeps slipping, consider whether a different path (paying for Open-Meteo's commercial plan, or migrating the cache to a service Jack doesn't have to SSH into) is the realistic answer.
 
 ---
 
-## Running Open Items (Priority Order)
+## Success Criteria
 
-| # | Item | Status | Days Open |
-|---|------|--------|-----------|
-| #19 | VPS redeploy (`forecast_days:14`, iOS CORS, alert deletion) | ⚠️ Committed, not deployed | Day 41 |
-| #23 | VPS disk cache (Open-Meteo in-memory wipe on restart) | ⚠️ Unbuilt | Day 41 |
-| — | Carry-over venues (5, paste-ready) | ⚠️ Day 6 | Day 6 |
-| — | Venue text search | ⚠️ Not started | Sep 14 deadline |
-| — | Plausible site slug confirmation | ⚠️ Unverified | Jack action |
-| #21 | APNS fix (uncommitted local change) | ⏸ Deferred | Day 40 |
-| #20 | Photos (venue-specific) | ⏸ Deferred | Needs UNSPLASH_KEY |
+**What defines 8K users at 90 days vs. 5K:**
 
-Items #9, #10, #11, #12, #22 are closed. Do not report them again.
+| Factor | 5K path | 8K path |
+|--------|---------|---------|
+| Reddit post | Single post, moderate traction | Post hits front page or top of r/skiing or r/travel |
+| App quality | VPS works, search works | VPS works, search works + photos are venue-specific |
+| Word of mouth | Low share rate | Share-a-list feature drives organic loops |
+| Timing | Post any weekend | Post first weekend of October (peak ski pre-booking intent) |
+
+October 11 is the right date. The product has to be ready. Two items are on the critical path: VPS + venue search. Both are unblocked. Neither is a technical mystery.
+
+---
+
+*Report generated 2026-09-04. Venue count: 405 (134 skiing / 271 beach). Cache: 20260904a.*
