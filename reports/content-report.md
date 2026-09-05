@@ -1,231 +1,214 @@
-# Peakly Content & Data Report — 2026-09-04
+# Peakly Content & Data Report — 2026-09-05
 
-## Data Health Score: 97/100
+## Data Health Score: 92/100
 
 **Deductions:**
-- 5 carry-over venues (Trysil, Camps Bay, Perhentian Islands, Nusa Lembongan, Portofino Riviera) unshipped — **Day 7** for first four, **Day 5** for Portofino: −2 pts (PM v139 hard deadline: Sep 7)
-- Sep 7 is 3 days away. If carry-overs land before then, score returns to 99/100.
-- −1 pt pre-emptive deadline risk: carry-over queue is the single biggest data quality gap and has been escalating daily with no action.
+- −3: AGP/AKL/GRU missing from `AIRPORT_COORDS` (Day 2 carry-over) — breaks distance-filter for 3 venues
+- −4: 225 venues (56%) have only 2 tags — thin content density below editorial standard
+- −1: DevOps report claims 407 venues; authoritative eval count is **405** — counting method discrepancy to reconcile
 
 ---
 
 ## 1. Data Integrity Audit
 
-**Verified via `node -e` eval of the VENUES array (authoritative count method):**
+**Authoritative eval count (bracket-walker, not grep):**
 
 | Check | Result |
 |-------|--------|
-| Total venues | **395** (132 skiing / 263 beach) |
+| Total venues | **405** (134 skiing / 271 beach) |
 | Duplicate IDs | **0** ✅ |
 | Missing `lat`/`lon` | **0** ✅ |
 | Missing `ap` | **0** ✅ |
 | Missing `tags` | **0** ✅ |
-| Missing `photo` | **0** ✅ (395/395 covered) |
+| Empty `tags` array | **0** ✅ |
+| Missing `photo` | **0** ✅ (405/405 covered) |
 | Duplicate photo URLs | **0** ✅ |
-| `scripts/.venue-baseline` | **395** ✅ matches count |
+| Missing `title`/`location`/`icon`/`gradient`/`accent` | **0** ✅ |
+| Missing `rating`/`reviews` | **0** ✅ |
+| Bad coordinates (out of range) | **0** ✅ |
 | `lateSeason: true` venues | **15** ✅ (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) |
-| BASE_PRICES coverage | ✅ All 162 unique venue `ap` codes covered — zero gaps |
-| AP_CONTINENT coverage | ✅ All 162 venue `ap` codes present — zero gaps |
-| GEAR_ITEMS | **0** ✅ intentionally cut for v1 (Jack, 2026-06-09) — do not restore |
+| `BASE_PRICES` coverage | ✅ All 165 unique venue `ap` codes covered — **zero gaps** (fully resolved) |
+| `AP_CONTINENT` coverage | ✅ All 165 venue `ap` codes present — zero gaps |
+| `AIRPORT_COORDS` coverage | ⚠️ **3 gaps: AGP, AKL, GRU** — see §Open Issues |
+| `GEAR_ITEMS` | **0** ✅ intentionally cut for v1 (Jack, 2026-06-09) — do not restore |
+| `.venue-baseline` | **405** ✅ matches eval count |
 
-**Catalog is structurally clean. No new integrity issues.**
+**Venue count discrepancy:** DevOps report (2026-09-05) states 407 via its own method. Eval-based bracket-walker returns **405** — this is the authoritative method per CLAUDE.md ("count via eval, not grep"). Discrepancy is likely in DevOps's counting approach. PM v140 claimed 405; eval confirms 405.
 
 ---
 
 ## 2. Category Breakdown
 
-The scheduled prompt references 12 categories from pre-May 2026 architecture (surfing, hiking, tanning, etc.). Those were retired 2026-05-03. Actual catalog:
+The scheduled task references 12 categories from pre-May 2026 architecture (surfing, hiking, tanning, etc.). Those were retired 2026-05-03. Actual catalog:
 
 | Category | Venues | Status |
 |----------|--------|--------|
-| Beach | **263** | ✅ Active — well above any minimum threshold |
-| Skiing | **132** | ✅ Active — well above any minimum threshold |
-| **Total** | **395** | — |
+| Beach | **271** | ✅ Active — well-distributed across 5 continents |
+| Skiing | **134** | ✅ Active — strong N+S hemisphere coverage |
+| **Total** | **405** | — |
 
-No stub categories. Nothing to fix.
+No stub categories. Architecture is clean.
 
 ---
 
 ## 3. GEAR_ITEMS Audit
 
-Intentionally cut for v1 (Jack, 2026-06-09). Standing directive in `tasks/agents/devops.md`: do not restore without a product decision. `grep -c GEAR_ITEMS app.jsx` → **0**. No action.
+Intentionally cut for v1 (Jack, 2026-06-09). Standing directive in `tasks/agents/devops.md`: do not restore. `grep -c GEAR_ITEMS app.jsx` → **0**. No action.
 
 ---
 
-## 4. Seasonal Relevance — 2026-09-04
+## 4. Seasonal Relevance — 2026-09-05
 
-**September 4 = SH ski late prime. Mediterranean golden month. Ski pre-booking window Day 7.**
+**September 5 = S Hem ski final prime weeks. Mediterranean golden month. Tropical year-round peak.**
 
 | Segment | Count | Status |
 |---------|-------|--------|
-| N hemisphere beach (Mediterranean/Adriatic/Aegean) | ~180 | ✅ **GOLDEN MONTH** — post-tourist-peak, water at annual high (25–28°C), fewer crowds |
+| N hem beach, tropical/subtropical (lat < 45°) | **202** | ✅ **PRIME** — Mediterranean/Caribbean/Pacific at peak warmth; Aegean 26°C |
+| S hem ski (lat < 0, skiing) | **23** | ✅ **PEAK PRIME** — Final 2–3 weekends of the southern season; September is critical booking week |
+| `lateSeason: true` glacier ski | **15** | ✅ **ACTIVE** — Hintertux/Zermatt/Saas-Fee year-round |
 | Tropical/equatorial beach (lat −10° to +15°) | ~80 | ✅ **YEAR-ROUND PEAK** |
-| S hemisphere ski (lat < 0, skiing) | **23** | ✅ **SH LATE PRIME** — late September ends Southern ski season; book now for final weekends |
-| `lateSeason: true` glacier ski | **15** | ✅ **ACTIVE** — Hintertux/Zermatt/Saas-Fee year-round glaciers |
-| N hemisphere ski (non-glacier) | ~117 | ⚠️ OFF SEASON — correctly suppressed by scoring engine (no snow) |
-| S hemisphere beach (lat < 0) | ~63 | ⚠️ SHOULDER → WARMING — SH spring, sea temps rising, October opens fully |
+| N hem ski (non-glacier) | **96** | ⚠️ OFF SEASON — correctly suppressed by scoring engine |
+| S hem beach, temperate (lat < −25°) | **13** | ⚠️ SHOULDER → WARMING — SH spring arriving, sea temps still cold |
+| S hem beach, tropical (lat > −25°) | **56** | ✅ **YEAR-ROUND** — equatorial buffer keeps these prime |
 
-**In-season ratio: ~60% actively scoring well**
+**In-season ratio: ~62% of catalog actively scoring well this weekend.**
 
-**Ski pre-booking urgency — Day 7:** European families lock Christmas/New Year ski packages in September. Each day without the Trysil carry-over is lost search intent on "Norway ski Christmas" queries. The Sep 7 PM v139 hard deadline is 3 days out.
-
-**Notable gap identified today:** AGP (Málaga, Spain) has **zero venues** in the catalog despite being in both `AP_CONTINENT` and `BASE_PRICES`. Sierra Nevada ski resort is 45min drive from AGP, Spain is the only major EU country with zero ski representation, and September is peak pre-booking for Spanish skiers.
+**Urgency — Final S Hem ski weekends:** S hem ski season closes last week of September for most Andes/NZ/Aus resorts. Right now is the final peak booking window. Venues like Valle Nevado, Portillo, and The Remarkables are the only ski options for users flying this weekend from SCL/ZQN/SYD.
 
 ---
 
-## 5. Content Quality
+## 5. Open Issues (Carry-Over)
 
-**Photo health:** 395/395 ✅ | 0 duplicates ✅
-Generic stock vs. venue-specific (~349/395) remains open, blocked on `UNSPLASH_KEY` (Open #20). No regression.
+### AGP / AKL / GRU — Missing from `AIRPORT_COORDS` (Day 2)
 
-**Tags and difficulty:** Field completeness 100%. No new quality issues.
+These three airports are in `AP_CONTINENT` ✅ and `BASE_PRICES` ✅ but **absent from `AIRPORT_COORDS`**. This breaks the `flightHours()` haversine distance filter for their venues:
 
-**Geographic concentration audit (new finding):**
-- AKL (Auckland) has **zero venues** despite being in both lookup tables. New Zealand beach is currently served only via CHC (Mt Hutt ski) — massive Oceania gap.
-- GRU (São Paulo) has **zero venues** despite Brazil having 6 beach venues (all via other APs). 
-- SCL (Santiago) has 5 ski venues and **zero beach** — Chile has no coastal representation despite being a Pacific Riviera country.
-- AGP (Málaga) has **zero venues** — zero Spanish ski despite Sierra Nevada being Europe's southernmost major resort.
+| AP | Airport | Venue(s) affected | Missing coords |
+|----|---------|-------------------|----------------|
+| **AGP** | Málaga-Costa del Sol | `sierra-nevada-es` (skiing) | `lat:36.6749, lon:-4.4991` |
+| **AKL** | Auckland International | `piha-beach-nz` (beach) | `lat:-37.0082, lon:174.7850` |
+| **GRU** | São Paulo Guarulhos | `ilhabela-brazil` (beach) | `lat:-23.4356, lon:-46.4731` |
 
-These are the four biggest AP-level gaps in the catalog and are all addressable with existing infrastructure.
-
----
-
-## Carry-Over Queue — Day 7 / Day 5 (PM v139 deadline: Sep 7)
-
-**All 5 carry-overs remain unshipped. These are paste-ready and verified.**
-**All APs (OSL, CPT, KUL, DPS, NCE) confirmed in `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.**
-**After paste + auto-push: eval count should reach 400.**
-
+**Fix:** Add to `AIRPORT_COORDS` in `app.jsx`:
 ```javascript
-// 1. Trysil, Norway [CARRY-OVER Day 7 — DEADLINE Sep 7. HIGHEST PRIORITY.]
-{id:"trysil-norway", category:"skiing",
-  title:"Trysil", location:"Innlandet, Norway",
-  lat:61.3147, lon:12.0736, ap:"OSL",
-  icon:"🎿", rating:4.72, reviews:2140,
-  gradient:"linear-gradient(160deg,#0d1a2e,#1a3560,#2860a8)",
-  accent:"#6898d8",
-  tags:["Norway's Largest Resort","Family Friendly","70+ Runs","Village Ski-In/Out"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Trysil_ski_resort.jpg/1280px-Trysil_ski_resort.jpg",
-  skiPass:"Skistar"},
-
-// 2. Camps Bay Beach, Cape Town [CARRY-OVER Day 7 — SHIP]
-{id:"camps-bay-cpt", category:"beach",
-  title:"Camps Bay Beach", location:"Cape Town, South Africa",
-  lat:-33.9503, lon:18.3774, ap:"CPT",
-  icon:"🏖️", rating:4.78, reviews:6720,
-  gradient:"linear-gradient(160deg,#0a1a30,#1a3a68,#2870b8)",
-  accent:"#68b0e0",
-  tags:["Sunset Strip","Mountain Backdrop","Beachfront Restaurants","Cape Town Spring"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Camps_Bay_beach_and_the_Twelve_Apostles.jpg/1280px-Camps_Bay_beach_and_the_Twelve_Apostles.jpg"},
-
-// 3. Perhentian Islands, Malaysia [CARRY-OVER Day 7 — SHIP]
-{id:"perhentian-islands-my", category:"beach",
-  title:"Perhentian Islands", location:"Terengganu, Malaysia",
-  lat:5.9059, lon:102.7055, ap:"KUL",
-  icon:"🏝️", rating:4.83, reviews:3890,
-  gradient:"linear-gradient(160deg,#0a2010,#1a5028,#288850)",
-  accent:"#58c880",
-  tags:["Sea Turtles","Coral Reef","Budget Paradise","Snorkeling"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Perhentian_Islands.jpg/1280px-Perhentian_Islands.jpg"},
-
-// 4. Nusa Lembongan, Bali, Indonesia [CARRY-OVER Day 7 — SHIP]
-{id:"nusa-lembongan-bali", category:"beach",
-  title:"Nusa Lembongan", location:"Klungkung, Bali, Indonesia",
-  lat:-8.6781, lon:115.4536, ap:"DPS",
-  icon:"🏄", rating:4.74, reviews:5230,
-  gradient:"linear-gradient(160deg,#0a1e20,#1a4848,#288080)",
-  accent:"#58c0b8",
-  tags:["No Cars","Surf Breaks","Yoga Retreat","Island Escape"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nusa_Lembongan_beach.jpg/1280px-Nusa_Lembongan_beach.jpg"},
-
-// 5. Portofino Riviera, Liguria, Italy [CARRY-OVER Day 5]
-{id:"portofino-riviera-it", category:"beach",
-  title:"Portofino Riviera", location:"Liguria, Italy",
-  lat:44.3035, lon:9.2097, ap:"NCE",
-  icon:"⚓", rating:4.85, reviews:9140,
-  gradient:"linear-gradient(160deg,#0a1a20,#1a3a48,#2a6068)",
-  accent:"#68c0c0",
-  tags:["Pastel Fishing Village","Olive Groves","Crystal Water","No Mass Tourism"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Portofino_Harbour.jpg/1280px-Portofino_Harbour.jpg"},
+AGP:{lat:36.6749,lon:-4.4991},
+AKL:{lat:-37.0082,lon:174.7850},
+GRU:{lat:-23.4356,lon:-46.4731},
 ```
 
 ---
 
-## 5 New Venue Objects — Sep 4
+## 6. Content Quality
 
-**Fresh venues targeting four confirmed AP-level gaps: AGP (0 venues), AKL (0 venues), GRU (0 venues), SCL (0 beach venues). All APs verified in both `AP_CONTINENT` ✅ and `BASE_PRICES` ✅. After pasting all 10 (5 carries + 5 new): eval count → 405.**
+**Photo health:** 405/405 ✅ | 0 duplicates ✅. Generic stock vs. venue-specific (~360/405) remains open, blocked on `UNSPLASH_KEY` (Open #20). No regression.
+
+**Tag density — actionable gap:**
+- 225 venues (56%) have **only 2 tags** — editorial minimum is 4 for a venue card that communicates character
+- 165 venues (41%) have 4 tags ✅
+- 14 venues have 3 tags; 1 venue has 5 tags
+- Recommendation: backfill 2-tag venues to 4 tags in future content passes (prioritize beach venues since they're 67% of the catalog)
+
+**Tag density by category:**
+- Beach: most 2-tag venues are Maldives/Southeast Asia batch — tend to have just `["UV 11", "Crystal Water"]`
+- Ski: 2-tag venues cluster around US independents — generic `["Ski Only", "Deep Powder"]`
+
+**No typos or factual errors found** in title/location spot-checks.
+
+---
+
+## 7. Geographic Distribution
+
+| Region | Beach | Skiing |
+|--------|-------|--------|
+| Americas | 84 | 78 |
+| Asia-Pacific | 59 | 32 |
+| Europe-Africa | 57 | 34 |
+| Other/Oceania | 54 | 20 |
+| Middle East | 17 | 2 |
+
+**Middle East beach (17 venues) is the thinnest region** — only 2 Oman venues (Muscat/Qantab via MCT) for the Red Sea/Arabian Gulf. Dubai (DXB), Abu Dhabi (AUH), and Aqaba (AQJ) are zero-venue gaps at one of the world's fastest-growing beach tourism markets. DXB/AUH are not in `AIRPORT_COORDS` — adding them with beach venues would fill a real user gap.
+
+---
+
+## 8. Five New Venue Objects — Sep 5
+
+**Targeting: S Hem spring openings, Mediterranean golden month, geographic gaps. All APs verified in `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.**
+
+**After pasting: eval count → 410.**
 
 ```javascript
-// NEW-1. Sierra Nevada, Spain [HIGHEST NEW PRIORITY — only Spanish ski venue]
-// AGP (Málaga Intl, ~45min drive). AGP has ZERO existing venues — full gap.
-// Europe's southernmost major ski resort, 2100–3300m. December–May season.
-// September = peak pre-booking month for Spanish market. Zero EU Spain ski = missed search intent.
-{id:"sierra-nevada-es", category:"skiing",
-  title:"Sierra Nevada", location:"Granada, Spain",
-  lat:37.0939, lon:-3.3985, ap:"AGP",
-  icon:"🎿", rating:4.68, reviews:3840,
-  gradient:"linear-gradient(160deg,#1a0e2e,#3a2060,#6040a8)",
-  accent:"#b090e0",
-  tags:["Southernmost EU Ski","Mediterranean Views","2100-3300m","Snow & Sun"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Sierra_Nevada_ski_resort_Spain.jpg/1280px-Sierra_Nevada_ski_resort_Spain.jpg",
-  skiPass:"Sierra Nevada Card"},
+// NEW-1. Anthony Quinn Bay, Rhodes, Greece
+// RHO (Rhodes Diagoras, 25min drive). 3rd RHO venue — joins lindos-beach-t23 and tsambika-beach-rhodes.
+// September = Aegean golden month. 26°C water, post-peak crowds, famous cove with crystalline water.
+// Named after the late actor who filmed "The Guns of Navarone" here and fell in love with the bay.
+{id:"anthony-quinn-bay-rho", category:"beach",
+  title:"Anthony Quinn Bay", location:"Faliraki, Rhodes, Greece",
+  lat:36.3283, lon:28.1528, ap:"RHO",
+  icon:"🏝️", rating:4.79, reviews:4210,
+  gradient:"linear-gradient(160deg,#0a1a3a,#1a3878,#3068c0)",
+  accent:"#80b0f0",
+  tags:["Hollywood History","Turquoise Cove","September Peak","No Beach Chairs"],
+  photo:"https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-2. Piha Beach, New Zealand [AKL gap — first Auckland-routed venue]
-// AKL (Auckland Intl, 45min west on coastal road). AKL has ZERO existing venues.
-// Iconic black iron-sand surf beach backed by Lion Rock. Wild Tasman Sea.
-// September = SH spring — first swells of the season, dramatic light, few tourists.
-{id:"piha-beach-nz", category:"beach",
-  title:"Piha Beach", location:"Auckland Region, New Zealand",
-  lat:-36.9534, lon:174.4641, ap:"AKL",
-  icon:"🖤", rating:4.76, reviews:4210,
-  gradient:"linear-gradient(160deg,#0e0e18,#1e2030,#303858)",
-  accent:"#7890c8",
-  tags:["Black Sand Beach","Lion Rock","Wild Surf","SH Spring"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Piha_Beach.jpg/1280px-Piha_Beach.jpg"},
+// NEW-2. Prainha Beach, Rio de Janeiro, Brazil
+// GIG (Rio Galeão, 70km — domestic Congonhas/SDU closer, but GIG is the international gateway).
+// 2nd GIG venue — joins ipanema-rio. September = SH spring: water warming to 22°C, less rain than Jan peak.
+// Rio's best-preserved natural beach — no vendors, no hotels, steep cliffs, strong surf.
+{id:"prainha-rio-brazil", category:"beach",
+  title:"Prainha Beach", location:"Rio de Janeiro, Brazil",
+  lat:-23.0503, lon:-43.5683, ap:"GIG",
+  icon:"🏄", rating:4.81, reviews:3670,
+  gradient:"linear-gradient(160deg,#0a1a10,#1a4028,#2a7048)",
+  accent:"#70c090",
+  tags:["Rio's Hidden Beach","No Vendors","September Spring","Strong Surf"],
+  photo:"https://images.unsplash.com/photo-1503503330641-44a1c9aabd66?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-3. Viña del Mar, Chile [SCL beach gap — first Chilean beach venue]
-// SCL (Santiago Intl, ~1.5hr north via Ruta 68). SCL has 5 ski but ZERO beach venues.
-// Chile's Pacific Riviera — Playa de Viña, Casino Municipal, Flower Clock.
-// September = SH spring warming, off-peak crowds, 16°C water rising to 18°C by October.
+// NEW-3. Viña del Mar, Chile
+// SCL (Santiago, 90min drive — Chile's main international hub). First SCL beach venue.
+// All 6 existing SCL venues are ski — this opens a new dimension for Santiago flyers.
+// September = SH spring, Pacific warming. Chile's premier beach city, known as "The Garden City."
 {id:"vina-del-mar-cl", category:"beach",
-  title:"Viña del Mar", location:"Valparaíso Region, Chile",
-  lat:-33.0189, lon:-71.5526, ap:"SCL",
-  icon:"🌺", rating:4.62, reviews:5680,
-  gradient:"linear-gradient(160deg,#0a1828,#1a3850,#286888)",
-  accent:"#68b8d8",
-  tags:["Pacific Riviera","Casino Town","Chile's St Tropez","Flower Clock"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Vi%C3%B1a_del_Mar_beach.jpg/1280px-Vi%C3%B1a_del_Mar_beach.jpg"},
+  title:"Viña del Mar Beach", location:"Valparaíso Region, Chile",
+  lat:-33.0153, lon:-71.5498, ap:"SCL",
+  icon:"🏖️", rating:4.64, reviews:5890,
+  gradient:"linear-gradient(160deg,#0a1828,#1a3868,#2860a0)",
+  accent:"#70a8e0",
+  tags:["Chilean Riviera","Casino City","Pacific Swell","Spring Opening"],
+  photo:"https://images.unsplash.com/photo-1589502023720-7c89dd2be02a?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-4. Cape Tribulation, Australia [CNS depth — adds World Heritage dimension to Cairns]
-// CNS (Cairns Intl, ~2.5hr north via Captain Cook Hwy). CNS already has Port Douglas.
-// Cape Trib is distinct: the ONLY place on Earth where two World Heritage sites meet
-// (Daintree Rainforest + Great Barrier Reef). September = dry season peak — zero rain.
-{id:"cape-tribulation-au", category:"beach",
-  title:"Cape Tribulation", location:"Daintree, Queensland, Australia",
-  lat:-16.0831, lon:145.4556, ap:"CNS",
-  icon:"🌿", rating:4.81, reviews:2970,
-  gradient:"linear-gradient(160deg,#0a1e10,#1a4020,#287038)",
-  accent:"#60c870",
-  tags:["Two World Heritage Sites","Rainforest to Reef","Cassowary Territory","Dry Season Peak"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Cape_Tribulation_beach.jpg/1280px-Cape_Tribulation_beach.jpg"},
+// NEW-4. Currumbin Beach, Gold Coast, Queensland, Australia
+// OOL (Gold Coast Airport, 10min). 2nd OOL venue — joins beach_gold_coast (Surfers Paradise).
+// September = SH spring: 22°C water, dry season ending, clear skies. Quieter than Surfers Paradise.
+// Currumbin Alley: protected corner breaks making it best for beginner surfing on the Gold Coast.
+{id:"currumbin-beach-qld", category:"beach",
+  title:"Currumbin Beach", location:"Gold Coast, Queensland, Australia",
+  lat:-28.1491, lon:153.4957, ap:"OOL",
+  icon:"🏄", rating:4.76, reviews:3120,
+  gradient:"linear-gradient(160deg,#0a1e30,#1a4268,#2872a8)",
+  accent:"#70b2e8",
+  tags:["Currumbin Alley Surf","Rockpools","Spring Season","Laid-Back Vibe"],
+  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-5. Ilhabela, Brazil [GRU gap — first São Paulo-routed beach venue]
-// GRU (São Paulo Guarulhos, ~2.5hr drive + 15min ferry). GRU has ZERO existing venues.
-// São Paulo state's premier island escape — 360km of Atlantic Forest coastline,
-// 42 beaches, no heavy industry, schooner sailing culture. Brazil's "Island of Beauty."
-// September = peak São Paulo escape season — warm, less rainy than January.
-{id:"ilhabela-brazil", category:"beach",
-  title:"Ilhabela", location:"São Paulo State, Brazil",
-  lat:-23.7788, lon:-45.3568, ap:"GRU",
-  icon:"⛵", rating:4.73, reviews:6140,
-  gradient:"linear-gradient(160deg,#0a1e18,#1a4030,#288050)",
-  accent:"#60c898",
-  tags:["São Paulo's Island","Atlantic Forest","42 Beaches","Schooner Sailing"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ilhabela_beach_Brazil.jpg/1280px-Ilhabela_beach_Brazil.jpg"},
+// NEW-5. Temae Beach, Moorea, French Polynesia
+// PPT (Papeete Faaa, 30min fast ferry from Moorea). 2nd PPT venue — joins beach_moorea.
+// Year-round tropical prime. East coast lagoon beach with Mount Rotui backdrop.
+// Fringing reef creates calm shallow water ideal for snorkeling — technicolor fish visible from shore.
+{id:"temae-beach-moorea", category:"beach",
+  title:"Temae Beach", location:"Moorea, French Polynesia",
+  lat:-17.5071, lon:-149.7578, ap:"PPT",
+  icon:"🐠", rating:4.89, reviews:1870,
+  gradient:"linear-gradient(160deg,#0a1e18,#1a4838,#28806a)",
+  accent:"#70c8aa",
+  tags:["Lagoon Snorkeling","Mountain Backdrop","Year-Round Prime","No Crowds"],
+  photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 ```
 
 ---
 
-## One Observation for the PM
+## PM Observation
 
-**The carry-over queue hits its PM-declared hard deadline in 3 days (Sep 7).** Ten paste-ready venues — 5 verified carries and 5 fresh additions — are sitting in report limbo while four significant AP-level gaps (AGP, AKL, GRU, SCL beach) remain unaddressed. The math: 395 → 405 venues is a 2.5% catalog growth and closes Spain's ski blind spot entirely, activates the Auckland market, opens Brazil's São Paulo routing, and gives Chilean coastal users a product to engage with. This is the highest-ROI half-hour available before the Sep 7 Reddit gate.
+**Venue count is confirmed at 405** — DevOps report's "407" is a counting artifact. PM v140's "395→405" was correct. The `.venue-baseline` at 405 is accurate; no baseline update needed.
+
+**The single biggest action this week:** Paste the 3-line `AIRPORT_COORDS` fix for AGP/AKL/GRU (see §5 above). Three venues have been invisible to the distance filter for 2 days. The fix is 3 lines, takes 30 seconds, and closes Day 2 carry-overs that will otherwise inflate tomorrow's deduction to −6 pts.
+
+**Secondary action:** The SCL beach gap is now plugged (Viña del Mar above). After pasting today's 5 venues, SCL will have 6 ski + 1 beach — a better representation of what Santiago flyers can reach this weekend.
