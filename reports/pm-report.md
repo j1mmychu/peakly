@@ -1,82 +1,107 @@
-# Peakly PM Report v141 — 2026-09-05
+# Peakly PM Report v142 — 2026-09-06
 
-**Status: 🟡 YELLOW — 5 new venues landed (RHO/GIG/SCL/OOL/PPT). BASE_PRICES gap fully closed. Venue count discrepancy between agents (405 vs 407) needs a single authoritative resolution. VPS Day 43 unchanged. 9 days to venue search deadline.**
+**Status: 🔴 RED — Nothing shipped to app.jsx in 48 hours. AGP/AKL/GRU distance filter broken for Day 3. VPS Day 44. Venue search deadline is Sep 14 — 8 days. The critical path is stalled.**
 
 ---
 
-## Shipped Since Last Report (v140 → v141)
+## Shipped Since Last Report (v141 → v142)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `2c52496` | Content report Sep 5 — 5 new venues (Rhodes GR, Rio GIG, Santiago SCL, Gold Coast OOL, Papeete PPT), AGP/AKL/GRU AIRPORT_COORDS fix noted as Day 2 carry-over | ✅ Right venues, right regions |
-| `ef9a777` | DevOps report Sep 5 — venue count discrepancy surfaced (407 vs 405), 18 zombie branches, BASE_PRICES 183 airports confirmed | ✅ Audit is clean |
+| `307b403` | Content report Sep 6 — 91/100, AGP/AKL/GRU Day 3, Famara ACE fresh pick, 4 re-proposals from Sep 5 | ✅ Audit is useful |
+| `4d86549` | DevOps report Sep 6 — Open #19/#21/#23 Day 44, 18 zombie branches, Open-Meteo math unchanged | ✅ Nothing new to add |
 
-**5 new venues from Content's agent run today (RHO/GIG/SCL/OOL/PPT).** That's the 5 new adds per Content's report. Catalog now officially 405 per bracket-walker eval (authoritative) — DevOps DevOps shows 407 via its own method, a 2-venue discrepancy that needs a single truth source reconciliation.
-
-**Big win: BASE_PRICES gap is fully closed.** Content confirms all 165 unique venue `ap` codes are now covered — zero gaps. This was at 68% coverage in July. Deal score is now honest across the full catalog.
+**Zero app.jsx commits in 48 hours.** Last code change: `9c2c198` (Sep 4 — PM v140, 10 venues). No regressions, but no progress either. The Sep 5 Content batch (4 venues) was never pasted. The AGP/AKL/GRU fix (3 lines, Day 2 when flagged yesterday) is still open. Both would have taken under 5 minutes combined.
 
 ---
 
 ## Bug Triage
 
-### Venue count discrepancy — P2 (NEW)
-DevOps says 407, Content says 405, PM v140 claimed 405. The eval-based bracket-walker is the authoritative method per CLAUDE.md. Content's eval says 405. DevOps says its eval shows 407. One of them has a stale app.jsx snapshot. Resolution: whoever runs next should call `node -e "const fs=require('fs');const src=fs.readFileSync('app.jsx','utf8');const m=src.match(/const VENUES\s*=\s*(\[[\s\S]*?\]);/);const v=eval(m[1]);console.log(v.length)"` on the live HEAD and that number is the truth. Update `.venue-baseline` to match. This is bookkeeping noise, not a code bug — no duplicate IDs (boot IIFE would catch those).
+### AGP/AKL/GRU missing from AIRPORT_COORDS — P1 (Day 3, ESCALATING)
 
-### AGP/AKL/GRU missing from AIRPORT_COORDS — P1 (Day 2 carry-over)
-These 3 airports are present in `AP_CONTINENT` but missing from `AIRPORT_COORDS`. Distance filter silently fails for any venue whose `ap` is one of these — the filter lets them through unconditionally, meaning a user filtering to ≤4hr flights sees venues they physically couldn't reach in that window. **This breaks a core product promise.** Fix is 3 coordinate lookups and 3 additions to the `AIRPORT_COORDS` object. 10 minutes.
+Distance filter silently fails for any venue with one of these airports. Users filtering to ≤4hr or ≤6hr see sierra-nevada-es, piha-beach-nz, and ilhabela-brazil regardless of physical reachability. This is a **silent lie in the core product promise** — "spontaneous, reachable weekend."
 
-### VPS Redeploy (Open #19 + #23) — P0 (Day 43)
-Same as v140. No change. One SSH session closes both. Without it: Open-Meteo ceiling unprotected, two-weekend scoring off, alert deletion broken, iOS native CORS blocked. **The Reddit spike will rate-limit Open-Meteo within 90 seconds.** This is day 43 of a 30-minute task.
+Three lines. Has been fixable since September 4. On Day 3 of the same report. This ships today.
 
-### Venue text search — P1 (9 days to Sep 14)
-Not started. Sep 14 deadline holds. After that, Reddit moves to Oct 18 (7 more days of delay, 7 fewer days of organic traction before ski pre-booking intent peaks). Minimum spec per v140 stands: `toLowerCase()` text filter on title+location+tags, input above category pills, count shown when active, clears on pill change.
+Fix:
+```javascript
+AGP:{lat:36.6749,lon:-4.4991},
+AKL:{lat:-37.0082,lon:174.7850},
+GRU:{lat:-23.4356,lon:-46.4731},
+```
 
-### Zombie branches — P3
-18 total (3 new: `claude/fix-app-jsx-content`, `master` now exposed on origin, `fix-appjsx-final`/`restore-appjsx`/`test-small` still present). No production risk. Delete in one batch post-Reddit. **Don't touch before Oct 11.**
+### VPS Redeploy (Open #19/#21/#23) — P0 (Day 44)
 
-### Cache stamp — CURRENT
-`20260904a` is correct. No app.jsx logic changes today. Stamp updates on next app.jsx commit.
+Open-Meteo rate limit kills the app 90 seconds into a Reddit spike. The math: 405 venues × 1.65 calls × 500 simultaneous users = 334,000 calls against a 10K/day free tier. Proxy cache (Open #19) turns that into 1 call per venue. It's written. It's not deployed.
+
+Day 44 of a 30-minute SSH task. This is the only item on the critical path that requires Jack's hands. **Must happen before Oct 11.**
+
+### Venue text search — P1 (8 days to Sep 14)
+
+Not started. Sep 14 is the deadline before Reddit moves from Oct 11 to Oct 18. Minimum spec: `toLowerCase()` filter on title+location+tags, input above category pills, count shown when active, clears on pill change. This is a 1–2hr build.
+
+**If this slips past Sep 14, Reddit moves a week and we lose the first weekend of October — peak ski pre-booking intent in North America. That's the most valuable organic moment of the year for this product.**
+
+### S-Hemisphere ski closing window — time-sensitive (new)
+
+Content flags this correctly: most Andes resorts close last week of September. This is Peakly's **one chance to drive word-of-mouth from southern-hemisphere ski users before the entire category goes off-season**. Valle Nevado, Portillo, The Remarkables — these are peak-score venues right now. Scoring engine handles it correctly. No code change needed. This is a marketing flag: Reddit timing matters for this audience specifically.
+
+### Zombie branches — P3 (Day 12+, unchanged)
+
+18 stale branches. No production risk. Still do not touch before Oct 11. Post-Reddit one-liner to clean.
 
 ---
 
-## Three Product Decisions — Sep 5
+## Three Product Decisions — Sep 6
 
-### Decision 1: AGP/AKL/GRU AIRPORT_COORDS — SHIP NOW
+### Decision 1: AGP/AKL/GRU AIRPORT_COORDS — SHIP IT NOW
 
-This breaks the distance filter for venues like Málaga (AGP), Auckland (AKL), and São Paulo (GRU). These are high-traffic tourist airports with significant venue coverage (Spain's Costa del Sol, New Zealand, Brazil). A user in SFO filtering to ≤6hr flights should not see a Malaga beach listed as within range. **10-minute fix. Ship it.** This is a P1 because it silently corrupts the core product promise (spontaneous, reachable weekend).
+This has been in every report since Sep 4. It's 3 coordinate pairs. It breaks a stated product promise (reachable weekend). It will be fixed in this report run.
 
-### Decision 2: Venue count discrepancy — RESOLVE THIS RUN
+### Decision 2: Content's 5 venue proposals — DEFER
 
-Every agent is running off a different number. PM says 405, DevOps says 407, Content says 405. Pick one method (eval-based bracket-walker, per CLAUDE.md), run it on live HEAD, write the result to `.venue-baseline`, and every agent uses that going forward. The discrepancy is almost certainly that DevOps is reading a different part of the file or including something the bracket-walker doesn't. **Bookkeeping failure, not a code bug. Resolve with eval, move on.**
+4 carry-overs from Sep 5 (Anthony Quinn Bay RHO, Prainha GIG, Currumbin OOL, Temae PPT) + 1 fresh Famara ACE are all clean — APs verified, no coord gaps. But the standing Sep v141 call holds: **stop adding venues until venue search is built.** 405 venues that users can't search is worse than 395 venues users can find. Every venue added before search widens the discoverability gap.
 
-### Decision 3: Photo sprint — DEFER until post-Reddit
+Exception: if Famara ACE ships with the AGP/AKL/GRU fix in the same commit, it's zero additional effort. But it's not the priority. Search first.
 
-Content reports 225 venues (56%) with only 2 tags and 405 venues with generic stock photos. This is a real quality gap. But: the Open-Meteo ceiling means any traffic event that exposes the photo gap also exposes the rate limit catastrophe first. Fix the infrastructure that survives the spike. Then fix photos. Venue-specific photos are a meaningful quality investment, but they require the Unsplash API key Jack holds and editorial review — not an agent task. **DEFER to post-VPS, post-Reddit.**
+### Decision 3: Venue search minimum spec — LOCKED, build this week
+
+No changes to the spec from v140/v141. Build it. The deadline is Sep 14. This is:
+
+```
+- Text input above category pills
+- toLowerCase() filter on venue.title + venue.location + venue.tags.join(' ')
+- Count shown when filter is active ("12 results")
+- Clears automatically when category pill changes
+- No server calls, no debounce complexity — pure client-side
+```
+
+This is not a complex feature. It's a `filter()` on an array with an `<input>` bound to state. The only risk is getting clever with it and taking 3 days instead of 2 hours.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-1. **Fix AGP/AKL/GRU AIRPORT_COORDS** — 10 minutes, breaks distance filter, P1. Ship before next venue batch.
-2. **VPS SSH session (Jack)** — Open #19 + #23. Day 43. Must happen before Oct 11. Open-Meteo ceiling is not a theoretical risk; it's a guaranteed failure mode at Reddit-scale traffic.
-3. **Venue text search** — 9 days to Sep 14 deadline. 1–2 hour build. Minimum spec unchanged from v140. Every day this slips is a day closer to pushing Reddit from Oct 11 to Oct 18.
+1. **Fix AGP/AKL/GRU AIRPORT_COORDS** — 3 lines, P1, Day 3. Ships in this run.
+2. **Build venue text search** — 8 days to Sep 14 deadline. 1–2hr build. Blocks Reddit Oct 11 date.
+3. **VPS SSH session (Jack)** — Open #19/#21/#23. Day 44. Pre-Reddit gate. No one else can do this.
 
 ---
 
 ## Features REJECTED This Week
 
-- **New venue additions** — DEFER until post-Reddit. 405 is sufficient for launch; adding more before shipping the search feature is backwards. Users can't find what's already there.
-- **Tag enrichment (225 venues with 2 tags)** — DEFER. Search uses existing tags as a signal, but 2 tags is fine for MVP. Enrichment is a content sprint, not a launch blocker.
-- **JSON-LD structured data** — DEFER. SEO compounds over months; not relevant to Oct 11.
-- **APNS/push (Open #21)** — DEFER. Gate is live. Don't wire the .p8 until HTTP/2 + JWT P1363 fix is deployed and verified.
-- **Photo accuracy (Open #20)** — DEFER. Needs Unsplash API key, editorial review. Not a launch blocker.
-- **Zombie branch cleanup** — DEFER. No production risk. One `git push origin --delete` batch after Reddit.
+- **5 new venue additions (Sep 6 Content batch)** — DEFER. Build search before expanding the unsearchable catalog.
+- **Tag enrichment (225 venues with 2 tags)** — DEFER. Tags serve search corpus but 2 is enough for MVP. Post-Reddit sprint.
+- **JSON-LD structured data** — DEFER. SEO compounds over months, not relevant to Oct 11 Reddit launch.
+- **S-hemisphere venue expansion** — DEFER. 2 venues in S-temperate beach zone is thin but not a launch blocker. Add after Reddit.
+- **Photo accuracy (Open #20)** — DEFER. Needs Unsplash API key + editorial review. Not agent-executable.
+- **APNS/push (Open #21)** — DEFER. Gate is live. Fix the HTTP/2 + JWT P1363 issues on the VPS before wiring the .p8.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**BASE_PRICES is now fully covered — but the deal score still has no user-visible confidence signal.** When a live Travelpayouts fare comes back as stale (>14 days old, already demoted to `~$X`), the estimate is still shown with the same visual treatment as a fresh estimate. Users have no way to know if the `~$420` on a Bora Bora card is based on a realistic route price or a stale fare from two weeks ago that's since moved 30%. The `duffelWrongLength` check from August catches wrong-length trips, but not staleness on correctly-scoped trips. With zero actual traffic, this is theoretical. With a Reddit spike, you'll have 500 people clicking on deals that are priced off stale data. The fix is already half-done (the `duffelTripDays` check exists) — staleness just needs its own branch in the same logic. But this is a post-VPS, post-search priority. Flag it here so it doesn't get lost.
+**The Oct 11 Reddit window requires a coherent story in the post, and nobody has written that story.** The technical work (VPS, search, AGP fix) is necessary but not sufficient. A Reddit post on r/skiing or r/travel that doesn't nail the hook gets ignored or downvoted. The product has a genuinely strong angle: "only app that combines Fri–Mon weather + cheap flights + a confidence badge that admits when the forecast is too uncertain to recommend." That's differentiated from OpenSnow, KAYAK, and Hopper all at once. But that sentence isn't in the README, it's not on the landing page, and nobody has drafted the Reddit post. The technical gates are 44 days overdue. The marketing gate hasn't started. Both need to be true on Oct 11.
 
 ---
 
@@ -86,14 +111,14 @@ Content reports 225 venues (56%) with only 2 tags and 405 venues with generic st
 
 | Factor | 5K path | 8K path |
 |--------|---------|---------|
-| Reddit post | Decent traction, second page | Front page, r/skiing + r/travel crosspost |
-| App quality | VPS works, search works | VPS works, search works, distance filter is honest |
-| Word of mouth | Low share rate | Share-a-list feature drives organic loops |
-| Timing | Post any weekend | Post first weekend of October (peak ski pre-booking intent) |
-| Error rate | Some users see rate limits | VPS proxy absorbs the spike |
+| Reddit post | Good traction, second page, r/skiing only | Front page, r/skiing + r/travel crosspost, strong comments from Jack |
+| App quality on spike day | VPS works, search works | VPS works, search works, distance filter honest, no rate-limit banner |
+| S-hem timing | Post after Andes season ends (October) | Post while Andes are still peak (September, 3 weeks left) |
+| Word of mouth | Low share rate | Share-a-list drives organic loops |
+| Error rate | Some users see rate limits | Proxy cache absorbs the spike |
 
-October 11 remains the target. Two items are on the critical path: VPS (Jack, SSH) + venue search (Claude, 1–2hr build). Both unblocked. Neither is a mystery.
+**The S-hemisphere ski timing risk is real.** If VPS ships in the next week and search ships by Sep 14, there's an argument for posting on Reddit in the **last week of September** targeting the Andes closing weekend — capturing both hemispheres simultaneously. That post writes itself: "Best ski weekend left in the Southern Hemisphere + First powder days forming in Colorado." That's the 8K path. Waiting until October 11 is the 5K path.
 
 ---
 
-*Report generated 2026-09-05. Venue count: 405 (authoritative — bracket-walker eval; reconcile with DevOps 407 count this run). Cache: 20260904a. Next cache bump: on next app.jsx commit.*
+*Report generated 2026-09-06. Venue count: 405 (bracket-walker eval, authoritative). Cache: 20260904a (stale until next app.jsx commit). Venue search deadline: Sep 14. Reddit gate: Oct 11 (earlier if VPS ships soon + S-hem timing aligns).*
