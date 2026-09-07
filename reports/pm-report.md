@@ -1,124 +1,138 @@
-# Peakly PM Report v142 — 2026-09-06
+# Peakly PM Report v143 — 2026-09-07
 
-**Status: 🔴 RED — Nothing shipped to app.jsx in 48 hours. AGP/AKL/GRU distance filter broken for Day 3. VPS Day 44. Venue search deadline is Sep 14 — 8 days. The critical path is stalled.**
+**Status: 🟡 YELLOW — AGP/AKL/GRU fixed (Day 3 blocker closed). VPS Day 45 — pre-Reddit gate, Jack's hands required. Venue search: 7 days to Sep 14 deadline. Build it this week or Reddit slips to Oct 18.**
 
 ---
 
-## Shipped Since Last Report (v141 → v142)
+## Shipped Since Last Report (v142 → v143)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `307b403` | Content report Sep 6 — 91/100, AGP/AKL/GRU Day 3, Famara ACE fresh pick, 4 re-proposals from Sep 5 | ✅ Audit is useful |
-| `4d86549` | DevOps report Sep 6 — Open #19/#21/#23 Day 44, 18 zombie branches, Open-Meteo math unchanged | ✅ Nothing new to add |
+| `80e1721` | DevOps: AGP/AKL/GRU AIRPORT_COORDS fixed + cache bump `20260907a` | ✅ Long overdue. 3 coord pairs, Day 3, done. |
+| `6e7a0a9` | Content: 95/100, AGP/AKL/GRU resolved confirmed, Sotavento fresh pick proposed | ✅ Audit useful. Venue not pasted (correct). |
 
-**Zero app.jsx commits in 48 hours.** Last code change: `9c2c198` (Sep 4 — PM v140, 10 venues). No regressions, but no progress either. The Sep 5 Content batch (4 venues) was never pasted. The AGP/AKL/GRU fix (3 lines, Day 2 when flagged yesterday) is still open. Both would have taken under 5 minutes combined.
+**One real fix today.** The distance filter silent-lie for sierra-nevada-es, piha-beach-nz, and ilhabela-brazil is closed. 402 lines of reports finally resolved by 3 lines of code. The lesson isn't new but it still hurts to read.
+
+**Nothing else shipped.** Venue search unbuilt. VPS undeployed. Both are on the critical path to Oct 11 Reddit launch.
 
 ---
 
 ## Bug Triage
 
-### AGP/AKL/GRU missing from AIRPORT_COORDS — P1 (Day 3, ESCALATING)
+### Venue text search — P1 (7 days to Sep 14 deadline)
 
-Distance filter silently fails for any venue with one of these airports. Users filtering to ≤4hr or ≤6hr see sierra-nevada-es, piha-beach-nz, and ilhabela-brazil regardless of physical reachability. This is a **silent lie in the core product promise** — "spontaneous, reachable weekend."
-
-Three lines. Has been fixable since September 4. On Day 3 of the same report. This ships today.
-
-Fix:
-```javascript
-AGP:{lat:36.6749,lon:-4.4991},
-AKL:{lat:-37.0082,lon:174.7850},
-GRU:{lat:-23.4356,lon:-46.4731},
-```
-
-### VPS Redeploy (Open #19/#21/#23) — P0 (Day 44)
-
-Open-Meteo rate limit kills the app 90 seconds into a Reddit spike. The math: 405 venues × 1.65 calls × 500 simultaneous users = 334,000 calls against a 10K/day free tier. Proxy cache (Open #19) turns that into 1 call per venue. It's written. It's not deployed.
-
-Day 44 of a 30-minute SSH task. This is the only item on the critical path that requires Jack's hands. **Must happen before Oct 11.**
-
-### Venue text search — P1 (8 days to Sep 14)
-
-Not started. Sep 14 is the deadline before Reddit moves from Oct 11 to Oct 18. Minimum spec: `toLowerCase()` filter on title+location+tags, input above category pills, count shown when active, clears on pill change. This is a 1–2hr build.
-
-**If this slips past Sep 14, Reddit moves a week and we lose the first weekend of October — peak ski pre-booking intent in North America. That's the most valuable organic moment of the year for this product.**
-
-### S-Hemisphere ski closing window — time-sensitive (new)
-
-Content flags this correctly: most Andes resorts close last week of September. This is Peakly's **one chance to drive word-of-mouth from southern-hemisphere ski users before the entire category goes off-season**. Valle Nevado, Portillo, The Remarkables — these are peak-score venues right now. Scoring engine handles it correctly. No code change needed. This is a marketing flag: Reddit timing matters for this audience specifically.
-
-### Zombie branches — P3 (Day 12+, unchanged)
-
-18 stale branches. No production risk. Still do not touch before Oct 11. Post-Reddit one-liner to clean.
-
----
-
-## Three Product Decisions — Sep 6
-
-### Decision 1: AGP/AKL/GRU AIRPORT_COORDS — SHIP IT NOW
-
-This has been in every report since Sep 4. It's 3 coordinate pairs. It breaks a stated product promise (reachable weekend). It will be fixed in this report run.
-
-### Decision 2: Content's 5 venue proposals — DEFER
-
-4 carry-overs from Sep 5 (Anthony Quinn Bay RHO, Prainha GIG, Currumbin OOL, Temae PPT) + 1 fresh Famara ACE are all clean — APs verified, no coord gaps. But the standing Sep v141 call holds: **stop adding venues until venue search is built.** 405 venues that users can't search is worse than 395 venues users can find. Every venue added before search widens the discoverability gap.
-
-Exception: if Famara ACE ships with the AGP/AKL/GRU fix in the same commit, it's zero additional effort. But it's not the priority. Search first.
-
-### Decision 3: Venue search minimum spec — LOCKED, build this week
-
-No changes to the spec from v140/v141. Build it. The deadline is Sep 14. This is:
+Not started. 405 venues that users can't search is a dead catalog. The minimum spec hasn't changed since v140:
 
 ```
-- Text input above category pills
+- <input> above category pills, placeholder "Search venues…"
 - toLowerCase() filter on venue.title + venue.location + venue.tags.join(' ')
-- Count shown when filter is active ("12 results")
-- Clears automatically when category pill changes
-- No server calls, no debounce complexity — pure client-side
+- Count shown when active ("12 results")
+- Clears on category pill change
+- No server calls, no debounce — pure client-side
 ```
 
-This is not a complex feature. It's a `filter()` on an array with an `<input>` bound to state. The only risk is getting clever with it and taking 3 days instead of 2 hours.
+Two hours of work. Sep 14 is the date before Reddit moves from Oct 11 to Oct 18. Oct 11 is the first weekend of October — peak ski pre-booking intent in North America, exactly when Peakly's ski product is most relevant. **Missing that window costs us the best organic moment of the year.**
+
+If this isn't built by Sep 14, PM v144 will be RED.
+
+### VPS Redeploy (Open #19/#21/#23) — P0 (Day 45)
+
+The math hasn't changed. 405 venues × 1.65 Open-Meteo calls × 500 simultaneous Reddit users = 334,000 API calls against a 10K/day free tier. The proxy cache is written and committed. It's not running on the server.
+
+**This is the only item on the critical path that requires Jack's hands.** SSH, `cd /opt/peakly-proxy`, copy files, `pm2 restart`. Verify with `/health`. 30 minutes.
+
+It must be done before Oct 11. Recommend: bundle with the venue search build session — both happen in the same 3-hour block this week. The VPS SSH takes 30 minutes, the venue search build takes 2 hours.
+
+### Venue count discrepancy — P2 (stable)
+
+DevOps eval returned 407 on Sep 5–6; Content's eval returns 405; category counts (134 ski + 271 beach) consistently sum to 405. `.venue-baseline` = 405. The 407 figure from DevOps appears to be a counting artifact — CLAUDE.md warns repeatedly that two-format mixed catalogs trip up counting. **Treat 405 as authoritative until a reliable eval confirms otherwise.** No action this week.
+
+### S-Hemisphere ski closing window — time-sensitive marketing flag
+
+No code needed. Most Andes resorts (Valle Nevado, Portillo, Cerro Catedral) close the last week of September. Peakly's scoring handles this correctly — these venues will score high right now. This is a **3-week window to reach southern-hemisphere ski users before the whole category goes off-season**. If Reddit timing can be steered toward a southern-hemisphere ski subreddit (r/skiing NZ, r/skiing Argentina) during the next 2 weeks, the product shows its best foot without any code changes.
+
+Not on the critical path. Flagging so it doesn't expire without a decision.
 
 ---
 
-## This Week's Top 3 Priorities Only
+## Three Product Decisions — Sep 7
 
-1. **Fix AGP/AKL/GRU AIRPORT_COORDS** — 3 lines, P1, Day 3. Ships in this run.
-2. **Build venue text search** — 8 days to Sep 14 deadline. 1–2hr build. Blocks Reddit Oct 11 date.
-3. **VPS SSH session (Jack)** — Open #19/#21/#23. Day 44. Pre-Reddit gate. No one else can do this.
+### Decision 1: Venue search — SHIP THIS WEEK
 
----
+Deadline: Sep 14. That's 7 days. The spec is locked. This is not a 3-day feature. Build it in one session, push it, done.
 
-## Features REJECTED This Week
+### Decision 2: New venue proposals (5 pending from Content) — DEFER
 
-- **5 new venue additions (Sep 6 Content batch)** — DEFER. Build search before expanding the unsearchable catalog.
-- **Tag enrichment (225 venues with 2 tags)** — DEFER. Tags serve search corpus but 2 is enough for MVP. Post-Reddit sprint.
-- **JSON-LD structured data** — DEFER. SEO compounds over months, not relevant to Oct 11 Reddit launch.
-- **S-hemisphere venue expansion** — DEFER. 2 venues in S-temperate beach zone is thin but not a launch blocker. Add after Reddit.
-- **Photo accuracy (Open #20)** — DEFER. Needs Unsplash API key + editorial review. Not agent-executable.
-- **APNS/push (Open #21)** — DEFER. Gate is live. Fix the HTTP/2 + JWT P1363 issues on the VPS before wiring the .p8.
+Famara ACE, Anthony Quinn Bay RHO, Prainha GIG, Currumbin OOL, Temae PPT. All clean per Content's audit. **None ship until venue search is live.** Adding venues to an unsearchable catalog widens the discoverability hole. The standing call from v141 holds.
+
+### Decision 3: Zombie branches (18) — CUT (post-Reddit cleanup)
+
+18 stale branches (15 `claude/`, 3 miscellaneous). No production risk. No user impact. Cleaning them before Oct 11 Reddit launch is pure distraction. Schedule a one-liner cleanup for the week after Reddit: `git push origin --delete <branch>` for each. Not before.
 
 ---
 
-## One Product Risk Nobody Is Talking About
+## This Week's Top 3 (Sep 7–14)
 
-**The Oct 11 Reddit window requires a coherent story in the post, and nobody has written that story.** The technical work (VPS, search, AGP fix) is necessary but not sufficient. A Reddit post on r/skiing or r/travel that doesn't nail the hook gets ignored or downvoted. The product has a genuinely strong angle: "only app that combines Fri–Mon weather + cheap flights + a confidence badge that admits when the forecast is too uncertain to recommend." That's differentiated from OpenSnow, KAYAK, and Hopper all at once. But that sentence isn't in the README, it's not on the landing page, and nobody has drafted the Reddit post. The technical gates are 44 days overdue. The marketing gate hasn't started. Both need to be true on Oct 11.
+**#1: Build venue search.** 2-hour build. Deadline Sep 14. No debate.
+
+**#2: Jack: VPS redeploy.** 30-minute SSH task. Day 45. Pre-Reddit gate. Must happen before Oct 11. Earliest slot this week.
+
+**#3: Nothing else.** Seriously. Every other item — venue adds, photo pipeline, App Store, zombie branches, UI polish — is noise until the critical path is clear. The product is launch-ready except for these two items.
+
+---
+
+## Features Rejected This Week
+
+| Feature | Verdict | Reason |
+|---------|---------|--------|
+| Paste 5 new venue proposals | ❌ DEFERRED | 405 unsearchable venues is worse than 410. Build search first. |
+| Photo pipeline (346 generic venues) | ❌ DEFERRED | Real quality gap but requires Unsplash key and manual review. Post-launch. |
+| App Store submission | ❌ DEFERRED | LLC still pending, VPS not deployed. Two blockers. |
+| iOS widget Xcode wiring | ❌ DEFERRED | Code-complete, not blocking Reddit launch. Post-Oct-11. |
+| Zombie branch cleanup | ❌ DEFERRED | Zero production impact. Post-Reddit. |
 
 ---
 
 ## Success Criteria
 
-**What defines 8K users at 90 days vs. 5K:**
+**90-day projection: 5K–8K users.** What has to be true for 8K, not 5K:
 
-| Factor | 5K path | 8K path |
-|--------|---------|---------|
-| Reddit post | Good traction, second page, r/skiing only | Front page, r/skiing + r/travel crosspost, strong comments from Jack |
-| App quality on spike day | VPS works, search works | VPS works, search works, distance filter honest, no rate-limit banner |
-| S-hem timing | Post after Andes season ends (October) | Post while Andes are still peak (September, 3 weeks left) |
-| Word of mouth | Low share rate | Share-a-list drives organic loops |
-| Error rate | Some users see rate limits | Proxy cache absorbs the spike |
+1. Reddit launch lands Oct 11 (not Oct 18). That's the first ski-weekend of October. The difference between these dates is whether venue search is built by Sep 14.
+2. VPS cache is running before the Reddit post goes up. A 500-user spike with no cache means the app is dead within 90 seconds. That's the review window. That's where first impressions form.
+3. At least one southern-hemisphere ski subreddit post happens in September while Andes venues score high. Word-of-mouth from a different timezone at a different seasonal peak doubles the organic ceiling.
+4. Photos improve. 346 generic stock images is the most visible quality gap the product has. Every user who opens a venue card and sees a random powder shot on a beach resort bounces. Post-launch priority #1.
 
-**The S-hemisphere ski timing risk is real.** If VPS ships in the next week and search ships by Sep 14, there's an argument for posting on Reddit in the **last week of September** targeting the Andes closing weekend — capturing both hemispheres simultaneously. That post writes itself: "Best ski weekend left in the Southern Hemisphere + First powder days forming in Colorado." That's the 8K path. Waiting until October 11 is the 5K path.
+**The floor scenario (5K):** Reddit launches Oct 18 with VPS cache live, venue search works, photos still generic. Users find it useful but don't share it — the product does what it says, nothing more.
+
+**The ceiling scenario (8K+):** Reddit lands Oct 11, VPS survives the spike, southern-hemisphere users share it in September, photos start improving in October. Two organic waves instead of one.
 
 ---
 
-*Report generated 2026-09-06. Venue count: 405 (bracket-walker eval, authoritative). Cache: 20260904a (stale until next app.jsx commit). Venue search deadline: Sep 14. Reddit gate: Oct 11 (earlier if VPS ships soon + S-hem timing aligns).*
+## One Product Risk Nobody Is Talking About
+
+**The confidence filter creates a thin grid for mid-week planners.**
+
+`scoreWeekend` returns `confidence: "low"` for any weekend beyond day 6 of the forecast, and low-confidence weekends never reach the front page. This is the right call for honesty — the CLAUDE.md rationale is sound.
+
+But: if a user opens Peakly on a Tuesday planning for a weekend 10 days out, the front page is empty. Nothing fires. The product feels broken on a perfectly normal use-case.
+
+This will hurt Reddit conversion. A first-time visitor who opens on a Tuesday mid-month sees either (a) this weekend's venues (correct, but they wanted next weekend), or (b) an empty grid if this weekend is already past and next weekend is outside the 7-day window.
+
+**The fix isn't to lower the confidence bar — that would sell lies.** The fix is a clear "Next forecast available [date]" state with an alert CTA instead of a blank grid. This is a 1-hour build. It's not on any roadmap. It should be.
+
+Not flagging as a blocker. Flagging because it'll be the first thing mentioned in the Reddit comments.
+
+---
+
+## Blocked
+
+| Item | Blocker | Owner |
+|------|---------|-------|
+| VPS redeploy | SSH access required | Jack |
+| REI affiliate | LLC pending | Jack |
+| Backcountry affiliate | LLC pending | Jack |
+| GetYourGuide affiliate | LLC pending | Jack |
+| App Store submission | LLC + VPS + Xcode signing | Jack |
+| Supabase delete-account SQL | One-time paste into Supabase editor | Jack |
+
+All unblocked items are buildable by the agent team. The critical-path items above (venue search, VPS) are both in-scope this week.
