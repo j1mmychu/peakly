@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260904a";
+const PEAKLY_BUILD = "20260907a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -7032,6 +7032,10 @@ const AIRPORT_COORDS = {
   BIQ:{lat:43.4683,lon:-1.5311},   REC:{lat:-8.1265,lon:-34.9236},
   // South America — Rio de Janeiro
   GIG:{lat:-22.8100,lon:-43.2507}, // Galeão International, Rio de Janeiro
+  // Europe + Oceania + South America gaps (2026-09-07 DevOps fix — Day 3 P1)
+  AGP:{lat:36.6749,lon:-4.4993},   // Malaga Airport (Spain)
+  AKL:{lat:-37.0082,lon:174.7850}, // Auckland International (New Zealand)
+  GRU:{lat:-23.4356,lon:-46.4731}, // São Paulo Guarulhos (Brazil)
 };
 
 // ─── Great-circle flight time estimate ────────────────────────────────────────
