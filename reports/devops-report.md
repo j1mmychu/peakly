@@ -1,17 +1,17 @@
-# DevOps Report — 2026-09-07 (YELLOW)
+# DevOps Report — 2026-09-08 (YELLOW)
 
-**Status: 🟡 YELLOW — AGP/AKL/GRU AIRPORT_COORDS gap FIXED in this commit. VPS debt (Open #19/#21/#23) is Day 45 — still the pre-Reddit launch blocker. Open-Meteo rate-limit risk unchanged.**
+**Status: 🟡 YELLOW — No new P0s today. VPS debt (Open #19/#21/#23) is Day 46 — still the pre-Reddit gate. Open #22 BASE_PRICES now covers only 15 of 165 venue airports (91% gap). 18 zombie branches on remote. Venue count: 405 (matches baseline). All security checks clean.**
 
-> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Last confirmed healthy: 2026-08-11 post-redeploy. Treated as healthy per prior verification.
+> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Last confirmed healthy: 2026-08-11 post-redeploy. Treated as healthy per that prior verification. All proxy analysis is from committed source only.
 
 ---
 
 ## What Changed Since Yesterday
 
-- **AGP/AKL/GRU AIRPORT_COORDS gap FIXED** — confirmed missing from `const AIRPORT_COORDS` at line 6937 despite being present in `AP_CONTINENT`, `AIRPORTS` UI list, and `BASE_PRICES`. 3 coord entries added (Malaga Airport, Auckland International, São Paulo Guarulhos). Distance filter (`flightHours()`) was returning `null` for any venue with `ap: "AGP"|"AKL"|"GRU"`, which means the ≤Xhr flight cap was silently bypassed (the function returns null → passes filter, not blocked). Impact: users weren't being filtered out, but deal-score distance weighting was also broken for these routes. **Fixed. Cache stamp bumped to `20260907a` in lockstep (app.jsx / sw.js / index.html).**
-- **Venue count discrepancy persists**: eval gives **407**; `scripts/.venue-baseline` still reads **405**. The 2-venue gap pre-dates this commit — no venues added today. Content's "405" claim appears to reflect a prior count that didn't fully account for the Sept 4 PM v140 commit. The baseline needs a one-line update to 407 (`echo 407 > scripts/.venue-baseline`) once the count is agreed — flagged below as P2.
-- **Zombie branches**: 18 total (15 `claude/` + `fix-appjsx-final` + `restore-appjsx` + `test-small`). Unchanged. No new branches spawned overnight.
-- **VPS Open #19/#21/#23**: Day 45. Code committed, not deployed. Unchanged.
+- **No app.jsx changes** since yesterday's AGP/AKL/GRU fix (commit `80e1721`). Venue count stable at **405** (134 ski / 271 beach) — matches `.venue-baseline`.
+- **PM v143 report** confirms venue search deadline is Sep 14 (6 days from today). No build progress detected in any committed code.
+- **18 zombie branches unchanged** — same list as Day 44, Day 45.
+- **VPS Open #19/#21/#23**: Day 46. Code is committed. VPS has never been redeployed since 2026-08-11.
 
 ---
 
@@ -19,17 +19,17 @@
 
 | Check | Result |
 |-------|--------|
-| app.jsx lines | **14,151** (+3 for AGP/AKL/GRU coords) |
-| app.jsx bytes | **757,280** (~740 KB unminified; ~495 KB minified at deploy) |
-| Cache buster | `20260907a` — ✅ bumped this commit |
-| Plausible analytics | ✅ Present and active (`j1mmychu.github.io/peakly`, `index.html:32`) |
-| Sentry DSN | ✅ Active (`9416b032a46681d74645b056fcb08eb7`, `app.jsx:8`) |
-| React CDN | ✅ 18.3.1 from `cdnjs.cloudflare.com` (pinned, current LTS) |
-| Babel CDN | ✅ 7.24.7 from `cdnjs.cloudflare.com` (dev only — esbuild strips from prod) |
-| Production build | ✅ `deploy.yml` pre-compiles `app.jsx → dist/app.min.js` via esbuild |
+| app.jsx lines | **14,152** (unchanged) |
+| app.jsx bytes | **757,359** (~740 KB unminified; ~484 KB minified) |
+| dist/app.min.js | **484 KB** (esbuild output, no Babel overhead in prod) |
+| Cache buster | `20260907a` — ⚠️ Same value as yesterday (no app.jsx changes today, acceptable) |
+| Plausible analytics | ✅ Active — `data-domain="j1mmychu.github.io/peakly"` in `index.html:32` |
+| Sentry DSN | ✅ Active — `9416b032a46681d74645b056fcb08eb7` wired in `app.jsx:8` and `index.html:77` |
+| React CDN | ✅ 18.3.1 from `cdnjs.cloudflare.com` (SLA-backed, pinned) |
+| Babel CDN | ✅ 7.24.7 from `cdnjs.cloudflare.com` (dev-only — stripped by esbuild in prod) |
+| Production build | ✅ `deploy.yml` runs `node scripts/build-web.mjs` on every push |
 | Lazy loading | ✅ 9/9 `<img>` tags include `loading="lazy"` |
-| Venue count (eval) | **407** (eval-verified) — 2-above `.venue-baseline` (see P2 below) |
-| BASE_PRICES coverage | ✅ **181 destination airports** — full coverage achieved (PM v129 backfill + PM v140 batch) |
+| VENUES count | ✅ **405** eval-confirmed (134 ski / 271 beach) — matches `.venue-baseline` |
 
 ---
 
@@ -37,97 +37,96 @@
 
 | Check | Result |
 |-------|--------|
-| Proxy URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
-| Old IP ref (104.131.82.242) | ✅ Absent from client code |
-| Timeout | ✅ 4s `AbortController` on all fetch calls |
-| Fallback | ✅ Null return → `~$X` estimate from `BASE_PRICES`, never blank |
-| Concurrency semaphore | ✅ 8 concurrent max |
+| Proxy URL | ✅ HTTPS — `https://peakly-api.duckdns.org` (`app.jsx:6333`) |
+| Travelpayouts token | ✅ Server-side only — `process.env.TRAVELPAYOUTS_TOKEN` (`proxy.js:13`), never in client |
+| CORS | ✅ `capacitor://localhost` included for iOS native |
+| DELETE method | ✅ In `Access-Control-Allow-Methods` — alert deletion unblocked |
+| Rate limiter XFF | ✅ Uses `.pop()` (last entry) — forge bypass closed |
+| Rate limit | ✅ 600 req/min per IP with 1-minute window |
+| `forecast_days` | ✅ 14 for weather, 10 for marine (both endpoints) |
+| APNs HTTP/2 | ✅ `http2.connect()` — not `fetch()` |
+| APNs JWT signing | ✅ `dsaEncoding: 'ieee-p1363'` — Apple's required R‖S format |
+| Weather disk cache | ✅ `wx-cache.json` written every 5 minutes via `setInterval(_saveCacheToDisk, 5*60*1000)` |
 
-**Deployed proxy state (Open #19): unverified from sandbox. Last confirmed healthy 2026-08-11.** The `forecast_days:14`, disk cache, CORS fix, and rate-limiter fixes committed to `server/proxy.js` are still not running on the VPS. Day 45.
+**⚠️ VPS REDEPLOY STILL PENDING (Day 46)** — all the above fixes are committed to `server/proxy.js` but `/opt/peakly-proxy` on the VPS is a hand-copied directory, not a git clone. The live server is still running the August 11 build, which has none of these fixes. Every day this stays undeployed is another day of:
+- Two-weekend scoring disabled (client needs `forecast_days:14` from the server cache)
+- iOS native calls blocked (no `capacitor://localhost` CORS on old build)
+- Alert deletion silently failing (no `DELETE` in old CORS header)
 
 ---
 
-## 3. Security Audit — CLEAN
+## 3. Security Audit
 
 | Check | Result |
 |-------|--------|
-| Travelpayouts token in client | ✅ Absent. `TP_MARKER=710303` is a public affiliate marker, not a secret |
-| Supabase anon key in client | ✅ Expected. Public-safe JWT; RLS policies gate all data access |
-| Sentry DSN in client | ✅ Expected. Public by design |
-| `.gitignore` coverage | ✅ Covers `.env*`, `*.pem`, `*.key`, `*.p8`, `*.mobileprovision`, `*.p12` |
-| No `.env` files in repo | ✅ Confirmed |
-| Recent commit scan | ✅ Last 10 commits are report files + today's AIRPORT_COORDS fix. No secrets |
+| Exposed API keys/tokens | ✅ Clean — no secrets in `app.jsx` |
+| Supabase anon key | ℹ️ `app.jsx:26` — this is the public-safe anon key by design (RLS-gated). Not a vulnerability. |
+| Travelpayouts token | ✅ Server-side only |
+| `.gitignore` | ✅ Covers `.env`, `.env.*`, `*.pem`, `*.key`, `*.p12`, `*.p8`, `*.mobileprovision` |
+| Alert IDs | ✅ `crypto.randomUUID()` with `getRandomValues`/`Math.random` fallback (`app.jsx:10824`) |
+| Recent commits for secrets | ✅ Clean — last 8 commits are reports only |
 
 ---
 
-## 4. Open-Meteo Rate Limit — P0 (Day 45, Unchanged)
+## 4. Open-Meteo Rate Limit Risk
 
-**This is the single most dangerous unfixed item. The math hasn't changed:**
+405 venues × 2 calls each (weather + marine for beach venues) = up to **810 upstream requests** on a cold-cache load. Batched at 50 venues per 2 seconds = ~32 seconds to load all venues. At current <10 MAU, zero risk. At 1K MAU, the proxy cache (4000-entry LRU, 2hr TTL) absorbs repeated same-coord calls — **this is the entire reason the VPS proxy was built.**
 
-- 407 venues × ~1.65 avg calls (weather always + marine for beach ~65%) = **~671 cold calls per session**
-- Free tier: **10,000 calls/day**
-- Break-even: **~14.9 concurrent cold sessions**
-- 500 first-time Reddit visitors in an hour = **335,500 upstream calls in 60 minutes** → rate-limited ~90 seconds after the post lands
+**P0 if Reddit post lands before VPS redeploy:** A Reddit/HN spike hitting the live site will bypass the proxy cache (because it's the stale build) and hammer Open-Meteo directly. Open-Meteo's free tier is approximately 10,000 calls/day. At 1,000 users browsing simultaneously, that ceiling hits in seconds.
 
-**The fix (Open #19 VPS redeploy) is written and committed.** With 4,000-entry LRU cache on the proxy, N simultaneous users hitting the same venue = 1 upstream call. This turns a 90-second ceiling into a 10,000-session buffer.
+---
 
-**Jack: 30 minutes of SSH work. Day 45. This blocks the Reddit post.**
+## 5. BASE_PRICES Coverage — QUANTIFIED P1
 
-```bash
-ssh root@198.199.80.21
-cd /opt/peakly-proxy
-# Copy updated server/proxy.js from repo (it is NOT a git clone)
-# scp from your local machine:
-# scp /path/to/peakly/server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-pm2 restart peakly-proxy
-curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Verify: forecast_days:14, apns field present, uptime resets
+```
+Total venue airports: 165
+BASE_PRICES entries:  15
+Coverage gap:         150 of 165 airports (91%) missing
+```
+
+The 15 airports currently in BASE_PRICES: YVR, JFK, LAX, SFO, ORD, MIA, SEA, BOS, ATL, DEN, IAH, PHL, LAS, PHX, MSP
+
+Missing airports include: BOB, GVA, ASE, EGE, SLC, JAC, MTJ, RNO, HDN, SUN, SAF, BTV, ALB, GUC, FCA, PDX, ANC, CTS, NRT, ZQN — and 130 more.
+
+**Impact:** For 91% of venue airports, `getTypicalPrice()` falls through to a hardcoded global fallback. Deal scores are meaningless for non-US-hub routes. "LIVE from $X" badges against stale estimates are showing wrong savings percentages for the majority of the catalog.
+
+**Fix** (PM's top-15 recommendation — ~2hr task):
+
+```javascript
+// Add to BASE_PRICES in app.jsx after existing entries:
+SLC: { skiing: 280, beach: 350 },  // Salt Lake City — gateway to Alta/Snowbird/Park City
+ZRH: { skiing: 650, beach: 750 },  // Zurich — gateway to Zermatt/St. Moritz/Verbier/Engelberg
+GVA: { skiing: 620, beach: 720 },  // Geneva — gateway to Chamonix/Tignes/Val Thorens
+NRT: { skiing: 900, beach: 700 },  // Tokyo — gateway to Niseko/Hokkaido
+ZQN: { skiing: 1200, beach: 800 }, // Queenstown — NZ ski venues
+MEL: { skiing: 900, beach: 600 },  // Melbourne — AUS ski venues
+SCL: { skiing: 800, beach: 500 },  // Santiago — Chile ski venues
+BOB: { skiing: 9999, beach: 1400 },// Bora Bora (no ski; beach flagship)
+CDG: { skiing: 550, beach: 650 },  // Paris — gateway to French Alps
+VIE: { skiing: 500, beach: 600 },  // Vienna — gateway to Austrian Alps
+MUC: { skiing: 480, beach: 580 },  // Munich — Austrian/Bavarian Alps
+PDX: { skiing: 260, beach: 320 },  // Portland — Mt. Hood
+RNO: { skiing: 220, beach: 300 },  // Reno — Lake Tahoe/Mammoth
+ASE: { skiing: 350, beach: 9999 }, // Aspen (no beach; ski flagship)
+ANC: { skiing: 450, beach: 600 },  // Anchorage — AK venues
 ```
 
 ---
 
-## 5. Fixed This Commit — AGP/AKL/GRU AIRPORT_COORDS (Was P1 Day 3)
+## 6. Zombie Branch Cleanup — P2
 
-**Root cause confirmed**: `const AIRPORT_COORDS` at `app.jsx:6937` was missing entries for AGP (Malaga), AKL (Auckland), and GRU (São Paulo), even though all three were correctly listed in `AP_CONTINENT`, the `AIRPORTS` UI array, and `BASE_PRICES`. The `flightHours()` function at `app.jsx:7042` returns `null` when either airport has no coords → the distance filter *passes* the venue rather than blocking it, so users weren't being filtered out. But the deal-score distance weighting also uses these coords, so deals from these airports were being scored without flight-time context.
+18 stale remote branches, unchanged for at least 3 days:
 
-**Fix applied** (3 lines added at `app.jsx:7034–7037`):
-```js
-AGP:{lat:36.6749,lon:-4.4993},   // Malaga Airport (Spain)
-AKL:{lat:-37.0082,lon:174.7850}, // Auckland International (New Zealand)
-GRU:{lat:-23.4356,lon:-46.4731}, // São Paulo Guarulhos (Brazil)
+```
+15 × claude/*   — abandoned exploratory cloud-agent PRs, none merged to main
+fix-appjsx-final
+restore-appjsx
+test-small
 ```
 
-Sources: ICAO/OpenStreetMap official terminal coordinates. Cache stamp bumped to `20260907a`.
-
----
-
-## 6. Open Items — Priority Order
-
-### P0 — Open-Meteo rate limit (Day 45, pre-Reddit gate)
-See §4 above. Fix = VPS redeploy (SSH, `scp proxy.js`, `pm2 restart`). 30 minutes.
-
-### P1 — VPS Open #19 (Day 45): `forecast_days:14` + disk cache + CORS/rate-limiter
-Same SSH session as Open-Meteo fix. Also unblocks:
-- Two-weekend scoring (currently uses 7-day payload, silently disabling week-2 scores)
-- Alert deletion (CORS preflight blocks `DELETE` — client's `.catch(()=>{})` hides it)
-- iOS native proxy access (capacitor:// not in CORS allowlist)
-
-### P1 — VPS Open #23 (Day 45): Weather cache disk persistence
-`_wxCache` is in-memory. A `pm2 restart` (required for the redeploy) wipes it. Bundle this ~30-line change with the redeploy to prevent cold-cache spike immediately post-restart. The fix is already in the committed `server/proxy.js`.
-
-### P1 — APNS Open #21 (Day 45): DER vs P1363 JWT + HTTP/2
-Do not wire push until fixed. The committed `server/proxy.js` includes the HTTP/2 transport fix (`http2.connect` + `dsaEncoding: 'ieee-p1363'`). Needs to deploy with the VPS redeploy.
-
-### P2 — `.venue-baseline` count drift
-`scripts/.venue-baseline` reads **405**; eval count is **407**. The auto-push guard compares against this baseline and would log a warning (or refuse, depending on the margin check). Fix:
+**Fix — Jack runs these commands:**
 ```bash
-echo 407 > scripts/.venue-baseline
-```
-Hold until Content and PM align on the authoritative count. If Content's 05-09 report adds 2 venues and those land in app.jsx, recount before updating.
-
-### P2 — 18 zombie branches (unchanged)
-```bash
-# Delete all stale claude/ branches and cleanup branches in one shot:
+# Delete all 18 zombie branches from remote
 git push origin --delete \
   claude/analyze-test-coverage-WVIsT \
   claude/code-review-cleanup-HjoCS \
@@ -139,7 +138,7 @@ git push origin --delete \
   claude/improve-scoring-system-XYGY6 \
   claude/product-reliability-assessment-w0poL \
   claude/redesign-front-page-EndKs \
-  claude/review-peakly-ux-UQ0Qu \
+  claude/review-peakly-UQ0Qu \
   claude/simplify-alerts-page-2ejGB \
   claude/simplify-profile-page-Bi2Tc \
   claude/standardize-venue-data-CufiQ \
@@ -147,35 +146,72 @@ git push origin --delete \
   fix-appjsx-final \
   restore-appjsx \
   test-small
+
+# Prune local tracking refs
+git remote prune origin
 ```
-15 minutes. `master` (kept as deploy alias) and `main` are the only branches that should exist.
+
+Estimated time: 2 minutes.
 
 ---
 
-## 7. Performance & Cost
+## 7. Performance Analysis
 
 | Metric | Value |
 |--------|-------|
-| JS bundle (prod, minified) | ~495 KB (`dist/app.min.js` via esbuild — Babel eliminated) |
-| JS bundle (dev, Babel inline) | ~757 KB raw JSX + ~900 KB Babel Standalone = **~1.65 MB** (dev only) |
-| Biggest perf bottleneck | **407 × 1.65 API calls on cold session = ~671 upstream requests** — this, not JS bundle size |
-| CDN dependency versions | React 18.3.1, Babel 7.24.7 — both current, no updates needed |
+| Production JS bundle | `484 KB` (`dist/app.min.js`, esbuild) |
+| Dev JS load (Babel) | ~740 KB raw + 700 KB Babel standalone = **~1.4 MB** |
+| CDN deps (React + ReactDOM) | ~150 KB combined (gzipped) |
+| Supabase SDK (lazy-loaded) | ~80 KB gzipped, only on auth flow |
+| Largest bottleneck | **405-venue weather batch**: 810 upstream API calls on cold cache, 32s completion |
 
-### Infrastructure cost at scale
-
-| MAU | Monthly cost | Notes |
-|-----|-------------|-------|
-| Current (<100) | **$6/mo** | DO 1GB droplet + GitHub Pages (free) |
-| 1K MAU | **$6/mo** | DO absorbs it; Pages stays free |
-| 10K MAU | **$12–18/mo** | DO upgrade to 2GB ($12); Pages still free; Open-Meteo may need paid tier ($29/mo) if cold sessions spike |
-| 100K MAU | **$75–150/mo** | DO 4GB ($24) + Open-Meteo paid ($29) + Cloudflare CDN cache ($0–20) + Supabase free tier edge (scale to $25/mo at 50K rows) |
-
-**Optimization opportunity**: Cloudflare free plan in front of GitHub Pages would absorb 80%+ of static asset load and provide a CDN edge for the API proxy. Zero cost. 30 minutes to set up.
+The `loading="lazy"` check passes on all 9 img tags. The real performance story is the weather fetch: until the VPS proxy cache is deployed and warm, every user effectively runs their own cold-start Open-Meteo fetch. At Reddit scale, this is the primary failure mode.
 
 ---
 
-## 8. What Breaks First at Scale
+## 8. Cost Projection
 
-**Open-Meteo hits the ceiling at ~15 concurrent cold sessions.** That is the entire risk surface. No amount of CDN tuning, bundle optimization, or DO upsizing matters if the weather API throws 429s for every user who hasn't cached a session in the last 2 hours. The proxy cache (Open #19) turns this from "breaks at 15 concurrent users" to "handles thousands." Everything else — Supabase RLS performance, Capacitor native bridge latency, the Babel parse wall on dev — is a rounding error compared to this. The VPS redeploy is the entire pre-launch infrastructure checklist. It's 30 minutes of SSH work that has been deferred for 45 days.
+| Scale | Infra cost | Notes |
+|-------|-----------|-------|
+| Today (<10 MAU) | **$6/mo** | DigitalOcean 1GB droplet |
+| 1K MAU | **$6/mo** | Droplet handles it; VPS proxy cache absorbs Open-Meteo load |
+| 10K MAU | **$18-36/mo** | Upgrade to 2-4 GB droplet; GitHub Pages CDN handles static |
+| 100K MAU | **$100-200/mo** | Droplet cluster or move proxy to App Platform; CDN offloads static |
 
-**Second failure mode**: If `peakly-api.duckdns.org` goes down (DO droplet crash, pm2 death, DuckDNS propagation failure), the client silently falls back to direct Open-Meteo — which immediately re-exposes the rate limit problem without the proxy buffer. There is no alerting. Monitoring recommendation: add a Cronitor or Uptime Robot ping to `https://peakly-api.duckdns.org/health` — free tier, 1-minute checks, pings Jack's phone when it returns non-200. 5 minutes to set up.
+GitHub Pages is free and CDN-backed globally. The VPS proxy at $6/mo is the only paid infra. **Cost optimization opportunity:** at 10K+ MAU, adding a Redis instance ($7/mo on DigitalOcean) would let the VPS proxy scale horizontally without cache inconsistency.
+
+---
+
+## Priority Summary
+
+### P0 — Fix Today (Launch Blocker)
+**None today.** The last P0 (AGP/AKL/GRU AIRPORT_COORDS) was fixed yesterday in commit `80e1721`.
+
+### P1 — Fix This Week
+1. **VPS Redeploy (Open #19/#21/#23, Day 46)** — `forecast_days:14`, disk cache, CORS/DELETE/iOS all inert until Jack SSH-deploys. Pre-Reddit gate. **The Oct 11 Reddit launch date depends on this being live before the venue search build session, which has a Sep 14 deadline.** Time: 30 minutes SSH session.
+
+   ```bash
+   # Jack runs on 198.199.80.21:
+   cd /opt/peakly-proxy
+   # NOT a git clone — copy manually:
+   # scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+   pm2 restart peakly-proxy
+   curl -s https://peakly-api.duckdns.org/health
+   # Verify: forecast_days:14, wx_cache on disk, apns status
+   ```
+
+2. **BASE_PRICES top-15 backfill (Open #22)** — 91% gap. See fix above. Time: ~2 hours.
+
+### P2 — Fix This Sprint
+1. **Zombie branch cleanup** — 18 stale remote branches polluting the repo. Commands above. Time: 2 minutes.
+2. **Venue text search** — PM deadline Sep 14 (6 days). Not DevOps scope, but if it misses deadline the Oct 11 Reddit post slips to Oct 18. Flagging as awareness item.
+
+---
+
+## What Will Break First at Scale
+
+**Open-Meteo rate limit ceiling — and it will break hard with no warning.**
+
+The architecture assumes the VPS proxy cache absorbs all repeat weather fetches. That cache currently isn't running the deployed fixes (no `forecast_days:14`, no disk persistence). A Reddit spike hitting the current live VPS gets the stale build, which means: (a) two-weekend scoring returns wrong results because it's querying 7-day data, and (b) the in-memory cache resets on every `pm2 restart`. At ~70 concurrent DAU hitting the same popular venues (Whistler, Chamonix, Tulum), Open-Meteo's free tier of 10,000 daily API calls exhausts in minutes. Once rate-limited, the client falls back to direct Open-Meteo calls — which means 70 users each firing 405 venue requests, blowing through the ceiling even faster.
+
+**Prevention:** Redeploy the VPS before any public traffic. One 30-minute SSH session. That's it. The code is already written and committed.
