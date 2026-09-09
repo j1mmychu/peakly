@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260907a";
+const PEAKLY_BUILD = "20260909a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -13678,17 +13678,49 @@ function App() {
     const top = byScore.find(l => l.flight?.live === true) || byScore[0];
     if (!top) return;
 
+    // ─── THE BLANK-WIDGET BUG (found + fixed 2026-09-09) ──────────────────────
+    // `conditions` was `top.weekendHeadline || top.conditionLabel`, but
+    // weekendHeadline is NOT a string — scoreWeekend builds it as an OBJECT:
+    //   headlineDay = { name, score, label, di }
+    // and the listings memo passes it straight through. So the payload shipped
+    // `conditions` as an object, while the widget's Swift model declares
+    // `var conditions: String?`. JSONDecoder throws typeMismatch on that ONE
+    // field, which aborts the WHOLE object; WidgetStore.load()'s `try?` turns
+    // the throw into nil; entry.pick is nil; the widget renders EmptyStateView
+    // — "Open Peakly to find your weekend" — on every device, permanently.
+    //
+    // Nothing upstream could look wrong: the native save() resolves because it
+    // stores the blob without parsing it, so the App Group, the plugin
+    // registration and the bundle stamp all verified clean while the widget
+    // stayed empty. The add-widget gallery looked correct because that renders
+    // Provider.placeholder(), which is built in Swift and never decoded.
+    const _hl = top.weekendHeadline;
+    const conditionsText =
+      (typeof _hl === "string" ? _hl : null) ||
+      (_hl && typeof _hl.label === "string"
+        ? (typeof _hl.name === "string" ? _hl.name + " · " + _hl.label : _hl.label)
+        : null) ||
+      (typeof top.conditionLabel === "string" ? top.conditionLabel : null) ||
+      null;
+
+    // Type guards on every field. This bug cost days precisely because a wrong
+    // TYPE — not a wrong value — silently killed the entire payload, and
+    // nothing on this side validated what it was sending. Anything that isn't
+    // the shape the Swift model expects now becomes null instead of poison.
+    const asStr = v => (typeof v === "string" && v.trim() !== "") ? v : null;
+    const asNum = v => (typeof v === "number" && Number.isFinite(v)) ? v : null;
+
     const payload = {
-      venue: top.title,
-      location: top.location,
-      score: Math.round(top.weekendScore),
-      label: top.weekendLabel,
-      conditions: top.weekendHeadline || top.conditionLabel || null,
-      price: top.flight?.price ?? null,
+      venue: asStr(top.title),
+      location: asStr(top.location),
+      score: asNum(Math.round(top.weekendScore)),
+      label: asStr(top.weekendLabel),
+      conditions: asStr(conditionsText),
+      price: asNum(top.flight?.price),
       isEstimate: top.flight?.live !== true,
-      dates: top.weekendPeriod || null,
-      category: top.category,
-      venueId: top.id,
+      dates: asStr(top.weekendPeriod),
+      category: asStr(top.category),
+      venueId: asStr(top.id),
       updatedAt: Date.now(),
     };
 

@@ -7,7 +7,7 @@ import SwiftUI
 // Every field is optional-tolerant: the widget must never crash or blank out
 // because a fare was missing or the app wrote an older schema.
 
-struct WeekendPick: Codable {
+struct WeekendPick {
     var venue: String?
     var location: String?
     var score: Int?
@@ -19,6 +19,61 @@ struct WeekendPick: Codable {
     var category: String?       // "skiing" | "beach"
     var updatedAt: Double?      // epoch ms, for the staleness note
     var venueId: String?        // deep link target
+}
+
+// The header above always claimed this type was "optional-tolerant". With
+// synthesized Codable that was never true: JSONDecoder aborts the WHOLE object
+// on the first type mismatch, WidgetStore.load()'s `try?` turns that into nil,
+// and the widget silently falls through to its empty state. That is exactly
+// what shipped — app.jsx was sending `conditions` as an object, and it blanked
+// the entire widget for weeks with no error anywhere.
+//
+// Decoding each field independently means one unexpected field can never again
+// take the rest of the payload down with it. Conformance lives in an extension
+// so the memberwise init used by Provider.placeholder() is still synthesized.
+extension WeekendPick: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case venue, location, score, label, conditions
+        case price, isEstimate, dates, category, updatedAt, venueId
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+
+        func str(_ k: CodingKeys) -> String? {
+            (try? c.decodeIfPresent(String.self, forKey: k)) ?? nil
+        }
+        // Accept Int, Double, or numeric String — JS number handling is loose
+        // enough that pinning this to Int alone is a standing liability.
+        func num(_ k: CodingKeys) -> Int? {
+            if let i = (try? c.decodeIfPresent(Int.self, forKey: k)) ?? nil { return i }
+            if let d = (try? c.decodeIfPresent(Double.self, forKey: k)) ?? nil, d.isFinite { return Int(d) }
+            if let s = (try? c.decodeIfPresent(String.self, forKey: k)) ?? nil, let d = Double(s) { return Int(d) }
+            return nil
+        }
+        func dbl(_ k: CodingKeys) -> Double? {
+            if let d = (try? c.decodeIfPresent(Double.self, forKey: k)) ?? nil { return d }
+            if let i = (try? c.decodeIfPresent(Int.self, forKey: k)) ?? nil { return Double(i) }
+            return nil
+        }
+        func bool(_ k: CodingKeys) -> Bool? {
+            if let b = (try? c.decodeIfPresent(Bool.self, forKey: k)) ?? nil { return b }
+            if let i = (try? c.decodeIfPresent(Int.self, forKey: k)) ?? nil { return i != 0 }
+            return nil
+        }
+
+        venue      = str(.venue)
+        location   = str(.location)
+        score      = num(.score)
+        label      = str(.label)
+        conditions = str(.conditions)
+        price      = num(.price)
+        isEstimate = bool(.isEstimate)
+        dates      = str(.dates)
+        category   = str(.category)
+        updatedAt  = dbl(.updatedAt)
+        venueId    = str(.venueId)
+    }
 }
 
 enum WidgetStore {
