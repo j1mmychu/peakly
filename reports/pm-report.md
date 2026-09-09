@@ -1,94 +1,85 @@
-# Peakly PM Report v144 — 2026-09-08
+# Peakly PM Report v145 — 2026-09-09
 
-**Status: 🟡 YELLOW — Two false alarms from agent reports corrected below. Real issues unchanged: venue search unbuilt (6 days to Sep 14 deadline), VPS Day 46. No code changes since Sep 7.**
+**Status: 🔴 RED — Venue search still unbuilt. 5 days to Sep 14 hard deadline. Third consecutive day of zero code commits. Reddit launch (Oct 11) is now at risk.**
 
 ---
 
-## Shipped Since Last Report (v143 → v144)
+## Shipped Since Last Report (v144 → v145)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `61733b2` | DevOps: YELLOW, VPS Day 46, BASE_PRICES 91% gap reported | ⚠️ The 91% gap finding is stale — BASE_PRICES was fully backfilled 2026-08-24 (PM v129). Content confirmed 165/165 coverage. DevOps is reporting a closed issue. |
-| `85f896d` | Content: 93/100, lateSeason regression flagged on 5 venues | ⚠️ False alarm — see below. All 5 venues already have `lateSeason: true`. Actual count is 15. Content agent's regex only matched compact-format entries. |
+| `510a0e5` | Content: 95/100, lateSeason false-alarm corrected (15 confirmed), 405 venues Day 4 | ✅ Correct. False alarms resolved. Signal clean. |
+| `5d1d68b` | DevOps: YELLOW, BASE_PRICES 100% confirmed, VPS Day 47 | ✅ Correct. Two prior false alarms acknowledged. |
 
-**Net code change this cycle: 0.** No app.jsx commits since AGP/AKL/GRU fix on Sep 7.
+**Net code change this cycle: 0.** No app.jsx commits in 3 days (last: Sep 7, AGP/AKL/GRU fix).
 
 ---
 
-## Corrections to Agent Reports
+## Addressing the Scheduled Prompt's Bug List
 
-### Correction 1: lateSeason "regression" is a FALSE ALARM
+### Peakly Pro price ($9/mo vs $79/yr)
+**Not applicable.** Peakly Pro UI was removed in April 2026. `grep -c GEAR_ITEMS app.jsx` → 0. No Pro pricing anywhere in code. The scheduled prompt was written when Pro still existed. This is a stale finding — no action needed, no bug to fix.
 
-Content report deducted 3 points (95→93) and flagged 5 venues as missing `lateSeason: true`: snowbird, zermatt, engelberg, verbier, val-thorens. **Verified manually — all 5 already have the flag.** Actual count: 15 (verified via `grep -E '"lateSeason"[[:space:]]*:[[:space:]]*true|lateSeason[[:space:]]*:[[:space:]]*true' app.jsx` → 15).
+### Sentry DSN empty
+**Not applicable.** DevOps confirms Sentry DSN is active and wired at `app.jsx:8` and `index.html:77`. The live site has error monitoring. No action needed.
 
-Root cause: Content agent used regex `lateSeason[: ]*true` which fails to match JSON-format entries like `"lateSeason": true` (the `"` after the key name is not in `[: ]*`). 10 compact-format entries matched; 5 JSON-format entries did not. Same dual-format counting bug CLAUDE.md warns about repeatedly.
-
-**Action:** Update `tasks/agents/content-data.md` to use the reliable `grep -cE '"lateSeason"[[:space:]]*:[[:space:]]*true|lateSeason[[:space:]]*:[[:space:]]*true'` pattern. True score is **95/100**, not 93. No app.jsx fix needed.
-
-### Correction 2: BASE_PRICES "91% gap" is stale
-
-DevOps flagged "BASE_PRICES 91% gap quantified, only 15 of 165 airports covered." This was true before PM v129 (Aug 24). The 2026-08-24 commit added the 100% backfill batch. Content confirmed 165/165 coverage today. DevOps is filing an already-closed bug.
-
-**Action:** DevOps `tasks/agents/devops.md` prompt should be updated to check for the batch comment `BASE_PRICES 100% backfill — 2026-08-24` before flagging coverage gaps.
+### Cache buster stale
+**Not a bug.** Cache stamp `20260907a` is Day 3 with no app.jsx changes. Per auto-push policy, the stamp only bumps when source files change. No edits → no bump. This is correct behavior. DevOps confirmed. Not a blocker.
 
 ---
 
 ## Bug Triage
 
-### Venue text search — P1 (6 days to Sep 14 deadline)
+### Venue text search — P0 (5 days to Sep 14 deadline)
 
-Still unbuilt. Sep 14 is the hard gate for Oct 11 Reddit launch.
+**Reclassified from P1 to P0.** With 5 days until the Sep 14 gate and 3 consecutive days of no progress, this is now existential for the Oct 11 Reddit launch window.
 
-Spec is locked — unchanged from v140:
-```
-- <input> above category pills, placeholder "Search venues…"
-- toLowerCase() filter on venue.title + venue.location + venue.tags.join(' ')
-- Count shown when active ("12 results")  
+The inline search input does not exist. Confirmed via code grep: `search.destination` filter exists in `applyFilters` at line 8732 (functional logic), but it's exposed only through SearchSheet UX (tap the "Anywhere · This weekend" bar → sheet opens → type → apply → close). The spec calls for an always-visible `<input>` above the category pills. Not built.
+
+**The spec is locked. It is not changing:**
+- `<input>` above category pills, placeholder "Search venues…"
+- `toLowerCase()` filter on `venue.title + venue.location + venue.tags.join(' ')`
+- Result count shown when active ("12 results")
 - Clears on category pill change
 - No server calls, no debounce — pure client-side
-```
 
-Note: `applyFilters` already has a `search.destination` text filter (lines 8731–8737), but it's buried behind SearchSheet UX (tap SearchBar → sheet → type → apply → close). The ask is a persistent inline input, always visible above the pills, no sheet interaction. Two hours of work. Six days left.
+Estimated build: 2 hours. `applyFilters` already has the filter logic at line 8732. This is literally wiring a `<input onChange>` to a `useState` and threading the value into the existing filter. There is no algorithmic work remaining.
 
-**If not shipped by Sep 14, PM v145 will be RED and Reddit launch shifts to Oct 18.**
+**Sep 14 = last day to ship before the Oct 11 Reddit window gates.** Miss it and launch shifts to Oct 18 — losing the peak Sep/Oct ski pre-booking traffic window.
 
-### VPS Redeploy (Open #19/#21/#23) — P0 (Day 46)
+### VPS Redeploy (Open #19/#21/#23) — P1 (Day 47)
 
-Jack's hands required. SSH, copy `server/proxy.js` to `/opt/peakly-proxy`, `pm2 restart peakly-proxy`, verify `/health`. 30 minutes. Still the only pre-Reddit gate that can't be automated.
+Jack's hands required. 5-minute SSH task. Deploy command is in the DevOps report verbatim. Every day without it: two-weekend scoring broken, iOS CORS blocked, alert deletion silently failing.
 
-Every day undeployed: two-weekend scoring off, iOS native CORS blocked, alert deletion silently failing.
-
-### DevOps/Content report signal degradation — P2
-
-Two consecutive days of false alarms from agent reports. The agents are filing closed bugs and counting incorrectly due to regex failures on the dual-format catalog. This is engineering waste and creates noise in the PM feed. Both prompts need a regex fix. Not a production blocker but erodes confidence in the daily signal.
+This is not growing — it doesn't get worse day 47 vs day 40. But it must be done before any Reddit traffic arrives. Standing P1 until resolved.
 
 ---
 
-## Three Product Decisions — Sep 8
+## Three Product Decisions — Sep 9
 
-### Decision 1: Venue search — SHIP THIS WEEK (final warning)
+### Decision 1: Venue search — SHIP TODAY, NOT "THIS WEEK"
 
-Sep 14 is non-negotiable. Oct 11 vs Oct 18 Reddit launch window is worth 3 weeks of organic traffic, and Sep/Oct is peak ski pre-booking intent. The build is 2 hours. This is the decision. Not a recommendation.
+"This week" was v144's framing. That framing is now wrong. 5 days × "we'll get to it" = missed deadline. The build is 2 hours. This session or the next code session needs to build it. No more deferrals, no more scheduling. The spec is pinned above. Go.
 
-**Spec locked. No additions. No debounce. No fuzzy matching. Text filter on title + location + tags. Inline input. Done.**
+### Decision 2: Peakly Pro pricing — CLOSED (stale finding)
 
-### Decision 2: Agent prompt regex fixes — SHIP THIS WEEK (5 minutes)
+The scheduled prompt's "$9/mo vs $79/yr" discrepancy: Peakly Pro UI was removed in April 2026. No Pro pricing exists in the code. The scheduled task prompt was written against an older codebase. This finding is permanently closed — stop checking for it.
 
-Both the Content and DevOps agent prompts have regex bugs causing false alarms. Fix the lateSeason count regex in `tasks/agents/content-data.md` and add a BASE_PRICES batch-comment check to `tasks/agents/devops.md`. This is 10 minutes of prompt editing, not code. High signal/noise value. Do it.
+### Decision 3: S-hemisphere ski subreddit timing — ACT THIS WEEK OR MISS THE WINDOW
 
-### Decision 3: Zombie branches — SCHEDULE CLEANUP FOR POST-REDDIT
+NZ and Australia ski seasons close late September. r/skiing NZ and r/skiing Argentina/Chile are active now. We have venues scoring well: Cardrona (CHC), Falls Creek/Mt Buller (MEL), Cerro Catedral (BRC), Las Leñas (MDZ). This is a no-code marketing opportunity — targeted posts in ski subreddits before their season closes. No build required. Two-week window. Someone needs to pull the trigger.
 
-18 stale branches (`claude/` prefixed + 3 others). Zero production impact. Jack or any agent session can run a one-liner cleanup. Officially scheduling for the week after Oct 11 Reddit launch: `git push origin --delete <branch>` × 18. Not before. Not a blocker. Done — decision made, stop re-raising it.
+**Decision: Jack should consider a pre-Reddit S-hemisphere ski post this week.** If Oct 11 is the main event, nothing stops a S-hemisphere soft-launch now. Two benefits: real user signal before the big post, and access to a subreddit audience that's actively planning end-of-season trips. Not on the critical path — but the window closes by Sep 20.
 
 ---
 
-## This Week's Top 3 (Sep 8–14)
+## This Week's Top 3 (Sep 9–14)
 
-**#1: Build venue search.** 2-hour build. Sep 14 deadline. Non-negotiable. Spec above.
+**#1: Build venue search.** 2-hour build. 5 days left. The only thing standing between current state and Reddit launch. Spec pinned above. No more delay.
 
-**#2: Jack: VPS redeploy.** 30-minute SSH task. Day 46. Pre-Reddit gate.
+**#2: Jack: VPS redeploy.** 5-minute SSH task. Day 47. Pre-Reddit gate. Deploy command is in the DevOps report.
 
-**#3: Fix agent prompt regexes.** 10 minutes. Prevents next week's false alarms. `tasks/agents/content-data.md` + `tasks/agents/devops.md`.
+**#3: Consider S-hemisphere ski subreddit post.** No code. Real user signal. Window closes ~Sep 20.
 
 ---
 
@@ -96,35 +87,39 @@ Both the Content and DevOps agent prompts have regex bugs causing false alarms. 
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| 5 new venue proposals (Famara, Anthony Quinn Bay, etc.) | ❌ DEFERRED | Standing call since v141 — don't add venues to an unsearchable catalog. Wait for search to ship. |
-| Photo pipeline (346 generic stock photos) | ❌ DEFERRED | Requires Unsplash key + manual review. Not blocking Oct 11. Post-Reddit. |
-| App Store submission | ❌ DEFERRED | LLC pending, VPS undeployed, Xcode signing not done. Three blockers, none of which are buildable this week. |
+| Fuzzy/ranked search | ❌ CUT | Scope creep on the locked spec. Substring match is sufficient for 405 venues. |
+| 5 pending venue proposals | ❌ DEFERRED | Catalog is unsearchable until search ships. Adding to an unsearchable list is waste. |
+| Photo pipeline | ❌ DEFERRED | Requires Unsplash key + manual review. Not blocking Oct 11. Post-Reddit. |
+| App Store submission | ❌ DEFERRED | LLC + VPS + Xcode signing. Three blockers, none agent-buildable this week. |
 | iOS widget Xcode wiring | ❌ DEFERRED | Code-complete. Not blocking Reddit. Post-Oct-11. |
-| Mid-week empty grid "next forecast available" state | ❌ DEFERRED | Real UX gap (PM v143 risk item), but not worth delaying search. Add to the Oct 11 post-launch queue. |
-| Fuzzy/ranked venue search | ❌ CUT | Scope creep on the search spec. Plain substring match is sufficient for 405 venues. |
+| Tag density backfill (239 venues <4 tags) | ❌ DEFERRED | Real gap (costs 5/100 on content score), but a bulk editing session, not a this-week task. |
+| Mid-week "no results" state polish | ❌ DEFERRED | Real UX gap, not worth delaying search. Queue for post-launch. |
+| S-hem ski venue additions | ❌ DEFERRED | Don't add to unsearchable catalog. Post-search. |
 
 ---
 
 ## Success Criteria
 
-**90-day projection: 5K–8K users.** What has to be true for 8K, not 5K:
+**90-day projection: 5K–8K users.** What separates 8K from 5K:
 
-1. Reddit launch lands Oct 11 — requires venue search by Sep 14.
-2. VPS redeployed before the post. Open-Meteo rate ceiling is an existential risk at spike traffic.
-3. Photo quality improves. Generic stock is the first thing Reddit will roast.
-4. S-hemisphere ski subreddit timing. Andes resorts close late September — 2-week window to target r/skiing NZ and r/skiing Argentina while their venues score well. No code needed; just timing.
+1. **Oct 11 Reddit launch hits** — requires venue search by Sep 14. This is the gate.
+2. **VPS redeployed before the post** — Open-Meteo rate ceiling at spike traffic is existential. A 10K-impression Reddit post with 66+ concurrent DAU saturates the free tier and serves weather errors to everyone who shows up.
+3. **Photo quality improves** — generic stock is the first thing Reddit will call out in comments. Even 20–30 verified photos on high-traffic venues (Whistler, Chamonix, Bora Bora, Santorini) would materially reduce roasting.
+4. **S-hem ski timing** — Andes + NZ active right now. Pre-launch post optional but high-upside this month.
 
-**The delta between 5K and 8K is execution on items 1 and 2.** Items 3 and 4 are multipliers, not gates.
+**The delta between 5K and 8K is items 1 and 2.** Both executable this week. Both blocked on execution, not tech.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The SearchSheet UX creates a shadow search that nobody uses.**
+**The content score deduction for tag density (239 venues, <4 tags) is not cosmetic — it's a search quality problem.**
 
-There's already a functional venue text filter — `search.destination` in `applyFilters` (line 8732) filters by title + location. But it's hidden behind a SearchBar that looks like a booking widget (it says "Anywhere · This weekend"), not a venue filter. Real users won't find it. They'll look at 405 unsorted venues and bounce.
+When venue search ships, users searching for "surfing" (yes, some will try), "reef", "powder", "family", "beginners" will get empty results or partial results because these concepts live in tags that aren't there. 59% of venues have 2 tags. The search spec filters on `venue.tags.join(' ')`. A search for "powder" returns nothing if the venue's 2 tags are "Skiing" and "Europe."
 
-The PM spec for an inline search input isn't adding a feature — it's surfacing an existing one. When it ships, the SearchBar's destination field arguably becomes redundant for text filtering. That's fine. The SearchBar serves a different mental model (trip planning) vs. the inline filter (venue browsing). They can coexist. But the underlying filter logic is already there; the build is wiring a `<input>` to a state variable and a filter call. There's literally no algorithmic work left. The only remaining task is to ship the input. 6 days.
+The tag gap isn't a data quality metric — it's a product defect that will make search feel broken at launch. The fix is a batch session: add 2–3 editorial tags per venue (conditions-based, terrain-type, vibe words). 239 venues × 3 tags = 717 additions. This is a 4-hour content task, not an engineering task. It should be scheduled for the week after search ships, before the Reddit post.
+
+**If search ships Sep 14 and tag backfill doesn't happen by Oct 8, the launch experience for the "find me a powder day in the Alps" user is a broken empty result.**
 
 ---
 
@@ -132,11 +127,18 @@ The PM spec for an inline search input isn't adding a feature — it's surfacing
 
 | Item | Blocker | Owner |
 |------|---------|-------|
-| VPS redeploy | SSH access required | Jack |
-| REI affiliate | LLC pending | Jack |
-| Backcountry affiliate | LLC pending | Jack |
-| GetYourGuide affiliate | LLC pending | Jack |
+| VPS redeploy | SSH access | Jack |
+| Venue search | Build time | Agent / Jack code session |
+| REI / Backcountry / GetYourGuide affiliates | LLC pending | Jack |
 | App Store submission | LLC + VPS + Xcode signing | Jack |
-| Supabase delete-account SQL | One-time paste into Supabase editor | Jack |
+| Supabase delete-account SQL | One-time Supabase editor paste | Jack |
+| Tag density backfill | Batch content session (~4hr) | Agent (post-search) |
+| S-hem ski subreddit post | Timing decision | Jack |
 
-All agent-buildable items are on the critical path this week: venue search (code) and prompt fixes (prompts). Both can land without Jack.
+---
+
+## Overnight Activity Summary
+
+No new code. Three daily reports (DevOps, Content, PM) committed. Signal is clean — two prior false alarms (lateSeason, BASE_PRICES) fully corrected. The agent pipeline is running correctly now that regex patterns are accurate.
+
+The site is healthy. The product is feature-complete for Reddit. The only gap is venue search. That's the job.
