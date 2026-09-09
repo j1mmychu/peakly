@@ -265,10 +265,47 @@ app.get('/api/flights', async (req, res) => {
         });
       }
 
-      // No exact-date match: return empty. Client treats this as "no live fare"
-      // and the venue is hidden from listings (only cards with confirmed
-      // same-day prices ship — the 7-day spontaneous-trip product can't fudge
-      // dates without misleading users).
+      // No exact-date match. Travelpayouts' cache is sparse — on 2026-09-09
+      // only 5 of 65 LAX routes had an RT fare departing on the exact Friday,
+      // so exact-only starved almost every card down to the ~$X estimate and
+      // the app read as "flights never load." Fall back to the nearest
+      // weekend-length round trip departing within ±1 day (Thu–Sat), nearest
+      // day first, cheapest within a day. Flagged exact:false and carrying its
+      // real depart/return dates, which the card renders — so "Sat Sep 12 →
+      // Mon Sep 14" is shown honestly rather than passed off as Friday.
+      // Uses the calendar/month-matrix results already fetched: no extra calls.
+      {
+        const reqT = Date.parse(depart_date + 'T00:00:00Z');
+        const dayDiff = e => {
+          const t = Date.parse((e.depart_date || '') + 'T00:00:00Z');
+          return Number.isNaN(t) ? null : Math.abs(Math.round((t - reqT) / 86400000));
+        };
+        const near = all
+          .filter(e => isRoundTrip(e) && isWeekendLength(e) && typeof e.price === 'number' && e.price > 0)
+          .map(e => ({ e, d: dayDiff(e) }))
+          .filter(x => x.d != null && x.d >= 1 && x.d <= 1)
+          .sort((a, b) => a.d - b.d || a.e.price - b.e.price)[0];
+        if (near) {
+          const dateKey = depart_date.slice(0, 7);
+          return res.json({
+            success: true,
+            data: { [destination]: { [dateKey]: {
+              price: near.e.price,
+              depart_date: near.e.depart_date,
+              return_date: near.e.return_date,
+              found_at: near.e.found_at,
+              requested_depart_date: depart_date,
+              exact: false,
+            }}},
+            found_at: new Date().toISOString(),
+            mode: 'specific',
+            source: 'nearest',
+          });
+        }
+      }
+
+      // Nothing within ±1 day either: return empty. Client treats this as
+      // "no live fare" and shows the ~$X typical-price estimate.
       return res.json({
         success: true,
         data: { [destination]: {} },
