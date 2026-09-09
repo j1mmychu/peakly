@@ -151,9 +151,10 @@ async function main() {
     /^\s*<script[^>]+plausible\.io[^>]*><\/script>\s*\n/gm,
     // Sentry — fails to load offline; in-app try/typeof Sentry guards make it a no-op
     /^\s*<script[^>]+sentry-cdn[^>]*><\/script>\s*\n/gm,
-    // Babel preload + script
-    /^\s*<link[^>]+@babel\/standalone[^>]*\/?>\s*\n/gm,
-    /^\s*<script[^>]+@babel\/standalone[^>]*><\/script>\s*\n/gm,
+    // Babel preload + script (matches both the @babel/standalone npm path
+    // and cdnjs's hyphenated "babel-standalone" library name)
+    /^\s*<link[^>]+(?:@babel\/standalone|babel-standalone)[^>]*\/?>\s*\n/gm,
+    /^\s*<script[^>]+(?:@babel\/standalone|babel-standalone)[^>]*><\/script>\s*\n/gm,
     // Stray HTML comments left dangling after removals (keeps the file tidy)
     /^\s*<!--\s*(Analytics: Plausible|Sentry Error Monitoring|Babel standalone[^>]*)-->\s*\n/gm,
     /^\s*<!--\s*Plus Jakarta Sans[^>]*-->\s*\n/gm,
@@ -162,9 +163,9 @@ async function main() {
 
   // Inline rewrites — replace remote URLs with local vendor paths.
   html = html
-    .replace(/<script\s+crossorigin\s+src="https:\/\/unpkg\.com\/react@[^"]+"\s*><\/script>/,
+    .replace(/<script\s+crossorigin\s+src="https:\/\/(?:unpkg\.com\/react@[^"]+|cdnjs\.cloudflare\.com\/ajax\/libs\/react\/[^"]+\/umd\/react\.production\.min\.js)"\s*><\/script>/,
              '<script src="./vendor/react.production.min.js"></script>')
-    .replace(/<script\s+crossorigin\s+src="https:\/\/unpkg\.com\/react-dom@[^"]+"\s*><\/script>/,
+    .replace(/<script\s+crossorigin\s+src="https:\/\/(?:unpkg\.com\/react-dom@[^"]+|cdnjs\.cloudflare\.com\/ajax\/libs\/react-dom\/[^"]+\/umd\/react-dom\.production\.min\.js)"\s*><\/script>/,
              '<script src="./vendor/react-dom.production.min.js"></script>')
     .replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@[^"]+"\s*><\/script>/,
              '<script src="./vendor/supabase.min.js"></script>')
@@ -190,12 +191,15 @@ async function main() {
   fs.writeFileSync(path.join(DIST, "index.html"), html);
 
   // 5. Sanity grep — fail loud if any forbidden remote ref slipped through.
-  const forbidden = /unpkg|jsdelivr|@babel\/standalone|sentry-cdn|cdn\.jsdelivr|plausible\.io|fonts\.googleapis|fonts\.gstatic|text\/babel/;
+  // HTML comments are stripped first so commentary text (e.g. mentioning a
+  // CDN by name) can't produce a false positive — only live refs count.
+  const forbidden = /unpkg|jsdelivr|@babel\/standalone|babel-standalone|cdnjs\.cloudflare\.com|sentry-cdn|cdn\.jsdelivr|plausible\.io|fonts\.googleapis|fonts\.gstatic|text\/babel/;
   const offenders = [];
   for (const f of fs.readdirSync(DIST)) {
     const p = path.join(DIST, f);
     if (fs.statSync(p).isFile()) {
-      const text = fs.readFileSync(p, "utf8");
+      const raw = fs.readFileSync(p, "utf8");
+      const text = raw.replace(/<!--[\s\S]*?-->/g, "");
       if (forbidden.test(text)) offenders.push(`${f}: ${text.match(forbidden)?.[0]}`);
     }
   }

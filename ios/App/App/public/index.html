@@ -11,26 +11,18 @@
   <meta property="og:description" content="Find ski &amp; beach spots with perfect conditions and cheap flights. Real-time weekend scoring for 350+ venues worldwide." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://j1mmychu.github.io/peakly/" />
-  <meta property="og:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center" />
+  <meta property="og:image" content="" />
   <meta property="og:site_name" content="Peakly" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Peakly — Ski &amp; Beach When Conditions Align" />
   <meta name="twitter:description" content="Find ski &amp; beach spots with perfect conditions and cheap flights." />
-  <meta name="twitter:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center" />
+  <meta name="twitter:image" content="" />
 
   <title>Peakly — Best Ski &amp; Beach Weekend Trips with Cheap Flights</title>
   <link rel="canonical" href="https://j1mmychu.github.io/peakly/" />
-
-  <!-- Plus Jakarta Sans (needed for splash before app.jsx loads) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" />
-
   <!-- Analytics: Plausible -->
-  <script defer data-domain="j1mmychu.github.io/peakly" src="https://plausible.io/js/script.hash.js"></script>
-
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -74,11 +66,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>P</text></svg>" />
 
   <!-- Sentry Error Monitoring (deferred — off the critical render path) -->
-  <script defer src='https://js.sentry-cdn.com/9416b032a46681d74645b056fcb08eb7.min.js' crossorigin='anonymous'></script>
-
-  <!-- React 18 + ReactDOM (UMD, no build step needed) -->
-  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <!-- React 18 + ReactDOM (UMD, no build step needed) — cdnjs has SLA, unpkg does not -->
+  <script src="./vendor/react.production.min.js"></script>
+  <script src="./vendor/react-dom.production.min.js"></script>
 
   <!-- Leaflet (map view) is lazy-loaded on demand by ensureLeaflet() in app.jsx
        — kept off the critical render path since most sessions never open the map. -->
@@ -387,7 +377,9 @@
   </div>
 
   <!-- Load app (Babel transforms JSX on the fly) -->
-  <script src="./app.min.js?v=20260821b"></script>
+  <link rel="stylesheet" href="./vendor/leaflet.css" />
+  <script src="./vendor/leaflet.js"></script>
+  <script src="./app.js"></script>
 
   <!-- Service Worker registration -->
   <script>
