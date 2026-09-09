@@ -1,22 +1,21 @@
-# Peakly Content & Data Report — 2026-09-08
+# Peakly Content & Data Report — 2026-09-09
 
-## Data Health Score: 93/100
+## Data Health Score: 95/100
 
 **Deductions:**
-- −4: 225 venues (56%) have only 2 tags — under editorial minimum of 4. Unchanged from prior days.
-- −3: `lateSeason: true` flag missing from 5 high-altitude resorts that legitimately qualify. **New finding.** Without this flag, these venues hit the off-season binary cap even when snow depth ≥ 0.5 m — scoring them near zero in September/October when glacier skiing is real. Fix is in §5 below.
+- −5: 239 venues (59%) have fewer than 4 tags — the editorial minimum. Breakdown: 225 with exactly 2 tags, 14 with exactly 3 tags. Unchanged from prior days; bulk of the gap is in the Maldives/SE Asia beach cohort. Backfill requires a batch session, not a one-liner.
 
-**Change from yesterday:** −2 (95 → 93). No code changes between yesterday and today — the lateSeason gap was present before but not detected by prior runs (exact regex excluded JSON-format entries). Genuine regression vs. CLAUDE.md's July 16 verified list (which names all 5 as `lateSeason: true`).
+**Change from yesterday:** +2 (93 → 95). The Sep 8 report's −3 deduction for a lateSeason regression was a false alarm — the 5 JSON-format entries (snowbird, zermatt, engelberg, verbier, val-thorens) already had `"lateSeason": true` at the time of that report. The detection method used a regex that was too narrow to find JSON-format entries. Today's eval-based count confirms **15/15** correct. The true baseline score was 97 before accounting for the tag density being more accurately counted (55%→59% when 3-tag venues are included alongside 2-tag venues in the "<4" bucket). Score correction: −5 for tags.
 
 ---
 
 ## 1. Data Integrity Audit
 
-**Authoritative counts (both compact and JSON formats tallied):**
+**Authoritative counts (eval-based, both compact and JSON formats):**
 
 | Check | Result |
 |-------|--------|
-| Total venues (eval, both formats) | **405** (134 skiing / 271 beach) — unchanged day 3 |
+| Total venues (eval, both formats) | **405** (134 skiing / 271 beach) — Day 4 unchanged |
 | Duplicate IDs | **0** ✅ |
 | Missing `lat`/`lon` | **0** ✅ |
 | Missing `ap` | **0** ✅ |
@@ -26,12 +25,14 @@
 | Duplicate photo URLs | **0** ✅ |
 | Missing `title`/`location`/`icon`/`gradient`/`accent` | **0** ✅ |
 | Bad coordinates (out of range) | **0** ✅ |
-| `lateSeason: true` venues | **10** ⚠️ — **should be 15** (see §5) |
-| `BASE_PRICES` coverage | ✅ All 165 unique venue `ap` codes covered |
-| `AP_CONTINENT` coverage | ✅ All venue `ap` codes present |
-| `AIRPORT_COORDS` coverage | ✅ All venue `ap` codes present |
-| `GEAR_ITEMS` | **0** ✅ intentionally cut for v1 — do not restore |
+| `lateSeason: true` venues | **15** ✅ — all 15 confirmed (eval, both formats) |
+| `BASE_PRICES` coverage | **165/165 unique venue `ap` codes** ✅ — 100% |
+| `AP_CONTINENT` coverage | **165/165** ✅ |
+| `AIRPORT_COORDS` coverage | **165/165** ✅ |
+| `GEAR_ITEMS` | **0** ✅ — intentionally cut for v1; do not restore |
 | `.venue-baseline` | **405** ✅ matches eval count |
+
+**lateSeason correction note:** Sep 8 reported 10 venues (should be 15). The actual eval count was 15 all along — 7 compact-format entries (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia) + 5 JSON-format entries (snowbird, zermatt, engelberg, verbier, val-thorens) + 3 additional compact entries (les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) = 15. No fix was needed; no fix was made. The Sep 9 DevOps report independently confirmed the same correction.
 
 ---
 
@@ -55,73 +56,53 @@ Intentionally cut for v1 (Jack, 2026-06-09). Standing directive in `tasks/agents
 
 ---
 
-## 4. Seasonal Relevance — 2026-09-08
+## 4. Seasonal Relevance — 2026-09-09
 
-**Northern hemisphere — September 8:**
+**Northern hemisphere — September 9:**
 
-| Venue type | Status |
-|-----------|--------|
-| **N-hem beach (Mediterranean, Atlantic)** | ✅ **PEAK** — Greek islands (RHO, JMK, JTR), Canaries (ACE, FUE), Portugal (FAO), French Riviera (NCE), Turkey (AYT), Balearics (IBZ). 24–27°C water, post-peak crowds, best September on most coasts. |
-| **N-hem beach (Caribbean)** | ✅ Good — some hurricane risk (mostly passes south of venues). |
-| **N-hem beach (SE Asia)** | ⚠️ Monsoon shoulder — Phuket/HKT, Koh Samui/USM west coast wet. Bali/DPS (Indian Ocean side) still in dry season. |
-| **N-hem skiing** | ❌ Off-season for most resorts. Glacier venues (Hintertux, Tignes sur-glacier) can hold snow. **lateSeason flag gaps make this worse — see §5.** |
+| Venue type | Seasonal status |
+|-----------|----------------|
+| **Mediterranean beach (Greece, Turkey, Croatia)** | ✅ **PEAK** — 26°C water temp. Best month for uncrowded conditions on the Aegean coast. RHO, CHQ, JMK, JTR all firing. |
+| **Atlantic islands (Canary Islands, Madeira)** | ✅ Peak value month — 23°C water, off-peak prices, steady NE trade wind. ACE, FUE, TFS excellent. |
+| **Caribbean beach** | ✅ Good — hurricane risk tracks mostly south of main destinations. CUN corridor acceptable. |
+| **SE Asia beach** | ⚠️ Monsoon shoulder — HKT/USM west-coast Thailand wet. Bali (DPS) dry season still running. |
+| **N-hem skiing** | ❌ Off-season. 15 lateSeason venues (glaciers / high altitude) exempt when snow depth ≥0.5m — scoring engine handles correctly. |
 
-**Southern hemisphere — September 8:**
+**Southern hemisphere — September 9:**
 
-| Venue type | Status |
-|-----------|--------|
-| **S-hem skiing (NZ, AUS)** | ⚠️ Late season winding down. Cardrona, Mt Hutt, Falls Creek may have another 2–3 weeks. |
-| **S-hem beach** | 🌱 Spring starting. Brazil (GIG/FOR/NAT) warming (20–22°C water). Sydney/SYD and Gold Coast/OOL still cool (18°C). |
+| Venue type | Seasonal status |
+|-----------|----------------|
+| **S-hem skiing (NZ, AUS)** | ⚠️ Late season winding down. CHC (Cardrona), MEL (Falls Creek, Mt Buller), now in final weeks. |
+| **S-hem beach (Brazil, Chile, Cape Town, Sydney)** | 🌱 Spring. Water 18–22°C. GIG/NAT/FOR warming; SYD/OOL cool but clear. |
+| **Cape Town (CPT)** | ⚠️ Spring shoulder — beach season properly starts October. Camps Bay and Clifton usable but not yet prime. |
 
----
-
-## 5. lateSeason Flag Regression — NEW FINDING
-
-**5 high-altitude ski resorts are missing `lateSeason: true`** despite qualifying per CLAUDE.md's July 16 verified list. These are all JSON-format batch entries — the flag was not included when they were batch-added. Compact-format venues (whistler, chamonix, mammoth, etc.) retained the flag; these five did not.
-
-**Affected venues:**
-
-| Venue | ID | AP | Why it matters |
-|-------|----|----|---------------|
-| Snowbird | `snowbird` | SLC | Alta-adjacent, one of Utah's last open resorts in spring/early autumn |
-| Zermatt | `zermatt` | GVA | Theodul Glacier — **open year-round**. Biggest miss. |
-| Engelberg-Titlis | `engelberg` | ZRH | Titlis Glacier — late season into May/June and again Sep onward |
-| Verbier 4 Vallées | `verbier` | GVA | Mont Fort Glacier — reliable late season |
-| Val Thorens | `val-thorens` | CMF | Highest resort in the Alps (2300m base) — earliest/latest each season |
-
-**Current impact (September):** All five score near zero under the off-season binary cap despite real early-season snow at altitude. Zermatt specifically has ski-able terrain right now.
-
-**Fix — add to each JSON-format entry** (surgical edit, no rebuild needed):
-
-```javascript
-// In app.jsx, find each entry by id and add "lateSeason": true
-// Example for snowbird:
-{
-  "id": "snowbird",
-  // ... existing fields ...
-  "lateSeason": true  // ADD THIS
-}
-
-// Same for: "zermatt", "engelberg", "verbier", "val-thorens"
-```
-
-After fix: `lateSeason: true` count → **15** (matching CLAUDE.md July 16 list + hintertux-glacier).
+**September highlight airports (venues scoring well right now):**
+- RHO, CHQ, JMK, JTR, EFL (Greek islands) — peak
+- ACE, FUE, TFS (Canary Islands) — value peak
+- IBZ, PMI, MAH (Balearics) — late summer still excellent
+- DPS (Bali) — dry season peak
 
 ---
 
-## 6. Content Quality
+## 5. Content Quality
 
 **Photo health:** 405/405 ✅ | 0 duplicates ✅. Generic stock issue (~360/405 venue-unspecific) blocked on `UNSPLASH_KEY` (Open #20). No regression.
 
-**Descriptions:** Venues have no `description` field — content is delivered through `tags`, `title`, and `location`. This is by design. No action.
+**Tag density:** 239/405 venues (59%) have fewer than 4 tags.
+- 2 tags: 225 venues (56%)
+- 3 tags: 14 venues (3%)
+- 4 tags: 165 venues (41%)
+- 5 tags: 1 venue (<1%)
 
-**Tag density:** 225 venues (56%) below the editorial minimum of 4 tags. Unchanged. Bulk of the gap is in the beach/Maldives/SE Asia batch cohort (2-tag pattern: `["UV 11","Crystal Water"]`). Backfill is a batch edit session — not a one-liner. Lowest friction: target the 2-tag beach cohort first.
+Highest-impact fix: target the 225 two-tag beach cohort — most are the Maldives/SE Asia/Pacific batch that received generic `["UV 11","Crystal Water"]` style tags. A single focused session could backfill all 225 with accurate 4-tag arrays.
 
-**Venue coordinate accuracy:** No new issues. The four coord-error venues from July 24 audit remain fixed.
+**Descriptions:** No `description` field in schema — content delivered through tags/title/location. By design. No action.
+
+**Venue coordinates:** No new issues. The four coord-error venues from July 24 audit remain corrected. No regressions detected.
 
 ---
 
-## 7. Geographic Distribution
+## 6. Geographic Distribution
 
 | Region | Beach | Skiing |
 |--------|-------|--------|
@@ -132,25 +113,30 @@ After fix: `lateSeason: true` count → **15** (matching CLAUDE.md July 16 list 
 | Latin America | ~12 | ~11 |
 | Africa/Middle East | ~5 | — |
 
-**Thinnest zones:**
-- **S-temperate beach (<−35° lat):** ~2 venues (hyams-beach CBR, piha-beach-nz AKL). Spring warming begins — good timing to add Otago Peninsula/NZ South Island.
-- **Middle East beach:** 0 venues. DXB/AUH not yet in `AIRPORT_COORDS` — requires infra step before venues can be added.
-- **AGP (Málaga coast):** 1 venue = Sierra Nevada skiing only. Zero beach venues for a city with 70km of Costa del Sol coastline. September is peak for this region.
+**Current thin zones:**
+- **Crete west coast (CHQ):** Only 1 venue (elafonissi). CHQ serves a massive September market — Balos Lagoon is the most-photographed beach in Greece and completely distinct from Elafonissi. Added as NEW-5 today.
+- **S-temperate beach (below −35° lat):** 2 venues (hyams-beach CBR, piha-beach-nz AKL). Spring warming underway — Otago Peninsula/South Island NZ and Otago coast would be well-timed.
+- **Middle East beach:** 0 venues. DXB/AUH missing from `AIRPORT_COORDS` — infra step required before venues can target these gateways.
+- **LAS (Las Vegas):** Only airport in both `AIRPORT_COORDS` + `AP_CONTINENT` with zero venues. Lee Canyon skiing is too small and the wrong September direction. No action.
+
+**Airports with no venues that have full lookup coverage (both `AIRPORT_COORDS` + `AP_CONTINENT`):** LAS only, outside US domestic airports. All other unused airports (FLL, MCO) are missing `AP_CONTINENT` entries.
 
 ---
 
-## 8. Five New Venue Objects — Sep 8
+## 7. Five New Venue Objects — Sep 9
 
-**Strategy:** 4 carry-overs from Sep 05–07 (unpasted × 3 days, APs all verified ✅) + 1 fresh pick targeting Costa del Sol (AGP), which has 0 beach venues and September is its best month.
+**Strategy:** 4 carry-overs (Sep 5–8, unpasted × 4 days, all APs verified ✅) + 1 fresh pick: Balos Lagoon, Crete (CHQ) — the most photographed beach in Greece, only 1 existing CHQ venue, and September is its finest month.
 
 All 5 APs verified: `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.
 
 After pasting all 5: eval count → **410**.
 
+**Note:** `burriana-beach-nerja` (AGP) from the Sep 8 report is also unpasted (Day 2). With the 4 carry-overs below and the Sep 8 report's set, there are now **6 fully-ready venue objects** pending a paste session. At the current pace (0 pasted in 4 days, 20+ objects accumulated since Sep 5), the bottleneck is the paste step.
+
 ---
 
 ```javascript
-// NEW-1 (carry-over, not yet pasted). Playa de Famara, Lanzarote, Canary Islands
+// NEW-1 (carry-over, not yet pasted — Day 4). Playa de Famara, Lanzarote, Canary Islands
 // ACE (Lanzarote Airport). 2nd ACE venue — joins beach_lanzarote (Papagayo).
 // Famara = wild, cliff-backed, kitesurfing. Papagayo = sheltered snorkeling. No overlap.
 // September: 23°C water, steady NE trade wind, off-peak prices.
@@ -163,7 +149,7 @@ After pasting all 5: eval count → **410**.
   tags:["Europe's Best Kitesurfing","Volcanic Cliffs","September Value","Wild Atlantic"],
   photo:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-2 (carry-over, not yet pasted). Anthony Quinn Bay, Rhodes, Greece
+// NEW-2 (carry-over, not yet pasted — Day 4). Anthony Quinn Bay, Rhodes, Greece
 // RHO (Rhodes Diagoras). 3rd RHO venue — joins lindos-beach-t23 and tsambika-beach-rhodes.
 // September = Aegean golden month. 26°C water, crystalline visibility, post-tourist-peak.
 {id:"anthony-quinn-bay-rho", category:"beach",
@@ -175,7 +161,7 @@ After pasting all 5: eval count → **410**.
   tags:["Hollywood History","Turquoise Cove","September Peak","No Beach Chairs"],
   photo:"https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-3 (carry-over, not yet pasted). Prainha Beach, Rio de Janeiro, Brazil
+// NEW-3 (carry-over, not yet pasted — Day 4). Prainha Beach, Rio de Janeiro, Brazil
 // GIG (Rio Galeão). 2nd GIG venue — joins ipanema-rio.
 // S-hem spring: water warming to 22°C. Rio's most preserved natural beach — no vendors.
 {id:"prainha-rio-brazil", category:"beach",
@@ -187,7 +173,7 @@ After pasting all 5: eval count → **410**.
   tags:["Rio's Hidden Beach","No Vendors","September Spring","Strong Surf"],
   photo:"https://images.unsplash.com/photo-1503503330641-44a1c9aabd66?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-4 (carry-over, not yet pasted). Currumbin Beach, Gold Coast, Queensland
+// NEW-4 (carry-over, not yet pasted — Day 4). Currumbin Beach, Gold Coast, Queensland
 // OOL (Gold Coast Airport). 2nd OOL venue — joins beach_gold_coast (Surfers Paradise).
 // S-hem spring: 22°C water, dry season ending. Currumbin Alley = best beginner surf break on GC.
 {id:"currumbin-beach-qld", category:"beach",
@@ -199,25 +185,27 @@ After pasting all 5: eval count → **410**.
   tags:["Currumbin Alley Surf","Rockpools","Spring Season","Laid-Back Vibe"],
   photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-5 (FRESH — Sep 8). Playa Burriana, Nerja — Costa del Sol
-// AGP (Málaga). FIRST beach venue for AGP — currently only Sierra Nevada (skiing).
-// Nerja is 50km east of Málaga. Burriana = best beach in Nerja: sheltered cove, crystal water,
-// backed by cliffs. September: 24°C water, 27°C air, quietest month of summer.
-// Distinct from the overdeveloped Costa del Sol strips — no high-rises.
-{id:"burriana-beach-nerja", category:"beach",
-  title:"Playa Burriana, Nerja", location:"Nerja, Costa del Sol, Spain",
-  lat:36.7403, lon:-3.8607, ap:"AGP",
-  icon:"🏖️", rating:4.77, reviews:6840,
-  gradient:"linear-gradient(160deg,#0a1a35,#1a3870,#2e68b0)",
-  accent:"#80b8e8",
-  tags:["Costa del Sol Hidden Gem","Crystal Cove","September Best Month","Cliff Views"],
-  photo:"https://images.unsplash.com/photo-1504931655591-0f4aea4dad87?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-5 (FRESH — Sep 9). Balos Lagoon, Crete
+// CHQ (Chania International). 2nd CHQ venue — joins elafonissi-beach-chq.
+// Balos is the most photographed beach in Greece: a pink-tinged sandbar lagoon on the
+// northwest tip of Crete. September is peak quality: 26°C water, transparent visibility,
+// crowds down 40% from August, the ferry from Kissamos still running.
+// Completely distinct from Elafonissi (south coast, pink sand flat lagoon) — Balos is
+// a dramatic bay accessed by ferry or 4x4 track, with a ruined Venetian castle.
+{id:"balos-lagoon-crete", category:"beach",
+  title:"Balos Lagoon", location:"Kissamos, Crete, Greece",
+  lat:35.6064, lon:23.5676, ap:"CHQ",
+  icon:"🏝️", rating:4.85, reviews:7340,
+  gradient:"linear-gradient(160deg,#0a1530,#1a3570,#2868b8)",
+  accent:"#70aee8",
+  tags:["Greece's Iconic Lagoon","Pink Sandbar","September Peak","Venetian Castle Views"],
+  photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 ```
 
 ---
 
 ## PM Observation
 
-**The lateSeason flag gap is the new P1.** Five glacier and high-altitude resorts — including Zermatt (Theodul Glacier, open year-round) and Val Thorens (highest resort in the Alps) — lost `"lateSeason": true` when they were batch-added in JSON format. Right now in September, with early-season snow accumulating at altitude, these resorts score near zero under the off-season cap. The fix is surgical: add one field to five JSON objects in app.jsx. It should land before the next ski-season push.
+**Catalog at 405 for 4 consecutive days — 20+ venue objects pending paste.** Since September 5, each day's report has proposed 5 verified, AP-clean, seasonally-relevant venue objects. None have been pasted. The September 8 batch alone (famara, anthony-quinn-bay, prainha, currumbin, burriana-nerja) plus today's 5 gives 10 fully ready objects — roughly 2 hours of paste time to hit 415. If the Reddit/HN launch target is 450 venues, the current zero-paste-days pace means the deadline slips 1 day per day. The bottleneck is the manual paste step, not the venue quality or data readiness.
 
-**Catalog stalled at 405 for 3 consecutive days.** Twenty proposed venue objects across 4 days — none pasted. These are high-quality, AP-verified, strategically-placed picks. The bottleneck is the paste step. If the target is 450 before Reddit/HN launch, the current pace needs to change.
+**lateSeason false-alarm corrected.** The Sep 8 report flagged a regression that didn't exist; today's eval confirmed all 15 lateSeason venues were correct in the codebase the whole time. Score adjusts from 93 → 95. This class of detection error (regex too narrow for JSON-format entries) is now a known pitfall — future lateSeason checks should always use the eval-based counter.
