@@ -1,100 +1,130 @@
-# Peakly PM Report v145 — 2026-09-09
+# Peakly PM Report v146 — 2026-09-10
 
-**Status: 🔴 RED — Venue search still unbuilt. 5 days to Sep 14 hard deadline. Third consecutive day of zero code commits. Reddit launch (Oct 11) is now at risk.**
+**Status: 🔴 RED — Venue search still unbuilt. 4 days to Sep 14 hard deadline. The Oct 11 Reddit launch is in jeopardy.**
 
 ---
 
-## Shipped Since Last Report (v144 → v145)
+## Shipped Since Last Report (v145 → v146)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `510a0e5` | Content: 95/100, lateSeason false-alarm corrected (15 confirmed), 405 venues Day 4 | ✅ Correct. False alarms resolved. Signal clean. |
-| `5d1d68b` | DevOps: YELLOW, BASE_PRICES 100% confirmed, VPS Day 47 | ✅ Correct. Two prior false alarms acknowledged. |
+| `c760dfb` | fix(flights): widen live-fare fallback to ±3 days / 2–7 nights | ✅ Yes. Accurate prices are a trust signal. |
+| `d7c3830` | iOS: declare ITSAppUsesNonExemptEncryption=false | ✅ Yes. Removes App Store review friction. |
+| `af25afb` | build: iOS rebundle (photo + carousel + copy fixes) | ✅ Yes. Necessary followup to iOS fixes. |
+| `a4e7d47` | fix(detail): stop saying "live price loading" forever | ✅ Yes. Trust-eroding UX bug. |
+| `ec060e2` | fix(venues): replace 31 wrong/generic venue photos | ✅ Yes. Progress on the #20 quality gap. |
+| `30a4f5a` | fix: bring front-page carousels back | ✅ Critical. This was a regression — carousels are the first thing a new user sees. |
+| `3152c96` | fix(proxy): fallback to ±1-day weekend RT fare | ✅ Yes. Accuracy fix, fewer blank prices. |
+| `0036ab7` | fix(build-ios): vendor React/Babel locally | ✅ Yes. Build reliability. |
+| `e0f7713` | fix blank widget: conditions was an object | ✅ Yes. Widget was broken at decode. |
 
-**Net code change this cycle: 0.** No app.jsx commits in 3 days (last: Sep 7, AGP/AKL/GRU fix).
+**9 commits. All quality/polish/regression fixes. Zero progress on venue search.** The pattern is clear: polishing a product that lacks its most-requested feature. The question isn't whether these fixes were correct — they were — but whether they were the right *allocation* while Sep 14 ticks down.
 
 ---
 
 ## Addressing the Scheduled Prompt's Bug List
 
 ### Peakly Pro price ($9/mo vs $79/yr)
-**Not applicable.** Peakly Pro UI was removed in April 2026. `grep -c GEAR_ITEMS app.jsx` → 0. No Pro pricing anywhere in code. The scheduled prompt was written when Pro still existed. This is a stale finding — no action needed, no bug to fix.
+**Closed — stale finding.** Peakly Pro UI was removed April 2026. `grep -c GEAR_ITEMS app.jsx` → 0. No Pro pricing in code. Permanently closed.
 
 ### Sentry DSN empty
-**Not applicable.** DevOps confirms Sentry DSN is active and wired at `app.jsx:8` and `index.html:77`. The live site has error monitoring. No action needed.
+**Closed — false alarm.** Sentry DSN active at `app.jsx:8` and `index.html:77`. Monitoring is live.
 
 ### Cache buster stale
-**Not a bug.** Cache stamp `20260907a` is Day 3 with no app.jsx changes. Per auto-push policy, the stamp only bumps when source files change. No edits → no bump. This is correct behavior. DevOps confirmed. Not a blocker.
+**Non-issue.** Cache stamp `20260910a` bumped today in lockstep with flight fix commit. Correct behavior.
 
 ---
 
 ## Bug Triage
 
-### Venue text search — P0 (5 days to Sep 14 deadline)
+### P0 — Venue search (4 days to Sep 14 deadline)
 
-**Reclassified from P1 to P0.** With 5 days until the Sep 14 gate and 3 consecutive days of no progress, this is now existential for the Oct 11 Reddit launch window.
+Status unchanged from v145. The spec is locked:
 
-The inline search input does not exist. Confirmed via code grep: `search.destination` filter exists in `applyFilters` at line 8732 (functional logic), but it's exposed only through SearchSheet UX (tap the "Anywhere · This weekend" bar → sheet opens → type → apply → close). The spec calls for an always-visible `<input>` above the category pills. Not built.
+```
+<input> above category pills — "Search venues…"
+Filter: toLowerCase() on venue.title + venue.location + venue.tags.join(' ')
+Result count shown when active ("12 results")
+Clear on category pill change
+No server calls, no debounce — pure client-side
+```
 
-**The spec is locked. It is not changing:**
-- `<input>` above category pills, placeholder "Search venues…"
-- `toLowerCase()` filter on `venue.title + venue.location + venue.tags.join(' ')`
-- Result count shown when active ("12 results")
-- Clears on category pill change
-- No server calls, no debounce — pure client-side
+Filter logic exists in `applyFilters` at line 8732. The wiring (`<input onChange>` → `useState` → existing filter) is a 2-hour build.
 
-Estimated build: 2 hours. `applyFilters` already has the filter logic at line 8732. This is literally wiring a `<input onChange>` to a `useState` and threading the value into the existing filter. There is no algorithmic work remaining.
+**Sep 14 is the last day to ship before the Oct 11 Reddit window gates.** Miss it and launch shifts to Oct 18 — losing the peak Sep/Oct ski pre-booking traffic window.
 
-**Sep 14 = last day to ship before the Oct 11 Reddit window gates.** Miss it and launch shifts to Oct 18 — losing the peak Sep/Oct ski pre-booking traffic window.
+### P1 — Semantic duplicate venue
 
-### VPS Redeploy (Open #19/#21/#23) — P1 (Day 47)
+Content flagged today: `san-vito-lo-capo-t21` (line 663) and `beach_san_vito_lo_capo` (line 4973) are the same beach (San Vito Lo Capo, Sicily, TPS airport). Two entries, same lat/lon, different IDs. The boot-time IIFE misses this because it's ID-dedup-only.
 
-Jack's hands required. 5-minute SSH task. Deploy command is in the DevOps report verbatim. Every day without it: two-weekend scoring broken, iOS CORS blocked, alert deletion silently failing.
+**Fix: delete one.** `beach_san_vito_lo_capo` (line 4973) has better data — higher rating (4.96 vs 4.68), more reviews (24,600 vs 4,719), better tags. Delete `san-vito-lo-capo-t21`. 5-minute fix.
 
-This is not growing — it doesn't get worse day 47 vs day 40. But it must be done before any Reddit traffic arrives. Standing P1 until resolved.
+Net venues after fix: **404**.
 
----
+### P1 — dist/ build collision (DevOps)
 
-## Three Product Decisions — Sep 9
+`build-ios.mjs` and `build-web.mjs` both write to `dist/`. Running iOS build last clobbers the web build. Committed `dist/index.html` is an iOS artifact — references `./vendor/react.production.min.js` (doesn't exist in dist/).
 
-### Decision 1: Venue search — SHIP TODAY, NOT "THIS WEEK"
+**Live site is unaffected** — GitHub Actions runs `build-web.mjs` fresh on every push, producing a correct dist/ before deploying. But:
+- Anyone running dist/ locally gets a white screen
+- Committed dist/ is misleading
 
-"This week" was v144's framing. That framing is now wrong. 5 days × "we'll get to it" = missed deadline. The build is 2 hours. This session or the next code session needs to build it. No more deferrals, no more scheduling. The spec is pinned above. Go.
+DevOps has the 10-minute fix: change `build-ios.mjs`'s output path from `dist` to `ios/App/App/public`. Then clean stale iOS artifacts from dist/. Safe to bundle with any commit.
 
-### Decision 2: Peakly Pro pricing — CLOSED (stale finding)
+### P2 — OG image in committed dist/ (DevOps flagged)
 
-The scheduled prompt's "$9/mo vs $79/yr" discrepancy: Peakly Pro UI was removed in April 2026. No Pro pricing exists in the code. The scheduled task prompt was written against an older codebase. This finding is permanently closed — stop checking for it.
+DevOps flagged `dist/index.html` OG image as `content=""`. This is the stale iOS-built dist/ artefact (same P1 above) — not the live deployed site. Source `index.html` has the correct Unsplash URL. GitHub Actions reads from source and builds correctly. **Live site has a valid OG image. Not a live bug — corollary to the P1 dist/ collision.**
 
-### Decision 3: S-hemisphere ski subreddit timing — ACT THIS WEEK OR MISS THE WINDOW
+### P3 — VENUES count discrepancy
 
-NZ and Australia ski seasons close late September. r/skiing NZ and r/skiing Argentina/Chile are active now. We have venues scoring well: Cardrona (CHC), Falls Creek/Mt Buller (MEL), Cerro Catedral (BRC), Las Leñas (MDZ). This is a no-code marketing opportunity — targeted posts in ski subreddits before their season closes. No build required. Two-week window. Someone needs to pull the trigger.
-
-**Decision: Jack should consider a pre-Reddit S-hemisphere ski post this week.** If Oct 11 is the main event, nothing stops a S-hemisphere soft-launch now. Two benefits: real user signal before the big post, and access to a subreddit audience that's actively planning end-of-season trips. Not on the critical path — but the window closes by Sep 20.
-
----
-
-## This Week's Top 3 (Sep 9–14)
-
-**#1: Build venue search.** 2-hour build. 5 days left. The only thing standing between current state and Reddit launch. Spec pinned above. No more delay.
-
-**#2: Jack: VPS redeploy.** 5-minute SSH task. Day 47. Pre-Reddit gate. Deploy command is in the DevOps report.
-
-**#3: Consider S-hemisphere ski subreddit post.** No code. Real user signal. Window closes ~Sep 20.
+My eval: 405 (confirmed, both compact and JSON format). DevOps reported 407. DevOps is overcounting. Content's 405 is correct. CLAUDE.md says 395 — stale, update on next app.jsx commit.
 
 ---
 
-## Features Rejected This Week
+## Three Product Decisions — Sep 10
+
+### Decision 1: Venue search — SHIP BEFORE SEP 14. NOT OPTIONAL.
+
+4 days. No more deferrals. This is a 2-hour build. If a code session doesn't run today or tomorrow, the Oct 11 launch gate closes. The spec is pinned above. The filter logic exists. Wiring a `<input onChange>` to an existing `useState` and threading the value into the existing filter at line 8732 is mechanical work, not creative work.
+
+**Decision: SHIP. Today or tomorrow. Sep 14 deadline is non-negotiable.**
+
+### Decision 2: Semantic duplicate — CUT `san-vito-lo-capo-t21`
+
+Two entries for the same beach is a content defect. `beach_san_vito_lo_capo` is the better entry. Delete the compact-format duplicate. Bundle with any upcoming app.jsx commit.
+
+**Decision: CUT `san-vito-lo-capo-t21`.**
+
+### Decision 3: dist/ build collision — FIX THIS WEEK
+
+Not an emergency (live site is fine), but it will bite someone. The 10-minute fix is documented. It should go in the same commit as venue search or the next app.jsx touch.
+
+**Decision: SHIP, bundle with next app.jsx commit.**
+
+---
+
+## This Week's Top 3 (Sep 10–14)
+
+**#1: Build venue search.** 2-hour build. 4 days left. Every other priority is secondary. Spec pinned above.
+
+**#2: Jack: VPS redeploy (Open #19/#21/#23).** Day 30 post-Aug-11 partial redeploy. Still blocking: two-weekend scoring, iOS CORS, alert deletion. Pre-Reddit gate. Deploy command in DevOps report.
+
+**#3: Tag density backfill.** 239 venues with <4 tags is not a data quality metric — it's a search quality problem. When venue search ships, "powder," "beginners," "reef," "family" searches return empty or wrong results because the tags aren't there. Schedule this for the week after venue search ships, before Oct 11. 4-hour batch content session.
+
+---
+
+## Features REJECTED This Week
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| Fuzzy/ranked search | ❌ CUT | Scope creep on the locked spec. Substring match is sufficient for 405 venues. |
-| 5 pending venue proposals | ❌ DEFERRED | Catalog is unsearchable until search ships. Adding to an unsearchable list is waste. |
-| Photo pipeline | ❌ DEFERRED | Requires Unsplash key + manual review. Not blocking Oct 11. Post-Reddit. |
-| App Store submission | ❌ DEFERRED | LLC + VPS + Xcode signing. Three blockers, none agent-buildable this week. |
-| iOS widget Xcode wiring | ❌ DEFERRED | Code-complete. Not blocking Reddit. Post-Oct-11. |
-| Tag density backfill (239 venues <4 tags) | ❌ DEFERRED | Real gap (costs 5/100 on content score), but a bulk editing session, not a this-week task. |
-| Mid-week "no results" state polish | ❌ DEFERRED | Real UX gap, not worth delaying search. Queue for post-launch. |
-| S-hem ski venue additions | ❌ DEFERRED | Don't add to unsearchable catalog. Post-search. |
+| Fuzzy/ranked search | ❌ CUT | Scope creep. Substring match on 405 venues is sufficient. |
+| 5 pending venue proposals | ❌ DEFERRED | Unsearchable catalog first. Adding venues to an unsearchable list is waste. |
+| Photo pipeline (Unsplash API) | ❌ DEFERRED | Needs Unsplash key + manual review. Not blocking Oct 11. Post-Reddit. |
+| App Store submission | ❌ DEFERRED | LLC + VPS + Xcode signing — none agent-buildable. |
+| iOS widget Xcode wiring | ❌ DEFERRED | Code-complete, not blocking Reddit. Post-Oct-11. |
+| S-hem ski subreddit posts | ❌ DEFERRED to Jack | Not a code task. Jack's call on timing. Window closes ~Sep 20. |
+| JSON-LD structured data | ❌ DEFERRED | SEO enhancement. Not on the Oct 11 critical path. |
+| Static h1 fallback | ❌ DEFERRED | Same. Post-Reddit. |
 
 ---
 
@@ -103,23 +133,21 @@ NZ and Australia ski seasons close late September. r/skiing NZ and r/skiing Arge
 **90-day projection: 5K–8K users.** What separates 8K from 5K:
 
 1. **Oct 11 Reddit launch hits** — requires venue search by Sep 14. This is the gate.
-2. **VPS redeployed before the post** — Open-Meteo rate ceiling at spike traffic is existential. A 10K-impression Reddit post with 66+ concurrent DAU saturates the free tier and serves weather errors to everyone who shows up.
-3. **Photo quality improves** — generic stock is the first thing Reddit will call out in comments. Even 20–30 verified photos on high-traffic venues (Whistler, Chamonix, Bora Bora, Santorini) would materially reduce roasting.
-4. **S-hem ski timing** — Andes + NZ active right now. Pre-launch post optional but high-upside this month.
-
-**The delta between 5K and 8K is items 1 and 2.** Both executable this week. Both blocked on execution, not tech.
+2. **VPS redeployed before the post** — Open-Meteo rate ceiling at spike traffic. 10K-impression Reddit post + 66+ concurrent DAU = free tier saturated = weather errors for everyone.
+3. **Photo quality** — 31 venues now have real photos (progress). Reddit will call out generic stock. 20–30 verified hero venues (Whistler, Chamonix, Bora Bora, Santorini) are minimum. Roughly 25% there.
+4. **Tag density** — search quality at launch. If "powder in the Alps" returns 0 results, that's a Reddit comment. Schedule backfill now, execute week of Oct 5.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The content score deduction for tag density (239 venues, <4 tags) is not cosmetic — it's a search quality problem.**
+**The front-page carousel has been broken and fixed twice in the last two weeks.** Commit `30a4f5a` re-introduced the carousels that a prior commit had dropped. This is the second regression on the most important piece of UI — the thing a new user sees before they scroll.
 
-When venue search ships, users searching for "surfing" (yes, some will try), "reef", "powder", "family", "beginners" will get empty results or partial results because these concepts live in tags that aren't there. 59% of venues have 2 tags. The search spec filters on `venue.tags.join(' ')`. A search for "powder" returns nothing if the venue's 2 tags are "Skiing" and "Europe."
+The carousel logic is entangled enough with the scoring pipeline that routine quality fixes keep breaking it. If it breaks on Oct 11 launch day (the highest-traffic moment this app will have ever seen), users arrive to an empty explore page and bounce.
 
-The tag gap isn't a data quality metric — it's a product defect that will make search feel broken at launch. The fix is a batch session: add 2–3 editorial tags per venue (conditions-based, terrain-type, vibe words). 239 venues × 3 tags = 717 additions. This is a 4-hour content task, not an engineering task. It should be scheduled for the week after search ships, before the Reddit post.
+No one is writing a regression test for this. The Playwright smoke test doesn't catch it (smoke tests check for crashes, not content). The fix for carousel fragility isn't a test — it's code ownership: whoever touches `scoreWeekend`/`scoreWeekendDeal`/`listings` memo next should audit the carousel's rendering conditions and document the invariants that must hold for it to appear. A 20-line comment block on the carousel condition logic would have prevented both regressions.
 
-**If search ships Sep 14 and tag backfill doesn't happen by Oct 8, the launch experience for the "find me a powder day in the Alps" user is a broken empty result.**
+**If this breaks on launch day, we have no recovery path faster than a manual hotfix + push + GitHub Actions build + deploy cycle (~5 minutes). That's 5 minutes of a first impression we don't get back.**
 
 ---
 
@@ -127,8 +155,8 @@ The tag gap isn't a data quality metric — it's a product defect that will make
 
 | Item | Blocker | Owner |
 |------|---------|-------|
-| VPS redeploy | SSH access | Jack |
-| Venue search | Build time | Agent / Jack code session |
+| VPS redeploy (Open #19/#21/#23) | SSH access | Jack |
+| Venue search | Build execution | Agent / Jack code session |
 | REI / Backcountry / GetYourGuide affiliates | LLC pending | Jack |
 | App Store submission | LLC + VPS + Xcode signing | Jack |
 | Supabase delete-account SQL | One-time Supabase editor paste | Jack |
@@ -139,6 +167,8 @@ The tag gap isn't a data quality metric — it's a product defect that will make
 
 ## Overnight Activity Summary
 
-No new code. Three daily reports (DevOps, Content, PM) committed. Signal is clean — two prior false alarms (lateSeason, BASE_PRICES) fully corrected. The agent pipeline is running correctly now that regex patterns are accurate.
+9 code commits since v145 — all quality and polish: flight price accuracy, iOS App Store housekeeping, regression fixes (carousels, price loading spinner), 31 venue photos corrected, widget decoding bug fixed. All correct decisions individually.
 
-The site is healthy. The product is feature-complete for Reddit. The only gap is venue search. That's the job.
+Pattern: the product is being polished toward perfection while its most important missing feature remains unbuilt. The carousels look great. The prices are accurate. Search doesn't exist.
+
+4 days to Sep 14.
