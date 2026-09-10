@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260909a";
+const PEAKLY_BUILD = "20260909b";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -9720,15 +9720,23 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       const bVal = b.weekendScore - Math.round(b.flight.price / 20);
       return bVal - aVal;
     };
+    // Live fares are preferred (sorted first) but not required — the
+    // live-only gate (2026-08) emptied the carousel entirely once
+    // Travelpayouts' exact-date coverage dropped to a handful of routes.
+    // A ~$X estimate on a firing venue is still a better front page than
+    // no carousel at all; the card already renders it as an estimate.
     return allScored
       .filter(l => {
         if (l.weekendScore < 75) return false;
         if (l.weekendConfidence === "low") return false;
         if (l.weekendWhich === "next") return false; // "Firing THIS weekend" — next-weekend picks belong in the grid
-        if (l.flight?.live !== true) return false; // exact-fares-only mode
-        return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
+        if (l.flight?.live === true) return getDealScore(l.flight.price, l, l.flight.from || "JFK") > -0.2;
+        return true;
       })
-      .sort(sortByVal).slice(0, 10);
+      .sort((a, b) => {
+        const al = a.flight?.live === true ? 1 : 0, bl = b.flight?.live === true ? 1 : 0;
+        return bl - al || sortByVal(a, b);
+      }).slice(0, 10);
   })();
 
   // Fallback carousel — same shape but softer floor (weekendScore >= 65,
@@ -9745,8 +9753,11 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
       return bVal - aVal;
     };
     return allScored
-      .filter(l => l.weekendScore >= 65 && l.flight?.live === true)
-      .sort(sortByVal).slice(0, 8);
+      .filter(l => l.weekendScore >= 65)
+      .sort((a, b) => {
+        const al = a.flight?.live === true ? 1 : 0, bl = b.flight?.live === true ? 1 : 0;
+        return bl - al || sortByVal(a, b);
+      }).slice(0, 8);
   })();
   // Which carousel + header to render
   const carouselUseFallback = bestRightNow.length < 3 && bestRightNowFallback.length >= 3;
