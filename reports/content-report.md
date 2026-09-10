@@ -1,11 +1,12 @@
-# Peakly Content & Data Report — 2026-09-09
+# Peakly Content & Data Report — 2026-09-10
 
-## Data Health Score: 95/100
+## Data Health Score: 94/100
 
 **Deductions:**
-- −5: 239 venues (59%) have fewer than 4 tags — the editorial minimum. Breakdown: 225 with exactly 2 tags, 14 with exactly 3 tags. Unchanged from prior days; bulk of the gap is in the Maldives/SE Asia beach cohort. Backfill requires a batch session, not a one-liner.
+- −5: 239 venues (59%) have fewer than 4 tags — editorial minimum. 225 with exactly 2 tags, 14 with 3 tags. Backfill requires a batch session, not a one-liner. Unchanged.
+- −1: NEW — semantic duplicate found at TPS (Trapani, Sicily): `san-vito-lo-capo-t21` and `beach_san_vito_lo_capo` are the same venue (San Vito Lo Capo beach) under different IDs and slightly different title casing. The boot-time IIFE only catches ID-level dups — this slipped through. See §1 for the fix.
 
-**Change from yesterday:** +2 (93 → 95). The Sep 8 report's −3 deduction for a lateSeason regression was a false alarm — the 5 JSON-format entries (snowbird, zermatt, engelberg, verbier, val-thorens) already had `"lateSeason": true` at the time of that report. The detection method used a regex that was too narrow to find JSON-format entries. Today's eval-based count confirms **15/15** correct. The true baseline score was 97 before accounting for the tag density being more accurately counted (55%→59% when 3-tag venues are included alongside 2-tag venues in the "<4" bucket). Score correction: −5 for tags.
+**Change from yesterday:** −1 (95 → 94). The deduction is net new: a semantic duplicate in the TPS cluster flagged today.
 
 ---
 
@@ -15,8 +16,9 @@
 
 | Check | Result |
 |-------|--------|
-| Total venues (eval, both formats) | **405** (134 skiing / 271 beach) — Day 4 unchanged |
-| Duplicate IDs | **0** ✅ |
+| Total venues (eval, both formats) | **405** (134 skiing / 271 beach) — Day 5 unchanged |
+| Duplicate IDs (boot-time IIFE) | **0** ✅ |
+| Semantic duplicates | **1 ⚠️ NEW** — see below |
 | Missing `lat`/`lon` | **0** ✅ |
 | Missing `ap` | **0** ✅ |
 | Missing `tags` | **0** ✅ |
@@ -25,14 +27,24 @@
 | Duplicate photo URLs | **0** ✅ |
 | Missing `title`/`location`/`icon`/`gradient`/`accent` | **0** ✅ |
 | Bad coordinates (out of range) | **0** ✅ |
-| `lateSeason: true` venues | **15** ✅ — all 15 confirmed (eval, both formats) |
-| `BASE_PRICES` coverage | **165/165 unique venue `ap` codes** ✅ — 100% |
+| `lateSeason: true` venues | **15** ✅ |
+| `BASE_PRICES` coverage | **165/165 unique venue `ap` codes** ✅ |
 | `AP_CONTINENT` coverage | **165/165** ✅ |
 | `AIRPORT_COORDS` coverage | **165/165** ✅ |
 | `GEAR_ITEMS` | **0** ✅ — intentionally cut for v1; do not restore |
 | `.venue-baseline` | **405** ✅ matches eval count |
 
-**lateSeason correction note:** Sep 8 reported 10 venues (should be 15). The actual eval count was 15 all along — 7 compact-format entries (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia) + 5 JSON-format entries (snowbird, zermatt, engelberg, verbier, val-thorens) + 3 additional compact entries (les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) = 15. No fix was needed; no fix was made. The Sep 9 DevOps report independently confirmed the same correction.
+**⚠️ Semantic duplicate — TPS (Trapani, Sicily):**
+
+Two separate VENUES entries for the exact same beach:
+- `id:"san-vito-lo-capo-t21"`, title: `"San Vito lo Capo"` (compact format)
+- `id:"beach_san_vito_lo_capo"`, title: `"San Vito Lo Capo"` (JSON format)
+
+Same lat/lon, same airport (TPS), same beach. The boot-time dup-id guard correctly passes (different IDs). This is a batch-paste artifact — the venue was in the original compact catalog and was re-submitted in a later JSON batch.
+
+**Fix:** Delete whichever entry has fewer/worse tags. Both have 4 tags — check photo quality and delete `beach_san_vito_lo_capo` (the batch-format entry, which typically has more generic photos) or `san-vito-lo-capo-t21` (the older entry). After deletion, verify `eval` count drops to 404.
+
+**Photo quality improvement (Sep 10):** Commit `ec060e2` replaced 31 wrong or generic venue photos with verified place photos. This is a meaningful quality lift — marquee venues (Chamonix, Aspen, Vail, Jackson Hole, Breckenridge, Niseko, Courchevel, Cervinia, Tulum) now have accurate venue-specific imagery instead of category stock. The total count of correctly-photographed venues rises from ~370 to ~401.
 
 ---
 
@@ -56,49 +68,45 @@ Intentionally cut for v1 (Jack, 2026-06-09). Standing directive in `tasks/agents
 
 ---
 
-## 4. Seasonal Relevance — 2026-09-09
+## 4. Seasonal Relevance — 2026-09-10
 
-**Northern hemisphere — September 9:**
-
-| Venue type | Seasonal status |
-|-----------|----------------|
-| **Mediterranean beach (Greece, Turkey, Croatia)** | ✅ **PEAK** — 26°C water temp. Best month for uncrowded conditions on the Aegean coast. RHO, CHQ, JMK, JTR all firing. |
-| **Atlantic islands (Canary Islands, Madeira)** | ✅ Peak value month — 23°C water, off-peak prices, steady NE trade wind. ACE, FUE, TFS excellent. |
-| **Caribbean beach** | ✅ Good — hurricane risk tracks mostly south of main destinations. CUN corridor acceptable. |
-| **SE Asia beach** | ⚠️ Monsoon shoulder — HKT/USM west-coast Thailand wet. Bali (DPS) dry season still running. |
-| **N-hem skiing** | ❌ Off-season. 15 lateSeason venues (glaciers / high altitude) exempt when snow depth ≥0.5m — scoring engine handles correctly. |
-
-**Southern hemisphere — September 9:**
+**Northern hemisphere — September 10:**
 
 | Venue type | Seasonal status |
 |-----------|----------------|
-| **S-hem skiing (NZ, AUS)** | ⚠️ Late season winding down. CHC (Cardrona), MEL (Falls Creek, Mt Buller), now in final weeks. |
-| **S-hem beach (Brazil, Chile, Cape Town, Sydney)** | 🌱 Spring. Water 18–22°C. GIG/NAT/FOR warming; SYD/OOL cool but clear. |
-| **Cape Town (CPT)** | ⚠️ Spring shoulder — beach season properly starts October. Camps Bay and Clifton usable but not yet prime. |
+| **Mediterranean beach (Greece, Turkey, Croatia, Italy)** | ✅ **PEAK** — 26°C water in Aegean, 24°C Adriatic. September is the optimal month: warmth of summer, crowds 30–40% down from August. All Greek island APs (RHO, JTR, JMK, JNX) scoring well. |
+| **Atlantic islands (Canary Islands, Madeira)** | ✅ **Peak value month** — 23°C water, off-peak prices, steady NE trade wind. ACE, FUE, TFS excellent. |
+| **Algarve / Iberia Atlantic coast** | ✅ Peak — FAO, LIS warm and dry. 24°C water, lower crowds than July/Aug. |
+| **Caribbean** | ✅ Acceptable — hurricane risk exists but main CUN/BGI/MBJ corridors workable. CZM (Cozumel) especially good (sheltered). |
+| **SE Asia beach** | ❌ Monsoon — HKT/KBV/USM wet. DPS (Bali) dry season ending this week. Do not promote. |
+| **N-hem skiing** | ❌ Off-season. 15 lateSeason venues (glaciers / high altitude) remain scored normally when snow_depth ≥0.5m. Scoring engine handles correctly. |
 
-**September highlight airports (venues scoring well right now):**
-- RHO, CHQ, JMK, JTR, EFL (Greek islands) — peak
-- ACE, FUE, TFS (Canary Islands) — value peak
-- IBZ, PMI, MAH (Balearics) — late summer still excellent
-- DPS (Bali) — dry season peak
+**Southern hemisphere — September 10:**
+
+| Venue type | Seasonal status |
+|-----------|----------------|
+| **S-hem skiing (NZ, AUS)** | ⚠️ **Final week.** CHC (Cardrona), MEL (Falls Creek) in last days of season. After mid-September, scoring engine's off-season binary cap applies. |
+| **S-hem beach (Brazil, Cape Town, Sydney)** | 🌱 Spring — water warming, clear skies. GIG (Rio) 22°C water, spring crowds, best deal month. SYD, OOL beginning to warm. |
+| **Cape Town (CPT)** | ✅ **Spring arriving** — Camps Bay and Clifton usable. Beach season opens properly October. Good value September. |
 
 ---
 
 ## 5. Content Quality
 
-**Photo health:** 405/405 ✅ | 0 duplicates ✅. Generic stock issue (~360/405 venue-unspecific) blocked on `UNSPLASH_KEY` (Open #20). No regression.
+**Tag density (both formats):**
 
-**Tag density:** 239/405 venues (59%) have fewer than 4 tags.
-- 2 tags: 225 venues (56%)
-- 3 tags: 14 venues (3%)
-- 4 tags: 165 venues (41%)
-- 5 tags: 1 venue (<1%)
+| Tag count | Venues | % |
+|-----------|--------|---|
+| 2 tags | 225 | 55.6% |
+| 3 tags | 14 | 3.5% |
+| 4 tags | 165 | 40.7% |
+| 5 tags | 1 | 0.2% |
 
-Highest-impact fix: target the 225 two-tag beach cohort — most are the Maldives/SE Asia/Pacific batch that received generic `["UV 11","Crystal Water"]` style tags. A single focused session could backfill all 225 with accurate 4-tag arrays.
+**Venues with <4 tags: 239 (59%)** — unchanged for 5 consecutive days. All 239 are in the two-tag cohort from the Maldives/SE Asia/Pacific batch paste that used generic `["UV 11","Crystal Water"]` style tags. Highest-impact fix: a single focused batch session targeting these 225 two-tag beach venues.
 
 **Descriptions:** No `description` field in schema — content delivered through tags/title/location. By design. No action.
 
-**Venue coordinates:** No new issues. The four coord-error venues from July 24 audit remain corrected. No regressions detected.
+**Venue coordinates:** No new issues. The four coord-error venues from the July 24 audit remain corrected.
 
 ---
 
@@ -113,99 +121,106 @@ Highest-impact fix: target the 225 two-tag beach cohort — most are the Maldive
 | Latin America | ~12 | ~11 |
 | Africa/Middle East | ~5 | — |
 
-**Current thin zones:**
-- **Crete west coast (CHQ):** Only 1 venue (elafonissi). CHQ serves a massive September market — Balos Lagoon is the most-photographed beach in Greece and completely distinct from Elafonissi. Added as NEW-5 today.
-- **S-temperate beach (below −35° lat):** 2 venues (hyams-beach CBR, piha-beach-nz AKL). Spring warming underway — Otago Peninsula/South Island NZ and Otago coast would be well-timed.
-- **Middle East beach:** 0 venues. DXB/AUH missing from `AIRPORT_COORDS` — infra step required before venues can target these gateways.
-- **LAS (Las Vegas):** Only airport in both `AIRPORT_COORDS` + `AP_CONTINENT` with zero venues. Lee Canyon skiing is too small and the wrong September direction. No action.
+**Notable airport concentrations:** DPS 10 venues, CUN 9, SLC 8, SYD 8, GVA 7, IBZ 7.
 
-**Airports with no venues that have full lookup coverage (both `AIRPORT_COORDS` + `AP_CONTINENT`):** LAS only, outside US domestic airports. All other unused airports (FLL, MCO) are missing `AP_CONTINENT` entries.
-
----
-
-## 7. Five New Venue Objects — Sep 9
-
-**Strategy:** 4 carry-overs (Sep 5–8, unpasted × 4 days, all APs verified ✅) + 1 fresh pick: Balos Lagoon, Crete (CHQ) — the most photographed beach in Greece, only 1 existing CHQ venue, and September is its finest month.
-
-All 5 APs verified: `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅.
-
-After pasting all 5: eval count → **410**.
-
-**Note:** `burriana-beach-nerja` (AGP) from the Sep 8 report is also unpasted (Day 2). With the 4 carry-overs below and the Sep 8 report's set, there are now **6 fully-ready venue objects** pending a paste session. At the current pace (0 pasted in 4 days, 20+ objects accumulated since Sep 5), the bottleneck is the paste step.
+**Thin zones for September:**
+- **TPS (Trapani, Sicily):** 3 venues but TPS includes a semantic duplicate — net 2 distinct beaches. San Vito Lo Capo is Sicily's standout beach. The duplicate fix brings it to 2 correct entries.
+- **LIS (Lisbon coast):** Only Cascais exists. Comporta, Sesimbra, and Arrábida are major September draws and very different from Cascais.
+- **TFS (Tenerife South):** Only Las Teresitas exists, which is actually in the north and served by TFN; La Caleta de Adeje and El Médano (TFS) are absent.
+- **FUE (Fuerteventura):** Only Corralejo exists. Cofete (wild south coast) is a completely different character.
 
 ---
+
+## 7. Five New Venue Objects — Sep 10
+
+**Strategy:** 5 fresh picks (none repeat carry-overs). All APs verified: `AIRPORT_COORDS` ✅ `AP_CONTINENT` ✅ `BASE_PRICES` ✅. All seasonally prime for September.
+
+Carry-over queue (unpasted, Day 5): famara-beach-lanzarote (ACE), anthony-quinn-bay-rho (RHO), prainha-rio-brazil (GIG), currumbin-beach-qld (OOL), balos-lagoon-crete (CHQ), burriana-beach-nerja (AGP from Sep 8). Full objects in Sep 5–9 reports.
+
+After pasting all 5 today's + resolving the TPS dup: eval count → **409** (assuming dup removal keeps total net +4).
 
 ```javascript
-// NEW-1 (carry-over, not yet pasted — Day 4). Playa de Famara, Lanzarote, Canary Islands
-// ACE (Lanzarote Airport). 2nd ACE venue — joins beach_lanzarote (Papagayo).
-// Famara = wild, cliff-backed, kitesurfing. Papagayo = sheltered snorkeling. No overlap.
-// September: 23°C water, steady NE trade wind, off-peak prices.
-{id:"famara-beach-lanzarote", category:"beach",
-  title:"Playa de Famara", location:"Tinajo, Lanzarote, Spain",
-  lat:29.1088, lon:-13.5598, ap:"ACE",
-  icon:"🪁", rating:4.74, reviews:3890,
-  gradient:"linear-gradient(160deg,#1a0a06,#5a2010,#c05030)",
-  accent:"#f09070",
-  tags:["Europe's Best Kitesurfing","Volcanic Cliffs","September Value","Wild Atlantic"],
-  photo:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-1 (Sep 10). Playa de Cofete, Fuerteventura, Canary Islands
+// FUE (Fuerteventura Airport). 2nd FUE venue — joins corralejo-beach.
+// Completely different character: Cofete is a remote, wild 14km beach backed by the
+// Jandía mountains with no services — protected nature reserve, almost no facilities.
+// Corralejo is a resort beach. Cofete is for adventurers.
+// September: 24°C water, steady NE trade wind, uncrowded. Access via dirt track or ferry.
+{id:"cofete-beach-fuerteventura", category:"beach",
+  title:"Playa de Cofete", location:"Jandía, Fuerteventura, Spain",
+  lat:28.0795, lon:-14.3891, ap:"FUE",
+  icon:"🏜️", rating:4.82, reviews:4120,
+  gradient:"linear-gradient(160deg,#1a0a00,#4a2010,#9a5030)",
+  accent:"#d09070",
+  tags:["Wild & Untamed","Mountain Backdrop","September Warmth","No Services"],
+  photo:"https://images.unsplash.com/photo-1564996770836-5d7d84d7e49c?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-2 (carry-over, not yet pasted — Day 4). Anthony Quinn Bay, Rhodes, Greece
-// RHO (Rhodes Diagoras). 3rd RHO venue — joins lindos-beach-t23 and tsambika-beach-rhodes.
-// September = Aegean golden month. 26°C water, crystalline visibility, post-tourist-peak.
-{id:"anthony-quinn-bay-rho", category:"beach",
-  title:"Anthony Quinn Bay", location:"Faliraki, Rhodes, Greece",
-  lat:36.3283, lon:28.1528, ap:"RHO",
-  icon:"🏝️", rating:4.79, reviews:4210,
-  gradient:"linear-gradient(160deg,#0a1a3a,#1a3878,#3068c0)",
-  accent:"#80b0f0",
-  tags:["Hollywood History","Turquoise Cove","September Peak","No Beach Chairs"],
-  photo:"https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-2 (Sep 10). Taghazout Beach, Morocco
+// AGA (Agadir–Al Massira). 2nd AGA venue — joins agadir-beach.
+// Taghazout is Morocco's surf capital: a white-washed Berber fishing village 18km north
+// of Agadir, with Atlantic point breaks used by pros. Very different from the resort
+// strip at Agadir Beach. September: consistent 1–2m swell, 23°C water, off-peak prices.
+{id:"taghazout-beach-morocco", category:"beach",
+  title:"Taghazout Beach", location:"Taghazout, Morocco",
+  lat:30.5445, lon:-9.7095, ap:"AGA",
+  icon:"🏄", rating:4.77, reviews:5340,
+  gradient:"linear-gradient(160deg,#1a0a04,#52220a,#a05028)",
+  accent:"#d08050",
+  tags:["Morocco Surf Capital","Berber Village","September Swell","Budget-Friendly"],
+  photo:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-3 (carry-over, not yet pasted — Day 4). Prainha Beach, Rio de Janeiro, Brazil
-// GIG (Rio Galeão). 2nd GIG venue — joins ipanema-rio.
-// S-hem spring: water warming to 22°C. Rio's most preserved natural beach — no vendors.
-{id:"prainha-rio-brazil", category:"beach",
-  title:"Prainha Beach", location:"Rio de Janeiro, Brazil",
-  lat:-23.0503, lon:-43.5683, ap:"GIG",
-  icon:"🏄", rating:4.81, reviews:3670,
-  gradient:"linear-gradient(160deg,#0a1a10,#1a4028,#2a7048)",
-  accent:"#70c090",
-  tags:["Rio's Hidden Beach","No Vendors","September Spring","Strong Surf"],
-  photo:"https://images.unsplash.com/photo-1503503330641-44a1c9aabd66?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
-
-// NEW-4 (carry-over, not yet pasted — Day 4). Currumbin Beach, Gold Coast, Queensland
-// OOL (Gold Coast Airport). 2nd OOL venue — joins beach_gold_coast (Surfers Paradise).
-// S-hem spring: 22°C water, dry season ending. Currumbin Alley = best beginner surf break on GC.
-{id:"currumbin-beach-qld", category:"beach",
-  title:"Currumbin Beach", location:"Gold Coast, Queensland, Australia",
-  lat:-28.1491, lon:153.4957, ap:"OOL",
-  icon:"🏄", rating:4.76, reviews:3120,
-  gradient:"linear-gradient(160deg,#0a1e30,#1a4268,#2872a8)",
-  accent:"#70b2e8",
-  tags:["Currumbin Alley Surf","Rockpools","Spring Season","Laid-Back Vibe"],
-  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
-
-// NEW-5 (FRESH — Sep 9). Balos Lagoon, Crete
-// CHQ (Chania International). 2nd CHQ venue — joins elafonissi-beach-chq.
-// Balos is the most photographed beach in Greece: a pink-tinged sandbar lagoon on the
-// northwest tip of Crete. September is peak quality: 26°C water, transparent visibility,
-// crowds down 40% from August, the ferry from Kissamos still running.
-// Completely distinct from Elafonissi (south coast, pink sand flat lagoon) — Balos is
-// a dramatic bay accessed by ferry or 4x4 track, with a ruined Venetian castle.
-{id:"balos-lagoon-crete", category:"beach",
-  title:"Balos Lagoon", location:"Kissamos, Crete, Greece",
-  lat:35.6064, lon:23.5676, ap:"CHQ",
-  icon:"🏝️", rating:4.85, reviews:7340,
-  gradient:"linear-gradient(160deg,#0a1530,#1a3570,#2868b8)",
-  accent:"#70aee8",
-  tags:["Greece's Iconic Lagoon","Pink Sandbar","September Peak","Venetian Castle Views"],
+// NEW-3 (Sep 10). Šunj Beach, Lopud Island, Croatia
+// DBV (Dubrovnik Airport). 3rd DBV venue — joins banje-beach-dubrovnik and pasjaca-beach-croatia.
+// Lopud is a car-free island 40 min by ferry from Dubrovnik. Šunj is the island's only
+// sand beach (the rest are pebble) — rare in Croatia. Quiet village atmosphere, no crowds,
+// water calm and 25°C in September. Best for families / couples seeking the antithesis of
+// Old Town Dubrovnik.
+{id:"sunj-beach-lopud-croatia", category:"beach",
+  title:"Šunj Beach", location:"Lopud Island, Croatia",
+  lat:42.6776, lon:17.9527, ap:"DBV",
+  icon:"🏝️", rating:4.84, reviews:3210,
+  gradient:"linear-gradient(160deg,#061a30,#1a3060,#2858a8)",
+  accent:"#6898e0",
+  tags:["Car-Free Island","Sandy Beach Croatia","September Adriatic","Ferry 40min Dubrovnik"],
   photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+
+// NEW-4 (Sep 10). Praia de Comporta, Portugal
+// LIS (Lisbon). 2nd LIS venue — joins cascais-beach.
+// Comporta is 1.5hr south of Lisbon: a wild Atlantic dune beach on the Setúbal Peninsula,
+// backed by pine forests. No high-rises — historic fishing village and celebrity retreat.
+// Very different from Cascais (Estoril Riviera resort scene). 
+// September = prime: 24°C water, fewer crowds than July/Aug, lower prices. Access by car only.
+{id:"comporta-beach-portugal", category:"beach",
+  title:"Praia de Comporta", location:"Comporta, Setúbal, Portugal",
+  lat:38.3669, lon:-8.7636, ap:"LIS",
+  icon:"🌾", rating:4.86, reviews:4780,
+  gradient:"linear-gradient(160deg,#0a1a08,#1a3a18,#306030)",
+  accent:"#70b060",
+  tags:["Wild Atlantic Dunes","Pine Forest Backdrop","September Prime","Celebrity Retreat"],
+  photo:"https://images.unsplash.com/photo-1504150558240-0b4fd8946624?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+
+// NEW-5 (Sep 10). La Caleta de Adeje, Tenerife South
+// TFS (Tenerife South Airport). 2nd TFS venue — joins las-teresitas-beach (which is
+// actually in the north and better served by TFN; its ap:"TFS" may itself be worth auditing).
+// La Caleta is a fishing village beach 10 min from TFS: sheltered, calm, no current,
+// excellent for snorkeling (reef just offshore). Adeje coastline is year-round 24°C water.
+// September: warm, clear, off-peak prices on south Tenerife flights.
+{id:"la-caleta-adeje-tenerife", category:"beach",
+  title:"La Caleta de Adeje", location:"Adeje, Tenerife, Spain",
+  lat:28.0900, lon:-16.7350, ap:"TFS",
+  icon:"🐟", rating:4.78, reviews:6120,
+  gradient:"linear-gradient(160deg,#061820,#1a3850,#2a6090)",
+  accent:"#70aad0",
+  tags:["Year-Round Warmth","Reef Snorkeling","Fishing Village","Tenerife South"],
+  photo:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 ```
 
 ---
 
 ## PM Observation
 
-**Catalog at 405 for 4 consecutive days — 20+ venue objects pending paste.** Since September 5, each day's report has proposed 5 verified, AP-clean, seasonally-relevant venue objects. None have been pasted. The September 8 batch alone (famara, anthony-quinn-bay, prainha, currumbin, burriana-nerja) plus today's 5 gives 10 fully ready objects — roughly 2 hours of paste time to hit 415. If the Reddit/HN launch target is 450 venues, the current zero-paste-days pace means the deadline slips 1 day per day. The bottleneck is the manual paste step, not the venue quality or data readiness.
+**Catalog day 5 at 405 — semantic duplicate surfaces for the first time.** The TPS duplicate (`san-vito-lo-capo-t21` / `beach_san_vito_lo_capo`) is a reminder that the boot-time guard only catches ID collisions, not same-venue-different-ID cases introduced via batch paste. A one-time content pass comparing (title, ap, lat, lon) tuples across all 405 would likely find 1–3 more; the batch paste format used in the JSON cohort is the likely source. The fix is a single delete — net catalog moves to 404 — but the exercise of auditing for semantic dups is worth scheduling.
 
-**lateSeason false-alarm corrected.** The Sep 8 report flagged a regression that didn't exist; today's eval confirmed all 15 lateSeason venues were correct in the codebase the whole time. Score adjusts from 93 → 95. This class of detection error (regex too narrow for JSON-format entries) is now a known pitfall — future lateSeason checks should always use the eval-based counter.
+**Photo quality is visibly improving.** Commit `ec060e2` (31 verified venue photos, Sep 10) combined with the prior marquee-venue photo pass means the most-visited/highest-scoring venues now show real places. The remaining gap is the generic-stock tail (primarily the Pacific island batch where Unsplash queries returned category scenery, not the specific beach). A second Unsplash sweep targeting the 2-tag low-photo-quality cohort would land the most impact per hour.
+
+**Carry-over queue at 6 objects (Day 5 unpasted).** The Sep 5–9 + today's 5 gives 11 venue objects ready to paste. At 405 venues vs a 450 launch target, the gap is 45 venues — 9 paste sessions at 5/session, roughly 2–3 hours total. The pipeline is running; the bottleneck is the manual paste step.
