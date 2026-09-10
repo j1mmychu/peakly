@@ -280,11 +280,18 @@ app.get('/api/flights', async (req, res) => {
           const t = Date.parse((e.depart_date || '') + 'T00:00:00Z');
           return Number.isNaN(t) ? null : Math.abs(Math.round((t - reqT) / 86400000));
         };
+        // Tiered: any round trip of 2–7 nights departing within ±3 days.
+        // Rank weekend-length (2–4) first, then nearest day, then price.
+        // Widened from ±1/weekend-only on 2026-09-10: that still left ~60%
+        // of routes on estimates and the app read as "prices never load".
+        // The card renders the fare's real dates, so nothing is passed off
+        // as a Friday weekend that isn't.
+        const isSaneLength = e => { const d = tripDays(e); return d != null && d >= 2 && d <= 7; };
         const near = all
-          .filter(e => isRoundTrip(e) && isWeekendLength(e) && typeof e.price === 'number' && e.price > 0)
-          .map(e => ({ e, d: dayDiff(e) }))
-          .filter(x => x.d != null && x.d >= 1 && x.d <= 1)
-          .sort((a, b) => a.d - b.d || a.e.price - b.e.price)[0];
+          .filter(e => isRoundTrip(e) && isSaneLength(e) && typeof e.price === 'number' && e.price > 0)
+          .map(e => ({ e, d: dayDiff(e), wk: isWeekendLength(e) ? 0 : 1 }))
+          .filter(x => x.d != null && x.d >= 1 && x.d <= 3)
+          .sort((a, b) => a.wk - b.wk || a.d - b.d || a.e.price - b.e.price)[0];
         if (near) {
           const dateKey = depart_date.slice(0, 7);
           return res.json({

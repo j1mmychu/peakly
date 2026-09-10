@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260909c";
+const PEAKLY_BUILD = "20260910a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -13581,7 +13581,10 @@ function App() {
     const duffelTripDays = duffelData?.departDate && duffelData?.returnDate
       ? Math.round((new Date(duffelData.returnDate) - new Date(duffelData.departDate)) / 86400000)
       : null;
-    const duffelWrongLength = duffelTripDays != null && (duffelTripDays < 2 || duffelTripDays > 4);
+    // 2–7 nights counts as a real trip price (was 2–4). The proxy prefers
+    // weekend-length fares and only falls back to longer ones when that's all
+    // Travelpayouts has cached; the card shows the fare's actual dates.
+    const duffelWrongLength = duffelTripDays != null && (duffelTripDays < 2 || duffelTripDays > 7);
     const flight     = duffelData != null && !duffelStale && !duffelWrongLength
       ? {
           price:   duffelData.price,
