@@ -12314,7 +12314,7 @@ function VenueDetailSheet({ listing, rawWx, rawMar, wishlists, onToggle, onClose
               <div style={{ fontSize:11, color:"#888", fontFamily:F, marginTop:2 }}>
                 {listing.flight.live
                   ? (listing.flight.pct >= 10 ? `typical $${listing.flight.normal} · ${listing.flight.pct}% below` : "current price")
-                  : "typical — live price loading"}
+                  : (getFlightApiStatus() === "unknown" ? "typical — checking live fares" : "typical price · no live fare for these dates")}
               </div>
               {listing.flight.foundAt && <div style={{ fontSize:10, color:"#aaa", fontFamily:F, marginTop:1 }}>seen {relTime(listing.flight.foundAt)}</div>}
             </div>
