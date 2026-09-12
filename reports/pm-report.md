@@ -1,38 +1,39 @@
-# Peakly PM Report v147 — 2026-09-11
+# Peakly PM Report v148 — 2026-09-12
 
-**Status: 🔴 RED — Venue search unbuilt. 3 days to Sep 14 hard deadline. Second day without an app.jsx commit. A new regression (lateSeason on 5 glacier resorts) is now compounding.**
+**Status: 🔴 RED — Venue search unbuilt. 2 days to Sep 14 hard deadline. Third consecutive day without an app.jsx commit. lateSeason false alarm CLOSED (all 15 correct). Critical path unchanged.**
 
 ---
 
-## Shipped Since Last Report (v146 → v147)
+## Shipped Since Last Report (v147 → v148)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| *(none)* | No code commits today — 3 report commits only | — |
+| *(none)* | No code commits — 3 report commits only | — |
 
-**Zero code shipped today.** Three report commits only (DevOps, Content, this PM). The clock is now at 3 days. Two consecutive days without an app.jsx commit while the only P0 on the board is a 2-hour build.
+**Zero code shipped for the third day running.** Three report commits (DevOps, Content, this PM). The venue search P0 is exactly where it was Monday morning. The Oct 11 Reddit launch window closes if this slips past Sep 14.
 
 ---
 
 ## Addressing the Scheduled Prompt's Bug List
 
 ### Peakly Pro price ($9/mo vs $79/yr)
-**Closed — permanently stale.** Pro UI removed April 2026. `grep -c GEAR_ITEMS app.jsx` → 0. No action needed, ever.
+**Closed — permanently stale.** Pro UI removed April 2026. No action needed, ever.
 
 ### Sentry DSN empty
-**Closed — false alarm.** DSN `9416b032a46681d74645b056fcb08eb7` wired at `app.jsx:8` and `index.html:77`. Live.
+**Closed — false alarm.** DSN `9416b032a46681d74645b056fcb08eb7` wired at `app.jsx:8` + `index.html:77`. Live.
 
 ### Cache buster stale
-**Non-issue.** Stamp `20260910a` is correct — no app-touching commits today. Auto-push only bumps when `app.jsx`/`sw.js`/`index.html` change.
+**Non-issue.** Stamp `20260910a` is 2 days old. Auto-push bumps only when `app.jsx`/`sw.js`/`index.html` change. No changes = no bump. Expected.
 
 ---
 
 ## Bug Triage
 
-### P0 — Venue search (3 days to Sep 14 deadline)
+### P0 — Venue search (2 days to Sep 14 deadline)
 
-**Day 2 of zero progress.** Spec is unchanged and locked:
+**Day 3 of zero progress. 2 days remain.**
 
+Spec is locked and unchanged:
 ```
 <input> above category pills — "Search venues…"
 Filter: toLowerCase() on venue.title + venue.location + venue.tags.join(' ')
@@ -41,73 +42,80 @@ Clear on category pill change
 No server calls, no debounce — pure client-side
 ```
 
-Filter logic already exists in `applyFilters` at line ~8732. This is wiring a `<input onChange>` to a `useState`, threading the value into the existing filter. The build is 2 hours. There are 3 days left.
+`applyFilters` at `~line 8732` already has the filter logic. This is adding a `useState`, a `<input onChange>`, and threading the value in. Estimated build: **2 hours**.
 
-**Sep 14 = last ship date before the Oct 11 Reddit window requires it.** Miss Sep 14 → launch shifts to Oct 18 → lost Sep/Oct ski pre-booking traffic peak.
+**Sep 14 is not a soft deadline.** Miss it → Reddit launch shifts to Oct 18, entering ski pre-booking traffic peak late.
 
-### P1 (NEW) — lateSeason regression on 5 glacier resorts
+### P1 — lateSeason "regression" — CLOSED, FALSE ALARM ✅
 
-**Content flagged today. Confirmed by code check.**
+PM v147 called this a P1. DevOps and Content both independently confirmed today: **all 15 venues correctly flagged.** The PM script was reading stale data. Count is 15 (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch). This P1 is closed, do not re-flag.
 
-Current `lateSeason: true` count: **10** (down from 14 per July CLAUDE.md, down from 15 per Content's Sep-09 report).
+### P1 — dist/ build collision (Day 3)
 
-Missing venues: `snowbird`, `zermatt`, `verbier`, `val-thorens`, `engelberg` — all high-altitude resorts that legitimately need this flag. Without it, these venues get the off-season binary cap applied in `scoreVenue`, suppressing their scores even when snow depth qualifies them as exceptions.
+`dist/` committed to git is the iOS artifact from `build-ios.mjs`. Live site unaffected (GH Actions rebuilds correctly). But:
+- `dist/index.html` references `./vendor/react.production.min.js` which doesn't exist
+- No `app.min.js`, no Plausible analytics in committed dist/
 
-New vs July: `hintertux-glacier` added (correct). Net: −5 dropped, +1 added = 10.
+**Fix:** Change `build-ios.mjs` line 5 from `const DIST = path.join(ROOT, "dist")` to `const DIST = path.join(ROOT, "ios", "App", "App", "public")`. Then `node scripts/build-web.mjs` + commit. 10 minutes.
 
-This is a scoring regression. **Snowbird, Zermatt, and Verbier are marquee venues.** If a user checks conditions at Zermatt in July and it scores 0 when it should score 85, that's a trust-destroying bug masquerading as a data flag.
+**Bundle with venue search commit.**
 
-**Fix: add `lateSeason: true` to the 5 missing venues.** Bundle with venue search commit — same app.jsx touch, zero additional deploy cost.
+### P1 — Semantic duplicate (Day 4)
 
-### P1 — dist/ build collision (Day 2)
+`san-vito-lo-capo-t21` and `beach_san_vito_lo_capo` — same beach (38.175/12.733), same airport (TPS), 11m apart.
 
-Committed `dist/index.html` is the iOS artifact. References `./vendor/react.production.min.js` (doesn't exist in dist/). Live site unaffected — GH Actions rebuilds correctly. But committed dist/ is misleading and will cause confusion.
+Content now recommends keeping `san-vito-lo-capo-t21` (4 tags) and deleting `beach_san_vito_lo_capo` (2 tags). This is a 1-line deletion. Day 4 with no excuse.
 
-**Fix: change `build-ios.mjs` output path from `dist/` to `ios/App/App/public/`.** 10 minutes. Bundle with next app.jsx commit.
+**Bundle with venue search commit. Net venues after fix: 404.**
 
-### P1 — Semantic duplicate (Day 3 unresolved)
+### P2 — CLAUDE.md VENUES count stale
 
-`san-vito-lo-capo-t21` and `beach_san_vito_lo_capo` — same beach, same lat/lon, same ap (TPS). Content initially flagged deletion of `beach_san_vito_lo_capo`, but that's the higher-quality entry (4.96 rating, 24,600 reviews vs 4.68 / 4,719). **Delete `san-vito-lo-capo-t21` instead.** Net venues after fix: **404**.
+CLAUDE.md says 395 venues. Eval count is 405. Stale for 30+ days. Update on next app.jsx commit — add one line. Not blocking anything but the shared brain is wrong and future agents will keep reporting it.
 
-This is a 1-line deletion. It should have shipped two days ago.
+### P3 — VPS redeploy (Day 32 — Jack-only)
 
-### P3 — VENUES count discrepancy
+`server/proxy.js` has been correct in repo since Aug 11. The live VPS is still running the pre-Aug-11 build. Blocks: two-weekend scoring, iOS CORS, alert deletion, APNs. **This is Jack's SSH session to execute.** Not agent-buildable.
 
-Authoritative eval count: **405** (134 skiing / 271 beach). Content confirmed. CLAUDE.md says 395 — 12 behind reality. Update CLAUDE.md on next app.jsx commit.
+**Deploy command:**
+```bash
+scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+ssh root@198.199.80.21 "pm2 restart peakly-proxy"
+curl -s https://peakly-api.duckdns.org/health
+```
 
----
-
-## Three Product Decisions — Sep 11
-
-### Decision 1: Venue search — SHIP NOW. TODAY. NOT TOMORROW.
-
-3 days left. Two days of no progress. The product team is polishing while the critical path sits idle. This is a mechanical 2-hour task with a known spec and existing filter logic.
-
-**If a code session doesn't execute today or tomorrow morning, the Oct 11 Reddit launch gate closes.** Shifting to Oct 18 means entering the ski pre-booking window late, competing with the November buzz cycle instead of leading it.
-
-**Decision: SHIP. Execute today. Sep 14 is not a soft deadline.**
-
-### Decision 2: lateSeason regression — BUNDLE WITH VENUE SEARCH
-
-Restoring `lateSeason: true` on 5 venues (snowbird, zermatt, verbier, val-thorens, engelberg) is a 5-line change. It corrects a scoring regression on marquee venues. It ships for free inside the venue search commit.
-
-**Decision: SHIP as part of venue search commit. Not separately, not later.**
-
-### Decision 3: Semantic duplicate — BUNDLE WITH VENUE SEARCH
-
-Delete `san-vito-lo-capo-t21`. 1-line change. Day 3 with no excuse.
-
-**Decision: BUNDLE with venue search commit. Ship all three together.**
+Still a pre-Reddit gate. Still on Jack.
 
 ---
 
-## This Week's Top 3 (Sep 11–14)
+## Three Product Decisions — Sep 12
 
-**#1: Build and ship venue search.** 2 hours. 3 days. Spec pinned above. Bundle lateSeason restore + dup deletion + CLAUDE.md venue count update + dist/ build path fix in the same commit.
+### Decision 1: Venue search — SHIP BEFORE EOD SEP 13
 
-**#2: Jack: VPS redeploy (Open #19/#21/#23).** Day 31 post-Aug-11 partial redeploy. Still blocking: two-weekend scoring, iOS CORS, alert deletion. This is a pre-Reddit gate. Deploy command: `cd /opt/peakly-proxy && pm2 restart peakly-proxy` (copy files first — not a git clone).
+2 days left. 3 days of no movement. The only acceptable outcome now is venue search live on main before the Sep 14 deadline. This is a 2-hour task. It is the only P0 on the board. Everything else is noise until it ships.
 
-**#3: Tag density backfill (week of Oct 5).** 239 venues with <4 tags. Search quality problem, not just a data metric. Schedule for the week before Oct 11 launch, after venue search ships. 4-hour batch content session.
+**Decision: SHIP. Deadline is Sep 13 EOD, not Sep 14 (buffer for any smoke test failures).**
+
+### Decision 2: lateSeason P1 — CLOSED, PERMANENTLY
+
+The 5 "missing" venues were never missing. This will not be reported again.
+
+**Decision: CLOSE. Zero action required. Any future report flagging this is wrong.**
+
+### Decision 3: Gili Trawangan soft dup — KEEP BOTH
+
+Content flagged `beach_gilit` (LOP) and `gili-trawangan` (DPS) as a soft dup — same destination, different airports. DPS (Bali/Denpasar) has 10× more flight options. LOP is technically closer. **The booking paths are genuinely different.** Keeping both serves users flying from different origin airports.
+
+**Decision: KEEP BOTH. No deletion. Not a true dup.**
+
+---
+
+## This Week's Top 3 (Sep 12–14)
+
+**#1: Venue search — ship in the next 24 hours.** 2-hour build. Spec pinned above. Bundle with: semantic dup deletion (`beach_san_vito_lo_capo`), dist/ build path fix, CLAUDE.md venue count update (395 → 405).
+
+**#2: VPS redeploy — Jack, SSH.** Day 32. Pre-Reddit gate. The agent can't do this. One 15-minute SSH session closes Opens #19, #21, #23 simultaneously. The Oct 11 Reddit post must not happen while two-weekend scoring is silently off.
+
+**#3: Tag density backfill (week of Oct 5).** 225 venues with only 2 tags. Search quality problem — a 2-tag venue is nearly unsearchable. Schedule a 4-hour batch content session the week before launch.
 
 ---
 
@@ -115,14 +123,15 @@ Delete `san-vito-lo-capo-t21`. 1-line change. Day 3 with no excuse.
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| Fuzzy / ranked search | ❌ CUT | 405 venues, substring match is sufficient. Don't ship algolia for a pre-launch. |
-| 5 pending venue proposals | ❌ DEFERRED | Unsearchable catalog first. Adding to an unsearchable list is waste. |
+| Fuzzy / ranked search | ❌ CUT | 405 venues, substring match is fine at this scale |
+| 5 pending venue proposals | ❌ DEFERRED | Unsearchable catalog first. Search ships first. |
 | Photo pipeline (Unsplash API) | ❌ DEFERRED | Needs Unsplash key + manual review. Post-Reddit. |
-| JSON-LD structured data | ❌ DEFERRED | SEO enhancement, not on Oct 11 critical path. |
+| JSON-LD structured data | ❌ DEFERRED | SEO enhancement, not on Oct 11 critical path |
 | Static h1 fallback | ❌ DEFERRED | Same. Post-Reddit. |
-| App Store submission | ❌ DEFERRED | LLC + VPS + Xcode signing — none agent-buildable this sprint. |
-| iOS widget Xcode wiring | ❌ DEFERRED | Code-complete, not blocking Reddit. |
-| S-hem ski subreddit | ❌ DEFERRED to Jack | Not a code task. Window closes ~Sep 20. Jack's call. |
+| App Store submission | ❌ DEFERRED | LLC + VPS + Xcode signing — none agent-buildable this sprint |
+| iOS widget Xcode wiring | ❌ DEFERRED | Code-complete, not blocking Reddit |
+| S-hem ski subreddit post | ❌ DEFERRED to Jack | Not a code task. Window closes ~Sep 20. Jack's call. |
+| Open-Meteo disk cache (#23) | ❌ DEFERRED | Add to VPS redeploy bundle when Jack SSHes for #19 |
 
 ---
 
@@ -130,48 +139,22 @@ Delete `san-vito-lo-capo-t21`. 1-line change. Day 3 with no excuse.
 
 **90-day projection: 5K–8K users.** What separates 8K from 5K:
 
-1. **Oct 11 Reddit launch hits.** Requires venue search by Sep 14. Three days left.
-2. **VPS redeployed before the post.** Reddit spike at 66+ concurrent DAU saturates Open-Meteo free tier. Cache layer must be live.
-3. **Marquee venues score correctly.** Zermatt, Snowbird, Verbier with suppressed scores on a Reddit launch day is a credibility disaster. lateSeason fix is now part of the launch gate.
-4. **Photo quality at marquee venues.** 31 venues now have real photos. Target 40 verified hero venues by Oct 11. Doable in one async photo session.
-5. **Tag density.** Search quality at launch. Week of Oct 5 batch session.
+1. **Venue search ships by Sep 14.** Oct 11 Reddit launch requires it. This is the single most leveraged task on the board.
+2. **VPS redeployed before Reddit post.** Spike at 66+ concurrent DAU saturates Open-Meteo free tier. Cache layer must be live. Pre-Reddit gate.
+3. **Marquee venues score correctly.** 15 lateSeason venues confirmed correct. ✅ Non-issue.
+4. **Photo quality at marquee venues.** 31 real photos live. Target 40 before Oct 11. One async session.
+5. **Tag density.** 225 venues with 2 tags — search quality degrades at launch. Week of Oct 5 batch.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The lateSeason regression went undetected for weeks and no one knows when it happened.**
+**Sep 14 is in 2 days and there's no code session in progress.**
 
-Content caught it today by auditing. DevOps didn't catch it. The smoke test doesn't catch it. The venue integrity guard (`auto-push.sh`) checks ID uniqueness, coordinate coverage, and airport coverage — but not `lateSeason` accuracy.
+Three report-only days in a row is a pattern, not a one-off. The daily agent pipeline is generating 3 reports/day. Each report correctly calls out the same P0 (venue search). None of those reports fixes it.
 
-These 5 venues (Zermatt, Snowbird, Verbier, Val-Thorens, Engelberg) are in the top tier of the ski catalog. They're in September — the exact moment they're most relevant for ski pre-booking traffic. A user landing from the Oct 11 Reddit post, searching for late-season options in the Alps, sees Zermatt score near-zero. They assume the data is wrong (it is, but not in the way they think) and bounce.
+Reports are not shipping. Code is.
 
-**The fix takes 5 lines. The risk is real. It ships with venue search.**
+The product is one 2-hour code session away from clearing the last build-it gate before the Oct 11 launch. If that session doesn't happen by Sep 13 EOD, the Reddit window shifts to Oct 18. October 18 is after peak ski pre-booking interest starts. That's not a project management risk — that's a revenue and growth risk at the moment when the product is most search-relevant.
 
----
-
-## Blocked
-
-| Item | Blocker | Owner |
-|------|---------|-------|
-| VPS redeploy (Open #19/#21/#23) | SSH access | Jack |
-| Venue search | Build execution | Agent / Jack code session |
-| REI / Backcountry / GetYourGuide affiliates | LLC pending | Jack |
-| App Store submission | LLC + VPS + Xcode signing | Jack |
-| Supabase delete-account SQL | One-time Supabase editor paste | Jack |
-| Tag density backfill | Batch content session (~4hr) | Agent (week of Oct 5) |
-| S-hem ski subreddit post | Timing decision | Jack |
-
----
-
-## Overnight Activity Summary
-
-**No code commits today.** Two days straight without an app.jsx commit. Three report commits only.
-
-The product is 3 days from the Sep 14 gate and nothing shipped. Content surfaced a new scoring regression (lateSeason on 5 glacier resorts). The semantic duplicate is on Day 3 unfixed. The dist/ collision is on Day 2 unfixed.
-
-All three open items (venue search, lateSeason restore, dup deletion) can ship in one commit. The window is closing.
-
----
-
-*v147 — 2026-09-11 — PM Agent*
+**The report is not the work. The code is the work.**
