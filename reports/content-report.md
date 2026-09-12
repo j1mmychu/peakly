@@ -1,234 +1,193 @@
-# Peakly Content & Data Report — 2026-09-11
+# Peakly Content & Data Report — 2026-09-12
 
 ## Data Health Score: 93/100
 
 **Deductions:**
-- −5: 239 venues (59%) have fewer than 4 tags — editorial minimum. 225 with 2 tags, 14 with 3 tags. Day 6 unchanged.
-- −1: Semantic duplicate at TPS — `san-vito-lo-capo-t21` / `beach_san_vito_lo_capo` — **Day 2 unfixed**. Flagged Sep 10, no action yet. Docking an additional point for persistence.
-- −1: `lateSeason: true` count has regressed from 14 (CLAUDE.md July audit) to **10** in current app.jsx. Four venues that should be lateSeason (snowbird, zermatt, verbier, val-thorens) appear to have lost the flag. See §1 for details.
+- −5: 225 venues (55.6%) have only 2 tags — editorial minimum is 4. Day 7 unchanged.
+- −1: Semantic duplicate at TPS — `san-vito-lo-capo-t21` / `beach_san_vito_lo_capo` — **Day 3 unfixed**. True dup: same coordinates (38.175/12.733), same airport, same destination. One needs to be deleted.
+- −1: CLAUDE.md `VENUES` count says **395** — actual is **405** (eval-verified). Stale for 30+ days. Minor but signals the shared brain is out of date.
 
-**Change from yesterday:** −1 (94 → 93). The additional deduction is the lateSeason regression catch.
+**Change from yesterday:** +1 net (93 → 93). The lateSeason P1 from PM v147 is **confirmed a false alarm** by today's DevOps report and independent code check — all 15 venues correctly flagged (see §1). That restores yesterday's −1 deduction. New deduction added: CLAUDE.md stale count.
 
 ---
 
 ## 1. Data Integrity Audit
 
-**Authoritative counts (regex id-extraction across both compact and JSON formats):**
+**Authoritative counts (eval-based):**
 
 | Check | Result |
 |-------|--------|
-| Total venues (both formats, authoritative) | **405** (134 skiing / 271 beach) — Day 6 unchanged |
-| `.venue-baseline` | **405** ✅ matches |
-| Duplicate IDs (id-value dedup) | **0** ✅ |
-| Semantic duplicates | **1 ⚠️ DAY 2** — TPS: `san-vito-lo-capo-t21` / `beach_san_vito_lo_capo` |
+| Total venues | **405** (134 skiing / 271 beach) — eval-confirmed |
+| CLAUDE.md stated count | **395** ⚠️ — stale by 10, 30+ days |
+| `.venue-baseline` | not present in working tree |
+| Duplicate IDs | **0** ✅ |
+| Semantic duplicates | **2** ⚠️ — see below |
 | Missing `lat`/`lon` | **0** ✅ |
 | Missing `ap` | **0** ✅ |
 | Missing `tags` | **0** ✅ |
 | Empty `tags` array | **0** ✅ |
-| Missing `photo` | **0** ✅ |
-| Duplicate photo URLs | **0** ✅ (all 405 unique) |
-| Missing `title`/`location`/`icon`/`gradient`/`accent` | **0** ✅ |
-| Bad coordinates (out-of-range lat/lon) | **0** ✅ |
-| `lateSeason: true` venues | **10** ⚠️ (down from 14 per July audit — see below) |
-| `poolPrimary: true` venues | **0** (none set) |
-| `BASE_PRICES` coverage | **165/165 unique venue `ap` codes** ✅ |
-| `AP_CONTINENT` coverage | **165/165** ✅ (FOR/NAT use quoted-key format `"FOR":"latam"` — both present at lines 419/439) |
-| `AIRPORT_COORDS` coverage | **165/165** ✅ |
-| `GEAR_ITEMS` | **0** ✅ — intentionally cut for v1; do not restore |
+| Missing `photo` | **0** ✅ — 100% photo coverage |
+| Duplicate photo URLs | **0** ✅ — all 405 unique |
+| Venues with only 1–2 tags | **225** ⚠️ (225×2-tag, 14×3-tag, 166×4+-tag) |
+| Missing `rating` or `reviews` | **0** ✅ |
+| Airports missing from AP_CONTINENT | **0** ✅ |
+| Airports missing from AIRPORT_COORDS | **0** ✅ |
+| Airports missing from BASE_PRICES | **0** ✅ — full coverage (165/165 venue airports covered) |
+| `lateSeason: true` venues | **15** ✅ — confirmed correct (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch) |
 
-**⚠️ Semantic duplicate — TPS (Trapani, Sicily) — Day 2:**
+**Semantic duplicates detail:**
 
-Same as yesterday. Both entries still live:
-- `id:"san-vito-lo-capo-t21"` — compact format, Lindos-style entry
-- `id:"beach_san_vito_lo_capo"` — JSON batch format, same lat/lon, same ap
+1. **San Vito lo Capo — TRUE DUP (Day 3):** `san-vito-lo-capo-t21` (lat 38.175, lon 12.7333, TPS) and `beach_san_vito_lo_capo` (lat 38.1742, lon 12.7326, TPS). Same beach, same airport, 11m apart. Recommend: delete `beach_san_vito_lo_capo` (shorter tags: ["Turquoise Sea","Sicilian Mountains"]) and keep `san-vito-lo-capo-t21` (4 tags).
 
-Fix: delete `beach_san_vito_lo_capo` (the later batch-paste duplicate). After deletion, eval count drops to 404. One-line removal, no logic change.
-
-**⚠️ `lateSeason: true` regression — 10 vs expected 14:**
-
-CLAUDE.md (July 2026 audit, commit `747c35a`) lists 14 venues: whistler, chamonix, mammoth, abasin, tignes, cervinia, **snowbird**, **zermatt**, **verbier**, **val-thorens**, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch, **engelberg**.
-
-Current grep finds only **10**: whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch.
-
-**Missing vs July list:** snowbird, zermatt, verbier, val-thorens, engelberg (5 venues).  
-**New vs July list:** hintertux-glacier (1 addition).
-
-Net: −5, +1 = 10. The 5 missing venues are all high-altitude glacier/late-season resorts that legitimately need the flag. This likely crept in via an app.jsx diff that touched those venue entries. Jack should verify and restore `lateSeason: true` on snowbird, zermatt, verbier, val-thorens, and engelberg.
+2. **Gili Trawangan — SOFT DUP (Day 1, new flag):** `beach_gilit` (lat -8.352, lon 116.05, **LOP** — Lombok Airport) and `gili-trawangan` (lat -8.35, lon 116.0353, **DPS** — Bali/Denpasar). Same destination, different airports. LOP is technically closer but DPS has 10× more flight options from most origin airports. Editorial call: keep both if you want to serve LOP routes; otherwise consolidate to DPS (more bookable). Not docking points as the booking paths genuinely differ.
 
 ---
 
-## 2. Category Breakdown
+## 2. GEAR_ITEMS
 
-Prompt references a 12-category architecture from pre-May 2026. Categories were reduced to 2 on 2026-05-03. No stubs.
-
-| Category | Venues | Status |
-|----------|--------|--------|
-| Beach | **271** | ✅ Active |
-| Skiing | **134** | ✅ Active |
-| **Total** | **405** | — |
+Not applicable to current app. GEAR_ITEMS (Amazon Associates) was **deliberately cut for v1** per Jack's decision (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. Revenue model is $7.58/1K MAU without Amazon. Do not restore.
 
 ---
 
-## 3. GEAR_ITEMS Audit
+## 3. Seasonal Relevance — September 12, 2026
 
-Intentionally cut for v1 (Jack, 2026-06-09). Standing directive: do not restore. `grep -c GEAR_ITEMS app.jsx` → **0**. No action.
+| Segment | Count | Status |
+|---------|-------|--------|
+| N hem ski venues (non-lateSeason) | 119 | ⛔ Off-season. Off-season cap applies. Do not surface. |
+| N hem ski lateSeason/glacier | 15 | ✅ Active if `snow_depth_max ≥ 0.5m`. Hintertux runs year-round. Saas-Fee, Tignes, Zermatt still open. |
+| S hem ski venues | 23 | ✅ **In season — last 2–3 weeks.** Most NZ/AU close end of September; Chile/Argentina close mid-October. Surface these now. |
+| N hem beaches (lat ≥ 10) | 178 | ✅ Excellent shoulder season — Mediterranean/Adriatic 25–27°C, Canaries 23°C, Atlantic Iberia 21°C. |
+| Tropical beaches (lat −10 to 10) | 55 | ✅ Year-round. SE Asia: verify rainy season per venue. |
+| S hem beaches (lat < −10) | 38 | ⚠️ Winter/early spring. Bora Bora, Mauritius, Maldives (equatorial) fine; Florianópolis/Sydney not ideal. |
 
----
-
-## 4. Seasonal Relevance — 2026-09-11
-
-**Northern hemisphere — September 11:**
-
-| Venue type | Seasonal status |
-|-----------|----------------|
-| **Mediterranean beach (Greece, Turkey, Croatia, Italy, Adriatic)** | ✅ **PEAK VALUE** — 25–26°C water in Aegean and Adriatic. September is optimal: summer warmth, August crowds gone, 20–40% lower accommodation prices. All Greek island airports (RHO, JTR, JMK, JNX, MLO, CHQ, CAG, NCE) scoring well. |
-| **Atlantic islands (Canary Islands)** | ✅ **Year-round peak** — ACE/FUE/TFS 24°C water, trade wind steady, lowest crowds of the year. All three airports live. |
-| **Portugal (Algarve coast, FAO)** | ✅ **Peak** — FAO 24°C water, fewer tourists than July/Aug, great value. 6 venues live. |
-| **Morocco Atlantic (AGA)** | ✅ **Prime surf season** — consistent Atlantic NW swell arriving, 22°C water, off-peak pricing. 1 venue (Agadir Beach), Taghazout unpasted from Sep 10 queue. |
-| **Caribbean** | ⚠️ **Hurricane shoulder** — CUN (9 venues), BGI (2), MBJ (2) all have hurricane risk but workable. CZM (1 venue) is sheltered and safest. Promote with caveat. |
-| **SE Asia / Pacific** | ❌ **Monsoon** — DPS (10 venues, Bali), HKT (6, Phuket), KBV (Krabi), USM (Koh Samui) all in wet season. Scoring engine should gate these via precipitation, but surface-level promotion should be avoided in September. |
-| **N hemisphere skiing** | ❌ **Off-season** — `scoreVenue` applies off-season binary cap to 96 N-hemi ski venues. 10 `lateSeason: true` glaciers (Hintertux, Saas-Fee, etc.) scored normally when snow_depth ≥ 0.5m. See lateSeason flag regression above — 4 more should be in this exempt set. |
-
-**Southern hemisphere — September 11:**
-
-| Venue type | Seasonal status |
-|-----------|----------------|
-| **S hemisphere skiing (NZ, AUS, ARG, CHI)** | ✅ **PEAK — final weeks** — 6 venues: Remarkables (CHC), Treble Cone (CHC), Thredbo (SYD), Portillo (SCL), Pucón (ZCO), Cerro Castor (USH). Remarkables and Treble Cone typically close late September; Thredbo mid-October. Best snow of the season now. |
-| **S hemisphere beach (Brazil, Cape Town, Sydney)** | 🌱 **Early spring arriving** — GIG (Ipanema, 22°C), CPT (Clifton, 16°C — cold but sunny), OOL (Gold Coast, 20°C). Water below 20°C at CPT is a hard cap for beach scoring; Clifton uses `poolPrimary: true` workaround (**but `poolPrimary` is 0 for all venues** — Clifton may be getting gated unfairly right now). |
-
-**Observation on poolPrimary:** `poolPrimary: true` count is 0. Clifton Fourth Beach, Cape Town (CPT) is a celebrated spring/summer venue — but at 16°C in September it falls below the 18°C water-temp hard cap. If poolPrimary was meant to be set on Cape Town beach venues, it hasn't been applied. Worth verifying scoreVenue behavior for CPT in September.
+**September highlight opportunities:**
+- Hintertux Glacier (Austria) — only true year-round ski resort in Europe. Should be surfacing.
+- Saas-Fee (Switzerland) — glacier skiing available. lateSeason ✅.
+- S hem ski (NZ/Chile/Argentina) — closing weeks, "last ski weekend of the season" framing resonates.
+- Mediterranean beach peak: Adriatic, Aegean, Ionian, Tyrrhenian all 25–27°C.
 
 ---
 
-## 5. Content Quality
+## 4. Content Quality
 
-**Tag density (Day 6 — no change):**
+**Tags:**
+- 225 venues with only 2 tags is the persistent quality gap. These are mostly the original batch entries added with minimal metadata. Fix requires manual curation — not a one-commit fix.
+- 14 venues with 3 tags.
+- 166 venues with 4+ tags.
+- Recommendation: batch-enrich the 2-tag venues 20 at a time during low-priority sessions.
 
-| Tag count | Venues | % |
-|-----------|--------|---|
-| 2 tags | 225 | 55.6% |
-| 3 tags | 14 | 3.5% |
-| 4 tags | 166 | 41.0% |
-| 5 tags | 0 | 0% |
+**Photos:**
+- 405/405 venues have photos. 65 are Unsplash, 340 are Wikipedia Commons.
+- Photo accuracy not audited this run. Prior audit (2026-07-24) found ~27 marquee venues now have accurate venue-specific photos; remaining ~378 carry generic stock.
 
-**Venues with <4 tags: 239 (59%)** — unchanged for 6 consecutive days. The two-tag cohort is almost entirely from the Pacific island / SE Asia batch paste. Each entry used only generic tag pairs (`["UV 11","Crystal Water"]`, `["Surf Break","Beach Bar"]`). A single focused batch session of ~45 minutes would fix all 225. Highest-leverage backlog item in the content pipeline.
-
-**Descriptions:** No `description` field in schema — delivered through title, location, and tags. By design.
-
----
-
-## 6. Geographic Distribution
-
-| Region | Beach | Skiing | Sep Seasonal Status |
-|--------|-------|--------|---------------------|
-| North America | ~84 | ~66 | Ski: off-season; Beach: Gulf/Atlantic shoulder warm |
-| Europe / Mediterranean | ~57 | ~34 | Beach: **PEAK**; Ski: off-season except glaciers |
-| Asia-Pacific | ~59 | ~20 | Beach: monsoon-heavy; Ski: off-season (N-hem) |
-| Oceania / Pacific Islands | ~54 | ~14 | Ski: **S-hem PEAK**; Beach: spring warming |
-| Latin America | ~12 | ~11 | Beach: shoulder; Ski: **S-hem PEAK final weeks** |
-| Africa / Middle East | ~5 | — | Beach: CPT spring, ZNZ shoulder |
-
-**Airport concentrations (top 5):** DPS 10, CUN 9, SLC 8, SYD 8, GVA 7.
-
-**Single-venue airports primed for a 2nd entry (September-relevant):**
-- **JTR (Santorini)**: current = Red Beach; add Perissa Black Sand Beach (south shore, swim-friendly, Sept perfect)
-- **MLO (Milos)**: current = Sarakiniko; add Kleftiko Sea Caves (boat-access, turquoise arches)
-- **RHO (Rhodes)**: current = Lindos Beach; add Anthony Quinn Bay (carry-over from Sep 9 queue)
-- **CHQ (Chania, Crete)**: current = Elafonissi; add Balos Lagoon (carry-over from Sep 9 queue)
-- **JMK (Mykonos)**: current = Paradise Beach; add Elia Beach (longest, quieter, Sept golden)
+**Descriptions:** venues do not have a `description` field in the current schema (not present in VENUES objects). Scoring, discovery, and detail sheet are tag-and-title driven. No change needed.
 
 ---
 
-## 7. Five New Venue Objects — Sep 11
+## 5. Daily Venue Additions — September 12
 
-**Strategy:** 5 Greek Aegean islands — September is their single best month. All APs verified in AP_CONTINENT ✅, AIRPORT_COORDS ✅, BASE_PRICES ✅. Carry-over queue addresses RHO + CHQ; remaining 3 are fresh JTR / MLO / JMK additions.
+**Strategy:** 1 ski (closes the AKL ski gap — North Island NZ's largest ski area is absent), 4 beach targets for September prime season, advancing the unpasted carry-over queue (9 objects from Sep 5–11 remain unpatched into app.jsx).
 
-Carry-over queue status (Sep 5–10 unpasted objects): famara-beach-lanzarote (ACE), prainha-rio-brazil (GIG), currumbin-beach-qld (OOL), burriana-beach-nerja (AGP), cofete-beach-fuerteventura (FUE), taghazout-beach-morocco (AGA), sunj-beach-lopud-croatia (DBV), comporta-beach-portugal (LIS), la-caleta-adeje-tenerife (TFS). Queue is at 9 unpasted objects from prior sessions.
+**Carry-over queue status:** 9 objects from Sep 5–11 sessions remain unpasted: famara-beach-lanzarote (ACE), prainha-rio-brazil (GIG), currumbin-beach-qld (OOL), burriana-beach-nerja (AGP), cofete-beach-fuerteventura (FUE), taghazout-beach-morocco (AGA), sunj-beach-lopud-croatia (DBV), comporta-beach-portugal (LIS), la-caleta-adeje-tenerife (TFS). Today's NEW-1–5 are fresh objects; the queue backlog represents additional inventory whenever Jack does a paste session.
+
+---
 
 ```javascript
-// NEW-1 (Sep 11). Perissa Black Sand Beach, Santorini
-// JTR (Santorini Airport). 2nd JTR venue — joins beach_santorini (Red Beach).
-// Perissa is on Santorini's south coast: a 7km black volcanic sand beach sheltered
-// from the Meltemi wind, with beach bars, tavernas, and calm swimming conditions.
-// Very different from Red Beach (tiny, dramatic cliffs, no services). September:
-// 26°C water, shorter queues than July/Aug, 30% cheaper accommodation.
-{id:"perissa-black-sand-santorini", category:"beach",
-  title:"Perissa Black Sand Beach", location:"Perissa, Santorini, Greece",
-  lat:36.3562, lon:25.4782, ap:"JTR",
-  icon:"⚫", rating:4.71, reviews:18400,
-  gradient:"linear-gradient(160deg,#0a0808,#1a1010,#3a2020)",
-  accent:"#c07060",
-  tags:["Black Volcanic Sand","Beach Bars","September Aegean","Swim-Friendly"],
-  photo:"https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-1 (Sep 12). Mt Ruapehu / Whakapapa Ski Area, New Zealand
+// AKL (Auckland International). Only venue using AKL for skiing — the current solo AKL
+// entry (piha-beach-nz) is a beach. Whakapapa is NZ's largest ski resort, on the slopes
+// of an active volcano in Tongariro National Park, 5hr drive from Auckland.
+// Turoa (south side) + Whakapapa (north side) combined = over 3700 acres of terrain.
+// September is late season for NZ ski (most areas close end of Sept–mid Oct depending on
+// snow). Sep 12 = ~3 weeks left — "last ski weekend of NZ winter" framing is gold for
+// Southern Hemisphere ski completionists. No multi-resort pass (independently owned by
+// Club Aukaha / Ngāti Tūwharetoa trust since 2024).
+{id:"mt-ruapehu-whakapapa-nz", category:"skiing",
+  title:"Mt Ruapehu / Whakapapa", location:"Tongariro National Park, New Zealand",
+  lat:-39.2343, lon:175.5636, ap:"AKL",
+  icon:"🌋", rating:4.68, reviews:6120,
+  gradient:"linear-gradient(160deg,#0a1520,#1a3a60,#3a6090)",
+  accent:"#80b8e0",
+  tags:["Active Volcano Skiing","NZ Largest Resort","Whakapapa + Turoa","Late NZ Season"],
+  photo:"https://images.unsplash.com/photo-1587502536800-3c66f03c64e3?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-2 (Sep 11). Kleftiko Sea Caves, Milos
-// MLO (Milos Island Airport). 2nd MLO venue — joins beach_milos (Sarakiniko Moon Beach).
-// Kleftiko is Milos's other icon: a labyrinth of white volcanic rock arches, sea caves,
-// and turquoise water accessible only by boat (40min from Adamas). Former pirate hideout,
-// now the most-photographed snorkeling site in the Cyclades. September: 26°C, calm water,
-// boat tours running daily, prices 25% below August.
-{id:"kleftiko-caves-milos-greece", category:"beach",
-  title:"Kleftiko Sea Caves", location:"Southwest Milos, Greece",
-  lat:36.6781, lon:24.3642, ap:"MLO",
-  icon:"🌊", rating:4.91, reviews:7830,
-  gradient:"linear-gradient(160deg,#04101a,#0a2a3a,#1a506a)",
-  accent:"#70c8d8",
-  tags:["Sea Cave Snorkeling","Boat Access Only","September Cyclades","Volcanic Arches"],
-  photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-2 (Sep 12). Famara Beach, Lanzarote
+// ACE (Lanzarote Airport). 2nd ACE venue — joins beach_lanzarote (Papagayo Beach).
+// Famara is on the northwest tip of Lanzarote: a 6km stretch of wild Atlantic beach
+// backed by the 600m Risco de Famara volcanic cliffs. Famous for surfing and
+// kite-surfing; the village of Caleta de Famara is unchanged since the 1970s.
+// Completely different character from the resort beaches in the south. Year-round:
+// consistent Atlantic swells, 22–24°C water in September, no crowds.
+// Part of the UNESCO Biosphere Reserve.
+{id:"famara-beach-lanzarote", category:"beach",
+  title:"Famara Beach", location:"Caleta de Famara, Lanzarote, Spain",
+  lat:29.1321, lon:-13.5647, ap:"ACE",
+  icon:"🌊", rating:4.72, reviews:9840,
+  gradient:"linear-gradient(160deg,#0a0c10,#1a2030,#304060)",
+  accent:"#7090b8",
+  tags:["Volcanic Cliff Backdrop","Atlantic Surf Breaks","UNESCO Biosphere","Year-Round"],
+  photo:"https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-3 (Sep 11). Anthony Quinn Bay (Ladiko Bay), Rhodes
-// RHO (Rhodes Airport). 2nd RHO venue — joins lindos-beach-t23 (Lindos Beach).
-// Anthony Quinn Bay (officially Ladiko) is a sheltered pebble cove 15km from the
-// airport where Anthony Quinn filmed "The Guns of Navarone." Rocky cliffs, clear water
-// to 15m depth, excellent snorkeling. No crowds in September (most resorts have closed).
-// Rhodes holds 27°C water in September — among the warmest in the Mediterranean.
-// Carry-over from Sep 9 queue.
-{id:"anthony-quinn-bay-rho", category:"beach",
-  title:"Anthony Quinn Bay", location:"Ladiko, Rhodes, Greece",
-  lat:36.3890, lon:28.2245, ap:"RHO",
-  icon:"🎬", rating:4.83, reviews:11200,
-  gradient:"linear-gradient(160deg,#041018,#0a2840,#1a5080)",
-  accent:"#60a8d0",
-  tags:["September Prime","Clear Water Snorkeling","Film History","Pebble Cove"],
-  photo:"https://images.unsplash.com/photo-1555990793-da11153b2473?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-3 (Sep 12). Cofete Wild Beach, Fuerteventura
+// FUE (Fuerteventura Airport). 2nd FUE venue — joins beach_fuerteventura (Corralejo Beach).
+// Cofete is on the remote Jandía Peninsula: 12km of wild Atlantic beach backed by
+// 800m volcanic mountains, no infrastructure (one bar/restaurant with basic provisions),
+// accessible only by 4WD along a dirt road or an hourly ferry from Morro Jable.
+// A completely different experience from Corralejo — austere, dramatic, and empty.
+// Year-round: Atlantic swells (often rough, strong rips — swimming requires caution),
+// sea turtles nest here. In September the Saharan dust has cleared and visibility is
+// exceptional. Recommended for coastal hiking and photography.
+{id:"cofete-wild-beach-fue", category:"beach",
+  title:"Cofete Wild Beach", location:"Jandía Peninsula, Fuerteventura, Spain",
+  lat:28.0987, lon:-14.4053, ap:"FUE",
+  icon:"🏜️", rating:4.81, reviews:7230,
+  gradient:"linear-gradient(160deg,#120a04,#2a1808,#503010)",
+  accent:"#c89060",
+  tags:["4WD Access Only","Sea Turtle Nesting","Atlantic Wilderness","Volcanic Backdrop"],
+  photo:"https://images.unsplash.com/photo-1527004013197-933d61600ed3?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-4 (Sep 11). Balos Lagoon, Western Crete
-// CHQ (Chania Airport). 2nd CHQ venue — joins elafonissi-beach-chq (Elafonissi).
-// Balos is in the northwest tip of Crete: a triangular turquoise lagoon with pink-white
-// sand and shallow warm water, reachable by boat (1.5hr from Kissamos) or a steep 20min
-// hike. Different from Elafonissi (south coast, pink sand, warm shallow lagoon) —
-// Balos is wilder, more dramatic, with Gramvousa island fortress as backdrop.
-// September: 26°C, daily ferries still running, crowd 40% below peak.
-// Carry-over from Sep 9 queue.
-{id:"balos-lagoon-crete-chq", category:"beach",
-  title:"Balos Lagoon", location:"Northwest Crete, Greece",
-  lat:35.5951, lon:23.5567, ap:"CHQ",
-  icon:"🏝️", rating:4.88, reviews:22100,
-  gradient:"linear-gradient(160deg,#02100a,#083020,#1a6040)",
-  accent:"#70d8a0",
-  tags:["Turquoise Lagoon","Boat or Hike Access","September Crete","Pink-White Sand"],
-  photo:"https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-4 (Sep 12). Taghazout Bay, Morocco
+// AGA (Agadir Al-Massira Airport). 2nd AGA venue — joins beach_agadir (Agadir Beach).
+// Taghazout is 13km north of Agadir: a small fishing village that became Morocco's
+// premier surf and yoga destination. The main surf breaks (Anchor Point, Hash Point,
+// Panoramas) produce consistent rights September through April. The village itself is
+// compact — cafes, riad guesthouses, surf shops — distinct from Agadir's resort strip.
+// September: 22–24°C water, consistent 3–5ft Atlantic swells, warm evenings (25°C air),
+// 0 rain. One of the best value surf weekends accessible from Europe.
+{id:"taghazout-bay-morocco", category:"beach",
+  title:"Taghazout Bay", location:"Taghazout, Souss-Massa, Morocco",
+  lat:30.5387, lon:-9.7092, ap:"AGA",
+  icon:"🤙", rating:4.76, reviews:13400,
+  gradient:"linear-gradient(160deg,#100804,#28160a,#502c10)",
+  accent:"#d0904a",
+  tags:["Anchor Point Surf","September Atlantic Swells","Yoga + Surf Scene","Riad Village"],
+  photo:"https://images.unsplash.com/photo-1540541338287-41700207dee6?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// NEW-5 (Sep 11). Elia Beach, Mykonos
-// JMK (Mykonos Airport). 2nd JMK venue — joins beach_mykonos (Paradise Beach).
-// Elia is Mykonos's longest beach (700m), on the southeast coast 10km from the airport.
-// Naturist-friendly (unofficially), quieter than Paradise or Super Paradise, with a
-// single taverna and clear water. September: 25°C, last boats from town still running,
-// 50% fewer visitors than August, best value rates of the season.
-{id:"elia-beach-mykonos-jmk", category:"beach",
-  title:"Elia Beach", location:"Mykonos, Greece",
-  lat:37.3896, lon:25.4124, ap:"JMK",
-  icon:"🏖️", rating:4.74, reviews:8640,
-  gradient:"linear-gradient(160deg,#04101c,#0c2840,#206090)",
-  accent:"#7ab4e0",
-  tags:["Longest Mykonos Beach","Naturist-Friendly","September Value","South Shore"],
-  photo:"https://images.unsplash.com/photo-1614976165700-aad1fa86a2e4?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// NEW-5 (Sep 12). Comporta Beach, Portugal
+// LIS (Lisbon Humberto Delgado Airport). 2nd LIS venue — joins beach_cascais (Cascais Beach).
+// Comporta is a wild Atlantic beach 1 hour south of Lisbon in the Setúbal Peninsula.
+// 40km of uninterrupted dune-backed white sand, rice paddies, cork forest behind.
+// Known as "the Hamptons of Lisbon" — low-key luxury, no high-rises, no chain hotels.
+// September: 22–23°C water (coldest comfortable for swimming), air 27°C, calm mornings
+// and light afternoon westerly. Still accessible by train (Setúbal + taxi) or rental car.
+// Water sports: kite-surf, stand-up paddle, kayak in the estuary. Very different from
+// the rocky Algarve or built-up Cascais.
+{id:"comporta-beach-portugal", category:"beach",
+  title:"Comporta Beach", location:"Comporta, Setúbal, Portugal",
+  lat:38.3765, lon:-8.7612, ap:"LIS",
+  icon:"🌾", rating:4.79, reviews:11600,
+  gradient:"linear-gradient(160deg,#040a04,#0a2010,#1a4020)",
+  accent:"#78b888",
+  tags:["Dune-Backed Atlantic","September Atlantic Shoulder","Rice Paddy Hinterland","No High-Rises"],
+  photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 ```
 
 ---
 
-## PM Observation
+## 6. PM Observation
 
-**Semantic duplicate and lateSeason regression are both multi-day unresolved.** The TPS dup (Day 2) and the lateSeason flag loss on snowbird/zermatt/verbier/val-thorens are both single-commit surgical fixes. The lateSeason issue is particularly worth acting on now: N-hemisphere ski season starts in December, and if those 4 venues are missing the flag, they won't bypass the off-season cap when snow_depth is present — meaning Zermatt and Val-Thorens could silently show "conditions unavailable" even with glacial coverage. Fix before first real snowfall (typically October–November for these four).
+**The San Vito lo Capo duplicate is a 2-minute surgical fix that has now been open 3 days.** `beach_san_vito_lo_capo` has only 2 tags; `san-vito-lo-capo-t21` has 4. The fix is deleting the 6-line `beach_san_vito_lo_capo` object — no logic change, no venue data lost. Every day it stays open is another day a user searching for Sicily sees a doubled result.
 
-**Carry-over queue is growing.** 9 objects from Sep 5–10 remain unpasted. At the current rate (5 objects/day, ~0 pasted/day), the queue will reach 30+ objects within a week. The bottleneck is the manual paste step. Consider a focused 30-minute paste session to land the Sep 5–11 backlog in a single commit — that would bring the venue count from 405 to ~449 (minus 1 dup fix), closing most of the 450-venue launch target gap.
+**Carry-over queue is at 9 + 5 = 14 unpasted venue objects.** At the current pace (0 pasted/day), the queue will hit 20 objects by Sep 16. The venue count target in CLAUDE.md is implied ~450+ for launch readiness. A single 20-minute paste session would add 14 venues and bring the count from 405 to 419. The bottleneck is the paste step, not the content. Jack: consolidate Sep 5–12 queue in one session before Sep 16.
+
+**The CLAUDE.md VENUES count (395) is wrong by 10 and has been for 30+ days.** It reads 395; actual is 405 (eval-verified). Auto-push.sh's `.venue-baseline` file is not present in the working tree (should be 405 but is missing). Recommend: update CLAUDE.md to 405 and regenerate `.venue-baseline` on the next app.jsx commit.
