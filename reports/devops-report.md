@@ -1,20 +1,20 @@
-# DevOps Report — 2026-09-11 (YELLOW)
+# DevOps Report — 2026-09-12 (YELLOW)
 
-**Status: 🟡 YELLOW — dist/ build collision is Day 2 unresolved (P1). VPS Open #19/#21/#23 at Day 31 post-Aug-11 redeploy (proxy.js fixes not live). OG image fixed in index.html (yesterday's P2 closed). No new P0s. VENUES at 407, cache stamp stale at `20260910a` (no app.jsx commit today — expected).**
+**Status: 🟡 YELLOW — dist/ build collision Day 3 unresolved (P1). VPS proxy.js fixes (#19/#21/#23) Day 32 unresolved (P1). PM's lateSeason "regression" is a FALSE ALARM — code check confirms all 15 venues correctly flagged. Semantic dup still present. No new P0s. Cache stamp stale by 2 days (no app.jsx commit).**
 
-> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Last confirmed healthy: 2026-08-11 post-redeploy. Treated as live per that prior verification. All proxy analysis is from committed source only.
+> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Last confirmed healthy: 2026-08-11 post-redeploy. All proxy analysis from committed source only.
 
 ---
 
-## What Changed Since Yesterday (Sep 10)
+## What Changed Since Yesterday (Sep 11)
 
-- **0 code commits today.** Three report commits (DevOps, Content, PM) only. No app.jsx changes.
-- **app.jsx**: 14,198 lines, 757,322 bytes — **unchanged**.
-- **Cache stamp**: `20260910a` — stale by 1 day but **correct** (auto-push only bumps when app.jsx/sw.js/index.html change; none changed today).
-- **VENUES count**: **407** (unchanged; CLAUDE.md still says 395 — stale).
-- **OG image**: ✅ **FIXED** — index.html now has `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&crop=center` on both og:image and twitter:image meta tags. Was empty yesterday. **Yesterday's P2 closed.**
-- **dist/ poisoned**: Still the iOS build. Day 2 unresolved (P1).
-- **VPS**: Day 31. No change.
+- **0 code commits today.** Three report commits only (DevOps, Content, PM). Three consecutive days without an app.jsx commit.
+- **app.jsx**: 14,198 lines, 757,322 bytes — unchanged.
+- **Cache stamp**: `20260910a` — stale by **2 days**. Correct by rule (auto-push only bumps on app.jsx/sw.js/index.html changes), but Sep 12 with a Sep 10 stamp signals zero code activity. Straight from the log: no shipping has happened since `c760dfb` (flights fallback fix, Sep 10).
+- **VENUES**: **407** (134 skiing / 271 beach / 2 format variants). CLAUDE.md says 395 — 12 behind reality, now stale for 30+ days.
+- **lateSeason correction (see §6)**: PM v147 claimed a regression — 10 venues flagged, 5 missing. **Wrong.** Actual count is **15**. All 5 allegedly missing venues (snowbird, zermatt, verbier, val-thorens, engelberg) are correctly flagged. PM report was based on a broken script or stale data. This P1 can be closed.
+- **dist/ collision**: Still Day 3. Not fixed.
+- **VPS**: Day 32 since Aug-11 redeploy. proxy.js open issues unchanged.
 
 ---
 
@@ -24,229 +24,221 @@
 |-------|--------|
 | app.jsx lines | **14,198** |
 | app.jsx bytes | **757,322** (~740 KB unminified) |
-| dist/app.min.js | ⚠️ **MISSING** — dist/ is poisoned by iOS build (see §2). GH Actions rebuilds correctly on deploy. Live site is fine. |
-| Cache buster | ✅ `20260910a` — correct (no app-touching commits today) |
-| Plausible analytics | ✅ Active — `index.html:32`, deferred, correct domain |
-| Sentry DSN | ✅ Active — `9416b032a46681d74645b056fcb08eb7` wired at `app.jsx:8` + `index.html:77` |
+| dist/app.min.js | ⚠️ **MISSING** — dist/ poisoned by iOS build artifact. GH Actions rebuilds correctly on deploy. Live site fine. |
+| Cache stamp | `20260910a` — stale 2 days, correct by rule |
+| Plausible analytics | ✅ `index.html:32` — deferred, domain correct. **NOT in committed dist/index.html** (iOS artifact strips analytics). |
+| Sentry DSN | ✅ Active — `9416b032...` wired at `app.jsx:8` + `index.html:77` |
+| OG image (index.html) | ✅ Unsplash URL present — fixed in prior session |
+| OG image (dist/index.html) | ⚠️ `content=""` — iOS artifact. GH Actions build will overwrite correctly. |
 | React CDN | ✅ 18.3.1 — cdnjs.cloudflare.com (pinned, SLA-backed) |
-| Babel CDN | ✅ 7.24.7 — cdnjs.cloudflare.com (dev-only; esbuild strips in prod) |
-| OG image | ✅ **FIXED** — Unsplash URL in index.html. dist/index.html still has `content=""` but GH Actions overwrites it at build. |
-| VENUES (eval) | **407** (CLAUDE.md says 395 — 12 behind reality) |
+| Babel CDN | ✅ 7.24.7 — cdnjs.cloudflare.com (stripped in prod by esbuild) |
+| VENUES (eval) | **407** — CLAUDE.md says 395 (stale by 12) |
 
 ---
 
-## 2. P1 — dist/ Build Collision: Day 2 Unresolved
+## 2. P1 — dist/ Build Collision: Day 3 Unresolved
 
-**Status: Same as yesterday. Not fixed.**
+**Same broken state. No fix shipped.**
 
-The committed `dist/index.html` references `./vendor/react.production.min.js`, `./vendor/react-dom.production.min.js`, `./vendor/leaflet.css`, and `./vendor/leaflet.js`. None of these files exist in `dist/`. This is the iOS build layout generated by `build-ios.mjs`, which writes to `dist/` — the same directory `build-web.mjs` uses.
+`dist/` committed to git is the iOS build artifact from `build-ios.mjs`. It references `./vendor/react.production.min.js`, `./vendor/react-dom.production.min.js`, `./vendor/leaflet.css`, `./vendor/leaflet.js` — none of which exist. No `app.min.js`. No Plausible. Empty OG image meta.
 
 ```
 dist/
-  index.html    ← iOS layout (references ./vendor/* which doesn't exist)
-  manifest.json ← copied in
-  robots.txt    ← copied in
-  sw.js         ← iOS sw.js
-  [NO app.min.js, NO vendor/]
+  index.html    ← iOS layout (./vendor/* refs, no app.min.js, no Plausible)
+  manifest.json ← copy
+  robots.txt    ← copy
+  sitemap.xml   ← copy
+  sw.js         ← iOS sw (correct cache stamp)
+  [NO app.min.js, NO vendor/, NO analytics]
 ```
 
-GitHub Actions runs `build-web.mjs` first on every push, which `fs.rmSync`s dist/ and rebuilds it correctly. The **live site is fine**. But:
+**Live site is fine** — GH Actions runs `node scripts/build-web.mjs` which calls `fs.rmSync(DIST, {recursive:true,force:true})` before building. The committed dist/ is an iOS artifact from someone running `node scripts/build-ios.mjs` locally and committing the output.
 
-1. The committed `dist/` is broken — anyone `git pull` + serving dist/ locally gets a white screen
-2. dist/index.html OG image still has `content=""` (GH Actions fixes it, but the committed state is wrong)
-3. Every agent run that checks dist/ for health has to note this caveat
+**Root cause:** `build-ios.mjs` writes to `dist/` (line 5: `const DIST = path.join(ROOT, "dist")`). Same directory as `build-web.mjs`. Running iOS build locally trashes the web build output.
 
-**Fix** (10 minutes — surgical, same as yesterday):
+**Fix (10 min):**
 
-```javascript
-// scripts/build-ios.mjs — change DIST constant (line ~16):
-
-// BEFORE:
+Change `build-ios.mjs` output from `dist/` to `ios/App/App/public/`:
+```js
+// scripts/build-ios.mjs line 5 — change:
 const DIST = path.join(ROOT, "dist");
-
-// AFTER:
-const DIST = path.join(ROOT, "ios/App/App/public");
+// to:
+const DIST = path.join(ROOT, "ios", "App", "App", "public");
 ```
 
-Then clean up the stale dist/ state:
+Then fix the committed dist/:
+```bash
+node scripts/build-web.mjs  # regenerate correct dist/
+git add dist/
+git commit -m "fix: rebuild dist/ with web build (iOS artifact removed)"
+```
+
+This also resolves the `ios/App/App/public/` collision noted in prior reports — the iOS build should write directly there, not to dist/ and then get manually synced.
+
+---
+
+## 3. P1 — VPS Proxy (#19/#21/#23) — Day 32
+
+`server/proxy.js` has been correct in the repo since Aug 11. Not live. `peakly-api.duckdns.org` is running the pre-Aug-11 build. The committed proxy has:
+- `forecast_days=14` at both call sites ✅ (pre-Aug-11 was 7 → silently broke 2-weekend scoring)
+- `capacitor://localhost` in CORS allowlist ✅ (iOS native blocked without this)
+- `DELETE` in `Access-Control-Allow-Methods` ✅ (alert deletion broken without this)
+- Rate limiter reads last X-Forwarded-For ✅
+- `http2.connect` for APNs ✅
+- `dsaEncoding: 'ieee-p1363'` JWT ✅
+- Disk-cache for `_wxCache` (Open #23) — **NOT YET IN proxy.js** — still in-memory
+
+Check: `grep -n "fs\.\|diskCache\|persist\|json" server/proxy.js | head` returns nothing weather-cache related. Open #23 still needs the ~30-line disk persistence fix.
+
+**Jack needs to SSH to VPS and copy proxy.js.** Same blockers as 31 days ago:
+```bash
+scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+ssh root@198.199.80.21 "pm2 restart peakly-proxy"
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+```
+
+Expected after redeploy: `apns: "configured"` if keys are set, `forecast_days: 14` in responses, uptime resets.
+
+**Open #23 (weather cache disk persistence) still needs to be coded before VPS redeploy**, otherwise a pm2 restart wipes the entire wx cache. ~30-line fix:
+
+```js
+// server/proxy.js — add after _wxCache declaration (~line 450):
+const WX_CACHE_FILE = path.join(os.tmpdir(), 'peakly-wx-cache.json');
+function loadWxCache() {
+  try {
+    if (fs.existsSync(WX_CACHE_FILE)) {
+      const saved = JSON.parse(fs.readFileSync(WX_CACHE_FILE, 'utf8'));
+      for (const [k, v] of Object.entries(saved)) _wxCache.set(k, v);
+      console.log(`[wx-cache] loaded ${_wxCache.size} entries from disk`);
+    }
+  } catch (e) { console.warn('[wx-cache] load failed:', e.message); }
+}
+function saveWxCache() {
+  try {
+    const obj = {};
+    for (const [k, v] of _wxCache) obj[k] = v;
+    fs.writeFileSync(WX_CACHE_FILE, JSON.stringify(obj));
+  } catch (e) { console.warn('[wx-cache] save failed:', e.message); }
+}
+// Call loadWxCache() at startup, saveWxCache() on cache writes.
+// Add 'os' and 'fs' requires at top of file if not present.
+```
+
+---
+
+## 4. P1 — Semantic Duplicate: san-vito-lo-capo — Day 3
+
+Two entries for the exact same beach, same coordinates, same airport (TPS):
+- `san-vito-lo-capo-t21`: 4.68 rating, 4,719 reviews (lower quality)
+- `beach_san_vito_lo_capo`: 4.96 rating, 24,600 reviews (keep this one)
+
+**Fix (1 min, bundle with next app.jsx touch):**
+```bash
+# Delete line containing san-vito-lo-capo-t21 from app.jsx
+grep -n "san-vito-lo-capo-t21" app.jsx
+# Then delete that line + ensure surrounding comma hygiene
+```
+Net venues after fix: **406**.
+
+---
+
+## 5. P1 — CLAUDE.md Venue Count Stale
+
+CLAUDE.md "Current State" section says **395 venues** (confirmed 2026-08-11). Actual count: **407**. Delta: +12 venues shipped since the last CLAUDE.md update. Not a runtime bug but agents (including this one) use CLAUDE.md as ground truth — stale counts propagate into every report.
+
+Update CLAUDE.md line: `**395 venues**` → `**407 venues** (134 skiing / 271 beach)` and bump the date.
+
+---
+
+## 6. CORRECTION — PM v147 lateSeason "Regression" Is a False Alarm
+
+PM report v147 (Sep 11) flagged a P1: "lateSeason count dropped from 14 to 10; snowbird/zermatt/verbier/val-thorens/engelberg missing."
+
+**This is wrong.** Code check on origin/main HEAD:
 
 ```bash
-# Reset dist/ to what build-web.mjs would generate — the proper baseline.
-# Do NOT manually create app.min.js; let GH Actions handle it.
-# Just fix the source of the collision so future iOS builds go to the right place.
-git add scripts/build-ios.mjs
-git commit -m "fix(build): route iOS build output to ios/App/App/public, not dist/
-
-Prevents build-ios.mjs from poisoning the web dist/ directory.
-build-web.mjs and build-ios.mjs now write to separate targets.
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_019swwgLujWNheFHGTiJdrFp"
-git push origin main
+grep -c "lateSeason.*true\|\"lateSeason\": true" app.jsx
+# → 15
 ```
 
-GH Actions will rebuild dist/ cleanly on the next push. The poisoned committed state will self-correct.
+All 5 allegedly-missing venues are correctly flagged:
+- `snowbird` → `"lateSeason": true` at line 832
+- `zermatt` → `"lateSeason": true` at line 1139
+- `engelberg` → `"lateSeason": true` at line 1162
+- `verbier` → `"lateSeason": true` at line 1734
+- `val-thorens` → `"lateSeason": true` at line 1757
+
+Full 15-venue list: whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch, snowbird, zermatt, engelberg, verbier, val-thorens.
+
+CLAUDE.md previously said 14 (now 15 with hintertux-glacier added). The PM script that produced "count: 10" was broken — likely only counting compact-format entries (`lateSeason:true`) and missing the JSON-format entries (`"lateSeason": true`). **Close this P1. Do not ship a "fix" for a non-bug.**
 
 ---
 
-## 3. Flight Proxy Status
+## 7. Security Audit
 
 | Check | Result |
 |-------|--------|
-| Proxy URL | ✅ `https://peakly-api.duckdns.org` (HTTPS) — no HTTP |
-| `FLIGHT_PROXY` constant | `app.jsx:6333` |
-| Timeout | ✅ 4s AbortController on all proxy fetches |
-| Fallback to direct Open-Meteo | ✅ `_tryProxyWx()` falls back on error |
-| Live-fare fallback window | ✅ Updated yesterday to ±3 days / 2–7 nights (`c760dfb`) |
+| Travelpayouts API token | ✅ Server-side only (`server/proxy.js`). Never in client code. |
+| TP_MARKER (`710303`) | ✅ In `app.jsx:6668` — this is a public affiliate marker ID, not a private credential. Appears in referral URLs and is legitimately client-visible. |
+| SUPABASE_ANON_KEY | ✅ In `app.jsx:26` — documented as public-safe, RLS-gated. Standard Supabase pattern. |
+| .gitignore | ✅ Covers `.env`, `*.p8`, `*.pem`, `*.key`, business plan docs, node_modules |
+| Sentry DSN | ✅ Active — browser-exposed by design (Sentry DSN is not a secret) |
+| git log secrets scan | ✅ Last 10 commits are reports and build fixes — no credentials |
+| APNS keys | ✅ `.p8` in `.gitignore`; `APNS_KEY_PATH` is a server env var only |
 
-VPS is running the **August 11 build** of proxy.js. The committed server/proxy.js has `forecast_days:14`, disk cache, CORS + rate limiter fixes — none of these are on the live VPS until Open #19 SSH redeploy.
-
----
-
-## 4. Security Audit
-
-| Check | Result |
-|-------|--------|
-| Travelpayouts API token in client | ✅ **Not present** — server-side only in proxy.js env |
-| TP_MARKER `710303` in client | ✅ **OK** — public affiliate marker, not an API credential |
-| Supabase anon key in client | ✅ **Intentional** — documented in CLAUDE.md as "public-safe, RLS-gated" |
-| .gitignore covers .env | ✅ `.env`, `.env.*`, `*.pem`, `*.key`, `*.p8` all covered |
-| Secrets in recent git log | ✅ Checked last 15 commits — no credentials |
-| APNS .p8 key | ✅ Not committed (covered by `*.p8` in .gitignore) |
-
-**Note on Supabase anon key:** The key `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` at `app.jsx:26` is visible in public source. This is the documented architecture choice — anon key is public-safe only if Supabase RLS policies are correctly configured. If RLS is ever misconfigured, this becomes P0. Low risk as designed but worth auditing RLS rules before the Reddit launch.
+**One note:** `SUPABASE_ANON_KEY` being committed to a public GitHub repo means anyone can send requests to the Supabase project using the anon role. This is the documented Supabase pattern for client-facing apps — the RLS policies are what actually gate data access. If RLS policies are ever misconfigured, the anon key is the attack surface. Not an action item today, but worth knowing.
 
 ---
 
-## 5. Performance Analysis
+## 8. Performance Analysis
 
-| Check | Result |
-|-------|--------|
-| JS payload (dev/Babel) | ~2.4 MB (Babel 7.24.7 ~1.2 MB + React 18.3.1 ~0.5 MB + app.jsx ~0.74 MB) |
-| JS payload (prod/esbuild) | ~505 KB (app.min.js ~440 KB + React 0.5 MB + ReactDOM ~0.5 MB, all from CDN) |
-| Lazy images | ✅ `loading="lazy"` on listing cards, featured card, compact card |
-| Hero image lazy | ⚠️ `loading="lazy"` on hero card — this is the **LCP element**; should be `loading="eager"` or `fetchpriority="high"` |
-| CDN dependency versions | ✅ React 18.3.1 is latest stable. Babel 7.24.7 is current. |
+| Metric | Value |
+|--------|-------|
+| app.jsx unminified | 757 KB (14,198 lines) |
+| dist/app.min.js | Built by GH Actions via esbuild — not in committed dist/ (iOS artifact) |
+| Babel Standalone (dev only) | 924 KB — stripped in prod |
+| React 18 CDN | ~42 KB gzipped (cdnjs) |
+| ReactDOM 18 CDN | ~130 KB gzipped (cdnjs) |
+| Supabase lazy | ~80 KB gzipped (lazy-loaded only on auth) |
+| Sentry CDN | ~38 KB gzipped (deferred) |
+| Total prod parse | ~230 KB JS gzipped + esbuild-compiled app.min.js (~200 KB estimated gzip) |
+| **Cold load mobile** | ~2s (esbuild kills the 8-12s Babel wall from pre-Jun-20 builds) |
 
-**Largest bottleneck: Babel Standalone in dev mode.** At 1.2 MB, Babel parse alone takes 3–5 seconds on mobile. The prod build (esbuild via deploy.yml) eliminates this entirely — users on GitHub Pages get the pre-built app.min.js. The dev Babel path is acceptable for local development only.
+**Biggest bottleneck**: The 407-venue VENUES array hardcoded in app.jsx. Parsing 757 KB of JS still blocks the main thread. The esbuild build helps but the array itself is ~400 KB of the file. Not actionable without splitting the architecture (which is explicitly forbidden). At current user levels: not a problem. At 10K DAU: first complaints.
 
-**LCP fix** (5 minutes):
-
-```jsx
-// app.jsx — FeaturedCard hero image (line ~7683):
-// BEFORE:
-<img src={listing.photo} alt={listing.title} loading="lazy" ...
-
-// AFTER:
-<img src={listing.photo} alt={listing.title} loading="eager" fetchpriority="high" ...
-```
-
-Only the first/hero card needs this. All grid/list cards are correctly lazy.
+**Images**: Unsplash photos use `?w=1200&h=900&fit=crop`. No `loading="lazy"` on img tags — this loads all visible card photos simultaneously. At 407 venues, only ~10-15 render at once, so not critical. The `?q=75&auto=format` params are already in place for the venues with explicit Unsplash params; others use raw Wikipedia Commons URLs without compression params.
 
 ---
 
-## 6. P1 — VPS Redeploy Day 31
+## 9. Cost Projection
 
-**Three committed server/proxy.js fixes that are NOT on the live VPS:**
+| Scale | DO VPS | GitHub Pages | Supabase | Open-Meteo | Total/mo |
+|-------|--------|-------------|----------|------------|---------|
+| Today (< 100 MAU) | $6 | $0 | $0 | $0 | **$6** |
+| 1K MAU | $6 | $0 | $0 | $0 | **$6** |
+| 10K MAU | $12–18 | $0 | $0–25 | $0 | **$12–43** |
+| 100K MAU | $48+ | $0 | $25–599 | $0–200 | **$73–850** |
 
-1. `forecast_days: 7 → 14` — Two-weekend scoring is **off**. The client scores two weekends; the VPS weather cache only has 7-day forecasts. The second weekend's weather silently falls back to the client's direct fetch (no caching = rate limit risk at scale).
-2. CORS fix: `capacitor://localhost` not in allowed origins — **iOS native proxy calls blocked outright**. Every iOS app user gets the direct Open-Meteo fallback path (uncached, rate-limited).
-3. `DELETE` in `Access-Control-Allow-Methods` — **Alert deletion has never worked** on production. The client's `.catch(()=>{})` silently eats the 403.
-4. Disk cache (Open #23) — `_wxCache` is in-memory only. A `pm2 restart` wipes it.
+Open-Meteo free tier is 10,000 requests/day. At 407 venues × batch of 50 every 2 seconds = ~9 batches per full refresh cycle. At 100 concurrent users refreshing every 5 min = 180/day refresh cycles × 9 batches = 1,620 API calls/day — well within limits. At 10K DAU the proxy cache becomes essential (which is why #19 is a pre-traffic gate).
 
-**How to deploy** (Jack, ~5 min SSH):
-```bash
-ssh root@198.199.80.21
-cd /opt/peakly-proxy
-# /opt/peakly-proxy is NOT a git clone — manual copy required:
-# On your local machine first:
-# scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-pm2 restart peakly-proxy
-curl -s https://peakly-api.duckdns.org/health | jq .
-# Verify: forecast_days=14, cors includes capacitor://localhost, uptime resets to seconds
-```
-
-This is the single highest-leverage action before the Reddit launch. 31 days late.
+**First thing that breaks at scale**: Open-Meteo rate ceiling, mitigated by the proxy cache (Open #19 fix). Without the VPS redeploy, a Reddit/HN spike with 500+ concurrent users will hit the free tier ceiling in minutes and serve stale/errored weather for every venue. The in-memory proxy cache absorbs N→1 fan-out for the same venue. The disk persistence fix (Open #23) means a pm2 restart doesn't reset to cold cache mid-spike.
 
 ---
 
-## 7. Weather & Open-Meteo
+## 10. Action Items Summary
 
-| Check | Result |
-|-------|--------|
-| Weather batch size | 50 venues / 2s (rate-limit safe) |
-| Client cache TTL | 2h localStorage — correct |
-| Proxy cache TTL | 2h in-memory (wipes on restart) |
-| Disk cache | Committed in proxy.js — NOT on VPS |
-| Direct Open-Meteo fallback | ✅ Always present — `fetchWeather` tries proxy, falls back |
-
-At 407 venues: 407 weather calls + ~263 marine calls (beach venues) per full refresh = ~670 upstream calls. Batched at 50/2s = ~27 seconds for a full refresh. Well within Open-Meteo free tier for a single user. At 66+ concurrent DAU hitting the same venues simultaneously without the VPS cache, the free tier (10K calls/day) saturates in under 4 hours.
-
----
-
-## 8. Cost Estimate
-
-| Tier | Monthly Cost | Bottleneck at That Scale |
-|------|-------------|--------------------------|
-| Current (<10 MAU) | **$6/month** | DO 1GB + GH Pages free + Supabase free |
-| 1K MAU | **$6/month** | VPS handles weather cache; GH Pages static |
-| 10K MAU | **$31–43/month** | DO 2GB ($12) + Supabase Pro ($25) if >500MB DB |
-| 100K MAU | **$65–130/month** | DO 4GB ($24) + Supabase Pro ($25) + CDN layer |
-
-Open-Meteo free tier is the first cost forcing function — not the VPS. 100K MAU = ~100 concurrent sessions during peak hours = Open-Meteo calls spike past 10K/day ceiling. The VPS disk cache is the mitigation. Get the VPS redeployed before Reddit.
-
----
-
-## 9. Resolved Since Yesterday
-
-- ✅ **OG image** — `index.html` now has a real Unsplash URL. Social shares will render a mountain/ski photo. Yesterday's P2 closed.
-
----
-
-## 10. Zombie Branches — Unchanged (Day 121)
-
-18 stale remote branches, all unmerged, all from May 2026:
-
-```bash
-# Jack: one-liner cleanup (2 minutes)
-git push origin --delete \
-  claude/analyze-test-coverage-WVIsT \
-  claude/code-review-cleanup-HjoCS \
-  claude/condense-alert-page-jzdLo \
-  claude/enhance-loading-screen-rZ1dc \
-  claude/fix-app-jsx-content \
-  claude/implement-todo-lNL7W \
-  claude/improve-peakly-ui-UHCHG \
-  claude/improve-scoring-system-XYGY6 \
-  claude/product-reliability-assessment-w0poL \
-  claude/redesign-front-page-EndKs \
-  claude/review-peakly-ux-UQ0Qu \
-  claude/simplify-alerts-page-2ejGB \
-  claude/simplify-profile-page-Bi2Tc \
-  claude/standardize-venue-data-CufiQ \
-  claude/streamline-onboarding-account-97XRR \
-  fix-appjsx-final \
-  restore-appjsx \
-  master
-```
-
----
-
-## Priority Queue
-
-| Priority | Item | Time | Status |
-|----------|------|------|--------|
-| P1 | **Fix build-ios.mjs output dir** — routes iOS build away from dist/ | 10 min | Day 2 unresolved |
-| P1 | **VPS redeploy (#19/#21/#23)** — 31 days of committed-but-not-live proxy fixes | 5 min SSH | Day 31 unresolved |
-| P2 | **LCP fix** — hero image `loading="eager" fetchpriority="high"` | 2 min | New |
-| P2 | **CLAUDE.md VENUES count** — says 395, real count is 407 | 1 min | Day 2 |
-| P2 | **Venue search** — Sep 14 deadline, 3 days away (PM RED) | Build session | Unstarted |
-| P3 | **Zombie branch cleanup** (18 branches) | 2 min | Day 121 |
+| # | Priority | Item | Fix Time | Blocker? |
+|---|----------|------|----------|---------|
+| 1 | **P1** | dist/ build collision (Day 3) — change build-ios.mjs output path | 10 min | No (live site fine) |
+| 2 | **P1** | VPS redeploy (#19 + #21) — scp proxy.js + pm2 restart | 5 min (Jack only, SSH) | Yes (2-weekend scoring, alert deletion, iOS native) |
+| 3 | **P1** | Open #23 — disk-cache ~30-line fix in proxy.js before VPS redeploy | 20 min | Prerequisite for #2 |
+| 4 | **P1** | Semantic dup san-vito-lo-capo-t21 deletion | 1 min | No |
+| 5 | **P2** | BASE_PRICES airport coverage — 15 airports / ~147 venue airports (10%) | 2 hr | No |
+| 6 | **P2** | CLAUDE.md venue count update (395→407) | 2 min | No |
+| 7 | **CLOSED** | lateSeason regression (PM P1) — false alarm, 15 venues correctly flagged | — | — |
 
 ---
 
 ## What Breaks First at Scale
 
-**The VPS in-memory weather cache wipes on `pm2 restart`.** A Reddit post drives a traffic spike → someone deploys the long-overdue VPS fix → `pm2 restart` → `_wxCache` empty → all 407 venues' weather fetches hit Open-Meteo directly at the same time → 10K free-tier calls exhaust in ~14 minutes → weather data goes dark for every user during peak engagement. This is the exact sequence that kills a Reddit launch. The disk cache fix is already committed in `server/proxy.js` — it just needs the VPS redeploy to go live. Every day #19 waits increases the risk this exact scenario plays out on the most important traffic day the app will ever see.
-
-Second failure mode: **venue search missing on Sep 14**. PM is at RED. If venue search isn't shipped by Sep 14, the Oct 11 Reddit post is at risk. That's a product risk, not infrastructure — but it directly affects the traffic event that infrastructure is being prepped for.
+**Open-Meteo free tier**, full stop. At ~500 concurrent users refreshing conditions, the client's direct Open-Meteo calls overwhelm the 10K req/day ceiling in under an hour. The VPS proxy with shared 2hr cache is the designed mitigation — it's already written and correct in `server/proxy.js`. The blocker is that it hasn't been deployed in 32 days because Jack hasn't done the 5-minute SSH copy. Once that's live, a Reddit spike is survivable. Without it, the day after any meaningful press coverage, every venue shows "conditions unavailable" for hours. Fix Open #19 before you post anywhere. The disk-persistence add-on (Open #23) is a bonus — it means a pm2 restart mid-spike doesn't reset the cache and immediately blast through rate limits again.
