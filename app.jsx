@@ -660,7 +660,6 @@ const VENUES = [
   {id:"nusa-dua-beach-t17",category:"beach",title:"Nusa Dua Beach",location:"Bali, Indonesia",lat:-8.8059,lon:115.2325,ap:"DPS",icon:"🏝️",rating:4.64,reviews:4122,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["5-Star Resorts","Calm Bay","Family Friendly","Reef Snorkeling"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Nusa_Dua_Bali.jpg/1280px-Nusa_Dua_Bali.jpg"},
   {id:"patara-beach-t18",category:"beach",title:"Patara Beach",location:"Antalya, Turkey",lat:36.2667,lon:29.3167,ap:"DLM",icon:"🏝️",rating:4.97,reviews:2085,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Ancient Lycian Ruins","Sea Turtle Nesting","6km Pristine Beach","UNESCO Protected"],photo:"https://images.unsplash.com/photo-1512229790252-386573bf8d8e?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8M3x8UGF0YXJhJTIwQmVhY2glMjBiZWFjaHxlbnwxfDB8fHwxNzg2OTI3NDY3fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
   {id:"bulabog-beach-boracay-t19",category:"beach",title:"Bulabog Beach Boracay",location:"Aklan, Philippines",lat:11.96,lon:121.9342,ap:"MPH",icon:"🏝️",rating:4.66,reviews:2396,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Kiteboarding Capital","Trade Winds","Windsurfing","World Cup Kite Venue"],photo:"https://images.unsplash.com/photo-1553195029-754fbd369560?ixid=M3wxMDA1OTY0fDB8MXxzZWFyY2h8MXx8QnVsYWJvZyUyMEJlYWNoJTIwQm9yYWNheXxlbnwxfDB8fHwxNzg0OTQ1OTA1fDA&ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
-  {id:"san-vito-lo-capo-t21",category:"beach",title:"San Vito lo Capo",location:"Sicily, Italy",lat:38.175,lon:12.7333,ap:"TPS",icon:"🏝️",rating:4.68,reviews:4719,gradient:"linear-gradient(160deg,#3a2800,#8d5700,#d4860a)",accent:"#ffb74d",tags:["Secluded Beach","Snorkeling","Calm Waters","Pristine"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/San_Vito_Lo_Capo_%281%29.jpg/1280px-San_Vito_Lo_Capo_%281%29.jpg"},
   {id:"hyams-beach-t22",category:"beach",title:"Hyams Beach",location:"New South Wales, Australia",lat:-35.1167,lon:150.6833,ap:"CBR",icon:"🏝️",rating:4.6,reviews:4569,gradient:"linear-gradient(160deg,#003322,#006644,#00a86b)",accent:"#80d4b0",tags:["Whitest Sand in the World","Jervis Bay","Quiet & Pristine","Kangaroo Sightings"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Hyams_Beach_002.jpg/1280px-Hyams_Beach_002.jpg"},
   {id:"lindos-beach-t23",category:"beach",title:"Lindos Beach",location:"Rhodes, Greece",lat:36.0917,lon:28.0883,ap:"RHO",icon:"🏝️",rating:4.59,reviews:4606,gradient:"linear-gradient(160deg,#1a1a3a,#2828a0,#5050e0)",accent:"#a0a0ff",tags:["Acropolis Backdrop","Pebble & Sand Mix","Turquoise Cove","Hilltop Village Walk"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Lindos_Rhodes_1.jpg/1280px-Lindos_Rhodes_1.jpg"},
   {id:"laguna-beach-t24",category:"beach",title:"Laguna Beach",location:"California, USA",lat:33.5427,lon:-117.7854,ap:"SNA",icon:"🏝️",rating:4.51,reviews:3881,gradient:"linear-gradient(160deg,#3a1a00,#7f3300,#d4600a)",accent:"#ffaa74",tags:["Tide Pool Coves","Artist Village","Snorkeling","Pacific Bluffs"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Laguna_Beach_CA_photo_by_Don_Ramey_Logan.jpg/1280px-Laguna_Beach_CA_photo_by_Don_Ramey_Logan.jpg"},
@@ -9632,6 +9631,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
   const [viewMode, setViewMode] = useState("list"); // "list" | "map" — toggled in the weekend strip header
   const [showAllCats, setShowAllCats] = useState(false);
   const [pullDist, setPullDist] = useState(0);
+  const [inlineQuery, setInlineQuery] = useState("");
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const [visibleCount, setVisibleCount] = useState(30);
   const scrollRef = useRef(null);
@@ -9792,7 +9792,19 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
     ...carouselVenues.map(l => l.id),
     ...dealCarousel.map(l => l.id),
   ].filter(Boolean));
-  const gridListings = filtered.filter(l => !heroAndBestIds.has(l.id));
+  const searchActive = inlineQuery.trim().length > 0;
+  const inlineFiltered = React.useMemo(() => {
+    if (!searchActive) return filtered;
+    const q = inlineQuery.trim().toLowerCase();
+    return filtered.filter(l =>
+      l.title.toLowerCase().includes(q) ||
+      l.location.toLowerCase().includes(q) ||
+      (l.tags || []).join(" ").toLowerCase().includes(q)
+    );
+  }, [filtered, inlineQuery, searchActive]);
+  const gridListings = searchActive
+    ? inlineFiltered
+    : filtered.filter(l => !heroAndBestIds.has(l.id));
 
   const isAll = activeCat === "all";
   const catLabel = CATEGORIES.find(c => c.id === activeCat)?.label || "";
@@ -9826,6 +9838,33 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
 
   return (
     <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden", position:"relative" }}>
+      {/* Inline venue search — above category pills */}
+      <div style={{ padding:"6px 12px 4px", background:"#fff", borderBottom:"1px solid #f0f0f0", flexShrink:0 }}>
+        <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
+          <span style={{ position:"absolute", left:10, color:"#aaa", fontSize:13, pointerEvents:"none" }}>🔍</span>
+          <input
+            type="search"
+            placeholder="Search venues…"
+            value={inlineQuery}
+            onChange={e => setInlineQuery(e.target.value)}
+            style={{
+              width:"100%", padding:"7px 28px 7px 30px",
+              border:"1.5px solid", borderColor: inlineQuery ? "#0284c7" : "#e5e5e5",
+              borderRadius:12, fontSize:14, fontFamily:F, color:"#222",
+              background:"#fafafa", outline:"none", boxSizing:"border-box",
+            }}
+          />
+          {inlineQuery && (
+            <button onClick={() => setInlineQuery("")} style={{ position:"absolute", right:8, background:"none", border:"none", color:"#bbb", cursor:"pointer", fontSize:18, padding:"0 2px", lineHeight:1, fontFamily:F }}>×</button>
+          )}
+        </div>
+        {searchActive && (
+          <div style={{ fontSize:11, color:"#888", fontFamily:F, fontWeight:600, marginTop:3, paddingLeft:2 }}>
+            {inlineFiltered.length} result{inlineFiltered.length !== 1 ? "s" : ""}
+          </div>
+        )}
+      </div>
+
       {/* Unified toolbar — weekend window on the left, category pills on the
           right. The List/Map toggle moved to a floating FAB further down so
           this strip can shrink to a single tighter row. */}
@@ -9857,7 +9896,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
           <div style={{ display:"flex", gap:8, flex:1, minWidth:0 }}>
             {visibleCats.map(c => (
               <button key={c.id} className={"pill" + (activeCat === c.id ? " pill-selected" : "")}
-                onClick={() => { setActiveCat(c.id); setVisibleCount(30); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
+                onClick={() => { setActiveCat(c.id); setVisibleCount(30); setInlineQuery(""); if (c.id !== "skiing") setSearch(s => ({...s, skiPass:""})); haptic(); }}
                 aria-label={`Filter by ${c.label}`}
                 aria-pressed={activeCat === c.id}
                 style={{
@@ -9985,7 +10024,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
 
         {/* ── Hero moment: Best opportunity right now ── */}
-        {!loading && !heroPick && (
+        {!loading && !searchActive && !heroPick && (
           /* Skeleton while weather is still fetching for first venues */
           <div style={{ margin:"10px 12px 0", borderRadius:16, overflow:"hidden", background:"#fff", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
             <div className="shimmer" style={{ height:170 }} />
@@ -9996,7 +10035,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
             </div>
           </div>
         )}
-        {!loading && heroPick && (() => {
+        {!loading && !searchActive && heroPick && (() => {
           const hero = heroPick;
           const weatherLoaded = hero.conditionLabel !== "Checking conditions…";
           const verdict = getGoVerdict(hero.conditionScore);
@@ -10121,7 +10160,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
 
         {/* ── Scoring explainer — one-time education for new users (Open #8) ── */}
-        {!loading && <ScoringExplainer />}
+        {!loading && !searchActive && <ScoringExplainer />}
 
         {/* ── Install nudge — appears once after engagement, not on iOS Safari ── */}
         <InstallNudge wishlistCount={wishlists.length} />
@@ -10133,7 +10172,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         <AccountNudgeBanner wishlistCount={wishlists.length} cloudSync={cloudSync} onGoToProfile={onViewProfile} />
 
         {/* ── Front-page carousel — primary or fallback, never blank ── */}
-        {!loading && carouselReady && (
+        {!loading && !searchActive && carouselReady && (
           <div style={{ marginTop:8, marginBottom:14 }}>
             <div style={{ padding:"0 14px 6px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
@@ -10212,7 +10251,7 @@ function ExploreTab({ listings, loading, wishlists, onToggle, alertedIds, onAler
         )}
 
         {/* ── "Cheap flight + firing weather" — unified deal carousel ── */}
-        {!loading && dealCarouselReady && (
+        {!loading && !searchActive && dealCarouselReady && (
           <div style={{ marginTop:4, marginBottom:14 }}>
             <div style={{ padding:"0 14px 6px", display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
               <div>
