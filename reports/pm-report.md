@@ -1,16 +1,18 @@
-# Peakly PM Report v150 — 2026-09-14
+# Peakly PM Report v151 — 2026-09-15
 
-**Status: 🟡 YELLOW — Cache stamp P1 fixed this run. VPS Day 35 undeployed. Oct 11 Reddit launch on track if Jack SSHes this week.**
+**Status: 🟡 YELLOW — VPS proxy.js Day 36 undeployed (flight fares broken). No code commits today. Oct 11 Reddit gate still standing, but Jack's one action item is now overdue.**
 
 ---
 
-## Shipped Since Last Report (v149 → v150)
+## Shipped Since Last Report (v150 → v151)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `bb3ebc8` | **Inline venue search** — search input above category pills, substring match across title/location/tags, result count, hero/carousels suppressed during search | ✅ Was the P0 with a hard deadline. Shipped day-of. |
-| `bb3ebc8` | **Semantic dup deleted** — `san-vito-lo-capo-t21` gone (100m from `beach_san_vito_lo_capo`). 405→404 venues | ✅ Quick cleanup bundled correctly. |
-| This run | **Cache stamp bumped to `20260914a`** — `app.jsx`, `sw.js`, `index.html` in lockstep | ✅ P1. Venue search was invisible to cached users for 4 days. Fixed now. |
+| `96def81` | Cache stamp bump to `20260914a` + PM report v150 | ✅ Correct. Fixed 4-day cache stale on venue search. |
+| `76953c8` | DevOps report 2026-09-15 | ✅ Routine. |
+| `c179056` | Content report 2026-09-15 | ✅ Routine. |
+
+**Zero code commits since `bb3ebc8` (venue search, Sep 13).** This is correct — per Decision 3 of v150, no features between now and Oct 11. The quiet is intentional.
 
 ---
 
@@ -18,75 +20,69 @@
 
 ### P0s — None.
 
-### P1 — Cache Stamp Stale → **FIXED THIS RUN**
+### P1 — VPS Redeploy (Day 36 — Jack-only, OVERDUE)
 
-`bb3ebc8` (venue search) modified `app.jsx` without bumping `PEAKLY_BUILD` or `sw.js CACHE_NAME`. Result: users with the old SW cached were served the old app.jsx and never saw inline search. Bumped to `20260914a` in this commit. Will push with this report.
+`proxy.js` has two undeployed commits (`3152c96` Sep 09, `c760dfb` Sep 10) that fix the fare-fallback logic. Without them, the proxy returns no fare for ~99% of routes because Travelpayouts' matrix rarely has an exact-Friday departure. Users see `~$X` estimates everywhere. **The flight pricing feature is functionally broken.**
 
-Root cause: the `auto-push.sh` hook handles cache bumps for the *hook* path, but this commit was made outside it (scheduled agent / direct git push). The hook needs a note that cloud agent commits bypass it — the manual bump pattern is the fallback.
+The Sep 20 soft deadline from v150 is 5 days away. If Jack hasn't acted by now, he needs to today.
 
-**No recurrence risk today.** The bump is in this commit.
-
-### P1 — VPS Redeploy (Day 35 — Jack-only)
-
-Unchanged. `proxy.js` correct in repo since Aug 11. Not deployed.
-
-Blocks: two-weekend scoring, iOS native CORS, alert deletion, APNs.
-
-**Deploy (Jack, SSH):**
+**Deploy (5 minutes, Jack only):**
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "pm2 restart peakly-proxy && curl -s localhost:3001/health"
+ssh root@198.199.80.21 "pm2 restart peakly-proxy && sleep 3 && curl -s localhost:3001/health"
 ```
 
-**This is the only pre-Reddit gate remaining.** If not done by Sep 20, Oct 11 target is at risk.
+Verify: `health.uptime` resets to seconds; `/api/flights` returns a fare with `returnDate` within 7 days.
 
-### P2 — dist/ Build Collision (Day 6 — Production Unaffected)
+**If VPS is not deployed by Sep 20, move Reddit launch to Oct 18. Do not post to Reddit with broken flight pricing.**
 
-The `dist/` committed to git is the iOS vendor-bundle artifact, not the web build. GH Actions rebuilds correctly on every push, so users are never affected. The git tree is cosmetically polluted.
+### P1 — Tag Density (Day 11 Unchanged)
 
-**No action until it causes a real symptom.** Not worth a standalone commit.
+223/404 venues (55%) have only 2 tags. Beach is acute: ~188/270 beach venues at 2 tags. Inline search is live; the catalog is the bottleneck now.
 
-### P2 — Tag Density Gap (Day 10 Unchanged)
+The Oct 5–7 enrichment window from v150 stands. That's 20 days out — still comfortable if it starts on schedule.
 
-223/404 venues have only 2 tags (55%). Beach is worst: ~188/270 beach venues at 2 tags. Inline search quality is directly proportional to tag richness. "2 results" for "powder" or "turquoise" after the Reddit post is a bounce.
+### P2 — dist/ Build Collision (Day 7 — Production Unaffected)
 
-**Target: <100 venues at 2 tags before Oct 11.**
+GH Actions rebuilds `dist/` correctly on every push. The committed artifact is cosmetically wrong. Non-blocking. No action.
 
-### P3 — CLAUDE.md Architecture Line Stale
+### P3 — CLAUDE.md Architecture Count Stale (Day 4)
 
-Architecture section says `VENUES (395)` — correct count is 404. Note 9 is accurate. 5-minute fix when someone edits CLAUDE.md next.
-
----
-
-## Three Product Decisions — Sep 14
-
-### Decision 1: Reddit launch date — HOLD AT OCT 11
-
-VPS redeploy (Jack SSH, ~15 min) is the only remaining gate. If done before Sep 20, Oct 11 is comfortable. If done Sep 20–28, Oct 11 still works but there's no buffer. Past Sep 28, fall back to Oct 18.
-
-**HOLD Oct 11. Zero other gates exist. This is Jack's one action item.**
-
-### Decision 2: Tag enrichment batch — SCHEDULE OCT 5–7
-
-223 under-tagged venues is a launch-week quality problem. Users from the Reddit post search for specific things ("powder day," "clear water," "family beach") and get weak results because 55% of the catalog barely exists in search. Four hours of editorial work would reduce under-tagged venues from 223 to under 100.
-
-**SCHEDULE batch content session Oct 5–7. No tools needed — copy-edit pass on existing venues in app.jsx. Target: 2-tag venues below 100.**
-
-### Decision 3: Features in the Oct 11 Reddit post window — DEFER EVERYTHING EXCEPT BUG FIXES
-
-Multiple `claude/*` branches are open (UI redesign, scoring improvements, alert simplification, loading screen enhancement, onboarding streamline, profile simplify). None of these should land before Oct 11. The risk profile is wrong: any of them could introduce a regression that burns the launch spike.
-
-**CUT all feature branches until Oct 11 is confirmed shipped and the VPS is redeployed. Only bug fixes and tag enrichment between now and launch.**
+Line 66 says `VENUES (395)`. Correct count is 404. Fix in-line when any CLAUDE.md edit happens next. Not worth a standalone commit.
 
 ---
 
-## This Week's Top 3 (Sep 14)
+## Three Product Decisions — Sep 15
 
-**#1 (Jack): VPS redeploy.** Day 35. Pre-Reddit gate. 15 minutes. Closes Opens #19, #21, #23 simultaneously. If not done this week, the Oct 11 date pressure becomes real.
+### Decision 1: VPS deploy deadline — SEP 20 IS HARD
 
-**#2 (Agent): Tag enrichment batch.** Schedule Oct 5–7. 4 hours. Moves venue discoverability from 45% to 75%+ before launch spike. The difference between 5K and 8K 90-day users is whether people find what they're looking for in search.
+This has been "Jack's one action item" for 36 days. v148 called it the only pre-Reddit gate. v150 set Sep 20 as the soft deadline. Nothing moved.
 
-**#3 (Agent): Verify smoke tests pass.** Cache stamp was stale 4 days. Run `npm run smoke` after this push lands. If search is broken in headless, diagnose before the Reddit post.
+**The deadline is now hard.** If VPS is not deployed by Sep 20 end-of-day, the Oct 11 Reddit launch date must slip to Oct 18. That's the decision. No extensions.
+
+Flight pricing broken = leading feature of the product doesn't work = Reddit post will get "the prices are wrong" in comments = bounce. The product is incomplete without it.
+
+### Decision 2: Tag enrichment — START OCT 5, NO EXCEPTIONS
+
+The content report confirms 223 under-tagged venues (Day 11 unchanged). The window is Oct 5–7. This is the agent's job, not Jack's. A scheduled content-agent run on Oct 5 with explicit instructions to bulk-add tags to under-tagged beach venues gets this done in one session.
+
+**SCHEDULE a dedicated tag-enrichment run for Oct 5.** Target: under 100 venues at 2 tags before Oct 11 post.
+
+### Decision 3: Open `claude/*` branches — DELETE THEM
+
+There are 11+ `claude/*` branches open in the remote. Every one of them was rejected in v150 (UI redesign, scoring improvements, alert simplification, loading screen, onboarding, profile simplify). They've been sitting for weeks. They're not getting merged pre-launch. Every time a new agent session runs, it sees them and reconsiders — which is wasted cycles.
+
+**DELETE all `claude/*` branches.** Jack can run `git push origin --delete claude/<name>` for each, or batch-delete via GitHub UI. If any of them contain work worth saving, it should be cherry-picked to a named branch with a proper description. The graveyard of half-finished agent worktrees is noise.
+
+---
+
+## This Week's Top 3 (Sep 15)
+
+**#1 (Jack): VPS redeploy by Sep 20.** Hard deadline. Closes Opens #19, #21, #23. Unlocks flight pricing, two-weekend scoring, iOS CORS, alert deletion. 5 minutes. The app is not launch-ready without it.
+
+**#2 (Jack): Delete `claude/*` remote branches.** 11+ stale branches are noise. Batch-delete now; keeps the repo clean and stops agents from relitigating rejected features.
+
+**#3 (Agent, Oct 5): Tag enrichment sprint.** 223 under-tagged venues. Target: <100 at 2 tags. Required for search to work at scale on launch day.
 
 ---
 
@@ -94,12 +90,13 @@ Multiple `claude/*` branches are open (UI redesign, scoring improvements, alert 
 
 | Feature | Verdict | Reason |
 |---------|---------|--------|
-| UI redesign (`claude/redesign-front-page-EndKs`) | **DEFER** | Launch window. Regression risk outweighs marginal UX gain. |
-| Scoring improvements (`claude/improve-scoring-system-XYGY6`) | **DEFER** | Scoring changes require algorithm critique per CLAUDE.md. Not a pre-launch item. |
-| Alert page simplification (`claude/simplify-alerts-page-2ejGB` / `condense-alert-page-jzdLo`) | **DEFER** | Alerts tab is already functional. Cosmetic refactor before launch is scope creep. |
-| Loading screen enhancement (`claude/enhance-loading-screen-rZ1dc`) | **DEFER** | Not a conversion problem. Fix real bugs first. |
-| Profile page simplification (`claude/simplify-profile-page-Bi2Tc`) | **DEFER** | Same reasoning — not a launch blocker. |
-| Onboarding streamline (`claude/streamline-onboarding-account-97XRR`) | **DEFER** | Onboarding already collapsed from 4→2 screens in Aug. Don't touch it again pre-launch. |
+| UI redesign (`claude/redesign-front-page-EndKs`) | **CUT pre-launch** | Regression risk outweighs gain. Revisit post-Oct 11. |
+| Scoring improvements (`claude/improve-scoring-system-XYGY6`) | **CUT pre-launch** | Algorithm critique required per CLAUDE.md. Not a pre-launch item. |
+| Alert page simplification | **CUT pre-launch** | Functional. No blocking issue. |
+| Loading screen enhancement | **CUT pre-launch** | Not a conversion problem. Fix real bugs first. |
+| Profile simplification | **CUT pre-launch** | Not a launch blocker. |
+| Onboarding streamline | **CUT pre-launch** | Onboarding already optimized in Aug. Don't touch it again. |
+| 5 new venues (Grindelwald, Sestriere, Koh Lanta, Amed Bali, Noosa) | **DEFER** | Content agent proposals. Valid. Add during Oct 5 enrichment sprint, not as a standalone commit. |
 
 ---
 
@@ -107,20 +104,22 @@ Multiple `claude/*` branches are open (UI redesign, scoring improvements, alert 
 
 | Metric | 5K scenario (pessimistic) | 8K scenario (target) |
 |--------|---------------------------|----------------------|
-| Reddit post timing | Oct 18 (VPS slips) | Oct 11 (VPS done this week) |
-| Tag density at launch | 55% under-tagged | <25% under-tagged |
-| Search UX | Weak discovery | Venue search actually surfaces right things |
-| VPS uptime during spike | Cold cache, rate-limited | Disk-cached + weather proxy live |
-| Two-weekend scoring | Off (VPS undeployed) | Live (two-weekend window = product moat) |
+| Reddit post timing | Oct 18 (VPS slips past Sep 20) | Oct 11 (VPS done by Sep 20) |
+| Tag density at launch | 55% under-tagged (no enrichment) | <25% under-tagged (Oct 5 sprint) |
+| Flight pricing | Broken (~$X estimates everywhere) | Live fares for most routes |
+| Two-weekend scoring | Off | Live |
+| VPS uptime on spike | Cold cache, rate-limited | Disk-cached + weather proxy live |
 
-**What has to be true for 8K, not 5K:** VPS deployed before Oct 11. Tag enrichment done week of Oct 5. Zero P0 regressions on launch day.
+**The fork is Sep 20.** One action (VPS redeploy) determines whether this is the 5K or 8K outcome. Everything else is execution.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The inline search ships with no debounce and no minimum-char threshold.** A user typing a single letter (e.g. "a") triggers a full-catalog substring scan across 404 venues × 3 fields on every keystroke. On a low-end phone during the Reddit spike, this is a jank risk. It's vanilla JS array filtering so it's fast, but it's worth a mental model check: at 404 venues it's fine. At 4,000 venues it wouldn't be. We're not at 4,000, so this is a non-issue for launch — but the architecture doesn't scale if the catalog grows past ~1,000. Note it and move on.
+**There are zero analytics on search.** Venue search shipped `bb3ebc8` without a Plausible event on search interactions. We will have no data on what users are searching for, which searches return zero results, or whether search is driving venue views. The Reddit spike is the first real signal on whether the catalog actually surfaces what people want. Without instrumentation, we'll be flying blind and won't know if "powder" returns 0 results is a content problem or a code problem.
+
+A `search_query` + `search_results_count` Plausible event on the search input (debounced, 500ms) is a 20-line add. It should go in before Oct 11. No regression risk — pure addition. This is the lowest-effort, highest-learning item on the board right now.
 
 ---
 
-*Report generated: 2026-09-14. Next run: 2026-09-15.*
+*Report generated: 2026-09-15. Next run: 2026-09-16.*
