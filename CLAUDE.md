@@ -63,7 +63,7 @@ peakly/
 
 1. Error monitoring & crash detection (~lines 1–66)
 2. CSS injection (~lines 68–136)
-3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (395), `AVATAR_COLORS`, weather code maps
+3. Constants & data (~lines 138–860): `CATEGORIES`, `CONTINENTS`, `AP_CONTINENT`, `AIRPORTS`, `BASE_PRICES`, `VENUES` (404), `AVATAR_COLORS`, weather code maps
 4. Utility functions (~lines 860–1260): `useLocalStorage` (with tanning→beach migration), `fetchWeather`, `fetchMarine` (beach water-temp only), `fetchTravelpayoutsPrice`, `scoreVenue` (per-day), `scoreWeekend` (Fri–Mon window — front page), `weekendDayIndices`, `scoreVibeMatch`, `buildFlightUrl`, `getTypicalPrice`, `getDealScore`
 5. UI components (~lines 1260–4900)
 6. App root + `ErrorBoundary` (~lines 4900–end)

@@ -1,18 +1,28 @@
-# Peakly PM Report v151 — 2026-09-15
+# Peakly PM Report v152 — 2026-09-16
 
-**Status: 🟡 YELLOW — VPS proxy.js Day 36 undeployed (flight fares broken). No code commits today. Oct 11 Reddit gate still standing, but Jack's one action item is now overdue.**
+**Status: 🟡 YELLOW — VPS proxy.js Day 37 undeployed (4 days to Sep 20 hard deadline). Zero code commits correct. Oct 11 Reddit gate intact but narrowing.**
 
 ---
 
-## Shipped Since Last Report (v150 → v151)
+## Shipped Since Last Report (v151 → v152)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `96def81` | Cache stamp bump to `20260914a` + PM report v150 | ✅ Correct. Fixed 4-day cache stale on venue search. |
-| `76953c8` | DevOps report 2026-09-15 | ✅ Routine. |
-| `c179056` | Content report 2026-09-15 | ✅ Routine. |
+| `b9a5435` | PM report v151 | ✅ Routine. |
+| `8a050ea` | DevOps report 2026-09-16 | ✅ Routine. |
+| `0d14e6f` | Content report 2026-09-16 | ✅ Routine. |
 
-**Zero code commits since `bb3ebc8` (venue search, Sep 13).** This is correct — per Decision 3 of v150, no features between now and Oct 11. The quiet is intentional.
+**Zero code commits since `bb3ebc8` (venue search, Sep 13).** Correct. The code freeze holds.
+
+---
+
+## Prompt Context Note
+
+The scheduled prompt references "182 venues," "Sentry DSN empty," "cache buster stale," and "Peakly Pro $9/mo vs $79/yr." All four are stale:
+- **Venues**: 404 (134 skiing / 270 beach), confirmed by DevOps and Content today.
+- **Sentry DSN**: Wired in both `index.html:77` and `app.jsx:8` — DevOps confirmed.
+- **Cache stamp**: `20260914a`, current — lockstep across app.jsx/sw.js/index.html.
+- **Peakly Pro**: UI was CUT for v1 (documented in CLAUDE.md). No active pricing UI in the codebase. Not a bug — a product decision.
 
 ---
 
@@ -20,106 +30,115 @@
 
 ### P0s — None.
 
-### P1 — VPS Redeploy (Day 36 — Jack-only, OVERDUE)
+### P1 — VPS Redeploy (Day 37 — Jack-only, HARD DEADLINE SEP 20)
 
-`proxy.js` has two undeployed commits (`3152c96` Sep 09, `c760dfb` Sep 10) that fix the fare-fallback logic. Without them, the proxy returns no fare for ~99% of routes because Travelpayouts' matrix rarely has an exact-Friday departure. Users see `~$X` estimates everywhere. **The flight pricing feature is functionally broken.**
+Unchanged from v151. Two proxy.js commits (`3152c96` Sep 9, `c760dfb` Sep 10) fix the fare-fallback logic. Without them: virtually zero LIVE fare badges on the live app. Users see `~$X` estimates everywhere. The flight pricing feature — the deal-score headline — is functionally broken.
 
-The Sep 20 soft deadline from v150 is 5 days away. If Jack hasn't acted by now, he needs to today.
+**Sep 20 is the hard gate.** If not deployed by then, Reddit launch moves to Oct 18. Full stop.
 
-**Deploy (5 minutes, Jack only):**
 ```bash
+# Jack: these two lines from your local machine
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "pm2 restart peakly-proxy && sleep 3 && curl -s localhost:3001/health"
 ```
 
 Verify: `health.uptime` resets to seconds; `/api/flights` returns a fare with `returnDate` within 7 days.
 
-**If VPS is not deployed by Sep 20, move Reddit launch to Oct 18. Do not post to Reddit with broken flight pricing.**
-
 ### P1 — Tag Density (Day 11 Unchanged)
 
-223/404 venues (55%) have only 2 tags. Beach is acute: ~188/270 beach venues at 2 tags. Inline search is live; the catalog is the bottleneck now.
+223/404 venues (55%) have only 2 tags. Beach is acute: ~188/270 beach venues at 2 tags. This is the most visible "feels unfinished" signal in the product — appears on every Explore scroll.
 
-The Oct 5–7 enrichment window from v150 stands. That's 20 days out — still comfortable if it starts on schedule.
+The Oct 5–7 enrichment window stands. Content agent run on Oct 5 with explicit instructions to bulk-add tags to under-tagged beach venues.
 
-### P2 — dist/ Build Collision (Day 7 — Production Unaffected)
+### P2 — dist/ Build Collision (Day 8 — Non-Blocking)
 
-GH Actions rebuilds `dist/` correctly on every push. The committed artifact is cosmetically wrong. Non-blocking. No action.
+GH Actions rebuilds `dist/` correctly on every push. Committed artifact is cosmetically wrong. Production unaffected. No action.
 
-### P3 — CLAUDE.md Architecture Count Stale (Day 4)
+### P3 — CLAUDE.md Architecture Count (Day 5)
 
-Line 66 says `VENUES (395)`. Correct count is 404. Fix in-line when any CLAUDE.md edit happens next. Not worth a standalone commit.
+Line 66 still says `VENUES (395)`. Correct count is 404. Fixed inline with this report commit.
 
----
+### P3 — 9 Valid Venue Proposals Sitting Unadded (Day 4)
 
-## Three Product Decisions — Sep 15
+Content agent has validated 9 new venues across Sep 13–15 (Grindelwald, Sestriere, Koh Lanta, Amed Bali, Noosa, Hakuba, Mayrhofen, Naxos Agios Prokopios, Ilha Grande) plus 1 invalid (Mancora/LIM — airport not in AIRPORT_COORDS). These are catalog enrichment, not features. Adding them doesn't violate the code freeze.
 
-### Decision 1: VPS deploy deadline — SEP 20 IS HARD
-
-This has been "Jack's one action item" for 36 days. v148 called it the only pre-Reddit gate. v150 set Sep 20 as the soft deadline. Nothing moved.
-
-**The deadline is now hard.** If VPS is not deployed by Sep 20 end-of-day, the Oct 11 Reddit launch date must slip to Oct 18. That's the decision. No extensions.
-
-Flight pricing broken = leading feature of the product doesn't work = Reddit post will get "the prices are wrong" in comments = bounce. The product is incomplete without it.
-
-### Decision 2: Tag enrichment — START OCT 5, NO EXCEPTIONS
-
-The content report confirms 223 under-tagged venues (Day 11 unchanged). The window is Oct 5–7. This is the agent's job, not Jack's. A scheduled content-agent run on Oct 5 with explicit instructions to bulk-add tags to under-tagged beach venues gets this done in one session.
-
-**SCHEDULE a dedicated tag-enrichment run for Oct 5.** Target: under 100 venues at 2 tags before Oct 11 post.
-
-### Decision 3: Open `claude/*` branches — DELETE THEM
-
-There are 11+ `claude/*` branches open in the remote. Every one of them was rejected in v150 (UI redesign, scoring improvements, alert simplification, loading screen, onboarding, profile simplify). They've been sitting for weeks. They're not getting merged pre-launch. Every time a new agent session runs, it sees them and reconsiders — which is wasted cycles.
-
-**DELETE all `claude/*` branches.** Jack can run `git push origin --delete claude/<name>` for each, or batch-delete via GitHub UI. If any of them contain work worth saving, it should be cherry-picked to a named branch with a proper description. The graveyard of half-finished agent worktrees is noise.
+Decision below.
 
 ---
 
-## This Week's Top 3 (Sep 15)
+## Three Product Decisions — Sep 16
 
-**#1 (Jack): VPS redeploy by Sep 20.** Hard deadline. Closes Opens #19, #21, #23. Unlocks flight pricing, two-weekend scoring, iOS CORS, alert deletion. 5 minutes. The app is not launch-ready without it.
+### Decision 1: VPS Sep 20 deadline — NO FURTHER EXTENSIONS
 
-**#2 (Jack): Delete `claude/*` remote branches.** 11+ stale branches are noise. Batch-delete now; keeps the repo clean and stops agents from relitigating rejected features.
+This is the fourth consecutive PM report repeating the same ask. v148 called it the only pre-Reddit gate. v150 set Sep 20 as the soft deadline. v151 made it hard. It's now Day 37.
 
-**#3 (Agent, Oct 5): Tag enrichment sprint.** 223 under-tagged venues. Target: <100 at 2 tags. Required for search to work at scale on launch day.
+**The decision stands: no Reddit post with broken flight pricing.** If the VPS isn't deployed by Sep 20 end-of-day, Oct 11 Reddit launch becomes Oct 18. There will be no v153 saying "we're extending again."
+
+One action item. Five minutes. Jack's only blocker.
+
+### Decision 2: Pending venue proposals — DEFER TO OCT 5 BATCH
+
+9 valid venues are staged from content reports. Adding them piecemeal in individual commits between now and Oct 11 creates noise and risk. The Oct 5 tag-enrichment run is already planned — that's the right time to add these too. One focused content session: add 9 venues + enrich tags on 100+ beach venues.
+
+**DEFER venue additions to Oct 5 content agent run. Do not add them individually before then.**
+
+### Decision 3: claude/* remote branches — DELETE (standing from v151, still not done)
+
+There are 12+ `claude/*` branches on origin right now, all rejected. Every agent session sees them. They were rejected for good reason. They are not getting merged.
+
+**Jack: batch-delete on GitHub. The graveyard of abandoned worktrees is noise that costs every future agent session time.**
+
+```bash
+git fetch --prune
+git branch -r | grep 'origin/claude/' | sed 's|origin/||' | xargs -I{} git push origin --delete {}
+```
+
+---
+
+## This Week's Top 3
+
+1. **VPS deploy by Sep 20** — Jack's one action. Everything else is noise until this lands.
+2. **Do nothing else to the code** — freeze holds through Oct 11. Every temptation to ship one more thing between now and Reddit is wrong.
+3. **Schedule Oct 5 content run** — tag enrichment + 9 pending venues. If this isn't calendared, it won't happen and we'll post to Reddit with a sparse catalog.
 
 ---
 
 ## Features REJECTED This Week
 
-| Feature | Verdict | Reason |
-|---------|---------|--------|
-| UI redesign (`claude/redesign-front-page-EndKs`) | **CUT pre-launch** | Regression risk outweighs gain. Revisit post-Oct 11. |
-| Scoring improvements (`claude/improve-scoring-system-XYGY6`) | **CUT pre-launch** | Algorithm critique required per CLAUDE.md. Not a pre-launch item. |
-| Alert page simplification | **CUT pre-launch** | Functional. No blocking issue. |
-| Loading screen enhancement | **CUT pre-launch** | Not a conversion problem. Fix real bugs first. |
-| Profile simplification | **CUT pre-launch** | Not a launch blocker. |
-| Onboarding streamline | **CUT pre-launch** | Onboarding already optimized in Aug. Don't touch it again. |
-| 5 new venues (Grindelwald, Sestriere, Koh Lanta, Amed Bali, Noosa) | **DEFER** | Content agent proposals. Valid. Add during Oct 5 enrichment sprint, not as a standalone commit. |
+- **Any UI change before Oct 11** — the code freeze decision from v150 was correct and stands. Reddit's r/skiing and r/solotravel communities judge first impressions. Shipping features in the 3 weeks before a launch post is how bugs get introduced.
+- **Adding venues individually before Oct 5** — small, repeated app.jsx commits create cache churn and integration risk for no meaningful catalog improvement. Batch on Oct 5.
+- **claude/* branch resurrections** — every open claude/* branch was already evaluated and rejected. They don't get a second look pre-launch.
 
 ---
 
-## Success Metrics
+## Success Criteria
 
-| Metric | 5K scenario (pessimistic) | 8K scenario (target) |
-|--------|---------------------------|----------------------|
-| Reddit post timing | Oct 18 (VPS slips past Sep 20) | Oct 11 (VPS done by Sep 20) |
-| Tag density at launch | 55% under-tagged (no enrichment) | <25% under-tagged (Oct 5 sprint) |
-| Flight pricing | Broken (~$X estimates everywhere) | Live fares for most routes |
-| Two-weekend scoring | Off | Live |
-| VPS uptime on spike | Cold cache, rate-limited | Disk-cached + weather proxy live |
+### What defines success?
+- **Day 1 (Reddit post):** 500+ unique visitors, <30% bounce on Explore, 50+ wishlists saved.
+- **Week 1:** 1,000 registered users (magic-link), 200+ alerts set.
+- **90-day:** 5,000–8,000 MAU.
 
-**The fork is Sep 20.** One action (VPS redeploy) determines whether this is the 5K or 8K outcome. Everything else is execution.
+### What gets us to 8K not 5K?
+
+Three things have to be true simultaneously:
+1. **Flight pricing works on launch day.** If the VPS isn't deployed, the deal score is fake and Reddit will notice. 8K assumes the product works.
+2. **Photos feel premium, not generic.** Open #20 (346 venues with stock photos) is the #1 quality gap after VPS. Every photographer in r/skiing is going to screenshot the stock-photo powder shot on 26 different resorts.
+3. **The product survives the first-hour traffic spike.** Open-Meteo rate limiting is still the unknown — if 500 concurrent users hit the same venue, we either have a VPS weather cache (deployed with #19) or we get throttled and serve empty cards. VPS deploy solves both.
+
+8K is achievable if Jack deploys the VPS on Sep 20 and the Oct 5 content run ships. 5K is the floor if neither happens.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**There are zero analytics on search.** Venue search shipped `bb3ebc8` without a Plausible event on search interactions. We will have no data on what users are searching for, which searches return zero results, or whether search is driving venue views. The Reddit spike is the first real signal on whether the catalog actually surfaces what people want. Without instrumentation, we'll be flying blind and won't know if "powder" returns 0 results is a content problem or a code problem.
+**The scoring model has never been A/B tested against user behavior.**
 
-A `search_query` + `search_results_count` Plausible event on the search input (debounced, 500ms) is a 20-line add. It should go in before Oct 11. No regression risk — pure addition. This is the lowest-effort, highest-learning item on the board right now.
+The Weekend Score is the product's core moat — it's what makes Peakly different from "just show me cheap flights." But nobody has ever validated that users actually trust or understand the score. The algorithm was critiqued (effervescent-jumping-hopper audit), the scoring explainer was shipped, but there's zero data on whether users who see a high-score venue actually book.
+
+If the score systematically surfaces venues that feel wrong to users (e.g., a technical 88/100 ski resort that's actually in shoulder season), the bounce rate on venue detail sheets will be high and the word-of-mouth from the Reddit launch will be negative. This is the difference between 8K users who spread it and 5K who churn.
+
+**What to do about it:** after Reddit launch, track Plausible's `book_click` event by weekend score decile. If high-score venues have lower book-click rates than mid-score venues, the algorithm has a trust gap. This is a v2 problem — but the data collection starts on day 1.
 
 ---
 
-*Report generated: 2026-09-15. Next run: 2026-09-16.*
+*Report generated 2026-09-16 by the daily PM agent.*
