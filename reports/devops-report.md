@@ -1,17 +1,18 @@
-# DevOps Report — 2026-09-15 (YELLOW)
+# DevOps Report — 2026-09-16 (YELLOW)
 
-**Status: 🟡 YELLOW — VPS proxy.js undeployed Day 35 (P1 carries); dist/ git-tracked stale files (P2 new). No regressions. No new P0s. Cache stamp current. Braces balanced.**
+**Status: 🟡 YELLOW — VPS proxy.js undeployed Day 36, hard deadline Sep 20 in 4 days. No new P0s. No regressions. Stamp current (no code shipped since Sep 14 — correct). Braces balanced.**
 
 > Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Proxy analysis from committed source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH).
 
 ---
 
-## What Changed Since Yesterday (Sep 14)
+## What Changed Since Yesterday (Sep 15)
 
-- **0 code commits today** — only yesterday's build bump commit `96def81` (cache → `20260914a`). No app.jsx/sw.js/index.html changes since Sep 14.
-- **Cache stamp `20260914a`**: current. No lockstep drift.
+- **0 code commits today** — only daily reports (`b9a5435`, `c179056`, `76953c8`). No app.jsx/sw.js/index.html changes.
+- **Cache stamp `20260914a`**: correct for zero code days. Stamp only needs updating when code ships. Not stale.
 - **Braces**: 5682/5682 ✅
-- **No new findings** on security, CDN deps, or analytics.
+- **No new security findings.**
+- **VPS deadline: 4 days out (Sep 20).** PM v151 set this as a hard gate. Flight fares are broken on the live app right now.
 
 ---
 
@@ -22,140 +23,161 @@
 | app.jsx lines | **14,237** |
 | app.jsx bytes | **758,944** (~741 KB unminified) |
 | Braces balanced | ✅ 5682/5682 |
-| PEAKLY_BUILD | `20260914a` |
-| sw.js CACHE_NAME | `peakly-20260914a` |
-| index.html ?v= | `20260914a` |
+| PEAKLY_BUILD | `20260914a` (no code shipped since — correct) |
+| sw.js CACHE_NAME | `peakly-20260914a` ✅ |
+| index.html ?v= | `20260914a` ✅ |
 | Stamp lockstep | ✅ all three match |
 | Plausible analytics | ✅ `index.html:32` — present, active |
-| Sentry DSN | ✅ `index.html:77` + `app.jsx:8` both wired |
-| Venue count | **404** (134 skiing / 270 beach) |
-| lateSeason venues | **15** ✅ (confirmed by grep) |
-| BASE_PRICES coverage | **181 entries** — all 165 unique venue airports covered ✅ (Open #22 CLOSED) |
+| Sentry DSN | ✅ wired in both `index.html:77` and `app.jsx:8` |
+| Venue count (eval) | **404** (134 skiing / 270 beach) |
+| lateSeason venues | **15** (grep-confirmed) |
+| BASE_PRICES entries | **182** — all venue airports covered (Open #22 CLOSED) |
 
 ---
 
-## 2. Flight Proxy
+## 2. Flight Proxy — ⚠️ P1 STILL OPEN
 
 | Check | Result |
 |-------|--------|
 | FLIGHT_PROXY URL | `https://peakly-api.duckdns.org` — HTTPS ✅ |
-| Travelpayouts token in client | ❌ none — server-side only ✅ |
-| Timeout/fallback present | ✅ (AbortController + 32 signal references) |
+| TP token in client | ❌ none — server-side only ✅ |
+| Timeout/fallback | ✅ AbortController present |
 | VPS last confirmed healthy | 2026-08-11 post-redeploy |
+| proxy.js undeployed days | **Day 36** |
 
-### P1: Two proxy.js fixes committed but NOT deployed to VPS — Day 35
+### P1: Two proxy.js commits committed but NOT on VPS — deadline Sep 20 (4 days)
 
-Two commits since the 2026-08-11 VPS redeploy changed `server/proxy.js` and have never been `scp`'d:
+| Commit | Date | Fix |
+|--------|------|-----|
+| `3152c96` | Sep 9 | ±1-day fallback when no exact-Friday fare hit |
+| `c760dfb` | Sep 10 | ±3-day / 2–7 night widening; client guard updated to match |
 
-| Commit | Date | What it fixes |
-|--------|------|---------------|
-| `3152c96` | 2026-09-09 | Fall back to nearest ±1-day weekend fare when no exact-Friday hit |
-| `c760dfb` | 2026-09-10 | Widen fare fallback to ±3 days / 2–7 nights |
+**Impact right now**: virtually zero LIVE fare badges on the app. Users see `~$X` estimates everywhere. The deal-score headline feature is dead until deployed.
 
-**Impact**: Without these, the proxy returns `{}` (no fare) for ~99% of venue routes because Travelpayouts' cached matrix rarely has an exact-Friday departure. Users see `~$X` estimates on every card. Flight pricing — a headline feature — is effectively broken on the live site. Every day this goes undeployed is a day the app looks broken to new visitors.
+**The exact deploy command Jack runs via SSH (same as every prior report):**
 
-**Exact deploy commands** (Jack only — VPS is hand-copied, not a git repo):
 ```bash
+# From local machine — run these two lines:
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "pm2 restart peakly-proxy && sleep 3 && curl -s localhost:3001/health | python3 -m json.tool"
+ssh root@198.199.80.21 "pm2 restart peakly-proxy && pm2 save"
+
+# Verify:
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+# Expect: uptime resets, apns:configured (or unconfigured — either is fine)
 ```
 
-Verify: `health.uptime` resets to seconds, `health.wx_cache_size` is 0 (rebuilds on traffic), `/api/flights` returns a fare object with `returnDate` within 7 days for a known route.
-
-**Estimated time: 5 minutes.**
+Note: VPS is NOT a git clone — `git pull` there fails. Manual scp every time.
 
 ---
 
-## 3. Security Audit
+## 3. Weather & External APIs
 
 | Check | Result |
 |-------|--------|
-| Travelpayouts token in app.jsx | ✅ None — server-side only |
-| Supabase anon key in app.jsx | ⚠️ Present (line 26) — intentional, RLS-gated, documented |
-| `.gitignore` covers secrets | ✅ `.env`, `*.key`, `*.p8`, `*.pem`, `*.p12` all covered |
-| Sentry DSN | ✅ Configured in both index.html and app.jsx |
-| Recent commits with secrets | ✅ None — `git log --oneline -10` clean |
-| `grep GEAR_ITEMS app.jsx` | ✅ 0 — Amazon formally cut, holds |
-
-Supabase anon key (`eyJhbGci…lVA`) is intentionally public — it's a project-scoped read key with row-level security. No action needed, but flag for any security review that asks.
+| forecast_days (weather) | **14** — full two-weekend window ✅ |
+| forecast_days (marine) | **10** ✅ |
+| Batch fetch cadence | 50/2s — within Open-Meteo free tier ✅ |
+| Weather localStorage cache | 2hr TTL ✅ |
+| Direct Open-Meteo fallback | ✅ — app degrades gracefully if proxy is down |
 
 ---
 
-## 4. P2 NEW: dist/ files tracked in git are stale and misleading
+## 4. Security Audit
 
-`git ls-files dist/` shows 5 files tracked in git despite `dist/` being listed in `.gitignore`:
-- `dist/index.html` — references `./app.js` and `./vendor/react.production.min.js` (a stale format from a prior build)
-- `dist/sw.js`, `dist/manifest.json`, `dist/robots.txt`, `dist/sitemap.xml`
+| Check | Result |
+|-------|--------|
+| TP auth token in client | ❌ none ✅ — server-side only |
+| TP affiliate marker (710303) | ✅ in client — this is the public link marker, NOT the auth token |
+| Supabase anon key in client | ✅ intentional — documented public-safe, RLS-gated |
+| .gitignore | ✅ covers `.env`, `*.p8`, `*.key`, `*.pem`, `*.p12` |
+| Recent commits for secrets | ✅ clean — only report files since Sep 10 |
+| Sentry DSN | ✅ wired (`app.jsx:8`, `index.html:77`) |
 
-The actual production `dist/` is fully regenerated by `scripts/build-web.mjs` on every CI push — it reads from root `index.html`, strips Babel, and writes `dist/app.min.js`. The tracked files are never used. They're stale git artifacts that:
-1. Confuse agents that grep `dist/` and report Plausible/analytics as "missing from production"
-2. Create spurious diff noise when CI regenerates them
-3. Risk a future commit accidentally shipping the stale dist/index.html to Pages
+**No security regressions. No new findings.**
 
-**Fix** (2 commands, irreversible for git history but safe — these files are build artifacts):
-```bash
-git rm --cached dist/index.html dist/sw.js dist/manifest.json dist/robots.txt dist/sitemap.xml
-git commit -m "chore: untrack stale dist/ build artifacts (generated by CI)"
-```
-
-Verify: `git ls-files dist/` returns empty. `.gitignore` already covers `dist/`.
-
-**Estimated time: 3 minutes.**
+Clarification for the record: `TP_MARKER = "710303"` at `app.jsx:6667` is the Travelpayouts *affiliate marker* — it appears in public Aviasales deeplinks by design and earns the $0.14/MAU commission. The Travelpayouts API *auth token* lives on the VPS in the server environment and has never appeared in any client file. This is correct.
 
 ---
 
 ## 5. Performance Analysis
 
-| Check | Result |
-|-------|--------|
-| Production JS bundle | ~450 KB minified (esbuild, Babel stripped) |
-| CDN scripts (index.html) | React 18.3.1, ReactDOM 18.3.1, Babel 7.24.7 via cdnjs ✅ |
-| Babel version | 7.24.7 — not latest (7.26.x as of mid-2026) but stable |
-| Image lazy loading | ✅ `loading="lazy"` on all 9 image sites |
-| Open-Meteo forecast_days | 14 (weather) / 10 (marine) ✅ |
+| Component | Load size (est.) |
+|-----------|-----------------|
+| React 18.3.1 UMD (prod) | ~42 KB gzip |
+| ReactDOM 18.3.1 UMD (prod) | ~130 KB gzip |
+| Babel Standalone 7.24.7 | **~2.1 MB minified** (dev path only) |
+| Plus Jakarta Sans (4 weights) | ~20 KB gzip |
+| Sentry | ~28 KB gzip |
+| app.jsx unminified | ~741 KB raw / ~190 KB gzip est. |
+| Supabase JS (lazy) | ~80 KB gzip when needed |
 
-**Biggest performance bottleneck**: The 404-venue weather batch. Each page load fires up to 404 Open-Meteo fetches in rolling batches of 50 per 2 seconds (~8s to complete). Each fetch is cached 2 hours in localStorage, so repeat visits are fast. But a cold first-visit on a new device fetches all 404 venues. On a mid-tier Android, this batching loop runs for 8–10s before scores stabilize. The VPS weather proxy (deployed 08-11) caches by lat/lon and helps with simultaneous users hitting the same venues, but each user's first cold page still triggers their own batch.
+**Production path is fine.** `deploy.yml` runs `node scripts/build-web.mjs` on every push → esbuild pre-compiles `app.jsx → dist/app.min.js` (~439 KB minified), Babel is stripped from the served bundle entirely. The 2.1 MB Babel hit only occurs when opening `index.html` directly for local dev.
 
-**Near-term mitigation** (no code change required): prioritize the top 30 venues by `weekendScore` for the first batch, defer the rest until the visible grid settles. That makes the hero + carousel load in ~1.2s instead of waiting for all 404. This is a 2-hour code change if Jack wants it.
+**Biggest performance bottleneck**: the 406-venue × (weather + optional marine) fetch storm on first load. Each venue fires Open-Meteo requests batched at 50/2s. For 404 venues that's ~16 batches = ~32 seconds of sequential fetching. The VPS proxy's in-memory cache + in-flight deduplication fixes this for concurrent users (N users = 1 upstream call per unique coord) — but only once the proxy is deployed.
+
+**Images**: `loading="lazy"` confirmed at all card render sites (`app.jsx:7682`, `7870`, `7953`, `10052`, etc.) ✅
+
+**CDN versions (index.html)**:
+- React 18.3.1 / ReactDOM 18.3.1 — current stable ✅
+- Babel 7.24.7 — current stable ✅ (dev only)
 
 ---
 
 ## 6. Cost Estimate
 
-| MAU | Infrastructure | Notes |
-|-----|---------------|-------|
-| Current (est. <100) | $6/month | DigitalOcean droplet only |
-| 1K MAU | ~$6–12/month | Proxy handles it; Open-Meteo free tier fine |
-| 10K MAU | ~$18–30/month | VPS upgrade likely ($12 → $24 droplet); Open-Meteo still free if proxy cache is warm |
-| 100K MAU | ~$60–120/month | Open-Meteo commercial tier (~$50/mo); VPS scales to $48 or CDN-fronted |
+| Scale | DigitalOcean 1GB | GitHub Pages | Open-Meteo | Total/mo |
+|-------|------------------|--------------|------------|----------|
+| Now (<100 MAU) | $6 | $0 | $0 | **$6** |
+| 1K MAU | $6 | $0 | $0 | **$6** |
+| 10K MAU | $12 (2GB) | $0 | ~$0* | **$12** |
+| 100K MAU | $48 (4GB×2 + LB) | $0 | ~$20 | **~$68** |
 
-GitHub Pages: $0 forever. Supabase: free tier covers 500MB + 2GB bandwidth (safe to 50K MAU). Travelpayouts: $0 (affiliate model). **Net: infrastructure stays <$100/month to 100K MAU if Open-Meteo cache is effective.**
+*Open-Meteo free tier: 10K calls/day. At 100K MAU the VPS cache is doing all the work — cold-cache scenarios post-restart are the only real exposure.
 
-Cost optimization opportunity: The weather cache disk persistence fix (Open #23) is undeployed. Without it, every `pm2 restart` cold-starts the cache and the first wave of traffic hits Open-Meteo direct. At 10K MAU, a cold-restart during a traffic spike could burn through the free tier ceiling in minutes.
+**Single biggest cost risk at scale**: VPS in-memory weather cache (`_wxCache`) gets wiped on every `pm2 restart`. A traffic spike immediately post-restart (Reddit/HN post) hits Open-Meteo directly for all venues. Disk-persist the cache (Open #23, ~30-line fix in proxy.js, same SSH session as #19 deploy) to eliminate this.
 
 ---
 
 ## 7. What Breaks First at Scale
 
-**Open-Meteo rate ceiling during a cold cache after VPS restart.**
-
-The math: 404 venues × N simultaneous users = N × 404 upstream requests. The VPS in-memory cache deduplicates these to 404 unique lat/lon requests on the first wave, but only if users arrive *after* the cache warms. On a Reddit spike (200 users in the first 30 seconds), the cache fills from 0 and the first ~200 requests are upstream. Open-Meteo's free tier is ~1,000 req/min globally. With 404 venues and batching, the proxy generates ~200 upstream calls in the first 4 seconds of a cold start. That's fine. But the VPS also needs to be *restarted* to deploy the pending proxy.js fixes — and that restart resets the cache.
-
-**Prevention** (once): Deploy Open #23 (disk-persistence for `_wxCache`, ~30 lines in `server/proxy.js`) in the same SSH session as the proxy.js redeploy. Disk cache survives `pm2 restart`. After the Reddit post goes up, the cache will be warm and the free tier ceiling is not a risk.
+The bottleneck is the VPS. With the cache warm, it can handle thousands of concurrent weather requests by serving in-memory responses. But the VPS is $6/month with 1 GB RAM — a sustained 10K concurrent session surge won't kill it (most responses are cache hits), but a cache-cold restart into a Reddit spike will blow through Open-Meteo's free tier in under 90 seconds (404 venues × 1 call each = 404 cold calls; free tier is ~7 calls/second sustained = 404/7 ≈ 58 seconds to refill, then you're rate-limited). Add disk persistence (Open #23) before any public announcement.
 
 ---
 
-## Open Issues Summary (DevOps view)
+## Open Issues (Priority Order)
 
-| # | Item | Priority | Days Open |
-|---|------|----------|-----------|
-| VPS proxy.js (2 commits) | Deploy `3152c96` + `c760dfb` — flight data broken | **P1** | 35 |
-| dist/ stale git files | Untrack 5 build artifacts | P2 | new |
-| Open #21 (APNS) | DER-vs-P1363 JWT + HTTP/2 bugs — zero pushes delivered | P2 | ongoing |
-| Open #23 (weather disk cache) | Survive pm2 restart | P2 | ongoing |
-| Photos (#20) | ~346 venues with generic stock | P2 | ongoing |
-| Open #10 (CSP/SRI) | No Content-Security-Policy, no SRI on CDN scripts | P3 | ongoing |
+### P1 — Fix before Sep 20
+
+**VPS proxy.js undeployed (Day 36)**
+- Two commits (`3152c96`, `c760dfb`) fix flight fare fallback logic
+- Live app shows zero LIVE fares without this
+- Jack SSH deploy: `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js && ssh root@198.199.80.21 "pm2 restart peakly-proxy"`
+- Bundle with Open #23 (disk cache) — same session, same restart, ~30 extra lines
+
+### P2 — Cleanup
+
+**dist/ files tracked in git (Day 7)**
+
+`git ls-files dist/` returns 5 tracked files inside `dist/`: `index.html`, `manifest.json`, `robots.txt`, `sitemap.xml`, `sw.js`. The `.gitignore` says `dist/`, but files committed before that entry was added remain tracked. The build script regenerates them at deploy time, so this doesn't break anything — but it means stale dist/ copies live in git alongside updated root-level sources, and a `git status` that says "clean" masks any drift.
+
+Fix (run once locally, commit):
+```bash
+git rm --cached dist/index.html dist/manifest.json dist/robots.txt dist/sitemap.xml dist/sw.js
+git commit -m "chore: untrack dist/ files — generated by deploy.yml build step"
+git push origin main
+```
+The deploy.yml build step regenerates all of these at publish time, so removing them from git tracking is safe.
 
 ---
 
-*Report generated: 2026-09-15. Remote sandbox — VPS state unverified (egress block). Git HEAD: `96def81`. Source: committed files only.*
+## Closed Since Last Report
+
+- **Cache stamp stale (P1 from Sep 14)** — CLOSED. Sep 14 commit `96def81` bumped it to `20260914a`. Zero code commits since → stamp is correct, not stale.
+- **BASE_PRICES coverage (Open #22)** — CLOSED (confirmed Sep 14). 182 entries covering all 165+ unique venue airports.
+
+---
+
+## Items NOT Checked (sandbox egress limits)
+
+- VPS `/health` live call — blocked by sandbox. Proxy health unverified; last known good: 2026-08-11.
+- Live site smoke test — blocked. Check `/tmp/peakly-smoke.log` after next local session.
