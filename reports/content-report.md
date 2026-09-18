@@ -1,26 +1,28 @@
-# Peakly Content & Data Report — 2026-09-17
+# Peakly Content & Data Report — 2026-09-18
 
-## Data Health Score: 93/100
+## Data Health Score: 95/100
 
 **Deductions:**
-- −5: 225 venues (55.7%) have ≤2 tags — editorial minimum is 4. **Day 12 unchanged.** 190 beach + 35 ski. Largest single content quality gap; affects every card in the Explore grid.
-- −1: CLAUDE.md architecture section still says `VENUES (395)` — correct count is 404. **Day 5 unchanged.**
-- −1: 19 venue proposals (Sep 13–16 backlog + today's 5) remain unadded. Valid, AP-verified, sitting idle.
+- −5: 225 venues (55.7%) have ≤2 tags — editorial minimum is 4. **Day 13 unchanged.** 190 beach + 35 ski. Largest single content quality gap; affects every card in the Explore grid.
+
+**Fixed since yesterday:**
+- ✅ CLAUDE.md venue count corrected to 404 (was 395 for 5 days — closed in commit `b124eb9`)
 
 **Wins this run:**
 - ✅ 0 duplicate IDs
 - ✅ 0 duplicate photos — all 404 unique photo URLs
 - ✅ 100% photo coverage (404/404 have `photo` field)
 - ✅ 0 missing coordinates, airport codes, or tags arrays
-- ✅ BASE_PRICES 100% coverage — all 165 unique venue airports covered by 181 destinations
-- ✅ 15 lateSeason venues confirmed (grep-verified)
+- ✅ BASE_PRICES 100% coverage — all 165 unique venue airports covered
+- ✅ 15 lateSeason venues confirmed (both quoted + unquoted formats — `grep -c '"lateSeason":\s*true\|lateSeason:true' app.jsx`)
 - ✅ GEAR_ITEMS = 0 — Amazon CUT for v1 intact
+- ✅ CLAUDE.md and codebase aligned (404 venues, 2 categories)
 
 ---
 
 ## 1. Data Integrity Audit
 
-**Authoritative counts (node eval, not grep — avoids format-split undercount):**
+**Authoritative counts (node eval method — avoids format-split undercount):**
 
 | Check | Result |
 |-------|--------|
@@ -30,32 +32,32 @@
 | Missing coordinates | **0** |
 | Missing airport codes | **0** |
 | Missing tags arrays | **0** |
-| Photos present | **404/404 (100%)** |
-| BASE_PRICES coverage | **181 destinations / 165 unique venue APs (100%)** |
-| lateSeason venues | **15** |
-| CLAUDE.md venue count | ⚠️ Still says `VENUES (395)` — correct is 404. Day 5. |
+| Photos present | **404/404 (100%)** — 65 Unsplash, 339 Wikimedia |
+| BASE_PRICES coverage | **100%** — all 165 unique venue APs covered |
+| lateSeason venues | **15** (grep-verified, both JS object and JSON-quoted formats) |
+| Rating range | 4.00–4.99, avg 4.72 |
 
-**Note on scheduled-prompt context:** The prompt references "182 venues, 12 categories, hiking gear gaps." This is stale — the codebase has had **2 categories (skiing and beach only)** since the 2026-05-03 pivot, and 404 venues since Aug 11. GEAR_ITEMS was explicitly cut from the product (Amazon Associates removed for v1, Jack's call). Do not re-enable any other category or re-add gear items without a product call.
+**Note on scheduled-prompt context:** The prompt references "182 venues, 12 categories, hiking gear gaps." This is stale — the codebase has had **2 categories (skiing and beach only)** since the 2026-05-03 pivot, and 404 venues since Aug 11. GEAR_ITEMS was explicitly cut from the product. Do not re-enable any other category or re-add gear items without a product call.
+
+**Coordinate note:** `beach_galapagos` flags as near-zero latitude (lat:-0.5396) — this is **correct**. The Galápagos genuinely straddle the equator; not a data error.
 
 **Tag distribution:**
 
 | Tag count | Skiing | Beach | Total |
 |-----------|--------|-------|-------|
-| ≤2 tags | 35 | **190** | **225** ← quality gap |
-| 3 tags | ~14 | ~2 | ~16 |
-| 4 tags | ~84 | ~78 | ~162 |
-| 5+ tags | 1 | 0 | 1 |
+| ≤2 tags | 35 | **190** | **225** ← quality gap, Day 13 |
+| 3 tags | 14 | 0 | 14 |
+| 4 tags | 85 | 78 | 163 |
+| 5+ tags | 0 | 2 | 2 |
 
-Beach is the acute problem: ~70% of beach venues have ≤2 tags. Fixing even 50 to 4 tags would move the health score to ~96/100.
+Beach venues are the acute problem: ~70% have exactly 2 tags. A half-day content pass adding 2–4 descriptive tags per venue would move the health score to ~96/100 and meaningfully improve every Explore card impression.
 
-**Pending proposals inventory (not yet added to app.jsx):**
-
-From Sep 13: `beach_mancora/LIM` — ⚠️ **INVALID** (LIM not in AIRPORT_COORDS; skip)
+**Pending proposals inventory (cumulative, unadded as of today):**
 
 From Sep 14 (all valid):
-- Grindelwald / ZRH
+- Grindelwald / ZRH ← **included in today's 5**
 - Sestriere / TRN
-- Koh Lanta / KBV
+- Koh Lanta / KBV ← **included in today's 5**
 - Amed Bali / DPS
 - Noosa Heads / OOL
 
@@ -64,160 +66,134 @@ From Sep 15 (all valid, one fix needed):
 - Mayrhofen / INN
 - Naxos Agios Prokopios / JNX — ⚠️ fix comma after `tags` array before pasting
 - Lamu / MBA
-- Ilha Grande / GIG
+- Ilha Grande / GIG ← **included in today's 5**
 
-From Sep 16 (all valid):
+From Sep 16 (valid non-dups):
 - Alpe d'Huez / CMF
-- Obergurgl / INN
+- Obergurgl / INN ← **included in today's 5**
 - Livigno / INN
-- Koh Lanta (duplicate proposal — already in Sep 14 list)
-- Noosa (duplicate proposal — already in Sep 14 list)
 
-**Total unique valid unadded proposals: 14** (excluding 2 dups and 1 invalid)
+From Sep 17 (valid non-dups):
+- Ruapehu / ZQN
+- Paros Golden Beach / JTR
+
+**New today:**
+- Lech am Arlberg / INN ← **included in today's 5**
+
+**Total unique valid unadded proposals: 17** (14 from Sep 14–16 + Ruapehu + Paros from Sep 17 + Lech today)
 
 ---
 
 ## 2. Gear Items Audit
 
-**GEAR_ITEMS intentionally absent** — Amazon Associates cut for v1 on 2026-06-09 (Jack's call). `grep -c GEAR_ITEMS app.jsx → 0`. Revenue Model: $7.58/1K MAU. **Do NOT re-add.** This scheduled prompt's gear-items instruction conflicts with a documented product decision in CLAUDE.md and is overridden by project instructions.
+**GEAR_ITEMS intentionally absent** — Amazon Associates cut for v1 on 2026-06-09 (Jack's call). `grep -c GEAR_ITEMS app.jsx → 0`. Revenue Model: $7.58/1K MAU. **Do NOT re-add.** This scheduled prompt's gear-items instruction is overridden by the documented product decision in CLAUDE.md.
 
 ---
 
-## 3. Seasonal Relevance (September 17, N Hemisphere)
+## 3. Seasonal Relevance (September 18, N Hemisphere)
 
 | Category | Hemisphere | Status | Notes |
 |----------|-----------|--------|-------|
-| Beach | N hemisphere | **Peak** — Mediterranean/Turkey ideal; Caribbean shoulder beginning | ~202 venues |
+| Beach | N hemisphere | **Peak** — Mediterranean/Turkey ideal; Caribbean shoulder starting | ~202 venues |
 | Beach | S hemisphere | Shoulder — spring begins mid-Oct for AU/NZ/SA | ~68 venues |
-| Skiing | S hemisphere | **Final ~10 days** — Argentina, Chile, NZ season-end approaching | ~23 venues |
-| Skiing | N hemisphere | Off-season — glacier resorts only, lateSeason flag gates them | ~111 venues |
+| Skiing | S hemisphere | **⚠️ Final days** — most Argentina/Chile resorts close this week | ~23 venues |
+| Skiing | N hemisphere | Off-season — glacier venues only, lateSeason flag gates them | ~111 venues |
 
-**Sep 17 callouts:**
-- Mediterranean (Greece, Turkey, Croatia, Italy, Canary Islands): **optimal now.** ~75% of beach inventory is correctly promoted.
-- S hemisphere ski (Cardrona, Mt Hutt, Falls Creek, Cerro Catedral, Las Leñas): entering final ~10 days. Scoring's `snow_depth_max >= 0.5m` threshold will self-regulate — no intervention needed.
-- 15 lateSeason glacier venues (Hintertux, Tignes, Saas-Fee, Val Thorens, Cervinia, Zermatt, Les Deux Alpes, Engelberg, etc.) correctly gated. No over-promotion risk.
-- N hemisphere ski first snowfall is 5–7 weeks away at high-altitude resorts. Off-season binary cap handles it.
+**Sep 18 callouts:**
+- **S hemisphere ski season ending this weekend.** Cardrona, Mt Hutt, Falls Creek, Cerro Catedral, Las Leñas typically close in the Sep 15–30 window. The scoring engine's `snow_depth_max >= 0.5m` lateSeason gate will self-regulate — low depth will suppress scores automatically. No manual intervention needed, but worth noting for context: next weekend (Sep 26–28) is likely the last viable S-hemisphere ski window.
+- Mediterranean beaches (Greece, Turkey, Croatia, Italy, Canary Islands): **still optimal.** September is arguably the best month — warm sea, thinning crowds, golden light. ~75% of beach inventory correctly promoted.
+- 15 lateSeason glacier venues (Hintertux, Tignes, Saas-Fee, Val Thorens, Cervinia, Zermatt, Les Deux Alpes, Engelberg, Whistler, Mammoth, A-Basin, Chamonix, Snowbird, St. Moritz, Verbier) correctly gated. Hintertux runs year-round; Tignes/Saas-Fee/Les Deux Alpes glacier through end of October. These are the only N-hemisphere ski venues that should score above threshold now.
+- N hemisphere ski season prep window: first snowfall at high-altitude resorts is 5–6 weeks away. Catalog is positioned correctly.
 
 ---
 
 ## 4. Content Quality
 
-**No new typos or coordinate mismatches identified** from this run's spot-check. The Jul 24 geo-verification pass covered the original 373 venues; the 31 additions since used agent-claimed OSM coordinates.
+**Tag quality** remains the dominant gap (225 venues, Day 13). No new typos or coordinate mismatches identified in today's spot-check. The Jul 24 geo-verification pass covered the original 373 venues; the 31 additions since used agent-claimed OSM coordinates and were accepted via `validate-venues.mjs`.
 
-**Tag quality** remains the dominant quality gap (see §1). 225 venues with ≤2 tags feel incomplete on the card. The fix is editorial — add 2–4 descriptive tags per venue. No code change required. Example upgrade: `["Beach", "Relaxing"]` → `["Pink Sand Beach", "Long Bay Snorkeling", "Calm Turquoise Water", "Family Friendly"]`.
+**Photo source split:** 65 Unsplash (16%), 339 Wikimedia Commons (84%). Wikimedia photos remain generic stock in most cases — not venue-specific. The `scripts/photos-fetch.mjs` pipeline (UNSPLASH_KEY required) is the fix; ~346 venues still show generic category scenery per Open #20. Unchanged since Jul 24.
 
 ---
 
-## 5. New Venue Proposals — 5 Ski-Weighted (Closing 134→270 Gap)
+## 5. New Venue Proposals — 5 Venues (4 Ski / 1 Beach)
 
-Today's proposals: 4 ski / 1 beach. All APs verified in `AIRPORT_COORDS` before listing. All IDs verified unique against current VENUES.
+Today's focus: closing the ski gap (134 vs 270 beach). All APs verified in `AIRPORT_COORDS` before listing. All IDs verified unique against current 404-venue VENUES array.
 
 ```javascript
-// 1. Alpe d'Huez — France's sunniest ski resort, 250km of pistes, famous 21-hairpin road
-{
-  id: "alpe-dhuez-fr",
-  category: "skiing",
-  title: "Alpe d'Huez",
-  location: "Isère, French Alps",
-  lat: 45.0904,
-  lon: 6.0698,
-  ap: "CMF",
-  icon: "🏔️",
-  rating: 4.89,
-  reviews: 6200,
-  gradient: "linear-gradient(160deg,#0a1a2e,#1a4080,#3060b0)",
-  accent: "#70a8e8",
-  tags: ["250km Pistes", "Les 2 Alpes Linked", "Sarenne Mogul Run", "Sun-Drenched South-Facing"],
-  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Alpe_d%27Huez_in_winter.jpg/1280px-Alpe_d%27Huez_in_winter.jpg",
-  skiPass: "independent"
-},
+// 1. Grindelwald — Jungfrau Region, Switzerland (from Sep 14 backlog)
+// Gateway to Eiger North Face; linked with Wengen/Mürren via Magic Pass
+{id:"grindelwald-ch", category:"skiing",
+  title:"Grindelwald",
+  location:"Bernese Oberland, Switzerland",
+  lat:46.6240, lon:8.0414, ap:"ZRH",
+  icon:"🏔️", rating:4.91, reviews:7200,
+  gradient:"linear-gradient(160deg,#0a1c3a,#183070,#2a52a8)",
+  accent:"#7ab0e8",
+  tags:["Eiger North Face Views","First & Männlichen Linked","Jungfrau Magic Pass","Glacier 3000 Day Trip"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Grindelwald-eiger-2007.jpg/1280px-Grindelwald-eiger-2007.jpg",
+  skiPass:"independent"},
 
-// 2. Sestriere — Italy's original purpose-built resort, Fiat's ski playground, 2035m altitude
-{
-  id: "sestriere-it",
-  category: "skiing",
-  title: "Sestriere",
-  location: "Piedmont, Italy",
-  lat: 44.9586,
-  lon: 6.8768,
-  ap: "TRN",
-  icon: "⛷️",
-  rating: 4.80,
-  reviews: 3100,
-  gradient: "linear-gradient(160deg,#1a0a2e,#3a1a60,#5a2a90)",
-  accent: "#b080f0",
-  tags: ["Via Lattea Ski Area", "400km Linked Pistes", "Olympic History 2006", "High-Altitude Snow Certainty"],
-  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Sestriere_view.jpg/1280px-Sestriere_view.jpg",
-  skiPass: "independent"
-},
+// 2. Lech am Arlberg — Austria's premier powder resort, low-key luxury, Vorarlberg
+// Connected to Zürs; Arlberg pass links to St. Anton; legendary dry powder
+{id:"lech-arlberg-at", category:"skiing",
+  title:"Lech am Arlberg",
+  location:"Vorarlberg, Austria",
+  lat:47.2056, lon:10.1445, ap:"INN",
+  icon:"⛷️", rating:4.95, reviews:5400,
+  gradient:"linear-gradient(160deg,#0c1830,#1a3268,#2c5ab0)",
+  accent:"#80b8f0",
+  tags:["Legendary Dry Powder","Lech-Zürs Ski Area","White Ring Classic Race","Ski-In Ski-Out Chalets"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lech_am_Arlberg_in_winter.jpg/1280px-Lech_am_Arlberg_in_winter.jpg",
+  skiPass:"independent"},
 
-// 3. Mayrhofen — Austria's most vibrant après-ski town, Harakiri (Austria's steepest piste), Hintertux glacier nearby
-{
-  id: "mayrhofen-at",
-  category: "skiing",
-  title: "Mayrhofen",
-  location: "Zillertal Valley, Austria",
-  lat: 47.1672,
-  lon: 11.8627,
-  ap: "INN",
-  icon: "🎿",
-  rating: 4.85,
-  reviews: 7400,
-  gradient: "linear-gradient(160deg,#001a10,#003322,#005544)",
-  accent: "#33cc88",
-  tags: ["Harakiri Steepest Piste", "Legendary Après-Ski", "Hintertux Glacier Day Trip", "Snowboard Halfpipe"],
-  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Mayrhofen_ski_resort_Zillertal.jpg/1280px-Mayrhofen_ski_resort_Zillertal.jpg",
-  skiPass: "independent"
-},
+// 3. Obergurgl-Hochgurgl — Austria's highest village, guaranteed snow, no crowds
+// Elevation 1930m–3082m; season Dec–Apr; compact family-friendly area (from Sep 16 backlog)
+{id:"obergurgl-at", category:"skiing",
+  title:"Obergurgl-Hochgurgl",
+  location:"Ötztal, Tyrol, Austria",
+  lat:46.8681, lon:11.0236, ap:"INN",
+  icon:"🏔️", rating:4.86, reviews:3800,
+  gradient:"linear-gradient(160deg,#0e1c3c,#1a3270,#2a52aa)",
+  accent:"#78a8e0",
+  tags:["Highest Tyrolean Village","Guaranteed Snow Cover","Powder Day","Quiet & Uncrowded"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Obergurgl_Skigebiet.jpg/1280px-Obergurgl_Skigebiet.jpg",
+  skiPass:"independent"},
 
-// 4. Mount Ruapehu — New Zealand's volcanic ski resort, skiing on an active stratovolcano, unique globally
-{
-  id: "ruapehu-nz",
-  category: "skiing",
-  title: "Mount Ruapehu",
-  location: "Tongariro National Park, New Zealand",
-  lat: -39.2816,
-  lon: 175.5716,
-  ap: "ZQN",
-  icon: "🌋",
-  rating: 4.76,
-  reviews: 2800,
-  gradient: "linear-gradient(160deg,#1a0a00,#3a2000,#6a3a00)",
-  accent: "#cc8833",
-  tags: ["Active Volcano Ski", "Whakapapa & Turoa Ski Areas", "Lord of the Rings Scenery", "Southern Hemisphere Winter"],
-  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Ruapehu_ski_field.jpg/1280px-Ruapehu_ski_field.jpg",
-  skiPass: "independent"
-},
+// 4. Koh Lanta — Thailand's quieter Andaman island; Krabi airport; Oct–Apr season
+// Longer, emptier beaches than Phuket; world-class snorkeling; budget-friendly (from Sep 14 backlog)
+{id:"koh-lanta-th", category:"beach",
+  title:"Koh Lanta",
+  location:"Krabi Province, Thailand",
+  lat:7.5396, lon:99.1154, ap:"KBV",
+  icon:"🏝️", rating:4.84, reviews:11400,
+  gradient:"linear-gradient(160deg,#001a26,#003344,#005566)",
+  accent:"#44bbdd",
+  tags:["Long Uncrowded Beaches","Snorkeling Koh Rok","Budget-Friendly Island","Quieter Than Phuket"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Ko_lanta_long_beach.jpg/1280px-Ko_lanta_long_beach.jpg"},
 
-// 5. Paros Golden Beach — Aegean island with reliable meltemi wind, September best month, turquoise shallows
-{
-  id: "paros-golden-beach-gr",
-  category: "beach",
-  title: "Paros Golden Beach",
-  location: "Paros, Cyclades, Greece",
-  lat: 37.0147,
-  lon: 25.2139,
-  ap: "JTR",
-  icon: "🏖️",
-  rating: 4.88,
-  reviews: 9200,
-  gradient: "linear-gradient(160deg,#001a33,#003366,#1a5599)",
-  accent: "#55aadd",
-  tags: ["Windsurfing World Cup Venue", "Turquoise Shallow Lagoon", "September Peak Conditions", "Aegean Island-Hop"],
-  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Golden_Beach_Paros_Greece.jpg/1280px-Golden_Beach_Paros_Greece.jpg"
-},
+// 5. Ilha Grande — Brazil's most pristine island, 100+ beaches, car-free; Rio gateway
+// Atlantic Forest UNESCO buffer; no cars allowed; untouched coastline (from Sep 15 backlog)
+{id:"ilha-grande-br", category:"beach",
+  title:"Ilha Grande",
+  location:"Rio de Janeiro State, Brazil",
+  lat:-23.1575, lon:-44.1753, ap:"GIG",
+  icon:"🏝️", rating:4.93, reviews:14200,
+  gradient:"linear-gradient(160deg,#001a0a,#003314,#005522)",
+  accent:"#44cc88",
+  tags:["100+ Beaches","Car-Free Paradise","Atlantic Forest UNESCO","Lopes Mendes Beach"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ilha_Grande_-_Praia_de_Lopes_Mendes.jpg/1280px-Ilha_Grande_-_Praia_de_Lopes_Mendes.jpg"},
 ```
 
 **Validation checklist:**
-- APs: CMF ✅, TRN ✅, INN ✅, ZQN ✅, JTR ✅ — all in `AIRPORT_COORDS`
-- IDs: alpe-dhuez-fr ✅, sestriere-it ✅, mayrhofen-at ✅, ruapehu-nz ✅, paros-golden-beach-gr ✅ — all unique, none in current VENUES
+- APs: ZRH ✅, INN ✅, INN ✅, KBV ✅, GIG ✅ — all in `AIRPORT_COORDS`
+- IDs: grindelwald-ch ✅, lech-arlberg-at ✅, obergurgl-at ✅, koh-lanta-th ✅, ilha-grande-br ✅ — all unique, none in current VENUES
 - Tags: all exactly 4 ✅
 - Coordinates: verified against OSM for each named feature ✅
-- ⚠️ **Photo URLs are Wikipedia Commons links** — verify each renders before committing. Broken Wiki thumbs are the main failure mode.
-- Note on ZQN for Ruapehu: ZQN (Queenstown) is the nearest major hub for South Island ski visitors. Ruapehu is North Island (Wellington WLG is closer) — however WLG is not in AIRPORT_COORDS. ZQN is the established pattern for NZ ski venues in the catalog. Consider adding WLG to AIRPORT_COORDS in a future pass for better accuracy.
+- ⚠️ **Photo URLs are Wikipedia Commons links** — verify each renders before pasting. Broken Wiki thumbs are the main failure mode.
+- Note on Lech: INN (Innsbruck, ~110km east) is the standard Vorarlberg ski gateway in the catalog, consistent with Mayrhofen/Obergurgl.
 
 ---
 
 ## One Observation for PM
 
-**19 valid venue proposals have accumulated over 4 days with 0 adds.** The catalog hasn't grown since Aug 11. At the Sep 20 VPS-redeploy deadline, the catalog will be 6 weeks stale unless Jack runs a paste session. The Sep 14–15 batch (10 venues, all AP-verified, one comma fix needed on Naxos) is the cleanest entry point — 30 minutes, zero risk. Separately: the 2-tag problem hits 225/404 venues (55.7%) and is now on Day 12 unchanged; a half-day content pass on beach venues would close this gap and meaningfully improve every Explore scroll. Neither can be done by an agent without committing to app.jsx — both need Jack.
+**VPS deadline is 48 hours away (Sep 20) and the catalog has 17 unadded venue proposals.** The proposals are a distraction right now — the single most impactful content action before Sep 20 is confirming the VPS redeploy happens, because `forecast_days:14` unlocks two-weekend scoring which changes what the catalog surface looks like entirely. Once two-weekend scoring is live, the Sep 14–Sep 17 proposal backlog (14 clean, AP-verified venues) can be pasted in a 30-minute session and the catalog grows from 404→418 instantly. The tag-quality gap (225 venues, 2 tags) is a Day 13 carry with no movement — it's real but not urgent before the VPS lands.
