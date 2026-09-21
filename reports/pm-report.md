@@ -1,149 +1,163 @@
-# Peakly PM Report v156 — 2026-09-20
+# Peakly PM Report v157 — 2026-09-21
 
-**Status: 🔴 RED — VPS proxy.js Day 42. Sep 20 is TODAY — the hard deadline from v154. If undeployed by end of day, Oct 11 launch moves to Oct 18. Code freeze holding (Day 7). No regressions.**
+**Status: 🔴 RED — VPS deadline passed. Oct 18 is now the launch date. Code freeze holds (Day 8). No regressions.**
 
 ---
 
-## Shipped Since Last Report (v155 → v156)
+## Shipped Since Last Report (v156 → v157)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `4367f5b` | DevOps report Sep 20 (RED) | ✅ Routine. VPS deadline correctly called as TODAY. |
-| `bd12891` | Content report Sep 20 | ✅ Routine. Flagged Sep 19 proposal quality issue (4 of 5 were dupes). |
+| `16333e1` | Content report Sep 21 | ✅ Routine. Seasonal callout on S-hemisphere ski closure timely. |
+| `a031a15` | DevOps report Sep 21 (RED) | ✅ Correctly marks deadline passed, runbook intact. |
 
-**Zero code commits since `bb3ebc8` (venue search, Sep 13). Seven days. Correct. Code freeze holds.**
+**Zero code commits since `bb3ebc8` (venue search, Sep 13). Eight days. Correct. Code freeze holds.**
 
 ---
 
-## Prompt Context Note
+## Prompt Context Note (final time)
 
-Scheduled prompt references "182 venues, Sentry DSN empty, cache buster stale, Peakly Pro $9/mo vs $79/yr." All four remain stale. For the record one final time:
+Scheduled prompt still references stale values. For the record:
 
-- **Venues**: 404 (134 skiing / 270 beach). DevOps and Content both confirmed today.
-- **Sentry DSN**: Wired — `9416b032...` at `index.html:77` and `app.jsx:8`.
-- **Cache stamp**: `20260914a` — correct for a code freeze. 7 days old.
-- **Peakly Pro**: UI formally CUT for v1. No pricing anywhere. Not a bug.
+- **Venues**: 404 (134 skiing / 270 beach). Not 182.
+- **Sentry DSN**: Wired at `index.html:77` and `app.jsx:8`.
+- **Cache stamp**: `20260914a` — 8 days old, CORRECT for code freeze.
+- **Peakly Pro**: UI CUT for v1. No pricing anywhere. Not a bug.
+
+This note will be dropped from v158 forward.
 
 ---
 
 ## Bug Triage
 
-### P0s — None.
+### P0s — None (code side).
 
-### P1 — VPS Redeploy: DEADLINE IS TODAY
+### P1 — VPS Redeploy: DEADLINE PASSED, LAUNCH DATE SHIFTS TO OCT 18
 
-**v155 said v156 would read either "VPS deployed — Oct 11 confirmed" or "VPS missed — Oct 18." This is that report.**
+v156 set the fork: deployed by Sep 20 → Oct 11; missed → Oct 18. Sep 20 passed undeployed. **Oct 18 is the launch date.**
 
-As of this run: VPS still undeployed per DevOps Sep 20 (agent sandbox has no egress to verify live — last confirmed healthy was 2026-08-11 by Jack via SSH). The DevOps runbook is unchanged:
+This is not a catastrophe. Oct 18 is the weekend before the first major N-hemisphere resort snow at most Colorado and Alps venues. r/skiing on Oct 18 framing: "ski season is here — here's where to fly this weekend" lands better than an Oct 11 post when only glacier venues are firing.
 
+**What remains broken:**
+
+| Feature | Impact |
+|---------|--------|
+| Two-weekend scoring | Second weekend always "low confidence" — front page suppressed |
+| iOS native proxy | CORS blocks every native proxy call |
+| Alert deletion | Preflight blocked, silently fails |
+| Weather cache persistence | In-memory; `pm2 restart` wipes cold |
+| Rate limiter accuracy | XFF `[0]` instead of `.pop()` — forgeable |
+
+**Runbook (unchanged, 5 minutes):**
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "pm2 restart peakly-proxy && sleep 3 && curl -s https://peakly-api.duckdns.org/health"
 ```
 
-**If deployed today:** Oct 11 Reddit launch. Two-weekend scoring live. iOS native unblocked. Alert deletion fixed.
+VPS status becomes a one-liner in v158. The decision tree is closed. This is Jack's action.
 
-**If it slips past today:** Oct 18 launch. One ski opening weekend gone. The r/skiing post moves to a less optimal date on the ski calendar.
+### P1 — 18 Stale Remote Branches
 
-Starting v157, VPS status becomes a one-line flag, not a section. The report has done its job. Execution is Jack's.
+Sep 20 cleanup deadline also passed. Still 18 branches, none merged, none with unmerged work that matters. Recommend deleting all 18 before Oct 5 content run to reduce confusion.
 
-### P1 — Tag Density (Day 15 Unchanged)
+Bundle with any other Oct 5 housekeeping.
 
-225/404 venues (55.7%) have ≤2 tags. 190/270 beach venues at minimum. Deferred to Oct 5 content run. Hold.
+### P1 — Tag Density (Day 16 Unchanged)
 
-### P1 — Sep 19 Proposal Quality Issue (New)
+225/404 venues (55.7%) have ≤2 tags; 190 are beach venues. Deferred to Oct 5 content run. Hold.
 
-Content surfaced that 4 of 5 venue proposals in the Sep 19 report were duplicates already in catalog (Kitzbühel, Les Arcs, Bansko, Arugam Bay — different IDs, same locations). Only `schladming-at` was genuinely new.
+### P2 — S-Hemisphere Ski Season Closing This Week
 
-**Impact on Oct 5 run**: The 17-venue batch queued for Oct 5 may contain additional dupes from prior proposal rounds. Before the Oct 5 agent commit, run a cross-check against existing IDs and lat/lon coordinates. A duplicate venue that passes ID-uniqueness check (because it has a new ID) but duplicates coordinates is the specific failure mode to guard.
+Cardrona, Mt Hutt, Las Leñas, Cerro Catedral winding down. The `lateSeason` gate self-manages — no app.jsx intervention needed. The 23 S-hemisphere ski venues will naturally deprioritize. Not a bug, a season.
 
-### P2 — 18 Stale Remote Branches
-
-Confirmed: 15 `claude/` exploratory + `fix-appjsx-final`, `restore-appjsx`, `test-small`. Oct 5 cleanup decision stands. Non-blocking.
-
-### P3 — dist/ Build Collision (Day 12 — Non-blocking)
+### P3 — dist/ Build Collision (Day 13 — Non-blocking)
 
 CI rebuilds correctly on push. No action.
 
 ---
 
-## Three Product Decisions — Sep 20
+## Three Product Decisions — Sep 21
 
-### Decision 1: VPS launch date fork — if no confirmation by v157, commit to Oct 18.
+### Decision 1: Oct 18 is the launch date. This is final.
 
-v155 set the deadline. This report observes it. v157 (Sep 21) will read one of two ways based on whether Jack deploys:
-- **Deployed**: "Oct 11 confirmed. Two-weekend scoring live. Moving to pre-launch final checklist."
-- **Not deployed**: "Oct 18 is the launch date. Ski tab viability check stays on Oct 5 schedule. r/skiing timing reevaluated."
+v156's fork was explicit. No deployed VPS by Sep 20 = Oct 18. We are now in the Oct 18 track. The product does not change; only the Reddit post date changes.
 
-PM reports stop escalating after v157. The decision tree is exhausted. Execution is Jack's.
+**Oct 18 framing is arguably better:** it's the first weekend after most N-hemisphere standard ski resorts open (Breckenridge/Keystone/Arapahoe Basin typically open mid-Oct to early Nov). The story is "ski season is starting — here's where to fly." That's a better hook than an Oct 11 post where only glacier venues are live.
 
-**Decision: Accept Oct 18 as a valid launch date if VPS misses today — it does not kill the product, only the most optimal ski-calendar timing.**
+**Decision: Oct 18 Reddit launch. Lock it. No further debate.**
 
-### Decision 2: Oct 5 content run must include a duplicate-coordinate check.
+### Decision 2: Oct 5 content run scope is confirmed, no additions.
 
-Sep 19's proposal quality failure reveals a systematic gap: the agent proposes venues by name-matching without cross-checking existing lat/lon pairs. A venue 2 km from an existing catalog entry with a fresh ID will pass the `id` uniqueness validator and the brace balance check — and ship.
+Scope:
+- 17 queued venue proposals (must pass `validate-venues.mjs` + duplicate-coordinate check ≤50 km radius)
+- Tag density pass (beach venues from ≤2 to ≥4 tags)
+- Branch cleanup (delete all 18 stale remote branches)
+- Ski-tab viability check for Oct 18 dates (not Oct 11)
 
-**Decision: Oct 5 run adds one pre-commit step: verify no staged venue coordinate falls within 50 km of an existing catalog entry.** `scripts/validate-venues.mjs` handles this for candidate JSON; the Oct 5 agent must run it before staging app.jsx changes.
+No new items. No scope expansion. Jack reviews the diff before auto-push.
 
-### Decision 3: r/skiing post timing depends on Oct 5 viability check — no exceptions.
+**Decision: Oct 5 run scope locked. Human review required before commit.**
 
-S-hemisphere ski season is closing now (Cardrona, Mt Hutt, Las Leñas winding down Sep 15–30). Oct 11 r/skiing post depends entirely on N-hemisphere glacier venues (Hintertux, Tignes, Saas-Fee, Val Thorens, etc.) scoring above the confidence threshold for that weekend's forecast.
+### Decision 3: r/skiing post timing based on Oct 18 ski-tab viability, not Oct 11.
 
-The Oct 5 viability check is not optional. If fewer than 15 ski venues score viable on Oct 11 dates, r/skiing post moves to December (opening weekend framing). r/solotravel (beach) launches Oct 11 regardless.
+The Oct 5 viability check now targets Oct 18. Threshold unchanged: ≥15 ski venues scoring above confidence threshold for the Oct 18–21 weekend. If ≥15, r/skiing post confirmed Oct 18. If <15, r/skiing defers to mid-November (first major opening weekend), and r/solotravel (beach) launches Oct 18 solo.
 
-**Decision: Confirmed from v155. No change. This is the plan.**
+r/solotravel launches Oct 18 regardless. Tropical beach is entering prime season. The beach story is solid.
+
+**Decision: r/solotravel Oct 18 is unconditional. r/skiing Oct 18 is conditional on Oct 5 viability check.**
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy — today** (Jack's action, 5 minutes, runbook in DevOps report).
-2. **Oct 5 content run prep** — confirm 17-venue batch is dupe-free before the run. Add coordinate cross-check to the agent's pre-commit checklist.
-3. **Hold code freeze through Oct 11** — seven days clean. Nothing touches app.jsx/sw.js/index.html before Oct 5 batch.
+1. **VPS deploy** — Jack, 5 minutes, any time before Oct 5. The longer it waits, the fewer days two-weekend scoring is proven stable before launch.
+2. **Oct 5 content run prep** — confirm 17-venue batch is dupe-free, reframe ski viability check to Oct 18 dates.
+3. **Hold code freeze through Oct 5** — eight days clean. Zero exceptions.
 
 ---
 
 ## Features REJECTED This Week
 
-- **Any code change before Oct 5** — Code freeze. No exceptions. Regression risk is not worth any marginal quality gain in the final pre-launch stretch.
-- **APNS wiring** — Uncommitted local fix exists. Post-launch v2. Not before Reddit launch.
-- **Additional venue proposals before Oct 5** — Batch discipline. 17 proposals queued. No individual commits.
-- **Branch pruning before Oct 5** — Non-blocking, Oct 5 sweep is the right window.
-- **r/skiing post if ski tab is thin on Oct 11** — Confirmed rejected. Score first. Post only if viable.
+- **Any code change before Oct 5** — code freeze. No exceptions.
+- **APNS wiring** — post-launch v2. Uncommitted local fix can wait.
+- **r/skiing post if ski tab is thin on Oct 18** — Nov fallback confirmed. Score first.
+- **Branch cleanup before Oct 5** — bundle it with the content run; standalone branch-delete commit before then is noise.
+- **Any new venue proposals** — 17 already queued. Batch discipline. No individual adds.
 
 ---
 
 ## Success Criteria
 
-### Metrics that define success
+### What defines success
 
-- **Day 1 (Oct 11 or Oct 18):** 500+ unique visitors, <30% bounce on Explore, 50+ wishlists saved.
-- **Week 1:** 1,000 registered users (magic-link), 200+ alerts set.
+- **Launch day (Oct 18):** 500+ unique visitors, <30% bounce, 50+ wishlists saved.
+- **Week 1:** 1,000 registered users, 200+ alerts set.
 - **90-day:** 5,000–8,000 MAU.
 
-### What gets us to 8K not 5K?
+### What gets us to 8K, not 5K
 
-Same three variables. Nothing has changed the equation:
+Three variables unchanged, one now tighter:
 
-1. **Flight pricing is LIVE on launch day.** VPS deployed. LIVE badges in the first Reddit screenshots, not `~$X` estimates. A screenshot showing "from ~$240" is 40% less shareable than "from $238 LIVE." This is the highest-leverage single action remaining.
-2. **Tags feel rich on Explore.** Oct 5 run moves 190 beach venues from 2 tags to 4+. Thin venue cards bounce.
-3. **Traffic spike survives.** VPS weather cache is the only Open-Meteo rate-limit protection. 66+ concurrent DAU on overlapping venues hits the free ceiling without it.
+1. **Live flight pricing on launch day.** VPS deployed before Oct 18. LIVE badges in first Reddit screenshots. This is the highest-leverage remaining action.
+2. **Tags feel rich on Explore.** Oct 5 run fixes 190 beach venues. Thin cards bounce.
+3. **Traffic spike survives.** VPS weather cache is the only Open-Meteo rate-limit protection. 66+ concurrent DAU without it hits the free tier ceiling.
 
-All three are unblocked by a single SSH session today.
+All three still come down to one SSH session. The window is Oct 1–5 before the content run.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Oct 5 agent run is a single automated commit touching every beach venue's tag array, staged venue additions, and a git remote sweep — one week before launch with no mandatory human review step.**
+**Oct 18 launch targets a weekend that's either the first powder day or the last warm beach weekend of the year — not both simultaneously for most users.**
 
-The auto-push guard (brace balance, venue count floor) does not catch:
-- A stray `"` in a tag value that breaks venue filter rendering
-- A duplicate coordinate that passes ID-uniqueness validation
-- A batch with mismatched open/close braces inside the VENUES object that the bracket-walker miscounts
+The seasonal split matters: a US East Coast user in Boston in late October is checking beach venues in Caribbean or Canary Islands, not ski resorts. A Denver user is checking Breckenridge or Arapahoe Basin, not beach. Both audiences are real. But a Reddit post that tries to appeal to both simultaneously reads as unfocused.
 
-The mitigation from v155 stands: run `validate-venues.mjs` before staging, output diff stats (venue delta, brace balance, tag coverage), and cap to manual review if the diff exceeds 500 lines. **Jack should be available Oct 5 to eyeball the diff — this is not a fire-and-forget run.** A bad Oct 5 commit that surfaces on Oct 11 launch day collapses all three 8K success variables simultaneously.
+**The risk:** the app opens to "Skiing" or "Beach" based on `seasonalDefaultCat()` — correct behavior. But the Reddit post title has to pick one. If we lead with ski framing for the Oct 18 launch and the viability check shows only 12 ski venues are actually scoring above threshold that weekend, the lead story is "Peakly's best ski pick is… Tignes, which everyone already knows."
+
+The beach story is stronger right now. Tropical beach entering prime season, 270 venues, no "but is there snow yet?" uncertainty. If the ski viability check fails, the beach post alone can carry Oct 18. The PM risk is defaulting to a ski-first post because it feels like fall without checking the score data first.
+
+**Mitigation:** Oct 5 viability check outputs a clear number — venues scoring above threshold, top 5 picks, confidence levels. PM reviews that output before writing the Reddit headline, not after.
 
 ---
 
-*Report generated 2026-09-20 by the daily PM agent. v156.*
+*Report generated 2026-09-21 by the daily PM agent. v157.*
