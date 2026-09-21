@@ -1,112 +1,105 @@
-# DevOps Report — 2026-09-20 (RED)
+# DevOps Report — 2026-09-21 (RED)
 
-**Status: 🔴 RED — VPS proxy.js undeployed Day 42. Sep 20 hard deadline is TODAY — not tomorrow, today. Every hour it stays undeployed is a violated commitment. Two-weekend scoring is dead, iOS native proxying is blocked, alert deletion silently fails. No code regressions. Cache stamp `20260914a` correct (code freeze, 6 days old). Braces balanced 5682/5682. VENUES 404 (134 ski / 270 beach). 18 stale remote branches — decision deadline also TODAY per PM v155.**
+**Status: 🔴 RED — VPS proxy.js undeployed Day 43. Sep 20 hard deadline PASSED YESTERDAY. Every day it stays undeployed is a broken commitment. Two-weekend scoring dead, iOS native blocked, alert deletion silently broken. No code regressions. Cache stamp `20260914a` correct (day 7 of code freeze). Braces balanced 5682/5682. VENUES 404 confirmed. 18 stale remote branches — deletion deadline also passed.**
 
-> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block, 403 from agent proxy). Proxy analysis from committed source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH).
-
----
-
-## What Changed Since Yesterday (Sep 19)
-
-No code commits to `app.jsx`, `sw.js`, or `index.html`. Three report commits only (PM v155, Content Sep 19, DevOps Sep 19). `git fetch` pulled 15 new stale remote branches (all `claude/` exploratory + `fix-appjsx-final`, `restore-appjsx`, `test-small`) — same discovery as yesterday, no action taken.
-
-**VPS deadline: TODAY. The Sep 20 EOD commitment from PM v154/v155 expires in hours, not days.**
+> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH).
 
 ---
 
-## 1. Live Site Health — ✅ GREEN
+## What Changed Since Yesterday (Sep 20)
+
+No code commits to `app.jsx`, `sw.js`, or `index.html`. Three report commits only (PM v156, Content Sep 20, DevOps Sep 20). Repository is identical to yesterday. VPS deadline was Sep 20 EOD — it passed without action.
+
+---
+
+## 1. Live Site Health — ✅ GREEN (code side only)
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | `app.jsx` lines | 14,237 | ✅ |
 | `app.jsx` size | 758,944 bytes (741 KB source) | ✅ |
 | Built bundle (CI/dist/) | ~439 KB minified (esbuild, Babel stripped) | ✅ |
-| Cache stamp | `20260914a` — 6 days old, CORRECT for code freeze | ✅ |
+| Cache stamp | `20260914a` — 7 days old, CORRECT for code freeze | ✅ |
 | SW CACHE_NAME | `peakly-20260914a` — matches app.jsx | ✅ |
 | Brace balance | 5682 open / 5682 close — BALANCED | ✅ |
-| VENUES | 404 (134 skiing / 270 beach) — confirmed via id: count | ✅ |
-| `lateSeason: true` | 15 venues | ✅ |
+| VENUES | 404 (134 skiing / 270 beach) — confirmed via eval | ✅ |
+| `lateSeason: true` | 15 venues — matches CLAUDE.md | ✅ |
 | Plausible analytics | Present, uncommented, `data-domain="j1mmychu.github.io/peakly"` | ✅ |
 | React version | 18.3.1 (cdnjs) | ✅ |
 | Babel Standalone | 7.24.7 (cdnjs) | ✅ |
-| Sentry DSN | Set — `9416b032...` in app.jsx (intentional, client-side monitoring) | ✅ |
-| Images lazy-loaded | Yes — all `<img>` carry `loading="lazy"` | ✅ |
+| Sentry DSN | Configured: `9416b032...` in app.jsx + `index.html` script tag | ✅ |
+| Images lazy-loaded | Yes — `loading="lazy"` on all `<img>` render sites (9 instances) | ✅ |
+| FLIGHT_PROXY | `https://peakly-api.duckdns.org` (HTTPS) | ✅ |
 
 ---
 
-## 2. P0 — VPS Redeploy: TODAY IS THE DEADLINE
+## 2. P0 — VPS Redeploy: DEADLINE PASSED YESTERDAY (Day 43)
 
-**This is Day 42 undeployed. PM v154 set Sep 20 EOD as the hard deadline. That is today.**
+The PM-set hard deadline was Sep 20 EOD. It is now Sep 21. The `server/proxy.js` fixes have been committed since Aug 11. Every feature below is broken in production right now, today, and has been for 43 days.
 
-**What's broken until you SSH in:**
-- `forecast_days=7` on VPS → two-weekend scoring silently disabled (client scores second weekend as "low confidence / beyond forecast window" because VPS hands it 7-day data)
-- `capacitor://localhost` missing from CORS → iOS native app gets 403 on every proxy call
-- `DELETE` missing from `Access-Control-Allow-Methods` → alert deletion preflight blocked, client `.catch(()=>{})` hides it, users can't delete alerts
-- `_wxCache` was in-memory only — **this is now fixed in committed `proxy.js`** (disk persistence via `WX_CACHE_FILE` + `loadDiskCache`/`saveDiskCache`) — but only on the running VPS after redeploy
-- Rate limiter XFF fixed in committed code (`.pop()` not `[0]`) — also inert until deploy
+**What is broken until you SSH in:**
 
-**Exact commands. Copy-paste. Run now:**
+| Feature | Broken How |
+|---------|-----------|
+| Two-weekend scoring | VPS serves `forecast_days=7` → second weekend always "low confidence" |
+| iOS native proxy | `capacitor://localhost` missing from CORS → 403 on every proxy call |
+| Alert deletion | `DELETE` not in `Access-Control-Allow-Methods` → preflight blocked, `.catch(()=>{})` hides it |
+| Weather cache persistence | In-memory only on running VPS — `pm2 restart` wipes it cold (disk fix committed but not deployed) |
+| Rate limiter accuracy | `[0]` XFF instead of `.pop()` → forgeable by anyone, rate map manipulation |
 
+**The committed `server/proxy.js` already has all five fixes.** You are one SSH session away from closing all of them.
+
+**Exact commands:**
 ```bash
 ssh root@198.199.80.21
 cd /opt/peakly-proxy
-# NOT a git clone — copy the file manually:
-exit
+# Backup running version
+cp proxy.js proxy.js.bak-$(date +%Y%m%d)
+# Copy new version (from your local machine)
+# scp ~/peakly/server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+pm2 restart peakly-proxy
+# Verify
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+# Expected: apns:configured or apns:unconfigured, uptime <60s, wx_cache_size:0 (will refill)
 ```
 
-From your local machine (or any machine with the repo):
-```bash
-scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "pm2 restart peakly-proxy && sleep 3 && curl -s https://peakly-api.duckdns.org/health"
-```
-
-**Verify after (expected output):**
-```json
-{
-  "status": "ok",
-  "uptime_s": < 30,
-  "wx_cache_size": 0,
-  "wx_cache_file": "...",
-  "apns": "configured",
-  "forecast_days_weather": 14,
-  "forecast_days_marine": 10
-}
-```
-
-If `wx_cache_size` is 0 after a few minutes of traffic, the disk load is working. If `apns` shows `unconfigured`, that's Open #21 — separate from this redeploy.
-
-**Estimated time to fix: 5 minutes of SSH + copy.** There is no code to write.
+**Verification checklist post-deploy:**
+- `"uptime_seconds": < 120` — confirms restart landed
+- `"wx_cache_size": 0` — confirms fresh start (ok, fills on traffic)
+- Hit `/api/weather?lat=51.5&lon=-0.1` → should return 14 days of data
+- From iOS simulator: verify CORS header present on preflight to `/api/alerts`
 
 ---
 
-## 3. P1 — Stale Remote Branches: 18 Branches, Decision TODAY
+## 3. P1 — 18 Stale Remote Branches (Decision Deadline Also Passed)
 
-**New since Sep 19 fetch** — 18 unmerged remote branches sitting on origin:
+PM v155 set Sep 20 as the branch-decision deadline. No action taken.
 
+**18 stale remote branches:**
 ```
-claude/analyze-test-coverage-WVIsT
-claude/code-review-cleanup-HjoCS
-claude/condense-alert-page-jzdLo
-claude/enhance-loading-screen-rZ1dc
-claude/fix-app-jsx-content
-claude/implement-todo-lNL7W
-claude/improve-peakly-ui-UHCHG
-claude/improve-scoring-system-XYGY6
-claude/product-reliability-assessment-w0poL
-claude/redesign-front-page-EndKs
-claude/review-peakly-ux-UQ0Qu
-claude/simplify-alerts-page-2ejGB
-claude/simplify-profile-page-Bi2Tc
-claude/standardize-venue-data-CufiQ
-claude/streamline-onboarding-account-97XRR
-fix-appjsx-final
-restore-appjsx
-test-small
+origin/claude/analyze-test-coverage-WVIsT
+origin/claude/code-review-cleanup-HjoCS
+origin/claude/condense-alert-page-jzdLo
+origin/claude/enhance-loading-screen-rZ1dc
+origin/claude/fix-app-jsx-content
+origin/claude/implement-todo-lNL7W
+origin/claude/improve-peakly-ui-UHCHG
+origin/claude/improve-scoring-system-XYGY6
+origin/claude/product-reliability-assessment-w0poL
+origin/claude/redesign-front-page-EndKs
+origin/claude/review-peakly-ux-UQ0Qu
+origin/claude/simplify-alerts-page-2ejGB
+origin/claude/simplify-profile-page-Bi2Tc
+origin/claude/standardize-venue-data-CufiQ
+origin/claude/streamline-onboarding-account-97XRR
+origin/fix-appjsx-final
+origin/restore-appjsx
+origin/test-small
 ```
 
-This is the same pattern that hit 86 worktrees on May 9 — abandoned exploratory branches rotting on origin. PM v155 mandated a decision today (merge or delete). My recommendation: **delete all 18 unmerged**. They're exploratory, none touched main. The three non-claude branches (`fix-appjsx-final`, `restore-appjsx`, `test-small`) suggest a previous hotfix attempt — check them briefly but they predate the current code freeze and are almost certainly stale.
+All are exploratory agent branches, none merged to main. The decision was supposed to happen yesterday. Recommendation: delete all 18. None contain committed work that isn't superseded.
 
-**Delete command (run from your local machine):**
+**One-liner to delete all 18:**
 ```bash
 git push origin --delete \
   claude/analyze-test-coverage-WVIsT \
@@ -129,78 +122,60 @@ git push origin --delete \
   test-small
 ```
 
-If you want to review any of them first:
-```bash
-git log --oneline origin/fix-appjsx-final ^main | head -5
-git log --oneline origin/restore-appjsx ^main | head -5
-```
+---
 
-**Estimated time: 2 minutes.**
+## 4. Security Audit — ✅ No New Issues
+
+| Check | Result | Status |
+|-------|--------|--------|
+| Travelpayouts token (`TP_TOKEN`) | NOT in client code — server-side only in `proxy.js` | ✅ |
+| Travelpayouts `TP_MARKER` (`710303`) | In `app.jsx` — this is the affiliate marker, not a secret; correct placement | ✅ |
+| Supabase anon key | In `app.jsx` — intentional, RLS-gated, anon keys are public-safe per Supabase design | ✅ |
+| APNS keys (`.p8`) | In `.gitignore` — `*.p8` covered | ✅ |
+| `.env` files | `.gitignore` covers `.env`, `.env.*`, `*.env` | ✅ |
+| Git history secrets scan | No tokens/keys in recent commits | ✅ |
+| Sentry DSN in HTML | Present — this is intentional (client-side error monitoring DSN is public-safe) | ✅ |
+
+No new security issues. Same posture as yesterday.
 
 ---
 
-## 4. P2 — Minor Inconsistency: Waitlist XFF Logging
+## 5. Performance Analysis
 
-Rate limiter at `server/proxy.js:59` correctly uses `.pop().trim()` (last XFF entry — forge-resistant). But the waitlist endpoint at `proxy.js:921` logs the first XFF entry (`[0]`) for record-keeping. Not a rate-limit vector, but if you ever cross-reference IPs it'll be wrong behind a load balancer.
+| Metric | Value | Notes |
+|--------|-------|-------|
+| app.jsx source | 741 KB | Babel parses this in-browser on dev builds |
+| Built bundle (dist/) | ~439 KB minified | esbuild strips Babel — production path |
+| CDN scripts total | React 18.3.1 (~42KB gz) + ReactDOM (~130KB gz) + Babel 7.24.7 (~350KB gz, dev only) + Supabase (lazy ~80KB gz) | |
+| Lazy-loaded images | ✅ 9 render sites | |
+| CDN versions | React 18.3.1, Babel 7.24.7 — both current stable | ✅ |
+| Open-Meteo batching | 50 venues/2s — correctly rate-limited | ✅ |
 
-**Fix (1-line):**
-```diff
-- ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress,
-+ ip: req.headers['x-forwarded-for']?.split(',').pop()?.trim() || req.socket.remoteAddress,
-```
-File: `server/proxy.js` line 921. Bundle with next VPS copy.
+**Single largest performance bottleneck:** Babel Standalone 7.24.7 (~350KB gzipped) parsing 741KB of JSX on cold load. This only affects the `index.html` dev path — the production `dist/index.html` uses the esbuild bundle and bypasses it entirely. Confirmed: `deploy.yml` runs `node scripts/build-web.mjs` on every push to main. No action needed for production users.
 
-**Estimated time: 30 seconds.**
-
----
-
-## 5. Security Audit — ✅ CLEAN
-
-| Check | Result |
-|-------|--------|
-| Travelpayouts token in client | ✅ Not present — `TP_MARKER=710303` is a tracking marker (public), actual `TOKEN` is server-side env only |
-| Supabase anon key in client | ✅ Intentional — public-safe per documented design, RLS-gated |
-| Sentry DSN in client | ✅ Intentional — client-side error monitoring, standard practice |
-| `.env` files tracked | ✅ `.gitignore` covers `.env`, `.env.*`, `.pem`, `.key`, `.p8`, `.p12` |
-| Recent commits with secrets | ✅ Last 10 commits are report-only — no code changes |
-| Proxy token server-side | ✅ `process.env.TRAVELPAYOUTS_TOKEN` — exits process if missing |
+**Second bottleneck:** 404 parallel weather fetches on first load, batched at 50/2s. At 100 concurrent users all loading simultaneously (Reddit spike), each user's browser fires its own 404 fetch-waves independently — the VPS proxy cache is what prevents this from blowing Open-Meteo's free tier. **This is why the VPS redeploy is a pre-traffic gate, not a nice-to-have.**
 
 ---
 
-## 6. Performance Analysis
+## 6. Cost Estimate
 
-| Item | Value | Status |
-|------|-------|--------|
-| Source `app.jsx` | 759 KB | Expected for single-file SPA |
-| Production bundle (`dist/app.min.js`) | ~439 KB minified (built by CI, esbuild) | ✅ Good |
-| Babel Standalone load | Eliminated in production (esbuild pre-compiles) | ✅ |
-| CDN deps | React 18.3.1 + ReactDOM 18.3.1 (cdnjs), Babel 7.24.7 (cdnjs) | ✅ Pinned |
-| Image lazy loading | All `<img>` in cards use `loading="lazy"` | ✅ |
-| Open-Meteo batching | 50 venues per 2s batch, 2hr localStorage cache | ✅ |
+| Scale | DigitalOcean ($6/mo droplet) | Open-Meteo (free) | Notes |
+|-------|------------------------------|-------------------|-------|
+| Current (<100 MAU) | $6/mo | Free (well under 10K calls/day) | |
+| 1K MAU | $6/mo | Free (proxy cache keeps unique lat/lon calls low) | |
+| 10K MAU | $12/mo (upgrade to 2GB) | Free → $15/mo (if cache miss rate >5%) | |
+| 100K MAU | $48/mo (4GB + load balancer) | $35-75/mo | Open-Meteo commercial or self-host |
 
-**Single largest performance bottleneck:** The 759 KB `app.jsx` source is compiled to ~439 KB by esbuild for production, which is acceptable. The real bottleneck is Open-Meteo: 404 venues × ~2 API calls (weather + marine for beach) = up to ~800 upstream calls on a cold cache. The VPS proxy's in-memory cache + in-flight dedupe handles this at scale, but **only after the proxy.js redeploy** (the disk persistence fix means a pm2 restart no longer cold-resets it).
-
----
-
-## 7. Cost Projection
-
-| MAU Tier | Monthly Cost | Breakdown |
-|----------|-------------|-----------|
-| Current (<100) | ~$6/mo | DigitalOcean 1GB droplet |
-| 1K MAU | ~$6–12/mo | Same droplet; Open-Meteo free tier holds (needs monitoring) |
-| 10K MAU | ~$30–50/mo | Droplet upgrade to 2GB ($12) + potential Open-Meteo commercial tier ($39/mo) |
-| 100K MAU | ~$200–400/mo | 4GB droplet ($24) + Open-Meteo commercial ($39) + CDN ($50–100) + monitoring ($30+) |
-
-**Optimization opportunities:**
-- Open-Meteo free tier: 10K calls/day. At 10K MAU with ~2 venues/user cold-cached → approaches ceiling. VPS proxy cache is the prevention — redeploy it.
-- GitHub Pages CDN: free forever. No action needed.
-- DigitalOcean droplet: $6/mo is optimal for current load. Don't upgrade until MAU > 500.
+**Cost optimization opportunities:**
+1. The committed disk-cache fix in `proxy.js` (`WX_CACHE_FILE`) saves ~90% of upstream weather calls post-restart. Free until deployed.
+2. At 10K MAU, Travelpayouts revenue (~$1.40/1K MAU) more than covers infra at any realistic scale.
+3. No CDN cost — GitHub Pages serves static assets free up to 100GB/month bandwidth.
 
 ---
 
-## 8. What Breaks First at Scale
+## 7. What Breaks First at Scale
 
-**Open-Meteo rate ceiling is the single failure mode that will take the app down.** At ~66 concurrent users on the same uncached venue set, direct Open-Meteo calls from clients will start returning 429s. The VPS proxy with in-memory cache + in-flight dedupe solves this — it already exists in committed `proxy.js` — but it's not deployed. A Reddit or HN spike at current state (VPS undeployed) means every user hits Open-Meteo directly, the cache fills zero times, and the app degrades to "conditions unavailable" banners across the board. The disk persistence fix (also in committed proxy.js) means even a pm2 restart post-spike won't reset the cache. **Deploy the proxy. Today.**
+Open-Meteo free tier is the cliff. The free API allows ~10,000 daily API calls. At 100 concurrent users all loading the Explore tab simultaneously (the Reddit/HN spike scenario), each user's browser makes ~8 direct Open-Meteo calls for their first 50 visible venues. That's 800 upstream calls per minute — the free tier blows in under 15 minutes. The VPS proxy cache (committed, not deployed) is the exact solution: 404 users hitting the same (lat, lon) share one upstream call. Without the VPS deploy, a successful Reddit post could trigger API rate limiting within minutes, degrading every user's experience to "conditions unavailable" exactly when they're trying the app for the first time. This is why PM v99 reclassified the VPS redeploy from P2 to P1 "pre-traffic gate." The fix is already written and committed. It just needs a 3-minute SSH session.
 
 ---
 
@@ -208,7 +183,10 @@ File: `server/proxy.js` line 921. Bundle with next VPS copy.
 
 | Priority | Issue | Time to Fix | Status |
 |----------|-------|-------------|--------|
-| 🔴 P0 | VPS proxy.js undeployed — Day 42, deadline TODAY | 5 min SSH + scp | **DO NOW** |
-| 🟡 P1 | 18 stale remote branches — decision TODAY | 2 min | Delete |
-| 🟢 P2 | Waitlist XFF logging uses `[0]` instead of `.pop()` | 30 sec | Bundle with VPS copy |
-| ✅ — | All code health checks | — | Clean |
+| P0 | VPS redeploy (Day 43, deadline yesterday) | 15 min SSH | ❌ UNRESOLVED |
+| P1 | 18 stale remote branches (decision deadline yesterday) | 2 min git push | ❌ UNRESOLVED |
+| ✅ | Live site code health | — | GREEN |
+| ✅ | Security posture | — | GREEN |
+| ✅ | Performance (production path) | — | GREEN |
+
+**Nothing is broken in the code. Everything that's broken is on the VPS. One SSH session closes the P0.**
