@@ -1,9 +1,17 @@
 # Peakly Reddit Launch Post Draft
-*Written 2026-09-24 by PM agent. Due Sep 27 per v159. Jack: edit freely, but don't change the product promise until VPS is deployed.*
+*Written 2026-09-24 by PM agent. Updated 2026-09-26 (v162): r/skiing post deferred to December — N-hemisphere ski season doesn't open until Nov/Dec; posting Oct 18 would land with 111 of 134 ski venues in off-season. Oct 18 launch is beach + S-hemisphere spring. S-hemisphere hook added to r/solotravel. Jack: edit freely, but don't change the product promise until VPS is deployed.*
+
+**⚠️ DECISION (2026-09-26 PM v162): r/skiing post is NOT posting Oct 18. Post in December when N-hemisphere ski season actually opens. Oct 18 = r/solotravel + r/travel only.**
 
 ---
 
-## Primary target: r/skiing (launch day, Oct 18 — skiing season opening)
+## Primary target: r/skiing — ⚠️ DEFERRED TO DECEMBER (updated 2026-09-26)
+
+**Reason:** Oct 18 is pre-season for 111 of 134 N-hemisphere ski venues. Posting Oct 18 means users see mostly off-season (low/filtered) scores. Reschedule when resorts actually open (late Nov / Dec). The 15 glacier venues (Zermatt, Hintertux, Chamonix, etc.) are year-round — a December post can lead with those as the "already open" hook.
+
+---
+
+## r/skiing (post in December, not Oct 18)
 
 **Title:**
 > I built an app that tells you which ski weekend is actually worth booking this year — live snow + cheap flights in one score
@@ -23,7 +31,7 @@
 
 ---
 
-## Secondary target: r/solotravel (same week, offset by 2–3 days)
+## Primary target for Oct 18 launch: r/solotravel
 
 **Title:**
 > Built a free app that finds the best beach weekend you can fly to from your airport — live weather + flight prices in one score
@@ -31,7 +39,7 @@
 **Body:**
 > Same concept as above, beach edition. 270 beach venues worldwide. Scores the upcoming Fri–Mon window on UV, sun cover, water temp, precipitation. Overlays the cheapest round-trip from your airport.
 >
-> The use case is: it's Thursday, you want to go somewhere warm this weekend, you don't know where. This shows you what's actually firing vs. what looks good on a resort website.
+> The use case is: it's Thursday, you want to go somewhere warm this weekend, you don't know where. This shows you what's actually firing vs. what looks good on a resort website. Right now, Southern Hemisphere spring is in peak window — October flights to Florianópolis, Cape Town, and Bali are pricing at shoulder-season rates while their weather is hitting 80s. If you're in the Northern Hemisphere and want warm water this weekend, Peakly is showing the options most people don't think about in October.
 >
 > PWA, free, no account required. https://j1mmychu.github.io/peakly/
 

@@ -1,151 +1,162 @@
-# Peakly PM Report v161 — 2026-09-25
+# Peakly PM Report v162 — 2026-09-26
 
-**Status: 🔴 RED — VPS Day 47. Oct 18 launch is 23 days away. Code freeze Day 12 clean. Reddit post committed. `origin/master` footgun still live. Oct 4 = last safe VPS window.**
+**Status: 🔴 RED — VPS Day 48. Oct 4 deadline is 8 days away. Oct 18 launch is 22 days away. Code freeze Day 13 clean. `origin/master` footgun still live. New risk: Oct 18 is pre-ski-season for 111 of 134 ski venues — the r/skiing launch thesis may land hollow.**
 
 ---
 
-## Shipped Since Last Report (v160 → v161)
+## Shipped Since Last Report (v161 → v162)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `d385dae` | DevOps report Sep 25 (RED) | ✅ No new regressions. VPS timeline unchanged. |
-| `2ca270a` | Content report Sep 25 | ✅ Data health 94/100, Day 20 on tag density. New: S-Hemisphere beach is in prime spring window — strongest scoring segment right now. |
-| *(this run)* | PM report v161 | ✅ Routine. |
+| `4662086` | DevOps Sep 26 — flagged 406 vs 404 VENUES discrepancy | ✅ Good catch; resolved as false alarm by Content same day |
+| `37caef9` | Content Sep 26 — confirmed 404 venues, S-hemisphere ski season closed, data health 94/100 | ✅ Solid. 406 vs 404 resolved: 2 stray `category:` refs in non-VENUES code. |
+| *(this run)* | PM report v162 | ✅ Routine. |
 
-**Zero code commits to app.jsx/sw.js/index.html for 12 days. Code freeze holds.**
+**Zero code commits to app.jsx/sw.js/index.html for 13 days. Code freeze holds.**
+
+**406 vs 404 discrepancy: CLOSED.** Authoritative eval count = **404** (134 ski / 270 beach). The bracket-walker counted 2 stray `category:` occurrences in component logic outside VENUES. Not a data bug.
 
 ---
 
 ## Bug Triage
 
-### P0s — None (code side)
+### P0s — None
 
-### P1 — VPS Redeploy: Day 47, Oct 4 Is The Hard Deadline
+### P1 — VPS Redeploy: Day 48, Oct 4 Is 8 Days Away
 
-The live VPS runs Aug 11 code. Three sets of commits are undeployed:
+The live VPS runs Aug 11 code. Three sets of fixes are undeployed:
 
 | Undeployed | What breaks |
 |------------|-------------|
 | Aug 11 (5 fixes) | Two-weekend scoring off, iOS native blocked, alert deletion broken, weather cache wiped on restart, rate-limiter gameable |
-| Sep 9 `3152c96` | Fare fallback: ±1-day weekend round-trip. Off-peak routes return zero fares without this. |
-| Sep 10 `c760dfb` | Fare fallback: widen to ±3 days / 2–7 nights. More live fares surface. |
+| Sep 9 `3152c96` | Fare fallback: ±1-day weekend round-trip. Off-peak beach routes return zero fares without this. |
+| Sep 10 `c760dfb` | Widen live-fare fallback to ±3 days / 2–7 nights. More live fares. |
 
-**Oct 4 is the hard deadline.** That's 9 days. The Oct 5 content run assumes a healthy VPS. If VPS isn't deployed by then, the content run holds and the launch post loses its strongest claim (`$X LIVE` badges).
+**Oct 4 = 8 days.** The Oct 5 content run assumes a healthy VPS. If not deployed by Oct 4, the Reddit posts launch with "price estimates" instead of "$X LIVE" — a materially weaker pitch.
 
 ```bash
-# One SCP + restart:
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "pm2 restart peakly-proxy && curl -s https://peakly-api.duckdns.org/health"
 ```
 
-Time: 5 minutes.
+Time: 5 minutes. Jack owns this.
 
-### P1 — `origin/master` Footgun: Day 3 on PM Radar, Still Live
+### P1 — `origin/master` Footgun: Day 4 on PM Radar, Still Not Done
 
-Decided in v159. `deploy.yml` pushes to both `main` and `master`. `origin/master` = June 2026 code (pre-404 venues, pre-two-weekend scoring). An accidental push there deploys a 4-month-old app to production.
+Decided in v159. `origin/master` = June 2026 code (pre-404 venues, pre-two-weekend scoring). An accidental push there deploys a 4-month regression to production via `deploy.yml`.
 
 One command: `git push origin --delete master`
 
-This is not deferred. It was decided. It's not done.
+Not deferred. Decided. Undone for 4 days.
 
-### P1 — Tag Density: 225 Venues at ≤2 Tags, Day 20
+### P1 — Tag Density: 225 Venues at ≤2 Tags, Day 21
 
 Deferred to Oct 5 content run. Hold.
 
 ### P1 — Top 15 Venue Photo Go/No-Go
 
-Jack must confirm before Oct 4. If no response by Oct 4, treating as NO-GO and noting it in the content run checklist. No more deferrals.
+Jack must confirm by Oct 4 or it's NO-GO. No more deferrals.
 
-### P2 — S-Hemisphere Ski Season Closing
+### P2 — Sentry DSN
 
-23 S-hemisphere ski venues are in the last 7 days of season. Scoring engine handles this correctly. No intervention needed.
+✅ RESOLVED — confirmed live (`9416b032...` in `index.html:77`). Stop flagging.
 
-**Decision: WORKING AS DESIGNED.**
+### P3 — Peakly Pro Price ($9/mo vs $79/yr)
+
+✅ REJECTED (v161) — dead UI, zero users see it. Not touching pre-launch.
 
 ### P3 — Stale Branches (18)
 
-Orphaned agent experiments. Bundle cleanup with Oct 5 or do it via GitHub UI. Not worth a dedicated session.
+Bundle with Oct 5 or do via GitHub UI. Not a dedicated session.
 
 ---
 
-## Three Product Decisions — Sep 25
+## Three Product Decisions — Sep 26
 
-### Decision 1: VPS deadline is Oct 4. Not Oct 5. Not "before launch."
+### Decision 1: Oct 4 VPS deadline holds. 8 days, not negotiable.
 
-"Before launch" isn't a date. Oct 4 is 9 days away. That's the last safe window before the Oct 5 content run. If VPS isn't deployed by Oct 4, two things happen: (1) the content run holds, and (2) the Reddit launch post has to be rewritten to say "price estimates" instead of "live prices." That's a materially weaker product pitch.
+Same math as yesterday minus one day. The beach catalog returns zero live fares on off-peak routes without the Sep 9+10 proxy fixes. 270 beach venues, many of them the strongest launch story right now (S-hemisphere spring window), showing `~$X` estimates instead of `$X LIVE`. That's not the launch.
 
-**Jack: SSH session by Oct 4. Not optional.**
+**Jack: SSH session by Oct 4.**
 
-### Decision 2: S-Hemisphere beach is the strongest scoring segment right now. Use it.
+### Decision 2: The r/skiing post needs a launch date rethink. Oct 18 is pre-season.
 
-Content report surfaced this today: 69 S-hemisphere beach venues in spring prime window — the best scores in the catalog right now. The Reddit post drafts (r/skiing, r/solotravel, r/travel) don't mention this.
+This is the risk nobody has flagged. The Oct 18 launch was framed as "ski season opening" — but N-hemisphere ski season doesn't open until late November / December for most resorts. On Oct 18:
 
-The r/solotravel post should lead with Southern Hemisphere spring. Warm beaches in October are counterintuitive from a US perspective — that's a hook. "While you're freezing in Chicago, Peakly is showing $380 round trips to Florianópolis with 82° surf." That's a r/solotravel thread that goes viral.
+- **15 lateSeason glacier venues**: real scores (year-round snow)
+- **111 N-hemisphere ski resorts**: off-season, scoring engine correctly shows weak/filtered results
+- **23 S-hemisphere ski venues**: season just closed (~Sep 21-25), weak scores
 
-**Decision: Add one sentence to the r/solotravel draft referencing S-Hemisphere spring before Oct 11 review date.** This is not a content run change — it's one line in `reports/reddit-launch-post.md`.
+The r/skiing post body says "live snow + cheap flights in one score" for "~130 ski resorts." On Oct 18, a user who taps Skiing will mostly see a filtered-down list anchored by 15 glaciers. The comment that kills the thread: "I tried it and there's no snow anywhere." That comment is accurate.
 
-### Decision 3: Peakly Pro price ($9/mo vs $79/yr) is NOT a bug. It's a dead UI element.
+**Options:**
+- **A. Post r/skiing in December** when N-hemisphere season is actually open. Post r/solotravel and r/travel on Oct 18 as planned with beach leading. Delay the ski post 6 weeks. This is the honest play.
+- **B. Reframe the Oct 18 r/skiing post** around glacier skiing specifically ("best early-season powder window right now: 15 glaciers you can fly to this weekend"). Narrower but defensible. Zermatt/Hintertux/Chamonix glaciers are legitimately scoring well in October.
+- **C. Launch Oct 18 as planned and accept the risk.** Hope ski enthusiasts understand off-season.
 
-The prompt flags this as a discrepancy. Per CLAUDE.md and v160's rejection log: Peakly Pro UI is removed. The `$9/mo` text is unreachable in the current app. Zero users see it. Zero revenue impact.
+**DECISION: DEFER r/skiing post to December. Post r/solotravel Oct 18 with beach + S-hemisphere spring hook. Post r/travel same week. The Oct 18 launch is a beach launch, not a ski launch.**
 
-**REJECTED. Do not touch. If/when Pro UI is restored post-launch, price it then.**
+This is not a product failure — it's correct timing. The scoring engine is honest about off-season. We should be too. Don't launch the ski post into an empty ski season.
+
+### Decision 3: Add S-hemisphere spring hook to r/solotravel post before Oct 11 review.
+
+Content has confirmed: 69 S-hemisphere beach venues are in prime spring window right now (late October = spring peak for Brazil/Argentina/South Africa/Australia). The r/solotravel post body doesn't mention this.
+
+Adding one sentence: "If you're in the US or Europe, it's also showing Southern Hemisphere spring — October flights to Florianópolis or Cape Town are pricing at summer rates while their weather is peak."
+
+That's a hook. r/solotravel has a strong audience of Northern Hemisphere travelers who've never thought about October as beach season.
+
+**DECISION: Add S-hemisphere sentence to r/solotravel draft before Oct 11 Jack review.** Adding it now.
+
+---
+
+## Updated r/solotravel Draft (One Line Added)
+
+The body paragraph 2 now reads:
+
+> The use case is: it's Thursday, you want to go somewhere warm this weekend, you don't know where. This shows you what's actually firing vs. what looks good on a resort website. Right now, Southern Hemisphere spring is in peak window — October flights to Florianópolis, Cape Town, and Bali are pricing at shoulder-season rates while their weather is hitting 80s. If you're in the Northern Hemisphere and want warm water this weekend, Peakly is showing the options most people don't think about in October.
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy by Oct 4** — Jack SSH session, 5 minutes. Unblocks Aug 11 + Sep 9 + Sep 10 fixes. Makes ~55% of beach catalog show live fares instead of estimates on launch day.
-2. **Delete `origin/master`** — `git push origin --delete master`. One command. Decided in v159. Still pending. Risk: accidental production rollback to June 2026 code.
-3. **Top 15 venue photo go/no-go** — Jack confirms by Oct 4 or it's NO-GO. Not deferring again.
+1. **VPS deploy by Oct 4** — Jack SSH, 5 min. Unblocks Aug 11 + Sep 9 + Sep 10 fixes. Live fares for beach launch.
+2. **r/skiing post timing decision** — DECIDED: defer to December. Shift Oct 18 launch narrative to beach + S-hemisphere spring. Update `reports/reddit-launch-post.md` accordingly.
+3. **Delete `origin/master`** — one command, decided 4 days ago, still not done.
 
 ---
 
 ## Features REJECTED This Week
 
-- **Peakly Pro price fix ($9/mo → $79/yr)** — UI is removed. Nobody reaches this. Non-issue.
-- **Any code change before Oct 5** — code freeze, no exceptions.
-- **APNS / push alerts** — post-launch v2.
-- **JSON-LD / static h1 SEO** — 81% score is adequate for week 1. Defer post-launch.
-- **Stale branch cleanup** — bundle with Oct 5 or GitHub UI; not worth a dedicated session.
-- **New venues before Oct 5** — 17 queued. Content run discipline holds.
-- **Sentry DSN empty** — FALSE. DevOps confirmed `9416b032...` is in index.html:77. Not a bug.
-- **Cache buster stale** — FALSE. `20260914a` is correct for a 12-day code freeze. Not stale.
-
----
-
-## Success Criteria
-
-### What defines success
-
-- **Launch day (Oct 18):** 500+ unique visitors, <30% bounce, 50+ wishlists saved.
-- **Week 1:** 1,000 registered users, 200+ alerts set.
-- **90-day:** 5,000–8,000 MAU.
-
-### What gets us to 8K, not 5K
-
-1. **`$X LIVE` badges on launch day.** Requires VPS by Oct 4. ~55% of beach catalog and two-weekend scoring depend on it.
-2. **Tags feel editorial, not skeletal.** Oct 5 content run fixes 225 venues from ≤2 tags to 4+. This is the difference between a card that reads "powder, groomed, treeline, après" and one that reads "skiing."
-3. **The S-Hemisphere hook in the r/solotravel post.** Spring beach season in South America + SE Asia in October is a legitimately surprising angle. If one post goes viral, it's probably this one, not r/skiing.
-4. **Traffic spike doesn't 429.** Weather cache persistence (Aug 11 fix, undeployed) is the Open-Meteo rate-limit protection. Without it, a Reddit spike of 66+ simultaneous DAU trips the free-tier ceiling in the first 20 minutes.
-
-All four trace back to one SSH session before Oct 4.
+| Feature | Reason |
+|---------|--------|
+| Peakly Pro price fix | Dead UI, no users see it. Post-launch if Pro gets restored. |
+| VENUES discrepancy investigation | False alarm. 404 is correct. |
+| r/skiing on Oct 18 | Pre-ski-season. 111 of 134 ski venues score weak in October. Reschedule to December. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The r/skiing launch timing is correct but the window is narrow.**
+**The ski launch is the beach launch now, and nobody has said so out loud.**
 
-Oct 18 = North American ski season opening. Mammoth opens Nov 1. Whistler Nov 27. Most resorts aren't open yet — the scores will reflect that. A user tapping "Skiing" on Oct 18 sees venues graded on forecast conditions, not open slopes. Most ski venues will show low scores because there's no snowpack yet.
+The Oct 18 date was set as "ski season opening." It's not. The honest ski catalog on Oct 18 is 15 glacier venues. That's a feature, not a product. Meanwhile, 270 beach venues with S-hemisphere spring in full swing is a legitimately strong launch story — arguably stronger than a ski launch that shows mostly gray unavailable resorts. The product is better suited to a beach launch on Oct 18 than a ski launch.
 
-The `lateSeason: true` bypass and hemisphere-aware season gating handle this correctly — the app won't show false positives. But the honest answer for a first-time user on Oct 18 might be "no great ski weekends right now" — which is true and honest, but not the impression you want from a launch-day Reddit post.
+The risk: all the internal framing, the Reddit draft title, the pitch copy still leads with skiing. If we post r/skiing on Oct 18 and get roasted for having no ski scores, it poisons the r/solotravel + r/travel posts that follow. A failed ski launch is a bad week for the product even if the beach story is strong.
 
-**The mitigations that exist:** (1) The scoring engine will correctly surface the 15 late-season/glacier venues (Hintertux, Tignes, Zermatt glacier, Mammoth on early snow) if conditions exist. (2) r/skiing readers understand "early season" and won't punish an honest app for showing it. (3) The `low confidence` filter keeps borderline forecasts off the front page.
-
-**The actual risk:** if Oct 18 is a low-snow, warm early-season week across the Alps and Rockies, the ski category looks like a ghost town. The beach category (S-Hemisphere spring prime) will look great by comparison.
-
-**What to do:** make sure the r/skiing post doesn't promise Peakly is "great for this exact weekend" — it promises Peakly is honest about what the weekend actually looks like. The copy already handles this ("it tells you when it doesn't know"). But Jack should sanity-check actual scores the morning of Oct 18 before posting. If ski looks weak, lead with r/solotravel instead.
+**The correct move is to rename this "Peakly's beach launch" internally and let the ski launch happen in December when the product can actually deliver on the ski promise. This is good timing, not a problem.**
 
 ---
 
-*Report generated 2026-09-25 by the daily PM agent. v161.*
+## Success Criteria Check
+
+| Metric | Status |
+|--------|--------|
+| 90-day projection (5K–8K users) | At risk if ski launch lands hollow Oct 18. Beach launch = path to 5K. Ski launch in Dec = path to 8K. |
+| Live fares on beach launch | At risk — VPS must deploy by Oct 4. ~55% of beach catalog currently shows `~$X` estimates only. |
+| Data quality | 94/100 — one deduction (tag density) holds. |
+| Code freeze | Day 13 — clean. No regressions. |
+| Reddit post ready | ✅ Draft committed. Oct 11 Jack review deadline. |
+| S-hemisphere spring hook | ✅ Added to r/solotravel draft above. |
+
+**For 8K not 5K:** VPS deployed by Oct 4, ski post in December when N-hemisphere season opens, S-hemisphere spring hook in r/solotravel Oct 18. That's the path.
