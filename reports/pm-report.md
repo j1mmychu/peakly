@@ -1,18 +1,18 @@
-# Peakly PM Report v163 — 2026-09-27
+# Peakly PM Report v164 — 2026-09-28
 
-**Status: 🔴 RED — VPS Day 49. Oct 4 deadline is 7 days away. Oct 18 beach launch is 21 days away. Code freeze Day 14 clean. `origin/master` footgun now Day 5 decided-but-undone. Beach launch framing confirmed — r/skiing to December.**
+**Status: 🔴 RED — VPS Day 50. Oct 4 deadline = 6 days. Oct 18 beach launch = 20 days. New P1 bug: FOR/NAT missing from AP_CONTINENT — 2 Brazilian beach venues invisible to region-filtered search. Code freeze Day 15 clean.**
 
 ---
 
-## Shipped Since Last Report (v162 → v163)
+## Shipped Since Last Report (v163 → v164)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `33a0bc7` | DevOps Sep 27 — closed 406 vs 404 false alarm, confirmed stale branch count 18, flagged GNB/AIRPORT_COORDS gap | ✅ Solid catch on GNB. |
-| `d367d72` | Content Sep 27 — 404 confirmed, GNB blocker surfaced (pre-paste catch, no live bug), Gili Trawangan duplicate flagged | ✅ Good. Pre-paste gap caught before damage. |
-| *(this run)* | PM report v163 | ✅ Routine. |
+| `db7366d` | DevOps Sep 28 — Day 50 VPS red, Sep 9+10 undeployed, 18 stale branches, no regressions | ✅ Routine red flag. |
+| `12d1dde` | Content Sep 28 — **NEW BUG: FOR/NAT missing from AP_CONTINENT** (2 Brazilian venues invisible to region filter), score dropped 93→91, Jericoacoara + Pipa affected | 🔴 **Action required — fix before Oct 18.** |
+| *(this run)* | PM report v164 | ✅ |
 
-**Zero code commits to app.jsx/sw.js/index.html for 14 days. Code freeze holds.**
+**Zero code commits to app.jsx/sw.js/index.html for 15 days. Code freeze holds.**
 
 ---
 
@@ -20,99 +20,116 @@
 
 ### P0s — None
 
-### P1 — VPS Redeploy: Day 49, Oct 4 Is 7 Days Away
+---
 
-Live VPS runs Aug 11 code. Three sets of fixes are committed on `main` but not on the VPS:
+### P1 — FOR/NAT Missing from AP_CONTINENT: New, Fix Today
 
-| Undeployed | What breaks |
-|------------|-------------|
-| Jun 8 | CORS order, rate limit 60→600/min, round-trip filter |
-| Aug 11 (deployed) | Base fixes in production — this is the current VPS binary |
-| Sep 9 `3152c96` | Fare fallback ±1-day weekend RT — off-peak beach routes return null fares |
-| Sep 10 `c760dfb` | Widen fallback to ±3 days / 2–7 nights |
+Content surfaced a real data bug today. `FOR` (Fortaleza) and `NAT` (Natal) are absent from `AP_CONTINENT`. Two live Brazilian beach venues are affected:
 
-**270 beach venues, 21 days to Reddit launch, showing `~$X` estimates instead of `$X LIVE` because the Sep 9+10 proxy fixes aren't deployed.** The beach launch pitch is "best weekend spots + what flights actually cost." Without live fares, that's half a pitch.
+- `beach_jericoacoara` — Jericoacoara Beach, Ceará (via FOR)
+- `beach_pipa_brazil` — Pipa Beach, Rio Grande do Norte (via NAT)
+
+**What breaks:** `AP_CONTINENT[l.ap]` returns `undefined` for both. Any region-filtered Explore search (`AP_CONTINENT[l.ap] === search.continent`) returns false → these venues don't appear. Users filtering by South America / Latin America will never see them.
+
+Both are S-hemisphere tropical beach venues — exactly the inventory that anchors the S-hemisphere spring launch narrative.
+
+**One-line fix. Paste into `AP_CONTINENT` object in app.jsx:**
+
+```js
+FOR:"latam",  // Pinto Martins International, Fortaleza, Brazil
+NAT:"latam",  // Governador Aluízio Alves International, Natal, Brazil
+```
+
+Both airports already in `AIRPORT_COORDS` and `BASE_PRICES` — no crash risk, no migration needed. Content verified this. 5-minute fix.
+
+**This should ship before Oct 18. Two beach venues invisible at launch is not acceptable.**
+
+---
+
+### P1 — VPS Redeploy: Day 50, Oct 4 = 6 Days
+
+Same as every report since August 11. The VPS runs Aug 11 binary. Sep 9+10 fare-fallback commits are not deployed. 270 beach venues will show `~$X` estimates instead of `$X LIVE` at Reddit launch.
 
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "pm2 restart peakly-proxy && curl -s https://peakly-api.duckdns.org/health"
 ```
 
-5 minutes. Oct 4, not later.
-
-### P1 — `origin/master` Footgun: Day 5 Decided, Still Undone
-
-`origin/master` = June 2026 code. `deploy.yml` deploys on push to `main` **and** `master`. An accidental push there ships a 4-month regression to production.
-
-One command: `git push origin --delete master`
-
-This is decided. It's undone because nobody has run the command. It takes 10 seconds.
-
-### P1 — Tag Density (225 Venues at ≤2 Tags): Day 22, Deferred to Oct 5
-
-Content run Oct 5. Hold. Not touching individually.
-
-### P1 — Gili Trawangan Duplicate Title: New Finding, Decide Today
-
-Content surfaced two venues with identical titles:
-- `beach_gilit` — "Gili Trawangan", via LOP (Lombok)
-- `gili-trawangan` — "Gili Trawangan", via DPS (Bali)
-
-Same island, different gateway airports, indistinguishable in search. Users browsing cards will see two "Gili Trawangan" entries and think it's a bug. It's not — but it looks like one.
-
-**DECISION: Rename `beach_gilit` to "Gili Trawangan (Lombok ferry)" in the Oct 5 content session.** DPS via Bali is the dominant entry point; LOP is the direct/cheaper option worth preserving but needs differentiation. One title change. Bundle with Oct 5 venue work.
-
-### P2 — GNB Missing from AIRPORT_COORDS: Pre-Paste Blocker, No Action Required
-
-`GNB` (Grenoble) is in `AP_CONTINENT` but not `AIRPORT_COORDS`. Any venue added with `ap:"GNB"` would crash `flightHours()`. No current venue uses it — Content caught this before it landed. Future Serre Chevalier adds should use `GVA` or `CMF`.
-
-**No launch action. Add GNB coords in `AIRPORT_COORDS` if we ever want direct Grenoble routing.** For now, closed.
-
-### P2 — Sentry DSN
-
-✅ CONFIRMED LIVE (`9416b032...` in `index.html:77`). Stop flagging.
-
-### P3 — Peakly Pro Price ($9/mo vs $79/yr)
-
-✅ REJECTED — dead UI, no users see it. Post-launch if Pro gets restored.
-
-### P3 — Stale Branches (18)
-
-✅ REJECTED — bundle with Oct 5 or GitHub UI. Not a dedicated session.
+Oct 4 is the deadline. 6 days. If it slips past Oct 4, beach launch proceeds with estimate pricing. That's the call.
 
 ---
 
-## Three Product Decisions — Sep 27
+### P1 — `origin/master` Footgun: Day 6 Decided, Still Undone
 
-### Decision 1: Oct 4 VPS deadline stands. This is the last report before I say it failed.
+`origin/master` = June 2026 code. `deploy.yml` deploys on push to both `main` and `master`. One accidental push ships a 4-month regression.
 
-7 days. The last daily report before Oct 4 is Oct 3. If the VPS is still undeployed on Oct 4, the Oct 18 launch proceeds with `~$X` estimates for the majority of beach venues. That's a materially weaker product. The decision is Jack's, the command is documented, the blocker is scheduling. No PM action left.
+```bash
+git push origin --delete master
+```
 
-**Jack: SSH session by Oct 4. The command is in this report. 5 minutes.**
+10 seconds. This has been decided for 6 days.
 
-### Decision 2: Oct 18 is officially a beach launch. Retire the ski framing everywhere.
+---
 
-Confirmed v162 decision. The internal framing and Reddit drafts still partially lead with skiing. That needs to change actively:
+### P1 — Tag Density (225 Venues at ≤2 Tags): Day 23, Deferred to Oct 5
 
-- The `reports/reddit-launch-post.md` title and lead should not reference skiing on Oct 18
-- Any internal references to "ski season launch" or "October = ski opening" are now wrong
-- The Oct 18 pitch is: 270 beach venues + S-hemisphere spring window + live fares
+Hold. Bundle with Oct 5 session. Not touching individually before then.
 
-**DECISION: Jack reviews `reports/reddit-launch-post.md` by Oct 11 and confirms beach-first framing is front and center. Any ski reference that appears before paragraph 4 should be moved or cut.**
+---
 
-### Decision 3: Add GNB to AIRPORT_COORDS is a post-launch add, not a launch blocker.
+### P2 — Gili Trawangan Duplicate Title: Decided, Oct 5
 
-The gap exists but no venue uses it. Adding it now is pure scope creep — it enables future venue adds that aren't planned for launch. 
+Rename `beach_gilit` to "Gili Trawangan (Lombok ferry)". Bundle with Oct 5.
 
-**DECISION: DEFER GNB AIRPORT_COORDS addition to post-launch (December ski venue expansion session). The pre-paste check in the Content workflow is sufficient protection.**
+---
+
+### P3 — Stale Branches (18)
+
+REJECTED — Oct 5 GitHub UI cleanup.
+
+### P3 — Peakly Pro Price ($9/mo vs $79/yr)
+
+REJECTED — dead UI. Post-launch if Pro revives.
+
+### P3 — Sentry DSN
+
+✅ CONFIRMED LIVE. Stop flagging.
+
+---
+
+## Three Product Decisions — Sep 28
+
+### Decision 1: FOR/NAT AP_CONTINENT gap ships before Oct 18 — ideally this week.
+
+This is the first code change warranted since the Sep 14 freeze. It's a 5-minute one-line paste to `AP_CONTINENT`, no logic change, no scoring impact. Two Brazilian beach venues invisible to region search at launch is the kind of bug you discover on launch day when someone posts "I searched South America and got nothing interesting." Fix it before that.
+
+**DECISION: Apply the FOR/NAT fix in the next code touch. This is the unlock to end code freeze — nothing else should queue before this lands.**
+
+### Decision 2: Oct 5 session scope is formally defined, starting now.
+
+Every deferred item is piling into "Oct 5" with no owner, no time estimate, no definition of done. The VPS deadline is Oct 4 (same day). If Oct 5 gets skipped or runs long, the tag gap ships to launch.
+
+**DECISION: Oct 5 scope is fixed as:**
+1. FOR/NAT AP_CONTINENT fix (if not already shipped before then)
+2. Gili Trawangan rename (`beach_gilit` → "Gili Trawangan (Lombok ferry)")
+3. Tag enrichment: top 50 beach venues by region diversity (±2 tags each, targeting ≤2-tag venues first)
+4. Branch cleanup: `git push origin --delete master` + the 18 stale `claude/` branches
+
+Everything else is post-Oct-5. The session has one clear measure of success: data score back to 95+ before Oct 18.
+
+### Decision 3: S-hemisphere spring framing for Oct 18 Reddit post — specific venues, not just a hook.
+
+The r/solotravel post leads with "S-hemisphere spring window." Right call. But a narrative hook only lands if it's backed by specific named venues. "Jericoacoara is at peak right now, $X from Miami" beats "Brazil is spring." The Reddit post needs 2-3 specific venue callouts with current scores + fare estimates, not just regional language.
+
+**DECISION: Jack pulls up the live Explore grid (filtered: Beach → South America) the week of Oct 14 and picks the top 3 highest-scoring S-hemisphere venues. Those 3 go into the Reddit post body by name. No data from me — live scoring is the point.**
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy by Oct 4** — Jack SSH, 5 min. Unblocks live fares for beach launch. 7 days left.
-2. **Delete `origin/master`** — one command, 5 days since decided. This is the easiest P1 on the board and it's still open.
-3. **Reddit post final framing** — Jack review by Oct 11. Beach-first, S-hemisphere spring hook, ski reference moved to footnote or cut.
+1. **FOR/NAT AP_CONTINENT fix** — 5-minute code change, 2 Brazilian beach venues visible at launch. Apply before Oct 5.
+2. **VPS deploy by Oct 4** — Jack SSH, 5 min. Unblocks live beach fares. 6 days.
+3. **Delete `origin/master`** — 10 seconds, 6 days decided, still open. Do this today.
 
 ---
 
@@ -120,22 +137,23 @@ The gap exists but no venue uses it. Adding it now is pure scope creep — it en
 
 | Feature | Reason |
 |---------|--------|
-| Peakly Pro price fix | Dead UI. No users see it. Post-launch only. |
-| Add Serre Chevalier venue pre-launch | GNB not in AIRPORT_COORDS; GVA is 2h45 drive; add post-launch with proper gateway. |
-| GNB AIRPORT_COORDS addition | Enables future venue adds that aren't scoped. Pre-paste check is sufficient. |
-| r/skiing Oct 18 launch | Pre-season. 111/134 ski venues score weak. Defer to December. |
+| Peakly Pro price fix | Dead UI. No users see it. |
+| Add Serre Chevalier pre-launch | GNB not in AIRPORT_COORDS; use GVA or CMF; add post-launch. |
+| GNB AIRPORT_COORDS addition | No live venue uses it. Dec scope. |
+| r/skiing Oct 18 post | Pre-season. 111/134 N-hem ski venues score weak until December. |
+| Any new venue adds before Oct 5 | Tag density is already 55.7% underfilled. Add venues after tags are fixed. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Oct 5 content run is load-bearing and has no documented scope.**
+**The S-hemisphere spring scoring has never been spot-checked with real weather.**
 
-The tag density gap (225 venues at ≤2 tags) has been deferred to "Oct 5 content run" for 22 days. The Gili Trawangan rename is going to Oct 5. Future venue adds like Serre Chevalier are being bundled to Oct 5. Nobody has written down what the Oct 5 session actually is, who runs it, how long it takes, or what its success criteria are.
+The scoring engine handles hemisphere-aware seasonality correctly — `venue.lat < 0` flips the multipliers, S-hem beach venues get a spring bump from Sep onward. But "the scoring is correct" and "the front page looks great for S-hem spring" are not the same thing.
 
-If Oct 5 gets bumped (and it's the same day as the VPS deadline), the tag gap ships to Reddit launch. A venue with tags `["beach", "warm"]` is not a meaningfully filtered search result. The Explore tag filtering is a feature that only works if venues have ≥3-4 meaningful tags. Half the beach catalog is borderline non-functional for tag-based discovery right now.
+Nobody has opened the Explore grid, filtered to Beach → South America, and actually looked at whether the top results are compelling venues with good story and realistic fares. Jericoacoara and Pipa are two of the top candidates for the Reddit callout — and they've been invisible to region-filtered search (the FOR/NAT bug) every time someone checked.
 
-**The correct move: Jack commits to Oct 5 as a 2-3 hour working session, not a daily agent run. Define scope now: (1) tag density for ~50 highest-traffic beach venues, (2) Gili Trawangan rename, (3) branch cleanup. Everything else is deferred to post-launch.**
+If the S-hemisphere spring narrative is the launch hook, someone needs to actually open the app the week of Oct 14, run the South America filter, screenshot what shows up, and validate that it tells the story we're about to post on Reddit. One 10-minute session. No code required. The risk is we post "Brazil is firing right now" and a skeptical Redditor opens the app and sees Iceland at the top.
 
 ---
 
@@ -143,13 +161,13 @@ If Oct 5 gets bumped (and it's the same day as the VPS deadline), the tag gap sh
 
 | Metric | Status |
 |--------|--------|
-| 90-day projection (5K–8K users) | Beach-first launch = path to 5K. Ski in December = path to 8K. |
-| Live fares on beach launch | 🔴 At risk — VPS must deploy by Oct 4. 7 days. |
-| Data quality | 93/100 — tag density deduction Day 22 holds. |
-| Code freeze | Day 14 — clean. No regressions. |
-| Reddit post ready | Draft committed. Oct 11 Jack review deadline. |
-| S-hemisphere spring hook | ✅ In r/solotravel draft. |
-| Beach launch framing | 🟡 In progress — internal framing still partially ski-forward. |
-| Oct 5 scope defined | 🔴 Not documented. Risk item above. |
+| 90-day projection (5K–8K users) | Beach-first = path to 5K. Ski in Dec = path to 8K. |
+| Live fares on beach launch | 🔴 At risk — VPS by Oct 4. 6 days. |
+| Data quality | 91/100 — FOR/NAT gap is P1 fix before launch. |
+| Code freeze | Day 15 clean. FOR/NAT fix is the one warranted change. |
+| Reddit post ready | Draft committed. Jack review + venue callouts by Oct 14. |
+| S-hemisphere spring hook | 🟡 Draft in. Needs specific venue callouts + spot-check. |
+| Oct 5 scope defined | ✅ Defined this report. |
+| origin/master footgun | 🔴 Day 6 decided, undone. |
 
-**For 8K not 5K:** VPS by Oct 4, beach launch Oct 18 with live fares + S-hemisphere hook, ski post December when N-hemisphere opens. That is the path.
+**For 8K not 5K:** VPS Oct 4, FOR/NAT fix before launch, beach launch Oct 18 with live fares + named S-hem venues in the post, ski post December when N-hemisphere opens. That is the path.
