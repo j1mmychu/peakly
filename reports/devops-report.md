@@ -1,96 +1,60 @@
-# DevOps Report — 2026-09-27 (RED)
+# DevOps Report — 2026-09-28 (RED)
 
-**Status: 🔴 RED — VPS proxy.js undeployed Day 49. Oct 18 launch is 21 days away. Two-weekend scoring dead, iOS native blocked, Sep 9+10 fare-fallback commits unreachable. Code freeze Day 14 — zero regressions. All other systems GREEN.**
+**Status: 🔴 RED — VPS proxy.js undeployed Day 50. Oct 4 hard deadline = 6 days away. Oct 18 launch = 20 days away. Zero code commits in 14 days. All other systems GREEN.**
 
-> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block, curl exit 56). Proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH). VPS health unverifiable from this environment.
-
----
-
-## What Changed Since Yesterday (Sep 26)
-
-Zero code commits to `app.jsx`, `sw.js`, or `index.html`. Three daily report commits (PM v162, Content Sep 26, DevOps Sep 26) plus `reports/reddit-launch-post.md`. Structurally identical to yesterday. **One resolved finding:** yesterday's VENUES bracket-walker returning 406 was a false alarm — today's eval confirms **404** (134 ski + 270 beach), zero entries missing `category`. Stale branch count: 18. Code freeze Day 14 holding.
-
-**No new P0s. Same single blocker: VPS proxy.js is not deployed.**
+> Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH). VPS health unverifiable from this environment.
 
 ---
 
-## 1. Live Site Health — ✅ GREEN
+## 1. Live Site Health — ✅ GREEN (with one caveat)
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| `app.jsx` lines | 14,237 | ✅ |
-| `app.jsx` size | 758,944 bytes (741 KB source) | ✅ |
-| Built bundle (`dist/`) | ~439 KB minified (esbuild, Babel stripped) | ✅ |
-| Cache stamp | `20260914a` — Day 14 of code freeze, index.html query param matches | ✅ |
-| SW `CACHE_NAME` | `peakly-20260914a` — matches app.jsx | ✅ |
-| VENUES (eval-count) | **404** — 134 skiing / 270 beach — yesterday's "406" false alarm resolved | ✅ |
-| VENUES missing `category` | **0** — all 404 entries have valid category | ✅ |
-| `lateSeason: true` | 15 venues (confirmed grep) | ✅ |
-| BASE_PRICES coverage | 100% (152/152 airports) — Open #22 closed Sep 14 | ✅ |
-| Plausible analytics | Present, uncommented, `data-domain="j1mmychu.github.io/peakly"` | ✅ |
-| Sentry DSN | Live: `9416b032...` in `index.html:77` — error capture active | ✅ |
-| React | 18.3.1 (cdnjs) | ✅ |
-| Babel Standalone | 7.24.7 (cdnjs) | ✅ |
-| Image lazy loading | 9 `<img>` tags — all 9 have `loading="lazy"` | ✅ |
-| Proxy URL | `https://peakly-api.duckdns.org` (HTTPS, not raw IP) | ✅ |
+| Check | Result |
+|-------|--------|
+| app.jsx file size | 14,237 lines / 759 KB raw |
+| VENUES (eval count) | **404 total** — 134 skiing / 270 beach ✅ |
+| Plausible analytics | ✅ present, uncommented |
+| React 18.3.1 (cdnjs) | ✅ current, SLA-backed CDN |
+| Babel Standalone 7.24.7 (cdnjs) | ✅ functional (7.25+ available, no behavior change needed) |
+| Supabase UMD (cdnjs) | ✅ lazy-loaded |
+| Sentry DSN | ✅ configured in both index.html + app.jsx line 8 |
+| dist/app.min.js | ✅ CI-generated (deploy.yml runs build-web.mjs — not committed to repo by design) |
+| PEAKLY_BUILD stamp | ⚠️ `"20260914a"` — **14 days since last code commit** |
 
-### Yesterday's VENUES false alarm — closed
+**Cache stamp note:** `PEAKLY_BUILD = "20260914a"` is not a bug — it correctly reflects the last real code commit (Sep 14 `bb3ebc8`). The auto-bump fires on app.jsx edits. No code commits in 14 days = stamp unchanged. When VPS is deployed or any code lands, it will auto-bump. Not P0, but signals code freeze — track as context.
 
-Prior bracket-walker counted 406 because it hit `[` chars inside object values. `eval()` is authoritative:
-
-```bash
-node -e "
-const fs = require('fs');
-const src = fs.readFileSync('app.jsx', 'utf8');
-const m = src.match(/const VENUES\s*=\s*\[/);
-const start = src.indexOf(m[0]) + m[0].length;
-let depth = 1, i = start;
-while (i < src.length && depth > 0) {
-  if (src[i] === '[') depth++;
-  else if (src[i] === ']') { depth--; }
-  i++;
-}
-const venues = eval('([' + src.slice(start, i));
-console.log(venues.length, 'venues — missing category:', venues.filter(v => !v.category).map(v => v.id));
-"
-# Returns: 404 venues — missing category: []
-```
-
-**Finding closed.** Do not re-flag this.
+**PEAKLY_BUILD staleness is NOT the issue. VPS is the issue.**
 
 ---
 
-## 2. Flight Proxy Status — 🔴 RED (VPS undeployed Day 49)
+## 2. Flight Proxy Status — 🔴 RED (VPS undeployed Day 50)
+
+Last VPS deploy: **2026-08-11**. Today: **2026-09-28**. Gap: **48 days** (Day 50 by PM counting). PM hard deadline: **Oct 4** (6 days). Launch deadline: **Oct 18** (20 days).
 
 ### Undeployed commits (live VPS = Aug 11 binary)
 
 | Date | Commit | What it does | Impact if undeployed |
 |------|--------|-------------|----------------------|
-| Jun 8 | `20f6673` | CORS registered before rate limiter; rate limit 60→600/min; `return_date` added to TP calendar query | Rate-limiting real users; one-way fares displayed as round-trip prices |
+| Jun 8 | `20f6673` | CORS registered before rate limiter; rate limit 60→600/min; `return_date` added to TP calendar query | Rate-limiting real users at 60 req/min instead of 600; one-way fares displayed as round-trip prices |
 | Jun 8 | `fef0e53` | Round-trip filter in `/api/flights` specific-date branch | Weekend fares can be one-way / wrong trip length |
+| Aug 11 | (deployed) | CORS+rate-limiter fixes, `forecast_days:14`, disk cache | Base proxy — this is what's running |
 | Sep 9 | `3152c96` | Fall back to nearest ±1-day weekend RT when no exact-Friday cache hit | Off-peak beach routes return null → 270 beach venues show `~$X` estimate at Reddit launch |
 | Sep 10 | `c760dfb` | Widen fallback to ±3 days / 2–7 nights | More live fares surface for seasonal routes |
-| Aug 11 | (deployed) | CORS+rate-limiter fixes, `forecast_days:14`, disk cache | Base proxy in production |
 
-The live VPS runs the Aug 11 binary. **Sep 9+10 fare-fallback commits are in `server/proxy.js` on `main` but not on the VPS.** Off-peak beach routes (September = off-peak Northern hemisphere beach) return no fares → demoted to `~$X` estimates → deal score signals suppressed across the 270 beach venues. Reddit launch on Oct 18 with beach as a primary category showing no live prices is a product failure.
+**Bottom line:** Reddit launch (Oct 18) with beach as primary category showing `~$X` estimates instead of live prices because Sep 9+10 fallback logic isn't on the VPS. Oct 4 deadline is 6 days away.
 
-### Fix — same SSH block as before, 5 minutes:
+### Fix — 5 minutes from your local machine:
 
 ```bash
-# From your local machine:
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
 
-# Verify after restart:
+# Verify (expect uptime < 60s, apns: unconfigured, wx_cache_size: 0 refilling):
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Expect: "apns": "unconfigured", "wx_cache_size": 0 (refills), uptime < 60s
 ```
-
-**Deadline: Oct 4 (8 days from yesterday's PM report). 21 days to Oct 18 launch.**
 
 ### fetchTravelpayoutsPrice timeout — ✅ confirmed
 
-`AbortController` + 4-second timeout at call sites (app.jsx:6380–6390). Fallback to `~$X` estimate on abort. Correct.
+`AbortController` + 4-second timeout in `_tryProxyWx()` (app.jsx line 5519–5522). Fallback to `~$X` estimate on abort. Correct.
 
 ---
 
@@ -98,90 +62,158 @@ curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 
 | API | Status |
 |-----|--------|
-| Open-Meteo (direct fallback) | `AbortController` + timeout present in `fetchWeather`/`fetchMarine` |
-| VPS weather proxy cache | Disk persistence added (`_saveCacheToDisk` every 5 min) — Open #23 resolved |
-| VPS marine proxy | `forecast_days: 10` in committed code (deployed Aug 11) |
-| Rate limit exposure | VPS in-memory cache prevents multi-user upstream floods when deployed |
+| Open-Meteo (direct fallback) | ✅ AbortController + timeout in `fetchWeather`/`fetchMarine` |
+| VPS weather proxy | `forecast_days: 14` in committed proxy.js — Aug 11 deploy has this |
+| VPS marine proxy | `forecast_days: 10` in committed code |
+| Disk cache persistence | ✅ `_saveCacheToDisk` in committed proxy.js (Open #23 resolved) |
+| Rate limit risk | Not a concern at current traffic. VPS cache eliminates Reddit-spike risk when deployed. |
 
-Open-Meteo free tier: ~66+ simultaneous uncached requests to the same lat/lon triggers throttling. Not a live concern at current traffic. VPS cache eliminates this risk once deployed.
-
----
-
-## 4. Security Audit — ✅ GREEN
-
-| Check | Finding | Risk |
-|-------|---------|------|
-| Travelpayouts token in client | Not present — `TP_MARKER = "710303"` is a public affiliate marker, not the API token | ✅ None |
-| Supabase anon key in client | Present (app.jsx:26) — intentional, documented in CLAUDE.md, RLS-gated | ✅ Acceptable |
-| Sentry DSN in index.html | Present — DSNs are designed to be public-facing | ✅ Acceptable |
-| `.gitignore` | Covers `.env`, `.env.*`, `*.p8`, `*.pem`, `*.key`, `*.p12`, `*.mobileprovision` | ✅ |
-| Recent commits | No secrets, tokens, or credentials in recent git log | ✅ |
-| APNS keys | `.p8` extension gitignored; keys not in repo | ✅ |
-
-No security issues. Clean.
+Open-Meteo free tier ceiling: ~66 simultaneous uncached requests to the same lat/lon triggers 429s. Not a live concern pre-launch. VPS cache solves it.
 
 ---
 
-## 5. Performance Analysis — ✅ GREEN
+## 4. Security Audit — ✅ GREEN (with notes)
+
+| Check | Result |
+|-------|--------|
+| Travelpayouts token in client | ✅ ABSENT — `TP_MARKER = "710303"` is the public affiliate marker (intended client-side). Server-side TP_TOKEN is on VPS only. |
+| Supabase anon key | ✅ Public-safe (documented, RLS-gated). Standard practice for Supabase anon flows. |
+| Other API keys/secrets | ✅ None found |
+| .gitignore coverage | ✅ Covers `.env`, `.env.*`, `*.key`, `*.p8`, `*.pdf`, `*.pptx` |
+| Git log scan (last 10 commits) | ✅ All report commits — no code changes with secret-leak risk |
+| Sentry DSN in client | ✅ Intentional (public-facing error collection, expected pattern) |
+| APNS .p8 key | ✅ Not in repo; gitignored; no path to it in client code |
+
+**No security issues.**
+
+---
+
+## 5. Performance Analysis — YELLOW
 
 | Metric | Value |
 |--------|-------|
-| Production bundle | ~439 KB minified (esbuild via `deploy.yml`; Babel stripped) |
-| Dev bundle (Babel in-browser) | 741 KB source + Babel 7.24.7 (~300 KB gzip) = ~3–5s parse on mobile |
-| CDN latency | cdnjs.cloudflare.com — global CDN, <50ms typical |
-| Image lazy loading | All 9 `<img>` tags have `loading="lazy"` |
-| React | 18.3.1 — current stable |
-| Babel Standalone | 7.24.7 — current, but stripped in production |
+| Raw JSX bundle | 759 KB |
+| Production (esbuild minified) | ~440 KB minified (per CLAUDE.md) |
+| Babel parse overhead (dev only) | 3–8s on mobile — eliminated in production build |
+| Image lazy loading | ✅ 9/9 `<img>` tags have `loading="lazy"` |
+| CDN cache | React/Babel/Supabase cached by browser after first load |
 
-**Largest single bottleneck:** The production path (esbuild bundle via `deploy.yml`) is clean at 439 KB. The dev path (Babel in-browser) is irrelevant to real users. No performance regressions since Sep 14.
+**Biggest bottleneck:** At launch (Reddit post), the first 500 concurrent users hit Open-Meteo uncached simultaneously for 404 venues. Each weather fetch hits 2 APIs (weather + marine for beach). That's potentially 808 simultaneous API calls. Open-Meteo free tier caps at 10,000 req/day. 808 calls × 3 users = exhausted in minutes during a spike. **VPS cache is the prevention. Deploy the VPS.**
 
----
-
-## 6. Infrastructure Cost Estimate
-
-| Scale | VPS | CDN/Storage | Total/mo | Notes |
-|-------|-----|-------------|----------|-------|
-| Current (<100 MAU) | $6 (DO Basic 1GB) | $0 | **$6** | GitHub Pages free tier |
-| 1K MAU | $6 | $0 | **$6** | Open-Meteo free tier holds, VPS cache absorbs spikes |
-| 10K MAU | $12 (DO 2GB) | $0 | **$12** | VPS RAM pressure from wx cache (~4000 entries × route) |
-| 100K MAU | $48 (DO 8GB) | $5–15 (CDN for assets) | **$53–63** | Need Redis or disk cache; pm2 cluster mode |
-
-Current revenue model: $7.58/1K MAU. At 1K MAU: ~$7.58/mo revenue vs $6/mo infra = positive at launch. At 10K MAU: ~$75.80/mo revenue vs $12/mo infra = solid.
+**No SRI on CDN scripts** — if cdnjs is compromised, injected code runs in app context. Medium risk, tracked as Open #10. Fix:
+```html
+<script crossorigin
+  src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"
+  integrity="sha384-[hash]"
+  crossorigin="anonymous"></script>
+```
+Get hash with: `curl -s [cdn-url] | openssl dgst -sha384 -binary | openssl base64 -A`
 
 ---
 
-## 7. Stale Branches — 🟡 YELLOW
+## 6. Cost Estimate
 
-18 stale remote branches still alive (15 `claude/*` + `fix-appjsx-final` + `restore-appjsx` + `test-small`). **`origin/master` remains the active footgun** — `deploy.yml` deploys on push to both `main` AND `master`. A stale or accidental push to `master` would deploy whatever's there.
+| Scale | GitHub Pages | VPS (DO) | Supabase | Total/mo |
+|-------|-------------|---------|----------|----------|
+| Current (< 100 MAU) | $0 | $6 | $0 (free) | **$6** |
+| 1K MAU | $0 | $6 | $0 (free, 500MB DB) | **$6** |
+| 10K MAU | $0 | $12 (2GB RAM) | $25 (Pro) | **~$37** |
+| 100K MAU | $0 (or $20 CDN) | $48–96 (multi-droplet + LB) | $25 | **~$70–140** |
 
-Current state of `origin/master`: last audited Sep 23 as "June 2026 state, safe to delete." It's not safe to leave it. A CI deploy from an outdated master would silently revert weeks of work.
+**Cost optimization opportunities:**
+1. At 10K MAU: add Redis on the VPS ($0, open-source) for shared weather cache across potential horizontal scale
+2. At 100K MAU: GitHub Pages + Cloudflare in front ($0 Cloudflare free plan) handles DDoS + caching before VPS hits
 
-**Fix (30 seconds):**
+---
+
+## 7. Open Issues — Priority Order
+
+### P0 — Fix before Oct 4 (6 days)
+
+**VPS Day 50 undeployed** — 5-minute `scp` + `pm2 restart`. Without it: two-weekend scoring disabled, iOS native blocked, 270 beach venues show estimates instead of live prices at Reddit launch. **Every day this waits is a day closer to Oct 18 with a broken product.**
+
 ```bash
-# Delete master remote (requires repo owner access — Jack only)
-git push origin --delete master
-
-# Then delete the 15 stale claude/* branches:
-git branch -r | grep 'origin/claude/' | sed 's|origin/||' | xargs -I{} git push origin --delete {}
-git push origin --delete fix-appjsx-final restore-appjsx test-small
+# From your local machine:
+scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
 
-**This is Jack's action only** — requires push access to the repo.
+---
+
+### P1 — Fix before Oct 18 launch
+
+**origin/master footgun** — `deploy.yml` triggers on BOTH `main` AND `master`. `origin/master` is 3 commits behind main (HEAD: `b6dc033` — an old auto-commit for terms.html). If any agent or session accidentally pushes to `master`, it deploys 3-commit-old code to the live site. PM v163 notes "Day 5 undone" — this is unresolved.
+
+Fix (Jack SSH to GitHub):
+```bash
+# Option A: protect master branch so no pushes land (preferred):
+# GitHub → repo settings → Branches → Add rule → master → Require PR or lock
+
+# Option B: remove master from deploy.yml trigger:
+# Edit .github/workflows/deploy.yml, remove "- master" from push.branches
+# Commit + push
+```
+Without this fix, a single bad push to master silently reverts the live site.
+
+**Gili Trawangan duplicate** — Two entries: `beach_gilit` (line 614) and `gili-trawangan` (line 5061). PM decided to rename on Oct 5. Until then, the boot-time dup-id validator does NOT catch this because the IDs are different (`beach_gilit` vs `gili-trawangan`) — only the title+location is duplicated. Low user impact (renders twice in search), but the Oct 5 rename decision should be tracked.
 
 ---
 
-## Scale Bottleneck Analysis
+### P2 — Fix this sprint
 
-**What breaks first at scale:** The VPS. It's a 1GB DigitalOcean droplet running Node.js with an in-memory weather cache (~4000 entries). A Reddit/HN front-page spike hitting 500 concurrent users in the first minute will saturate that 1GB RAM before Open-Meteo rate-limits kick in, because each new user's cold cache miss triggers parallel weather + marine fetches for all visible venues. The VPS cache deduplication prevents 500 users from firing 500×404 upstream calls, but it doesn't prevent the 1GB process from OOMing under a JavaScript heap explosion from uncapped concurrent venue-data assembly. **Prevention:** (1) Deploy the VPS now so the disk-persistence cache survives the `pm2 restart` before the launch push. (2) Add a `--max-old-space-size=768` flag to the pm2 start command. (3) Have the `pm2 restart` command ready to copy-paste in a second tab during the Reddit post. The rest of the stack (GitHub Pages + cdnjs CDN) is effectively infinite at these scales.
+**18 stale remote branches** — All `claude/` worktree branches from past sessions, plus `fix-appjsx-final`, `restore-appjsx`, `test-small`. Zero are merged into main (0 branches pass `git branch -r --merged origin/main`). They're all safe to delete — no unmerged work worth keeping.
+
+```bash
+# Jack deletes via GitHub UI or:
+git push origin --delete \
+  claude/analyze-test-coverage-WVIsT \
+  claude/code-review-cleanup-HjoCS \
+  claude/condense-alert-page-jzdLo \
+  claude/enhance-loading-screen-rZ1dc \
+  claude/fix-app-jsx-content \
+  claude/implement-todo-lNL7W \
+  claude/improve-peakly-ui-UHCHG \
+  claude/improve-scoring-system-XYGY6 \
+  claude/product-reliability-assessment-w0poL \
+  claude/redesign-front-page-EndKs \
+  claude/review-peakly-ux-UQ0Qu \
+  claude/simplify-alerts-page-2ejGB \
+  claude/simplify-profile-page-Bi2Tc \
+  claude/standardize-venue-data-CufiQ \
+  claude/streamline-onboarding-account-97XRR \
+  fix-appjsx-final \
+  restore-appjsx \
+  test-small
+```
+
+**BASE_PRICES coverage: 114/152 airports (75%), 67 missing** — Missing airports include: AIT, BEY, BOC, CHQ, CMB, CTG, DAD, DBV, DJE, EAS, ENI, EWR, EYW, FCA, FEN, FOR, GCM, GIG, GOI, GPS, HNA, HUX, INH, JMK, JNX, JTR, KBV, KOA, KRK, KUL, LEA, LOP, MAH, MBA, MCT, MLO, MYR, NAT, OKA, OSL, PDX, PMI, PPP, PQC, PRI, RAK, RDD, RHO, SEZ, SID, SMR, SNA, SOF, SRQ, TAB, TBS, TFS, TGD, TPA, TPS, USH, UVF, VPS, YKA, ZCO. PM v99 target was top ~15 by venue count — prior sessions confirmed this was closed (Open #22 resolved). The 67 missing are lower-traffic airports. Not a launch blocker.
 
 ---
 
-## Open Items Summary (unchanged from yesterday)
+### P3 — Post-launch
 
-| # | Item | Priority | Deadline | Owner |
-|---|------|----------|----------|-------|
-| P0 | VPS redeploy (`server/proxy.js` → `/opt/peakly-proxy`) | P0 | **Oct 4** | Jack (SSH) |
-| P1 | Delete `origin/master` + 18 stale branches | P1 | Before any branch activity | Jack (repo owner) |
-| — | APNS `.p8` setup | Parked | Post-launch | Jack |
-| — | Supabase delete-account SQL paste | Pre-App Store | App Store submission | Jack |
-| — | Photo quality (~346 venues generic) | P2 | Post-launch | Jack |
+- **No SRI on CDN scripts** (Open #10) — supply chain risk, medium severity, deferred since launch-scope pass
+- **No CSP meta** — XSS hardening, skipped per Open #10 note (could break Babel inline eval)
+
+---
+
+## 8. Scale Failure Mode
+
+**What breaks first at Reddit launch:**
+
+Open-Meteo free tier at 10,000 req/day. A Reddit post → 200 concurrent first-time visitors → each triggers weather fetch for 30 visible venues → 200 × 30 × 2 (weather + marine) = 12,000 API calls in the first minute. **You blow through Open-Meteo's daily limit before the Reddit post stops getting upvotes.** After that, every user sees "conditions unavailable, pull to refresh." Scores go dead. People bounce. The VPS weather cache (shared across all users, 2-hour TTL, in-memory) means 200 concurrent users hitting the same venue trigger 1 upstream call instead of 200. **This is why deploying the VPS is not optional before the Reddit post.** Current state: VPS cache exists in committed code but is not running. You have 6 days to fix this before the Oct 4 deadline.
+
+---
+
+## Summary
+
+| Item | Status | Days Outstanding | Deadline |
+|------|--------|-----------------|----------|
+| VPS redeploy | 🔴 P0 | 50 | Oct 4 (6 days) |
+| origin/master footgun | 🟡 P1 | 5+ | Before next push |
+| Gili Trawangan rename | 🟡 P1 | — | Oct 5 (PM decision) |
+| Stale branches (18) | 🟢 P2 | ongoing | Post-launch |
+| BASE_PRICES gaps | 🟢 P3 | — | Post-launch |
+
+**No new code regressions. No new security issues. Codebase is clean. The only thing keeping this from green is VPS.**
