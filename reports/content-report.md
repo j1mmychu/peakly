@@ -1,22 +1,25 @@
-# Peakly Content & Data Report — 2026-09-28
+# Peakly Content & Data Report — 2026-09-29
 
-## Data Health Score: 91/100
+## Data Health Score: 93/100
 
 **Deductions:**
-- −5: 225 venues (55.7%) have exactly 2 tags — editorial minimum is 4. **Day 23 unchanged.** Blocking score from 96.
-- −2: **NEW BUG — FOR (Fortaleza) and NAT (Natal) missing from AP_CONTINENT.** Two live beach venues affected: `beach_jericoacoara` (Jericoacoara Beach) and `beach_pipa_brazil` (Pipa Beach). Both are present in BASE_PRICES and AIRPORT_COORDS, so `getTypicalPrice` exact-match path works. But when falling back (home airport not in BASE_PRICES for that dest), `AP_CONTINENT[ap]` returns `undefined` → generic $800 fallback instead of correct `latam-na` $650. More critically: continent/region filters (`AP_CONTINENT[l.ap] === search.continent`) return false → these two venues are **invisible** to any region-filtered search. Fix: add `FOR:"latam", NAT:"latam"` to AP_CONTINENT. One-line paste, verified both airports are already in AIRPORT_COORDS.
-- −1: Gili Trawangan duplicate (`beach_gilit` + `gili-trawangan`) — PM decision to rename Oct 5, tracked.
+- −5: 225 venues (55.7%) have exactly 2 tags — editorial minimum is 4. **Day 24 unchanged.** Blocking score from 98.
+- −1: Gili Trawangan duplicate (`beach_gilit` + `gili-trawangan`) — PM decision to rename/merge Oct 5, tracked. Both present in VENUES.
+- −1: `app.jsx` unchanged since `96def81` (Sep 14) — Day 15 no code commits. No data quality bug, but venue proposals below assume they'll be added before Oct 18.
 
-**Score change from yesterday:** 93 → 91 (new -2 for FOR/NAT AP_CONTINENT gap, GNB warning cleared since no live venue uses GNB)
+**Score change from yesterday:** 91 → 93 (+2: FOR/NAT AP_CONTINENT false alarm closed by DevOps Sep 29. Both airports confirmed present in quoted-key format `"FOR":"latam"`, `"NAT":"latam"` — runtime-equivalent to unquoted. The -2 penalty applied in yesterday's report is removed.)
 
-**Status since yesterday:**
-- ✅ app.jsx UNCHANGED since `96def81` (Sep 14) — **14 days no code changes**, no regressions
-- ✅ All 404 venues pass brace balance, ID uniqueness, photo uniqueness checks
-- ✅ VPS redeploy still pending (Day 50) — no content blockers added
-- ✅ BASE_PRICES coverage: all 165 venue airports covered
-- ✅ AIRPORT_COORDS: all 165 venue APs have coordinates  
-- ❌ AP_CONTINENT: **2 venue APs missing** — FOR and NAT (new finding today)
+**Status:**
+- ✅ app.jsx UNCHANGED since `96def81` (Sep 14) — braces balanced, smoke green, no regressions
+- ✅ **404 venues** (134 skiing / 270 beach) — confirmed via ID extraction from VENUES array
+- ✅ 0 duplicate venue IDs
+- ✅ 0 duplicate photo URLs
+- ✅ All 165 venue APs present in AIRPORT_COORDS
+- ✅ All 165 venue APs present in BASE_PRICES
+- ✅ All 165 venue APs present in AP_CONTINENT (2 in quoted format: FOR, NAT — runtime-equivalent) 
+- ✅ lateSeason: **15** (10 compact-format + 5 quoted-format — `lateSeason:true` and `"lateSeason": true` both valid, both handled by scoring engine)
 - ✅ GEAR_ITEMS = 0 — Amazon CUT for v1 intact
+- ⚠️ Gili Trawangan duplicate — Oct 5 rename pending
 
 ---
 
@@ -25,36 +28,32 @@
 | Check | Result |
 |-------|--------|
 | Total venues | **404** (134 skiing / 270 beach) |
-| Duplicate IDs | **0** ✅ |
+| Duplicate IDs | **1** ⚠️ — `beach_gilit` + `gili-trawangan` (same island; Oct 5 rename) |
 | Duplicate photo URLs | **0** ✅ |
-| Duplicate titles | **1** ⚠️ (`beach_gilit` / `gili-trawangan`) |
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** ✅ |
 | Missing tags arrays | **0** ✅ |
-| Venues with <2 tags | **0** ✅ |
 | APs missing from AIRPORT_COORDS | **0** ✅ |
-| APs missing from AP_CONTINENT | **2** ❌ — FOR, NAT |
+| APs missing from AP_CONTINENT | **0** ✅ (FOR/NAT in quoted format — confirmed OK) |
 | APs missing from BASE_PRICES | **0** ✅ |
 | GEAR_ITEMS in source | **0** (Amazon cut for v1) ✅ |
+| lateSeason venues | **15** (10 compact, 5 quoted) ✅ |
 
-**FOR / NAT AP_CONTINENT bug — paste-ready fix:**
-
+**FOR/NAT AP_CONTINENT — false alarm closed (DevOps Sep 29):**
+Both airports are present in `AP_CONTINENT` in the quoted-key extended block:
 ```js
-// In AP_CONTINENT object — add before the closing }
-// Verified both are already in AIRPORT_COORDS (no haversine crash risk)
-FOR:"latam",  // Pinto Martins International, Fortaleza, Ceará, Brazil
-NAT:"latam",  // Governador Aluízio Alves International, Natal, Rio Grande do Norte, Brazil
+"FOR":"latam",  // line ~460 of AP_CONTINENT
+"NAT":"latam",  // line ~480 of AP_CONTINENT
 ```
+JavaScript object literals treat quoted and unquoted keys identically. `AP_CONTINENT["FOR"]` returns `"latam"` at runtime. The -2 penalty from yesterday's report is removed. No code change needed.
 
-Affected venues:
-- `beach_jericoacoara` — Jericoacoara Beach, Ceará, Brazil, lat -2.7967, lon -40.5072
-- `beach_pipa_brazil` — Pipa Beach, Rio Grande do Norte, Brazil, lat -6.2276, lon -35.0578
+**Gili Trawangan duplicate — tracking:**
+- `beach_gilit` — DPS gateway, present in VENUES
+- `gili-trawangan` — DPS gateway, also present in VENUES  
+- PM decision (v162, Sep 26): rename `beach_gilit` → `beach_gili_air` (distinct island, Gili Air, 5km south of Trawangan) on Oct 5 to keep both as valid distinct entries. This removes the apparent duplicate and adds geographic accuracy. One-line ID change + title update.
 
-Both are S-hemisphere `beach` venues (lat < 0), so `getSeasonalMultiplier` uses the correct `venue.lat < 0` path and isSouthern is already true — no scoring bug there. The continent-filter invisibility is the primary issue.
-
-**GNB / AIRPORT_COORDS warning (from yesterday):** No live venue uses GNB — issue is only a pre-paste risk for future Serre Chevalier proposals. Use `GVA` or `CMF` for any Briançon-area venue.
-
-**Nusa Penida coverage note:** `beach_nusapenida` (Kelingking Secret Beach, lat -8.834/115.456) and `nusa-penida-bali` (lat -8.727/115.544) are both on Nusa Penida island, ~17km apart. These are two distinct beaches (Kelingking cliffs vs Crystal Bay / general island access). Not a duplicate — intentional multi-beach coverage, same as Boracay's 4 venues or Mykonos' 3. Not flagged.
+**lateSeason count discrepancy resolved:**
+Previous reports counted only `lateSeason:true` (10 compact entries). The catalog also has 5 quoted-format entries: snowbird, zermatt, engelberg, verbier, val-thorens. Both formats are valid JSX/JS. Total: **15 venues** — matching CLAUDE.md. Always count with `grep -c "lateSeason"` (not `grep -c "lateSeason:true"`) to capture both formats, or sum both patterns.
 
 ---
 
@@ -64,97 +63,116 @@ Both are S-hemisphere `beach` venues (lat < 0), so `getSeasonalMultiplier` uses 
 
 ---
 
-## 3. Seasonal Relevance (Sep 28, 2026)
+## 3. Seasonal Relevance (Sep 29, 2026)
 
 | Segment | Hemisphere | Status | Count |
 |---------|-----------|--------|-------|
-| Skiing | N-Hemisphere | **OFF SEASON** — opens Nov–Dec | 111 |
-| Skiing | S-Hemisphere | **FULLY CLOSED** as of today | 23 |
-| Skiing | lateSeason glaciers | **ACTIVE** (snow depth ≥ 0.5m check) | 15 |
+| Skiing | N-Hemisphere | **PRE-SEASON** — 4–8 weeks to first openings | 111 |
+| Skiing | S-Hemisphere | **CLOSED** — all resorts officially closed as of today | 23 |
+| Skiing | lateSeason glaciers | **ACTIVE** — Hintertux (365-day), Saas-Fee (into Oct) | 15 |
 | Beach - Tropical (±23°N) | Global | **IN SEASON** (year-round) | ~163 |
-| Beach - Mediterranean/warm | N-Hemisphere | **SHOULDER PRIME** — warm water, low crowds, deal fares | ~81 |
-| Beach - S-Hemisphere | S-Hemisphere | **SPRING PRIME** — peak scoring Sep–Feb, heating up now | ~69 |
+| Beach - Mediterranean/warm | N-Hemisphere | **SHOULDER PRIME** — warm water, deal fares, low crowds | ~81 |
+| Beach - S-Hemisphere | S-Hemisphere | **SPRING PRIME** — Sep 29 is week 1 of peak spring ramp | ~69 |
 
-**Glacier status today:** Hintertux (3250m) and Saas-Fee (3500m) are the two most reliably open now. The other 13 lateSeason venues are in pre-season training mode — open to coaches/race camps but not reliably scoring high for public booking. The scoring engine handles this correctly via `snow_depth_max >= 0.5m`.
+**S-Hemisphere beach — best time of year for the catalog:**
+Sep 29 starts the best consecutive 8-week window for Southern Hemisphere beach destinations. Brazil (GIG/GRU/FLN/REC), South Africa (CPT), Mauritius (MRU), Seychelles (SEZ), New Zealand (AKL/ZQN), and Australia (SYD) all ramp from shoulder to prime over the next 6–8 weeks. For the Oct 18 Reddit launch, S-Hem beach is a core hook — "S-Hem spring is firing right now."
 
-**S-Hemisphere ski season:** Mt Buller and Mt Hotham (Australia) both close officially Sep 28 (today). All 23 S-Hem ski venues now fully off-season. Expected — scoring system handles correctly.
+**N-Hemisphere ski — correct to show pre-season, not suppress:**
+111 N-hem ski venues score low until Nov–Dec but are correct to stay in the catalog. The `scoreWeekend` engine suppresses off-season venues to the bottom of the Explore grid via the binary off-season cap. Early-opening venues (Tignes opens Oct 26, Val Thorens opens Nov 22, Hintertux/Saas-Fee open now) will start surfacing within 4 weeks.
 
-**Beach front page today (20 days to launch):** Strong. S-Hem spring prime leads: Cape Town, Cape Winelands, Sydney, Fernando de Noronha, Florianópolis, Aitutaki, Bay of Islands NZ. Tropical year-round solid: Maldives, Bora Bora, Cancún corridor, Seychelles, Bali. Mediterranean shoulder excellent timing: Santorini, Mykonos, Formentera, Sardinia, Turkey coast. This is as strong a beach front page as the product will show all year.
-
-**Seasonal alert:** `beach_jericoacoara` (Jericoacoara, Brazil) is currently **invisble** to any continent-filtered search due to the FOR/AP_CONTINENT bug. Sep-Nov is shoulder to peak season for this venue. Fix the AP_CONTINENT entry before launch — 1 line.
+**Glacier status Sep 29:**
+- **Hintertux** (Austria, 3250m): **OPEN** — only 365-day glacier in the Alps. Scoring correctly with `lateSeason:true` + snow depth bypass.
+- **Saas-Fee** (Switzerland, 3500m): **OPEN** — glacier skiing continues through late Oct. Scores correctly.
+- **Les Deux Alpes** (France, 3600m): summer glacier closed ~Sep 7 for maintenance; reopens Nov 22. Scores correctly (no snow depth bypass active until reopening).
+- All 23 S-Hem ski venues: **CLOSED** as of today. Scoring engine suppresses correctly.
 
 ---
 
 ## 4. Content Quality
 
-**Tag distribution (Day 23 — standing issue):**
+**Tag distribution (Day 24 — standing issue):**
 
 | Tag count | Venues |
 |-----------|--------|
 | 0 | 0 |
 | 1 | 0 |
-| **2** | **225 (55.7%)** ← editorial gap, Day 23 |
-| 3 | 14 |
-| 4 | 164 |
-| 5 | 1 |
+| **2** | **225 (55.7%)** ← editorial gap, Day 24 unchanged |
+| 3 | 14 (3.5%) |
+| 4 | 163 (40.3%) |
+| 5+ | 2 (0.5%) |
 
-239 venues have fewer than 4 tags. Tags power search corpus recall and filter pills (Powder Day, Crystal Water, etc.). 56% of venues under-tagged means search returns sparser results than the catalog warrants.
+239 venues have fewer than 4 tags. Tags power search recall, filter chips (Powder Day, Crystal Water, etc.), and `scoreVibeMatch`. The majority of the catalog under-tags means search results are sparser than the venue quality warrants.
 
-**Under-tagged examples:**
-- `beach_jericoacoara` (2 tags): add `Lençóis Maranhenses Nearby, Kitesurf Capital, Remote Adventure, Fortaleza Day Trip`
-- `perissa-beach-santorini` (2 tags): add `Black Sand Beach, Volcanic Coast, Santorini South, Blue Dome Churches`
-- `bigsky` → wait it's `big-sky-montana` (2 tags): add `Biggest Mountain in USA, Lone Peak, Montana Wilds, Uncrowded Runs`
-- `kitzbuehel` (2 tags): add `Hahnenkamm Downhill, Tyrol Austria, Après-Ski Capital, World Cup Circuit`
+**Root cause:** The batch-pasted venues (the ~200-venue expansion in July) were added with minimal tags. Original compact-format venues generally have 4. This is a systematic gap, not individual misses.
 
-**Batching estimate:** ~450 tag additions across 225 venues. Single-commit mass-edit, no architecture change. Only remaining content quality gap before launch.
+**Resolution path:** Single large commit updating `tags` arrays for all 225 venues to 4+ items. ~2 hours of focused editorial work. No architecture change. This is the biggest remaining content gap before launch.
+
+**Under-tagged examples by region (4 tags each needed, currently 2):**
+- `beach_jericoacoara`: add `Lençóis Maranhenses Nearby, Kitesurf Capital, Remote Adventure, Fortaleza Day Trip`
+- `sestriere-it` (proposed today): will be entered with 4 tags ✅
+- `big-sky-montana`: add `Biggest Ski Mountain in USA, Lone Peak, Montana Wilds, Uncrowded Runs`
+- `kitzbuehel`: add `Hahnenkamm Downhill, Tyrol Austria, Après-Ski Capital, World Cup Circuit`
 
 ---
 
 ## 5. Daily Venue Additions
 
-**Context note:** This scheduled prompt references "182 venues, 12 categories." Stale state. Peakly has **2 categories only (skiing and beach)**, **404 venues**, and GEAR_ITEMS is intentionally absent. All proposals use airports already present in both AP_CONTINENT and AIRPORT_COORDS.
+**Context note:** This scheduled prompt was written for an older codebase state (182 venues, 12 categories). Actual state: **404 venues, 2 categories (skiing + beach), GEAR_ITEMS intentionally absent.** All proposals use airports confirmed safe in all three lookups (AP_CONTINENT, AIRPORT_COORDS, BASE_PRICES). None of these were proposed yesterday.
 
-**Strategy today:** 2 beach (S-Hem spring prime, strategic CPT/GIG expansion) + 2 ski (early-season European openers, INN and CMF) + 1 beach (Caribbean year-round gap). All using existing safe airports with verified BASE_PRICES coverage.
+**Strategy today (Sep 29):** 3 beach (S-hem spring prime + year-round Indian Ocean) + 2 ski (Italian Alps + S-hem end-of-season legacy NZ). Targeting underrepresented safe airports: GIG (1 venue), CHC (0 venues), TRN (2 venues), BGI (1 venue), SEZ (1 venue).
 
 ```js
 // PASTE INTO VENUES array — run node scripts/validate-venues.mjs first
 // All 5 airports confirmed in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES
 
-// 1. Boulders Beach, Simon's Town — Cape Town's penguin beach; CPT is only 2 venues
-// S-Hem spring prime, opens to swimming year-round, iconic African penguins
-{id:"boulders-beach-cpt", category:"beach", title:"Boulders Beach", location:"Simon's Town, Cape Town, South Africa", lat:-34.1978, lon:18.4513, ap:"CPT", icon:"🏖️", rating:4.7, reviews:6800, gradient:"linear-gradient(160deg,#0c2030,#1c4870,#3878b8)", accent:"#78b8e0", tags:["African Penguin Colony","Granite Boulders","Cape Peninsula","Simon's Town"], photo:"https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// 1. Arraial do Cabo — Brazil's most crystal-clear water, protected marine reserve
+// GIG gateway (currently only Ipanema). S-Hem spring prime: Sep–Nov ideal window.
+// Distinct from Copacabana (city beach), Búzios (nightlife), and Ipanema (urban).
+// "Brazil's Maldives" — Caribbean-level clarity, UNESCO marine park, snorkeling world-class.
+{id:"arraial-do-cabo-gig", category:"beach", title:"Arraial do Cabo", location:"Rio de Janeiro State, Brazil", lat:-22.9660, lon:-42.0280, ap:"GIG", icon:"🏖️", rating:4.8, reviews:12400, gradient:"linear-gradient(160deg,#061828,#0e3870,#1a70c0)", accent:"#60b4f0", tags:["Brazil's Maldives","Marine Reserve","Crystal Clear Waters","S-Hem Spring Prime"], photo:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// 2. Copacabana Beach — Rio's iconic 4km arc; GIG only has Ipanema so far
-// S-Hem spring ramping (Oct peak), world-famous venue, major user intent
-{id:"copacabana-beach-rio", category:"beach", title:"Copacabana Beach", location:"Rio de Janeiro, Brazil", lat:-22.9709, lon:-43.1823, ap:"GIG", icon:"🏖️", rating:4.8, reviews:29400, gradient:"linear-gradient(160deg,#0a1c38,#1a3a78,#2a6aaa)", accent:"#7ab0e8", tags:["Iconic 4km Arc","Copacabana Palace","Volleyball Capital","New Year Fireworks"], photo:"https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// 2. Akaroa — French colonial harbor on NZ's Banks Peninsula; CHC has ZERO venues currently
+// Volcanic bay 80km from Christchurch. Hector's dolphin swimming, dramatic cliff backdrop.
+// S-Hem spring: Sep–Dec ideal — warm enough to swim, empty before Jan summer crowds.
+// Unique: only French settlement in NZ, some of the world's rarest dolphins swim here.
+{id:"akaroa-banks-peninsula-nz", category:"beach", title:"Akaroa", location:"Banks Peninsula, Canterbury, New Zealand", lat:-43.8033, lon:172.9681, ap:"CHC", icon:"🏖️", rating:4.7, reviews:4200, gradient:"linear-gradient(160deg,#0a1c38,#1a3c7a,#2e6ab8)", accent:"#78b2e4", tags:["French Colonial Village","Hector's Dolphin Swimming","Volcanic Harbour","Banks Peninsula"], photo:"https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// 3. Obergurgl-Hochgurgl — Austria's highest ski village, opens Nov 23 (25 days after launch)
-// INN is safe (4 existing venues). Most snow-sure early-season resort in Europe.
-{id:"obergurgl-hochgurgl-at", category:"skiing", title:"Obergurgl-Hochgurgl", location:"Ötztal Alps, Tyrol, Austria", lat:46.8699, lon:11.0246, ap:"INN", icon:"⛷️", rating:4.8, reviews:8100, gradient:"linear-gradient(160deg,#0c1c36,#1a3c78,#2c6ab8)", accent:"#82b4e8", tags:["Highest Village Austria 1930m","Snow-Sure Early Opener","Top Mountain Linked","Family Friendly Glacier"], photo:"https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// 3. The Crane Beach, Barbados — BGI currently has only Bottom Bay; Crane is very different
+// Often cited as one of the top 10 beaches in the world by Condé Nast.
+// Distinctive pink-coral sand, dramatic cliff backdrop, Atlantic surf side of the island.
+// Year-round Caribbean: Nov–May peak, Oct still warm and uncrowded.
+{id:"crane-beach-barbados-bgi", category:"beach", title:"The Crane Beach", location:"Saint Philip, Barbados", lat:13.0980, lon:-59.4413, ap:"BGI", icon:"🏖️", rating:4.9, reviews:8900, gradient:"linear-gradient(160deg,#0e1c3c,#1e3c7e,#2e6ab8)", accent:"#82b8e8", tags:["Conde Nast Top 10","Pink Coral Sand","Atlantic Cliff Backdrop","Saint Philip Parish"], photo:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// 4. La Plagne / Paradiski — France's massive 225km domain, linked to Les Arcs (already in VENUES)
-// CMF is safe (6 existing venues). Opens Dec 2. Paradiski second-largest linked domain.
-{id:"la-plagne-paradiski-fr", category:"skiing", title:"La Plagne / Paradiski", location:"Tarentaise, Savoie, France", lat:45.5081, lon:6.6783, ap:"CMF", icon:"⛷️", rating:4.7, reviews:11200, gradient:"linear-gradient(160deg,#0e1c3c,#1c3a7e,#2c6ab8)", accent:"#7ab2e6", tags:["Paradiski 225km","Linked to Les Arcs","Belle Plagne Village","Olympic History 1992"], photo:"https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// 4. Sestriere — 2006 Turin Winter Olympics, Via Lattea 400km, first Italian Alps opener
+// TRN currently has Cervinia + Champoluc. Sestriere is different: south-facing, drier,
+// Via Lattea (Milky Way) links to Sauze d'Oulx, Sansicario, Claviere, Montgenèvre (FR).
+// Opens Nov 26. Altitude 2035m, highest ski village in Western Alps.
+{id:"sestriere-it", category:"skiing", title:"Sestriere", location:"Via Lattea, Piedmont, Italy", lat:44.9569, lon:6.8684, ap:"TRN", icon:"⛷️", rating:4.7, reviews:5800, gradient:"linear-gradient(160deg,#0e1a36,#1a3878,#2c68b4)", accent:"#7ab0e4", tags:["Via Lattea 400km","Turin 2006 Olympics","2035m Altitude","Linked to France"], photo:"https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 
-// 5. Búzios / Armação dos Búzios — Brazil's beach peninsula, 23 beaches, 2.5h from Rio
-// GIG gateway. S-Hem spring ramping. Upscale Brazil beach town with international recognition.
-{id:"buzios-brazil-gig", category:"beach", title:"Búzios Peninsula", location:"Rio de Janeiro State, Brazil", lat:-22.7489, lon:-41.8817, ap:"GIG", icon:"🏖️", rating:4.7, reviews:14600, gradient:"linear-gradient(160deg,#0a1e3c,#1a3c7e,#2a6aac)", accent:"#7ab2e6", tags:["23 Beaches Peninsula","Brigitte Bardot Discovery","Rua das Pedras Nightlife","S-Hem Spring Prime"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
+// 5. Anse Georgette, Praslin — Seychelles second island; SEZ has only Anse Source d'Argent
+// Vallée de Mai UNESCO World Heritage (Coco de Mer palm) on same island.
+// Often ranked #1 beach in the world by TripAdvisor, unrestricted public access.
+// Year-round tropical: Apr–May + Oct–Nov are the calmest (flat water, no trade winds).
+{id:"anse-georgette-praslin-sez", category:"beach", title:"Anse Georgette, Praslin", location:"Praslin Island, Seychelles", lat:-4.2833, lon:55.7167, ap:"SEZ", icon:"🏖️", rating:4.95, reviews:3100, gradient:"linear-gradient(160deg,#061018,#0c2848,#1a5890)", accent:"#60a8d8", tags:["Often Ranked World #1","Vallée de Mai UNESCO","Coco de Mer Palm","Unrestricted Access"], photo:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"},
 ```
 
 **Pre-paste checklist:**
 1. Run `node scripts/validate-venues.mjs` with these in `data/venue-candidates.json`
-2. `CPT` (Cape Town) — confirmed in AP_CONTINENT (`africa`) + AIRPORT_COORDS ✅
-3. `GIG` (Rio de Janeiro) — confirmed in AP_CONTINENT (`latam`) + AIRPORT_COORDS ✅
-4. `INN` (Innsbruck) — confirmed in AP_CONTINENT (`europe`) + AIRPORT_COORDS ✅
-5. `CMF` (Chambéry) — confirmed in AP_CONTINENT (`europe`) + AIRPORT_COORDS ✅
-6. **Do NOT use GNB (Grenoble)** — in AP_CONTINENT but MISSING from AIRPORT_COORDS. Use GVA or CMF for Serre Chevalier / Briançon-area venues.
-7. **Do NOT use FOR or NAT** for new venues until AP_CONTINENT fix is applied (adding `FOR:"latam", NAT:"latam"` per §1 above).
-8. **Do NOT use PDL (Azores), MXP (Milan), OSD (Åre-Östersund), PPS (Puerto Princesa)** — in AP_CONTINENT but NOT in AIRPORT_COORDS (same class of bug as GNB).
+2. **GIG** (Rio de Janeiro Galeão) — ✅ AP_CONTINENT(`latam`) + AIRPORT_COORDS + BASE_PRICES confirmed
+3. **CHC** (Christchurch) — ✅ AP_CONTINENT(`oceania`) + AIRPORT_COORDS + BASE_PRICES confirmed; 0 existing venues
+4. **BGI** (Grantley Adams, Barbados) — ✅ All three confirmed; existing venue is `beach_barbados` = Bottom Bay
+5. **TRN** (Turin Caselle) — ✅ All three confirmed; existing venues are `cervinia` + `champoluc-monterosa`
+6. **SEZ** (Mahé, Seychelles) — ✅ All three confirmed; existing venue is `beach_seychelles` = Anse Source d'Argent, La Digue
+7. **Do NOT use GNB** (Grenoble) — missing AIRPORT_COORDS
+8. **Do NOT use PDL, MXP, OSD, PPS** — AP_CONTINENT present but AIRPORT_COORDS missing
+9. **Do NOT use LHR, CDG, BCN, FCO, ATH, MUC** — missing from all three lookups
 
-**Note on Obergurgl timing:** Opens Nov 23 (25 days post-launch). Adding it now means it's in the database when it opens. The off-season binary cap suppresses its score until Nov 23; `lateSeason:true` is NOT added since Obergurgl is a standard-altitude resort that just opens early, not a summer glacier. The scoring engine will correctly begin scoring it once snow_depth data confirms opening.
+**Note on Sestriere photo:** The Unsplash photo above (`1547981609-4b6bfe67ca0b`) is a generic Italian Alps ski photo already in use by `obergurgl-hochgurgl-at` (proposed yesterday). If Jack adds both, swap to a unique Sestriere-specific photo — search "Sestriere ski resort" on Unsplash for a Via Lattea shot.
 
 ---
 
 ## 6. One Observation for PM
 
-**The FOR/NAT AP_CONTINENT gap is a silent filter bug that actively harms two Brazilian beach venues at launch.** Jericoacoara and Pipa Beach — both genuinely world-class beaches in one of the top-traffic Brazilian coastal regions — are invisible to any user who applies a region filter (`latam`/South America) or whose home airport isn't in BASE_PRICES[FOR/NAT] (gets $800 fallback instead of the correct $650 range). The fix is one line in AP_CONTINENT: `FOR:"latam", NAT:"latam"`. It's in the same commit as the next app.jsx change, zero risk. Given that Oct is prime season for Northeast Brazil (Jericoacoara is globally famous for kitesurfing and sunset dunes), fixing this before the Oct 18 Reddit launch would recover two high-quality S-Hem shoulder venues from effective invisibility. Flag for whoever makes the next app.jsx commit.
+**The lateSeason count discrepancy (10 vs 15) was a counting bug in previous reports, not a code regression.** The five "missing" venues (snowbird, zermatt, engelberg, verbier, val-thorens) have `"lateSeason": true` in JSON quoted-key format — the same value, just formatted differently from the seven compact-format venues. Both are valid JavaScript. Both are correctly read by the scoring engine's `venue.lateSeason` property access. The CLAUDE.md count of 15 is correct; reports that said 10 were only counting the compact format. **No action needed.** To avoid future confusion: `grep -c "lateSeason"` (without the `:true` suffix) catches both formats and returns 17 (15 venue entries + 2 scoring-engine reference lines).
+
+**The more important Oct 18 timing observation:** Today is Sep 29, exactly 19 days to launch. The S-Hem spring signal is real and strong — this is the best 8-week window all year for the Brazilian, South African, and NZ beach segments. If the VPS redeploy (Open #19, Day 51) doesn't ship before Oct 18, the live price data (`forecast_days:14` + correct CORS) won't be in place for the launch moment. The Reddit post's hook ("fire this weekend right now") depends on live weekend pricing being accurate. The content is clean; the pipeline is the constraint.
