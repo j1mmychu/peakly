@@ -1,18 +1,18 @@
-# Peakly PM Report v165 — 2026-09-29
+# Peakly PM Report v166 — 2026-09-30
 
-**Status: 🔴 RED — VPS Day 51. Oct 4 deadline = 5 days. Oct 18 beach launch = 19 days. FOR/NAT false alarm CLOSED — data score 93/100, no code change needed. Code freeze Day 16 clean. Single remaining P1: Jack hasn't SSH'd.**
+**Status: 🔴 RED — VPS Day 52. Oct 4 deadline = 4 days. Oct 18 beach launch = 18 days. Code freeze Day 17 clean. S-Hem spring Day 2 of 8-week prime window — launch timing is perfect. Single gate left: Jack's SSH session.**
 
 ---
 
-## Shipped Since Last Report (v164 → v165)
+## Shipped Since Last Report (v165 → v166)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `f4fd173` | DevOps Sep 29 — YELLOW, FOR/NAT false alarm CLOSED (airports confirmed in quoted format), 15 lateSeason verified, VPS Day 51 | ✅ Closed a phantom P1. Good. |
-| `62c7fe6` | Content Sep 29 — data score 93 (+2 from FOR/NAT resolved), Gili rename approach clarified (beach_gilit → beach_gili_air, distinct island), tags still 55.7% gap | ✅ Score recovery. Right. |
-| *(this run)* | PM report v165 | ✅ |
+| `0cf7112` | DevOps Sep 30 — YELLOW, VPS Day 52, 4 days to Oct 4, origin/master footgun Day 8 confirmed undone, 404 venues confirmed, 15 lateSeason confirmed | ✅ Accurate state. |
+| `a07fb2d` | Content Sep 30 — data score 93/100 unchanged, S-Hem spring Day 2 of 8-week prime window documented, Tignes opens Oct 25 (7 days post-launch) | ✅ Seasonal context is launch-relevant. |
+| *(this run)* | PM report v166 | ✅ |
 
-**Zero code commits to app.jsx/sw.js/index.html for 16 days. Code freeze holds.**
+**Zero code commits to app.jsx/sw.js/index.html for 17 days. Code freeze holds. One warranted change (Gili rename) is in Oct 5 scope — not touching before then.**
 
 ---
 
@@ -22,51 +22,42 @@
 
 ---
 
-### P1 — FOR/NAT AP_CONTINENT: CLOSED (false alarm)
+### P1 — VPS Redeploy: Day 52, Oct 4 = 4 Days
 
-v164 flagged this as "new P1 — fix today." DevOps Sep 29 closed it. Both airports ARE present in `AP_CONTINENT` in quoted format (`"FOR":"latam"`, `"NAT":"latam"`). JavaScript treats quoted and unquoted object keys identically at runtime. The 2 Brazilian beach venues are visible and routing correctly. No code change needed.
-
-**No action. Removing from open list.**
-
----
-
-### P1 — VPS Redeploy: Day 51, Oct 4 = 5 Days
-
-Unchanged. The VPS runs Aug 11 binary. Sep 9+10 fare-fallback commits are not deployed. 270 beach venues will show `~$X` estimates instead of `$X LIVE` at Reddit launch. Two-weekend scoring, iOS CORS, alert deletion, and rate limiter fix are all blocked on this one SSH session.
+The number that matters: **4 days**. If Oct 4 passes undeployed, beach launch Oct 18 ships with `~$X` estimate pricing instead of `$X LIVE` on all 270 beach venues. The Reddit post currently says "live prices" — that copy needs to change if VPS misses.
 
 ```bash
 ssh root@198.199.80.21
 cd /tmp && git clone https://github.com/j1mmychu/peakly.git peakly-tmp 2>/dev/null || (cd /tmp/peakly-tmp && git pull)
 cp /tmp/peakly-tmp/server/proxy.js /opt/peakly-proxy/proxy.js
-cd /opt/peakly-proxy && pm2 restart peakly-proxy
-curl -s https://peakly-api.duckdns.org/health
+cd /opt/peakly-proxy && pm2 restart peakly-proxy && curl -s https://peakly-api.duckdns.org/health
 ```
 
-**5 days to Oct 4. If it slips, beach launch proceeds with estimate pricing — that is the explicit fallback decision.**
+**This is the only Jack-action that determines whether launch is "great" or "good."**
 
 ---
 
-### P1 — `origin/master` Footgun: Day 7 Decided, Still Undone
+### P1 — `origin/master` Footgun: Day 8 Decided, Still Undone
 
-`origin/master` = June 2026 code. `deploy.yml` deploys on push to both `main` and `master`. One accidental push ships a 4-month regression. This is decided. It is 10 seconds.
+One accidental push to `master` ships June 2026 code to production. `deploy.yml` deploys both `main` and `master`. This has been decided for 8 days. It is a 10-second command.
 
 ```bash
 git push origin --delete master
 ```
 
-**Day 7. Do this today.**
+**Do this before Oct 5. Before anything else.**
 
 ---
 
-### P1 — Tag Density (225 Venues at ≤2 Tags): Day 24, Deferred to Oct 5
+### P1 — Tag Density (225 Venues at ≤2 Tags): Day 25, Oct 5 Locked
 
-Hold. Oct 5 session. Not touching before then.
+Hold. Oct 5 session. Not touching individually before then.
 
 ---
 
-### P2 — Gili Trawangan Duplicate: Decided, Oct 5
+### P2 — Gili Trawangan Duplicate: Oct 5 Locked
 
-Rename `beach_gilit` → `beach_gili_air` (distinct island, Gili Air, 5km south of Trawangan). Oct 5 session.
+`beach_gilit` → `beach_gili_air` (Gili Air). Oct 5. Already decided.
 
 ---
 
@@ -84,33 +75,33 @@ REJECTED — dead UI. Post-launch if Pro revives.
 
 ---
 
-## Three Product Decisions — Sep 29
+## Three Product Decisions — Sep 30
 
-### Decision 1: FOR/NAT false alarm doesn't get a postmortem — move on.
+### Decision 1: VPS miss on Oct 4 → beach launch still ships Oct 18 with estimate pricing.
 
-v164 called this "the most warranted code change since the Sep 14 freeze" and "apply before Oct 5." It was wrong. DevOps caught it in 24 hours with a direct source read. Two takeaways: (1) always verify with `node -e` before declaring a data bug, (2) the Sep 14 code freeze was the right call and it held. Zero wasted commits.
+The fallback has been stated but never made crisp. Here it is: **if VPS isn't deployed by Oct 4, the Reddit post changes one phrase.** "Cheapest round-trip fare from your airport" stays. "Live prices" becomes "price estimates." That is the only consequence. Beach launch date does not move. The scoring, the S-Hem spring hook, the venue catalog — none of that changes. A miss on VPS is a quality downgrade, not a launch blocker.
 
-**DECISION: No code change. No action. No postmortem. The freeze holds at Day 16.**
+**DECISION: Oct 18 is firm regardless of VPS. Reddit post copy adjusts if VPS misses. Jack: the SSH session is still worth doing — it turns a "good" launch into a "great" one — but Oct 18 does not depend on it.**
 
-### Decision 2: Oct 5 scope is locked — no additions.
+### Decision 2: Tignes opening Oct 25 is NOT a launch hook for Oct 18 — it's a follow-up post.
 
-Oct 5 has: Gili rename, tag enrichment (top 50 beach venues), branch cleanup, `origin/master` delete (if Jack hasn't done it by then). That is a 2-3 hour session. Nothing is being added to it. The data quality gap (55.7% at ≤2 tags) is the only meaningful pre-launch work remaining and it already has a slot.
+Content flagged that Tignes opens Oct 25, 7 days after launch. Tempting to weave into the Oct 18 post ("Tignes opens in 7 days — score your opening weekend"). Don't. The Oct 18 post is beach-first, S-hemisphere spring. Injecting ski preamble dilutes the hook and confuses the audience (r/solotravel doesn't care about Tignes). Tignes is the natural trigger for the r/skiing December post — "the Alpine season just opened, here's where to go."
 
-**DECISION: Oct 5 scope is frozen. Next addition to the roadmap gets a date after Oct 18.**
+**DECISION: Tignes opening Oct 25 is a CUE to start the r/skiing post — publish that post the week of Nov 1, not December. Re-read the r/skiing draft and adjust the opening line to reference Tignes/Val d'Isère opening week.**
 
-### Decision 3: Reddit post is launch-ready — no more pre-launch writing work.
+### Decision 3: Reddit launch post needs Jack's eyes before Oct 11.
 
-`reports/reddit-launch-post.md` is committed. r/solotravel and r/travel posts are drafted. r/skiing deferred to December (correct). The only thing left is Jack inserting 2-3 specific S-hemisphere venue callouts with live scores the week of Oct 14. No more drafting, no more revision from this agent.
+The draft was committed Sep 24 and the agent note says "if unchanged by Oct 15, use this draft verbatim." That's too late. Two things need Jack's review: (1) the S-hem venue callouts — "Florianópolis, Cape Town, and Bali" are placeholders, the post needs venues that are actually scoring high on Oct 18 (check the Explore grid that week); (2) the post voice — this is the first external impression of the product and it needs to sound like a person, not a PM report.
 
-**DECISION: Reddit post is frozen until Jack's Oct 14 review pass. PM agent stops touching it.**
+**DECISION: Jack reviews `reports/reddit-launch-post.md` by Oct 11. Specifically: replace the three venue name-drops with whatever Explore is actually showing as top 3 beach that weekend. Everything else can stay as written.**
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy by Oct 4** — Jack SSH, 5 min. Unblocks live beach fares. 5 days left.
-2. **Delete `origin/master`** — 10 seconds, Day 7 decided, still open. Today.
-3. **Oct 5 session** — Gili rename + tag enrichment (top 50 beach venues) + branch cleanup. That's it.
+1. **VPS deploy before Oct 4** — 4 days left, one SSH session, turns estimate pricing into live pricing at launch.
+2. **Delete `origin/master`** — 10 seconds, prevents a catastrophic regression push. Day 8 decided. Do this today.
+3. **Review Reddit launch post before Oct 11** — replace venue callouts with whatever Explore is actually showing, verify the voice reads human.
 
 ---
 
@@ -118,22 +109,39 @@ Oct 5 has: Gili rename, tag enrichment (top 50 beach venues), branch cleanup, `o
 
 | Feature | Reason |
 |---------|--------|
-| FOR/NAT AP_CONTINENT fix | False alarm. Airports already present. No change needed. |
-| Peakly Pro price fix | Dead UI. No users see it. |
-| New venue adds before Oct 5 | Tag density at 55.7%. Fix tags before adding venues. |
-| r/skiing Oct 18 post | Pre-season for 111/134 venues. December. |
-| JSON-LD structured data | SEO gap, but launch is 19 days out. Post-launch. |
-| Static h1 fallback | Same. Post-launch SEO pass after traffic data. |
+| Add Tignes to Oct 18 launch post | Ski hook belongs in the Dec post, not the beach-first Oct 18 post |
+| Any new venue adds pre-Oct 5 | Tag density already 55.7% underfilled; add venues after tags are enriched |
+| Early Nov r/skiing soft post | Wait for the Dec format with actual N-hem season open; Tignes alone isn't enough |
+| Origin/master footgun "post-mortem" | Just delete it. No retrospective needed on a 10-second fix. |
+| Anything new for Oct 5 scope | Oct 5 scope is locked: Gili rename, tags, branch cleanup, master delete. No additions. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The Oct 5 session has no committed time from Jack.**
+**The launch post goes to Reddit cold, with zero social proof.**
 
-Every piece of pre-launch data work — tag enrichment for 225 venues, Gili rename, branch cleanup — is queued to a single "Oct 5 session." That session has been referenced in PM reports since Sep 26 with no confirmation it's booked. If Jack misses Oct 5 (travel, work, whatever), there is no recovery window before Oct 18. Tag density ships at 55.7%. The Gili duplicate ships. The 18 stale branches ship.
+The r/solotravel post is well-written. The product is real. But Reddit's "I built this" posts land very differently with a 6-month-old account vs. a 6-year-old account with 50K karma. When a low-karma account drops a product link, Reddit's default assumption is spam, regardless of the content quality.
 
-The VPS is the same pattern: decided 51 days ago, not done. The data score gap is 7 points from 100. Neither requires skill — they require 20 minutes of Jack's time. The risk is not technical. It's scheduling.
+Three things that would help — all free, all doable before Oct 18:
+1. **Post in r/solotravel comments a few times before launch.** Just regular participation. Build the history of being a real person who travels, not a bot that showed up to self-promote.
+2. **Screenshot 3-4 actual venue scores from the live app.** Include them in the post body. "Here's what Peakly shows for Cape Town this weekend: [screenshot]" is the difference between "check out my app" and "here's the specific value you get."
+3. **Have a quick-response plan.** Reddit threads die in 2-4 hours. If 10 comments land and there are no replies from the OP for 3 hours, the post is dead. Jack needs to be present for the first 2 hours after posting.
+
+None of this is code. All of it is higher-leverage than any remaining feature work.
+
+---
+
+## S-Hemisphere Spring — Launch Context
+
+Sep 30 = Day 2 of the 8-week prime window for S-Hem beaches. Oct 18 = Day 20. The launch timing is genuinely good — not "good enough," actually good.
+
+- Brazil (12 venues including Florianópolis, Jericoacoara, Pipa): spring prime, FOR/NAT airports confirmed working
+- South Africa (5 venues including Cape Town): spring warming, should be scoring well
+- New Zealand (8 venues): early spring, shoulder pricing
+- Australia (beach venues): warming, shoulder fares
+
+**If the app is good, the timing is right, and the post is human-sounding, Oct 18 can work.**
 
 ---
 
@@ -141,189 +149,13 @@ The VPS is the same pattern: decided 51 days ago, not done. The data score gap i
 
 | Metric | Status |
 |--------|--------|
-| 90-day projection (5K–8K users) | Beach-first = path to 5K. Ski in Dec = path to 8K. |
-| Live fares on beach launch | 🔴 At risk — VPS by Oct 4. 5 days. |
-| Data quality | 93/100 — tag density is the last gap. Oct 5 session. |
-| Code freeze | ✅ Day 16 clean. No warranted code changes pending. |
-| Reddit post ready | ✅ Draft committed. Jack inserts venue callouts Oct 14. |
-| S-hemisphere spot-check | 🟡 Not done. Jack opens app week of Oct 14, filters Beach → South America. |
-| Oct 5 scope | ✅ Locked. No additions. |
-| origin/master footgun | 🔴 Day 7 decided, undone. |
-
-**For 8K not 5K:** VPS Oct 4 → live fares at launch. Oct 5 session → data score 98+ → trust. Oct 18 beach post with named S-hem venues → r/solotravel traffic. December ski post → second wave. That is the 8K path.
-
----
-
-# Peakly PM Report v164 — 2026-09-28
-
-**Status: 🔴 RED — VPS Day 50. Oct 4 deadline = 6 days. Oct 18 beach launch = 20 days. New P1 bug: FOR/NAT missing from AP_CONTINENT — 2 Brazilian beach venues invisible to region-filtered search. Code freeze Day 15 clean.**
-
----
-
-## Shipped Since Last Report (v163 → v164)
-
-| Commit | What | Right call? |
-|--------|------|-------------|
-| `db7366d` | DevOps Sep 28 — Day 50 VPS red, Sep 9+10 undeployed, 18 stale branches, no regressions | ✅ Routine red flag. |
-| `12d1dde` | Content Sep 28 — **NEW BUG: FOR/NAT missing from AP_CONTINENT** (2 Brazilian venues invisible to region filter), score dropped 93→91, Jericoacoara + Pipa affected | 🔴 **Action required — fix before Oct 18.** |
-| *(this run)* | PM report v164 | ✅ |
-
-**Zero code commits to app.jsx/sw.js/index.html for 15 days. Code freeze holds.**
-
----
-
-## Bug Triage
-
-### P0s — None
-
----
-
-### P1 — FOR/NAT Missing from AP_CONTINENT: New, Fix Today
-
-Content surfaced a real data bug today. `FOR` (Fortaleza) and `NAT` (Natal) are absent from `AP_CONTINENT`. Two live Brazilian beach venues are affected:
-
-- `beach_jericoacoara` — Jericoacoara Beach, Ceará (via FOR)
-- `beach_pipa_brazil` — Pipa Beach, Rio Grande do Norte (via NAT)
-
-**What breaks:** `AP_CONTINENT[l.ap]` returns `undefined` for both. Any region-filtered Explore search (`AP_CONTINENT[l.ap] === search.continent`) returns false → these venues don't appear. Users filtering by South America / Latin America will never see them.
-
-Both are S-hemisphere tropical beach venues — exactly the inventory that anchors the S-hemisphere spring launch narrative.
-
-**One-line fix. Paste into `AP_CONTINENT` object in app.jsx:**
-
-```js
-FOR:"latam",  // Pinto Martins International, Fortaleza, Brazil
-NAT:"latam",  // Governador Aluízio Alves International, Natal, Brazil
-```
-
-Both airports already in `AIRPORT_COORDS` and `BASE_PRICES` — no crash risk, no migration needed. Content verified this. 5-minute fix.
-
-**This should ship before Oct 18. Two beach venues invisible at launch is not acceptable.**
-
----
-
-### P1 — VPS Redeploy: Day 50, Oct 4 = 6 Days
-
-Same as every report since August 11. The VPS runs Aug 11 binary. Sep 9+10 fare-fallback commits are not deployed. 270 beach venues will show `~$X` estimates instead of `$X LIVE` at Reddit launch.
-
-```bash
-scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "pm2 restart peakly-proxy && curl -s https://peakly-api.duckdns.org/health"
-```
-
-Oct 4 is the deadline. 6 days. If it slips past Oct 4, beach launch proceeds with estimate pricing. That's the call.
-
----
-
-### P1 — `origin/master` Footgun: Day 6 Decided, Still Undone
-
-`origin/master` = June 2026 code. `deploy.yml` deploys on push to both `main` and `master`. One accidental push ships a 4-month regression.
-
-```bash
-git push origin --delete master
-```
-
-10 seconds. This has been decided for 6 days.
-
----
-
-### P1 — Tag Density (225 Venues at ≤2 Tags): Day 23, Deferred to Oct 5
-
-Hold. Bundle with Oct 5 session. Not touching individually before then.
-
----
-
-### P2 — Gili Trawangan Duplicate Title: Decided, Oct 5
-
-Rename `beach_gilit` to "Gili Trawangan (Lombok ferry)". Bundle with Oct 5.
-
----
-
-### P3 — Stale Branches (18)
-
-REJECTED — Oct 5 GitHub UI cleanup.
-
-### P3 — Peakly Pro Price ($9/mo vs $79/yr)
-
-REJECTED — dead UI. Post-launch if Pro revives.
-
-### P3 — Sentry DSN
-
-✅ CONFIRMED LIVE. Stop flagging.
-
----
-
-## Three Product Decisions — Sep 28
-
-### Decision 1: FOR/NAT AP_CONTINENT gap ships before Oct 18 — ideally this week.
-
-This is the first code change warranted since the Sep 14 freeze. It's a 5-minute one-line paste to `AP_CONTINENT`, no logic change, no scoring impact. Two Brazilian beach venues invisible to region search at launch is the kind of bug you discover on launch day when someone posts "I searched South America and got nothing interesting." Fix it before that.
-
-**DECISION: Apply the FOR/NAT fix in the next code touch. This is the unlock to end code freeze — nothing else should queue before this lands.**
-
-### Decision 2: Oct 5 session scope is formally defined, starting now.
-
-Every deferred item is piling into "Oct 5" with no owner, no time estimate, no definition of done. The VPS deadline is Oct 4 (same day). If Oct 5 gets skipped or runs long, the tag gap ships to launch.
-
-**DECISION: Oct 5 scope is fixed as:**
-1. FOR/NAT AP_CONTINENT fix (if not already shipped before then)
-2. Gili Trawangan rename (`beach_gilit` → "Gili Trawangan (Lombok ferry)")
-3. Tag enrichment: top 50 beach venues by region diversity (±2 tags each, targeting ≤2-tag venues first)
-4. Branch cleanup: `git push origin --delete master` + the 18 stale `claude/` branches
-
-Everything else is post-Oct-5. The session has one clear measure of success: data score back to 95+ before Oct 18.
-
-### Decision 3: S-hemisphere spring framing for Oct 18 Reddit post — specific venues, not just a hook.
-
-The r/solotravel post leads with "S-hemisphere spring window." Right call. But a narrative hook only lands if it's backed by specific named venues. "Jericoacoara is at peak right now, $X from Miami" beats "Brazil is spring." The Reddit post needs 2-3 specific venue callouts with current scores + fare estimates, not just regional language.
-
-**DECISION: Jack pulls up the live Explore grid (filtered: Beach → South America) the week of Oct 14 and picks the top 3 highest-scoring S-hemisphere venues. Those 3 go into the Reddit post body by name. No data from me — live scoring is the point.**
-
----
-
-## This Week's Top 3
-
-1. **FOR/NAT AP_CONTINENT fix** — 5-minute code change, 2 Brazilian beach venues visible at launch. Apply before Oct 5.
-2. **VPS deploy by Oct 4** — Jack SSH, 5 min. Unblocks live beach fares. 6 days.
-3. **Delete `origin/master`** — 10 seconds, 6 days decided, still open. Do this today.
-
----
-
-## Features REJECTED This Week
-
-| Feature | Reason |
-|---------|--------|
-| Peakly Pro price fix | Dead UI. No users see it. |
-| Add Serre Chevalier pre-launch | GNB not in AIRPORT_COORDS; use GVA or CMF; add post-launch. |
-| GNB AIRPORT_COORDS addition | No live venue uses it. Dec scope. |
-| r/skiing Oct 18 post | Pre-season. 111/134 N-hem ski venues score weak until December. |
-| Any new venue adds before Oct 5 | Tag density is already 55.7% underfilled. Add venues after tags are fixed. |
-
----
-
-## One Product Risk Nobody Is Talking About
-
-**The S-hemisphere spring scoring has never been spot-checked with real weather.**
-
-The scoring engine handles hemisphere-aware seasonality correctly — `venue.lat < 0` flips the multipliers, S-hem beach venues get a spring bump from Sep onward. But "the scoring is correct" and "the front page looks great for S-hem spring" are not the same thing.
-
-Nobody has opened the Explore grid, filtered to Beach → South America, and actually looked at whether the top results are compelling venues with good story and realistic fares. Jericoacoara and Pipa are two of the top candidates for the Reddit callout — and they've been invisible to region-filtered search (the FOR/NAT bug) every time someone checked.
-
-If the S-hemisphere spring narrative is the launch hook, someone needs to actually open the app the week of Oct 14, run the South America filter, screenshot what shows up, and validate that it tells the story we're about to post on Reddit. One 10-minute session. No code required. The risk is we post "Brazil is firing right now" and a skeptical Redditor opens the app and sees Iceland at the top.
-
----
-
-## Success Criteria Check
-
-| Metric | Status |
-|--------|--------|
-| 90-day projection (5K–8K users) | Beach-first = path to 5K. Ski in Dec = path to 8K. |
-| Live fares on beach launch | 🔴 At risk — VPS by Oct 4. 6 days. |
-| Data quality | 91/100 — FOR/NAT gap is P1 fix before launch. |
-| Code freeze | Day 15 clean. FOR/NAT fix is the one warranted change. |
-| Reddit post ready | Draft committed. Jack review + venue callouts by Oct 14. |
-| S-hemisphere spring hook | 🟡 Draft in. Needs specific venue callouts + spot-check. |
-| Oct 5 scope defined | ✅ Defined this report. |
-| origin/master footgun | 🔴 Day 6 decided, undone. |
-
-**For 8K not 5K:** VPS Oct 4, FOR/NAT fix before launch, beach launch Oct 18 with live fares + named S-hem venues in the post, ski post December when N-hemisphere opens. That is the path.
+| 90-day projection (5K–8K) | Beach Oct 18 + ski Dec = path to 8K. VPS = live fares = better retention. |
+| Live fares on beach launch | 🔴 At risk — VPS by Oct 4. 4 days. |
+| Data quality | 93/100 — tag enrichment is the Oct 5 job. |
+| Code freeze | Day 17 clean. Oct 5 session is last planned touch before launch. |
+| Reddit post ready | Draft committed. Jack review + venue callouts by Oct 11. |
+| S-Hem spring hook | ✅ Timing is genuinely good. Day 2 of 8-week window at launch = Day 20. |
+| `origin/master` footgun | 🔴 Day 8 decided, undone. 10 seconds. |
+| Reddit social proof | 🔴 Not addressed. See risk section. |
+
+**For 8K not 5K:** VPS by Oct 4. Reddit post with live venue screenshots and Jack present for first 2 hours. Ski post week of Nov 1 when Tignes opens. That is the path.
