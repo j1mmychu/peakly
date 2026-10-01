@@ -1,18 +1,18 @@
-# Peakly PM Report v166 — 2026-09-30
+# Peakly PM Report v167 — 2026-10-01
 
-**Status: 🔴 RED — VPS Day 52. Oct 4 deadline = 4 days. Oct 18 beach launch = 18 days. Code freeze Day 17 clean. S-Hem spring Day 2 of 8-week prime window — launch timing is perfect. Single gate left: Jack's SSH session.**
+**Status: 🔴 RED — VPS Day 53. Oct 4 deadline = 3 days. Oct 18 beach launch = 17 days. Code freeze Day 18 clean. S-Hem spring Day 3 of 8-week prime window. Single gate left: Jack's SSH session.**
 
 ---
 
-## Shipped Since Last Report (v165 → v166)
+## Shipped Since Last Report (v166 → v167)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `0cf7112` | DevOps Sep 30 — YELLOW, VPS Day 52, 4 days to Oct 4, origin/master footgun Day 8 confirmed undone, 404 venues confirmed, 15 lateSeason confirmed | ✅ Accurate state. |
-| `a07fb2d` | Content Sep 30 — data score 93/100 unchanged, S-Hem spring Day 2 of 8-week prime window documented, Tignes opens Oct 25 (7 days post-launch) | ✅ Seasonal context is launch-relevant. |
-| *(this run)* | PM report v166 | ✅ |
+| `2332bab` | DevOps Oct 1 — YELLOW, VPS Day 53, 3 days to Oct 4, origin/master footgun Day 9 confirmed undone | ✅ Accurate state. |
+| `30af139` | Content Oct 1 — data score 93/100 unchanged, S-Hem spring Day 3, Tignes 24 days out | ✅ Seasonal tracking is launch-relevant. |
+| *(this run)* | PM report v167 | ✅ |
 
-**Zero code commits to app.jsx/sw.js/index.html for 17 days. Code freeze holds. One warranted change (Gili rename) is in Oct 5 scope — not touching before then.**
+**Zero code commits to app.jsx/sw.js/index.html for 18 days. Code freeze holds. Oct 5 session (Gili rename, tag enrichment, branch cleanup, master delete) is the last planned touch before launch.**
 
 ---
 
@@ -22,10 +22,13 @@
 
 ---
 
-### P1 — VPS Redeploy: Day 52, Oct 4 = 4 Days
+### P1 — VPS Redeploy: Day 53, Oct 4 = **3 Days**
 
-The number that matters: **4 days**. If Oct 4 passes undeployed, beach launch Oct 18 ships with `~$X` estimate pricing instead of `$X LIVE` on all 270 beach venues. The Reddit post currently says "live prices" — that copy needs to change if VPS misses.
+3 days. Not 4. The window is closing.
 
+DevOps confirmed what's broken for 53 days: two-weekend scoring (week 2 silent null), iOS native proxy calls blocked by CORS, alert deletion silently failing, rate-limit spoofing vector open, Sep 9+10 fare-fallback not upgrading `~$X` to `$X LIVE` on some beach routes.
+
+The fix is 4 commands and ~10 minutes:
 ```bash
 ssh root@198.199.80.21
 cd /tmp && git clone https://github.com/j1mmychu/peakly.git peakly-tmp 2>/dev/null || (cd /tmp/peakly-tmp && git pull)
@@ -33,75 +36,84 @@ cp /tmp/peakly-tmp/server/proxy.js /opt/peakly-proxy/proxy.js
 cd /opt/peakly-proxy && pm2 restart peakly-proxy && curl -s https://peakly-api.duckdns.org/health
 ```
 
-**This is the only Jack-action that determines whether launch is "great" or "good."**
+If git isn't on the VPS:
+```bash
+curl -sL https://raw.githubusercontent.com/j1mmychu/peakly/main/server/proxy.js -o /opt/peakly-proxy/proxy.js
+```
+
+**This is still the only Jack-action that determines whether launch is "great" or "good." 3 days left.**
 
 ---
 
-### P1 — `origin/master` Footgun: Day 8 Decided, Still Undone
+### P1 — `origin/master` Footgun: Day 9 Decided, Still Undone
 
-One accidental push to `master` ships June 2026 code to production. `deploy.yml` deploys both `main` and `master`. This has been decided for 8 days. It is a 10-second command.
+`deploy.yml` deploys both `main` and `master`. One accidental push to `master` ships June 2026 code to production. This is 10 seconds to fix:
 
 ```bash
 git push origin --delete master
 ```
 
-**Do this before Oct 5. Before anything else.**
+**Day 9. Before Oct 5. This is not a codebase question — it's a git command.**
 
 ---
 
-### P1 — Tag Density (225 Venues at ≤2 Tags): Day 25, Oct 5 Locked
+### P1 — Tag Density (225 venues at ≤2 tags): Oct 5 Locked
 
-Hold. Oct 5 session. Not touching individually before then.
+Oct 5 session. Not touching before then. Day 26 of 55.7% under-enriched.
 
 ---
 
-### P2 — Gili Trawangan Duplicate: Oct 5 Locked
+### P2 — Gili Trawangan Duplicate: Oct 5, 4 Days
 
-`beach_gilit` → `beach_gili_air` (Gili Air). Oct 5. Already decided.
+`beach_gilit` → `beach_gili_air` (Gili Air). Oct 5.
 
 ---
 
 ### P3 — Stale Branches (18)
 
-Oct 5 GitHub UI cleanup.
+Oct 5 GitHub UI.
 
 ### P3 — Peakly Pro Price ($9/mo vs $79/yr)
 
-REJECTED — dead UI. Post-launch if Pro revives.
+REJECTED. Dead UI. Zero users to mislead. Post-launch if Pro revives.
 
 ### P3 — Sentry DSN
 
 ✅ CONFIRMED LIVE. Stop flagging.
 
+### P3 — Cache stamp stale at `20260914a`
+
+Expected. Auto-bumps on next code commit. Not a user-facing issue.
+
 ---
 
-## Three Product Decisions — Sep 30
+## Three Product Decisions — Oct 1
 
-### Decision 1: VPS miss on Oct 4 → beach launch still ships Oct 18 with estimate pricing.
+### Decision 1: Oct 5 scope is locked. No additions.
 
-The fallback has been stated but never made crisp. Here it is: **if VPS isn't deployed by Oct 4, the Reddit post changes one phrase.** "Cheapest round-trip fare from your airport" stays. "Live prices" becomes "price estimates." That is the only consequence. Beach launch date does not move. The scoring, the S-Hem spring hook, the venue catalog — none of that changes. A miss on VPS is a quality downgrade, not a launch blocker.
+Oct 5 session is Gili rename + tag enrichment (225 venues, ≤2 tags → target ≥3) + stale branch cleanup + `origin/master` delete. That's a full session. The temptation will be "while I'm in there..." — don't. Every unplanned touch resets the smoke-test clock and risks a code push 13 days before launch.
 
-**DECISION: Oct 18 is firm regardless of VPS. Reddit post copy adjusts if VPS misses. Jack: the SSH session is still worth doing — it turns a "good" launch into a "great" one — but Oct 18 does not depend on it.**
+**DECISION: Oct 5 scope is exactly those four items. Nothing added, nothing substituted. Code freeze resumes Oct 6.**
 
-### Decision 2: Tignes opening Oct 25 is NOT a launch hook for Oct 18 — it's a follow-up post.
+### Decision 2: r/skiing post moves to Nov 1, not December.
 
-Content flagged that Tignes opens Oct 25, 7 days after launch. Tempting to weave into the Oct 18 post ("Tignes opens in 7 days — score your opening weekend"). Don't. The Oct 18 post is beach-first, S-hemisphere spring. Injecting ski preamble dilutes the hook and confuses the audience (r/solotravel doesn't care about Tignes). Tignes is the natural trigger for the r/skiing December post — "the Alpine season just opened, here's where to go."
+Confirmed from v166. Tignes opens Oct 25. The week of Nov 1 is the natural hook — "Alpine season just opened, here's where to go this weekend." This is more timely than a generic December post and catches the early-bird booking window before school holidays inflate fares.
 
-**DECISION: Tignes opening Oct 25 is a CUE to start the r/skiing post — publish that post the week of Nov 1, not December. Re-read the r/skiing draft and adjust the opening line to reference Tignes/Val d'Isère opening week.**
+**DECISION: r/skiing post targets Nov 1 week. Opening line references Tignes/Val d'Isère opening week. Draft needed by Oct 25.**
 
-### Decision 3: Reddit launch post needs Jack's eyes before Oct 11.
+### Decision 3: VPS miss on Oct 4 does not move Oct 18. But it does change the Reddit post copy.
 
-The draft was committed Sep 24 and the agent note says "if unchanged by Oct 15, use this draft verbatim." That's too late. Two things need Jack's review: (1) the S-hem venue callouts — "Florianópolis, Cape Town, and Bali" are placeholders, the post needs venues that are actually scoring high on Oct 18 (check the Explore grid that week); (2) the post voice — this is the first external impression of the product and it needs to sound like a person, not a PM report.
+Carrying forward v166's decision with one addition: the specific copy change if VPS misses. Current draft says "live prices from your home airport." If VPS isn't deployed by Oct 4, that line becomes "estimated prices from your home airport, updated weekly." Not "live." That's the honest fallback.
 
-**DECISION: Jack reviews `reports/reddit-launch-post.md` by Oct 11. Specifically: replace the three venue name-drops with whatever Explore is actually showing as top 3 beach that weekend. Everything else can stay as written.**
+**DECISION: If VPS misses Oct 4, change "live prices" to "estimated prices, updated weekly" in `reports/reddit-launch-post.md` before posting. Jack updates that line when he reviews the draft by Oct 11.**
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy before Oct 4** — 4 days left, one SSH session, turns estimate pricing into live pricing at launch.
-2. **Delete `origin/master`** — 10 seconds, prevents a catastrophic regression push. Day 8 decided. Do this today.
-3. **Review Reddit launch post before Oct 11** — replace venue callouts with whatever Explore is actually showing, verify the voice reads human.
+1. **VPS deploy before Oct 4** — 3 days left. One SSH session. Turns estimate pricing into live pricing at launch. Every day this slips is a day closer to shipping a "good" launch instead of a "great" one.
+2. **Delete `origin/master`** — 10 seconds. Day 9. Do it today, not Oct 5.
+3. **Jack reviews Reddit launch post by Oct 11** — Replace the three venue callouts with whatever Explore is actually showing as top 3 beach that weekend. Verify the voice reads human.
 
 ---
 
@@ -109,39 +121,38 @@ The draft was committed Sep 24 and the agent note says "if unchanged by Oct 15, 
 
 | Feature | Reason |
 |---------|--------|
-| Add Tignes to Oct 18 launch post | Ski hook belongs in the Dec post, not the beach-first Oct 18 post |
-| Any new venue adds pre-Oct 5 | Tag density already 55.7% underfilled; add venues after tags are enriched |
-| Early Nov r/skiing soft post | Wait for the Dec format with actual N-hem season open; Tignes alone isn't enough |
-| Origin/master footgun "post-mortem" | Just delete it. No retrospective needed on a 10-second fix. |
-| Anything new for Oct 5 scope | Oct 5 scope is locked: Gili rename, tags, branch cleanup, master delete. No additions. |
+| Adding scope to Oct 5 session | Session is already full. Code freeze resumes Oct 6; no additions. |
+| New venue adds before Oct 5 | 55.7% of existing venues are tag-underfilled. Add venues after enrichment. |
+| Tignes/ski content in Oct 18 beach post | Wrong audience (r/solotravel doesn't care about Alpine). Ski post is Nov 1. |
+| Any "while I'm in there" app.jsx changes | 18-day code freeze, 17 days from launch. Surgical Oct 5 session only. |
+| Reddit post auto-publishing | Not automating this. Jack posts manually. First impression of the product needs a human present. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The launch post goes to Reddit cold, with zero social proof.**
+**The app doesn't have a single user testimonial, screenshot, or proof point in the Reddit post.**
 
-The r/solotravel post is well-written. The product is real. But Reddit's "I built this" posts land very differently with a 6-month-old account vs. a 6-year-old account with 50K karma. When a low-karma account drops a product link, Reddit's default assumption is spam, regardless of the content quality.
+The launch post draft describes the product accurately. It doesn't show what the product actually does with a live venue. Reddit's "I built this" posts that get traction almost always include a screenshot: "Here's what the app shows for Cape Town this weekend." That screenshot does two things the copy can't: it proves the product is real and functional, and it shows the specific value (a real score, a real price, a real recommendation) before anyone clicks.
 
-Three things that would help — all free, all doable before Oct 18:
-1. **Post in r/solotravel comments a few times before launch.** Just regular participation. Build the history of being a real person who travels, not a bot that showed up to self-promote.
-2. **Screenshot 3-4 actual venue scores from the live app.** Include them in the post body. "Here's what Peakly shows for Cape Town this weekend: [screenshot]" is the difference between "check out my app" and "here's the specific value you get."
-3. **Have a quick-response plan.** Reddit threads die in 2-4 hours. If 10 comments land and there are no replies from the OP for 3 hours, the post is dead. Jack needs to be present for the first 2 hours after posting.
+The post currently asks readers to take it on faith that the scoring is good, the prices are live, and the venues are worth visiting. One screenshot of a high-scoring beach venue with a real weekend score and a real fare eliminates all three objections in a single image.
 
-None of this is code. All of it is higher-leverage than any remaining feature work.
+This is not a code task. It's Jack opening the app on launch weekend, finding the top-scoring venue, and screenshotting the card. 2 minutes of work, potentially the difference between 50 upvotes and 500.
+
+**Add one screenshot to the Reddit post before Oct 18. Specifically: the top-scoring beach venue on the morning of Oct 18.**
 
 ---
 
 ## S-Hemisphere Spring — Launch Context
 
-Sep 30 = Day 2 of the 8-week prime window for S-Hem beaches. Oct 18 = Day 20. The launch timing is genuinely good — not "good enough," actually good.
+Oct 1 = Day 3 of the 8-week prime window. Oct 18 = Day 20. Content confirmed the right venues are in the catalog:
 
-- Brazil (12 venues including Florianópolis, Jericoacoara, Pipa): spring prime, FOR/NAT airports confirmed working
-- South Africa (5 venues including Cape Town): spring warming, should be scoring well
-- New Zealand (8 venues): early spring, shoulder pricing
-- Australia (beach venues): warming, shoulder fares
+- **Brazil (12 venues)**: FOR/NAT confirmed working. Florianópolis, Jericoacoara, Pipa — spring prime.
+- **South Africa (5 venues)**: Cape Town spring warming. Should be top 5 beach on Oct 18.
+- **New Zealand (8 venues)**: Whitehaven Beach-equivalent venues. Early spring, shoulder fares.
+- **Australia (beach)**: Warming. Shoulder fares. Whitsunday Islands positioning.
 
-**If the app is good, the timing is right, and the post is human-sounding, Oct 18 can work.**
+Hintertux glacier is open now (365-day). Saas-Fee closing late October. These two are the only ski venues with honest GO scores right now — the lateSeason flag is doing its job.
 
 ---
 
@@ -149,13 +160,14 @@ Sep 30 = Day 2 of the 8-week prime window for S-Hem beaches. Oct 18 = Day 20. Th
 
 | Metric | Status |
 |--------|--------|
-| 90-day projection (5K–8K) | Beach Oct 18 + ski Dec = path to 8K. VPS = live fares = better retention. |
-| Live fares on beach launch | 🔴 At risk — VPS by Oct 4. 4 days. |
-| Data quality | 93/100 — tag enrichment is the Oct 5 job. |
-| Code freeze | Day 17 clean. Oct 5 session is last planned touch before launch. |
-| Reddit post ready | Draft committed. Jack review + venue callouts by Oct 11. |
-| S-Hem spring hook | ✅ Timing is genuinely good. Day 2 of 8-week window at launch = Day 20. |
-| `origin/master` footgun | 🔴 Day 8 decided, undone. 10 seconds. |
-| Reddit social proof | 🔴 Not addressed. See risk section. |
+| 90-day projection (5K–8K users) | Beach Oct 18 + ski Nov 1 + ski Dec = path to 8K. VPS = live fares = better retention. |
+| Live fares at beach launch | 🔴 At risk — VPS by Oct 4. **3 days**. |
+| Data quality score | 93/100. Tag enrichment is Oct 5. |
+| Code freeze | ✅ Day 18 clean. |
+| Reddit post ready | Draft committed Sep 24. Jack review + venue callouts by Oct 11. Add screenshot Oct 18 morning. |
+| S-Hem spring hook | ✅ Day 3 of 8-week window. Timing is genuinely good. |
+| `origin/master` footgun | 🔴 Day 9 decided, undone. 10 seconds. |
+| Reddit social proof | ⚠️ No testimonials. Add one live screenshot before posting. |
+| r/skiing post | ✅ Targeted for Nov 1. Draft needed by Oct 25. |
 
-**For 8K not 5K:** VPS by Oct 4. Reddit post with live venue screenshots and Jack present for first 2 hours. Ski post week of Nov 1 when Tignes opens. That is the path.
+**For 8K not 5K:** VPS by Oct 4 (live fares). Screenshot in the Reddit post (proves the product is real). Jack present for the first 2 hours post-launch (threads die fast). Ski post Nov 1 when Tignes opens (second wave of traffic). That's the path.
