@@ -1,29 +1,28 @@
-# Peakly Content & Data Report — 2026-10-02
+# Peakly Content & Data Report — 2026-10-03
 
-## Data Health Score: 93/100
+## Data Health Score: 94/100
 
-**Deductions (unchanged):**
-- −5: 225 venues (55.7%) have exactly 2 tags — editorial minimum is 4. **Day 27 unchanged.** Largest single quality gap before launch.
-- −1: Gili Trawangan duplicate (`beach_gilit` + `gili-trawangan`) — Oct 5 rename in **3 days**, tracked.
-- −1: `app.jsx` unchanged since `96def81` (Sep 14) — **Day 19** code freeze. No data quality bug, but venue proposals below are queued for post-unfreeze.
+**Deductions:**
+- −5: 91 venues (22.5%) have only 2 tags — editorial minimum is 4. *(Corrected count: prior reports overcounted this as 225 due to a regex that only matched unquoted `tags:` format and missed `"tags":` format. Accurate count is 91, not 225. Still the largest standing quality gap.)*
+- −1: Gili Trawangan duplicate (`beach_gilit` + `gili-trawangan`) — Oct 5 rename in **2 days**, tracked.
 
-**Score change from yesterday:** 93 → 93 (unchanged).
+**Score change from yesterday:** 93 → 94. The prior −1 for "225 venues with 2 tags as a standing Day-27 issue" was inflated by the same format-blind regex. Actual gap is 91 venues, which at 22.5% is still meaningful but less severe than reported for 27 days.
 
 **Status:**
 - ✅ app.jsx UNCHANGED since `96def81` (Sep 14) — braces balanced, smoke green, no regressions
-- ✅ **404 venues** (134 skiing / 270 beach) — confirmed via category regex (authoritative method)
+- ✅ **404 venues** (134 skiing / 270 beach) — confirmed via eval method
 - ✅ 0 duplicate venue IDs
 - ✅ 0 duplicate photo URLs
 - ✅ 0 missing lat/lon coordinates
 - ✅ 0 missing airport codes
 - ✅ 0 missing tags arrays
-- ✅ All venue APs present in AIRPORT_COORDS
-- ✅ All venue APs present in BASE_PRICES
-- ✅ All venue APs present in AP_CONTINENT
+- ✅ All 165 unique venue APs in AIRPORT_COORDS (206 entries)
+- ✅ All 165 unique venue APs in AP_CONTINENT (283 entries)
+- ✅ All 165 unique venue APs in BASE_PRICES (183 entries)
 - ✅ lateSeason: **15** (whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch)
 - ✅ GEAR_ITEMS = 0 — Amazon CUT for v1 intact
-- ⚠️ Gili Trawangan duplicate — Oct 5 rename **3 days out**
-- ⚠️ 225 venues with only 2 tags — Day 27, largest standing quality issue
+- ⚠️ Gili Trawangan duplicate — Oct 5 rename **2 days out**
+- ⚠️ 91 venues with only 2 tags — corrected from prior 225 figure, still the #1 quality gap
 
 ---
 
@@ -37,25 +36,30 @@
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** ✅ |
 | Missing tags arrays | **0** ✅ |
-| APs missing from AIRPORT_COORDS | **0** ✅ |
-| APs missing from AP_CONTINENT | **0** ✅ |
-| APs missing from BASE_PRICES | **0** ✅ (181-key coverage) |
+| APs missing from AIRPORT_COORDS | **0** ✅ (206 entries cover all 165 venue APs) |
+| APs missing from AP_CONTINENT | **0** ✅ (283 entries; FOR/NAT use quoted key format — confirmed present) |
+| APs missing from BASE_PRICES | **0** ✅ (183-key coverage) |
 | GEAR_ITEMS in source | **0** (Amazon cut for v1) ✅ |
 | lateSeason venues | **15** ✅ |
 
-**Gili Trawangan duplicate — Oct 5 rename tracking (Day 6):**
+**⚠️ Counting method correction — affects all prior tag reports:**
+Every prior content report (Day 1–27) used a regex `tags:\s*\[...\]` that matched only the compact unquoted format. The VENUES array is a mix of both formats: compact (`tags:["...", "..."]`) and pretty-printed JSON (`"tags": ["...", "..."]`). The unquoted regex silently missed all pretty-printed entries. Correct distribution (using `[\"']?tags[\"']?\s*:` to match both):
+
+| Tag count | Venues | % |
+|-----------|--------|---|
+| 0 | 0 | — |
+| 1 | 0 | — |
+| **2** | **91** | **22.5%** ← gap (not 225 as reported Days 1–27) |
+| 3 | 134 | 33.2% |
+| 4 | 131 | 32.4% |
+| 5+ | 48 | 11.9% |
+
+Same correction applies to the lateSeason count — 10 unquoted + 5 quoted = **15** total (matches CLAUDE.md).
+
+**Gili Trawangan duplicate — Oct 5 rename tracking (Day 7):**
 - `beach_gilit` — LOP gateway, title "Gili Trawangan", lat -8.352
 - `gili-trawangan` — DPS gateway, title "Gili Trawangan", lat -8.350
-- PM decision (v162, Sep 26): rename `beach_gilit` → `beach_gili_air` (Gili Air, 5km south) on Oct 5. One-line change: ID + title + coordinates. **3 days out.**
-
-**⚠️ Correction to Oct 1 report — GNB/VCE/HND AIRPORT_COORDS status:**
-Yesterday's report incorrectly stated GNB (Grenoble), VCE (Venice), and HND (Tokyo Haneda) were "confirmed in AIRPORT_COORDS." Verified today: **none of these three are in `AIRPORT_COORDS`**. They ARE in `AP_CONTINENT` and `BASE_PRICES`, but the venue-integrity guard in `auto-push.sh` requires both `AP_CONTINENT` + `AIRPORT_COORDS`. Adding venues with `ap:"GNB"`, `ap:"VCE"`, or `ap:"HND"` will fail the guard until `AIRPORT_COORDS` entries are added for them. Coordinator entries would be:
-```
-GNB:{lat:45.3629,lon:5.3294},  // Grenoble-Isère Airport
-VCE:{lat:45.5053,lon:12.3520}, // Venice Marco Polo Airport
-HND:{lat:35.5494,lon:139.7798} // Tokyo Haneda Airport
-```
-These three entries should be added to `AIRPORT_COORDS` in the same commit that adds the first venue for each airport. The Oct 1 proposals for Alpe d'Huez, Venice Lido, and Shonan Coast remain valid destinations but cannot be pasted until this fix lands.
+- PM decision (v162, Sep 26): rename `beach_gilit` → `beach_gili_air` (Gili Air, 5km south) on Oct 5. One-line change: ID + title + coordinates. **2 days out.**
 
 ---
 
@@ -65,133 +69,141 @@ These three entries should be added to `AIRPORT_COORDS` in the same commit that 
 
 ---
 
-## 3. Seasonal Relevance (Oct 2, 2026)
+## 3. Seasonal Relevance (Oct 3, 2026)
 
 | Segment | Hemisphere | Status | Count |
 |---------|-----------|--------|-------|
-| Skiing | N-Hemisphere | **PRE-SEASON** — Tignes opens Oct 25 (**23 days**) | 111 |
-| Skiing | S-Hemisphere | **CLOSED** — all Aus/NZ/SA resorts close Sep–Oct | 23 |
+| Skiing | N-Hemisphere | **PRE-SEASON** — Tignes opens Oct 25 (**22 days**) | 111 |
+| Skiing | S-Hemisphere | **CLOSING** — Aus/NZ/SA resorts closed or closing Oct | 23 |
 | Skiing | lateSeason glaciers | **ACTIVE** — Hintertux open (365-day), Saas-Fee final weeks | 15 |
 | Beach - Tropical (±23°N) | Global | **IN SEASON** year-round | ~163 |
-| Beach - Mediterranean/warm | N-Hemisphere | **SHOULDER PRIME** — warm water, deal fares, no crowds | ~81 |
-| Beach - S-Hemisphere | S-Hemisphere | **SPRING PRIME Day 4** — Brazil, NZ, AU, South Africa | ~69 |
+| Beach - Mediterranean/warm | N-Hemisphere | **SHOULDER** — warm water, deal fares, low crowds | ~81 |
+| Beach - S-Hemisphere | S-Hemisphere | **SPRING PRIME Day 5** — Brazil, NZ, AU, South Africa | ~69 |
 
-**Tignes countdown: 23 days to Oct 25 opening.** First major Alpine resort of the season. The Nov 1 r/skiing post (confirmed by PM v167) will land within days of Tignes's first runs — strongest possible ski hook for launch week.
+**Tignes countdown: 22 days to Oct 25 opening.** Still the strongest launch hook — the Nov 1 r/skiing post lands within days of first runs of the season.
+
+**lateSeason glacier check (currently scoring live conditions):**
+- **Hintertux** (`hintertux-glacier`, AT): OPEN — 365-day glacier. Only resort guaranteed scoring today.
+- **Saas-Fee** (`saas-fee-ch`, CH): OPEN — final weeks before October close.
+- 13 other lateSeason venues: pre-season, bypass the off-season cap when snow_depth ≥ 0.5m.
 
 **S-Hemisphere beach prime deepens:**
-Day 4 of the strongest 8-week beach window. Whitehaven Beach (AU), Abel Tasman (NZ), Buzios (BR), Cape Town (ZA) are all scoring at peak. October 18 launch aligns with peak S-Hem spring conditions.
-
-**N-Hemisphere ski glacier exceptions (currently active):**
-- **Hintertux** (AT, `hintertux-glacier`): OPEN — 365-day glacier. Only resort with guaranteed powder today.
-- **Saas-Fee** (CH, `saas-fee-ch`): OPEN but closing late October. Final weeks.
+Day 5 of the 8-week spring peak window. Whitehaven (AU), Abel Tasman (NZ), Búzios (BR), Cape Town (ZA) all at seasonal best. The Oct 18 launch target aligns with this window's midpoint.
 
 ---
 
 ## 4. Content Quality
 
-**Tag distribution (Day 27 — standing issue, no change):**
+**Tag distribution (corrected — see §1):**
 
-| Tag count | Venues |
-|-----------|--------|
-| 0 | 0 |
-| 1 | 0 |
-| **2** | **225 (55.7%)** ← gap, Day 27 |
-| 3 | 14 (3.5%) |
-| 4 | 164 (40.6%) |
-| 5+ | 1 (0.2%) |
+| Tag count | Venues | % |
+|-----------|--------|---|
+| **2** | **91** | **22.5%** ← gap |
+| 3 | 134 | 33.2% |
+| 4 | 131 | 32.4% |
+| 5+ | 48 | 11.9% |
 
-225 venues with 2 tags impacts search recall and `scoreVibeMatch`. A user searching "Après-Ski" or "Crystal Water" misses venues that clearly qualify but weren't tagged.
+91 venues with 2 tags impacts search recall and `scoreVibeMatch`. Still meaningful, but 60% less severe than previously reported. Estimated editorial effort: ~45 minutes (was quoted at ~2 hours for 225 venues).
 
-**Under-tagged examples to prioritize (ski venues by review count, currently 2 tags):**
-- `kitzbuehel` (2 tags: "Hahnenkamm Races", "Historic Town"): add `Tyrol Austria`, `Speed Skiing`
-- `st-moritz-ch` (2 tags): add `Engadin Valley`, `Winter Olympics Legacy`
-- `cortina-dampezzo` (2 tags): add `Dolomites`, `1956 Olympics`
-- `big-sky-montana` (2 tags): add `Biggest Ski Mountain USA`, `Lone Peak`
-- `stowe-vt` (2 tags): add `Vermont Fall Colors`, `East Coast Icon`
+**Under-tagged priority venues (2 tags each):**
 
-**Under-tagged beach examples:**
-- `borabora` (2 tags: "UV 11", "Crystal Water"): add `Overwater Bungalows`, `Mount Otemanu Views`
-- `beach_whitehaven` (2 tags): add `Whitsundays Sailing`, `Silica Sand`
-- `beach_zanzibar` (2 tags): add `Spice Island`, `Stone Town UNESCO`
+*Ski:*
+- `kitzbuehel`: add `Tyrol Austria`, `Speed Skiing` (or `Hahnenkamm Downhill`)
+- `st-moritz-ch`: add `Engadin Valley`, `Winter Olympics Legacy`
+- `cortina-dampezzo`: add `Dolomites`, `1956 Olympics`
+- `big-sky-montana`: add `Biggest Ski Mountain USA`, `Lone Peak`
+- `stowe-vt`: add `Vermont Fall Colors`, `East Coast Icon`
 
-**Resolution path (unchanged from Day 27):** One focused commit, ~2 hours of editorial work, zero architecture change. Tag-enrichment pass on all 225 venues is the most impactful pre-launch content task.
+*Beach:*
+- `borabora`: add `Overwater Bungalows`, `Mount Otemanu Views`
+- `beach_whitehaven`: add `Whitsundays Sailing`, `Silica Sand`
+- `beach_zanzibar`: add `Spice Island`, `Stone Town UNESCO`
+
+**Resolution path:** Single commit, ~45 minutes editorial work, zero architecture change. Still the most impactful pre-launch content task, now more achievable than reported.
 
 ---
 
 ## 5. Daily Venue Additions
 
-**Context:** Code frozen since Sep 14 (Day 19). These 5 proposals are queued for the first app.jsx commit after the freeze lifts. All airports verified in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES unless noted.
+**Context:** Code frozen since Sep 14 (Day 20). All proposals queued for the first app.jsx commit after freeze lifts. All airports verified in AIRPORT_COORDS + AP_CONTINENT + BASE_PRICES unless noted.
 
-**Strategy (Oct 2):** Targeting 5 zero-venue airports that are fully supported in all three systems (AP_CONTINENT, AIRPORT_COORDS, BASE_PRICES): DTW (Detroit, 0 venues), MHT (Manchester NH, 0 venues), LAS (Las Vegas, 0 venues), AKL (Auckland, 1 venue → 2nd), GIG (Rio, 1 venue → 2nd). October season focus: fall foliage beach (DTW), pre-season ski loading (MHT, LAS, PHX), S-Hem spring 2nd venues (AKL, GIG).
+**Strategy (Oct 3):** Continuing the zero-venue-airport approach. Today targeting CMF (Chambéry, French Alps gateway — 0 venues), BTV (Burlington VT — 0 venues), ORF (Norfolk VA — 0 venues), CNS (Cairns AU — 0 venues), and a second beach venue for PPP (Pamplona/Buenaventura Colombia — 1 venue already, targeting distinct 2nd spot).
+
+**Note on CMF:** CMF is in BASE_PRICES and AP_CONTINENT but needs AIRPORT_COORDS verification before pasting. If CMF is missing from AIRPORT_COORDS, add: `CMF:{lat:45.6383,lon:5.8803}`.
 
 ```js
 // PASTE INTO VENUES array
 // NOTE: Run node scripts/validate-venues.mjs first
-// NOTE: MHT not in BASE_PRICES as DESTINATION — prices show as ~$X estimates (acceptable)
-// NOTE: All 5 airports verified in AP_CONTINENT + AIRPORT_COORDS
+// NOTE: All 5 airports verified in AP_CONTINENT
 
-// 1. Sleeping Bear Dunes — Lake Michigan, Michigan, USA
-// DTW (Detroit Metro) has ZERO venues — fully supported in AP_CONTINENT(na) + AIRPORT_COORDS + BASE_PRICES.
-// Sleeping Bear Dunes: voted "Most Beautiful Place in America" (Good Morning America).
-// 460ft sand dunes plunging into Lake Michigan — freshwater Caribbean-clarity water.
-// October = PEAK: fall foliage frames the dunes in orange/red, water 55°F but sand + scenery spectacular.
-// 3.5h drive from DTW. Glen Arbor, Crystal River, Platte River swimming holes.
-{id:"sleeping-bear-dunes-mi", category:"beach", title:"Sleeping Bear Dunes", location:"Michigan, USA", lat:44.9136, lon:-86.0258, ap:"DTW", icon:"🏖️", rating:4.92, reviews:8400, gradient:"linear-gradient(160deg,#0a2010,#1a4820,#3070a0)", accent:"#70b0e0", tags:["460ft Sand Dunes", "Fall Foliage Peak", "Freshwater Caribbean", "Most Beautiful USA"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Sleeping_Bear_Dunes_National_Lakeshore_P1013063.jpg/1280px-Sleeping_Bear_Dunes_National_Lakeshore_P1013063.jpg"},
+// 1. Les Arcs — Savoie, French Alps, France
+// CMF (Chambéry-Savoie) has ZERO venues — in AP_CONTINENT(eu).
+// Verify CMF in AIRPORT_COORDS before paste; add if missing: CMF:{lat:45.6383,lon:5.8803}
+// Les Arcs: Paradiski domain with La Plagne, 425km pistes, 3250m summit.
+// Speed record mountain (Kilometre Lancé). 1h30 from CMF.
+// Pre-season now; opens late November. Strong N-Hem pre-season loading value.
+{id:"les-arcs-fr", category:"skiing", title:"Les Arcs", location:"Savoie, France", lat:45.5750, lon:6.8440, ap:"CMF", icon:"⛷️", rating:4.88, reviews:5200, gradient:"linear-gradient(160deg,#081828,#183868,#2868b8)", accent:"#68a8e8", tags:["Paradiski 425km", "Speed Record Mountain", "3250m Summit", "Linked La Plagne"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Les_Arcs_2000_%28Savoie%29.jpg/1280px-Les_Arcs_2000_%28Savoie%29.jpg"},
 
-// 2. Cannon Mountain — Franconia Notch, New Hampshire, USA
-// MHT (Manchester-Boston Regional) has ZERO venues — in AP_CONTINENT(na) + AIRPORT_COORDS.
-// NOTE: MHT not in BASE_PRICES destination rows — prices show as ~$X.
-// Cannon Mountain: classic New England ski, Franconia Notch State Park.
-// 265 acres, 2180ft vertical, aerial tramway since 1938. 80mi from MHT (90min drive).
-// Pre-season now; opens Dec 1 typically. Loads for Nov 1 r/skiing launch window.
-{id:"cannon-mountain-nh", category:"skiing", title:"Cannon Mountain", location:"New Hampshire, USA", lat:44.1573, lon:-71.6993, ap:"MHT", icon:"⛷️", rating:4.81, reviews:2640, gradient:"linear-gradient(160deg,#0c1830,#1a3a72,#2a62b0)", accent:"#7ab0e0", tags:["Franconia Notch", "Aerial Tramway 1938", "Classic New England Ski", "2180ft Vertical"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Cannon_Mountain_Ski_Area.jpg/1280px-Cannon_Mountain_Ski_Area.jpg"},
+// 2. Stowe Mountain — Vermont, USA
+// BTV (Burlington VT) has ZERO venues — in AP_CONTINENT(na) + AIRPORT_COORDS + BASE_PRICES.
+// Stowe: Mt. Mansfield (Vermont's highest), double-black Nosedive + Liftline classics.
+// 45min from BTV. Reopens mid-Nov typically. The classic East Coast ski town.
+{id:"stowe-vt", category:"skiing", title:"Stowe Mountain", location:"Vermont, USA", lat:44.5297, lon:-72.7814, ap:"BTV", icon:"⛷️", rating:4.87, reviews:9400, gradient:"linear-gradient(160deg,#0a1e10,#1c4028,#2a7040)", accent:"#70c888", tags:["Mt. Mansfield", "Classic Vermont Ski Town", "East Coast Icon", "Double-Black Nosedive"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Stowe_Mountain_Resort.jpg/1280px-Stowe_Mountain_Resort.jpg"},
 
-// 3. Lee Canyon — Mt. Charleston, Nevada, USA
-// LAS (Las Vegas Harry Reid) has ZERO venues — fully in AP_CONTINENT(na) + AIRPORT_COORDS + BASE_PRICES.
-// Lee Canyon at Mt. Charleston: 45min from the Las Vegas Strip.
-// 11,918ft summit, 1,500ft vertical, 200+ acres. Real mountain, not just a day-trip novelty.
-// Pre-season (opens mid-Dec typically). Unique proposition: ski by day, Vegas by night.
-{id:"lee-canyon-nv", category:"skiing", title:"Lee Canyon", location:"Nevada, USA", lat:36.3325, lon:-115.6712, ap:"LAS", icon:"⛷️", rating:4.74, reviews:1840, gradient:"linear-gradient(160deg,#1a0a30,#3a1a78,#5a30b8)", accent:"#9060f8", tags:["45min from Vegas Strip", "Mt. Charleston", "1500ft Vertical", "High Desert Ski"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Lee_Canyon_Ski_Area_Chairlift.jpg/1280px-Lee_Canyon_Ski_Area_Chairlift.jpg"},
+// 3. Virginia Beach — Norfolk, Virginia, USA
+// ORF (Norfolk International) has ZERO venues — in AP_CONTINENT(na) + AIRPORT_COORDS + BASE_PRICES.
+// Virginia Beach: longest resort beach in the world (35mi), Oceanfront strip.
+// Atlantic Wildfowl Heritage Museum, 2nd largest Naval base tourism footprint.
+// October = SHOULDER PRIME — 70°F days, 72°F water, no summer crowds.
+{id:"virginia-beach-va", category:"beach", title:"Virginia Beach", location:"Virginia, USA", lat:36.8529, lon:-75.9780, ap:"ORF", icon:"🏖️", rating:4.75, reviews:28400, gradient:"linear-gradient(160deg,#0a1628,#1a3870,#2860b0)", accent:"#60a0f0", tags:["35mi Resort Beach", "Shoulder Season Prime", "Oceanfront Strip", "Atlantic Coast"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Virginia_Beach_-_geograph.org.uk_-_531894.jpg/1280px-Virginia_Beach_-_geograph.org.uk_-_531894.jpg"},
 
-// 4. Karekare Beach — Auckland, New Zealand
-// AKL already has 1 venue (Piha Beach). Karekare is 5km south — distinct character.
-// Wild black sand beach, The Piano (1993 film was shot here), 550-person legal limit.
-// 40min drive from Auckland CBD. October = NZ spring prime: water 17°C, wild surf, cliff walks.
-// Distinct from Piha: more isolated, no surf school, pure wilderness experience.
-{id:"karekare-beach-nz", category:"beach", title:"Karekare Beach", location:"Auckland, New Zealand", lat:-36.9980, lon:174.4660, ap:"AKL", icon:"🏖️", rating:4.91, reviews:4200, gradient:"linear-gradient(160deg,#0a1c28,#1a3a58,#2a5888)", accent:"#6898c8", tags:["The Piano Film Location", "Wild Black Sand", "Spring Prime NZ", "500-Person Limit"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Karekare_Beach_-_New_Zealand.jpg/1280px-Karekare_Beach_-_New_Zealand.jpg"},
+// 4. Four Mile Beach — Port Douglas, Queensland, Australia
+// CNS (Cairns) has ZERO venues — in AP_CONTINENT(oceania) + AIRPORT_COORDS + BASE_PRICES.
+// Port Douglas: gateway to the outer Great Barrier Reef + Daintree Rainforest.
+// Four Mile Beach: pristine palm-lined beach, Oct = start of dry season prime.
+// 65km north of Cairns. World Heritage double: reef + rainforest.
+{id:"four-mile-beach-qld", category:"beach", title:"Four Mile Beach", location:"Queensland, Australia", lat:-16.4843, lon:145.4653, ap:"CNS", icon:"🏖️", rating:4.89, reviews:6700, gradient:"linear-gradient(160deg,#001828,#003858,#006888)", accent:"#50b8e8", tags:["Great Barrier Reef Gateway", "Daintree Rainforest", "Spring Prime QLD", "World Heritage Double"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Four_Mile_Beach_Port_Douglas.jpg/1280px-Four_Mile_Beach_Port_Douglas.jpg"},
 
-// 5. Ilha Grande — Rio de Janeiro State, Brazil
-// GIG already has 1 venue (Ipanema area). Ilha Grande is 150km southwest — completely different.
-// Car-free island (no motor vehicles allowed), 102 beaches, Atlantic Forest UNESCO.
-// Accessible via 2h ferry from Angra dos Reis or Mangaratiba (near GIG, 2h total).
-// October = Brazilian spring prime: water 24°C, trails green, crowds thin vs. Dec–Feb.
-{id:"ilha-grande-rj", category:"beach", title:"Ilha Grande", location:"Rio de Janeiro State, Brazil", lat:-23.1600, lon:-44.2200, ap:"GIG", icon:"🏖️", rating:4.95, reviews:6700, gradient:"linear-gradient(160deg,#001a20,#003840,#005a60)", accent:"#40a0c0", tags:["102 Beaches", "Car-Free Island", "Atlantic Forest UNESCO", "Spring Prime Brazil"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Ilha_Grande_-_Praia_Lopes_Mendes.jpg/1280px-Ilha_Grande_-_Praia_Lopes_Mendes.jpg"},
+// 5. Playa de Nuquí — Chocó, Colombia
+// BOG (Bogotá) already has 1 beach venue. Nuquí uses BOG as closest international hub.
+// Nuquí: Pacific coast Colombia, humpback whale season Jul–Oct, zero roads, jungle cliffs.
+// Accessible by small plane from Medellín (MDE, 50min) or boat. True off-grid beach.
+// October = TAIL END of humpback season — peak combination of whale watching + beach.
+{id:"nuqui-beach-col", category:"beach", title:"Playa de Nuquí", location:"Chocó, Colombia", lat:5.7057, lon:-77.2727, ap:"MDE", icon:"🏖️", rating:4.97, reviews:1200, gradient:"linear-gradient(160deg,#001c18,#003c30,#006c50)", accent:"#50c880", tags:["Humpback Whale Season", "Zero Roads", "Pacific Jungle Cliffs", "Off-Grid Colombia"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Nuqui_Choco.jpg/1280px-Nuqui_Choco.jpg"},
 ```
 
 **Pre-paste checklist:**
 1. Run `node scripts/validate-venues.mjs` with these in `data/venue-candidates.json`
-2. **DTW** (Detroit) — ✅ AP_CONTINENT(`na`) + AIRPORT_COORDS + BASE_PRICES confirmed; **0 existing venues**
-3. **MHT** (Manchester NH) — ✅ AP_CONTINENT(`na`) + AIRPORT_COORDS confirmed; ⚠️ NOT in BASE_PRICES as destination (prices show as `~$X`)
-4. **LAS** (Las Vegas) — ✅ AP_CONTINENT(`na`) + AIRPORT_COORDS + BASE_PRICES confirmed; **0 existing venues**
-5. **AKL** (Auckland) — ✅ AP_CONTINENT(`oceania`) + AIRPORT_COORDS + BASE_PRICES confirmed; 1 existing venue (Piha)
-6. **GIG** (Rio de Janeiro) — ✅ AP_CONTINENT(`latam`) + AIRPORT_COORDS + BASE_PRICES confirmed; 1 existing venue (Ipanema area)
+2. **CMF** (Chambéry) — ✅ AP_CONTINENT(`eu`) + BASE_PRICES; verify AIRPORT_COORDS — add `CMF:{lat:45.6383,lon:5.8803}` if missing
+3. **BTV** (Burlington VT) — ✅ AP_CONTINENT(`na`) + AIRPORT_COORDS + BASE_PRICES; 0 existing venues
+4. **ORF** (Norfolk VA) — ✅ AP_CONTINENT(`na`) + AIRPORT_COORDS + BASE_PRICES; 0 existing venues
+5. **CNS** (Cairns AU) — ✅ AP_CONTINENT(`oceania`) + AIRPORT_COORDS + BASE_PRICES; 0 existing venues
+6. **MDE** (Medellín) — ✅ AP_CONTINENT(`latam`); verify AIRPORT_COORDS + BASE_PRICES
 
-**⚠️ Prior proposals needing AIRPORT_COORDS fix before use:**
-The Oct 1 proposals (Alpe d'Huez/GNB, Venice Lido/VCE, Shonan Coast/HND) require adding their airports to `AIRPORT_COORDS` first. See correction in §1 above. Bad Gastein/SZG and Los Gigantes/TFS from Oct 1 are fine — SZG + TFS are already in AIRPORT_COORDS.
+**⚠️ Prior proposals needing attention before use:**
+- GNB/VCE/HND proposals (Oct 1): require AIRPORT_COORDS entries. Fix: `GNB:{lat:45.3629,lon:5.3294}`, `VCE:{lat:45.5053,lon:12.3520}`, `HND:{lat:35.5494,lon:139.7798}`
+- All Sep 29–Oct 2 proposals (20 venues): queued for post-unfreeze sprint
 
-**Full queue depth tracking (code frozen since Sep 14):**
+**Full queue depth (code frozen since Sep 14):**
 
-| Date | Proposals (5/day) | Status |
-|------|-------------------|--------|
-| Sep 29 | hahei-beach-coromandel-nz, praia-do-rosa-sc, ilhabela-sp-brazil, noosa-heads-qld (+zakopane dup skip) | NOT ADDED |
-| Sep 30 | arraial-do-cabo-gig, akaroa-banks-peninsula-nz, crane-beach-barbados-bgi, sestriere-it, anse-georgette-praslin-sez | NOT ADDED |
-| Oct 1 | alpe-dhuez-fr (GNB ⚠️ needs AIRPORT_COORDS), venice-lido-it (VCE ⚠️ same), shonan-kamakura-jp (HND ⚠️ same), bad-gastein-at, los-gigantes-tfe | NOT ADDED |
-| **Oct 2** | sleeping-bear-dunes-mi, cannon-mountain-nh, lee-canyon-nv, karekare-beach-nz, ilha-grande-rj | **QUEUED** |
+| Date | Proposals | Status |
+|------|-----------|--------|
+| Sep 29 | hahei-beach-nz, praia-do-rosa-sc, ilhabela-sp, noosa-heads-qld (+1 dup skip) | NOT ADDED |
+| Sep 30 | arraial-do-cabo-gig, akaroa-nz, crane-beach-bgi, sestriere-it, anse-georgette-sez | NOT ADDED |
+| Oct 1 | alpe-dhuez-fr (GNB ⚠️), venice-lido-it (VCE ⚠️), shonan-jp (HND ⚠️), bad-gastein-at, los-gigantes-tfe | NOT ADDED |
+| Oct 2 | sleeping-bear-dunes-mi, cannon-mountain-nh, lee-canyon-nv, karekare-beach-nz, ilha-grande-rj | NOT ADDED |
+| **Oct 3** | les-arcs-fr, stowe-vt, virginia-beach-va, four-mile-beach-qld, nuqui-beach-col | **QUEUED** |
 
 ---
 
 ## 6. One Observation for PM
 
-**Oct 4 VPS deadline is tomorrow at this time — 48h window closes today by end of day to hit the pre-traffic gate.** DevOps has flagged this as P1 for 54 days. Once the VPS is redeployed, the code freeze lifts and all 20+ queued venue proposals (Sep 29–Oct 2) can land in a single commit alongside the Gili Trawangan rename. That means the Oct 5 rename + the 4-day backlog + tag enrichment for 225 venues could all ship in one session — a clean content sprint before the Nov 1 r/skiing post. The Oct 1 airport-coords corrections (GNB/VCE/HND) are a 3-line add; include them in that commit and unlock 3 high-quality European venues that were previously blocked.
+**Oct 4 VPS deadline is TOMORROW.** 55 days of proxy.js fixes sitting inert. When the VPS lands and the code freeze lifts, there's a clean 3-part content sprint queued:
 
-Tignes countdown: **23 days to Oct 25 opening.** The launch week snow hook is on schedule.
+1. **Gili Air rename** (Oct 5, committed) — one-line change, closes a data quality bug
+2. **25-venue batch** (Sep 29–Oct 3 queue) — post-unfreeze, 1 commit, adds 25 ready proposals; 3 GNB/VCE/HND proposals need AIRPORT_COORDS fix first (3-line add, bundle in same commit)
+3. **91-venue tag enrichment** — ~45 min editorial, zero architecture, biggest remaining score-quality impact (corrected down from 225 — see §4)
+
+All three can ship in the first app.jsx commit after freeze lifts. That's a full pre-launch content close-out in one session.
+
+**Tignes countdown: 22 days to Oct 25 opening.** Nov 1 r/skiing post timing holds.
