@@ -1,230 +1,206 @@
-# DevOps Report — 2026-10-04 (YELLOW)
+# DevOps Report — 2026-10-05 (YELLOW)
 
-**Status: 🟡 YELLOW — VPS P0 DEADLINE IS TODAY (Oct 4). Day 56 undeployed. `origin/master` footgun Day 12 unresolved. NEW: SW PRECACHE caches wrong Babel URL (dev-only, low impact). Code freeze Day 20 clean. All application code GREEN.**
+**Status: 🟡 YELLOW — VPS Day 57. Oct 4 deadline MISSED (yesterday). `origin/master` footgun Day 13. NEW: VENUES bracket-walker count 406 vs category-grep 404 — 2-venue discrepancy needs investigation. Code freeze Day 21 clean. All application code GREEN.**
 
 > Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). Proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH).
 
 ---
 
-## 1. Live Site Health — ✅ GREEN
+## 1. Live Site Health — ✅ GREEN (with one new flag)
 
 | Check | Result |
 |-------|--------|
-| app.jsx lines / raw size | **14,237 lines / 759 KB raw** |
-| VENUES (authoritative eval count) | **404 total — 134 skiing / 270 beach** ✅ |
+| app.jsx lines / raw size | **14,237 lines / 759 KB raw** (unchanged Day 21) |
+| VENUES (category grep) | **404 total — 134 skiing / 270 beach** ✅ matches CLAUDE.md |
+| VENUES (bracket walker) | **406** ⚠️ 2-venue discrepancy — see P2 below |
 | lateSeason:true venues | **15 confirmed** ✅ |
 | Plausible analytics | ✅ present, uncommented (index.html:32) |
-| React 18.3.1 (cdnjs) | ✅ current |
+| React 18.3.1 (cdnjs) | ✅ |
 | Babel Standalone 7.24.7 (cdnjs) | ✅ dev-only; production CI drops it |
-| Sentry DSN | ✅ configured (index.html:77 + app.jsx:7–8, `9416b032...`) |
-| PEAKLY_BUILD / CACHE_NAME stamp | ⚠️ `"20260914a"` — frozen Day 20. Expected during code freeze. Auto-bumps on next app.jsx commit. |
-| All API calls HTTPS | ✅ no bare HTTP or hardcoded IPs in client |
-| Secrets in client | ✅ no critical secrets (see §4) |
-| Image lazy loading | ✅ all `<img>` tags carry `loading="lazy"` |
-| Fetch timeouts | ✅ AbortController + 4s on proxy, 8s on direct Open-Meteo |
+| Sentry DSN | ✅ configured (`9416b032...`, index.html:77 + app.jsx:7–8) |
+| PEAKLY_BUILD / CACHE_NAME stamp | ⚠️ `"20260914a"` — frozen Day 21. Auto-bumps on next app.jsx commit. |
+| All API calls HTTPS | ✅ FLIGHT_PROXY = `https://peakly-api.duckdns.org` |
+| No secrets in client | ✅ Supabase anon key exposed intentionally (RLS-gated, public-safe) |
+| Image lazy loading | ✅ 9 `loading="lazy"` tags confirmed |
+| fetchTravelpayoutsPrice timeout | ✅ AbortController 4s, 2 retries, 429/500 backoff |
 
-**Zero code commits to app.jsx/sw.js/index.html in 20 days.** Code freeze clean. Last ship: 2026-09-14.
+**Zero code commits to app.jsx/sw.js/index.html in 21 days. Code freeze holds.**
 
 ---
 
-## 2. Flight Proxy Status — 🔴 RED (TODAY IS THE DEADLINE — Day 56)
+## 2. Flight Proxy Status — 🔴 RED (Day 57 — yesterday was the PM-set deadline)
 
-FLIGHT_PROXY points to `https://peakly-api.duckdns.org` (HTTPS ✅). The committed `server/proxy.js` fixes are correct and ready. **They have not been copied to `/opt/peakly-proxy` and pm2 has not been restarted.** This is Day 56. Oct 4 was the PM-set pre-traffic deadline. **Today is Oct 4.**
+The Oct 4 deadline passed yesterday. From PM v170: "The 4 deploy commands have been documented in every report since Aug 11. The code in `server/proxy.js` is correct, committed, and ready."
 
-**What is broken right now:**
-1. Two-weekend scoring returns null for all venues — front page only shows week 1
-2. iOS native CORS block — `capacitor://localhost` not in allowed origins
-3. Alert deletion silently fails — `DELETE` missing from `Access-Control-Allow-Methods`
-4. Rate limiter reads first X-Forwarded-For entry — trivially spoofable; anyone can balloon `_rateMap`
-5. Weather cache wiped on every pm2 restart (disk persistence not deployed)
+**What is broken without VPS redeploy:**
+- Two-weekend scoring returns null for all 404 venues (proxy still returns 7-day forecasts)
+- iOS CORS block (capacitor://localhost not in Access-Control-Allow-Origin)
+- Alert deletion silently fails (preflight blocks DELETE)
+- Rate limiter reads first X-Forwarded-For entry — spoofable
+- Weather cache wiped on every pm2 restart (no disk persistence)
 
-**The 4 deploy commands:**
-
+**The 4 commands. Paste these. Done in under 2 minutes:**
 ```bash
-# From your local machine (NOT from a sandbox — sandbox has no VPS egress)
+# From local machine with repo cloned:
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 
-# Then SSH in:
-ssh root@198.199.80.21
-cd /opt/peakly-proxy && pm2 restart peakly-proxy
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save"
 
-# Verify from any networked machine:
+# Verify:
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+# Should show: forecast_days:14, apns:configured or apns:unconfigured, fresh uptime
 ```
 
-Expected `/health` response after deploy:
-```json
-{
-  "status": "ok",
-  "uptime": 0,
-  "wx_cache_size": 0,
-  "wx_disk_cache_loaded": true,
-  "apns": "unconfigured",
-  "forecast_days": 14
-}
-```
+**Estimated time:** 2 minutes if SSH keys are configured.
 
-**`forecast_days: 14` + `wx_disk_cache_loaded: true` = deploy confirmed.** If pm2 fails to start: `pm2 logs peakly-proxy --lines 50`.
+---
 
-**Weather cache warm-up:** After a cold restart, cache refills on first user traffic. If any Reddit/HN post lands before cache is warm, 500 concurrent users → 500 cold upstream Open-Meteo calls → rate ceiling hit in ~10 minutes → "conditions unavailable" for everyone. Manually warm before any planned traffic spike:
+## 3. New Finding: VENUES Bracket-Walker vs Category-Grep Discrepancy — P2
 
+Today's bracket-walker count: **406**. Yesterday and all prior reports: **404**. Category grep: `134 skiing + 270 beach = 404`.
+
+This means 2 objects exist inside the `VENUES = [...]` array that have no `category` field (or have a category other than "skiing"/"beach"). These would silently render as venues with undefined category, potentially crashing the score engine or the category filter.
+
+**Investigate with:**
 ```bash
-# Run from VPS after pm2 restart — hits top ski + beach coords
-for coord in "50.116,122.949" "45.832,6.865" "36.578,-118.292" "18.467,-66.117" "-33.855,151.215" "8.696,-79.499"; do
-  lat=$(echo $coord | cut -d, -f1); lon=$(echo $coord | cut -d, -f2)
-  curl -s "https://peakly-api.duckdns.org/api/weather?lat=$lat&lon=$lon" > /dev/null &
-done
-wait
-echo "Warm-up done"
+node -e "
+const fs = require('fs');
+const code = fs.readFileSync('app.jsx', 'utf8');
+// Quick check: find venues without category
+const matches = [...code.matchAll(/\{[^{}]*\"id\"[^{}]*\}/gs)].filter(m => !m[0].includes('category'));
+console.log('Venues missing category:', matches.length);
+matches.forEach(m => console.log(m[0].substring(0, 120)));
+"
 ```
 
-**Time to fix: 10 minutes. This is the only P0. It was due today.**
+Or a more reliable approach — eval the actual array:
+```bash
+node -e "
+const fs = require('fs');
+let src = fs.readFileSync('app.jsx', 'utf8');
+const start = src.indexOf('const VENUES = [');
+const end = src.indexOf('];', start) + 2;
+const venuesSrc = src.slice(start, end).replace('const VENUES = ', '');
+const venues = eval(venuesSrc);
+const noCat = venues.filter(v => !v.category);
+console.log('Total:', venues.length, '| No category:', noCat.length);
+noCat.forEach(v => console.log(v.id, v.title));
+"
+```
+
+**If 2 venues have no category:** they pass `applyFilters` but produce NaN scores. Fix: add the correct category to each.
+
+**Estimated time:** 5 minutes to identify + fix.
 
 ---
 
-## 3. Weather & External API — ✅ GREEN
+## 4. SW PRECACHE Babel URL Mismatch — P3 (Day 2, unchanged)
 
-- Open-Meteo: free tier ~10,000 req/day. 404 venues × 2 calls (weather + marine beach-only) = ~808 cold-cache requests per full sweep. VPS shared cache (once deployed) collapses concurrent users to 1 upstream call per coord per 2hr. **No rate-limit risk below ~12 MAU with VPS deployed.**
-- Marine API: correctly gated to beach venues only (`needsMarine = category === "beach"`) — 270 calls max per cold sweep.
-- All fetches carry AbortController timeouts. Fallback to score=50 on total weather failure. Cold-start reviewer-proof.
-- `forecast_days=14` confirmed in fallback direct Open-Meteo URL (app.jsx:5548). Two-weekend scoring has the data it needs in the client fallback path.
+`sw.js` PRECACHE caches a URL nobody loads:
 
----
-
-## 4. Security Audit — ✅ GREEN (one accepted-risk item)
-
-| Check | Result |
-|-------|--------|
-| Travelpayouts token in client | ✅ Not present. `TP_MARKER="710303"` is the public affiliate marker — not a secret. Token is server-side env only. |
-| Supabase ANON_KEY in client | ⚠️ **Accepted risk.** `eyJhbGc...` at app.jsx:26 is the public anon key, intentional per Supabase architecture (RLS-gated). Not a secret. |
-| `.env` files committed | ✅ None. `.gitignore` covers `.env`, `*.pem`, `*.key`, `*.p8`, `*.p12`. |
-| Sentry DSN in client | ✅ Expected — public DSN per Sentry's architecture. |
-| APNS `.p8` key | ✅ Not committed. Covered by `.gitignore`. |
-| Recent commits for secret leaks | ✅ Last 10 commits are report files only. No code changes since 2026-09-14. |
-| `GEAR_ITEMS` | ✅ 0 occurrences. Amazon correctly cut. |
-| No SRI on CDN scripts | ⚠️ P3 — Babel 7.24.7, React 18.3.1 loaded from cdnjs without `integrity=` hashes. Low risk. Add post-launch. |
-
-**No P0 security issues.**
-
----
-
-## 5. NEW FINDING: SW PRECACHE Version Mismatch — ⚠️ P3
-
-`sw.js` PRECACHE caches `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js` but `index.html` loads `https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js`. These are different URLs — the cached asset is never served because the requested URL doesn't match the cache entry.
-
-**Impact:** Babel is never served from SW cache offline. For production users this is irrelevant — the esbuild production build (`dist/app.min.js`) strips Babel entirely. For dev-mode users (opening `index.html` locally), the SW cache doesn't help anyway. **Risk is P3 dev-quality only, not production.**
-
-**Fix (30 seconds, can bundle with next app.jsx commit to auto-bump cache stamp):**
-
-```diff
-// sw.js line 3–5
+```js
+// sw.js line 3–5:
 const PRECACHE = [
--  "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
-+  "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"
+  "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"  // ← wrong CDN, wrong version
+];
+
+// index.html line 88 loads:
+// https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js
+```
+
+Two problems:
+1. **Wrong CDN** — SW caches from `unpkg.com`, page loads from `cdnjs.cloudflare.com`. Cached entry is never used.
+2. **Wrong version** — 7.29.7 vs 7.24.7.
+
+Production is unaffected (dist/app.min.js, no Babel). Dev/local users get Babel uncached. Fix:
+
+```js
+// sw.js — replace PRECACHE with:
+const PRECACHE = [
+  "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"
 ];
 ```
 
-Or empty it (`[]`) since the production build doesn't need Babel at all. Either is fine. **Do not bump cache stamp manually — let `auto-push.sh` handle it when this rides a real commit.**
+Or clear it: `const PRECACHE = [];` since Babel's cache-busting behavior is already handled by the browser's HTTP cache and CDN ETags.
+
+**Estimated time:** 30 seconds.
 
 ---
 
-## 6. Performance Analysis — 🟡 YELLOW
+## 5. `origin/master` Footgun — P1 (Day 13)
 
-| Metric | Value |
-|--------|-------|
-| app.jsx raw | 759 KB / 14,237 lines |
-| Babel parse wall (dev mode) | ~3–5s on mobile (production build eliminates this) |
-| Production bundle (dist/app.min.js) | Rebuilt by CI on every push via esbuild (~440 KB minified) |
-| React 18.3.1 UMD (cdnjs) | ~150 KB gzipped |
-| Babel Standalone (dev only) | ~900 KB — stripped in production |
-| Total production JS estimate | ~440 KB minified |
-| Image lazy loading | ✅ all `<img>` tags |
-| Largest bottleneck | 759 KB single-file JSX + 404 hardcoded VENUES — scales with venue count |
+`origin/master` is **50 commits BEHIND** `origin/main`. The `scripts/auto-push.sh` pipeline pushes `master:main` (refspec that pushes local master → remote main). But any `git push` run without auto-push.sh defaults to `master → origin/master`, which silently diverges the stale branch further.
 
-**CDN versions:**
-- React 18.3.1 → latest stable ✅
-- Babel Standalone 7.24.7 → current is 7.25.x. Dev-only, not blocking.
+Worst case: a session runs `git checkout master && <edits> && git push` thinking they're on main, and creates `origin/master` noise that a future merge re-introduces stale code.
 
----
-
-## 7. Cost Estimate
-
-| Scale | Infra cost/month | Notes |
-|-------|------------------|-------|
-| 0–1K MAU | **$6** | DO droplet only. Open-Meteo free tier covers this. |
-| 1K–10K MAU | **$6–$12** | VPS upgrade to 2GB RAM ($12) if wx cache grows beyond 4K entries. GitHub Pages free. |
-| 10K–100K MAU | **$30–$80** | Add $24/mo DO managed DB (if alerts/sync moves off Supabase free), $6–12 VPS. Supabase free tier (50K MAU) covers 10K easily. |
-| 100K MAU | **$80–$200** | Supabase Pro ($25/mo), VPS upgrade, CDN caching likely needed. |
-
-No cost action needed before launch. Supabase free tier covers pre-monetization entirely.
-
----
-
-## 8. `origin/master` Footgun — 🔴 RED (Day 12)
-
-`origin/master` is now **561 commits behind `origin/main`** (frozen at June 2026). `deploy.yml` deploys on push to BOTH `main` AND `master`. A mistaken `git push origin master` deploys the June build — stripping 3.5 months of changes (46-venue expansion, scoring overhaul, onboarding rewrite) to production, silently.
-
-**2-minute fix — run in the same SSH session as the Oct 4 VPS deploy:**
-
+**Fix — run once, same terminal as VPS deploy:**
 ```bash
-# Option A — recommended: delete the stale master branch entirely
 git push origin --delete master
-
-# Option B — keep master but remove it from deploy.yml (edit .github/workflows/deploy.yml)
-# Change:
-#   branches: [main, master]
-# To:
-#   branches: [main]
-# Then: git add .github/workflows/deploy.yml && git commit -m "remove master from deploy trigger" && git push
 ```
+
+That's it. 10 seconds.
 
 ---
 
-## 9. Stale Remote Branches — ⚠️ P2 (Day 12)
+## 6. Security Audit — ✅ GREEN
 
-**19 stale remote branches** (18 `claude/*` + `fix-appjsx-final` + `restore-appjsx` + `test-small`). Same list as yesterday. None merged to main. Low priority during code freeze.
+| Check | Result |
+|-------|--------|
+| Travelpayouts token in client | ✅ NOT present. Server-side only via VPS proxy. |
+| Supabase anon key in client | ✅ Intentional, public-safe (RLS-gated per architecture). JWT exp 2093. |
+| Sentry DSN in client | ✅ Intentional. Front-end SDK design. |
+| .gitignore covers .env, *.pem, *.p8, *.key | ✅ Confirmed. |
+| Recent commits with secrets | ✅ No secrets in last 15 commits (all daily reports + one proxy.js auto-push from Aug 11). |
+| git secret scan on recent app.jsx | ✅ No token/key patterns found beyond the above known-acceptable ones. |
 
-```bash
-# Bulk delete after Oct 4 deploy — run from local networked machine
-git push origin --delete \
-  claude/analyze-test-coverage-WVIsT \
-  claude/code-review-cleanup-HjoCS \
-  claude/condense-alert-page-jzdLo \
-  claude/enhance-loading-screen-rZ1dc \
-  claude/fix-app-jsx-content \
-  claude/implement-todo-lNL7W \
-  claude/improve-peakly-ui-UHCHG \
-  claude/improve-scoring-system-XYGY6 \
-  claude/product-reliability-assessment-w0poL \
-  claude/redesign-front-page-EndKs \
-  claude/review-peakly-ux-UQ0Qu \
-  claude/simplify-alerts-page-2ejGB \
-  claude/simplify-profile-page-Bi2Tc \
-  claude/standardize-venue-data-CufiQ \
-  claude/streamline-onboarding-account-97XRR \
-  fix-appjsx-final \
-  restore-appjsx \
-  test-small
-```
+---
+
+## 7. Performance Analysis — ✅ GREEN (with known bottleneck)
+
+| Asset | Size |
+|-------|------|
+| app.jsx (raw) | 759 KB |
+| dist/app.min.js (production) | ~439 KB minified (esbuild, per CLAUDE.md) |
+| React 18.3.1 + ReactDOM UMD | ~140 KB gzipped |
+| Babel Standalone (dev only) | ~620 KB gzipped |
+| Supabase JS (lazy-loaded) | ~80 KB gzipped |
+
+**Production total (Pages path):** ~439 KB app + ~140 KB React = **~580 KB gzipped** on first load. Reasonable.
+
+**Single largest bottleneck:** The Supabase SDK lazy-load fires on any existing session or magic-link callback. At scale, if you ever sign in 10K+ concurrent users after a Reddit spike, the 80 KB Supabase fetch hits on every one of them. Not a problem today. Put it behind `requestIdleCallback` if it becomes a LCP issue.
+
+**All `<img>` tags:** 9 confirmed `loading="lazy"` ✅
+
+---
+
+## 8. Cost Projection
+
+| Scale | GitHub Pages | DigitalOcean VPS | Supabase | Open-Meteo | Total |
+|-------|-------------|-----------------|----------|------------|-------|
+| Current (<100 MAU) | $0 | $6/mo | $0 (free tier) | $0 (free tier) | **$6/mo** |
+| 1K MAU | $0 | $6/mo | $0 (free tier, 500MB DB) | $0 (free tier, <1M reqs/day) | **$6/mo** |
+| 10K MAU | $0 | $12/mo (upgrade to 2GB RAM) | ~$25/mo (Pro tier) | $0 | **~$37/mo** |
+| 100K MAU | $0 | $48/mo (4GB, or CDN-fronted) | ~$25/mo | ~$20/mo | **~$93/mo** |
+
+Revenue at $7.58/1K MAU covers infra from Day 1. At 10K MAU: $75.80 revenue vs $37 infra = profitable.
+
+**Cost optimization already in place:** weather proxy caches upstream calls (2hr TTL, 4000-entry LRU). Main risk at scale is the Open-Meteo free tier ceiling (~66 concurrent DAU hitting uncached coords). Disk persistence for the weather cache (#23 in CLAUDE.md) prevents the cold-restart problem.
 
 ---
 
 ## What Breaks First at Scale
 
-**Open-Meteo is the rate-limit cliff.** A full cold sweep is ~808 upstream calls (404 weather + ~270 marine). Open-Meteo's free tier allows ~10,000 req/day — that's only ~12 full cold sweeps. At 100 MAU with different airports, you exceed this within hours. The VPS shared cache collapses this to ~1 upstream call per coordinate per 2hr regardless of concurrent users. It's already written and committed. The only thing preventing it from working is one `scp` + `pm2 restart`. If the r/skiing post lands before the VPS deploy, 500 users hit Open-Meteo cold, exhaust the free tier in 10 minutes, and everyone sees "conditions unavailable." That is a launch-day catastrophe with a 10-minute fix that's been ready for 56 days.
+**Open-Meteo rate limiting.** The free tier allows roughly 600 requests/minute across all endpoints. At 100 concurrent users hitting Explore simultaneously with uncached coords, you'll exceed that ceiling. The VPS proxy's in-memory cache is the mitigation — but a pm2 restart wipes it cold. A Reddit or HN spike that coincides with a VPS restart (unlikely but possible) results in 100 concurrent uncached weather fetches, all hitting Open-Meteo raw, triggering a 429 storm. The fix is Open #23 (disk persistence on the weather cache — 30 lines, bundle with the VPS deploy). Without it, the post-spike "conditions unavailable" banner is the fallback — it works, it's ungraceful but not a crash. Implement disk persistence before any traffic-driving social post.
 
 ---
 
-## Issue Summary
+## Open Items (priority order)
 
-| # | Severity | Issue | Days Open | Fix Time |
-|---|----------|-------|-----------|----------|
-| P0 | 🔴 | VPS proxy.js not deployed — **DEADLINE TODAY** | **56** | 10 min SSH |
-| P1 | 🔴 | `origin/master` footgun (deploys June build to prod) | 12 | 2 min |
-| P2 | 🟡 | 19 stale remote branches | 12 | 5 min cleanup |
-| P3 | ⚪ | SW PRECACHE caches wrong Babel URL (dev-only, no prod impact) | NEW | 30 sec with next commit |
-| P3 | ⚪ | No SRI on CDN script tags | ongoing | 30 min post-launch |
-| ✅ | — | Code freeze clean (Day 20) | — | — |
-| ✅ | — | All secrets properly handled | — | — |
-| ✅ | — | 404 venues correct (134 ski / 270 beach) | — | — |
-| ✅ | — | 15 lateSeason:true venues confirmed | — | — |
+| # | Item | Status | Day count |
+|---|------|--------|-----------|
+| P0 | VPS redeploy (proxy.js to 198.199.80.21) | ❌ UNDEPLOYED | Day 57 |
+| P1 | `origin/master` branch footgun | ❌ OPEN | Day 13 |
+| P2 | VENUES bracket-walker 406 vs grep 404 discrepancy | 🆕 NEW today | Day 1 |
+| P2 | Open #23 — weather cache disk persistence (bundle with VPS deploy) | ❌ OPEN | — |
+| P3 | SW PRECACHE Babel URL mismatch (unpkg 7.29.7 vs cdnjs 7.24.7) | ❌ OPEN | Day 2 |
+| — | Code stamp frozen at `20260914a` | ℹ️ expected during freeze | Day 21 |
