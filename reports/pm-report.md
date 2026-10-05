@@ -1,106 +1,134 @@
-# Peakly PM Report v170 — 2026-10-04
+# Peakly PM Report v171 — 2026-10-05
 
-**Status: 🔴 RED — VPS Day 56 DEADLINE WAS TODAY. Oct 18 beach launch = 14 days. Code freeze Day 21 clean. The only remaining gate is Jack's SSH session.**
+**Status: 🟡 YELLOW — VPS Day 57. 13 days to Oct 18 beach launch. Code freeze Day 22 clean. Two consecutive agent false alarms corrected by eval. No confirmed code P0.**
 
 ---
 
-## Shipped Since Last Report (v169 → v170)
+## Shipped Since Last Report (v170 → v171)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `875649f` | Content Oct 4 — score drops 94→88 on tag count reversal (225 is correct, Oct 3 "91" was itself a bad regex) | ✅ Catching the correction to the correction matters. Eval is always authoritative. |
-| `9752f94` | DevOps Oct 4 — YELLOW, VPS Day 56 deadline TODAY, new SW PRECACHE P3 finding | ✅ Accurate. |
+| `255fcbf` | DevOps Oct 5 — YELLOW, VPS Day 57, new bracket-walker 406 vs grep 404 claim | ⚠️ The 406 finding is a false alarm — eval confirms 404, 0 missing category. |
+| `c7ad574` | Content Oct 5 — lateSeason:true count claimed as 10, 5 venues "missing" flag | ⚠️ False alarm. Eval confirms 15 lateSeason venues. All 5 "missing" venues have the flag. |
 
-**Zero code commits to app.jsx/sw.js/index.html in 21 days. Code freeze holds.**
+**Zero app.jsx/sw.js/index.html commits in 22 days. Code freeze holds.**
 
-Notable: Content's Oct 3 "tag count correction" (225→91) was itself wrong. Eval confirms 225 venues (55.7%) have only 2 tags. The Oct 5 session tag enrichment workload just doubled back to the original estimate. Adjust plans accordingly.
+---
+
+## ⚠️ Meta-Finding: Recurring Agent False Alarms
+
+This is the **third consecutive day** of agent reports citing findings that eval disproves:
+
+| Date | Agent | Claimed | Eval Truth |
+|------|-------|---------|------------|
+| Oct 3 | Content | 91 venues with ≤2 tags (regex "fix") | 225 (bad regex, corrected Oct 4) |
+| Oct 5 | DevOps | 406 venues (bracket-walker) | **404** — 0 missing category |
+| Oct 5 | Content | 10 lateSeason:true venues | **15** — all 5 "missing" venues confirmed flagged |
+
+The root cause is agents using grep/regex instead of `node -e "eval(...)"` on the VENUES array. CLAUDE.md says "always eval, never grep" — that applies to agent scripts too. The false lateSeason alarm nearly caused a code freeze break for a non-bug. The false 406 alarm burned triage cycles.
+
+**DECISION: Agent findings that contradict CLAUDE.md's documented counts are false until eval-confirmed. Do not break code freeze on an agent finding that hasn't been eval-verified.**
 
 ---
 
 ## Bug Triage
 
-### P0 — VPS Redeploy: Day 56. TODAY Was the Deadline.
+### P1 — VPS Redeploy: Day 57. Oct 4 Deadline Missed.
 
-The PM-set pre-traffic gate was Oct 4. It is Oct 4. This report is the written record that the deadline has now passed.
+Status unchanged. The code is ready. The VPS is not a git clone. Jack must SSH.
 
-**What is broken:** two-weekend scoring null for all 404 venues, iOS CORS block, alert deletion silent failure, rate-limit spoofable, weather cache wiped on restart.
+**What breaks without it:**
+- Two-weekend scoring null for all 404 venues (7-day vs 14-day forecasts)
+- iOS CORS block
+- Alert deletion silent failure
+- Rate limiter spoofable
+- Weather cache wiped on pm2 restart
 
-**State as of this report:** The 4 deploy commands have been documented in every report since Aug 11. The code in `server/proxy.js` is correct, committed, and ready. The VPS is not a git clone — there is no automated deploy path. Jack must SSH.
-
-**From a networked machine (not a sandbox):**
+**The 3 commands:**
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
-curl -s https://peakly-api.duckdns.org/health
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save"
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
+2 minutes if SSH keys are in place. Verify `forecast_days:14` in the health response.
 
-Verify: `forecast_days:14` + `wx_disk_cache_loaded:true`.
-
-After restart: warm the weather cache manually before any traffic (curl loop in DevOps report §2). Repeat warm-up Oct 18 morning before posting.
-
-**Launch consequence:** 14 days to Oct 18. If VPS remains undeployed at launch, Reddit post copy must describe prices as estimates. That's still a launchable product. But two-weekend scoring being dead at launch is a real quality gap — the Fri–Mon moat is the differentiation.
+**Launch consequence:** Oct 18 is unconditional (v170 decision stands). If VPS is not deployed, Reddit copy uses "estimated prices" language. The quality gap is real. 13 days remain.
 
 ---
 
-### P1 — `origin/master` Footgun: Day 12
+### P1 — `origin/master` Footgun: Day 13
 
-`deploy.yml` deploys both `main` and `master`. A single accidental push to `origin/master` silently rolls production back to Sep 2026 code. 14 days from launch is not the time to carry this risk.
+`deploy.yml` deploys both `main` and `master`. An accidental push to `origin/master` silently rolls production back to Sep 2026 code. With 13 days to launch this is a live risk.
 
 ```bash
 git push origin --delete master
 ```
 
-30 seconds. Delete it in the same terminal session as the VPS deploy.
+30 seconds. Run in the same terminal as the VPS deploy.
 
 ---
 
-### P2 — Tag Density: 225 Venues (55.7%) at ≤2 Tags — Restored to Correct Count
+### P2 — Tag Density: 225 Venues (55.7%) at ≤2 Tags
 
-Oct 3 report claimed this was 91 due to a "regex fix." Oct 4 Content report reversed the correction — the Oct 3 regex was still format-sensitive and undercounted. Eval of the VENUES array (the only authoritative method) confirms 225. Estimated editorial time: ~2 hours for targeted enrichment of the highest-visibility venues first.
+Eval-confirmed. Estimated editorial time: ~2 hours for top-50 by weekendScore. v170 decision stands: top-50 pass before launch, full 225 post-launch.
 
-Oct 5 scope is heavier than v169 projected. Re-prioritize: Gili rename + tag enrichment for the top 50 venues by weekendScore (not all 225 in one pass). The rest carry over.
-
----
-
-### P2 — BASE_PRICES Gap: 67 of 165 APs Missing (127 Venues, 31.4%)
-
-Deal scoring accuracy for nearly a third of the catalog relies on a generic fallback. Top missing APs by venue count documented in Content report. Backfill the top ~15 by venue count before launch — this is the stated v168 target and it hasn't moved.
+**Blocked:** Code is frozen. Tag enrichment requires an app.jsx edit. This does not warrant breaking freeze alone — bundle with the VPS deploy window if Jack is touching the codebase anyway, or schedule as the first post-freeze commit.
 
 ---
 
-### P3 — SW PRECACHE Babel URL Mismatch (New, DevOps Oct 4)
+### P2 — BASE_PRICES Gap: 155 of 165 APs Missing (93.9%)
 
-Service worker PRECACHE entry references a Babel CDN URL that doesn't match the version in index.html. Dev-only (production CI drops Babel). Low impact. Post-launch.
+Eval-confirmed. Only 15 US airports covered. Top missing APs by venue count are international (CUN, DXB, BOB, etc.) — the entire non-US catalog gets generic fallback pricing. Backfill top ~15 by venue count before launch.
+
+**Same status as v170. No movement.**
 
 ---
 
-## Three Product Decisions — Oct 4
+### P3 — SW PRECACHE Babel URL Mismatch
 
-### Decision 1: VPS missed its Oct 4 deadline. Launch quality is degraded, not blocked.
+Dev-only (production CI drops Babel). Post-launch.
 
-Two-weekend scoring being null at launch is the most significant quality gap. It's the differentiator. But 404 venues with week-1 scoring still render, flight estimates still show, the core experience works.
+---
 
-**DECISION: Oct 18 launch is unconditional. Reddit post copy shifts to "estimated prices" language if VPS remains undeployed. No delay, no cancellation. The window is ski season opener — missing Nov 1 r/skiing costs more than launching with estimates.**
+### FALSE ALARM — lateSeason:true Count (Content Oct 5)
 
-### Decision 2: Oct 5 tag enrichment scope is the top 50 high-score venues, not all 225.
+Content report claimed 5 venues (snowbird, zermatt, verbier, val-thorens, engelberg) were missing `lateSeason:true`. **Eval confirms all 15 CLAUDE.md-listed venues have the flag.** Content's grep was format-sensitive. No action needed.
 
-The Oct 3 "correction" that halved the estimate was itself wrong. 225 venues need work. A 2-hour estimate for 225 venues in one pass is probably generous — 4 tags each, evaluating appropriateness. Do the top 50 by weekendScore (most visible in default sort). The rest carry to a post-launch pass. Gili rename stays Oct 5 as planned.
+---
 
-**DECISION: Oct 5 tag enrichment = top 50 venues by weekendScore only. 225 full pass is post-launch.**
+### FALSE ALARM — VENUES Bracket-Walker 406 (DevOps Oct 5)
 
-### Decision 3: r/skiing draft by Oct 25. Content agent or PM agent drafts, Jack refines by Nov 1.
+DevOps reported bracket-walker count of 406 vs grep 404. **Eval confirms 404 venues, 0 missing category field.** The bracket-walker script has the same format-sensitivity problem that caused the tag count false alarms. No action needed.
 
-Oct 18 beach post is drafted and awaiting Jack review Oct 11. The ski post has no draft. 27 days to Nov 1. The sequencing trap (flagged v169: two posts in 13 days read as spam to subreddit mods) is real — the Nov 1 post must lead with ski-season-specific intel, not "my app." The draft needs to reflect that angle from the first sentence.
+---
 
-**DECISION: r/skiing draft due Oct 25. Must open with early-season snow conditions, not the product. The app is the tool, not the story.**
+## Three Product Decisions — Oct 5
+
+### Decision 1: Code freeze holds through Oct 17 unless a P0 is eval-confirmed.
+
+The lateSeason alarm (would have broken freeze) was a false alarm. The bracket-walker alarm was a false alarm. The right call is to hold freeze and require eval verification before any freeze-break. Val Thorens opens mid-October — the scoring is correct. No code risk at launch from this.
+
+**DECISION: Code freeze holds. No app.jsx edits until Oct 18 unless an eval-confirmed P0 emerges. Agent findings require eval verification before triggering a freeze break.**
+
+### Decision 2: Tag enrichment + Gili rename are post-Oct-18.
+
+These were scheduled for Oct 5. Code is frozen. They are not P0. They do not unblock launch. The cost of shipping them early vs. after launch is zero — Reddit users don't filter by tag count. Bundle them into the first post-launch commit alongside BASE_PRICES backfill.
+
+**DECISION: Tag enrichment and Gili rename deferred to first post-launch commit. Oct 18 post is not gated on these.**
+
+### Decision 3: Reddit beach post review deadline is Oct 11. Non-negotiable.
+
+Oct 18 is 13 days out. The post draft is committed (Sep 24). Jack reviews Oct 11. Screenshot on launch morning. Cache warm-up before posting. These are the three remaining things that determine the opening hour.
+
+**DECISION: Oct 11 review deadline is firm. If draft needs revisions after Oct 11, they happen Oct 12–17, not Oct 18 morning.**
 
 ---
 
 ## This Week's Top 3
 
-1. **VPS deploy + `origin/master` delete — Jack SSH, 15 minutes total.** Documented every day since Aug 11. Nothing more to say.
-2. **Oct 5: Gili rename + top-50 tag enrichment + stale branch cleanup.** 14 claude/* branches on origin doing nothing. Clean them. Tag enrichment is heavier than projected — scope to top 50 only.
-3. **Oct 11: Jack reviews beach Reddit post draft.** Screenshot on launch morning (Oct 18). Cache warm-up before posting. These three things determine the opening wave.
+1. **Jack: VPS deploy + `origin/master` delete — 15 minutes, SSH.** Day 57. Nothing has changed. The commands are above. Do it.
+2. **Jack: Review Oct 18 Reddit post draft by Oct 11.** 6 days. Cache warm-up plan is documented. Screenshot on launch morning.
+3. **Content agent prompt hygiene — require eval, not grep.** Three false alarms in 3 days cost triage cycles and nearly broke code freeze unnecessarily. The fix is enforcing `node -e "eval(...)"` in agent scripts before any finding referencing venue counts, lateSeason counts, or tag density.
 
 ---
 
@@ -108,26 +136,22 @@ Oct 18 beach post is drafted and awaiting Jack review Oct 11. The ski post has n
 
 | Feature | Reason |
 |---------|--------|
-| Any app.jsx changes before Oct 5 | Code freeze Day 21. 14 days from launch. |
-| Full 225-venue tag pass on Oct 5 | Too wide. Top 50 by weekendScore is the 80/20. |
-| BASE_PRICES full backfill (67 APs) | Top 15 by venue count before launch. Not all 67. |
-| SW PRECACHE Babel URL fix | Dev-only, P3. Post-launch. |
-| Automating the Reddit post | Jack posts manually. Timing and presence matter at launch. |
-| Peakly Pro price display fix | Dead UI. Zero users paying. Post-launch if Pro revives. |
+| Breaking code freeze for lateSeason "fix" | False alarm — all 15 flags confirmed by eval. |
+| Breaking code freeze for bracket-walker "discrepancy" | False alarm — eval confirms 404, 0 missing category. |
+| Full 225-venue tag pass | Too wide. Post-launch. Top-50 was the v170 call; now deferred entirely to post-launch. |
+| Gili rename | Deferred to post-launch. Not a launch blocker. |
+| BASE_PRICES full 155 AP backfill | Top ~15 only, bundled with post-launch content pass. |
+| Any feature work before Oct 18 | 13 days. Ship what's there. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The weather cache cold-start is a launch-day failure mode that could make the Oct 18 post look broken to its first 500 readers.**
+**The agent false-alarm rate is accelerating, and the next one might land in a live commit instead of a report.**
 
-If VPS is deployed before Oct 18 (good) but Jack doesn't manually warm the cache in the ~30 minutes before the Reddit post goes live, the first wave of users hits a cold proxy. 500 concurrent requests for the same uncached coords → 500 upstream Open-Meteo calls in seconds → rate ceiling hit → "conditions unavailable" for everyone who clicks in the first hour → the exact users who matter most for upvote momentum see a broken product.
+Three false alarms in three days. Each was a plausible-sounding finding (scoring regression, venue count discrepancy) that would have justified a code change. The difference between "false alarm in a report" and "false alarm committed to app.jsx" is whether the person applying the fix also runs eval. In a 22-day code freeze, Jack is probably not watching every agent finding closely — he's focused on VPS and the Reddit post. If a scheduled agent commits a "fix" for a non-bug during the freeze window, the smoke test might not catch it (a `lateSeason: false` override on a venue that already has `lateSeason: true` would merge, pass syntax check, pass smoke, and silently break scoring for that venue the moment ski season opens).
 
-The DevOps warm-up script is documented. It needs to be in a runbook Jack runs on launch morning, not something that "should probably happen." Specifically: warm-up runs *after* the VPS deploy (whenever that happens) AND *again* Oct 18 morning before the post goes live. Two warm-ups, two different risks.
-
-If the VPS hasn't been deployed at all by Oct 18, this risk is moot — the app falls back to direct Open-Meteo and 500 concurrent users hit the free-tier ceiling directly. Different failure, same symptom: "conditions unavailable" for the opening wave.
-
-**The product risk at launch is not a missing feature — it's cache cold-start turning the opening hour into a bad demo.**
+The risk isn't agent malice — it's agents with format-sensitive scripts finding ghosts in the data and writing "fixes" with high confidence. The mitigation is already documented (eval over grep) but it needs to be enforced in the agent prompts themselves, not just CLAUDE.md.
 
 ---
 
@@ -135,16 +159,18 @@ If the VPS hasn't been deployed at all by Oct 18, this risk is moot — the app 
 
 | Metric | Status |
 |--------|--------|
-| 90-day projection (5K–8K) | Two-wave path still intact. VPS slip is a quality gap, not a kill shot. |
-| Live fares at beach launch | 🔴 VPS still undeployed. Deadline missed. |
-| Data quality score | 88/100. Tag count restored to 225 (Oct 3 "correction" was wrong). Top-50 pass Oct 5. |
-| Code freeze | ✅ Day 21 clean. |
-| Reddit beach post | Draft committed Sep 24. Jack review Oct 11. Screenshot Oct 18 morning. |
-| `origin/master` footgun | 🔴 Day 12. Delete in same SSH session as VPS deploy. |
-| Cache warm-up | ⚠️ Must run after deploy AND again Oct 18 morning before posting. Two warm-ups. |
-| r/skiing post | ⚠️ No draft. Oct 25 deadline. Must open with ski-season intel, not a product pitch. |
-| Two-post sequencing risk | ⚠️ Ongoing. Nov 1 post angle must be distinct from Oct 18. |
-| Oct 5 scope | ⚠️ Heavier than projected (225 real, not 91). Scoped to top-50 pass. |
-| Stale claude/* branches | ⚠️ 14 branches on origin. Cleanup Oct 5. |
+| 90-day projection (5K–8K) | Two-wave path intact. |
+| Live fares at beach launch | 🔴 VPS Day 57. 13 days remain. |
+| Code freeze | ✅ Day 22 clean. |
+| lateSeason:true (15 venues) | ✅ Eval-confirmed — Content's "10" was a false alarm. |
+| VENUES count (404) | ✅ Eval-confirmed — DevOps "406" was a false alarm. |
+| Reddit beach post | ✅ Draft committed Sep 24. Jack review Oct 11. |
+| `origin/master` footgun | 🔴 Day 13. Delete in same SSH session as VPS deploy. |
+| Cache warm-up | ⚠️ Run after VPS deploy AND Oct 18 morning before posting. |
+| r/skiing post | ⚠️ No draft. Oct 25 deadline. Must lead with ski conditions, not the product. |
+| Tag enrichment (top-50) | ⚠️ Deferred to first post-launch commit. |
+| BASE_PRICES (top-15 APs) | ⚠️ Not started. Pre-launch target. |
+| Stale claude/* branches | ⚠️ 14+ branches on origin. Cleanup whenever Jack is in the terminal. |
+| Agent eval discipline | 🔴 3 false alarms in 3 days. Fix prompt scripts to use eval. |
 
-**For 8K not 5K:** VPS live before Oct 18 (even if just barely). Cache warm-up morning of launch. Screenshot in the post. Jack present for 2 hours post-launch for upvote momentum. r/skiing Nov 1 post with a different angle. That path still exists. The Oct 4 VPS deadline missing doesn't close it.
+**For 8K not 5K:** VPS live before Oct 18. Cache warm on launch morning. Jack present 2 hours post-post for upvote momentum. r/skiing Nov 1 with a distinct angle. The path still exists. 13 days.
