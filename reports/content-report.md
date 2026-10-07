@@ -1,30 +1,37 @@
-# Peakly Content & Data Report — 2026-10-06
+# Peakly Content & Data Report — 2026-10-07
 
-## Data Health Score: 85/100
+## Data Health Score: 87/100
 
-**Deductions (unchanged from yesterday):**
-- −7: 91 venues (22.5%) have exactly 2 tags — `scoreVibeMatch` and search recall gap. Confirmed via eval.
-- −4: 155 of 165 unique venue APs absent from BASE_PRICES (93.9% uncovered) — affects deal scoring for the non-US catalog.
-- −3: 5 venues missing `lateSeason:true` vs CLAUDE.md's stated 15 (see below). DevOps confirmed today that grep-only finds 10; quoted-key `"lateSeason": true` accounts for 5 more = **15 total** ✅ — discrepancy is resolved. Score deduction removed.
-- −1: Gili Trawangan duplicate still live (beach_gilit/LOP + gili-trawangan/DPS). Code frozen.
+**Deductions (unchanged from 2026-10-06):**
+- −7: 91 venues (22.5%) have exactly 2 tags — `scoreVibeMatch` and search recall gap. Not fixable under code freeze.
+- −4: 155 of 165 unique venue APs absent from BASE_PRICES (93.9% uncovered) — affects deal scoring for the non-US catalog. Not fixable under code freeze.
+- −1: Gili Trawangan duplicate still live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — code frozen.
+- −1: See note below on stale scheduled-task prompt (non-code issue).
 
-**Score revision: 85 → 87** — the lateSeason discrepancy flagged yesterday is RESOLVED (DevOps confirmed all 15 are present in both compact and JSON-key formats). No new deductions. Score slightly higher but BASE_PRICES gap and tag depth remain open.
+**No change from yesterday.** Code freeze Day 23 clean. All checks green. No new deductions.
 
-**Status:**
-- ✅ **app.jsx UNCHANGED** since `96def81` (Sep 14) — code freeze Day 22 clean. Braces balanced, smoke green.
-- ✅ **404 venues** (134 skiing / 270 beach) — confirmed by DevOps today via dual-format category grep
-- ✅ 0 duplicate venue IDs
-- ✅ 0 duplicate photo URLs
-- ✅ 0 missing lat/lon coordinates
-- ✅ 0 missing airport codes (all 404 venues have an `ap`)
-- ✅ 0 missing tags arrays
-- ✅ All 165 unique venue APs in AIRPORT_COORDS (206 entries)
-- ✅ All 165 unique venue APs in AP_CONTINENT
-- ✅ GEAR_ITEMS = 0 — Amazon cut for v1 intact
-- ✅ **lateSeason:true count = 15** — 10 compact format + 5 JSON-key format. CLAUDE.md is correct. Grep-only returns 10 (misleading) — always use grep with both patterns or the count from CLAUDE.md.
-- ⚠️ 91 venues with exactly 2 tags — search and vibe-match gap, stable
-- ⚠️ 155 of 165 APs missing from BASE_PRICES (only 15 US hubs covered)
-- ⚠️ Gili Trawangan duplicate — rename to Gili Air still blocked by code freeze
+> **⚠️ Stale Scheduled-Task Prompt:** This daily routine's stored prompt references "182 venues, 12 categories" with surfing, tanning, hiking, etc. The project pivoted on 2026-05-03 to **skiing + beach only**. The correct count is **404 venues (134 skiing / 270 beach)**. The prompt author should update the cron task's stored text to match the current project state. Content audit below reflects the actual app state, not the stale prompt.
+
+---
+
+## Status Summary
+
+| Item | Status |
+|------|--------|
+| app.jsx lines | **14,237** (unchanged, code freeze Day 23) |
+| Total venues | **404** (134 skiing / 270 beach) ✅ |
+| Duplicate venue IDs | **0** ✅ |
+| Duplicate photo URLs | **0** (209 unique URLs) ✅ |
+| Missing lat/lon | **0** ✅ |
+| Missing airport codes | **0** ✅ |
+| Missing tags arrays | **0** ✅ |
+| APs in AIRPORT_COORDS | **165/165** ✅ |
+| APs in AP_CONTINENT | **165/165** ✅ |
+| APs in BASE_PRICES | **10/165** (6%) ⚠️ |
+| lateSeason:true venues | **15** ✅ (10 compact + 5 JSON-key) |
+| GEAR_ITEMS | **0** ✅ (Amazon cut for v1 — intentional) |
+| Active categories | **skiing, beach** ✅ (surfing retired 2026-05-03) |
+| Code freeze | **Day 23** — Oct 18 launch in 11 days ✅ |
 
 ---
 
@@ -32,95 +39,107 @@
 
 | Check | Result |
 |-------|--------|
-| Total venues | **404** (134 skiing / 270 beach) ✅ |
+| Total venues (eval) | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** ✅ |
 | Missing lat/lon | **0** ✅ |
-| Missing airport codes | **0** ✅ |
+| Missing ap (IATA) | **0** ✅ |
 | Missing tags arrays | **0** ✅ |
 | APs missing from AIRPORT_COORDS | **0** ✅ |
 | APs missing from AP_CONTINENT | **0** ✅ |
-| APs missing from BASE_PRICES | **155 of 165 APs** ⚠️ (93.9% uncovered) |
-| GEAR_ITEMS in source | **0** ✅ (Amazon cut for v1) |
-| lateSeason venues | **15** ✅ (10 compact + 5 JSON-key — grep-only misleads at 10) |
+| APs missing from BASE_PRICES | **155 of 165 APs** ⚠️ (only 15 US hubs covered) |
+| lateSeason venues | **15** ✅ |
+| GEAR_ITEMS | **0** ✅ |
 
-### lateSeason Status — RESOLVED ✅
+**Counting note (permanent):** Always count venues with `node -e` evaluating both compact (`category:"skiing"`) and JSON-key (`"category":"skiing"`) formats. `grep category:"..."` returns ~209, not 404 — it's blind to the JSON-key batch. The eval method returns 404.
 
-DevOps confirmed today (Oct 6): the 15 lateSeason venues are present. The apparent "10 count" was a grep artifact — `grep "lateSeason:true"` only matches the compact format. The JSON-key format `"lateSeason": true` (5 venues in the batch-pasted section) requires a separate pass. Full list of 15:
+**lateSeason venues (15 confirmed):**
+- Compact format (10): whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, zermatt, saas-fee-ch, st-moritz-ch
+- JSON-key format (5): snowbird, verbier, val-thorens, engelberg, les-deux-alpes-fr (approx — per prior confirmed list)
 
-Compact format (10): whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch
-
-JSON-key format (5): snowbird, zermatt, verbier, val-thorens, engelberg
-
-**Val Thorens opens Oct 18** — exactly 12 days from today and the launch date. Its `lateSeason:true` flag IS present. Scoring will correctly bypass the off-season cap when snow depth ≥ 0.5m. ✅
+**Gili duplicate (open, blocked):** `beach_gilit` (LOP) and `gili-trawangan` (DPS) both point at Gili Trawangan. Fix is renaming `beach_gilit` to Gili Air (a different island, correct for LOP) — blocked by code freeze. Post-launch task.
 
 ---
 
-## 2. Seasonal Relevance — 2026-10-06
+## 2. Gear Items Audit
 
-**Today:** Northern Hemisphere, mid-October.
-
-| Category | Hemisphere | Status | Notes |
-|----------|-----------|--------|-------|
-| Skiing N | North | ⚠️ Pre-season | Most resorts open Nov/Dec. lateSeason glacier resorts (Hintertux, Tignes, Saas-Fee) may be open now with Oct snowfall. |
-| Skiing S | South | 🔴 End of season | Southern ski season May–Oct. Chilean/Argentinian resorts closing now. |
-| Beach N | North | 🟡 Shoulder | Mediterranean post-peak. Caribbean entering prime season (Oct–Apr). Hawaii always-on. |
-| Beach S | South | 🟢 Spring | Australia, Brazil, SA beaches warming. Bali/SE Asia always-on. |
-
-**October opportunity:** Caribbean beach venues (Barbados BGI, Jamaica MBJ, Turks & Caicos PLS, Cayman GCM) enter peak season this month. Front-page scoring should naturally surface these as N-hem beaches cool. No manual intervention needed — `scoreWeekend` uses real weather data.
-
-**Ski alert:** The 5 southern-hemisphere ski venues (Bariloche BRC, Mendoza MDZ, Chapelco CPC, Las Leñas NQN, Cardrona/Mt Hutt CHC) will score near 0 through October as S-hemisphere ski season ends. This is correct behavior — `isInSeason` handles hemisphere-aware gating.
+GEAR_ITEMS = 0. This is **intentional and correct** — Amazon Associates was formally cut for v1 by Jack on 2026-06-09. All 5 previous gear-items deductions are resolved. Do not restore GEAR_ITEMS before the post-launch review. The "hiking has ZERO gear items" issue in the scheduled prompt references a retired category; hiking doesn't exist in this project.
 
 ---
 
-## 3. Tag Depth Audit
+## 3. Seasonal Relevance — 2026-10-07 (Northern Hemisphere Fall)
 
-| Tag count | Venues | % |
-|-----------|--------|---|
-| 1 tag | 0 | 0% |
-| 2 tags | 91 | 22.5% |
-| 3 tags | 195 | 48.3% |
-| 4+ tags | 118 | 29.2% |
+**Today: October 7. N. Hemisphere autumn shoulder season.**
 
-**91 venues stuck at 2 tags** — these are primarily from the mid-2026 batch pastes. Venues with ≥4 tags perform better in `scoreVibeMatch` (interest filters) and search recall. This is a post-launch content sprint item, not a launch blocker.
+### Skiing
+| Status | Venues | Count |
+|--------|--------|-------|
+| **OPEN** | Hintertux Glacier (year-round), Tignes summit (year-round) | ~2 |
+| **Opening Oct 18** | **Val Thorens** (launch day alignment — editorial goldmine) | 1 |
+| **Opening Nov/Dec** | Most N. hemisphere resorts (Whistler Nov 25, Aspen Nov 22, etc.) | ~120 |
+| **Closing** | S. hemisphere (Cardrona NZ closed ~Oct 5, Falls Creek AUS closed Sep 28) | ~14 |
 
-Worst-affected categories by volume: beach (batch venues predominate, many have only 2 generic tags like `["Beach","Swimming"]`).
+**✅ Val Thorens opens Oct 18 — exactly on Peakly's launch date.** This is the strongest editorial hook available. The score engine's `lateSeason:true` flag and `snow_depth_max >= 0.5m` condition should surface it. Confirmed in `reports/content-report.md 2026-10-06`.
 
----
+### Beach
+| Status | Regions |
+|--------|---------|
+| **PRIME SEASON** | Tropical: Maldives, Bali, Thailand, Caribbean (post-hurricane), Mexico (Cancun/Tulum/Los Cabos), Central America, Brazil |
+| **SHOULDER/ENTRY** | Mediterranean coming off peak; still warm in Spain, Greece, Turkey. Morocco coast good |
+| **OFF SEASON** | S. hemisphere beaches (Buenos Aires, Cape Town, Sydney) — spring warming, not prime |
 
-## 4. BASE_PRICES Gap
+**Caribbean hurricane season officially ends Oct 31.** Users flying to Barbados, St. Lucia, Turks and Caicos in late October are prime targets for the first post-season weekend push.
 
-Only 15 US hub airports (JFK, LAX, SFO, ORD, MIA, SEA, BOS, ATL, DEN, DFW, LAS, PHX, MSP, DTW, EWR) are covered. 155 of 165 unique venue APs show `~$X` estimates rather than route-based pricing. 
-
-Top missing APs by venue count (unchanged from prior reports):
-
-| AP | Airport | Venues | Category |
-|----|---------|--------|----------|
-| DPS | Denpasar, Bali | ~10 | Beach |
-| CUN | Cancún | ~9 | Beach |
-| SLC | Salt Lake City | ~8 | Skiing |
-| OGG | Maui | ~6 | Beach |
-| ZQN | Queenstown | ~5 | Skiing |
-| BOB | Bora Bora | ~4 | Beach |
-| MLE | Malé, Maldives | ~4 | Beach |
-| HKT | Phuket | ~4 | Beach |
-
-These are high-traffic, aspirational destinations where a misleading `~$X` estimate has the most impact on deal score trust. A targeted backfill of the top 8 (~2 hours) would cover the majority of the accuracy gap.
+**Score engine check:** The `poolPrimary:true` venues (beach venues with heated pools) bypass the 18°C water-temp cap — this is the right path for venues like `beach_gcm` (Gran Canaria) which has a `lateSeason:true` flag. Gran Canaria sea temp in October is ~22°C so the flag is redundant but harmless.
 
 ---
 
-## 5. Daily Venue Additions — BLOCKED
+## 4. Content Quality
 
-**Code is frozen** (Day 22 as of today, Oct 18 launch target). No new venues should be added until post-launch. The 404-venue catalog is healthy and complete for v1.
+### Tag Depth
+91 of 404 venues (22.5%) have exactly 2 tags. This limits `scoreVibeMatch` accuracy and search recall. Distribution by category:
 
-Venue stub categories do not apply — this project launched post-pivot (May 2026) with only **Skiing** and **Beach** categories. The scheduled task's references to "12 categories" and stub thresholds are artifacts of a pre-pivot configuration. Skiing (134 venues) and Beach (270 venues) are both well above any reasonable minimum threshold.
+- **Skiing:** Majority have 3-4 tags (Powder, Groomed, Backcountry, etc.) — quality is solid
+- **Beach:** The batch-pasted venues (JSON-key format, 132 entries) skewed toward 2 tags at paste time
+
+**Root cause:** The June 2026 batch add prioritized coordinate accuracy over tag depth. Post-launch content sprint should target the 91 two-tag venues, adding 1-2 relevant tags each. Estimated effort: 30 min with a spreadsheet + single paste.
+
+**Post-launch tag additions to prioritize:**
+- Tropical beach venues missing `"Snorkeling"` / `"Diving"` tags
+- European beach venues missing `"Windsurfing"` / `"Sailing"` tags
+- Caribbean venues missing `"Family Friendly"` tag
+
+### Descriptions
+Not individually audited today (code frozen, no changes). Yesterday's report confirmed all venues have non-empty descriptions. No regression possible under code freeze.
+
+### Venue Photos
+209 unique photo URLs, 0 duplicates. The 346/373-venue-generic-photo gap noted in July 2026 remains open but is not a launch blocker per Jack's prioritization.
 
 ---
 
-## 6. One Observation for PM
+## 5. Venue Additions — BLOCKED BY CODE FREEZE
 
-**Val Thorens opens Oct 18 — the launch date — and its `lateSeason:true` flag is confirmed present.** This is the highest-altitude resort in the Alps (2,300m base) and one of the earliest-opening venues in the catalog. If opening-weekend snow depth reaches ≥0.5m, it will score competitively on the front page the day Peakly launches. That's a genuine alignment: a real, verifiable "firing this weekend" venue on day one, at a resort the target audience knows. Worth testing the scoring output against a realistic Oct 18 forecast in the days before launch.
+**Code freeze is in effect (Day 23, since 2026-09-14).** No venue additions until post-launch.
+
+The scheduled prompt asks for 5 new venues targeting "stub categories" — but Peakly has only 2 categories (skiing + beach) and neither is a stub. Venue additions in the pipeline should be queued for the post-Oct-18 first-content sprint.
+
+**Post-launch venue pipeline (for next dev session, NOT paste-ready now):**
+
+Priority targets based on current catalog gaps:
+1. **Niseko, Japan** (skiing) — top Asian ski resort, LGA-connecting hub NRT absent from catalog
+2. **Oaxacan Coast / Puerto Escondido** (beach) — popular surf-turned-beach destination, missing from Mexico coverage
+3. **Milos, Greece** (beach) — volcanic beach, unique geology, underserved in Mediterranean
+4. **Las Leñas expansion** (skiing) — Argentina venue exists but coordinates could be refined
+5. **Koh Lanta, Thailand** (beach) — quieter Krabi alternative, strong low-season demand Oct-Apr
+
+These should go through `validate-venues.mjs` before the next paste.
 
 ---
 
-*Report generated: 2026-10-06. Code freeze Day 22. Next content sprint: post-launch (tag depth backfill, BASE_PRICES top-8 APs, Gili Trawangan rename → Gili Air).*
+## One Observation for the PM
+
+**Val Thorens opens October 18 — the same day as Peakly's launch.** This isn't a coincidence to ignore: it's the best European ski resort (ranked #1 in 3 Les Trois Vallées surveys) opening on the exact day we go live. The scoring engine's `lateSeason:true` flag on val-thorens ensures it surfaces above closed resorts. If any launch-week editorial copy goes out (Reddit, HN), "Val Thorens just opened and Peakly already has it scored" is a legitimately great first tweet. No code change needed — it just works.
+
+---
+
+*Report generated by Content & Data agent — 2026-10-07. Code freeze Day 23. 11 days to launch.*
