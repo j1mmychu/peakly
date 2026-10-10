@@ -1,107 +1,109 @@
-# Peakly PM Report v175 — 2026-10-09
+# Peakly PM Report v176 — 2026-10-10
 
-**Status: 🟠 ORANGE — VPS Day 61 (9 days to Oct 18 launch, now P0 per DevOps). `origin/master` footgun Day 3 (still live). Code freeze Day 25 clean. Two days from the weekend Jack needs to fix both.**
+**Status: 🔴 RED — VPS Day 62 (8 days to Oct 18 launch, P0). `origin/master` footgun Day 4. Code freeze Day 26 clean. Oct 11–12 is the window. It starts tomorrow.**
 
-> **Stale prompt notice (same as v174):** This scheduled routine still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Actual state: 404 venues, 2 categories, Peakly Pro cut, Sentry configured. Jack: update the cron task prompt before Oct 18.
+> **Stale prompt notice (Day 4):** This scheduled routine still references "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Actual state: 404 venues, 2 categories, Peakly Pro cut, Sentry configured. Jack: update the cron task prompt. It takes 2 minutes and stops generating false noise the week of launch when signal quality is critical.
 
 ---
 
-## Shipped Since Last Report (v174 → v175)
+## Shipped Since Last Report (v175 → v176)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `7af5d48` | DevOps Oct 9 — upgraded VPS to P0, 9 days left | ✅ Correct escalation. The 10-day buffer is gone. |
-| `62ac0bf` | Content Oct 9 — 91/100, code freeze clean, SH ski season context | ✅ Good. S.hemisphere ski context is useful for framing the post-launch catalog. |
+| `e2c1e20` | DevOps Oct 10 — ORANGE, VPS Day 62, code freeze clean | ✅ Correct. Escalation tone is appropriate. |
+| `0e75df7` | Content Oct 10 — 91/100, Val Thorens context, S.hem spring ramp | ✅ Good. Confirms catalog is clean. |
 
-**Three straight days: zero app.jsx/sw.js/index.html commits. Code freeze holding. This is correct.**
+**Day 26 of code freeze. Zero app.jsx/sw.js/index.html commits. Correct.**
 
-**Zero movement on either Jack-only action (VPS deploy, delete origin/master). Day 61 on VPS. Day 3 on footgun. Both require Jack on SSH. Both are now simultaneous risks 9 days from launch.**
+**Zero movement on either Jack-only blocker for the fourth straight day. The Oct 11–12 window opens tomorrow morning. This is the report.**
 
 ---
 
 ## Bug Triage
 
-### P0 — VPS Redeploy: Day 61, 9 Days Left
+### P0 — VPS Redeploy: Day 62, 8 Days Left
 
-DevOps escalated this to P0 today. Correct call. At 9 days, "this weekend" (Oct 11–12) is the last window that isn't launch-day. If it slips to Oct 18 morning:
-- Weather cache is cold at peak traffic
-- Open-Meteo free tier blows under first-day load
-- Two-weekend scoring shows `"low"` confidence on Val Thorens opening weekend — the exact editorial hook anchoring the launch narrative
-- iOS native CORS blocked (App Store path)
-- Alert deletion silent-fails on every tap
+**Tomorrow is Oct 11. The window is here.**
 
-**Fix: 10 minutes SSH, Oct 11 or 12. Not Oct 17. Not Oct 18.**
+Still undeployed. `server/proxy.js` in the repo is correct and complete — disk cache, `forecast_days:14`, `capacitor://localhost` CORS, DELETE method, rate-limiter fix. All verified today by DevOps. None of it is live.
 
+What breaks at launch if this doesn't happen:
+
+1. **Val Thorens opening weekend (`low` confidence on Day 6–7)** — the editorial hook for the r/travel launch post. The exact venue the launch narrative is built around. Without `forecast_days:14`, it drops off the front page with a "low" confidence flag on its opening day.
+2. **Open-Meteo free tier blown on first-hour traffic** — in-memory cache wipes on every pm2 restart; disk persistence isn't live; cold cache + launch traffic = 429s across the board = "conditions unavailable" for every new user's first impression.
+3. **iOS CORS blocked** — `capacitor://localhost` not in live allowlist.
+4. **Alert deletion silent-fails** — DELETE blocked at preflight since launch.
+
+**Fix. One session. 10 minutes:**
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save"
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+# Confirm: forecast_days:14 visible in health output
 ```
-Confirm `forecast_days:14` in the health output.
 
-### P1 — `origin/master` Footgun: Day 3
+**Do this Oct 11 or 12. Non-negotiable.**
 
-Still live. `deploy.yml` triggers on both `main` and `master`. At 9 days to launch this is no longer theoretical. A midnight typo during a launch-day fire drill ships June 2026 code — 100+ commits behind main — to GitHub Pages production. Undoes everything.
+### P1 — `origin/master` Footgun: Day 4, 561 Commits Behind
 
-**Fix: 2 minutes, same SSH session as the VPS deploy:**
+Still live. `deploy.yml` triggers on both `main` and `master`. 8 days from launch, any accidental push to master ships June 2026 code to GitHub Pages. Undoes 5 months of work instantly. Takes 2 minutes to fix in the same SSH session.
+
 ```bash
 git push origin --delete master
-git ls-remote --heads origin master  # should return nothing
+git ls-remote --heads origin master  # confirm empty
 ```
-**Do this Oct 11 or 12. Same session as the VPS. Both in 15 minutes total.**
 
-### P2 — Tag Depth: 225 of 404 Venues (55.7%) at Exactly 2 Tags
+**Bundle with the VPS deploy. Same session. 12 minutes total for both blockers.**
 
-Unchanged. `scoreVibeMatch` underperforms for majority of catalog. Code frozen through Oct 17. First post-launch content commit. Not blocking launch.
+### P2 — Tag Depth: 225/404 Venues at Exactly 2 Tags
+
+`scoreVibeMatch` underperforms for 55.7% of catalog. Code frozen. First post-launch commit. Not a launch risk.
 
 ### P2 — SW PRECACHE Babel Mismatch
 
-Still present. `const PRECACHE = []` is the 30-second fix. Code frozen. First app.jsx commit post-launch. Not blocking launch.
+`const PRECACHE = []` is the fix. Code frozen. Post-launch. Day 6.
 
 ### P3 — Gili Trawangan Duplicate
 
-`beach_gilit` (LOP) + `gili-trawangan` (DPS) both map to same island. Code frozen. Post-launch. Fix: rename `beach_gilit` to Gili Air.
-
-### ~~P2 — BASE_PRICES Gap~~ CLOSED (v174)
-
-165/165 venue APs covered. Nothing to do.
+`beach_gilit` and `gili-trawangan` are the same island. No crash. Post-launch.
 
 ---
 
-## Three Product Decisions — Oct 9
+## Three Product Decisions — Oct 10
 
-### Decision 1: The Oct 11–12 weekend is non-negotiable for VPS + footgun.
+### Decision 1: The window is tomorrow. No more extensions.
 
-Not a recommendation. A constraint. At 9 days, these are the last two weekday-buffer-protected days before launch. If they slip, Jack is deploying the morning of Oct 18 with a cold cache under live traffic — which is precisely when a cold cache turns into a product-killing first impression on Reddit.
+There is no "Oct 13" option that doesn't carry risk. At 8 days, a Monday deploy still leaves only 6 days of verified-live behavior before launch traffic. Oct 11–12 is the last weekend with a full business-week buffer. A 10-minute SSH session fixes both remaining blockers in one shot.
 
-**DECISION: VPS deploy + `origin/master` deletion happens Oct 11 or Oct 12. No later. If Jack can't be on SSH that weekend, he needs to block time now.**
+**DECISION: VPS deploy + `origin/master` deletion happens Oct 11 or Oct 12. If Jack is blocked both days, the launch date moves — because launching without `forecast_days:14` on Val Thorens opening weekend is launching with your editorial hook broken.**
 
-### Decision 2: Post-launch sprint order is locked.
+### Decision 2: Post-launch sprint order confirmed and frozen.
 
-With BASE_PRICES confirmed clean, the post-launch queue is:
-1. Tag enrichment (55.7% of venues at 2 tags — `scoreVibeMatch` impact is immediate)
-2. PRECACHE fix + any CLAUDE.md cleanup (first app.jsx commit slot)
+1. Tag enrichment (55.7% at 2 tags — `scoreVibeMatch` impact is the highest-leverage first commit)
+2. SW PRECACHE fix + CLAUDE.md prompt update (10-minute housekeeping, first app.jsx slot)
 3. Gili Trawangan dedup
-4. Photo improvements (pipeline exists, needs Unsplash key)
+4. Photo improvements (Unsplash key required)
 5. Venue additions (only after all existing venues have 4+ tags)
 
-No reopening this order. Venue additions are last, not first.
+No reopening this order. Post-launch commits go in this sequence.
 
-**DECISION: Tag enrichment is the first post-launch commit. Venue additions come after every existing venue has 4+ tags.**
+**DECISION: Tag enrichment is the first post-launch commit. Venue additions are last.**
 
-### Decision 3: S.hemisphere ski season wind-down is not a launch problem.
+### Decision 3: The "ski season starts soon" empty-state nudge is worth planning now.
 
-Content flagged 23 S.hemisphere ski venues going dormant post-launch (SH season ends Oct–Nov). These will score off-season correctly via the hemisphere-aware season gate. They don't need to be removed or tagged. Users in AUS/NZ/ARG/CHL are in the right season window anyway. The scoring engine handles this correctly without intervention.
+v175 surfaced a legitimate post-launch retention risk: N.hemisphere ski resorts are pre-season in late October (most open late Oct–Dec). A user who found Peakly via the r/travel Val Thorens post on Oct 18, comes back Nov 1 with the skiing filter active, and sees a near-empty grid — with Whistler off-season, Chamonix off-season, and the lateSeason glaciers as the only results — will churn without understanding why. The app is working correctly; the communication is missing.
 
-**DECISION: No action on S.hemisphere ski venues pre-launch. The algorithm is correct. Don't touch it.**
+The fix is a single "Ski season starts soon — set an alert for your resort" nudge in the Explore empty state when skiing is selected and all results are filtered as off-season. One content commit, no scoring changes.
+
+**DECISION: Add the ski-season empty-state nudge as the second or third post-launch commit (after tag enrichment + PRECACHE). Scope it as a copy change only — no scoring, no new state.**
 
 ---
 
 ## This Week's Top 3
 
-1. **Jack: VPS deploy + delete origin/master — Oct 11 or 12, 15 minutes total.** Same SSH session. Not negotiable. The only true launch blocker still open.
-2. **Jack: Update the PM/DevOps/Content scheduled-task prompts** — 5 minutes before Oct 10. Every agent run on stale baseline data risks false alarms the week of launch when signal quality is critical.
-3. **Jack: Confirm you'll be online Oct 18 for 2 hours post-post.** Val Thorens opens Oct 18. The r/travel post drops that day. First-hour comments on Reddit require a human. This isn't a code task — it's a calendar block.
+1. **Jack: VPS deploy + delete `origin/master` — Oct 11 or Oct 12. 12 minutes. One SSH session.** The launch editorial hook (Val Thorens opening weekend, forecast confidence) depends on `forecast_days:14` being live. This is not optional.
+2. **Jack: Update the PM/DevOps/Content cron task prompts.** 5 minutes. Every agent run on stale data this week adds noise at the worst time. "182 venues" is 4 months out of date.
+3. **Jack: Block 2 hours on Oct 18 for Reddit response.** The r/travel post drops launch day. First-hour comment quality determines the trajectory. No tool can do this. Calendar block now.
 
 ---
 
@@ -109,22 +111,20 @@ Content flagged 23 S.hemisphere ski venues going dormant post-launch (SH season 
 
 | Feature | Reason |
 |---------|---------|
-| Any code change before Oct 18 | Code frozen through Oct 17. Everything waits. |
-| New venue additions | Tag sprint comes first, post-launch. |
-| JSON-LD structured data | Post-launch SEO sprint. Not a launch blocker at current traffic. |
-| Static h1 fallback | Same. SEO improvements post-launch. |
-| Peakly Pro pricing fix | Pro is cut for v1. No discrepancy to fix. |
-| r/skiing post | Needs real snow reports. Nov 1 target. Val Thorens angle is r/travel, not r/skiing. |
+| Any code change before Oct 18 | Code freeze through Oct 17. No exceptions. |
+| New venue additions | Post-launch. Tag sprint comes first. |
+| JSON-LD / h1 fallback | SEO post-launch sprint. Not a launch blocker. |
+| Peakly Pro pricing fix | Pro is cut for v1. Nothing to fix. |
+| r/skiing post | Needs real snow reports. Nov 1 target. |
+| S.hemisphere ski venue removal | Algorithm handles off-season correctly. No intervention needed. |
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The S.hemisphere ski venues going dormant post-launch will temporarily shrink the visible catalog for users in AUS/NZ/ARG/CHL — but the real risk is what happens to the *overall score distribution* on the front page in late October.**
+**The launch post goes up the same day Val Thorens opens. The r/travel hook is "this exact ski resort opens today — here's the window." If the VPS isn't live, Peakly will show Val Thorens with `low` confidence, or not show it at all. Every r/travel commenter who taps through and sees "Beyond reliable forecast" on the launch-day venue will say so in the thread. The first 10 comments define the narrative. A broken editorial hook on launch day is not a P0 infrastructure bug — it's a reputation event.**
 
-When 23 S.hemisphere ski venues go off-season, and 119 N.hemisphere standard ski resorts are still pre-season (most open late Oct–Dec), the front page in late October will be almost entirely beach venues for most users — with only ~15 lateSeason glaciers holding up the ski side. A user who signed up Oct 18 because of a skiing subreddit post, checks back Nov 1, and sees nothing but Bali and Cancun — with Whistler nowhere in sight because it doesn't open until late November — will churn without understanding why.
-
-The fix is honest: the app is working correctly. But the *communication* is missing. A "Ski season starts soon — set an alert for your resort" nudge in the Explore empty state (when skiing is selected and all results are off-season) would retain those users instead of losing them to a confusing blank grid. Small, surgical, post-launch content commit. Not under code freeze. Worth planning now.
+This is why the VPS deploy is P0 and not P1. It's not about infrastructure reliability. It's about whether the product does what the launch post promises, in the exact moment when it matters most.
 
 ---
 
@@ -132,12 +132,13 @@ The fix is honest: the app is working correctly. But the *communication* is miss
 
 | Metric | Status |
 |--------|--------|
-| 90-day projection (5K–8K users) | Two-wave path intact: r/travel Oct 18 (beach + Val Thorens), r/skiing Nov 1 (powder season). 8K requires VPS live. |
-| VPS deploy | 🔴 P0. Day 61. Must happen Oct 11–12. |
-| `origin/master` deleted | 🔴 P1. Day 3. Same session as VPS. |
-| Code freeze | ✅ Day 25 clean. 9 days to launch. |
+| 90-day projection (5K–8K users) | 8K requires VPS live on launch day. 5K doesn't. The gap is `forecast_days:14`. |
+| VPS deploy | 🔴 P0. Day 62. Window opens tomorrow (Oct 11). |
+| `origin/master` deleted | 🔴 P1. Day 4. Same session as VPS. |
+| Code freeze | ✅ Day 26 clean. 8 days to launch. |
 | VENUES count (404) | ✅ Confirmed. |
 | lateSeason:true (15 venues) | ✅ Confirmed. |
 | BASE_PRICES (165/165 APs) | ✅ Closed. |
 | Data health score | ✅ 91/100. Two deductions are post-launch scope. |
-| Val Thorens launch-day narrative | 🟡 Dependent on VPS deploy. Scoring will show low-confidence without forecast_days:14. |
+| Val Thorens launch-day narrative | 🔴 At risk. Depends entirely on VPS deploy. |
+| Post-launch sprint order | ✅ Locked (tags → PRECACHE → dedup → photos → venues). |
