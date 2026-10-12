@@ -1,6 +1,6 @@
-# DevOps Report — 2026-10-11 (ORANGE)
+# DevOps Report — 2026-10-12 (RED)
 
-**Status: 🟠 ORANGE — VPS Day 63 (7 days to Oct 18 launch, P0, SSH window is TODAY). `origin/master` footgun Day 5 (still live). Code freeze Day 27 clean. SW PRECACHE Babel mismatch Day 7.**
+**Status: 🔴 RED — VPS Day 64 (SSH window was Oct 11–12, now PAST. 6 days to Oct 18 launch). `origin/master` footgun Day 6 (still live). Code freeze Day 28 clean. SW PRECACHE Babel mismatch Day 8.**
 
 > Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). All proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH).
 
@@ -10,14 +10,14 @@
 
 | Check | Result |
 |-------|--------|
-| app.jsx lines / raw size | **14,237 lines / 758,944 bytes** (frozen — code freeze Day 27, unchanged) |
-| VENUES (bracket-walker) | **406** (bracket-walker artifact; CLAUDE.md + Content confirmed 404 — 134 skiing / 270 beach) |
-| lateSeason:true venues | **15** ✅ (grep-confirmed) |
+| app.jsx lines / raw size | **14,237 lines / 758,944 bytes** (frozen — code freeze Day 28, unchanged) |
+| VENUES (eval-counted) | **404** (134 skiing / 270 beach — matches CLAUDE.md) |
+| lateSeason:true venues | **15** ✅ |
 | Plausible analytics | ✅ present, uncommented (`index.html:32`) |
 | Sentry DSN | ✅ configured, non-empty (`app.jsx:7-8`, `index.html:77`) |
 | React 18 (cdnjs) | ✅ 18.3.1 |
 | Babel 7.24.7 (cdnjs, dev-only path) | ✅ — esbuild strips in production build |
-| `PEAKLY_BUILD` / `CACHE_NAME` stamp | `"20260914a"` — frozen Day 27 (expected: no app.jsx commits since Sep 14) |
+| `PEAKLY_BUILD` / `CACHE_NAME` stamp | `"20260914a"` — frozen Day 28 (expected: no app.jsx commits since Sep 14) |
 | All API calls HTTPS | ✅ `FLIGHT_PROXY = "https://peakly-api.duckdns.org"` |
 | Travelpayouts token in client | ✅ NOT present — `TP_MARKER="710303"` is an affiliate marker, not a secret |
 | Supabase anon key in client | ✅ Intentional, public-safe (RLS-gated, documented) |
@@ -27,17 +27,21 @@
 | fetchTravelpayoutsPrice timeout | ✅ AbortController 4s (`app.jsx:5518`) |
 | fetchWeather proxy fallback | ✅ try VPS proxy → fall back to direct Open-Meteo |
 | GEAR_ITEMS | ✅ 0 instances — Amazon cut confirmed |
-| `origin/master` commits behind main | **561 commits** — still live, still a footgun |
+| `origin/master` commits behind main | **511 commits** — still live, still a footgun |
 
-**Zero app.jsx/sw.js/index.html commits in 27 days. Code freeze intact.**
+**Zero app.jsx/sw.js/index.html commits in 28 days. Code freeze intact.**
 
 ---
 
-## 2. 🔴 P0: VPS Redeploy — Day 63, 7 Days to Launch, SSH Window Is NOW
+## 2. 🔴 P0: VPS Redeploy — Day 64, 6 Days to Launch, SSH Window MISSED
 
-This is the Oct 11–12 weekend yesterday's report flagged as the last viable window before launch day. It's Sunday Oct 11. If this doesn't happen today or tomorrow, the redeploy happens on Oct 18 itself — cold cache, Val Thorens blocked from the front page, iOS CORS broken — during the highest-stakes traffic of the year.
+The Oct 11–12 window has passed. Today is Oct 12 (end of that window at best). The VPS proxy code committed in August is still not deployed. The working facts have not changed — they've gotten worse because the window is now closed.
 
-The committed `server/proxy.js` is still correct. Nothing in it changed. Everything below is live in source, nothing is live on the VPS.
+**If this doesn't happen in the next 24–48 hours, the redeploy happens on Oct 18 itself.** That means:
+- Cold `_wxCache` on launch day (weather refill = hundreds of Open-Meteo requests in the first 5 minutes from real users)
+- Val Thorens (`lateSeason:true`, opens Oct 18 exactly) needs `forecast_days:14` to score its second weekend — with 7-day forecast from the old proxy, it scores one weekend and is borderline for the front page
+- Every iOS native API call CORS-blocked from day one of App Store availability
+- Alert deletion permanently broken (no `DELETE` in Allow-Methods)
 
 **What's deployed on VPS vs. what's committed:**
 
@@ -54,74 +58,57 @@ The committed `server/proxy.js` is still correct. Nothing in it changed. Everyth
 **The one action:**
 
 ```bash
-# SSH to VPS
-ssh root@198.199.80.21
-
-# Copy proxy source (NOT a git clone — cp only)
-cp server/proxy.js /opt/peakly-proxy/proxy.js
-# OR from local machine:
+# From local machine
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 
-# On VPS — restart and verify
+# On VPS
 cd /opt/peakly-proxy && pm2 restart peakly-proxy
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 # Expect: "wx_cache_persist":true, "forecast_days":14, uptime near 0
 ```
 
-**What breaks on launch day without this:**
-
-1. `forecast_days:7` in memory → two-weekend lookahead broken → Val Thorens (lateSeason venue, `Opens Oct 18 exactly`) can't score its second weekend → disappears from front page on launch day
-2. `capacitor://localhost` missing from CORS → every iOS native API call blocked with a CORS error
-3. Alert deletion silently fails (DELETE blocked by preflight)
-4. VPS rate limiter forgeable by spoofing `X-Forwarded-For[0]`
-5. Cold cache at launch (without disk persist, every pm2 restart wipes weather data)
+There is no code to write. The file is committed. This is a copy and a restart.
 
 ---
 
-## 3. 🔴 P1: `origin/master` Footgun — Day 5
+## 3. 🔴 P1: `origin/master` Footgun — Day 6
 
-Still live. 561 commits behind main. If `git push origin master` is the default push command in any shell alias or hook (and `scripts/auto-push.sh` has historically used variants of this), a stray push during launch-day chaos ships April code to production.
+511 commits behind main. Still live. `deploy.yml` fires on both `main` **and** `master` — a stale push to `master` deploys April code to `j1mmychu.github.io/peakly/` with zero warning. The 15 open `claude/` branches are noise but not dangerous. `master` is dangerous.
 
-**The fix, 30 seconds:**
+**The fix:**
 
 ```bash
 git push origin --delete master
 ```
 
-That's it. No code change. No risk. The branch has zero unique commits. The `deploy.yml` workflow fires on both `main` and `master` — verified in `.github/workflows/deploy.yml`. After deletion, only `main` triggers deploys.
-
-**Jack: this is 30 seconds. Do it when you open the SSH session for the VPS.**
+30 seconds. Do it before the VPS session ends so you have one open terminal. Zero risk — master has 511 commits of divergence, none of which should ever ship.
 
 ---
 
-## 4. P3: SW PRECACHE Babel Mismatch — Day 7 (Post-Launch)
+## 4. P3: SW PRECACHE Babel Mismatch — Day 8 (Post-Launch Only)
 
-`sw.js` PRECACHE caches `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js`. `index.html` loads `https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js`. Two mismatches: CDN (unpkg vs cdnjs) AND version (7.29.7 vs 7.24.7). The SW is caching a URL that no page request ever fires, so the cached asset is never served.
+`sw.js` PRECACHE caches `https://unpkg.com/@babel/standalone@7.29.7/babel.min.js`. `index.html:88` loads `https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js`. Two mismatches: CDN (unpkg vs cdnjs) and version (7.29.7 vs 7.24.7). The SW caches a URL no page request ever fires.
 
-**Impact:** Zero in production. The CI esbuild build strips Babel entirely — `dist/app.min.js` has no Babel at runtime. The mismatch only affects local dev (which doesn't use the SW) and users who somehow loaded the dev `index.html` path. P3. Fix after launch.
-
-**Post-launch fix (one line in sw.js):**
+**Impact:** Zero in production. esbuild CI strips Babel entirely. Post-launch fix (code freeze is still active — do not touch):
 
 ```diff
 - "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"
 + "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"
 ```
 
-But do not touch during code freeze.
-
 ---
 
 ## 5. Security Audit — ✅ GREEN
 
-Full grep scan on `app.jsx` today — all credential-adjacent hits are expected and safe:
-- `SUPABASE_ANON_KEY` — public-safe, RLS-gated, documented intentional (Supabase anon keys are safe to expose)
+Full grep scan on `app.jsx` today:
+- `SUPABASE_ANON_KEY` — public-safe, RLS-gated, documented intentional
 - `TP_MARKER="710303"` — affiliate marker, exposed in deep links by design
 - Sentry DSN — client-side public identifier, standard practice
 - `pushToken` refs — device token in localStorage, not a server secret
 
 No server-side credentials in client code. Travelpayouts server token is VPS env-only. `.gitignore` covers `.env`, `*.env`, `*.pem`, `*.key`, `*.p12`, `*.p8`, `*.mobileprovision`. Clean.
 
-Git log — last 3 commits are daily reports only, no code changes.
+Git log — last 18 commits are daily reports only (PM + Content + DevOps). No code changes. No secret introductions.
 
 ---
 
@@ -131,17 +118,17 @@ Git log — last 3 commits are daily reports only, no code changes.
 
 | Asset | Size |
 |-------|------|
-| `app.min.js` (esbuild CI output) | ~439 KB minified (per CLAUDE.md) |
+| `app.min.js` (esbuild CI output) | ~439 KB minified |
 | React 18 UMD (cdnjs) | ~130 KB gzipped |
 | Supabase JS (lazy-loaded, auth flow only) | ~80 KB gzipped |
 | Sentry SDK (deferred) | ~50 KB gzipped |
 | Google Fonts (Plus Jakarta Sans) | ~30 KB |
 
-**Biggest bottleneck is the VPS cold cache** — same as yesterday. Without the disk-persist fix (committed, undeployed), a `pm2 restart` on launch day resets `_wxCache` to empty. At modest launch traffic (50 concurrent users, each browsing 10 venues), that's 500 Open-Meteo requests in the first minute. Free tier ceiling: 10K requests/day = blown in 20 minutes of real launch traffic.
+**Single biggest bottleneck:** VPS cold cache at launch. Without disk-persist (committed, not deployed), any `pm2 restart` resets `_wxCache`. At 50 concurrent launch users browsing 10 venues each: 500 Open-Meteo requests in minute one. Free tier ceiling: 10K/day. A modest Reddit/HN spike clears that in under 20 minutes.
 
-After the VPS redeploy with disk cache: `wx-cache.json` survives restarts. Cache refills on first hit per venue, not per user.
+After redeploy: `wx-cache.json` survives restarts. 2hr TTL localStorage client-side, 4000-entry LRU server-side. Rate limits not a concern below 10K MAU.
 
-9 `loading="lazy"` images. 2hr localStorage weather TTL. Batching correct (50 venues/2s). No performance regressions introduced during code freeze.
+9 `loading="lazy"` images confirmed. Batching correct (50 venues/2s). No regressions during code freeze.
 
 ---
 
@@ -152,9 +139,9 @@ After the VPS redeploy with disk cache: `wx-cache.json` survives restarts. Cache
 | Current (<100) | **$6/mo** | DO 1GB droplet + GitHub Pages free |
 | 1K MAU | **$12/mo** | Same DO droplet sufficient |
 | 10K MAU | **$18/mo** | Upgrade to DO 2GB ($12) + Pages free |
-| 100K MAU | **~$60/mo** | DO 4GB ($24) + Cloudflare CDN (free tier) + Open-Meteo paid ($20/mo) |
+| 100K MAU | **~$60/mo** | DO 4GB ($24) + Cloudflare CDN (free) + Open-Meteo paid ($20/mo) |
 
-**What breaks first at scale:** Open-Meteo free tier (10K req/day). At 10K MAU with 50% cache-hit rate = ~25K direct Open-Meteo calls/day. The VPS disk-persist cache is the mitigation. At 100K MAU, move to Open-Meteo commercial ($20/mo). Supabase free tier (500MB database, 2GB bandwidth) is not a concern at this scale.
+**What breaks first at scale:** Open-Meteo free tier (10K req/day). At 10K MAU, 50% cache-hit rate = ~25K direct calls/day. The VPS disk-persist cache is the mitigation. At 100K MAU, move to Open-Meteo commercial ($20/mo).
 
 ---
 
@@ -162,18 +149,18 @@ After the VPS redeploy with disk cache: `wx-cache.json` survives restarts. Cache
 
 | # | Issue | Severity | Days Open | Status |
 |---|-------|----------|-----------|--------|
-| 19/23 | VPS redeploy + disk cache | **P0** | **63** | 🔴 SSH window is TODAY (Oct 11–12) |
-| master | `origin/master` footgun | **P1** | **5** | 🔴 30 seconds, `git push origin --delete master` |
-| SW PRECACHE | Babel CDN/version mismatch | P3 | **7** | 🟡 Post-launch (code freeze) |
+| 19/23 | VPS redeploy + disk cache | **P0** | **64** | 🔴 Window was Oct 11–12 — act in next 24–48h or it's launch day |
+| master | `origin/master` footgun | **P1** | **6** | 🔴 `git push origin --delete master` — 30 seconds |
+| SW PRECACHE | Babel CDN/version mismatch | P3 | **8** | 🟡 Post-launch (code freeze active) |
 
 ---
 
 ## Summary
 
-**7 days to launch. Same two items. Oct 11 is the day.**
+**6 days to launch. The Oct 11–12 window has passed or is ending today. There is no comfortable pre-launch window left.**
 
-Yesterday's report said "Oct 11–12 is the last weekend before launch." That's today. The VPS proxy code has been correct and sitting committed for 63 days. The disk-persist cache, two-weekend scoring, iOS CORS, and alert deletion are all a single SSH session away from being live.
+The next viable time to redeploy the VPS is now, in the next 24 hours, or on Oct 18 itself — which means cold cache, broken iOS CORS, broken alert deletion, and a Val Thorens scoring gap all landing simultaneously with the first real users.
 
-`git push origin --delete master` is 30 seconds while you have the terminal open.
+The code is correct. The proxy.js is committed. This is an `scp` and a `pm2 restart`. Then `git push origin --delete master`. Both together take under 5 minutes.
 
-After those two actions: infrastructure is launch-ready. Everything else — BASE_PRICES, photos, SW PRECACHE — is post-launch.
+After those two actions: infrastructure is launch-ready. SW PRECACHE fix waits until after launch. Everything else is content or App Store work.
