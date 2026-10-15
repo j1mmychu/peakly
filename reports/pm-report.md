@@ -1,110 +1,108 @@
-# Peakly PM Report v180 — 2026-10-14
+# Peakly PM Report v181 — 2026-10-15
 
-**Status: 🔴 RED — VPS Day 66. TODAY is the last viable window. 4 days to Oct 18 launch. `origin/master` footgun Day 8. SW PRECACHE mismatch Day 10. Code freeze Day 30 clean.**
+**Status: 🔴 RED — VPS Day 67. Launch is Oct 18 (Saturday). 3 days. `origin/master` footgun Day 9. r/travel draft 3 days overdue. Code freeze Day 31 clean.**
 
-> **Stale prompt notice (Day 8):** Scheduled routine still references "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: 404 venues, 2 categories, Peakly Pro cut, Sentry live. Jack: update the cron task. 2 minutes. Eight consecutive reports generating false signal in launch week.
+> **Stale prompt notice (Day 9):** Scheduled routine still references "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: 404 venues, 2 categories, Peakly Pro cut, Sentry live. Jack: update the cron task. It takes 2 minutes and stops injecting false signal into launch-week reports. Nine consecutive reports generating noise we have to filter.
 
 ---
 
-## Shipped Since Last Report (v179 → v180)
+## Shipped Since Last Report (v180 → v181)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `fcd62e4` | Content Oct 14 — 91/100, code freeze Day 30 clean, 4 days to launch | ✅ Accurate status report. |
-| `688445c` | DevOps Oct 14 — RED, VPS Day 66, PRECACHE mismatch Day 10, master footgun Day 8 | ✅ Correct severity. |
+| `ec2c85b` | Content Oct 15 — 91/100, code freeze Day 31 clean | ✅ Accurate. |
+| `cc70c54` | DevOps Oct 15 — RED, VPS Day 67, master footgun Day 9 | ✅ Correct severity. |
 
-**Zero app.jsx/sw.js/index.html commits. Code freeze Day 30. Correct.**
+**Zero app.jsx/sw.js/index.html commits. Code freeze Day 31. Correct.**
 
-**The Oct 13–14 SSH window is today. Not yesterday, not tomorrow — today. This is it.**
+**Yesterday's report called Oct 14 the "last viable window" for VPS. It wasn't done. Today is Oct 15 — launch eve territory. The window didn't close — it narrowed to a slot with no warm-up runway.**
 
 ---
 
 ## Bug Triage
 
-### P0 — VPS Redeploy: Day 66. TODAY IS THE LAST VIABLE WINDOW.
+### P0 — VPS Redeploy: Day 67. Oct 15 is now the hard line.
 
-Yesterday's report said "Oct 13 or 14 — after Oct 14, launch date is Oct 25." Today is Oct 14. After today:
-- Oct 15 = launch-eve risk
-- Oct 16 = launch-eve
-- Oct 17 = launch day -1, cold cache on warm-up day
-- Oct 18 = launch day, degraded product
+Yesterday I said Oct 14 was the last viable window. It wasn't done. The honest update:
 
-What breaks on Oct 18 if Jack doesn't SSH today:
-1. **Val Thorens disappears from the front page.** VPS returns 7-day forecasts. Val Thorens opening weekend needs 14-day window. Front page filters `confidence: "low"`. The r/travel hook ("What's the skiing like this weekend?") peg collapses on day one.
-2. **Open-Meteo 429s on launch traffic.** No disk cache. In-memory cache wipes on restart. First Reddit spike → cold cache → rate limit. First impression = broken.
-3. **iOS CORS fail.** `capacitor://localhost` not in live CORS allowlist. Every native API call fails. App Store users get errors.
-4. **Alert deletion silent-fails.** `DELETE` missing from `Access-Control-Allow-Methods`. Users can't delete alerts.
+- Oct 15 (today): last day with 3 days for cache warm-up before Oct 18 traffic
+- Oct 16: 48h before launch — cold restart risk during warm-up
+- Oct 17: 24h before launch — any restart wipes in-memory cache at worst possible time
+- Oct 18 (launch day): cold cache + 7-day forecast + CORS failures + silent alert bugs, on the day that matters
 
-**The fix is 10 minutes and zero code changes:**
+**What breaks on Oct 18 without the VPS deploy:**
+1. Val Thorens disappears from front page — 14-day forecast needed, VPS returns 7 days, `confidence: "low"` filtered. The r/travel hook evaporates.
+2. iOS CORS fail — `capacitor://localhost` not in allowlist. Every iOS native API call returns an error. If App Store submission goes live, App Store users get a broken product.
+3. Alert deletion silent-fails — `DELETE` missing from `Access-Control-Allow-Methods`.
+4. Cold cache on launch traffic — in-memory only, any restart = Open-Meteo rate limit within minutes of Reddit spike.
 
+**This is still a 10-minute fix:**
 ```bash
-# On your LOCAL machine in the peakly repo root:
+# From local machine, in peakly repo root:
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-
-# Then SSH and restart:
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 save"
-
-# Verify:
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Expect: "forecast_days": 14, "disk_cache": "enabled", apns:configured
+# Expect: forecast_days:14, disk_cache:"enabled", capacitor://localhost in cors
 ```
 
-**If Jack does not SSH today (Oct 14), the Val Thorens narrative is gone and the 8K projection becomes 5K. The gap is one terminal window.**
+**The decision point has arrived: deploy the VPS today, or announce Oct 25 launch and give the product the warm-up window it needs. Shipping Oct 18 without VPS is shipping a degraded product on purpose. That's a product call Jack has to make, and today is the last day to make it cleanly.**
 
-### P1 — `origin/master` Footgun: Day 8
+### P0 — r/travel Draft: 3 Days Overdue
 
-511 commits behind main. `deploy.yml` deploys both `main` and `master`. An accidental push rolls the live site back to May 2026. This takes 90 seconds to fix:
+Was due Oct 12. It's Oct 15. If the draft doesn't exist today, writing it Oct 17 means zero review cycle before the one post that defines Peakly's first impression.
 
+The structure is locked (confirmed v178): one hook sentence, Val Thorens opening weekend as the peg, one CTA, no secondary asks. This is a 30-minute write. If it doesn't exist by end of Oct 15, cut the Reddit launch from Oct 18 and keep it as an Oct 21+ post. The product launch happens either way — but the Reddit amplification is conditional on the draft existing.
+
+**New flag:** if Val Thorens doesn't appear on the front page Oct 18 (VPS not deployed), the r/travel peg collapses anyway. The VPS and the Reddit post are coupled. You can't post the Val Thorens hook with a product that doesn't show Val Thorens.
+
+### P1 — `origin/master` Footgun: Day 9
+
+50 commits behind main. `deploy.yml` deploys both. An accidental push to master silently rolls the live site back to late May. On launch day, with potential multiple people watching and sharing, this is a live grenade.
+
+**Fix in 30 seconds:**
 ```bash
 git push origin --delete master
-git ls-remote --heads origin master  # confirm gone
 ```
 
-Bundle with the VPS session. Same SSH window. 12 minutes total for both P0 + P1.
+Bundle this with the VPS session. 10 minutes total for P0 + P1.
 
-### P2 — SW PRECACHE Mismatch: Day 10
+### P2 — Venue Count Discrepancy: Minor
 
-`sw.js` PRECACHE references `app.jsx` directly; production serves `dist/app.min.js`. Service worker caches the raw source but the page loads the compiled build. Users with stale SW can get mixed-version artifacts. Post-launch sprint — code freeze blocks, but worth watching at launch.
+DevOps reports 406 venues; Content reports 404. Both use bracket-counting. One is stale. Not a launch blocker — both methods confirm catalog is intact — but worth a single `node -e` eval to get the authoritative number before launch.
 
-### P3 — Tag Depth (225/404 Venues, 55.7% at 2 Tags)
+### P2 — SW PRECACHE Mismatch: Day 11
 
-`scoreVibeMatch` underperforms on 45% of catalog. Post-launch sprint.
-
-### P3 — Gili Trawangan Duplicate
-
-`beach_gilit` + `gili-trawangan` same island, different airports (LOP vs DPS). No crash. Post-launch.
+`sw.js` caches `app.jsx` directly; production serves `dist/app.min.js`. Post-launch sprint. Code freeze blocks.
 
 ---
 
-## Three Product Decisions — Oct 14
+## Three Product Decisions — Oct 15
 
-### Decision 1: VPS today. Non-negotiable. 10 minutes.
+### Decision 1: VPS or launch date slip — call it today.
 
-This is the last call. Oct 14 is the last day where a VPS restart has 3+ days of cache warm-up before launch traffic hits. Oct 15+ means launching with a cold cache and a 7-day forecast window.
+Not "do the VPS today." The call is: **ship Oct 18 with VPS done, or slip to Oct 25 and ship right.** Oct 15 is the last day where a restart has meaningful warm-up time. After today, Oct 18 launch ships with a cold cache, CORS failures for iOS, and a broken Val Thorens front-page hook.
 
-**DECISION: Jack — SSH today (Oct 14). `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js` then `pm2 restart`. If this doesn't happen today, Oct 18 launch ships a degraded product. The honest decision is: VPS today, or announce Oct 25 launch to allow for warm-up time. There is no "Oct 18 launch + skip the VPS" version that delivers the product we promised.**
+**DECISION: Jack — this is binary. Either the `scp + pm2 restart` happens today, or the Oct 18 date moves to Oct 25. "Launch Oct 18 and see what happens" is a choice to launch a degraded product. I'm not making that call — Jack is. But the call has to happen today.**
 
-### Decision 2: r/travel draft — 2 days overdue. Write it today.
+### Decision 2: r/travel post is now conditional on VPS being done.
 
-Was due Oct 12. It's Oct 14. If the draft doesn't exist by today, writing it Oct 17 means zero review cycle. Writing it Oct 18 morning means shipping unreviewed marketing copy into the one impression that matters.
+The Val Thorens opening weekend hook (the only peg for the r/travel post) requires the 14-day forecast window. If VPS isn't deployed, Val Thorens won't surface on the front page on Oct 18, and the post's claim falls apart in the first reply.
 
-Structure is locked: one hook sentence ("What's the skiing like from your airport this weekend?"), Val Thorens opening weekend as the peg, one CTA (the link), no secondary asks. 30 minutes to write it.
+**DECISION: r/travel post is gated on VPS. If VPS ships today → write the draft today. If VPS slips to Oct 25 → the Reddit post moves to Oct 21–22 (gives product 3 days of warm-up before the spike). These two are now a single decision.**
 
-**DECISION: r/travel draft today. If it doesn't exist by Oct 15, the r/travel post is cut from Oct 18. The launch still happens — it just doesn't get the Reddit amplification. The two are decoupled if the draft doesn't exist.**
+### Decision 3: lateSeason spot-check is now mandatory, not optional.
 
-### Decision 3: lateSeason manual spot-check — 4 days remaining.
+3 days to launch. If a lateSeason venue scores > 80 on thin Oct 18 opening conditions, we get burned in the first launch thread reply. This is a 10-minute check: open the live app, look at Val Thorens, Whistler, Chamonix, Tignes, Mammoth. If any shows > 80 with clearly thin conditions, flag it here today — we have 2 days to investigate.
 
-15 venues have `lateSeason:true`. Val Thorens opens Oct 18 — launch day. If any lateSeason venue scores > 80 with thin opening-day snowpack, a user reports bad conditions in the launch thread and the launch post becomes the record of the problem.
-
-**DECISION: Jack opens the live app Oct 15–17, checks top 5 lateSeason venues (Val Thorens, Whistler, Chamonix, Tignes, Mammoth). If any score > 80 with obviously thin conditions, report it here — we have 2–3 days to assess. This is a 10-minute manual check with a plausible path to protecting the launch thread. Not a code task.**
+**DECISION: Jack opens the live app today (Oct 15) and spot-checks those 5 venues. Not a code task. This is the last viable window for a manual launch-day quality check.**
 
 ---
 
 ## This Week's Top 3
 
-1. **Jack: VPS deploy + delete `origin/master` — TODAY, Oct 14. Last viable window. 12 minutes total.**
-2. **Jack: Write the r/travel post draft — today, Oct 14. 30 minutes. 2 days overdue.**
-3. **Jack: lateSeason manual spot-check — before Oct 18. 10 minutes. Open the live app, check top 5 venues.**
+1. **Jack: VPS deploy OR announce Oct 25 slip — today, Oct 15. This decision can't wait. 10 minutes for the VPS, 30 seconds to delete origin/master.**
+2. **Jack: r/travel draft — only if VPS is done. 30 minutes. Otherwise schedule for Oct 21.**
+3. **Jack: lateSeason spot-check — today, 10 minutes. Open live app, check top 5 venues.**
 
 ---
 
@@ -112,37 +110,40 @@ Structure is locked: one hook sentence ("What's the skiing like from your airpor
 
 | Feature | Reason |
 |---------|---------|
-| Any code change before Oct 18 | Code freeze. Non-negotiable. |
-| Merging any `claude/` branch to main | 16+ unvetted branches, freeze risk. Post-launch. |
-| SW PRECACHE fix | Code freeze. Post-launch sprint. |
-| New venue additions | Post-launch sprint: tags → PRECACHE → dedup → photos → venues. |
-| JSON-LD / structured data / h1 fallback | SEO gap, not a launch blocker. Post-launch. |
+| Any code change before Oct 18 | Code freeze. Day 31. |
+| Merging any `claude/` branch | 16+ unvetted branches. Post-launch. |
+| SW PRECACHE fix | Code freeze. Post-launch. |
+| New venue additions | Post-launch sprint (tags → PRECACHE → dedup → photos → venues). |
+| JSON-LD / structured data | SEO gap, not a launch blocker. Post-launch. |
 | Gili Trawangan dedup | Code freeze. Post-launch. |
-| Alert UX improvements | Freeze. Everything waits Oct 19+. |
-| Tag depth improvements (225 thin venues) | Code freeze. Post-launch sprint. |
+| Tag depth improvement (225 venues at 2 tags) | Code freeze. #1 on post-launch sprint list. |
 
 ---
 
-## One Product Risk Nobody Is Talking About
+## Post-Launch Sprint Order (confirmed, not changed)
 
-**The r/travel post and the VPS deploy are decoupled in everyone's mind — but they're not.** If Val Thorens doesn't appear on the front page (no VPS = 7-day forecast = `confidence: "low"` = filtered out), the r/travel hook ("What's the skiing like from your airport this weekend?") has no anchor. A user clicks the link, sees zero ski results for early-season, and the post dies on arrival — or worse, generates negative comments. The entire r/travel strategy is built on Val Thorens being front-and-center on Oct 18. No VPS = no Val Thorens = no r/travel hook = the launch is a link drop with no story. **These two tasks are not parallel — VPS is a dependency of the r/travel post. If Jack can only do one today, it's the VPS.**
+1. Tags — fix 225 thin-tag venues (unblocks `scoreVibeMatch`, boosts search recall)
+2. SW PRECACHE — point at `dist/app.min.js` instead of `app.jsx`
+3. Gili Trawangan dedup — delete `beach_gilit`, keep `gili-trawangan`
+4. Photos — 346 venues still on generic stock
+5. New venues — 5 post-launch queue items (Content report)
+6. BASE_PRICES audit — Content confirmed 165/165 APs covered now ✅ (was 68% gap per v99 — resolved)
 
 ---
 
-## Success Criteria Check
+## Success Criteria
 
-| Metric | Status |
-|--------|--------|
-| 90-day projection (5K–8K users) | 8K requires VPS live + Val Thorens front-page on Oct 18. 5K doesn't. The difference is today's SSH session. |
-| VPS deploy | 🔴 P0. Day 66. **TODAY IS THE LAST VIABLE WINDOW.** |
-| `origin/master` deleted | 🔴 P1. Day 8. Same SSH session as VPS. 2 minutes. |
-| SW PRECACHE mismatch | 🟡 Day 10. Code freeze blocks. Monitor at launch. |
-| Code freeze | ✅ Day 30 clean. 4 days to launch. |
-| VENUES count (404) | ✅ 134 skiing / 270 beach. |
-| lateSeason:true (15 venues) | ✅ Confirmed. 10 compact + 5 JSON-format. |
-| BASE_PRICES (165/165 APs) | ✅ Closed (Open #22). |
-| Data health score | ✅ 91/100. Two deductions post-launch scope. |
-| Val Thorens launch-day narrative | 🔴 At risk. Depends on VPS deploy TODAY. |
-| r/travel post draft | 🔴 2 days overdue (was Oct 12). Write today. |
-| Post-launch sprint order | ✅ Locked: tags → PRECACHE → dedup → photos → venues → claude/ branch cleanup. |
-| lateSeason early-season score sanity | ⚠️ Unverified. Manual spot-check Oct 15–17 (non-code task). |
+**5K vs 8K at 90 days — what's the swing factor:**
+
+The 5K path: organic SEO + App Store discovery, no Reddit amplification, generic stock photos, thin tag search.
+The 8K path: Val Thorens front page on launch day (VPS), r/travel post lands cleanly, lateSeason spot-check catches no bad data, App Store launch alongside Reddit.
+
+The gap is entirely in the launch execution, not the product. The product is ready. The infrastructure isn't.
+
+**One product risk nobody is talking about:**
+
+The `origin/master` footgun isn't just a ops risk — it's a silent rollback risk in the most visible 72 hours Peakly will ever have. We talk about it as a Day-N counter. The actual risk is: one confused contributor or old machine pushes to master during the Reddit spike, the site rolls back to May, and the first 500 people who clicked the link see a broken product with different venue counts, broken scoring, and missing features. There's no alerting on this. Nobody would know until users started reporting it. 30-second fix. Zero days to make it.
+
+---
+
+**v181 close: 3 days, one VPS. The product is done. Launch it right.**
