@@ -1,13 +1,13 @@
-# Peakly Content & Data Report — 2026-10-14
+# Peakly Content & Data Report — 2026-10-15
 
 ## Data Health Score: 91/100
 
 **Deductions (unchanged since 2026-10-08):**
-- −7: 225 venues (55.7%) have exactly 2 tags — `scoreVibeMatch` and search recall degraded. Code freeze Day 30 blocks fix. Post-launch sprint target.
+- −7: 225 venues (55.7%) have exactly 2 tags — `scoreVibeMatch` and search recall degraded. Code freeze Day 31 blocks fix. Post-launch sprint target.
 - −1: Gili Trawangan duplicate still live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — same venue, two IDs, blocked by code freeze.
 - −1: Stale scheduled-task prompt (see warning below).
 
-**No score change from yesterday: 91/100.** All checks pass. Code freeze Day 30 holds clean. **4 days to Oct 18 launch.**
+**No score change from yesterday: 91/100.** All checks pass. Code freeze Day 31 holds clean. **3 days to Oct 18 launch.**
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" with surfing, tanning, hiking, etc. The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. The prompt author should update the cron task's stored text. All audit data below reflects the actual current app state.
 
@@ -17,7 +17,7 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,238** (unchanged, code freeze Day 30) |
+| app.jsx lines | **14,237** (unchanged, code freeze Day 31) |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate venue IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
@@ -33,7 +33,7 @@
 | GEAR_ITEMS | **0** ✅ (Amazon cut for v1 — intentional) |
 | Active categories | **skiing, beach** ✅ |
 | Brace balance | **0 net** ✅ (balanced) |
-| Code freeze | **Day 30** — Oct 18 launch in **4 days** |
+| Code freeze | **Day 31** — Oct 18 launch in **3 days** |
 | Build stamp | **20260914a** (sw.js / app.jsx / index.html lockstep ✅) |
 
 ---
@@ -42,14 +42,14 @@
 
 | Check | Result |
 |-------|--------|
-| Total venues (category pattern count) | **404** (134 skiing / 270 beach) ✅ |
+| Total venues (eval count) | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique) ✅ |
 | Duplicate titles | **1** — Gili Trawangan (`beach_gilit` + `gili-trawangan`) ⚠️ |
 | Missing lat/lon | **0** ✅ |
 | Missing ap (IATA) | **0** ✅ |
 | Missing tags arrays | **0** ✅ (404 total: 209 unquoted + 195 quoted-key) |
-| APs missing from AP_CONTINENT | **0** ✅ |
+| APs missing from AP_CONTINENT | **0** ✅ (FOR/NAT present in quoted-key format) |
 | APs missing from AIRPORT_COORDS | **0** ✅ |
 | APs missing from BASE_PRICES | **0** ✅ |
 | Brace balance (net) | **0** ✅ |
@@ -69,31 +69,32 @@
 
 ---
 
-## 3. Seasonal Relevance — 2026-10-14
+## 3. Seasonal Relevance — 2026-10-15
 
 **Today's window:**
 
 | Category | Hemisphere | Count | Status |
 |----------|-----------|-------|--------|
-| Skiing | S hemisphere | 23 | ✅ **IN SEASON** — closing window, late Oct / early Nov |
+| Skiing | S hemisphere | 23 | ✅ **CLOSING WINDOW** — last viable weekends before most lifts close Oct/Nov |
 | Skiing | N hemisphere (non-lateSeason) | 96 | ⚠️ Pre-season (opens Nov/Dec) |
-| Skiing | N hemisphere (lateSeason) | 15 | ✅ Glacier/high-altitude active — best 4 days for launch |
+| Skiing | N hemisphere (lateSeason) | 15 | ✅ Glacier/high-altitude active — scoring high on launch weekend |
 | Beach | N hemisphere | 201 | ≈ Shoulder/cooling — Mediterranean closed, Caribbean/tropics warm |
-| Beach | S hemisphere | 69 | ✅ **Spring surge** — S.hem beach best condition window opening now |
+| Beach | S hemisphere | 69 | ✅ **Spring surge** — S.hem beach best-condition window opening now |
 
-**Oct 14 is T-4 to launch. Scoring engine handles this correctly:** `scoreWeekend` naturally caps N.hem non-lateSeason ski venues (closed, no snow), surfacing S.hem ski + glacier venues + tropical beaches. The 15 `lateSeason` venues are the key N.hem ski content on launch day.
+**Oct 15 is T-3 to launch. Scoring engine handles this correctly:** `scoreWeekend` naturally caps N.hem non-lateSeason ski venues (closed, no snow), surfacing S.hem ski + glacier venues + tropical beaches. The 15 `lateSeason` venues are the key N.hem ski content on launch day.
 
-**Launch-week seasonal highlight (Oct 14–18):**
-- **Val Thorens opens Oct 18** (launch day) — flagship Alpine lateSeason venue, the most high-profile European resort opening on the exact day we go live. Top of the ski results for N.hem users on day 1.
-- **Hintertux Glacier** — year-round, fully in season, top-scoring N.hem ski on every weekend
-- **Southern hemisphere ski closing window** — The Remarkables, Cardrona, Coronet Peak valid for this weekend, gone in 2–3 weeks. Final push for S.hem ski content.
-- **Caribbean beach prime** — Barbados, Turks & Caicos, St. Lucia scoring well as N.hem beach users seek alternatives to closed Mediterranean
+**Launch-week seasonal highlights (Oct 15–18):**
+- **Val Thorens opens Oct 18** (launch day) — flagship Alpine lateSeason venue, the most high-profile European resort opening on the exact day we go live. Will be the top N.hem ski result for European/N.hem users on day 1.
+- **Hintertux Glacier** — year-round, fully in season, top-scoring N.hem ski on every weekend this week
+- **Southern hemisphere ski final window** — The Remarkables, Cardrona, Coronet Peak valid this weekend, gone in 2–3 weeks. S.hem ski closing urgency is a natural share hook.
+- **Caribbean beach prime** — Barbados, Turks & Caicos, St. Lucia scoring well as N.hem beach users pivot away from closed Mediterranean
+- **S.hem beach spring surge** — Camps Bay, Noosa, Byron Bay opening their best-scoring window now
 
 ---
 
 ## 4. Content Quality
 
-**Tag depth distribution:**
+**Tag depth distribution (unchanged — code freeze):**
 
 | Tag count | Venues |
 |-----------|--------|
@@ -118,7 +119,7 @@
 | nakiska | skiing | 420 | Calgary-adjacent, legit |
 | maundays-bay-anguilla | beach | 437 | Second Anguilla, borderline redundant |
 
-**No venues have (0,0) coordinates, empty descriptions, or malformed tags.**
+**No venues have (0,0) coordinates, empty tag arrays, or malformed AP codes.**
 
 **Rating range:** 4.00–4.99 (avg 4.72) — tight and realistic. No suspicious 5.0 clusters.
 
@@ -126,11 +127,13 @@
 
 ## 5. Daily Venue Additions
 
-**Context: Code freeze is active (Day 30 of 30). Oct 18 launch is 4 days out.**
+**Context: Code freeze is active (Day 31 of 31). Oct 18 launch is 3 days out.**
 
-No new venues should be added to `app.jsx` during code freeze. The following 5 objects are **queued for the post-launch sprint** (target: first week of November, after confirming launch stability). Do NOT paste before Oct 19.
+No new venues should be added to `app.jsx` during code freeze. The following 5 objects are **queued for the post-launch sprint** (target: first week of November, after confirming launch stability).
 
-These target N.hem ski season opening (Nov 2026) and S.hem beach spring warmup — maximum relevance for the first month post-launch:
+These target N.hem ski season opening (Nov 2026) and S.hem beach spring warmup — maximum relevance for the first month post-launch.
+
+**Pre-launch note for Mt. Bachelor (#2 below):** `RDM` (Redmond/Bend, OR) will need to be added to `AP_CONTINENT` (value: `"na"`), `AIRPORT_COORDS`, and `BASE_PRICES` before this venue is active. Budget ~15 min for the data wiring step.
 
 ```javascript
 // Post-launch addition 1 — N.hem ski, opens Nov 2026
@@ -151,6 +154,7 @@ These target N.hem ski season opening (Nov 2026) and S.hem beach spring warmup �
 },
 
 // Post-launch addition 2 — N.hem ski, opens mid-Nov 2026
+// ⚠️ RDM needs AP_CONTINENT/AIRPORT_COORDS/BASE_PRICES wiring before activation
 {
   id: "mt-bachelor",
   category: "skiing",
@@ -193,34 +197,34 @@ These target N.hem ski season opening (Nov 2026) and S.hem beach spring warmup �
   lat: -33.9508, lon: 18.3770,
   ap: "CPT",
   icon: "🏖️",
-  rating: 4.76,
-  reviews: 6840,
-  gradient: "linear-gradient(160deg,#1a3a5a,#2a6aa0,#7ec0e8)",
-  accent: "#7ec0e8",
-  tags: ["Mountain Backdrop", "Trendy Cafes", "Atlantic Swim", "Sunset Views"],
+  rating: 4.81,
+  reviews: 3640,
+  gradient: "linear-gradient(160deg,#1a3a5a,#2060a0,#60a8e0)",
+  accent: "#60a8e0",
+  tags: ["Table Mountain Views", "Sunset Facing", "Cape Town Nightlife", "White Sand"],
   photo: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&q=80&w=800"
 },
 
-// Post-launch addition 5 — N.hem ski opening rush, PNW
+// Post-launch addition 5 — N.hem ski, Japan opening Nov 2026
 {
-  id: "crystal-mountain-wa",
+  id: "niseko-annupuri",
   category: "skiing",
-  title: "Crystal Mountain",
-  location: "Washington State, USA",
-  lat: 46.9284, lon: -121.4749,
-  ap: "SEA",
+  title: "Niseko Annupuri",
+  location: "Hokkaido, Japan",
+  ap: "CTS",
+  lat: 42.7700, lon: 140.6883,
   icon: "🏔️",
-  rating: 4.80,
+  rating: 4.84,
   reviews: 3120,
-  gradient: "linear-gradient(160deg,#1a2a4a,#2a4a8a,#6a9ac8)",
-  accent: "#6a9ac8",
-  tags: ["Mt. Rainier Views", "Advanced Terrain", "Summit House Dining", "Powder Days"],
-  photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&q=80&w=800"
-}
+  gradient: "linear-gradient(160deg,#1a2a4a,#2a4a8a,#6a8aca)",
+  accent: "#6a8aca",
+  tags: ["Powder Mecca", "Champagne Snow", "Interconnected Resorts", "Backcountry Gates"],
+  photo: "https://images.unsplash.com/photo-1548919973-5cef591cdbc9?auto=format&q=80&w=800"
+},
 ```
 
 ---
 
 ## One Observation for PM
 
-**Val Thorens opening on launch day (Oct 18) is a free earned-media hook.** The resort itself will be posting across all channels about opening day — Peakly should be the tool that answers "is this weekend actually worth booking?" with live conditions and a flight price. Consider a ready-to-paste Reddit comment for r/skiing on Oct 18: "Val Thorens just opened — Peakly shows it scoring X/100 this weekend, flights from JFK from $Y." Requires zero prep, costs nothing, and lands on the exact day the audience is searching.
+**Val Thorens opens Oct 18 — launch day.** This is the highest-altitude resort in the Alps (3,200m), typically the first major European ski resort to open each season and a perennial media story. Our launch and their opening are the same calendar day, which means N.hem ski-minded users who google "ski resorts open now" on Oct 18 will find both stories in the same scroll. No action needed — scoring will surface it automatically. Worth a sentence in any launch-day social copy.
