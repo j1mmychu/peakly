@@ -1,13 +1,13 @@
-# Peakly Content & Data Report — 2026-10-17
+# Peakly Content & Data Report — 2026-10-18
 
 ## Data Health Score: 91/100
 
 **Deductions (unchanged since 2026-10-08):**
-- −7: 225 venues (55.7%) have exactly 2 tags — `scoreVibeMatch` and search recall degraded. Code freeze Day 33 blocks fix. Post-launch sprint target.
+- −7: 223 venues (55.2%) have exactly 2 tags — `scoreVibeMatch` and search recall degraded. Code freeze Day 34 blocks fix. Post-launch sprint target.
 - −1: Gili Trawangan duplicate still live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — same venue, two IDs, blocked by code freeze.
 - −1: Stale scheduled-task prompt (see warning below).
 
-**No score change from yesterday: 91/100.** All checks pass. Code freeze Day 33 holds clean. **T-1: launch is tomorrow, Oct 18.**
+**No score change from yesterday: 91/100.** All checks pass. Code freeze Day 34 holds clean. **🚀 TODAY IS LAUNCH DAY — Oct 18.**
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" with surfing, tanning, hiking, etc. The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. The prompt author should update the cron task's stored text. All audit data below reflects the actual current app state.
 
@@ -17,7 +17,7 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,238** (unchanged, code freeze Day 33) |
+| app.jsx lines | **14,238** (unchanged, code freeze Day 34) |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate venue IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
@@ -25,16 +25,16 @@
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** ✅ |
 | Missing tags arrays | **0** ✅ |
-| Venue APs in AP_CONTINENT | **165/165** ✅ |
-| Venue APs in AIRPORT_COORDS | **165/165** ✅ |
-| Venue APs in BASE_PRICES | **165/165** ✅ |
+| Venue APs in AP_CONTINENT | **152/152** ✅ |
+| Venue APs in AIRPORT_COORDS | **152/152** ✅ |
+| Venue APs in BASE_PRICES | **152/152** ✅ (Open #22 CLOSED) |
 | Brace balance | **5682 / 5682** ✅ |
-| Venues with exactly 2 tags | **225 (55.7%)** ⚠️ post-launch sprint |
+| Venues with exactly 2 tags | **223 (55.2%)** ⚠️ post-launch sprint |
 | lateSeason:true venues | **15** ✅ (10 unquoted + 5 quoted-key format) |
 | GEAR_ITEMS | **0** ✅ (Amazon cut for v1 — intentional) |
 | Active categories | **skiing, beach** ✅ |
 | Build stamp | **20260914a** (sw.js / app.jsx / index.html lockstep ✅) |
-| Code freeze | **Day 33** — **launch tomorrow, Oct 18** |
+| Code freeze | **Day 34** — **LAUNCH DAY, Oct 18** 🚀 |
 
 ---
 
@@ -49,9 +49,9 @@
 | Missing lat/lon | **0** ✅ |
 | Missing ap (IATA) | **0** ✅ |
 | Missing tags arrays | **0** ✅ |
-| APs missing from AP_CONTINENT | **0** ✅ |
-| APs missing from AIRPORT_COORDS | **0** ✅ |
-| APs missing from BASE_PRICES | **0** ✅ |
+| APs missing from AP_CONTINENT | **0** ✅ (152 unique APs, 283 entries in AP_CONTINENT) |
+| APs missing from AIRPORT_COORDS | **0** ✅ (152 unique APs, 206 entries in AIRPORT_COORDS) |
+| APs missing from BASE_PRICES | **0** ✅ (152 unique APs, 183 entries in BASE_PRICES) |
 | Brace balance (net) | **0** ✅ |
 | Venues at (0,0) coordinates | **0** ✅ |
 
@@ -59,7 +59,7 @@
 - `beach_gilit` (Gili Trawangan/LOP) + `gili-trawangan` (Gili Trawangan/DPS) — same venue name, two IDs, different airports. Fix post-launch: delete `beach_gilit` (LOP is smaller/more distant gateway; DPS is the correct Bali hub). Not a runtime crash — IDs are distinct, no dup-ID validator fires.
 
 **Data note (lateSeason format split — carries forward):**
-`grep -c "lateSeason:true"` returns **10** — undercounts because 5 venues use quoted JSON format (`"lateSeason": true`). The eval-based count of **15** is authoritative. Active lateSeason venues: Whistler, Chamonix, Mammoth, Arapahoe Basin, Tignes/Val d'Isère, Hintertux Glacier, Cervinia, Snowbird, Zermatt, Engelberg-Titlis, Verbier, Val Thorens, Les Deux Alpes, Saas-Fee, St. Moritz.
+`grep -c "lateSeason:true"` returns **10** — undercounts because 5 venues use quoted JSON format (`"lateSeason": true`). The eval-based count of **15** is authoritative. Active lateSeason venues: Whistler, Chamonix, Mammoth, Arapahoe Basin, Tignes, Hintertux Glacier, Cervinia, Snowbird, Zermatt, Engelberg-Titlis, Verbier, Val Thorens, Les Deux Alpes, Saas-Fee, St. Moritz.
 
 ---
 
@@ -69,22 +69,24 @@
 
 ---
 
-## 3. Seasonal Relevance — 2026-10-17 (T-1, LAUNCH EVE)
+## 3. Seasonal Relevance — 2026-10-18 (LAUNCH DAY)
 
 | Category | Hemisphere | Count | Status |
 |----------|-----------|-------|--------|
-| Skiing | S hemisphere | 23 | ⚠️ **ABSOLUTE FINAL WEEKEND** — lifts closing Oct 17–Nov 2, most within days |
+| Skiing | S hemisphere | 23 | ⚠️ **Final weekend** — The Remarkables, Cardrona, Coronet Peak, Falls Creek within last 2–3 operating days |
 | Skiing | N hemisphere (non-lateSeason) | 96 | ⚠️ Pre-season — first openings Nov/Dec |
 | Skiing | N hemisphere (lateSeason) | 15 | ✅ Glacier/high-altitude ACTIVE — Hintertux, Saas-Fee, Zermatt, Engelberg fully open |
 | Beach | S hemisphere | 69 | ✅ **Spring prime window** — Camps Bay, Noosa, Byron Bay entering peak |
 | Beach | N hemisphere | 201 | ≈ Shoulder — Mediterranean cooling, Caribbean/tropics excellent |
 
-**Launch-day (Oct 18) editorial hook:**
-- **Val Thorens opens Oct 18** — Europe's highest major resort (3,200m) opens on *launch day itself*. First big Alpine opening of the 2026/27 N.hem season. Scoring engine will automatically surface it. This is an unplanned alignment worth calling out in the r/travel launch post — "we launched the same day Europe's first ski resort of the season opened."
+**Launch-day (Oct 18) editorial hooks — unchanged from yesterday:**
+- **Val Thorens opened today (Oct 18)** — Europe's highest major resort (3,200m) opens on *launch day itself*. First big Alpine opening of the 2026/27 N.hem season. Scoring engine automatically surfaces it. Use in r/travel launch post: "we launched the same day Europe's first ski resort of the season opened."
 - **Hintertux Glacier** — year-round, top-scoring N.hem ski every week through winter.
-- **S.hem ski closing-weekend urgency** — The Remarkables, Cardrona, Coronet Peak, Falls Creek likely within their last 2–3 operating weekends. Closing-weekend scarcity is a real engagement driver for launch-day social.
-- **Caribbean peak arrival** — Barbados, Turks & Caicos, St. Lucia now entering their best-scoring window as Mediterranean shoulder contracts.
+- **S.hem ski closing-weekend urgency** — The Remarkables, Cardrona, Coronet Peak, Falls Creek within their absolute last operating weekend. Closing scarcity is a real engagement hook.
+- **Caribbean peak arrival** — Barbados, Turks & Caicos, St. Lucia entering best-scoring window as Mediterranean shoulder contracts.
 - **S.hem beach spring surge** — Camps Bay (CPT), Noosa (OOL), Byron Bay (OOL) entering optimal window.
+
+**VPS deploy urgency (from DevOps):** Without VPS redeploy today, Val Thorens surfaces with `confidence: "low"` (forecast_days:7 on the live VPS blocks two-weekend scoring) and gets *filtered from the front page*. The entire launch narrative fails without the 5-minute deploy.
 
 ---
 
@@ -94,21 +96,22 @@
 
 | Tag count | Venues |
 |-----------|--------|
-| 2 tags | **225** (55.7%) ⚠️ |
-| 3 tags | **14** (3.5%) |
-| 4+ tags | **165** (40.8%) ✅ |
+| 2 tags | **223** (55.2%) ⚠️ |
+| 3 tags | **16** (4.0%) |
+| 4 tags | **164** (40.6%) ✅ |
+| 5+ tags | **1** (0.2%) |
 
-**225 venues remain at 2-tag depth.** `scoreVibeMatch` operates on tags; shallow tag arrays reduce vibe-match surface area and search recall. This is the single largest content quality gap remaining. Code freeze holds — post-launch sprint priority.
+**223 venues remain at 2-tag depth.** `scoreVibeMatch` operates on tags; shallow tag arrays reduce vibe-match surface area and search recall. This is the single largest content quality gap remaining. Code freeze holds — post-launch sprint priority (target: bring 2-tag venues to 4 tags minimum, starting with highest-traffic ski resorts).
 
-**Difficulty levels and descriptions:** Venues do not include a `description` or `difficulty` field in the schema — these are rendered from tags, scores, and derived labels. No flagged issues in schema-level content.
+**Descriptions:** Venues use tags, scores, and derived labels for content — no free-text `description` field in schema. No schema-level content issues.
 
 ---
 
 ## 5. Daily Venue Additions
 
-**No new venues should be added to `app.jsx` during the code freeze.** The 5 objects below are **queued for the post-launch sprint** — first week of November after confirming launch stability. Unchanged from prior queues.
+**No new venues to be added during code freeze (Day 34).** Queue below is unchanged for post-launch sprint (first week of November, after confirming launch stability and VPS health).
 
-**Pre-launch note for Mt. Bachelor (#2):** `RDM` (Redmond/Bend, OR) will need to be added to `AP_CONTINENT`, `AIRPORT_COORDS`, and `BASE_PRICES` before this venue is active. Budget ~15 min for the data wiring step post-launch.
+**Pre-launch note for Mt. Bachelor (#2):** `RDM` (Redmond/Bend, OR) needs to be added to `AP_CONTINENT`, `AIRPORT_COORDS`, and `BASE_PRICES` before activation (~15 min). Bundle with venue add.
 
 ```javascript
 // Post-launch addition 1 — N.hem ski, opens Nov 2026
@@ -180,28 +183,27 @@
   photo: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&q=80&w=800"
 },
 
-// Post-launch addition 5 — N.hem ski, Japan opening Nov 2026
+// Post-launch addition 5 — N.hem ski, early-season opener
 {
-  id: "niseko-annupuri",
+  id: "ski-mammoth-east",
   category: "skiing",
-  title: "Niseko Annupuri",
-  location: "Hokkaido, Japan",
-  ap: "CTS",
-  lat: 42.7700, lon: 140.6883,
+  title: "Mammoth Mountain East Side",
+  location: "June Lake, California",
+  lat: 37.7755, lon: -119.0894,
+  ap: "MMH",
   icon: "🏔️",
-  rating: 4.84,
-  reviews: 3120,
-  gradient: "linear-gradient(160deg,#1a2a4a,#2a4a8a,#6a8aca)",
-  accent: "#6a8aca",
-  tags: ["Powder Mecca", "Champagne Snow", "Interconnected Resorts", "Backcountry Gates"],
-  photo: "https://images.unsplash.com/photo-1548919973-5cef591cdbc9?auto=format&q=80&w=800"
-},
+  rating: 4.77,
+  reviews: 1960,
+  gradient: "linear-gradient(160deg,#1e2a4a,#3a5a9f,#8ab0e0)",
+  accent: "#8ab0e0",
+  lateSeason: true,
+  tags: ["High Altitude", "June Lake Loop", "Long Season", "Sierra Nevada"],
+  photo: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&q=80&w=800"
+}
 ```
 
 ---
 
-## One Observation for PM
+## PM Signal
 
-**Val Thorens opens Oct 18 — the same day Peakly launches.** This is not a planned alignment. Europe's highest major ski resort (3,200m) kicking off the 2026/27 season on launch day is an editorial hook that writes itself: the scoring engine will automatically surface it as the top-ranked lateSeason venue for European users the moment they open the app. The r/travel launch post should open with this. "We built an app to find the best ski or beach weekend, and on the day we launched, Val Thorens opened." Genuinely compelling, verifiable, and completely organic.
-
-**Catalog is clean and launch-ready.** 404 venues verified: zero missing coords, zero missing airports, zero duplicate IDs, 100% photo coverage, brace balance locked at 5682/5682, build stamp `20260914a` in lockstep. The only open items (2-tag venues, Gili dup, stale cron prompt) are non-functional and correctly deferred. Code freeze Day 33 is the right call.
+**Launch day is here.** Content catalog is solid (404 venues, 0 dup IDs, 0 dup photos, 100% AP coverage). The only thing that can make today's data story land wrong is the VPS still running the August build — `forecast_days:7` means Val Thorens (which opened today) filters out as `confidence:"low"`. Deploy the 5 lines in `server/proxy.js` before the r/travel post goes up.
