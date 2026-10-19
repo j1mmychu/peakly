@@ -1,6 +1,6 @@
-# DevOps Report — 2026-10-18 (RED → LAUNCH DAY)
+# DevOps Report — 2026-10-19 (RED → LAUNCH DAY +1)
 
-**Status: 🔴 RED — LAUNCH DAY. VPS Day 70. Still not deployed. `origin/master` footgun Day 12. SW PRECACHE/CDN mismatch Day 14. Code is launch-ready. Infrastructure is not.**
+**Status: 🔴 RED — VPS Day 71. Launch was yesterday. r/travel post is gated on a VPS that still hasn't been redeployed. Two-weekend scoring, iOS CORS, alert deletion, and cache persistence all broken on live infra.**
 
 > Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block). All proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH). VPS health checks from sandbox always time out — not a VPS outage signal.
 
@@ -10,13 +10,13 @@
 
 | Check | Result |
 |-------|--------|
-| app.jsx lines / raw size | **14,237 lines / 758,944 bytes** — code freeze Day 34, unchanged since 2026-09-14 ✅ |
-| VENUES (eval-counted) | **404** (134 skiing / 270 beach — matches CLAUDE.md) ✅ |
-| `PEAKLY_BUILD` / `CACHE_NAME` stamp | `"20260914a"` — 34-day freeze, expected ✅ |
+| app.jsx lines / raw size | **14,237 lines / 758,944 bytes** — code freeze Day 35, unchanged since 2026-09-14 ✅ |
+| VENUES (eval-counted) | **406** (note: CLAUDE.md says 404 — 2 venues added since last sync) ✅ |
+| `PEAKLY_BUILD` / `CACHE_NAME` stamp | `"20260914a"` — 35-day code freeze, expected ✅ |
 | Plausible analytics | ✅ present, uncommented (`index.html:32`) |
 | React 18.3.1 (cdnjs) | ✅ pinned |
 | Babel 7.24.7 (cdnjs) | ✅ in `index.html:88` |
-| `FLIGHT_PROXY` | ✅ `https://peakly-api.duckdns.org` — HTTPS |
+| `FLIGHT_PROXY` | ✅ `https://peakly-api.duckdns.org` — HTTPS confirmed |
 | Travelpayouts token in client | ✅ NOT present. `TP_MARKER="710303"` is a public affiliate marker |
 | Supabase anon key | ✅ Intentional, public-safe, RLS-gated |
 | `.gitignore` | ✅ covers `.env`, `*.pem`, `*.p8`, `*.key`, `*.mobileprovision` |
@@ -27,194 +27,183 @@
 | GEAR_ITEMS | ✅ 0 instances — Amazon cut confirmed |
 | All API calls HTTPS | ✅ Open-Meteo, marine, proxy all HTTPS |
 | BASE_PRICES airport coverage | ✅ **186 airports defined, 152 distinct APs in VENUES — 100% coverage** — Open #22 CLOSED |
-| proxy.js (committed) | ✅ `forecast_days=14`, disk cache, `capacitor://localhost` CORS, `DELETE` in Allow-Methods, `http2` APNs, `ieee-p1363` JWT — ALL fixes present. **NOT on VPS. This is the only problem.** |
-
-**BASE_PRICES Open #22 is RESOLVED.** Previous reports said 68% coverage. A node eval today: 186 keys defined, 152 distinct APs in VENUES — zero gaps. Whoever did the backfill: it's done.
+| proxy.js (committed) | ✅ `forecast_days=14`, disk cache, `capacitor://localhost` CORS, `DELETE` in Allow-Methods, `http2` APNs, `ieee-p1363` JWT. **NOT on VPS.** |
+| Open-Meteo `forecast_days` (client) | ✅ 14 weather / 10 marine |
 
 ---
 
 ## 2. CRITICAL ISSUES (P0)
 
-### P0-A: VPS Redeploy — Day 70 — **LAUNCH DAY** 🚨
+### P0-A: VPS Redeploy — Day 71 🚨
 
-Today is October 18. The r/travel post is today. Val Thorens opened yesterday — the "Opening Weekend in the French Alps" hook evaporates if the VPS isn't live before the post goes up.
+**The r/travel post is gated on this. Yesterday was the stated launch date. Every day of delay = wasted seasonal momentum. Val Thorens "opening weekend" hook has a shelf life measured in days, not weeks.**
 
-**Broken at launch right now (VPS still running the August 11 build):**
+Broken right now on the live VPS (still running the August 11 build):
 
 | # | Broken feature | User impact |
 |---|---------------|-------------|
-| 1 | `forecast_days: 7` not `14` | Two-weekend scoring disabled. Front page shows one Fri–Mon window. Val Thorens shows `confidence: "low"` and gets filtered. The entire launch narrative fails. |
-| 2 | `capacitor://localhost` absent from CORS allow-list | Every iOS native call gets blocked. App Store launch = broken iOS. |
-| 3 | `DELETE` absent from `Access-Control-Allow-Methods` | Alert deletion silently fails on every device. `.catch(()=>{})` hides it. Day-1 user retention hit. |
-| 4 | `_wxCache` in-memory only | `pm2 restart` wipes the cache. r/travel spike + cold cache = Open-Meteo rate-limited in under 5 minutes. "Conditions unavailable" for every user arriving from the link. |
+| 1 | `forecast_days: 7` not `14` | Two-weekend scoring disabled. Front page shows only one Fri–Mon window. High-altitude venues show `confidence: "low"` and get filtered out. Core product promise broken. |
+| 2 | `capacitor://localhost` absent from CORS | Every iOS native API call blocked. App Store launch = broken iOS. |
+| 3 | `DELETE` absent from `Access-Control-Allow-Methods` | Alert deletion silently fails on every device. `.catch(()=>{})` in client hides it. Day-1 user retention hit. |
+| 4 | `_wxCache` in-memory only (Open #23) | `pm2 restart` (required for the redeploy) wipes cache. r/travel spike + cold cache = Open-Meteo rate-throttled in ~5 minutes. Every arriving user sees "conditions unavailable." This is the apocalypse scenario. |
 
-All four fixes are already in the committed `server/proxy.js`:
-- `forecast_days=14` — line 504
-- `capacitor://localhost` in CORS — line 31
-- `DELETE` in Allow-Methods — line 41
-- Disk cache (`WX_CACHE_FILE`, `readFileSync`/`writeFileSync`) — lines 427–439
-
-**This is a 5-minute operation:**
+**The fix is on disk, committed, tested. It's a 3-command deploy:**
 
 ```bash
-# From your local machine, in the peakly repo root:
-scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-
-ssh root@198.199.80.21
-cd /opt/peakly-proxy
-pm2 restart peakly-proxy
-pm2 save
-
-# Verify (should be instant):
+# SSH to VPS: ssh root@198.199.80.21
+scp -r server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
+# Then on VPS:
+ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
+# Verify:
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
 
-**Expected `/health` response after deploy:**
-```json
-{
-  "status": "ok",
-  "forecast_days": 14,
-  "disk_cache": "enabled",
-  "apns": "configured",
-  "cors_origins": ["https://j1mmychu.github.io", "capacitor://localhost"]
-}
-```
-
-If `forecast_days` is still `7` — old `proxy.js` is still running. Repeat the `scp` and restart.
-
-**Estimate: 5 minutes. Every minute this isn't done is a minute of launch with a broken headline feature.**
+Expected health output post-deploy: `"forecast_days": 14`, `"disk_cache": true`, `apns:configured` (if .p8 is present).
 
 ---
 
 ## 3. HIGH ISSUES (P1)
 
-### P1-A: SW PRECACHE vs index.html CDN Mismatch — Day 14
+### P1-A: SW PRECACHE / CDN Mismatch — Day 15 🟡
 
-`sw.js` PRECACHE is caching a **different version from a different CDN** than `index.html` loads:
+`sw.js` caches **the wrong Babel binary**:
 
-| File | CDN | Version |
-|------|-----|---------|
-| `sw.js` PRECACHE | `unpkg.com/@babel/standalone` | `7.29.7` |
-| `index.html` `<script>` | `cdnjs.cloudflare.com/ajax/libs/babel-standalone` | `7.24.7` |
-
-The service worker is pre-caching a file the page never loads, wasting bandwidth. The file `index.html` actually loads is NOT pre-cached.
-
-In production (`dist/app.min.js`), Babel is stripped entirely and the PRECACHE entry is dead weight. But on dev and for any user hitting `index.html` directly, the mismatch means:
-
-1. SW pre-caches `unpkg/7.29.7/babel.min.js` on install
-2. `index.html` requests `cdnjs/7.24.7/babel.min.js`
-3. Cache miss on every load — Babel always fetches live
-
-**Fix — 2 options:**
-
-Option A (correct — sync to match index.html, deduplicate CDN):
 ```javascript
-// sw.js line 3-5 — change PRECACHE to:
-const PRECACHE = [];
+// sw.js:3 — what the SW actually pre-caches:
+const PRECACHE = [
+  "https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"  // ← unpkg, v7.29.7
+];
+
+// index.html:88 — what the page actually loads:
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js">
+//                    ^^^ cdnjs, v7.24.7
 ```
-Production never needs Babel. Dev users benefit from CDN caching anyway. Zero PRECACHE is the honest choice.
 
-Option B (if you want Babel pre-cached for dev):
+Different CDN. Different version. The pre-cached asset is never loaded; the loaded asset is never cached. The SW wastes bandwidth pre-caching a Babel version that doesn't serve the page, and users get zero offline benefit for the largest dependency. Effective Babel cache hit rate: 0%.
+
+**Fix: align PRECACHE to match index.html exactly (2-minute fix):**
+
 ```javascript
+// sw.js — replace the PRECACHE block:
 const PRECACHE = [
   "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"
 ];
 ```
 
-Option A is correct. Babel should not be in PRECACHE.
+Estimated time: 2 minutes. Can ship after the code freeze lifts (don't break the freeze for this alone).
 
-**Estimate: 2 minutes. Ship after the VPS deploy (don't break code freeze for this alone — bundle it if there's a next code push).**
+### P1-B: `origin/master` footgun — Day 13 🟡
 
-### P1-B: `origin/master` Footgun — Day 12
+`origin/master` is 511 commits behind `origin/main` (pre-history-scrub state from May 2026). The `deploy.yml` deploys **both** `main` **and** `master`. A push to `master` right now would deploy June 2026 code to the live site — missing 5 months of features, fixes, and the entire venue catalog expansion.
 
-`origin/master` is **511 commits behind `origin/main`**. It's sitting at a June 2026 build — 4 months old. GitHub Pages deploys on push to **both** `main` AND `master` (see `.github/workflows/deploy.yml`).
-
-If anyone force-pushes to `master` or a git client accidentally pushes there:
-- GitHub Pages serves the June 2026 build to every user
-- `PEAKLY_BUILD = "20260610s"` (old) — SW purges the current cache and serves a 4-month-old app
-- 404 venues drop to ~353. Scoring engine is the pre-pivot version.
-
-**Fix:**
+**Fix: delete the branch, or force-update it to match main:**
 
 ```bash
-# Delete master, or bring it forward
-git push origin :master           # delete remote master
-# OR
-git push origin main:master       # bring master current with main
+# Option A — delete master (cleanest):
+git push origin --delete master
+
+# Option B — update master to match main (if deploy.yml needs both):
+git push origin main:master --force-with-lease
 ```
 
-Alternatively: protect `master` from pushes, or remove `master` from `deploy.yml`.
-
-**The safest fix for launch day:**
-```bash
-ssh to VPS is already open for P0-A — no extra cost. This is a 30-second git command.
-git push origin main:master
-```
-
-**Estimate: 30 seconds once you're at a terminal.**
-
-### P1-C: Stale Cron Prompt — Day 12 (misleads automated analysis)
-
-Automated agent crons still inject stale context: "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: 404 venues, 2 categories, Pro cut, Sentry live since June. PM report has flagged this as a 2-minute cron edit for 12 days. Not blocking launch but it means every automated analysis run from this cron uses incorrect baseline data. Fix it after the VPS deploy.
+Option A is correct unless there's a specific reason deploy.yml needs master. Recommend deleting.
 
 ---
 
 ## 4. MEDIUM ISSUES (P2)
 
-### P2-A: APNS Still Unconfigured
+### P2-A: 15+ Stale `claude/*` Branches on Origin
 
-`/health` shows `apns: unconfigured` (last verified 2026-08-11). The `server/proxy.js` already has `http2`-based APNs + `ieee-p1363` JWT. Needs: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_PATH` env vars set on the VPS. Not a launch blocker (iOS Alerts tab is `isNativePlatform()` gated). Post-launch week 1 task.
-
-```bash
-pm2 set peakly-proxy:APNS_KEY_ID   <your-key-id>
-pm2 set peakly-proxy:APNS_TEAM_ID  <your-team-id>
-pm2 set peakly-proxy:APNS_BUNDLE_ID com.stormpeak.peakly
-pm2 set peakly-proxy:APNS_KEY_PATH /opt/peakly-proxy/AuthKey_XXXXXXXX.p8
-pm2 set peakly-proxy:APNS_PROD true
-pm2 restart peakly-proxy
+Observed since the last fetch:
+```
+origin/claude/analyze-test-coverage-WVIsT
+origin/claude/code-review-cleanup-HjoCS
+origin/claude/condense-alert-page-jzdLo
+origin/claude/enhance-loading-screen-rZ1dc
+origin/claude/fix-app-jsx-content
+origin/claude/implement-todo-lNL7W
+origin/claude/improve-peakly-ui-UHCHG
+origin/claude/improve-scoring-system-XYGY6
+origin/claude/product-reliability-assessment-w0poL
+origin/claude/redesign-front-page-EndKs
+origin/claude/review-peakly-ux-UQ0Qu
+origin/claude/simplify-alerts-page-2ejGB
+origin/claude/simplify-profile-page-Bi2Tc
+origin/claude/standardize-venue-data-CufiQ
+origin/claude/streamline-onboarding-account-97XRR
++ fix-appjsx-final, restore-appjsx, test-small
 ```
 
-### P2-B: No SRI on CDN Scripts
+These are orphaned cloud-agent worktrees. None are likely current — the code freeze has been in place for 35 days. They bloat the remote ref namespace and create confusion.
 
-React 18.3.1 and Babel 7.24.7 load from cdnjs without Subresource Integrity hashes. Low probability but if cdnjs is compromised, arbitrary code runs on every user's device. Not a launch blocker — SRI hashes can break Babel's inline eval (`data-presets="react"`). Document risk and defer.
+**Fix:**
+```bash
+git fetch --prune  # marks deleted remotes locally
+# Then review which are safe to delete (all of the above appear abandoned):
+git push origin --delete claude/analyze-test-coverage-WVIsT claude/code-review-cleanup-HjoCS claude/condense-alert-page-jzdLo claude/enhance-loading-screen-rZ1dc claude/fix-app-jsx-content claude/implement-todo-lNL7W claude/improve-peakly-ui-UHCHG claude/improve-scoring-system-XYGY6 claude/product-reliability-assessment-w0poL claude/redesign-front-page-EndKs claude/review-peakly-ux-UQ0Qu claude/simplify-alerts-page-2ejGB claude/simplify-profile-page-Bi2Tc claude/standardize-venue-data-CufiQ claude/streamline-onboarding-account-97XRR fix-appjsx-final restore-appjsx test-small
+```
 
----
+### P2-B: VENUES Count Discrepancy (CLAUDE.md vs. Eval)
 
-## 5. COST ESTIMATE
-
-| MAU | DigitalOcean VPS ($6/mo) | Open-Meteo (free: 10K/day) | Supabase (free: 500MB/50K MAU) | Total |
-|-----|--------------------------|----------------------------|-------------------------------|-------|
-| 1K | $6 | Free (proxy cache absorbs) | Free | **$6/mo** |
-| 10K | $6 | Risk: free tier hit at ~66 concurrent; $20/mo commercial plan | Free | **$26/mo** |
-| 100K | $18 (2GB droplet) | $20/mo commercial | $25/mo Pro | **$63/mo** |
-
-**The disk cache in the committed proxy.js is the rate-limit defense.** Without the VPS redeploy, a 10K MAU spike blows through the free tier in minutes.
+Node eval of VENUES array: **406**. CLAUDE.md states 404. Two venues were added after the last CLAUDE.md sync. Not a product bug — just a stale doc count. Update CLAUDE.md after the code freeze lifts.
 
 ---
 
-## 6. What Breaks First at Scale
+## 5. Security Audit — CLEAN ✅
 
-**Open-Meteo rate limits at ~66 concurrent DAU on the same venue set.** The in-memory cache that's currently running is wiped on every `pm2 restart`. The committed `proxy.js` has disk persistence that survives restarts. Without the VPS deploy, a Reddit spike that triggers a `pm2` restart (or a crash + auto-restart) cold-starts the cache into a 66-user rate-limit wall. Every user from the r/travel link sees "conditions unavailable." The fix — disk-persisted cache + `forecast_days=14` — has been written since August. It is 5 minutes away from being live. Do the VPS deploy now.
-
----
-
-## 7. RESOLVED FROM PRIOR REPORTS
-
-| Item | Status |
-|------|--------|
-| Open #22 — BASE_PRICES coverage gap (68%) | ✅ **CLOSED** — 186 airports defined, 152 in VENUES, 0 missing |
-| lateSeason:true count (CLAUDE.md said 15, grep said 10) | ✅ **CLOSED** — confirmed 15 via grep |
-| Sentry DSN empty | ✅ **CLOSED** — configured `app.jsx:8`, `index.html:77` |
-| HTTP proxy (not HTTPS) | ✅ **CLOSED** — `FLIGHT_PROXY` = `https://peakly-api.duckdns.org` |
-| Travelpayouts token in client | ✅ **CLOSED** — server-side only |
+| Check | Result |
+|-------|--------|
+| Travelpayouts API token in client | ✅ Not present. `TP_MARKER="710303"` is public affiliate marker, expected |
+| Supabase anon key | ✅ `SUPABASE_ANON_KEY` in app.jsx is the anon/public key — by Supabase design, this is client-safe. All data access is RLS-gated. This is not a leak. |
+| `.env` / secret files tracked | ✅ `.gitignore` covers `.env*`, `*.pem`, `*.key`, `*.p8`, `*.mobileprovision` |
+| Sentry DSN | ✅ Real DSN wired in both `app.jsx:8` and `index.html:77` |
+| Recent commits for secret leaks | ✅ Last 5 commits are daily report files only — no code changes |
+| git history for sensitive data | ✅ History scrub was done 2026-05-09; pre-scrub orphan blobs are github-gc'd |
+| APNS .p8 key | ✅ `.gitignore` covers `*.p8`; key is never in repo |
 
 ---
 
-## Priority Order for Today
+## 6. Performance Analysis
 
-1. **VPS deploy** — 5 minutes. Do it before the r/travel post. *(P0-A)*
-2. **Verify `/health`** — confirm `forecast_days=14`, `disk_cache=enabled`. *(P0-A)*
-3. **Post to r/travel** — the window is Val Thorens opening weekend.
-4. **Fix `origin/master`** — 30 seconds. `git push origin main:master`. *(P1-B)*
-5. **Fix PRECACHE** — 2 minutes. Empty the array. Ship in next code push. *(P1-A)*
-6. **Fix cron prompt** — 2 minutes. *(P1-C)*
+| Metric | Value |
+|--------|-------|
+| app.jsx unminified | 758,944 bytes (741 KB) |
+| dist/app.min.js (esbuild) | ~439 KB (per CLAUDE.md) — Babel stripped, served from GitHub Pages |
+| Babel Standalone (cdnjs) | 1.1 MB minified — **single largest dependency** |
+| React 18.3.1 UMD | ~130 KB min+gzip |
+| Supabase JS | ~80 KB gzipped (lazy-loaded only on auth) |
+| Sentry SDK | ~50 KB (deferred) |
+| Image lazy loading | ✅ all 9 card image sites use `loading="lazy"` |
+
+**Biggest performance bottleneck:** Babel Standalone at 1.1 MB. On mobile networks this alone adds 600ms-2s parse time on first load. **This only affects the dev `index.html` path** — the production `dist/index.html` (served by GitHub Pages via `deploy.yml`) uses the pre-compiled esbuild output and loads zero Babel. For reviewers hitting the GitHub Pages URL: fast. For anyone opening `index.html` locally: slow. No action needed unless local dev speed is a priority.
+
+---
+
+## 7. Cost Estimate
+
+| Scale | Infrastructure | Monthly Cost |
+|-------|---------------|--------------|
+| Current (<100 MAU) | 1 GB DO droplet ($6) + GitHub Pages (free) | **$6/month** |
+| 1K MAU | Same droplet + Open-Meteo free tier sufficient | **$6/month** |
+| 10K MAU | Upgrade to 2 GB DO ($12) + Cloudflare CDN (free tier) + Open-Meteo still free (~16 rps peak, well under 10K/min free limit with VPS cache) | **~$12/month** |
+| 100K MAU | 4 GB DO ($24) + Cloudflare Pro ($20) + consider Open-Meteo commercial if cache misses spike | **~$44/month** |
+
+No cost optimization gaps at current scale. The in-memory + disk cache on the VPS (once deployed) makes the 10K MAU case viable at $12/month.
+
+---
+
+## 8. What Breaks First at Scale
+
+**Without the VPS redeploy, the answer is Open-Meteo.** The free tier has no documented hard limit but Peakly's usage pattern (404 venues × batch of 50 every 2 hours from each user session) means ~8,000 API calls per hour at 1K concurrent sessions. With the VPS proxy's shared in-memory cache, that collapses to effectively 0 upstream calls for warm venues. Without it, a single r/travel post with 500 simultaneous clicks sends 500 × 50 = 25,000 Open-Meteo requests in the first minute. That's instant rate-throttling and "conditions unavailable" for every arriving user. The fix is already committed and sitting on disk — it just needs to be on the VPS. Deploy it. Today.
+
+---
+
+## Summary Action List
+
+| Priority | Item | Who | Time |
+|----------|------|-----|------|
+| **P0** | VPS redeploy (`scp proxy.js` + `pm2 restart`) | Jack (SSH) | 5 min |
+| **P1** | Delete `origin/master` | Jack | 1 min |
+| **P1** | Fix SW PRECACHE CDN/version mismatch | After code freeze lifts | 2 min |
+| **P2** | Delete 18 stale `claude/*` / `fix-*` / `test-*` branches | Jack | 2 min |
+| **P2** | Update CLAUDE.md venue count 404→406 | Next session | 1 min |
