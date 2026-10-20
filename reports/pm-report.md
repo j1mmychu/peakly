@@ -1,40 +1,40 @@
-# Peakly PM Report v185 — 2026-10-19 (LAUNCH DAY +1)
+# Peakly PM Report v186 — 2026-10-20 (LAUNCH DAY +2)
 
-**Status: 🔴 RED → Day +1 post-launch. VPS Day 71. Not redeployed. Val Thorens opening-weekend hook is burning. The gap between a soft launch and a real launch is one SSH session.**
+**Status: 🔴 RED → Day +2 post-launch. VPS Day 72. Val Thorens opening-weekend hook expires in 2 days (Oct 22–23). The r/travel post has not gone up. This is the last day it's urgent.**
 
-> **Stale prompt notice — Day 13 (critical):** Stored cron still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100% coverage.** This miscalibrates every single analysis. Jack: 2-minute cron edit fixes it permanently.
+> **Stale prompt notice — Day 14 (critical):** Stored cron still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100% coverage.** Jack: 2-minute cron edit. Every analysis from this prompt is miscalibrated by the stale premise.
 
 ---
 
-## Shipped Since Last Report (v184 → v185)
+## Shipped Since Last Report (v185 → v186)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `56a2ac1` | Content Oct 19 — 91/100, Day +1, VPS still gated | ✅ reporting |
-| `f2d0962` | DevOps Oct 19 — RED, VPS Day 71, VENUES 406 vs CLAUDE.md 404 | ✅ reporting |
+| `95b262c` | DevOps Oct 20 — RED, VPS Day 72, 404 venues confirmed | ✅ reporting |
+| `c19ae46` | Content Oct 20 — 89/100 (corrected tag count: 225 thin-tag venues) | ✅ reporting |
 
-**Zero app.jsx / sw.js / index.html commits. Code freeze Day 35. Correct.**
+**Zero app.jsx / sw.js / index.html commits. Code freeze Day 36. Correct.**
 
-One note: DevOps counts 406 venues, Content counts 404. Discrepancy is a report-line-counting artifact — both confirm code freeze intact. Not a P0. Resolve by running `node -e "const src=require('fs').readFileSync('app.jsx','utf8'); eval(src.match(/const VENUES\s*=\s*(\[[\s\S]*?\]);/)[1]); console.log(VENUES.length)"` and updating CLAUDE.md next networked session.
+DevOps today confirms **404 venues** — matches CLAUDE.md. Yesterday's 406 was a counting artifact. No action needed.
 
 ---
 
 ## Bug Triage
 
-### P0-A — VPS Redeploy: Day 71 — IT IS LAUNCH DAY +1 🚨
+### P0-A — VPS Redeploy: Day 72 🚨 FINAL CALL
 
-Yesterday was the stated launch date. The r/travel post still hasn't gone up. The Val Thorens opening-weekend hook — the entire narrative anchor of this launch — has a hard expiry. By Oct 22–23 "opening weekend" is just "Val Thorens is open, so what?" That's 3–4 days from now.
+The Val Thorens opening-weekend hook expires **tonight or tomorrow**. Oct 22 is the last credible window to post "opening weekend" framing on r/travel. Oct 23+ is just another alps post.
 
-**What's broken live right now:**
+Broken on the live VPS right now:
 
-| Feature | User impact |
-|---------|-------------|
-| Two-weekend scoring | Off. VPS runs `forecast_days:7`. Front page shows one window. Val Thorens may be scored below its real conditions with `confidence:"low"` — hidden from the front page entirely. |
-| iOS native experience | CORS blocked on every API call. App Store submission puts users into a broken app. |
-| Alert deletion | Silently fails on every device. The `.catch(()=>{})` hides it. Retention killer from Day 1. |
-| Reddit spike protection | Cold VPS restart wipes `_wxCache`. r/travel link fires → Open-Meteo rate-limited → "conditions unavailable" for every arriving user. The 10-minute window where you make or break the thread. |
+| # | Broken feature | User impact |
+|---|---|---|
+| 1 | `forecast_days: 7` not `14` | Two-weekend scoring disabled. High-altitude venues score `confidence:"low"` — filtered off front page. Val Thorens may be invisible on launch day. |
+| 2 | `capacitor://localhost` missing from CORS | Every iOS native API call blocked. App Store is a broken experience. |
+| 3 | `DELETE` absent from Allow-Methods | Alert deletion silently fails on every device, Day 1. |
+| 4 | `_wxCache` in-memory only | r/travel spike + cold restart = Open-Meteo rate-limited = "conditions unavailable" for every new user during the 10-minute window that makes or breaks the thread. |
 
-All four fixes are committed in `server/proxy.js`. The operation is under 5 minutes:
+Fix is committed. 3 commands, under 5 minutes:
 
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
@@ -42,80 +42,75 @@ ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy && pm2 
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
 
-Confirm post-deploy: `forecast_days: 14`, `disk_cache: true`, `apns: configured`.
-
-**The Val Thorens hook expires Oct 22–23. After that, the r/travel post is generic timing, not a moment.**
+Expect post-deploy: `"forecast_days": 14`, `"disk_cache": true`.
 
 ### P0-B — `origin/master` Footgun: Day 13 🚨
 
-50+ commits behind `main`. `deploy.yml` deploys both branches. An accidental `git push origin master` during post-launch activity rolls the live site back to May — while the r/travel thread is active and new users are arriving.
+50+ commits behind `main`. `deploy.yml` deploys both branches. Accidental push to master during post-launch activity rolls the live site back to May while the r/travel thread is active.
 
-30-second fix during the VPS SSH session:
+30-second fix:
 
 ```bash
 git push origin --delete master
 ```
 
-### P1 — r/travel Post: Clock Running
+Do this in the same terminal session as the VPS deploy.
 
-The launch window is:
-- **Tonight or tomorrow AM (Oct 20, 10am–2pm ET)** — if VPS ships today
-- **Oct 21** — weekend traffic, still within opening-weekend narrative
-- **Oct 22** — marginal, hook is stale
-- **Oct 23+** — generic timing, no hook. Miss the window.
+### P1 — Tag Quality: 225/404 Venues at 2 Tags (55.7%)
 
-Draft: "We built an app that combines live Fri–Mon weather conditions with cheap flights to tell you if Val Thorens is worth flying to this weekend — and it's live. [Link]" Lead with the venue, not the product. r/travel cares about the trip, not the startup.
+Content corrected their count today — it's 225 thin-tag venues, not 91. `scoreVibeMatch` and search recall are degraded for more than half the catalog. This is a Week 2 post-launch task, not an emergency, but the magnitude is worse than previously understood.
 
-### P2 — SW PRECACHE Mismatch: Day 15
+### P2 — SW PRECACHE Mismatch: Day 16
 
-`sw.js` precaches `unpkg.com/babel@7.29.7`; `index.html` loads `cdnjs/babel@7.24.7`. Wasted bandwidth, zero offline benefit for the asset users actually load. Post-launch sprint, not during code freeze.
+`sw.js` precaches Babel 7.29.7, `index.html` loads Babel 7.24.7. Wasted bandwidth, no offline benefit for the asset users actually load. Fix in the first post-freeze sprint, Oct 23+.
 
 ### P2 — Gili Trawangan Duplicate
 
-`beach_gilit` (LOP) + `gili-trawangan` (DPS) — same venue, two IDs. No crash. Post-launch, single-line delete.
+`beach_gilit` (LOP) + `gili-trawangan` (DPS). No crash. Post-launch, single-line delete.
 
 ---
 
-## Three Product Decisions — Oct 19
+## Three Product Decisions — Oct 20
 
-### Decision 1: The Val Thorens hook expires in 3–4 days. This is now urgent.
+### Decision 1: Oct 20 is the last day to ship the r/travel post with a seasonal hook.
 
-The launch date was Oct 18. The r/travel post hasn't gone up. Val Thorens opened Oct 17. By Oct 22–23 the opening-weekend narrative is gone and the post is just another gear/conditions post competing for attention.
+If VPS ships today, post tonight or tomorrow morning (Oct 21 AM ET is ideal — weekday morning, r/travel peak traffic). If VPS doesn't ship today, the Val Thorens hook is gone by Oct 22. Next natural hook is Whistler early-season (~Nov 10) or Alps mid-season (~Dec 1). Both are 3–6 weeks out and neither has the same "opening weekend" moment.
 
-**DECISION: VPS must ship today (Oct 19). If it doesn't ship by end of day, the r/travel post moves to generic timing (Oct 25 or later) and the seasonal hook is wasted. Oct 18–21 is the window. Today is the last day it's urgent.**
+**DECISION: r/travel post goes up today or tomorrow only if VPS ships first. If VPS slips past Oct 21, defer the post to the next natural hook (Whistler, ~Nov 10) and stop treating the Val Thorens window as recoverable. Posting without VPS risks a rate-limit apocalypse on the first wave of users — that's worse than a delayed post.**
 
-### Decision 2: Post-launch code freeze holds through at least Oct 22.
+### Decision 2: Code freeze lifts Oct 23 for the post-launch sprint.
 
-The temptation after a launch is to ship reactive fixes. The actual risk is introducing a regression while the r/travel thread is active and new users are forming first impressions. The P2s (PRECACHE mismatch, Gili Trawangan dup) are invisible to users. They don't justify breaking code freeze.
+The freeze has been right. The product is stable. The three post-launch sprint items are known (PRECACHE fix, Gili Trawangan dedup, JSON-LD structured data). The 225 thin-tag venues are now the biggest quality gap in the catalog and need a fix window.
 
-**DECISION: Code freeze holds through Oct 22 minimum. P0 only breaks it. The three post-launch sprint items (PRECACHE fix, Gili Trawangan, JSON-LD) queue for Oct 23+.**
+**DECISION: Code freeze lifts Oct 23. First sprint: PRECACHE fix + Gili Trawangan + JSON-LD. Second sprint: tag enrichment for the 225 thin-tag venues (batch of 50 at a time, validate with validate-venues.mjs). No new features until these three ship.**
 
-### Decision 3: VENUES count discrepancy — resolve and update CLAUDE.md next networked session.
+### Decision 3: The 5 new seasonal venues from Content are queued, not prioritized.
 
-DevOps: 406. Content: 404. CLAUDE.md: 404. One of them is right. The eval-counter is authoritative. This is not a P0 but living with stale documentation is how the next agent confidently reports wrong data.
+Content shipped 5 well-formed venue objects today (Stubai Glacier + 4 others). All pass the airport coverage check. All serve the early-ski moment. The catalog is at 404 — quality (tags) matters more than quantity right now.
 
-**DECISION: Next networked session — run the eval-counter one-liner, update CLAUDE.md `Current State` venue count to match. Takes 2 minutes. Prevents the next 10 reports from debating it.**
+**DECISION: The 5 Content venues are DEFERRED to the Oct 23 post-launch sprint, behind PRECACHE + Gili dedup. They're good work, but 404 venues with 55% at 2 tags is worse than 409 venues with the same problem. Fix the existing catalog first.**
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-1. **VPS redeploy** — `scp + pm2 restart`. TODAY. Before the Val Thorens hook expires.
-2. **Delete `origin/master`** — 30 seconds during the VPS SSH session. Do not skip this.
-3. **r/travel post** — Tonight if VPS ships today. Oct 20–21 if it slips. After Oct 22, no hook.
+1. **VPS redeploy** — `scp + pm2 restart`. TODAY. 5 minutes. Day 72.
+2. **Delete `origin/master`** — do it in the same terminal session. No separate step.
+3. **r/travel post** — tonight or Oct 21 AM ET if VPS ships. Otherwise, no hook; schedule for Whistler (~Nov 10).
 
-Everything else waits.
+Everything else waits until Oct 23.
 
 ---
 
 ## Features Rejected This Week
 
-- **Venue photos sprint** — DEFER. 404 venues, ~0 users. Photos matter; they don't matter today. Post-1K.
-- **Tag expansion (91 thin-tag venues)** — DEFER. Invisible to first-time users. Week 2 post-launch sprint.
-- **JSON-LD structured data** — DEFER. SEO payoff 8–12 weeks out. Oct 23+ sprint.
-- **Branch protection on `main`** — DEFER until immediately after VPS SSH session. GitHub settings toggle. Has been deferred 13 days. Do it in the same terminal session as the VPS deploy.
+- **5 new venue objects (Content)** — DEFER to Oct 23 sprint, behind tag enrichment. 404 → 409 adds less value than improving tag quality on existing 225 thin-tag venues.
+- **Venue photos sprint** — DEFER. Post-1K. Zero users to impress right now.
+- **JSON-LD / structured data** — DEFER to Oct 23 sprint. SEO payoff 8–12 weeks out.
+- **Branch protection on `main`** — DEFER to VPS SSH session. Has been deferred 14 days. Do it then.
 - **iOS venue deep links** — CUT. Decision from v160 stands. Revisit at 1K users.
-- **Venue count discrepancy investigation** — DEFER (not reject). 2-minute task, next networked session.
+- **Peakly Pro pricing fix ($9/mo vs $79/yr)** — CUT. Pro UI was removed. This prompt references a removed feature. No action.
+- **Sentry DSN** — NOT a bug. DevOps confirms it's configured. This prompt's premise is wrong.
 
 ---
 
@@ -123,12 +118,13 @@ Everything else waits.
 
 **What defines success at 90 days:**
 - 5K–8K users via organic SEO + r/travel + App Store
-- 8K (not 5K) requires the r/travel post to go up Oct 19–21 with Val Thorens on the front page
+- For **8K not 5K**: VPS ships today, r/travel post goes up Oct 20–21, Val Thorens is on the front page and scoring correctly
+- For **5K only**: VPS ships eventually, r/travel post goes up on next hook, organic SEO does the work
 
-**The gap between 5K and 8K is a single SSH session that hasn't happened in 71 days.**
+**The difference between 8K and 5K is one SSH session that has been available for 72 days.**
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The opening-weekend timing dependency is invisible to the codebase.** The Val Thorens hook — the one narrative that makes this launch not just another app launch — is baked into the October 17 real-world event. It can't be shipped, committed, or tested. It's a calendar fact. If the VPS slips past Oct 22, there's no code fix that recovers the timing. The next natural hook (Whistler early season, Alps mid-season) is 3–4 weeks out, and none of them have the same "opening weekend" moment that Val Thorens October has. The product is launch-ready. The timing risk is entirely operational. This is the week where a 5-minute SSH session determines whether the 90-day projection is 5K or 8K users.
+**The tag quality problem just got worse.** Content's corrected count shows 225/404 venues (55.7%) have only 2 tags. `scoreVibeMatch` — the filter that lets users say "I want powder + après ski" or "remote beach + surfing" — is degraded on more than half the catalog. This isn't a data gap, it's a UX gap: users who filter by vibe and get weak matches will assume the product doesn't know their preference, not that the venues are under-tagged. It silently erodes retention for users who explore beyond the first-card defaults. The fix exists (Content has the batch format, validate-venues.mjs handles validation) but it requires a post-freeze session and systematic effort. If the r/travel post drives 500+ users and 20% try vibe filtering, a significant chunk get a mediocre match result from day one. That's the retention risk that doesn't show up in the launch checklist.
