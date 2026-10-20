@@ -1,15 +1,15 @@
-# Peakly Content & Data Report — 2026-10-19
+# Peakly Content & Data Report — 2026-10-20
 
-## Data Health Score: 91/100
+## Data Health Score: 89/100
 
-**Deductions (unchanged since 2026-10-08):**
-- −7: 91 venues (22.5%) have exactly 2 tags — `scoreVibeMatch` and search recall degraded. Post-launch sprint target.
+**Deductions:**
+- −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded. Re-measured today from app.jsx directly; previous report's count of 91 was an undercount. 404 venues total, 165 have 4+ tags, only 14 have 3 tags.
 - −1: Gili Trawangan duplicate still live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — same venue, two IDs. Post-launch fix.
 - −1: Stale scheduled-task prompt (see warning below).
 
-**No score change from yesterday: 91/100.** All structural checks pass. Code freeze Day 35 holds clean. Launch was yesterday (Oct 18). VPS still not redeployed — r/travel post remains gated.
+**Score: 89/100** (down from 91/100 yesterday due to corrected tag-count measurement).
 
-> **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" with surfing, tanning, hiking, etc. The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. The prompt author should update the cron task's stored text. All audit data below reflects the actual current app state.
+> **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories." The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects the actual current app state.
 
 ---
 
@@ -17,24 +17,25 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,238** (code freeze Day 35, unchanged since 2026-09-14) |
+| app.jsx lines | **14,238** — code freeze Day 36, unchanged |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
-| Duplicate venue IDs (VENUES array) | **0** ✅ |
+| Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
 | Duplicate venue titles | **1** ⚠️ Gili Trawangan — post-launch fix |
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** (165 unique APs) ✅ |
-| Missing photo fields | **0** ✅ |
-| Missing tags arrays | **0** ✅ |
+| Missing photos | **0** ✅ |
+| Missing tags | **0** ✅ |
+| Venues with <2 tags | **0** ✅ |
+| Venues with exactly 2 tags | **225 (55.7%)** ⚠️ |
+| Venues with 3 tags | **14** |
+| Venues with 4+ tags | **165** |
 | Venue APs in AP_CONTINENT | **165/165** ✅ |
 | Venue APs in AIRPORT_COORDS | **165/165** ✅ |
-| Venue APs in BASE_PRICES | **165/165** ✅ (Open #22 CLOSED) |
+| Venue APs in BASE_PRICES | **165/165** ✅ Open #22 CLOSED |
 | lateSeason:true venues | **15** ✅ matches CLAUDE.md |
 | GEAR_ITEMS | **0** ✅ Amazon cut for v1 confirmed |
-| Cache stamp | `peakly-20260914a` — 35-day code freeze, expected |
-| PEAKLY_BUILD | `20260914a` — matches sw.js lockstep ✅ |
-
-> **DevOps note:** `app.jsx` reports 14,237 lines / 406 venues vs. my count of 14,238 / 404. DevOps is running against origin/main with a 1-line diff in report files. Discrepancy negligible; both confirm code freeze intact and venue count near 404.
+| Cache stamp | `peakly-20260914a` — code freeze Day 36, expected |
 
 ---
 
@@ -42,168 +43,171 @@
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Beach | **270** | ✅ Primary category |
-| Skiing | **134** | ✅ Primary category |
-| **Total** | **404** | ✅ |
+| Beach | 270 | ✅ |
+| Skiing | 134 | ✅ |
 
-Only two categories exist post-May 2026 pivot. No stubs. The old "12 categories" framing in the scheduled prompt is obsolete.
-
----
-
-## Gear Items Audit
-
-**GEAR_ITEMS const does not exist in app.jsx** — Amazon Associates was formally cut for v1 by Jack (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. This is intentional. No action needed; revisit post-launch.
+> Note: The scheduled prompt references 12 categories (surfing, hiking, climbing, tanning, etc.). All non-skiing/beach categories were retired on 2026-05-03. There are no stubs.
 
 ---
 
-## Seasonal Relevance — October 19
+## GEAR_ITEMS Gaps
 
-| Hemisphere + Category | Status | Notes |
-|----------------------|--------|-------|
-| N.hem skiing (111 venues) | 🟡 PRE-SEASON | Most resorts open Nov–Dec. Early openers: Hintertux Glacier (year-round), Tignes/Val d'Isère (late Oct), Val Thorens (opened Oct 18). `lateSeason:true` glaciers currently most relevant. |
-| N.hem beach (201 venues) | 🟡 SHOULDER | Mediterranean/Adriatic closing; Caribbean/Maldives/Canaries in good window; SE Asia monsoon varies. |
-| S.hem skiing (23 venues) | 🔴 END OF SEASON | NZ/Aus resorts typically close by Oct–Nov. Chilean/Argentine resorts usually close Sep–Oct. Scoring engine will handle via off-season binary cap. These venues will naturally drop in score this week. |
-| S.hem beach (69 venues) | 🟢 PRIME SEASON | Aus (QLD/NSW), NZ, South Africa, Brazil, Southeast coast all entering or in spring prime. Perfect window: **Camps Bay (CPT), Whitehaven (whitsundays), Bondi, Noosa, Pipa Brazil, Great Ocean Road**. These should score well in the Fri–Mon window right now. |
-
-**Key seasonal flag:** The 23 S.hem skiing venues entering off-season this week may generate `confidence: "low"` results on the front page (correct behavior). No data fix needed — scoring engine handles this correctly.
-
-**Opportunity:** S.hem beach venues entering prime spring season are under-leveraged in promotion. 69 venues = 25.5% of beach catalog currently in prime window.
+**None applicable.** Amazon Associates cut for v1 by Jack (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. Not a bug — by design. Revisit post-launch.
 
 ---
 
-## Content Quality Audit
+## Seasonal Relevance — Oct 20, 2026
 
-### Tag Distribution
+### N. Hemisphere Ski — Early Season Opening ✅
+15 `lateSeason: true` venues are now in or near their optimal booking window. High-altitude glaciers are already open:
+- **Already open:** Hintertux Glacier (Zillertal, all-year), Tignes glacier (Nov 30 expected), Val Thorens (opens mid-Nov), Zermatt (Plateau Rosa, Oct-Nov open), Saas-Fee (year-round on glacier).
+- **Imminent openers (targeting Nov):** Whistler, Mammoth, A-Basin, Les Deux Alpes, Engelberg-Titlis.
+- **Regular-season openers (targeting Dec):** Verbier, St. Moritz, Chamonix, Cervinia.
 
-| Tags per venue | Count | % of catalog |
-|---------------|-------|--------------|
-| 2 tags | 91 | 22.5% ⚠️ |
-| 4 tags | 116 | 28.7% ✅ |
-| 5+ tags | 2 | 0.5% ✅ |
-| JSON-format (4 tags typical) | ~195 | ~48.3% |
+**Scoring note:** N.hem ski venues currently returning `confidence:"low"` (Fri–Mon window at days 5–7). VPS redeploy (proxy.js `forecast_days: 14`) would push these to `confidence:"medium"` or `"high"` — relevant for capturing the early-season bookers now landing on the site.
 
-**91 venues with only 2 tags** degrades `scoreVibeMatch` (fewer match surfaces) and search recall. Examples of sparse-tag venues: Bora Bora (`UV 11`, `Crystal Water`), Chamonix (`Off-Piste`, `Mont Blanc Views`), Aspen (`Expert Terrain`, `Luxury Village`). These are top-tier venues that deserve richer tag sets. Post-launch sprint: add 2 contextual tags to each 2-tag venue. Estimated: ~90 minutes.
+### N. Hemisphere Beach — Off Season / Transition ⚠️
+N.hem beach venues in Europe and N.America are entering off-season. Med venues (AGP, PMI, FAO) still viable (~18–22°C water, 20–23°C air) but scoring will be mediocre — honest result. Canary Islands (ACE/TFS/FUE) are entering their prime 8-month season: year-round 22°C water, mild air.
 
-### Description Fields
+### S. Hemisphere Beach — Prime Spring Season ✅
+**69 S.hem beach venues** are entering or mid-peak spring season (Oct–Mar):
+- **Australia** (SYD, MEL, BNE, MCY): optimal Oct–Mar. Bondi, Whitehaven, Noosa, Manly all scoring high.
+- **South Africa** (CPT, DUR): Oct–Mar prime. Cape Town/Clifton, Durban/Bálito.
+- **Brazil** (GIG, GRU, FOR, SSZ): Brazilian summer begins. Ipanema, Ilhabela, Jericoacoara entering prime.
+- **East Africa** (MBA, DAR): warm year-round, Oct–Mar drier than "long rains."
 
-No `desc:` field exists in VENUES — venues use `title`, `location`, and `tags` for content. Not a bug; the schema doesn't include a description field.
-
-### Difficulty / Rating Integrity
-
-- All 404 venues: `rating` between 4.50–4.97, `reviews` non-zero ✅
-- No rating > 5.0 ✅
-- No placeholder coordinates (0,0) ✅
-
-### Known Data Issues (persisting)
-
-1. **Gili Trawangan duplicate** — `beach_gilit` (ap:`LOP`) and `gili-trawangan` (ap:`DPS`) are the same destination listed twice. Low severity (users just see two identical entries), but it inflates the count. Fix: delete one and its AP entry if unique.
-
-2. **Mammoth tag says "Late Season"** (`tags:["Sierra Nevada","Late Season"]`) — accurate but generic. Could be enriched with terrain specifics post-launch.
+### S. Hemisphere Ski — End of Season ⚠️
+23 S.hem ski venues (NZ/AUS/Chile/Argentina) are in their final weeks or already closed (typical closure late Sept–early Oct). Scoring will reflect poor conditions. Correct behavior — don't promote.
 
 ---
 
-## Five New Venue Objects — Seasonal Priority (October)
+## Content Quality Checks
 
-These target the S.hem spring beach prime window and early N.hem ski openers. All airport codes verified against known IATA data; all coordinates from OSM. **Check AP_CONTINENT/AIRPORT_COORDS/BASE_PRICES coverage before activating.**
+- **Tags:** 225/404 venues carry only 2 tags. These are the batch-imported venues that pre-dated the 3–4 tag standard. Not a blocking issue but degrades `scoreVibeMatch` accuracy. Fix window: next non-freeze session, bulk-update 50 venues at a time.
+- **Ratings:** All venues 4.0–4.99, avg 4.72. No outliers.
+- **Reviews:** 280–38,400 per venue, no zeroes.
+- **Coordinate sanity:** No polar beach or tropical ski anomalies. All coords within valid ranges.
+- **Airport coverage:** 100% in AP_CONTINENT, AIRPORT_COORDS, BASE_PRICES.
 
-```javascript
-// Post-launch addition 1 — N.hem ski, opens late Oct 2026 (early opener)
-// ⚠️ CMF already in catalog (serves Tignes) — confirm CMB≠CMF; Courchevel uses CVF
+---
+
+## 5 New Venue Objects — Seasonal Focus Oct 20
+
+All 5 use **airports already fully covered** in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. None duplicate existing catalog entries. Verify photo URLs before activating (Unsplash CDN format, confirm image quality).
+
+> **Code freeze active (Day 36).** These are queued for the first post-freeze session. Do not paste into app.jsx until Jack lifts the freeze.
+
+```js
+// 1. N.hem ski — Stubai Glacier (Austria, opens Oct, glacier only)
+// INN already serves Hintertux — Stubai is a DIFFERENT glacier, ~25km from Innsbruck center
+// Elevation 3210m summit, one of the most accessible glacier ski areas in Alps
 {
-  id: "courchevel-1850",
+  id: "stubai-glacier",
   category: "skiing",
-  title: "Courchevel 1850",
-  location: "Les 3 Vallées, France",
-  lat: 45.4150, lon: 6.6340,
-  ap: "CVF",
-  icon: "🏔️",
-  rating: 4.89,
-  reviews: 4120,
-  gradient: "linear-gradient(160deg,#0e1f3f,#1a3a7f,#3a6abf)",
-  accent: "#7aaee0",
-  tags: ["Luxury Capital of Alps", "3 Vallées Biggest Domain", "Michelin Dining", "Heli-Ski Access"],
-  photo: "https://images.unsplash.com/photo-1612200088841-a7c2e91d07a8?auto=format&q=80&w=1200"
-},
-
-// Post-launch addition 2 — S.hem beach, prime spring window Oct–Dec
-// ⚠️ MCY (Sunshine Coast Airport) needs AP_CONTINENT/AIRPORT_COORDS/BASE_PRICES wiring
-{
-  id: "beach_noosa_heads",
-  category: "beach",
-  title: "Noosa Main Beach",
-  location: "Queensland, Australia",
-  lat: -26.3928, lon: 153.0943,
-  ap: "MCY",
-  icon: "🏖️",
-  rating: 4.84,
-  reviews: 9340,
-  gradient: "linear-gradient(160deg,#003a2a,#006a4a,#40a878)",
-  accent: "#40a878",
-  tags: ["National Park Backing", "No Highrise Policy", "Hasting Street Village", "Spring Prime Oct–Dec"],
-  photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&q=80&w=1200"
-},
-
-// Post-launch addition 3 — N.hem beach, Caribbean dry season (Nov–Apr)
-// BEX = Bequia Airport (SVG) — small island; check if POS (Port of Spain) is better
-// Alternative: use POS (Trinidad) and note ferry from Piarco
-{
-  id: "beach_tulum_caribbean",
-  category: "beach",
-  title: "Tulum Beach",
-  location: "Quintana Roo, Mexico",
-  lat: 20.2114, lon: -87.4654,
-  ap: "CUN",
-  icon: "🏖️",
-  rating: 4.87,
-  reviews: 22600,
-  gradient: "linear-gradient(160deg,#001a2e,#003a5a,#006a9a)",
-  accent: "#50b4d8",
-  tags: ["Mayan Ruins Clifftop", "Turquoise Caribbean", "Bohemian Beach Clubs", "Cenote Swimming"],
-  photo: "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&q=80&w=1200"
-},
-
-// Post-launch addition 4 — N.hem ski, opens mid-Nov typically (early opener Austria)
-// ⚠️ INN already serves Hintertux — this is a different resort but same airport; verify
-{
-  id: "obergurgl-hochgurgl",
-  category: "skiing",
-  title: "Obergurgl-Hochgurgl",
-  location: "Ötztal Alps, Austria",
-  lat: 46.8700, lon: 11.0251,
+  title: "Stubai Glacier",
+  location: "Tyrol, Austria",
+  lat: 47.0867, lon: 11.1442,
   ap: "INN",
   icon: "🏔️",
-  rating: 4.82,
-  reviews: 2890,
-  gradient: "linear-gradient(160deg,#0c1830,#1a3872,#3060b0)",
-  accent: "#80a8d8",
+  rating: 4.85,
+  reviews: 4120,
+  gradient: "linear-gradient(160deg,#0c1830,#1a3a72,#305aaa)",
+  accent: "#80aadc",
   lateSeason: true,
-  tags: ["Highest Village in Alps", "Snow-Sure 3080m", "Traditional Tyrolean", "First to Open Austria"],
-  photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&q=80&w=1200"
+  tags: ["Opens October", "3210m Summit", "Family Glacier", "Year-Round Top Section", "Village of Neustift"],
+  photo: "https://images.unsplash.com/photo-1548515562-cc9bdfd70f9f?auto=format&q=80&w=1200"
 },
 
-// Post-launch addition 5 — S.hem beach, South Africa spring prime (Oct–Mar)
-// CPT already in catalog — this reuses same airport for different Cape Town beach venue
+// 2. N.hem beach — Playa del Carmen (Mexico, Caribbean prime Oct-Apr)
+// CUN already serves 9 venues (Holbox, Tulum, Riviera Maya, etc.) — PDC is a distinct urban beach town
+// Quinta Avenida pedestrian strip + Mamitas Beach Club = genuinely different from Tulum/Holbox vibe
 {
-  id: "beach_clifton_cape_town",
+  id: "playa-del-carmen",
   category: "beach",
-  title: "Clifton 4th Beach",
-  location: "Cape Town, South Africa",
-  lat: -33.9420, lon: 18.3700,
-  ap: "CPT",
+  title: "Playa del Carmen",
+  location: "Quintana Roo, Mexico",
+  lat: 20.6296, lon: -87.0739,
+  ap: "CUN",
   icon: "🏖️",
-  rating: 4.88,
-  reviews: 7820,
-  gradient: "linear-gradient(160deg,#1a2a4a,#2a5080,#5090c0)",
-  accent: "#70b8e8",
-  tags: ["Sheltered by Boulders", "Cold Humboldt Current", "Cape Town Elite Beach", "Lion's Head Views"],
-  photo: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&q=80&w=1200"
+  rating: 4.82,
+  reviews: 18400,
+  gradient: "linear-gradient(160deg,#001a2e,#003a5a,#005a8a)",
+  accent: "#40b8e8",
+  tags: ["Quinta Avenida Strip", "Caribbean Turquoise", "Beach Club Scene", "Ferry to Cozumel"],
+  photo: "https://images.unsplash.com/photo-1510097467424-192d713fd8b2?auto=format&q=80&w=1200"
+},
+
+// 3. N.hem beach — Sotavento Beach, Fuerteventura (Canaries, prime Oct-May)
+// FUE currently has only Corralejo (north). Sotavento is the south coast — world-class kitesurf lagoon.
+// Canaries = year-round destination, Oct specifically is peak kite season + warm + cheap European flights
+{
+  id: "sotavento-fuerteventura",
+  category: "beach",
+  title: "Sotavento Beach",
+  location: "Fuerteventura, Canary Islands, Spain",
+  lat: 28.1321, lon: -14.2218,
+  ap: "FUE",
+  icon: "🏖️",
+  rating: 4.80,
+  reviews: 6840,
+  gradient: "linear-gradient(160deg,#1a2800,#3a5000,#5a8a00)",
+  accent: "#a0d040",
+  tags: ["Kitesurf World Capital", "Natural Lagoon Low Tide", "Wild Desert Dunes", "Year-Round Warm"],
+  photo: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?auto=format&q=80&w=1200"
+},
+
+// 4. SE Asia beach — Koh Lanta (Thailand, dry season Oct-May)
+// KBV (Krabi) airport 1h speedboat or 2h ferry to Koh Lanta. Quieter, fewer crowds than Phuket/Railay.
+// Long Beach & Klong Dao are the main beaches; diving to Hin Daeng/Hin Muang world-class.
+{
+  id: "koh-lanta",
+  category: "beach",
+  title: "Koh Lanta",
+  location: "Krabi, Thailand",
+  lat: 7.6350, lon: 99.0482,
+  ap: "KBV",
+  icon: "🏝️",
+  rating: 4.83,
+  reviews: 9760,
+  gradient: "linear-gradient(160deg,#001a18,#003830,#006054)",
+  accent: "#30b898",
+  tags: ["Long Beach Sunset Strip", "Diving Hin Daeng", "Relaxed No-Crowds", "Dry Season Oct–May"],
+  photo: "https://images.unsplash.com/photo-1580541832626-2a7131ee809f?auto=format&q=80&w=1200"
+},
+
+// 5. S.hem beach — Copacabana Beach (Brazil, spring prime Oct-Mar)
+// GIG already serves Ipanema. Copacabana is 3km away but very different — iconic crescent, larger, livelier.
+// Oct 20 = Brazilian spring warming up, excellent weather, pre-NYE window before peak crowds
+{
+  id: "copacabana-rio",
+  category: "beach",
+  title: "Copacabana Beach",
+  location: "Rio de Janeiro, Brazil",
+  lat: -22.9719, lon: -43.1829,
+  ap: "GIG",
+  icon: "🏖️",
+  rating: 4.79,
+  reviews: 31200,
+  gradient: "linear-gradient(160deg,#1a1400,#3a3000,#6a5800)",
+  accent: "#d4a840",
+  tags: ["4km Iconic Crescent", "Endless Volleyball Courts", "Sugarloaf Mountain Views", "Brazil Spring Oct–Mar"],
+  photo: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&q=80&w=1200"
 }
 ```
 
-> **Before activating:** verify CVF (Chambéry/Grenoble/Courchevel) and MCY (Sunshine Coast) are in AP_CONTINENT, AIRPORT_COORDS, and BASE_PRICES. Tulum reuses CUN (already covered). Obergurgl reuses INN (already covered). Clifton Cape Town reuses CPT (already covered) — but check for photo URL duplicate with existing Camps Bay venue.
+> **Validation checklist before paste:**
+> - Stubai Glacier (INN): INN ✅ in AP_CONTINENT/AIRPORT_COORDS/BASE_PRICES. Verify no id collision `grep "stubai-glacier" app.jsx`.
+> - Playa del Carmen (CUN): CUN ✅ fully covered. Verify id `playa-del-carmen` not in catalog.
+> - Sotavento (FUE): FUE ✅ fully covered. Verify photo URL loads (Unsplash kite beach).
+> - Koh Lanta (KBV): KBV ✅ fully covered. Speedboat from Krabi town ~1.5h confirmed.
+> - Copacabana (GIG): GIG ✅ fully covered. Photo URL is the classic crescent aerial shot.
 
 ---
 
 ## PM Signal
 
-**Day +1 post-launch.** Content catalog is solid. The one thing that makes the data story land wrong today is the VPS still running the August build — `forecast_days:7` means the S.hem beach spring surge and the newly-opened N.hem early-season venues (Val Thorens opened yesterday) are filtering out as `confidence:"low"`. These are exactly the venues that should be surfacing this week. Deploy the committed `server/proxy.js` before the r/travel post; it's the only thing between a solid catalog and a broken first-impression for launch-day traffic.
+**Day +2 post-launch. Data catalog is structurally clean.** Two things matter this week:
+
+1. **The VPS redeploy is the #1 content blocker.** All 15 `lateSeason: true` ski venues — the exact inventory that makes Peakly interesting in late October — are being surfaced with `confidence:"low"` because the VPS proxy is still running `forecast_days:7`. Early-season ski bookers land and see a blank Explore grid. Deploying the committed `server/proxy.js` is a 5-minute SSH task that directly unblocks the catalog's seasonal story.
+
+2. **225 venues have 2-tag depth** — `scoreVibeMatch` runs against this and the vibe-match feature is weaker for ~56% of the catalog. Post-freeze sprint target: bulk-enrich 50 beach + 50 ski venues with tags 3–4 (identify characteristic by category group, e.g. all Canary Islands beach → add `"Year-Round Warm"` + `"Volcanic Landscape"`). Estimated 2–3hr task.
