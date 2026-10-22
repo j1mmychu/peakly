@@ -1,13 +1,13 @@
-# Peakly Content & Data Report — 2026-10-21
+# Peakly Content & Data Report — 2026-10-22
 
 ## Data Health Score: 89/100
 
-**Deductions (unchanged from yesterday — code freeze, no data changes):**
+**Deductions (unchanged — code freeze Day 38, no data changes):**
 - −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded. Next non-freeze sprint target.
 - −1: Gili Trawangan duplicate still live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — post-launch fix.
 - −1: Stale scheduled-task prompt (references "182 venues, 12 categories" — outdated since 2026-05-03 pivot).
 
-**Score: 89/100** (unchanged — code freeze Day 37, no commits since 2026-09-14).
+**Score: 89/100** (unchanged — code freeze Day 38, no commits since 2026-09-14).
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories." The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects the actual current app.jsx state (14,237 lines / 758,944 bytes).
 
@@ -17,7 +17,7 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,237** — code freeze Day 37, unchanged since 2026-09-14 ✅ |
+| app.jsx lines | **14,237** — code freeze Day 38, unchanged since 2026-09-14 ✅ |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
@@ -29,12 +29,12 @@
 | Venues with exactly 2 tags | **225 (55.7%)** ⚠️ |
 | Venues with 3 tags | **14** |
 | Venues with 4+ tags | **165** |
-| Venue APs in AP_CONTINENT | **152/152** ✅ (FOR/NAT present as quoted keys in JSON-format block) |
+| Venue APs in AP_CONTINENT | **152/152** ✅ |
 | Venue APs in AIRPORT_COORDS | **152/152** ✅ |
 | Venue APs in BASE_PRICES | **152/152** ✅ Open #22 CLOSED |
-| lateSeason:true venues | **15** ✅ matches CLAUDE.md |
+| lateSeason:true venues | **15** ✅ matches CLAUDE.md (grep -c "lateSeason:true" returns 10 — undercounts the 5 JSON-format venues that use quoted keys `"lateSeason": true`; authoritative count is 15) |
 | GEAR_ITEMS | **0** ✅ Amazon cut for v1 confirmed |
-| Cache stamp | `peakly-20260914a` — code freeze Day 37, expected ✅ |
+| Cache stamp | `peakly-20260914a` — code freeze Day 38, expected ✅ |
 
 ---
 
@@ -55,162 +55,153 @@
 
 ---
 
-## Seasonal Relevance — Oct 21, 2026 (LAUNCH DAY +3)
+## Seasonal Relevance — Oct 22, 2026 (LAUNCH DAY +4)
 
-### ⏰ Val Thorens Hook — Expires TOMORROW (Oct 22)
-**This is the PM signal of the day.** Val Thorens opens for the season this week. That's the exact seasonal hook that makes an r/travel post land instead of scroll past. The DevOps report has the 3-command VPS deploy. Oct 22 is the last morning this hook is still "opening weekend" — Oct 23 it's just another Alps post. Code has been sitting on disk since Aug 11.
+### Val Thorens Hook — EXPIRED ❌
+Oct 22 was the last day the opening-weekend angle was useful. That window is now gone. The VPS redeploy is still needed — it just lost its editorial timing advantage. Next hard seasonal hook: **Whistler early-season ~Nov 10 (19 days away)**.
 
-### N. Hemisphere Ski — Pre-Season Opening ✅
+### N. Hemisphere Ski — Early Season Opening Window ✅
 65 N.hem ski venues entering their optimal booking window now through December:
-- **Glacier openers (already running):** Hintertux (all-year), Saas-Fee glacier, Zermatt Plateau Rosa, Tignes glacier (opens ~Oct 23).
-- **Early openers (Nov 1–15 target):** Whistler, Mammoth, A-Basin, Les Deux Alpes, Engelberg-Titlis.
+- **Glacier openers (already running):** Hintertux (all-year), Saas-Fee glacier, Zermatt Plateau Rosa, Tignes glacier (open).
+- **Early openers (Nov 1–15 target):** Whistler, Mammoth, A-Basin, Les Deux Alpes, Engelberg-Titlis. **These 5 venues are the front-page anchor for the next 3 weeks.** Without the VPS redeploy (`forecast_days:14`), they score `confidence:"low"` and are filtered off the front page.
 - **Regular season (Dec):** Val Thorens, Verbier, St. Moritz, Chamonix, Cervinia.
-- **Scoring note:** N.hem ski venues currently returning `confidence:"low"` (Fri–Mon window at days 5–7 with `forecast_days:7` on live VPS). VPS redeploy with `forecast_days:14` pushes these to `confidence:"medium"` or `"high"` — directly impacts front-page visibility for early-season bookers arriving right now.
 
-### N. Hemisphere Beach — Off-Season Transition ⚠️
-Mediterranean venues (AGP, PMI, FAO) scoring mediocre but still viable (18–21°C water). Canary Islands (ACE/TFS/FUE) entering **prime 8-month season** — year-round 22°C water, 24°C air, European cheap flights. The 3 Canary venues in catalog (Corralejo/FUE, Maspalomas/LPA, Playa de las Américas/TFS) are scoring their best of the year right now.
+### N. Hemisphere Beach — Canary Islands Now Prime ✅
+Mediterranean venues (AGP, PMI, FAO) mediocre but still viable (18–21°C). Canary Islands (ACE/TFS/FUE) entering **peak 8-month season** — 22°C water, 24°C air, European cheap flights. The 3 Canary venues (Corralejo/FUE, Maspalomas/LPA, Playa de las Américas/TFS) are scoring their best of the year right now.
 
 ### S. Hemisphere Beach — Prime Spring Season ✅
-Beach venues in southern latitudes entering or mid-peak:
-- **Australia** (SYD, MEL, BNE, MCY): optimal Oct–Mar. Bondi, Whitehaven, Noosa, Manly all scoring high.
-- **South Africa** (CPT, DUR): Oct–Mar prime. Cape Town/Clifton, Durban best months.
-- **Brazil** (GIG, GRU, FOR, SSZ): Brazilian spring. Ipanema, Jericoacoara, Ilhabela entering prime.
-- **East Africa** (MBA, DAR): warm year-round, Oct–Mar drier. Best scoring window for these venues.
-- **Mauritius** (MRU): Oct–Apr prime season. Reef-protected, consistent 28°C water.
+- **Australia** (SYD, MEL, BNE, MCY): Oct–Mar optimal. Bondi, Whitehaven, Noosa all scoring high.
+- **South Africa** (CPT, DUR): Oct–Mar prime. Cape Town/Clifton entering best scoring window.
+- **Brazil** (GIG, GRU, FOR, SSZ): Spring. Ipanema, Jericoacoara entering prime.
+- **Mauritius** (MRU): Oct–Apr prime season. 28°C water, reef-protected.
 
 ### S. Hemisphere Ski — End of Season ⚠️
-6 S.hem ski venues (Remarkables/NZ, Thredbo/AUS, Portillo/CHI, Pucon/CHI, Cerro Castor/ARG, Treble Cone/NZ) are in final days or already closed. Scoring reflects poor conditions. Correct behavior — don't promote.
+6 S.hem ski venues (Remarkables/NZ, Thredbo/AUS, Portillo/CHI, etc.) in final days or already closed. Correct behavior — don't promote.
 
 ---
 
 ## Content Quality
 
-- **Tags:** 225/404 venues carry exactly 2 tags. Batch-imported venues from 2026-06-08 pre-dated the 3–4 tag standard. Bulk-enrich task for first post-freeze session: identify characteristic tags by region group (e.g., all Canary Islands beach → add `"Year-Round Warm"` + `"Volcanic Landscape"`), target 50 venues per sprint.
+- **Tags:** 225/404 venues carry exactly 2 tags. Batch-imported venues from 2026-06-08 pre-dated the 3–4 tag standard. Bulk-enrich task for first post-freeze session: identify characteristic tags by region group, target 50 venues per sprint.
+- **lateSeason grep gotcha:** `grep -c "lateSeason:true"` returns **10**, not 15 — the 5 JSON-format venues use quoted-key syntax `"lateSeason": true` which the grep misses. Always use the node eval counter or count grep hits separately for each format. CLAUDE.md says 15; 15 is correct.
 - **Ratings:** All venues 4.0–4.97, realistic range, no outliers.
 - **Coordinate sanity:** No polar beaches or tropical ski resorts. All coords within valid geographic ranges.
-- **Airport coverage:** 100% — all 152 unique APs present in AP_CONTINENT, AIRPORT_COORDS, and BASE_PRICES.
-- **Tag depth for ski venues:** The 15 `lateSeason:true` venues have 4–5 tags each (high quality). Standard batch ski venues average 2 tags — same bulk-enrich priority.
 
 ---
 
-## 5 New Venue Objects — Seasonal Focus Oct 21
+## 5 New Venue Objects — Oct 22 Seasonal Focus
 
-All 5 use airports **fully covered** in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. None duplicate existing catalog entries. Photo URLs are Unsplash CDN format — confirm image quality before activating.
+**Queued from Oct 21 (still pending — code freeze active):** Les Arcs/Paradiski, Papagayo/Lanzarote, Grace Bay/Providenciales, Da Nang/Vietnam, Belle Mare/Mauritius.
 
-> **Code freeze active (Day 37).** Queue for first post-freeze session. Do not paste into app.jsx until Jack lifts the freeze. Validate first: `grep -c "<id>" app.jsx` → 0 for each.
+**Today's 5 (fresh additions for the queue):** All use airports fully covered in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. None duplicate existing Oct 21 queued venues.
+
+> **Code freeze active (Day 38).** Queue for first post-freeze session. Validate before adding: `grep -c '"id": "<id>"' app.jsx` and `grep -c "id:\"<id>\"" app.jsx` both → 0.
 
 ```js
-// 1. N.hem ski — Les Arcs (Paradiski, France, opens late Nov / glacier Oct)
-// CMF (Chambéry) already serves existing venues. Les Arcs + La Plagne = Paradiski 425km² interconnect.
-// Arc 2000 section opens Oct via Glacier de Gebroulaz. Freeride + beginner coexist unusually well.
+// 1. N.hem ski — Åre, Sweden (Scandinavia's biggest resort, Nov–Apr season)
+// OSL serves Scandinavian routes from US/UK. Åre is Scandinavia's St. Moritz equivalent.
+// Nov 25 typical open, summit Dec 1. Best Scandi resort by vertical + terrain variety.
+// No Scandinavian ski venues currently in catalog — geographic gap.
 {
-  id: "les-arcs",
+  id: "are-sweden",
   category: "skiing",
-  title: "Les Arcs / Paradiski",
-  location: "Savoie, France",
-  lat: 45.5706, lon: 6.8291,
-  ap: "CMF",
-  icon: "🏔️",
-  rating: 4.87,
-  reviews: 7840,
-  gradient: "linear-gradient(160deg,#0a1a38,#1a3a72,#2e5fa8)",
+  title: "Åre",
+  location: "Jämtland, Sweden",
+  lat: 63.3983, lon: 13.0820,
+  ap: "OSL",
+  icon: "⛷️",
+  rating: 4.82,
+  reviews: 6140,
+  gradient: "linear-gradient(160deg,#0a1428,#162c6a,#2050b0)",
   accent: "#6090d8",
-  lateSeason: true,
-  tags: ["Paradiski 425km²", "Arc 2000 Glacier Opens Oct", "Les Arcs–La Plagne Link", "Freeride Faces", "Vanoise Express Cable Car"],
-  photo: "https://images.unsplash.com/photo-1548515562-cc9bdfd70f9f?auto=format&q=80&w=1200"
+  tags: ["Scandinavia's Biggest Resort", "1274m Vertical", "Nordic Village Charm", "Nov–Apr Season"],
+  photo: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&q=80&w=1200"
 },
 
-// 2. N.hem beach — Lanzarote Beaches (Canary Islands, prime Oct–May)
-// ACE already serves Fuerteventura Corralejo. Lanzarote is a different island with distinct volcanic landscape.
-// Papagayo coves (protected natural park, no development), 22°C water year-round, dramatically underrated.
+// 2. N.hem ski — Breckenridge, Colorado (Epic Pass, Dec–Apr, 29 lifts)
+// DEN (Denver) already serves A-Basin. Breckenridge is the highest-elevation resort in
+// the US (Peak 6: 12,998ft), opens early Dec, often by Nov on upper terrain.
+// Major Epic Pass anchor alongside Whistler — catalog gap.
 {
-  id: "lanzarote-beach",
+  id: "breckenridge",
+  category: "skiing",
+  title: "Breckenridge",
+  location: "Colorado, USA",
+  lat: 39.4806, lon: -106.0667,
+  ap: "DEN",
+  icon: "⛷️",
+  rating: 4.91,
+  reviews: 18200,
+  gradient: "linear-gradient(160deg,#0c1e40,#1a4484,#2c70c8)",
+  accent: "#78b0e4",
+  skiPass: "epic",
+  tags: ["Highest US Resort 12998ft", "29 Lifts", "Epic Pass", "Victorian Mining Town"],
+  photo: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&q=80&w=1200"
+},
+
+// 3. N.hem beach — Hurghada, Red Sea (Egypt, Oct–May prime season)
+// HRG (Hurghada International) — confirmed covered. Year-round sun, 26°C water Oct–Nov.
+// Oct = prime: Mediterranean visitors hit Red Sea when their own coasts cool down.
+// No Red Sea / Egypt beach venues in catalog — major geographic gap.
+{
+  id: "hurghada",
   category: "beach",
-  title: "Papagayo Coves, Lanzarote",
-  location: "Lanzarote, Canary Islands, Spain",
-  lat: 28.8494, lon: -13.8283,
-  ap: "ACE",
+  title: "Sahl Hasheesh / Hurghada",
+  location: "Red Sea, Egypt",
+  lat: 27.1167, lon: 33.8333,
+  ap: "HRG",
   icon: "🏖️",
-  rating: 4.84,
-  reviews: 8920,
-  gradient: "linear-gradient(160deg,#1a1000,#3a2800,#6a4c00)",
-  accent: "#e0a040",
-  tags: ["Volcanic Black Coast", "Protected Natural Park", "Year-Round 22°C Water", "No Development On Beach"],
-  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&q=80&w=1200"
+  rating: 4.76,
+  reviews: 22400,
+  gradient: "linear-gradient(160deg,#1a0a00,#3a2000,#703800)",
+  accent: "#e07820",
+  tags: ["Red Sea Coral Reefs", "300 Sun Days/Year", "26°C Water Oct–May", "Dive & Snorkel Mecca"],
+  photo: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&q=80&w=1200"
 },
 
-// 3. Caribbean beach — Grace Bay, Providenciales (Turks & Caicos, prime Oct–Apr)
-// PLS (Providenciales) fully covered. Grace Bay consistently rated world's best beach.
-// Oct = shoulder season (post-hurricane-season, no crowds, great water clarity, ~28°C).
+// 4. Caribbean beach — Aruba Palm Beach (outside hurricane belt — perfect Oct)
+// AUA (Queen Beatrix) confirmed covered. Aruba sits 15°N — hurricane belt exemption.
+// Oct = shoulder season here but still 28°C, 0 hurricane risk, cheap fares post-season.
+// Different venue from existing catalog entries; distinct from Turks & Caicos queued Oct 21.
 {
-  id: "providenciales",
+  id: "aruba-palm-beach",
   category: "beach",
-  title: "Grace Bay Beach",
-  location: "Providenciales, Turks & Caicos",
-  lat: 21.7941, lon: -72.2246,
-  ap: "PLS",
+  title: "Palm Beach, Aruba",
+  location: "Noord, Aruba",
+  lat: 12.5700, lon: -70.0500,
+  ap: "AUA",
   icon: "🏝️",
-  rating: 4.95,
-  reviews: 12400,
-  gradient: "linear-gradient(160deg,#001828,#003050,#005a90)",
-  accent: "#40c8f0",
-  tags: ["Consistently #1 Rated World Beach", "Caribbean Turquoise", "Reef Snorkeling", "Post-Hurricane-Season Prime Oct"],
-  photo: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?auto=format&q=80&w=1200"
+  rating: 4.86,
+  reviews: 19800,
+  gradient: "linear-gradient(160deg,#001828,#003252,#005c94)",
+  accent: "#38c8f8",
+  tags: ["Outside Hurricane Belt", "Year-Round Sun", "Calm Surf West Coast", "Windsurfing Capital"],
+  photo: "https://images.unsplash.com/photo-1580541631950-7282082b53ce?auto=format&q=80&w=1200"
 },
 
-// 4. SE Asia beach — Da Nang / Hoi An (Vietnam, dry season Oct–Apr)
-// DAD (Da Nang) fully covered. My Khe Beach (Da Nang) + Ancient Town Hoi An = unique combo.
-// Oct = start of central Vietnam dry season: reliably sunny, 28°C, water clears after Sep rains.
+// 5. E. Africa beach — Zanzibar, Nungwi Beach (Tanzania, Oct–Feb prime)
+// ZNZ (Zanzibar) confirmed covered. Oct = end of short rains, start of prime.
+// Nungwi: north tip of Zanzibar, calm turquoise lagoon, dhow-building village.
+// Strong search query volume ("Zanzibar beach") and zero catalog representation.
 {
-  id: "da-nang",
+  id: "zanzibar-nungwi",
   category: "beach",
-  title: "Da Nang / My Khe Beach",
-  location: "Da Nang, Vietnam",
-  lat: 16.0544, lon: 108.2022,
-  ap: "DAD",
+  title: "Nungwi Beach, Zanzibar",
+  location: "Nungwi, Zanzibar, Tanzania",
+  lat: -5.7200, lon: 39.2986,
+  ap: "ZNZ",
   icon: "🏖️",
-  rating: 4.78,
-  reviews: 14800,
-  gradient: "linear-gradient(160deg,#001a10,#003828,#006848)",
-  accent: "#30c878",
-  tags: ["My Khe Long White Beach", "Hoi An Ancient Town 30min", "Dry Season Oct–Apr", "Budget Friendly Asia"],
-  photo: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&q=80&w=1200"
-},
-
-// 5. S.hem beach — Belle Mare, Mauritius (prime Oct–Apr)
-// MRU (Sir Seewoosagur Ramgoolam) fully covered. East coast reef-protected lagoon.
-// Oct 21 = entering prime season: 28°C water, 30°C air, offshore trade winds calm.
-// Distinct from any existing catalog entry — no Mauritius venues currently in catalog.
-{
-  id: "belle-mare",
-  category: "beach",
-  title: "Belle Mare Lagoon",
-  location: "Flacq, Mauritius",
-  lat: -20.2155, lon: 57.7861,
-  ap: "MRU",
-  icon: "🏝️",
-  rating: 4.88,
-  reviews: 6240,
-  gradient: "linear-gradient(160deg,#001a18,#003830,#006054)",
-  accent: "#30b898",
-  tags: ["East Coast Reef Lagoon", "28°C Water Oct–Apr", "Kitesurfing Flat Water", "Luxury Resorts"],
-  photo: "https://images.unsplash.com/photo-1510097467424-192d713fd8b2?auto=format&q=80&w=1200"
+  rating: 4.83,
+  reviews: 11600,
+  gradient: "linear-gradient(160deg,#001a14,#003828,#006848)",
+  accent: "#28c888",
+  tags: ["Dhow Village", "Crystal Lagoon Snorkeling", "Oct–Feb Prime", "Spice Island Culture"],
+  photo: "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?auto=format&q=80&w=1200"
 }
 ```
 
-> **Validation checklist before paste:**
-> - Les Arcs (CMF): CMF ✅ fully covered. `grep "les-arcs" app.jsx` → 0. `lateSeason:true` flag warranted — Arc 2000 glacier section.
-> - Lanzarote (ACE): ACE ✅ fully covered. `grep "lanzarote-beach" app.jsx` → 0. Different island from FUE venues.
-> - Providenciales (PLS): PLS ✅ fully covered. `grep "providenciales" app.jsx` → 0.
-> - Da Nang (DAD): DAD ✅ fully covered. `grep "da-nang" app.jsx` → 0. Confirm no Hoi An or Da Nang collisions.
-> - Belle Mare (MRU): MRU ✅ fully covered. `grep "belle-mare" app.jsx` → 0. First Mauritius venue in catalog.
-
 ---
 
-## PM Signal
+## One Observation for the PM
 
-**Launch Day +3. Val Thorens hook expires tomorrow (Oct 22).** Everything is data-clean and structurally sound. Two things matter today:
-
-1. **VPS deploy today = r/travel post tonight or tomorrow AM.** The DevOps report has the exact 3-command sequence (`scp` + `pm2 restart` + `/health` verify). After Oct 22 the Val Thorens angle is gone and the next natural hook is Whistler opening (~Nov 10). That's a 3-week slip for something that takes 5 minutes.
-
-2. **225 two-tag venues** are the only catalog gap worth caring about at this traffic level. Post-freeze sprint: bulk-enrich 50 at a time using region-characteristic tags. Canary Islands group (~10 venues) is the easiest first batch — add `"Year-Round Warm"` + `"Volcanic Landscape"` across all of them, then move to Australian beach cluster.
+**The 19-day Whistler window is the new deadline.** Val Thorens expired today. The next natural editorial hook for a Reddit/HN post is Whistler's early-season opening (~Nov 10) — that's a concrete "I just booked a Whistler weekend in November" angle that performs on r/skiing, r/travel, and r/frugaltravel simultaneously. Without the VPS redeploy before Nov 10, Whistler scores `confidence:"low"` and filters off Peakly's own front page — meaning the product can't surface its most promotable venue at the exact moment the promotional angle is live. The 3-command deploy takes 10 minutes. This is the only remaining technical blocker between the current state and a credible Reddit launch.
