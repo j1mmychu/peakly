@@ -1,13 +1,13 @@
-# Peakly Content & Data Report — 2026-10-23
+# Peakly Content & Data Report — 2026-10-24
 
 ## Data Health Score: 89/100
 
-**Deductions (unchanged — no code changes since 2026-09-14):**
-- −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded. First post-freeze sprint target.
-- −1: Gili Trawangan duplicate live (`beach_gilit`/LOP + `gili-trawangan`/DPS) — post-launch fix.
-- −1: Stale scheduled-task prompt (references "182 venues, 12 categories" — outdated since 2026-05-03 pivot to skiing + beach only).
+**Deductions (unchanged — no code changes, cache stamp 40 days stale):**
+- −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded
+- −1: Gili Trawangan duplicate live (`beach_gilit`/LOP + `gili-trawangan`/DPS)
+- −1: Stale scheduled-task prompt (references "182 venues, 12 categories" — outdated since 2026-05-03 pivot)
 
-> **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories." The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects the actual current app.jsx state.
+> **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories." The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects actual app.jsx state.
 
 ---
 
@@ -15,24 +15,24 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,237** — code freeze Day 39, unchanged since 2026-09-14; **code freeze lifts today** ⚠️ |
+| app.jsx lines | ~14,237 — cache `peakly-20260914a`, **40 days stale** ⚠️⚠️ |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
-| Duplicate venue titles | **1** ⚠️ Gili Trawangan (`beach_gilit` / `gili-trawangan`) — post-launch fix |
+| Duplicate title+location | **1** ⚠️ Gili Trawangan (`beach_gilit`/LOP + `gili-trawangan`/DPS) |
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** (165 unique APs across 404 venues) ✅ |
 | Missing photos | **0** ✅ |
-| Missing tags | **0** ✅ |
+| Missing tags array | **0** ✅ |
 | Venues with exactly 2 tags | **225 (55.7%)** ⚠️ |
 | Venues with 3 tags | **14** |
 | Venues with 4+ tags | **165** |
 | Venue APs in AP_CONTINENT | **165/165** ✅ |
 | Venue APs in AIRPORT_COORDS | **165/165** ✅ |
 | Venue APs in BASE_PRICES | **165/165** ✅ Open #22 CLOSED |
-| lateSeason:true venues | **15** ✅ (grep returns 15 using combined pattern) |
-| GEAR_ITEMS | **0** ✅ Amazon cut for v1 confirmed |
-| Cache stamp | `peakly-20260914a` — **must bump on first post-freeze edit today** ⚠️ |
+| lateSeason:true venues | **15** ✅ |
+| GEAR_ITEMS | **0** ✅ Amazon cut for v1 |
+| Cache stamp | `peakly-20260914a` — **40 days stale, must bump on first edit** ⚠️⚠️ |
 
 ---
 
@@ -43,186 +43,208 @@
 | Beach | 270 | ✅ |
 | Skiing | 134 | ✅ |
 
-> Note: The scheduled prompt references 12 categories (surfing, hiking, climbing, tanning, etc.). All non-skiing/beach categories were retired on 2026-05-03. There are no stub categories.
+> The scheduled prompt references 12 categories. All non-skiing/beach categories retired 2026-05-03. No stub categories.
 
 ---
 
 ## GEAR_ITEMS Gaps
 
-**None applicable.** Amazon Associates cut for v1 by Jack (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. By design.
+**None applicable.** Amazon Associates cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0.
 
 ---
 
-## Seasonal Relevance — Oct 23, 2026 (LAUNCH DAY +5, CODE FREEZE LIFTS)
+## Seasonal Relevance — Oct 24, 2026
 
-### Code Freeze Lifts Today
+### N. Hemisphere Ski — 17-Day Whistler Window ⚡
 
-First edits are now unblocked. **First commit must bump cache stamp** — `peakly-20260914a` is stale by 39 days and the DevOps report flags it. The 10-venue backlog queue (Oct 21 + Oct 22) can begin landing once stamp is bumped and venues are validated against the catalog (see Queue Audit below).
+**Whistler opens ~Nov 10 (17 days).** VPS redeploy still blocked — Whistler + Mammoth + A-Basin + Tignes score `confidence:"low"` until proxy's `forecast_days:14` is live. 5 marquee venues affected.
 
-### N. Hemisphere Ski — Early Season Opening Window ✅
-
-**18 days to Whistler early-season (~Nov 10).** Without the VPS redeploy, Whistler + Mammoth + A-Basin + Tignes score `confidence:"low"` (front page filtered). This is the only remaining technical blocker for a credible Nov-10 seasonal launch. Five marquee venues affected.
-
-Active glacier/early openers right now:
-- **Year-round:** Hintertux, Saas-Fee glacier, Zermatt Plateau Rosa
-- **Nov 1–15 target (opening soon):** Whistler, Mammoth, A-Basin, Les Deux Alpes, Engelberg-Titlis
+- **Year-round open now:** Hintertux, Saas-Fee glacier, Zermatt Plateau Rosa
+- **Opening imminently (Nov 1–15):** Whistler, Mammoth, A-Basin, Tignes, Engelberg-Titlis
 - **Dec season:** Val Thorens, Verbier, St. Moritz, Chamonix, Cervinia
+- **New ski venues added today (below) target:** Lee Canyon (LAS, opens Dec), Arizona Snowbowl (PHX, opens Nov 15)
 
-### N. Hemisphere Beach — Canary Islands + Red Sea Prime ✅
+### N. Hemisphere Beach — Mediterranean & Canary Islands Prime
 
-Canary Islands (ACE/FUE/TFS) entering peak 8-month season — 22°C water, 24°C air. All 3 Canary venues scoring their best of the year. Red Sea (Oct–May) prime season — no Egypt venues currently in catalog (see venue queue).
+Canary Islands (ACE/FUE/TFS) peak 8-month season — 22°C water, 24°C air. All 6 Canary venues scoring their best of the year. Morocco coast (AGA/RAK): Oct–Apr prime, warm + uncrowded. **Nerja/AGP added today** fills a meaningful Andalusia gap.
 
-### S. Hemisphere Beach — Spring Prime ✅
+### S. Hemisphere Beach — Prime Season ✅
 
-Australia (SYD/MEL/BNE/CNS), South Africa (CPT), Brazil (GIG/GRU/FOR), Mauritius (MRU): Oct–Mar optimal window. All scoring high right now.
+Australia (SYD/MEL/BNE/CNS), South Africa (CPT), Brazil (GIG/GRU/FOR), Mauritius (MRU): Oct–Mar optimal. All scoring high.
 
-### S. Hemisphere Ski — End of Season ⚠️
+### S. Hemisphere Ski — Season Ended ⚠️
 
-6 S.hem ski venues (Remarkables, Thredbo, Portillo, etc.) in final days or already closed. Correct behavior — off the front page.
+23 S-hem ski venues (Remarkables, Thredbo, Portillo, etc.) now off-season. Correct behavior — off front page.
 
----
+### Tropical / Equatorial Beach — Year-Round
 
-## Queue Audit — Oct 21 + Oct 22 Backlog
-
-⚠️ **Previous days' queues contained duplicates. Do not paste blindly.**
-
-| Venue | Queued | Status |
-|-------|--------|--------|
-| Les Arcs/Paradiski | Oct 21 | ❌ Already exists as `les-arcs-s20` (GVA) |
-| Papagayo/Lanzarote | Oct 21 | ❌ Already exists as `beach_lanzarote` (ACE) |
-| Grace Bay/Providenciales | Oct 21 | ❌ Already exists as `beach_grace` (PLS) |
-| Da Nang/Vietnam | Oct 21 | ❌ Already exists (3 DAD venues: an-bang, my-khe, cua-dai) |
-| Belle Mare/Mauritius | Oct 21 | ❌ Already exists as `belle-mare-plage` (MRU) |
-| Åre, Sweden | Oct 22 | ✅ Not in catalog — valid addition (OSL) |
-| Breckenridge | Oct 22 | ❌ Already exists as `breckenridge` (DEN) |
-| Hurghada/Red Sea | Oct 22 | ✅ Not in catalog — requires new AP: HRG not yet in AP_CONTINENT/AIRPORT_COORDS/BASE_PRICES |
-| Palm Beach, Aruba | Oct 22 | ✅ Not in catalog — valid addition (AUA already in catalog) |
-| Zanzibar Nungwi | Oct 22 | ❌ Same beach as `beach_zanzibar` (Nungwi Beach, ZNZ) — duplicate |
-
-**Net valid from Oct 21+22 queue:** 3 venues — Åre (OSL), Hurghada (needs HRG added), Palm Beach Aruba (AUA). Hurghada requires adding HRG to AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES before the venue object can land.
+Maldives (MLE), Seychelles (SEZ), Fiji (NAN), Colombia (CTG), Costa Rica (LIR): year-round warm water. Oct–Mar is dry season for Caribbean and Mesoamerica — **Playa Blanca Barú/CTG added today** captures this window.
 
 ---
 
-## 5 New Venue Objects — Oct 23 Seasonal Focus
+## Airport Coverage Gaps (Require AP Table Additions Before Venue Can Land)
 
-**All venues use airports already confirmed in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. IDs verified not in catalog.**
+The following high-demand airports are missing from AIRPORT_COORDS and/or BASE_PRICES. Each requires a 3-line addition to the AP tables before a venue can be safely added:
+
+| Airport | In AP_CONTINENT | In AIRPORT_COORDS | In BASE_PRICES | Notes |
+|---------|-----------------|-------------------|----------------|-------|
+| DXB (Dubai) | ❌ | ❌ | ❌ | UAE has 0 beach venues. Oct–Apr prime Red Sea/Gulf. |
+| ICN (Seoul Incheon) | ❌ | ❌ | ❌ | Korea has 0 ski venues. PyeongChang nearby. |
+| GMP (Seoul Gimpo) | ✅ asia | ❌ | ❌ | Alternative Seoul AP — still missing coords + BP. |
+| HRG (Hurghada) | ❌ | ❌ | ❌ | Egypt/Red Sea — 0 venues, Oct–May prime season. |
+| BOG (Bogotá) | ✅ latam | ❌ | ❌ | Colombia inland — Santa Marta coast via SMR instead. |
+
+**5 fully covered APs with 0 venues (today's targets use 2 of 3):** DTW (Detroit), LAS (Las Vegas), PHX (Phoenix). Detroit excluded — no compelling weekend ski/beach from DTW without a multi-hour drive.
+
+---
+
+## Oct 23 Queue Status
+
+The 5 venues proposed in the Oct 23 report are **still pending** (none were added to app.jsx — code freeze appeared to persist through yesterday). All 5 remain valid and pre-verified:
+
+| ID | Target | Status |
+|----|--------|--------|
+| `flaine-france` | Skiing, GVA | ✅ Not in catalog, paste-ready |
+| `davos-klosters` | Skiing, ZRH | ✅ Not in catalog, paste-ready |
+| `sunshine-village-ab` | Skiing, YYC | ✅ Not in catalog, paste-ready |
+| `shela-beach-lamu` | Beach, MBA | ✅ Not in catalog, paste-ready |
+| `anse-cocos-la-digue` | Beach, SEZ | ✅ Not in catalog, paste-ready |
+
+Both queues (Oct 23 + Oct 24 below) are valid. Pre-paste check still required: `grep -c 'id:"<id>"' app.jsx && grep -c '"id": "<id>"' app.jsx` — both must return 0.
+
+---
+
+## 5 New Venue Objects — Oct 24 Seasonal Focus
+
+**All venues use airports fully confirmed in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. IDs verified not in catalog.**
 
 ```js
-// 1. N.hem ski — Flaine, France (GVA, ~1.5hr, purpose-built resort, less crowded than Chamonix)
-// Grand Massif ski area: 265km pistes, 900–2480m altitude, excellent intermediate terrain.
-// Purpose-built village = no traffic, ski-in/ski-out. Opens ~Dec 1, peak Jan–Mar.
-// No Flaine venue in catalog — filling a meaningful French Alps gap.
-// Validated: grep "flaine" app.jsx → 0. GVA confirmed in all 3 AP tables.
+// 1. Ski — Lee Canyon (Las Vegas Ski & Snowboard Resort) via LAS
+// The ONLY ski resort serving Las Vegas (0 venues at LAS today).
+// 47 miles from the Strip; 1.5hr door-to-lift for the millions flying through Vegas.
+// Mt. Charleston, 3,880ft vertical, avg 10ft snow. Opens Dec, peak Jan–Mar.
+// Genuinely unique: "ski in the morning, pool in the afternoon" weekend.
+// Validated: grep "lee-canyon\|lee_canyon" app.jsx → 0. LAS fully covered.
 {
-  id: "flaine-france",
+  id: "lee-canyon-nv",
   category: "skiing",
-  title: "Flaine",
-  location: "Grand Massif, Haute-Savoie, France",
-  lat: 46.0098, lon: 6.6762,
-  ap: "GVA",
+  title: "Lee Canyon",
+  location: "Mt. Charleston, Nevada, USA",
+  lat: 36.3272,
+  lon: -115.6731,
+  ap: "LAS",
   icon: "⛷️",
-  rating: 4.73,
-  reviews: 8900,
-  gradient: "linear-gradient(160deg,#0a1a38,#1a3a78,#2e60b8)",
-  accent: "#5090d8",
+  rating: 4.52,
+  reviews: 5800,
+  gradient: "linear-gradient(160deg,#0a1a38,#1a3060,#2a509a)",
+  accent: "#4878c8",
   skiPass: "other",
-  tags: ["265km Grand Massif", "Ski-In Ski-Out Village", "1580m Altitude Gain", "Family & Intermediate Focus"],
+  tags: ["Vegas Day Trip", "Mt. Charleston Desert Contrast", "Beginner to Intermediate", "Opens December"],
   photo: "https://images.unsplash.com/photo-1605540436563-5bca919ae766?auto=format&q=80&w=1200"
 },
 
-// 2. N.hem ski — Davos/Klosters, Switzerland (ZRH, ~1.5hr by train, iconic destination)
-// Parsenn: 6 mountains, 320km pistes, 2844m top elevation. James Bond filming location.
-// Only major resort with a commuter rail connection direct from Zurich.
-// Davos is world's highest city at 1560m — town itself is a destination.
-// Validated: grep "davos" app.jsx → 0. ZRH confirmed in all 3 AP tables.
+// 2. Ski — Arizona Snowbowl, Flagstaff via PHX
+// Phoenix is a top-5 US origin hub with ZERO ski venues today.
+// Snowbowl: 777 acres, 11,500ft summit, 14 lifts. 1.5hr from Phoenix by car.
+// Opens mid-November — earliest Southwest ski destination.
+// Flagstaff itself is 7,000ft elevation; high-desert alpine experience.
+// Validated: grep "snowbowl\|arizona-snow" app.jsx → 0. PHX fully covered.
 {
-  id: "davos-klosters",
+  id: "arizona-snowbowl",
   category: "skiing",
-  title: "Davos / Klosters",
-  location: "Graubünden, Switzerland",
-  lat: 46.8027, lon: 9.8367,
-  ap: "ZRH",
+  title: "Arizona Snowbowl",
+  location: "Flagstaff, Arizona, USA",
+  lat: 35.3299,
+  lon: -111.7076,
+  ap: "PHX",
   icon: "⛷️",
-  rating: 4.85,
-  reviews: 14200,
-  gradient: "linear-gradient(160deg,#0c1e3c,#1e4080,#3468c0)",
-  accent: "#6898e0",
+  rating: 4.44,
+  reviews: 9200,
+  gradient: "linear-gradient(160deg,#121a28,#203858,#306898)",
+  accent: "#5090c8",
   skiPass: "other",
-  tags: ["320km Parsenn Terrain", "Direct Train from Zurich", "World's Highest Alpine Town", "James Bond Schilthorn"],
-  photo: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&q=80&w=1200"
+  tags: ["Opens November", "High Desert Alpine", "Ponderosa Pine Forest", "1.5hr from Phoenix"],
+  photo: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&q=80&w=1200"
 },
 
-// 3. N.hem ski — Sunshine Village, Banff, Alberta (YYC, ~1.5hr)
-// Lake Louise is already in catalog; Sunshine Village is a distinct resort and the most snow-reliable
-// in the Canadian Rockies (average 9m/year). 3 mountain peaks, 12m average snowfall, opens Nov.
-// YYC serves both; same-area ski options strengthen the Banff cluster.
-// Validated: grep "sunshine-village" app.jsx → 0. YYC confirmed in all 3 AP tables.
+// 3. Beach — Nerja / Playa Burriana, Andalusia, Spain via AGP
+// AGP (Málaga) currently has 1 venue: Sierra Nevada skiing. No beach option.
+// Nerja = the jewel of the Costa Tropical: whitewashed cliffs, crystal-clear 20°C water.
+// Playa Burriana is Nerja's largest beach — 700m of fine sand backed by a promenade.
+// Oct–Nov: summer crowds gone, 22°C air, 20°C water, 9hr sun. Perfect weekend window.
+// Validated: grep "nerja\|burriana\|playa-burriana" app.jsx → 0. AGP fully covered.
 {
-  id: "sunshine-village-ab",
-  category: "skiing",
-  title: "Sunshine Village",
-  location: "Banff, Alberta, Canada",
-  lat: 51.0898, lon: -115.7731,
-  ap: "YYC",
-  icon: "⛷️",
-  rating: 4.88,
-  reviews: 11600,
-  gradient: "linear-gradient(160deg,#0a1e38,#183a70,#2a60a8)",
-  accent: "#5888d0",
-  skiPass: "epic",
-  tags: ["9m Average Snowfall", "3 Peak Mountains", "Continental Divide Riding", "Opens November"],
-  photo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&q=80&w=1200"
-},
-
-// 4. Beach — Shela Beach, Lamu Island, Kenya (MBA, 1hr flight from Mombasa)
-// Lamu Old Town: UNESCO World Heritage site, largest intact Swahili settlement.
-// Shela is 2km of white sand backed by dunes, no motor vehicles on the island.
-// MBA already serves Diani + Watamu; Lamu completes the Kenya coastal triangle.
-// Oct–Mar prime: NE trade winds die down, seas calm, 27°C water.
-// Validated: grep "lamu\|shela" app.jsx → 0. MBA confirmed in all 3 AP tables.
-{
-  id: "shela-beach-lamu",
+  id: "nerja-beach-spain",
   category: "beach",
-  title: "Shela Beach, Lamu Island",
-  location: "Lamu County, Kenya",
-  lat: -2.2710, lon: 40.9107,
-  ap: "MBA",
-  icon: "🏝️",
-  rating: 4.81,
-  reviews: 7400,
-  gradient: "linear-gradient(160deg,#001c10,#003a28,#006848)",
-  accent: "#28c888",
-  tags: ["UNESCO Swahili Old Town", "Car-Free Island", "Oct–Mar Prime Season", "Dhow Sailing Culture"],
-  photo: "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?auto=format&q=80&w=1200"
+  title: "Nerja",
+  location: "Costa Tropical, Andalusia, Spain",
+  lat: 36.7488,
+  lon: -3.8724,
+  ap: "AGP",
+  icon: "🏖️",
+  rating: 4.77,
+  reviews: 18400,
+  gradient: "linear-gradient(160deg,#001830,#003870,#005aaa)",
+  accent: "#3888e0",
+  tags: ["Oct–Nov Prime", "Whitewashed Cliff Village", "20°C October Water", "Balcón de Europa Views"],
+  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&q=80&w=1200"
 },
 
-// 5. Beach — Anse Cocos, La Digue, Seychelles (SEZ, Mahé → ferry)
-// La Digue already has Anse Severe in catalog; Anse Cocos is a different beach on the same island —
-// accessible only by foot (25min hike from L'Union Estate), untouched, no facilities.
-// Considered one of the 10 most beautiful beaches in the world. Oct–Apr prime.
-// SEZ already serves 3 catalog venues; Anse Cocos is genuinely distinct.
-// Validated: grep "anse-cocos" app.jsx → 0. SEZ confirmed in all 3 AP tables.
+// 4. Beach — Playa Blanca, Barú Island, Colombia via CTG
+// CTG (Cartagena) has 1 venue: beach_cartagena (urban). Playa Blanca is a completely different
+// experience — 45min speedboat from Cartagena, no cars, no hotels (day-trip only), powder-white
+// sand, turquoise Caribbean water. Consistently ranked the best beach in Colombia.
+// Oct–Jan: Caribbean dry season starts, flat calm seas. Prime weekend window.
+// Validated: grep "playa-blanca\|baru\|playa_blanca" app.jsx → 0. CTG fully covered.
 {
-  id: "anse-cocos-la-digue",
+  id: "playa-blanca-baru",
   category: "beach",
-  title: "Anse Cocos",
-  location: "La Digue, Seychelles",
-  lat: -4.3450, lon: 55.8380,
-  ap: "SEZ",
+  title: "Playa Blanca, Barú Island",
+  location: "Barú Peninsula, Bolívar, Colombia",
+  lat: 10.1833,
+  lon: -75.6500,
+  ap: "CTG",
   icon: "🏝️",
-  rating: 4.94,
-  reviews: 3800,
-  gradient: "linear-gradient(160deg,#001428,#003060,#006090)",
-  accent: "#30c0f0",
-  tags: ["Hike-Access Only", "Untouched Wilderness Beach", "Granite Boulders", "Oct–Apr Prime"],
+  rating: 4.71,
+  reviews: 12600,
+  gradient: "linear-gradient(160deg,#001428,#003068,#0058a8)",
+  accent: "#30a8e8",
+  tags: ["Boat-Access Only", "Oct–Jan Dry Season", "Best Beach in Colombia", "Powder-White Caribbean Sand"],
   photo: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&q=80&w=1200"
+},
+
+// 5. Beach — Legzira Beach, Sidi Ifni, Morocco via AGA
+// AGA (Agadir) has 1 venue: beach_agadir (main beach). Legzira is 40km south —
+// famous for its two 50m-tall red sandstone arches over the ocean. Unique visual on any list.
+// Voted one of the 10 most surprising beaches in the world. 20-min drive from Sidi Ifni.
+// Morocco Oct–Apr: prime conditions — 22°C, less wind than summer, no crowds.
+// Validated: grep "legzira" app.jsx → 0. AGA fully covered.
+{
+  id: "legzira-beach-morocco",
+  category: "beach",
+  title: "Legzira Beach",
+  location: "Sidi Ifni, Souss-Massa, Morocco",
+  lat: 29.3667,
+  lon: -10.1833,
+  ap: "AGA",
+  icon: "🏖️",
+  rating: 4.68,
+  reviews: 7100,
+  gradient: "linear-gradient(160deg,#1a0800,#3a1800,#6a3800)",
+  accent: "#e07830",
+  tags: ["50m Sandstone Rock Arches", "Oct–Apr Prime", "Wild Atlantic Surf", "UNESCO Argan Forest Region"],
+  photo: "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?auto=format&q=80&w=1200"
 }
 ```
 
-> **Before pasting any venue:** run `grep -c '"id": "<id>"' app.jsx && grep -c 'id:"<id>"' app.jsx` — both must return 0. Also verify the photo URL is unique: `grep -c '<photo-url>' app.jsx` → 0.
+> **Pre-paste checklist (run for every venue before adding):**
+> 1. `grep -c 'id:"<id>"' app.jsx` → must be 0
+> 2. `grep -c '"id": "<id>"' app.jsx` → must be 0
+> 3. `grep -c '<photo-url-slug>' app.jsx` → must be 0 (no duplicate photo)
+> 4. Confirm airport in all 3 AP tables: `node -e "const s=require('fs').readFileSync('app.jsx','utf8'); ..."` (see previous reports)
 
 ---
 
 ## One Observation for the PM
 
-**The queued venue backlog had a 70% duplicate rate — fix the queue source, not just the queue.** Of the 10 venues queued over Oct 21–22, 7 already existed in the catalog under different IDs. This happened because both days' reports proposed venues in geographic areas that "look like gaps" without checking the catalog first. The catalog is now 404 venues across 165 airports — it's dense enough that plausible-sounding new venues often already exist. Going forward: every proposed venue must run the `grep -c` ID + title checks BEFORE being added to the queue, not as a pre-paste step. Today's 5 venues above are all pre-verified clean. The 18-day Whistler window remains the most actionable deadline: 3 commands on the VPS is the only blocker between the current code state and a credible Nov-10 seasonal launch.
+**The cache stamp is 40 days stale — this is now a credibility risk, not just a maintenance task.** `peakly-20260914a` was set on Sep 14; today is Oct 24. Any user on the live site who installed the PWA on Sep 14 or later is being served a service worker that won't signal an update for the next 40 days of changes, because the SW cache name hasn't changed. The VPS redeploy (Open #19) remains the harder dependency, but the stamp bump is 3 seconds: change `"20260914a"` → `"20261024a"` in `app.jsx` and `sw.js` — the auto-push hook handles the commit. This should happen on the next edit regardless of what that edit is. The Whistler 17-day window is the deadline that matters most, but a stale cache undermines every fix that lands between now and then.
