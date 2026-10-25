@@ -1,10 +1,10 @@
-# Peakly Content & Data Report — 2026-10-24
+# Peakly Content & Data Report — 2026-10-25
 
 ## Data Health Score: 89/100
 
-**Deductions (unchanged — no code changes, cache stamp 40 days stale):**
+**Deductions (no code changes since yesterday — same issues persist):**
 - −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded
-- −1: Gili Trawangan duplicate live (`beach_gilit`/LOP + `gili-trawangan`/DPS)
+- −1: Gili Trawangan near-duplicate (`beach_gilit/LOP` vs `gili-trawangan/DPS`) — same title, different island airports; both are valid destinations but confusing in listings
 - −1: Stale scheduled-task prompt (references "182 venues, 12 categories" — outdated since 2026-05-03 pivot)
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories." The project pivoted 2026-05-03 to **skiing + beach only**. Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects actual app.jsx state.
@@ -15,11 +15,11 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | ~14,237 — cache `peakly-20260914a`, **40 days stale** ⚠️⚠️ |
+| app.jsx lines | ~14,238 — cache `peakly-20260914a`, **41 days stale** ⚠️⚠️ |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
-| Duplicate title+location | **1** ⚠️ Gili Trawangan (`beach_gilit`/LOP + `gili-trawangan`/DPS) |
+| Gili Trawangan near-dup | ⚠️ `beach_gilit/LOP` + `gili-trawangan/DPS` |
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** (165 unique APs across 404 venues) ✅ |
 | Missing photos | **0** ✅ |
@@ -29,222 +29,189 @@
 | Venues with 4+ tags | **165** |
 | Venue APs in AP_CONTINENT | **165/165** ✅ |
 | Venue APs in AIRPORT_COORDS | **165/165** ✅ |
-| Venue APs in BASE_PRICES | **165/165** ✅ Open #22 CLOSED |
-| lateSeason:true venues | **15** ✅ |
-| GEAR_ITEMS | **0** ✅ Amazon cut for v1 |
-| Cache stamp | `peakly-20260914a` — **40 days stale, must bump on first edit** ⚠️⚠️ |
+| BASE_PRICES coverage | **404/404 (100%)** ✅ RESOLVED |
 
 ---
 
-## Category Breakdown
+## 1. DATA INTEGRITY AUDIT
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Beach | 270 | ✅ |
-| Skiing | 134 | ✅ |
+All 404 venues pass the core checks: no missing coordinates, no missing airport codes, no missing tags arrays, no duplicate IDs, no duplicate photo URLs, no lat/lon out of range.
 
-> The scheduled prompt references 12 categories. All non-skiing/beach categories retired 2026-05-03. No stub categories.
+**Gili Trawangan near-duplicate:**
+- `beach_gilit` — Gili Trawangan, served via LOP (Lombok International)
+- `gili-trawangan` — Gili Trawangan, served via DPS (Bali Ngurah Rai)
 
----
+Both are the same island, but LOP/DPS serve genuinely different traveler segments (Lombok-based vs Bali-based). Not technically wrong, but confusing in a side-by-side listing. Recommend: differentiate with explicit "from Lombok" / "from Bali gateway" in the title, or remove the DPS duplicate since DPS has 18 other venues and LOP has only this one.
 
-## GEAR_ITEMS Gaps
-
-**None applicable.** Amazon Associates cut for v1 (Jack, 2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0.
-
----
-
-## Seasonal Relevance — Oct 24, 2026
-
-### N. Hemisphere Ski — 17-Day Whistler Window ⚡
-
-**Whistler opens ~Nov 10 (17 days).** VPS redeploy still blocked — Whistler + Mammoth + A-Basin + Tignes score `confidence:"low"` until proxy's `forecast_days:14` is live. 5 marquee venues affected.
-
-- **Year-round open now:** Hintertux, Saas-Fee glacier, Zermatt Plateau Rosa
-- **Opening imminently (Nov 1–15):** Whistler, Mammoth, A-Basin, Tignes, Engelberg-Titlis
-- **Dec season:** Val Thorens, Verbier, St. Moritz, Chamonix, Cervinia
-- **New ski venues added today (below) target:** Lee Canyon (LAS, opens Dec), Arizona Snowbowl (PHX, opens Nov 15)
-
-### N. Hemisphere Beach — Mediterranean & Canary Islands Prime
-
-Canary Islands (ACE/FUE/TFS) peak 8-month season — 22°C water, 24°C air. All 6 Canary venues scoring their best of the year. Morocco coast (AGA/RAK): Oct–Apr prime, warm + uncrowded. **Nerja/AGP added today** fills a meaningful Andalusia gap.
-
-### S. Hemisphere Beach — Prime Season ✅
-
-Australia (SYD/MEL/BNE/CNS), South Africa (CPT), Brazil (GIG/GRU/FOR), Mauritius (MRU): Oct–Mar optimal. All scoring high.
-
-### S. Hemisphere Ski — Season Ended ⚠️
-
-23 S-hem ski venues (Remarkables, Thredbo, Portillo, etc.) now off-season. Correct behavior — off front page.
-
-### Tropical / Equatorial Beach — Year-Round
-
-Maldives (MLE), Seychelles (SEZ), Fiji (NAN), Colombia (CTG), Costa Rica (LIR): year-round warm water. Oct–Mar is dry season for Caribbean and Mesoamerica — **Playa Blanca Barú/CTG added today** captures this window.
+**Tag distribution:**
+```
+0-1 tags:  0 venues
+2 tags:  225 venues (55.7%)  ← quality gap
+3 tags:   14 venues
+4 tags:  164 venues
+5 tags:    1 venue
+```
+Two-tag venues exist predominantly in the batch-added beach set (the 134 added in commit `7561a18`). Example: `beach_myrtle` has only `["White Sand", "Boardwalk"]`. `scoreVibeMatch` uses tags as a corpus — thin tags reduce match precision, which hurts the "For you" algorithm quality.
 
 ---
 
-## Airport Coverage Gaps (Require AP Table Additions Before Venue Can Land)
+## 2. GEAR ITEMS AUDIT
 
-The following high-demand airports are missing from AIRPORT_COORDS and/or BASE_PRICES. Each requires a 3-line addition to the AP tables before a venue can be safely added:
-
-| Airport | In AP_CONTINENT | In AIRPORT_COORDS | In BASE_PRICES | Notes |
-|---------|-----------------|-------------------|----------------|-------|
-| DXB (Dubai) | ❌ | ❌ | ❌ | UAE has 0 beach venues. Oct–Apr prime Red Sea/Gulf. |
-| ICN (Seoul Incheon) | ❌ | ❌ | ❌ | Korea has 0 ski venues. PyeongChang nearby. |
-| GMP (Seoul Gimpo) | ✅ asia | ❌ | ❌ | Alternative Seoul AP — still missing coords + BP. |
-| HRG (Hurghada) | ❌ | ❌ | ❌ | Egypt/Red Sea — 0 venues, Oct–May prime season. |
-| BOG (Bogotá) | ✅ latam | ❌ | ❌ | Colombia inland — Santa Marta coast via SMR instead. |
-
-**5 fully covered APs with 0 venues (today's targets use 2 of 3):** DTW (Detroit), LAS (Las Vegas), PHX (Phoenix). Detroit excluded — no compelling weekend ski/beach from DTW without a multi-hour drive.
+**GEAR_ITEMS is CUT for v1 per Jack's explicit decision (2026-06-09).** `grep -c GEAR_ITEMS app.jsx` → 0. Do not restore. Revisit post-launch. No action needed.
 
 ---
 
-## Oct 23 Queue Status
+## 3. SEASONAL RELEVANCE (2026-10-25)
 
-The 5 venues proposed in the Oct 23 report are **still pending** (none were added to app.jsx — code freeze appeared to persist through yesterday). All 5 remain valid and pre-verified:
+| Segment | Count | Status |
+|---------|-------|--------|
+| Ski — N hemisphere (lat ≥ 0) | 111 | ⚠️ Pre-season / closed (Nov–Dec opens) |
+| Ski — S hemisphere (lat < 0) | 23 | ⚠️ Season ending (austral spring) |
+| Beach — N hemisphere (lat ≥ 0) | 201 | 🟡 Shoulder / off-peak for most |
+| Beach — S hemisphere (lat < 0) | 69 | ✅ **Early summer — IN SEASON** |
 
-| ID | Target | Status |
-|----|--------|--------|
-| `flaine-france` | Skiing, GVA | ✅ Not in catalog, paste-ready |
-| `davos-klosters` | Skiing, ZRH | ✅ Not in catalog, paste-ready |
-| `sunshine-village-ab` | Skiing, YYC | ✅ Not in catalog, paste-ready |
-| `shela-beach-lamu` | Beach, MBA | ✅ Not in catalog, paste-ready |
-| `anse-cocos-la-digue` | Beach, SEZ | ✅ Not in catalog, paste-ready |
+**Late-season ski (lateSeason: true):** 15 venues — all N hemisphere glacier/high-altitude resorts (Hintertux, Tignes, Zermatt, Saas-Fee, etc.). These may have partial skiing available in late October due to glacier access. The `lateSeason: true` flag is correctly set on all 15.
 
-Both queues (Oct 23 + Oct 24 below) are valid. Pre-paste check still required: `grep -c 'id:"<id>"' app.jsx && grep -c '"id": "<id>"' app.jsx` — both must return 0.
+**Key in-season opportunities this week:**
+- Southern hemisphere beaches (Brazil, Argentina, South Africa, NZ, Australia) are entering early summer — best scoring window of their year
+- Caribbean (year-round tropical) — always competitive
+- Mediterranean: shoulder season but still warm (AGP/NCE/NAP area)
+
+**⚠️ Note for PM:** With 111 N hemisphere ski venues nearly off-season and S hemisphere beach at peak, the front page should be naturally favoring beach this weekend. If the Explore grid isn't reflecting this, check that `scoreWeekend` confidence flags are filtering out forecasts beyond day 4 for venues without current snow cover.
 
 ---
 
-## 5 New Venue Objects — Oct 24 Seasonal Focus
+## 4. CONTENT QUALITY
 
-**All venues use airports fully confirmed in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. IDs verified not in catalog.**
+### Photos
+All 404 venues have photos. Per CLAUDE.md, ~346 of 404 are generic stock unrelated to the specific venue (Open #20). The photo quality gap is the largest remaining content issue. Pipeline: `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait`.
+
+### BASE_PRICES — MAJOR IMPROVEMENT (Open #22 appears RESOLVED)
+The PM v119 Decision 3 batch filled BASE_PRICES to **100% coverage** (404/404 venues, 165 APs, all with pricing to 14 US hub airports). **CLAUDE.md currently states 43% coverage — that entry is stale and should be updated.** Open #22 can be closed.
+
+### Tag Quality Gap (Open observation)
+225 venues (55.7%) have only 2 tags. A quick fix would expand the 4-tag batch venues to 3-4 tags. Estimated effort: 2h scripted, or can be batched with the next venue addition run.
+
+---
+
+## 5. DAILY VENUE ADDITIONS
+
+Targeting airports with only 1 venue (expansion opportunities) and in-season destinations. All 5 use airports already in `AIRPORT_COORDS` and `AP_CONTINENT`.
+
+### Venue 1 — Arraial do Cabo, Brazil (GIG beach → 2 venues)
+Brazil's "Brazilian Caribbean." Crystal-clear turquoise water, UNESCO-protected area, popular for snorkeling. Peak condition: October–March (S hemisphere summer). GIG currently has only Ipanema (urban beach) — this adds a pristine nature beach from the same gateway.
 
 ```js
-// 1. Ski — Lee Canyon (Las Vegas Ski & Snowboard Resort) via LAS
-// The ONLY ski resort serving Las Vegas (0 venues at LAS today).
-// 47 miles from the Strip; 1.5hr door-to-lift for the millions flying through Vegas.
-// Mt. Charleston, 3,880ft vertical, avg 10ft snow. Opens Dec, peak Jan–Mar.
-// Genuinely unique: "ski in the morning, pool in the afternoon" weekend.
-// Validated: grep "lee-canyon\|lee_canyon" app.jsx → 0. LAS fully covered.
 {
-  id: "lee-canyon-nv",
-  category: "skiing",
-  title: "Lee Canyon",
-  location: "Mt. Charleston, Nevada, USA",
-  lat: 36.3272,
-  lon: -115.6731,
-  ap: "LAS",
-  icon: "⛷️",
-  rating: 4.52,
-  reviews: 5800,
-  gradient: "linear-gradient(160deg,#0a1a38,#1a3060,#2a509a)",
-  accent: "#4878c8",
-  skiPass: "other",
-  tags: ["Vegas Day Trip", "Mt. Charleston Desert Contrast", "Beginner to Intermediate", "Opens December"],
-  photo: "https://images.unsplash.com/photo-1605540436563-5bca919ae766?auto=format&q=80&w=1200"
-},
-
-// 2. Ski — Arizona Snowbowl, Flagstaff via PHX
-// Phoenix is a top-5 US origin hub with ZERO ski venues today.
-// Snowbowl: 777 acres, 11,500ft summit, 14 lifts. 1.5hr from Phoenix by car.
-// Opens mid-November — earliest Southwest ski destination.
-// Flagstaff itself is 7,000ft elevation; high-desert alpine experience.
-// Validated: grep "snowbowl\|arizona-snow" app.jsx → 0. PHX fully covered.
-{
-  id: "arizona-snowbowl",
-  category: "skiing",
-  title: "Arizona Snowbowl",
-  location: "Flagstaff, Arizona, USA",
-  lat: 35.3299,
-  lon: -111.7076,
-  ap: "PHX",
-  icon: "⛷️",
-  rating: 4.44,
-  reviews: 9200,
-  gradient: "linear-gradient(160deg,#121a28,#203858,#306898)",
-  accent: "#5090c8",
-  skiPass: "other",
-  tags: ["Opens November", "High Desert Alpine", "Ponderosa Pine Forest", "1.5hr from Phoenix"],
-  photo: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&q=80&w=1200"
-},
-
-// 3. Beach — Nerja / Playa Burriana, Andalusia, Spain via AGP
-// AGP (Málaga) currently has 1 venue: Sierra Nevada skiing. No beach option.
-// Nerja = the jewel of the Costa Tropical: whitewashed cliffs, crystal-clear 20°C water.
-// Playa Burriana is Nerja's largest beach — 700m of fine sand backed by a promenade.
-// Oct–Nov: summer crowds gone, 22°C air, 20°C water, 9hr sun. Perfect weekend window.
-// Validated: grep "nerja\|burriana\|playa-burriana" app.jsx → 0. AGP fully covered.
-{
-  id: "nerja-beach-spain",
+  id: "arraial-do-cabo-br",
   category: "beach",
-  title: "Nerja",
-  location: "Costa Tropical, Andalusia, Spain",
-  lat: 36.7488,
-  lon: -3.8724,
-  ap: "AGP",
+  title: "Arraial do Cabo",
+  location: "Rio de Janeiro State, Brazil",
+  lat: -22.9655,
+  lon: -42.0278,
+  ap: "GIG",
   icon: "🏖️",
-  rating: 4.77,
-  reviews: 18400,
-  gradient: "linear-gradient(160deg,#001830,#003870,#005aaa)",
-  accent: "#3888e0",
-  tags: ["Oct–Nov Prime", "Whitewashed Cliff Village", "20°C October Water", "Balcón de Europa Views"],
-  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&q=80&w=1200"
+  rating: 4.8,
+  reviews: 1240,
+  gradient: "linear-gradient(160deg,#006994,#00b4d8,#90e0ef)",
+  accent: "#00b4d8",
+  tags: ["Crystal Clear Water", "Praia do Farol", "Snorkeling", "Boat Tours"],
+  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Arraial_do_Cabo_Aerial_View.jpg/1280px-Arraial_do_Cabo_Aerial_View.jpg"
 },
-
-// 4. Beach — Playa Blanca, Barú Island, Colombia via CTG
-// CTG (Cartagena) has 1 venue: beach_cartagena (urban). Playa Blanca is a completely different
-// experience — 45min speedboat from Cartagena, no cars, no hotels (day-trip only), powder-white
-// sand, turquoise Caribbean water. Consistently ranked the best beach in Colombia.
-// Oct–Jan: Caribbean dry season starts, flat calm seas. Prime weekend window.
-// Validated: grep "playa-blanca\|baru\|playa_blanca" app.jsx → 0. CTG fully covered.
-{
-  id: "playa-blanca-baru",
-  category: "beach",
-  title: "Playa Blanca, Barú Island",
-  location: "Barú Peninsula, Bolívar, Colombia",
-  lat: 10.1833,
-  lon: -75.6500,
-  ap: "CTG",
-  icon: "🏝️",
-  rating: 4.71,
-  reviews: 12600,
-  gradient: "linear-gradient(160deg,#001428,#003068,#0058a8)",
-  accent: "#30a8e8",
-  tags: ["Boat-Access Only", "Oct–Jan Dry Season", "Best Beach in Colombia", "Powder-White Caribbean Sand"],
-  photo: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&q=80&w=1200"
-},
-
-// 5. Beach — Legzira Beach, Sidi Ifni, Morocco via AGA
-// AGA (Agadir) has 1 venue: beach_agadir (main beach). Legzira is 40km south —
-// famous for its two 50m-tall red sandstone arches over the ocean. Unique visual on any list.
-// Voted one of the 10 most surprising beaches in the world. 20-min drive from Sidi Ifni.
-// Morocco Oct–Apr: prime conditions — 22°C, less wind than summer, no crowds.
-// Validated: grep "legzira" app.jsx → 0. AGA fully covered.
-{
-  id: "legzira-beach-morocco",
-  category: "beach",
-  title: "Legzira Beach",
-  location: "Sidi Ifni, Souss-Massa, Morocco",
-  lat: 29.3667,
-  lon: -10.1833,
-  ap: "AGA",
-  icon: "🏖️",
-  rating: 4.68,
-  reviews: 7100,
-  gradient: "linear-gradient(160deg,#1a0800,#3a1800,#6a3800)",
-  accent: "#e07830",
-  tags: ["50m Sandstone Rock Arches", "Oct–Apr Prime", "Wild Atlantic Surf", "UNESCO Argan Forest Region"],
-  photo: "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?auto=format&q=80&w=1200"
-}
 ```
 
-> **Pre-paste checklist (run for every venue before adding):**
-> 1. `grep -c 'id:"<id>"' app.jsx` → must be 0
-> 2. `grep -c '"id": "<id>"' app.jsx` → must be 0
-> 3. `grep -c '<photo-url-slug>' app.jsx` → must be 0 (no duplicate photo)
-> 4. Confirm airport in all 3 AP tables: `node -e "const s=require('fs').readFileSync('app.jsx','utf8'); ..."` (see previous reports)
+### Venue 2 — Bardonecchia, Italy (TRN ski → 3 venues)
+2006 Winter Olympics snowboard venue in the Susa Valley, 100km of pistes, direct rail link to Turin (1h). Part of the Voie Lactée (Milky Way) linked ski area. TRN currently has only Cervinia and Champoluc. Opens late November. Good pre-season planning addition.
+
+```js
+{
+  id: "bardonecchia-it",
+  category: "skiing",
+  title: "Bardonecchia",
+  location: "Susa Valley, Piedmont, Italy",
+  lat: 45.0777,
+  lon: 6.7028,
+  ap: "TRN",
+  icon: "🏔️",
+  rating: 4.5,
+  reviews: 890,
+  gradient: "linear-gradient(160deg,#1a3a5c,#2563eb,#93c5fd)",
+  accent: "#93c5fd",
+  tags: ["Olympic Snowboard Venue", "Turin Rail Link", "Via Lattea", "Border Skiing"],
+  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bardonecchia_ski_area.jpg/1280px-Bardonecchia_ski_area.jpg"
+},
+```
+
+### Venue 3 — Borovets, Bulgaria (SOF ski → 2 venues)
+Bulgaria's oldest ski resort on the Rila Mountains, 2540m peak. More accessible and cheaper than Bansko (already in catalog). 73km of runs. SOF currently has only Bansko. Budget-friendly alternative for Eastern European skiing.
+
+```js
+{
+  id: "borovets-bg",
+  category: "skiing",
+  title: "Borovets",
+  location: "Rila Mountains, Bulgaria",
+  lat: 42.2674,
+  lon: 23.5961,
+  ap: "SOF",
+  icon: "🎿",
+  rating: 4.3,
+  reviews: 640,
+  gradient: "linear-gradient(160deg,#1e3a5f,#1d4ed8,#bfdbfe)",
+  accent: "#bfdbfe",
+  tags: ["Budget-Friendly", "Rila Mountains", "Beginner Terrain", "Bulgaria's Oldest Resort"],
+  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Borovets_ski_resort.jpg/1280px-Borovets_ski_resort.jpg"
+},
+```
+
+### Venue 4 — Búzios, Brazil (GIG beach → 3 venues)
+Famous Brazilian resort town on the Cabo Frio peninsula, 28 beaches in 8km radius. Made famous by Brigitte Bardot. Peak season: October–March. Complements Arraial do Cabo (same GIG gateway, different vibe — Búzios = lively resort, Arraial = nature/snorkeling).
+
+```js
+{
+  id: "buzios-brazil",
+  category: "beach",
+  title: "Búzios",
+  location: "Rio de Janeiro State, Brazil",
+  lat: -22.7479,
+  lon: -41.8818,
+  ap: "GIG",
+  icon: "🌊",
+  rating: 4.6,
+  reviews: 1580,
+  gradient: "linear-gradient(160deg,#0c4a6e,#0284c7,#7dd3fc)",
+  accent: "#7dd3fc",
+  tags: ["28 Beaches", "Geriba Beach", "Yacht Culture", "Brigitte Bardot Landmark"],
+  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/B%C3%BAzios_Aerial_2009.jpg/1280px-B%C3%BAzios_Aerial_2009.jpg"
+},
+```
+
+### Venue 5 — Cairngorm Mountain, Scotland (INV ski → 2 venues)
+Scotland's largest ski area by terrain (36 runs, 1245m summit), near Aviemore in the Cairngorms National Park. INV currently has only Nevis Range (Ben Nevis, same area). Cairngorm has a funicular railway and is arguably more accessible. Opens December.
+
+```js
+{
+  id: "cairngorm-mountain-s31",
+  category: "skiing",
+  title: "Cairngorm Mountain",
+  location: "Cairngorms National Park, Scotland",
+  lat: 57.1356,
+  lon: -3.6736,
+  ap: "INV",
+  icon: "🏔️",
+  rating: 4.2,
+  reviews: 510,
+  gradient: "linear-gradient(160deg,#374151,#4b5563,#9ca3af)",
+  accent: "#9ca3af",
+  tags: ["Scotland's Largest Ski Area", "Funicular Railway", "Arctic Plateau", "Cairngorms National Park"],
+  photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Cairngorm_Mountain_ski_area.jpg/1280px-Cairngorm_Mountain_ski_area.jpg"
+},
+```
+
+> **Photo note:** Wikipedia Commons URLs are used as placeholders. Run `UNSPLASH_KEY=... node scripts/photos-fetch.mjs --wait` after adding these venues to replace with verified Unsplash photos (Open #20 pipeline).
 
 ---
 
-## One Observation for the PM
+## One Observation for PM
 
-**The cache stamp is 40 days stale — this is now a credibility risk, not just a maintenance task.** `peakly-20260914a` was set on Sep 14; today is Oct 24. Any user on the live site who installed the PWA on Sep 14 or later is being served a service worker that won't signal an update for the next 40 days of changes, because the SW cache name hasn't changed. The VPS redeploy (Open #19) remains the harder dependency, but the stamp bump is 3 seconds: change `"20260914a"` → `"20261024a"` in `app.jsx` and `sw.js` — the auto-push hook handles the commit. This should happen on the next edit regardless of what that edit is. The Whistler 17-day window is the deadline that matters most, but a stale cache undermines every fix that lands between now and then.
+**BASE_PRICES Open #22 is effectively closed.** The PM v119 Decision 3 batch brought coverage from ~43% (per CLAUDE.md) to **100% (404/404 venues)**. This is a major unacknowledged win — the deal badge and `~$X` estimate now work for every venue in the catalog, including CUN, BOB, AUA, STT, and SXM which were explicitly called out as missing. CLAUDE.md still lists this as Open #22; it should be moved to the resolved section and the table corrected from "43% coverage" to "100% coverage."
