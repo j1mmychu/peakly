@@ -1,130 +1,137 @@
-# Peakly PM Report v190 — 2026-10-24 (LAUNCH DAY +6)
+# Peakly PM Report v191 — 2026-10-25 (LAUNCH DAY +7)
 
-**Status: 🔴 RED — VPS Day 76. Whistler window = 17 days. Cache stamp 40 days stale. `origin/master` footgun Day 17. Sprint queue unlocked, nothing shipped yet.**
+**Status: 🔴 RED — VPS Day 77. Whistler window = 16 days. Cache stamp 41 days stale. `origin/master` footgun Day 18. Code freeze lifted 48 hours ago. Nothing shipped yet.**
 
-> **Stale prompt notice — Day 18 (critical):** Stored cron still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100% coverage.** Jack: 2-minute cron edit in the Claude.ai interface. Every report that opens wrong burns credibility on what actually needs action.
+> **Stale prompt notice — Day 19:** The stored cron prompt still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100% coverage as of today.** Jack: 2-minute fix in the Claude.ai interface. Every report that opens with wrong numbers burns credibility on what actually needs action.
 
 ---
 
-## Shipped Since Last Report (v189 → v190)
+## Shipped Since Last Report (v190 → v191)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `579cd86` | DevOps Oct 24 — RED, VPS Day 76, PRECACHE mismatch, origin/master Day 17 | ✅ reporting |
-| `220311c` | Content Oct 24 — 89/100, 5 new venues queued (LAS/PHX ski + AGP/CTG/AGA beach), AP gap inventory | ✅ reporting |
+| `861823a` | DevOps Oct 25 — RED, VPS Day 77, PRECACHE mismatch confirmed, `origin/master` Day 18 | ✅ reporting |
+| `d1f7c2c` | Content Oct 25 — **Open #22 resolved**: BASE_PRICES now 100% (404/404), 5 new venues queued (GIG×2 Brazil beach + TRN/SOF/INV ski), seasonal framing, data health 89/100 | ✅ significant milestone |
 
-**Zero app.jsx / sw.js / index.html commits. Code freeze lifted yesterday. Sprint hasn't started.**
+**Two full days post-code-freeze. Zero app.jsx / sw.js / index.html commits. The sprint queue is untouched.**
 
-The code freeze was lifted Oct 23. It is now Oct 24. The sprint queue (cache stamp → origin/master delete → PRECACHE fix → Gili dedup → JSON-LD → tag batch 1 → 5 new venues) was locked in v189. None of it has shipped. The Whistler window is 17 days and counting.
+BASE_PRICES hitting 100% is the one genuine win today — Content closed Open #22 which has been open since July. That's the deal score working correctly for every venue now. Everything else is still exactly where v190 left it.
 
 ---
 
 ## Bug Triage
 
-### P0-A — VPS Redeploy: Day 76. Whistler Window = 17 Days 🚨
+### P0-A — VPS Redeploy: Day 77. Whistler Window = 16 Days 🚨
 
-**Nov 5 hard deadline = 12 days from today.** Whistler likely opens Nov 10. The front page cannot show a high-confidence Whistler score without `forecast_days:14` running on the VPS. The Reddit post cannot be finalized without that screenshot. The post is the Whistler window. The window is 17 days.
+**Nov 5 = 11 days. Whistler likely opens Nov 10.** The Reddit post requires a real `forecast_days:14` screenshot showing Whistler on the front page. That screenshot cannot exist without the VPS redeploy. The window is 16 days and every day the sprint sits idle is a day the deadline gets harder.
 
-Four features broken until the VPS is updated:
-1. Two-weekend scoring disabled (Whistler/Tignes/Mammoth invisible on front page)
-2. iOS native CORS blocked (`capacitor://localhost` absent)
-3. Alert deletion silently fails (`DELETE` absent from CORS)
-4. Cache wipes on every `pm2 restart`
+Four features broken in production right now:
+1. Two-weekend scoring disabled — Whistler/Tignes/Mammoth invisible on the front page for next-weekend planning
+2. iOS native CORS blocked — every native API call fails
+3. Alert deletion silently fails — `.catch(()=>{})` hides it; users think alerts are gone, they're not
+4. Cache cold-flush on `pm2 restart` — traffic spike post-redeploy hits Open-Meteo free tier
 
-Fix: 3 SSH commands, 5 minutes. The code is committed and waiting in `server/proxy.js` since Aug 11.
+**This is not a sprint item. This requires Jack's SSH session.** Everything else is unblocked right now.
 
-### P0-B — `origin/master` Footgun: Day 17 🚨
+### P0-B — `origin/master` Footgun: Day 18 🚨
 
-One accidental push to master reverts the live site to May 2026 (339 venues, old onboarding, old scoring). `deploy.yml` deploys both branches. Fix is `git push origin --delete master` — 30 seconds.
+`deploy.yml` deploys both `main` and `master`. A push to `origin/master` silently reverts the live site. There are 15+ `claude/*` branches on origin. Any stale clone that pushes to master triggers a revert to May 2026 code — 339 venues, old onboarding, old scoring.
 
-This is the fourth consecutive report calling this out. Either it ships this sprint session or it stays live forever.
+**Fix: 30 seconds.** `git push origin --delete master` and remove the `master` trigger from `deploy.yml`. This is a sprint item and it should have shipped 48 hours ago.
 
-### P1 — Sprint Queue Not Started
+### P1 — Sprint Queue Stalled (48 Hours Post-Freeze-Lift)
 
-Code freeze lifted yesterday. Cache stamp is 40 days stale. PRECACHE references a CDN URL that doesn't match the current build. Gili Trawangan duplicate is live. JSON-LD (3-week SEO lag) is not committed. Tag enrichment batch hasn't started.
+Cache stamp: `20260914a` — 41 days old. PRECACHE has `unpkg@7.29.7/babel.min.js` while `index.html` loads `cdnjs@7.24.7/babel.min.js`. These are different files on different CDNs. The service worker is precaching a URL that doesn't match what the app actually loads — meaning the cache entry is wasted bandwidth that will never be served from cache. Gili Trawangan duplicate is still live.
 
-Every day the sprint queue sits idle is a day the Whistler SEO lag starts later, the cache stays stale for returning users, and the 55.7% thin-tag rate keeps degrading `scoreVibeMatch` and search recall.
+Items 1–5 of the sprint queue require no design decisions:
+1. Cache stamp bump + PRECACHE fix (same edit, ~5 min)
+2. `origin/master` delete + `deploy.yml` edit (~10 min)
+3. Gili Trawangan dedup (~10 min)
+4. JSON-LD structured data (~30 min, SEO 3-week lag starts when this ships)
 
-### P2 — 5 New Venues Queued (Not Yet Pasted)
+Every day JSON-LD ships later is a day the Google indexing lag starts later. Whistler is 16 days away. This is now urgent.
 
-Content queued 5 validated venues: **LAS ski**, **PHX ski**, **AGP beach**, **CTG beach**, **AGA beach**. All pre-checked for duplicate IDs. Ready to paste — but they go in after the quality sprint items per the v189 decision. This is a data point, not a blocker.
+### P2 — Tag Quality: 55.7% Thin-Tag Rate
 
-### P2 — Gili Trawangan Duplicate
-
-`beach_gilit`/LOP and `gili-trawangan`/DPS are two entries for the same destination. Retention risk (see v189 One Product Risk). In sprint queue, slot 4.
-
----
-
-## Three Product Decisions — Oct 24
-
-### Decision 1: The sprint starts today, with a deadline.
-
-The code freeze lifted yesterday. The sprint queue is locked. The Whistler window is 17 days. The sprint items do not require VPS access or design decisions. They are:
-
-1. Cache stamp bump (first, required, ~5 min)
-2. `origin/master` delete (30 seconds)
-3. PRECACHE fix (bundle with stamp bump)
-4. Gili Trawangan dedup (one VENUES delete, ~10 min)
-5. JSON-LD structured data (SEO 3-week lag starts when this ships)
-6. Tag enrichment batch 1 (~50 venues)
-7. Paste 5 Content-validated new venues
-
-**DECISION: Items 1–5 ship by EOD Oct 25. Items 6–7 ship by EOD Oct 28. If they don't, Nov 5 VPS deadline arrives with a stale cache and zero SEO head start.**
-
-### Decision 2: The `claude/*` branches are CLOSED, not evaluated.
-
-There are 15+ `claude/*` branches on origin (redesign-front-page, improve-scoring-system, streamline-onboarding-account, simplify-alerts-page, etc.). v189 said "evaluate post-Whistler." Evaluating them takes time and creates pressure to merge something.
-
-**DECISION: All `claude/*` branches are CLOSED now. Jack: `git push origin --delete claude/[branch-name]` for each, or let them expire. The Oct 24 sprint is quality + infrastructure. The Whistler post is the product launch. Branch cleanup is distraction from that.**
-
-Reasoning: none of these branches were created by the product owner through deliberate design decisions. They are exploratory agent outputs. The cost of evaluating 15 branches is higher than the cost of discarding them. Any genuinely good idea can be reintroduced after the Whistler launch as a deliberate change.
-
-### Decision 3: No new venue additions until tag batch 1 ships.
-
-Content's 5 queued venues (LAS, PHX, AGP, CTG, AGA) are ready. They will not be pasted until tag batch 1 (50 venues minimum) ships. Adding a venue with 2 thin tags to a catalog where 55.7% already have thin tags doesn't move the quality metric.
-
-**DECISION: Tag batch 1 is the gate for new venue additions. No exceptions. This means the 5 queued venues sit in the queue until batch 1 ships.**
+225 of 404 venues have exactly 2 tags. `scoreVibeMatch` uses tags as a corpus — thin tags hurt "For you" precision. No movement since v189 locked the sprint queue. Tag batch 1 (50 venues minimum) is the gate for the 5 new venues Content queued today (GIG×2, TRN, SOF, INV).
 
 ---
 
-## This Week's Top 3 Priorities Only
+## Three Product Decisions — Oct 25
 
-1. **Start and finish the quality sprint (cache stamp → origin/master → PRECACHE → Gili dedup → JSON-LD)** — Items 1–5, EOD Oct 25. Zero design decisions required. All of this is plumbing that enables everything else.
-2. **VPS redeploy by Nov 5** — Hard deadline, 12 days. Three SSH commands. Nothing else produces a Whistler screenshot.
-3. **Tag enrichment batch 1 by Oct 28** — 55.7% thin-tag rate is the biggest quality gap. Repairs `scoreVibeMatch` and search recall. Gates new venue additions.
+### Decision 1: Sprint Items 1–4 ship today. Not EOD Oct 27. Today.
+
+The code freeze lifted 48 hours ago. The sprint queue requires no design decisions and no Jack input — it's a cache stamp, a CDN URL fix, a branch delete, and a dedup. The Whistler window is 16 days and the JSON-LD SEO lag means every day the structured data ships late is a day fewer pages are indexed by the time the Reddit post goes up.
+
+**DECISION: Items 1–4 ship in the next scheduled session. If they don't, the Nov 5 VPS deadline arrives with a stale cache, zero SEO head start, and a live footgun. There is no version of the Whistler launch plan that works with a 41-day-stale cache.**
+
+### Decision 2: BASE_PRICES 100% coverage — Open #22 CLOSED.
+
+Content closed it today. All 404 venues now have a base price for deal score calculation. The deal score is a headline feature and it was broken for 43% of the catalog until today. This is a significant quality milestone.
+
+**DECISION: Open #22 is formally closed. Do not reopen. The deal score is now honest across the full catalog. Monitor `getDealScore` output on the next session to confirm the ~$0 edge case (very cheap destinations hitting the absolute-savings floor) behaves correctly.**
+
+### Decision 3: The 5 Content-queued venues ship with tag batch 1, not before.
+
+Content queued GIG×2 (Brazil beach, two gateway airports), TRN (Turin ski), SOF (Sofia ski), INV (Inverness ski). All validated. Ready to paste.
+
+**DECISION: These 5 venues do not ship until tag batch 1 (50 venues) ships. Adding venues with 2 thin tags to a catalog that's 55.7% thin makes the number worse. The gate is the tag batch. No exceptions.**
+
+---
+
+## This Week's Top 3 Priorities
+
+1. **Sprint items 1–4 (cache stamp + PRECACHE fix + `origin/master` delete + Gili dedup)** — No design decisions. No VPS access needed. Should have shipped Oct 23. Ships next session.
+2. **JSON-LD structured data** — Sprint item 5. SEO 3-week lag starts when this ships. Whistler is 16 days away. Every session this slips is a lost indexing day.
+3. **VPS redeploy (Jack SSH)** — Hard deadline Nov 5. This is not a sprint task — it requires Jack's SSH session to the DigitalOcean droplet. The code is committed and waiting in `server/proxy.js` since Aug 11. Four production bugs unblock in 5 minutes.
 
 ---
 
 ## Features REJECTED This Week
 
-- **`claude/*` branch merges** — CLOSED. None were created through deliberate product decisions. Evaluate from scratch post-Whistler if the idea is still worth building.
-- **New venue additions before tag batch 1** — REJECTED. Catalog quality > catalog size at 404 venues. The 5 queued venues wait.
-- **Any post-Whistler roadmap planning** — REJECTED. We are 17 days from the launch event. Planning what comes after it is premature. Build what ships the Whistler post first.
-- **Stale cron prompt update from this agent** — CAN'T DO. Jack: 2-minute fix in Claude.ai interface, Day 18.
+- **`claude/*` branch merges** — CLOSED, same as v190. None were created through deliberate product decisions. Post-Whistler if the idea is still worth building, reintroduce from scratch.
+- **New venue additions before tag batch 1** — DEFERRED. The 5 queued venues (GIG×2, TRN, SOF, INV) are validated and ready; they ship after tag batch 1. Adding thin-tag venues now makes the quality metric worse.
+- **Gili Trawangan "from Lombok / from Bali" title differentiation** — DEFERRED. The dedup resolution is to remove `gili-trawangan/DPS` (DPS has 18 other venues, LOP has only this one) and keep `beach_gilit/LOP`. Renaming is scope creep on a dedup task.
+
+---
+
+## Success Criteria & 90-Day Projection
+
+**5K users (base case):** Whistler post lands, Reddit karma carries organic traffic, App Store submission completes before ski season peak.
+
+**8K users (upside case):** Requires all of:
+- VPS ships before Nov 5 → two-weekend scoring live → Whistler appears on front page with a real score
+- JSON-LD ships this week → Whistler-related pages indexed before the Reddit post → SEO traffic at launch instead of 3 weeks after
+- Tag batch 1 ships → `scoreVibeMatch` precision improves → returning users get better "For you" results → retention edge
+
+The difference between 5K and 8K is not a new feature. It's whether the infrastructure (VPS + SEO) is in place when the Reddit post lands. Those two items have hard deadlines that are currently being ignored.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The sprint queue has been "locked" for 24 hours and nothing has shipped.**
+**The Whistler window is 16 days, but the real deadline is closer to 10.**
 
-v189 declared the sprint queue locked and the code freeze lifted. Oct 24's reports from DevOps and Content confirm zero app.jsx commits. The risk isn't that the sprint items are wrong — they're right. The risk is that the sprint queue becomes a recurring report item rather than a shipping item. Each daily cycle the queue sits idle, the Whistler window shrinks by one day, the JSON-LD SEO lag starts one day later, and the cache stays stale for another day of returning users.
+The Nov 5 VPS deadline assumes a same-day VPS redeploy + a 5-day lead time for Whistler to appear in the forecast window. But the Reddit post itself needs preparation time: the screenshot, the copy, the subreddit selection, the timing (post on a Thursday for weekend traffic). Realistically, that's 2–3 days of prep after the VPS confirms Whistler is showing correctly.
 
-The 17-day Whistler window is not recoverable. The opening day spike on r/skiing happens once. If the sprint queue is still "locked but not started" on Nov 1, the Whistler post window is 9 days and the JSON-LD structured data has had 8 days to index instead of 15.
+That means the effective VPS deadline is ~Nov 2–3, not Nov 5. The report has been calling Nov 5 for two weeks. It should be calling Nov 2.
 
-This is not a planning problem. It's an execution gap. The next agent session that touches app.jsx ships items 1–5.
-
----
-
-## 90-Day Projection: What Gets Us to 8K, Not 5K
-
-Unchanged from v189 — the gap between 5K and 8K is:
-1. **Whistler post timing** — top 10 of r/skiing on opening day
-2. **VPS `forecast_days:14`** — Whistler shows high-confidence when Reddit users arrive
-3. **Tag enrichment** — second-visit retention; search recall for "powder" and "warm water"
-
-All three require the sprint to actually ship. The 5K scenario is where the sprint stays a recurring report item. The 8K scenario is where it ships this week.
+If the VPS ships Nov 4 and Whistler doesn't appear in the forecast window until Nov 6, the Reddit post misses the window entirely. The next natural Whistler hook is Dec when the full season opens — a 6-week delay.
 
 ---
 
-*v190 written 2026-10-24. Hard deadline: VPS Nov 5 (12 days). Sprint items 1–5: EOD Oct 25.*
+## Open Items Tracker
+
+| # | Item | Status | Deadline |
+|---|------|--------|----------|
+| 19 | VPS redeploy | 🔴 Day 77, Jack SSH | **Nov 2 (real deadline)** |
+| 20 | Photos (~346 venues generic stock) | P2 — post-Whistler | — |
+| 21 | APNS: HTTP/2 + P1363 JWT fix | P2 — parked | — |
+| 22 | BASE_PRICES coverage | ✅ **CLOSED Oct 25** — 100% | — |
+| 23 | Weather cache disk persistence | P1 — bundle with #19 | Nov 2 |
+| Sprint-1 | Cache stamp + PRECACHE fix | 🔴 Overdue 48h | Today |
+| Sprint-2 | `origin/master` footgun delete | 🔴 Overdue 48h | Today |
+| Sprint-3 | Gili Trawangan dedup | 🔴 Overdue 48h | Today |
+| Sprint-4 | JSON-LD structured data | 🔴 Not started | Today |
+| Sprint-5 | Tag batch 1 (50 venues) | Not started | Oct 28 |
+| Sprint-6 | 5 new venues (GIG×2/TRN/SOF/INV) | Blocked by Sprint-5 | Oct 29 |
