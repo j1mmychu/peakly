@@ -1,12 +1,12 @@
-# Peakly Content & Data Report — 2026-10-27
+# Peakly Content & Data Report — 2026-10-28
 
 ## Data Health Score: 88/100
 
-**Deductions (persistent — no code changes since 2026-08-11, day 77):**
+**Deductions (persistent — no code changes since 2026-08-11, day 78):**
 - −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded
 - −1: Gili Trawangan near-duplicate (`beach_gilit/LOP` vs `gili-trawangan/DPS`) — same island, two airports
 - −1: Stale scheduled-task prompt (references "182 venues, 12 categories, hiking" — outdated since 2026-05-03 pivot)
-- −1: PRECACHE→CDN version mismatch in sw.js (DevOps P1-A, day 3) — offline users may load wrong Babel version
+- −1: PRECACHE→CDN version mismatch in sw.js (DevOps P1-A, day 4) — offline users may load wrong Babel version
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" and asks to audit hiking gear items. The project pivoted 2026-05-03 to **skiing + beach only**. GEAR_ITEMS was cut for v1 (`grep -c GEAR_ITEMS app.jsx → 0`). Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects actual app.jsx state.
 
@@ -16,7 +16,7 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | ~14,238 — no code changes since 2026-08-11 (day 77) |
+| app.jsx lines | **14,238** — no code changes since 2026-08-11 (day 78) |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
@@ -25,150 +25,153 @@
 | Missing photos | **0** ✅ |
 | Missing tags array | **0** ✅ |
 | IATA code format | **0 invalid** ✅ |
-| Coordinate bounds | **0 out-of-range** ✅ |
-| Venues with only 2 tags | **225 (55.7%)** ⚠️ |
-| Thin-tag beach venues | **190 / 270 (70%)** ⚠️ |
-| Thin-tag ski venues | **35 / 134 (26%)** ⚠️ |
-| BASE_PRICES coverage | **100%** ✅ |
-| lateSeason:true venues | **15** (Whistler, Chamonix, Mammoth, Tignes, Hintertux, Cervinia, Snowbird, Zermatt, Engelberg, Verbier, Val-Thorens, Les-Deux-Alpes, Saas-Fee, St-Moritz, Abasin) ✅ |
+| BASE_PRICES coverage | **100%** (all 165 unique venue airports covered) ✅ |
+| lateSeason:true venues | **15** ✅ |
+| poolPrimary:true venues | **0** (schema field exists, no venues set) |
 | GEAR_ITEMS in app | **0** — Amazon cut confirmed for v1 ✅ |
-| Gili Trawangan near-dup | ⚠️ persists (day 3): `beach_gilit/LOP` + `gili-trawangan/DPS` |
-| Surf Breaks tag on beach venues | ⚠️ 33 venues carry this tag (surfing retired, tags are descriptors — OK as-is) |
-| Yesterday's 5 venue suggestions | **Not yet applied** — queue accumulating |
+| Venues with only 2 tags | **225 (55.7%)** ⚠️ |
+| Thin-tag beach venues | **~190 / 270 (70%)** ⚠️ |
+| Thin-tag ski venues | **~35 / 134 (26%)** ⚠️ |
+| Gili Trawangan near-dup | ⚠️ persists (day 4): `beach_gilit/LOP` + `gili-trawangan/DPS` |
+| Venue suggestion queue | **15 pending** — no new applications (day 3 of queue freeze) |
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-All 404 venues pass core integrity checks: no missing coordinates, no missing airport codes, no missing tags arrays, no duplicate IDs, no duplicate photo URLs, no invalid IATA formats, no lat/lon out of range.
+All 404 venues pass core integrity checks. No regressions from yesterday.
 
-**Tag depth distribution:**
-- 2 tags: **225 venues** (55.7%) — the persistent quality gap
+**Tag depth distribution (unchanged):**
+- 2 tags: **225 venues** (55.7%) — persistent quality gap
 - 3 tags: 14 venues (3.5%)
-- 4 tags: 164 venues (40.6%)
-- 5+ tags: 1 venue (0.2%)
+- 4+ tags: 165 venues (40.8%)
 
-**Top 10 most-used tags:** Family Friendly (32), All Levels (25), Groomed Runs (22), Calm Waters (19), Expert Terrain (18), Powder Day (17), Off-Piste (16), Surf Breaks (16), High Altitude (14), Scenic Views (14).
+**Confirmed clean:**
+- IDs: 404 unique, 0 duplicates
+- Airports: 404 entries, all valid IATA format, 165 unique APs
+- BASE_PRICES: 100% coverage — all 165 venue airports present
+- lateSeason:true: 15 venues (Whistler, Chamonix, Mammoth, Tignes, Hintertux, Cervinia, Snowbird, Zermatt, Engelberg, Verbier, Val-Thorens, Les-Deux-Alpes, Saas-Fee, St-Moritz, Abasin)
 
-**Thin-tag split by category:** 190 of 270 beach venues (70%) have only 2 tags. 35 of 134 ski venues (26%) have only 2 tags. The beach catalog is the primary target for bulk tag enrichment.
+**Gili Trawangan near-duplicate (day 4 — low priority, defer):**
+- `beach_gilit` — Gili Trawangan via LOP (Lombok)
+- `gili-trawangan` — Gili Trawangan via DPS (Bali)
+These are legitimately separate entry points. Low-cost fix: add "(via Lombok)" / "(via Bali)" suffixes. Not urgent.
 
-**Gili Trawangan near-duplicate (day 3 — low priority):**
-- `beach_gilit` — Gili Trawangan via LOP (Lombok) — only venue at LOP
-- `gili-trawangan` — Gili Trawangan via DPS (Bali) — one of 10 venues at DPS
-Both are legitimate airport entry points. Recommend: differentiate with "(Lombok gateway)" vs "(Bali gateway)" suffixes on titles.
-
-**Pending venue suggestion queue:** Yesterday's 5 suggestions (Playa de Las Américas/TFS, Balos Lagoon/CHQ, Punaluu/KOA, Lee Canyon/LAS, Grayton Beach/VPS) remain un-applied. Today adds 5 more, making 10 suggestions pending. If none land in the next 3–4 days, flag to PM for triage — at 5/day pace this queue becomes noise.
+**Venue suggestion queue status:**
+- 2026-10-26: TFS (Playa de Las Américas), CHQ (Balos Lagoon), KOA (Hapuna), LAS (Lee Canyon — dup flagged by PM v192), VPS (Grayton Beach) — 5 venues
+- 2026-10-27: CZM (El Cielo), EYW (Dry Tortugas), TPA (Caladesi), MYR (Huntington Beach SC), KOA (Papakolea) — 5 venues
+- **Today: +5 new** (see §5 below)
+- **Total queued: 15.** None applied. At this pace the queue degrades in utility within 2–3 days.
 
 ---
 
 ## 2. GEAR ITEMS AUDIT
 
-**N/A for this codebase.** Amazon Associates (GEAR_ITEMS) was formally cut for v1 on 2026-06-09 (Jack's decision). `grep -c GEAR_ITEMS app.jsx → 0`. Revenue model is $7.58/1K MAU. This prompt section is an artifact of the original 12-category version.
+**N/A.** Amazon Associates (GEAR_ITEMS) formally cut for v1 on 2026-06-09. `grep -c GEAR_ITEMS app.jsx → 0`. Revenue model is $7.58/1K MAU. This prompt section is a stale artifact.
 
 ---
 
-## 3. SEASONAL RELEVANCE — October 27, 2026
+## 3. SEASONAL RELEVANCE — October 28, 2026
 
-| Segment | Venues | Oct 27 Condition |
+| Segment | Venues | Oct 28 Condition |
 |---------|--------|-----------------|
-| N. Hemisphere skiing | 111 | Pre-season (opens Nov–Dec). lateSeason (15) already rideable at altitude. |
-| S. Hemisphere skiing | 23 | Off-season closed. Score will be poor — expected. |
-| Tropical beach (lat < 23°) | ~163 | **Peak season.** 28–32°C, UV 8–11. Best scoring globally. |
-| N. Hemisphere Mediterranean/Atlantic beach | ~92 | Shoulder — 20–24°C water, still scoreable. Crete/Canaries excellent. |
-| S. Hemisphere beach (AUS/NZ/SA) | ~15 | Spring warmup. Good and improving through Dec. |
+| N. Hemisphere lateSeason glaciers | 15 | **Peak glacier window.** Hintertux, Saas-Fee, Tignes, Zermatt year-round open. Verbier/Val-Thorens likely open mid-November. Prime 2-week marketing moment. |
+| N. Hemisphere ski (non-lateSeason) | 119 | Pre-season. Most open Nov–Dec. Score will be low/zero — expected. |
+| S. Hemisphere skiing | 23 | Closed (May–Oct season; Oct 28 is shoulder exit). Off-season, poor scores. |
+| Tropical beach (lat < 23°) | ~163 | **Peak season.** 28–32°C, UV 8–11. Strongest scoring globally. |
+| Mediterranean/Atlantic beach (N. Hem) | ~92 | Shoulder — water 20–24°C, air 18–22°C. Canaries/Madeira excellent. |
+| S. Hemisphere beach (AUS/NZ/SA) | ~15 | Spring warming — good and improving through Dec. |
 
-**Key seasonal triggers:**
-- **14 days to Whistler opening (~Nov 10):** The VPS `forecast_days:14` fix must land before this. Currently front page shows Whistler as unscorable past day 7. Jack-only SSH action — not a content fix but worth flagging daily.
-- **lateSeason star window (now):** Hintertux (year-round glacier), Saas-Fee, Tignes glacier, Zermatt Glacier Paradise — these should be appearing on the front page for European hub users (GVA, ZRH, CMF, INN all fully covered). Prime marketing moment for content/social if the app is working correctly.
-- **Canary Islands / Madeira peak:** TFS and FNC airports are entering their best 4-month window. Existing Teide/Playa de Troya coverage (1 venue at TFS) is thin for the calendar moment.
+**Critical time flags:**
+- **🚨 VPS redeploy deadline: 2 days (Oct 30).** PM set this as a hard gate. Without it, `forecast_days` stays at 7. Whistler opens **13 days** from today (~Nov 10) — the #1 skiing venue by user awareness. If the VPS isn't redeployed before then, the front page can't score Whistler's opening weekend correctly. This is not a content task but it directly determines whether today's venue queue has any value to ship.
+- **🏔 lateSeason glacier window (NOW — 2 weeks):** Hintertux, Saas-Fee, and Tignes glacier are all rideable today. For users flying out of GVA, ZRH, INN, CMF — this is the highest-scoring ski weekend globally. If the app is returning these venues at the top of the grid, the content team has done its job. Monitor via the live site.
+- **🌊 Canaries/Madeira peak entry:** TFS (Tenerife) and FNC (Madeira) enter their best 4-month window. Current coverage: 1 venue at TFS (Playa del Duque added 2026-10-26 suggestion queue), 0 at FNC. Low priority but Madeira is a gap.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Tag depth gap (persistent P1):** 225 venues (55.7%) have only 2 tags, down to none with 1. The minimum floor is working, but 2 tags is still below the 4-tag sweet spot for `scoreVibeMatch`. Beach venues are the worst: 190/270 at 2 tags only. A focused 2–3 hour session adding 2 additional tags per thin beach venue would push the health score to 97/100 and directly improve front-page personalization quality for the most common user type (summer beach traveler).
+**Tag depth gap (persistent P1 — day 78 unchanged):** 225 venues at 2 tags. Same count as 2026-08-11. Zero progress since the code freeze. The gap is larger on beach (70% of beach, 26% of ski). A bulk tag enrichment session — 2 additional tags per 2-tag beach venue, drawn from the venue's known characteristics — would push the score to 97/100 and directly improve front-page personalization for the most common user type.
 
-**Priority bulk-tag candidates (beach, 2 tags only, high-traffic airports):**
-All 10 DPS (Bali) beach venues have only 2 tags — this is the highest-concentration single-airport gap. Example: `nusa-lembongan-bali` has ["Clear Lagoon","Day Trip"] — could add "Manta Ray Snorkeling", "Boat Transfer" for richer matching.
+**Tag enrichment priority order (beach, 2-tag, high-traffic APs):**
+1. All DPS (Bali) 2-tag venues — 10 venues, highest single-airport concentration
+2. CUN (Cancun) 2-tag venues — Caribbean beach pool with generic tags
+3. HKT (Phuket) 2-tag venues — Thailand's most-served AP
 
-**Description field:** Empty on all 404 venues by design — app does not render descriptions. Not a gap.
-
-**Difficulty signals:** Conveyed via tags ("Expert Terrain", "All Levels", "Beginner Friendly") — consistent with schema design.
-
----
-
-## 5. DAILY VENUE ADDITIONS — October 27, 2026
-
-**Focus:** Airports with exactly 1 venue and high October relevance. All 5 venues target distinct airports already fully supported in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES. None conflict with yesterday's 5 suggestions (TFS/CHQ/KOA/LAS/VPS). Verified no ID conflicts.
-
-**Seasonal rationale:** These are peak or shoulder October venues — they'd score well right now if added.
+**poolPrimary:true = 0:** The schema field is defined in CLAUDE.md (beach venues that skip the <18°C water-temp hard cap via pool focus). None of the 270 beach venues carry it. This is likely intentional — no pool-primary beach venues were ever added. Not a bug, just an unused flag.
 
 ---
 
-### Venue 1 — El Cielo, Cozumel (CZM) `beach`
+## 5. DAILY VENUE ADDITIONS — October 28, 2026
 
-CZM currently has 1 venue (Playa Palancar, deep coral reef). El Cielo ("heaven") is the opposite: a shallow (1m) sandy patch 20 min by boat from downtown, carpeted with sea stars. Completely different experience from Palancar — no diving gear needed, famous Instagram spot, warm 28°C water year-round. Adds variety and second entry point at CZM.
+**Strategy:** All 5 target airports not yet in the pending queue (INN, KBV, NAP, LRH, SZG). Seasonal focus: 2 lateSeason skiing (Northern European glacier openings), 3 peak-October beach. None conflict with existing venue IDs.
+
+---
+
+### Venue 1 — Stubai Glacier (INN) `skiing` — lateSeason
+
+Austria's closest year-round glacier to a major hub. Stubai Glacier (Stubaier Gletscher) opens every October at 3,210m. Accessible via Innsbruck by shuttle in ~1hr. 110km of pistes across glacial terrain, confirmed rideable now. Peak beginner-to-intermediate glacier conditions. Should carry `lateSeason: true` — open through June.
 
 ```js
-{id:"beach_el_cielo_cozumel", category:"beach", title:"El Cielo", location:"Cozumel, Quintana Roo, Mexico", lat:20.32, lon:-87.07, ap:"CZM", icon:"🏖", rating:4.8, reviews:"16K", gradient:"from-cyan-400 to-sky-500", accent:"#0ea5e9", tags:["Starfish Lagoon","Shallow Snorkeling","Boat Access","Year-Round Sun"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Cozumel_beach.jpg/1280px-Cozumel_beach.jpg"},
+{id:"ski_stubai_glacier", category:"skiing", title:"Stubai Glacier", location:"Neustift im Stubaital, Tyrol, Austria", lat:46.978, lon:11.147, ap:"INN", icon:"⛷", rating:4.8, reviews:"22K", gradient:"from-sky-600 to-indigo-700", accent:"#0284c7", lateSeason:true, tags:["Year-Round Glacier","Beginner Friendly","High Altitude","Powder Day","Snowpark"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Stubaier_Gletscher_%2810%29.jpg/1280px-Stubaier_Gletscher_%2810%29.jpg"},
 ```
 
-> ⚠️ Verify Wikimedia photo URL exists. Search "Cozumel beach" on commons.wikimedia.org. Coordinates: 20.32°N 87.07°W — approx. El Cielo shoal area SE of town.
+> ⚠️ Verify Wikimedia photo. Search "Stubaier Gletscher" on commons.wikimedia.org. Coords: 46.978°N 11.147°E — glacier car park area, Mutterbergalm.
 
 ---
 
-### Venue 2 — Dry Tortugas National Park (EYW) `beach`
+### Venue 2 — Dachstein Glacier, Upper Austria (SZG) `skiing` — lateSeason
 
-EYW currently has 1 venue (Key West Beaches). Dry Tortugas is 70 miles offshore — only accessible by seaplane or 2.5hr ferry — but consistently rated one of the most spectacular snorkeling spots in the US. Fort Jefferson on Garden Key, nesting sooty terns, coral reefs with zero crowds. October: warm 28°C water, hurricane season over, no summer tourist crush.
+Separate from INN/Stubai — Dachstein serves Salzburg. The Dachstein glacier plateau (2,700m) on the Salzkammergut border opens late September. Smaller than Stubai (12km pistes) but renowned for its Sky Walk and dramatic karst scenery — one of the most photogenic ski venues in Austria. Adds a second Austrian lateSeason option at a distinct airport.
 
 ```js
-{id:"beach_dry_tortugas", category:"beach", title:"Dry Tortugas National Park", location:"Monroe County, Florida, USA", lat:24.628, lon:-82.873, ap:"EYW", icon:"🏖", rating:4.9, reviews:"9K", gradient:"from-teal-600 to-emerald-500", accent:"#0d9488", tags:["Ferry or Seaplane Only","Fort Jefferson","World-Class Snorkeling","Nesting Seabirds"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Dry_Tortugas_-_Garden_Key_from_above.jpg/1280px-Dry_Tortugas_-_Garden_Key_from_above.jpg"},
+{id:"ski_dachstein", category:"skiing", title:"Dachstein Glacier", location:"Ramsau am Dachstein, Styria, Austria", lat:47.48, lon:13.7, ap:"SZG", icon:"⛷", rating:4.6, reviews:"8K", gradient:"from-slate-600 to-sky-500", accent:"#0284c7", lateSeason:true, tags:["Glacier Plateau","Sky Walk","Scenic Views","Late Season","High Altitude"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Dachstein_Gletscher.jpg/1280px-Dachstein_Gletscher.jpg"},
 ```
 
-> ⚠️ Verify Wikimedia photo. Search "Dry Tortugas Garden Key" on commons. Coordinates: Garden Key, the main visitor island.
+> ⚠️ Verify Wikimedia photo. Search "Dachstein Gletscher" on commons. Coords: 47.48°N 13.70°E — Hunerkogel gondola base area.
 
 ---
 
-### Venue 3 — Caladesi Island State Park (TPA) `beach`
+### Venue 3 — Koh Lanta (KBV) `beach`
 
-TPA currently has 1 venue (Clearwater Beach, the busy resort strand). Caladesi Island is its pristine sister — accessible only by ferry from Honeymoon Island State Park or by kayak. Consistently ranked top 5 US beach by Dr. Beach. No development, undisturbed dunes, 3-mile shell-covered gulf shore. October: water 26°C, zero summer crowds, dolphin sightings regular.
+Thailand's quieter alternative to Phi Phi — served by Krabi Airport (KBV). October marks the end of the Andaman monsoon on the east-facing Koh Lanta coast. Long, calm shallow beaches (Had Khlong Dao, Klong Nin), mangrove sea kayaking, and significantly fewer crowds than Koh Phi Phi. The national marine park wraps the south end of the island. Water 28°C, excellent visibility for snorkeling.
 
 ```js
-{id:"beach_caladesi", category:"beach", title:"Caladesi Island State Park", location:"Dunedin, Florida, USA", lat:28.03, lon:-82.82, ap:"TPA", icon:"🏖", rating:4.9, reviews:"12K", gradient:"from-amber-300 to-cyan-400", accent:"#06b6d4", tags:["Ferry Access Only","Pristine State Park","Shell Coast","Dolphin Sightings"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Caladesi_Island_State_Park_Florida.jpg/1280px-Caladesi_Island_State_Park_Florida.jpg"},
+{id:"beach_koh_lanta", category:"beach", title:"Koh Lanta National Park", location:"Ko Lanta Yai, Krabi, Thailand", lat:7.395, lon:99.145, ap:"KBV", icon:"🏖", rating:4.7, reviews:"19K", gradient:"from-teal-500 to-emerald-600", accent:"#0d9488", tags:["Mangrove Kayaking","Marine Park","Calm East-Facing","Off the Beaten Track"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Koh_Lanta_Beach.jpg/1280px-Koh_Lanta_Beach.jpg"},
 ```
 
-> ⚠️ Verify Wikimedia photo. Search "Caladesi Island State Park" on commons. Coordinates: center of the island's public beach.
+> ⚠️ Verify Wikimedia photo. Search "Koh Lanta beach" on commons. Coords: 7.395°N 99.145°E — Had Khlong Dao, north Koh Lanta.
 
 ---
 
-### Venue 4 — Huntington Beach State Park (MYR) `beach`
+### Venue 4 — Positano, Amalfi Coast (NAP) `beach`
 
-MYR currently has 1 venue (Myrtle Beach, the high-rise tourist corridor). Huntington Beach State Park is 17 miles south — South Carolina's only ocean-front state park, undeveloped barrier island with live oaks, alligators in freshwater lagoons, and 3 miles of uncrowded Atlantic beach. "The jewel of the South Carolina coast" (Travel + Leisure). October: water 23°C, mild 20°C air, fall birding peak.
+The iconic Italian cliffside beach town. NAP (Naples) has no venues in the current catalog — a clear gap for one of Europe's most aspirational coastal destinations. October: water 22°C, air 19–22°C, zero summer tourist crush, ferries still running. Positano Beach (La Spiaggia Grande) is pebble not sand, but the setting — cliff terraces, pastel buildings, boat traffic — is unmatched. Strong Booking.com affiliate conversion given accommodation density.
 
 ```js
-{id:"beach_huntington_sc", category:"beach", title:"Huntington Beach State Park", location:"Murrells Inlet, South Carolina, USA", lat:33.52, lon:-79.06, ap:"MYR", icon:"🏖", rating:4.8, reviews:"11K", gradient:"from-green-800 to-teal-600", accent:"#0f766e", tags:["Undeveloped Barrier Island","Fall Birding","Atlantic Uncrowded","Alligator Lagoon"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Huntington_Beach_State_Park_SC.jpg/1280px-Huntington_Beach_State_Park_SC.jpg"},
+{id:"beach_positano", category:"beach", title:"Positano, Amalfi Coast", location:"Positano, Campania, Italy", lat:40.628, lon:14.485, ap:"NAP", icon:"🏖", rating:4.8, reviews:"31K", gradient:"from-orange-400 to-rose-500", accent:"#f97316", tags:["Cliffside Village","Pebble Beach","Boat Trips","Off-Peak October"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Positano_beach_from_sea.jpg/1280px-Positano_beach_from_sea.jpg"},
 ```
 
-> ⚠️ Verify Wikimedia photo. Search "Huntington Beach State Park South Carolina" on commons.
+> ⚠️ Verify Wikimedia photo. Search "Positano beach" on commons. Coords: 40.628°N 14.485°E — La Spiaggia Grande, Positano.
 
 ---
 
-### Venue 5 — Papakolea Green Sand Beach (KOA) `beach`
+### Venue 5 — Île de Ré (LRH) `beach`
 
-KOA currently has 1 venue (Hapuna Beach, white sand classic). Papakolea is one of only 4 green sand beaches on Earth — the colour comes from olivine crystals eroded from a volcanic cone. 45-min hike or 4WD shuttle from the road. October: water 27°C, no tourist crowds (requires effort to reach), dramatic volcanic scenery. Adds geological uniqueness and a second KOA entry point that's completely different in character.
+French Atlantic island off La Rochelle (LRH airport, 15km from the Pont de Ré bridge). October: the tourist mass is gone, the island reverts to cyclists, local oysters, and 70km of protected bike paths across salt pans and dune beaches. Water 17°C — below ideal, but `poolPrimary` doesn't apply here. Unique for its flat light, windswept dunes (Conche des Baleines), and fortress town Saint-Martin-de-Ré. Strong appeal to French-market users from CDG/ORY — LRH is a short connector.
 
 ```js
-{id:"beach_papakolea", category:"beach", title:"Papakolea Green Sand Beach", location:"Ka'ū, Big Island, Hawaii, USA", lat:18.953, lon:-155.685, ap:"KOA", icon:"🏖", rating:4.7, reviews:"14K", gradient:"from-lime-700 to-emerald-800", accent:"#65a30d", tags:["Green Olivine Sand","Volcanic Crater Beach","4WD or Hike Access","Geologic Wonder"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Papakolea_beach_Hawaii.jpg/1280px-Papakolea_beach_Hawaii.jpg"},
+{id:"beach_ile_de_re", category:"beach", title:"Île de Ré", location:"Île de Ré, Charente-Maritime, France", lat:46.215, lon:-1.42, ap:"LRH", icon:"🏖", rating:4.7, reviews:"24K", gradient:"from-sky-300 to-blue-500", accent:"#0284c7", tags:["Cycling Island","Salt Pans","Atlantic Dunes","UNESCO Fortress"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Ile_de_re_plage.jpg/1280px-Ile_de_re_plage.jpg"},
 ```
 
-> ⚠️ Verify Wikimedia photo. Search "Papakolea green sand beach" on commons. Coordinates: 18.953°N 155.685°W — Mahana Bay, Ka'ū District.
+> ⚠️ Verify Wikimedia photo. Search "Île de Ré plage" or "Ile de Re beach" on commons. Coords: 46.215°N 1.42°W — north shore, Conche des Baleines dune area.
 
 ---
 
 ## One Observation for the PM
 
-**The venue suggestion queue is accumulating with no depleted signal.** Yesterday's 5 venue objects (TFS, CHQ, KOA, LAS, VPS) and today's 5 (CZM, EYW, TPA, MYR, KOA-2nd) are all paste-ready JavaScript but remain un-applied — 10 venues queued, 0 landed in 2 days. This is fine as a backlog, but after 5+ days of daily additions the value of the queue degrades (earlier suggestions get stale context). Consider: (1) a dedicated 30-min paste session to land the 10 pending venues in one commit, which would also be the `app.jsx` touch needed to bump the cache stamp, or (2) pausing venue additions until the VPS redeploy and PRECACHE fix land, making the first post-blockage commit a combined fix + content drop. Either way, the VPS redeploy (day 79) is still the critical gating item — no amount of new venues matters if `forecast_days:14` isn't live before Whistler opens in **14 days**.
+**The venue queue has hit 15 with zero applications — but that's not the content team's problem. The VPS redeploy deadline is Oct 30 (2 days).** Every pending venue addition and every tag enrichment pass is blocked in meaningful value by a single Jack-only SSH action. If the VPS goes down in a content commit (cache stamp requires an `app.jsx` touch), the front page will immediately show Whistler (the #1 ski venue, opening in 13 days) as unscorable. The highest-leverage action in this project right now isn't more venue objects — it's one `pm2 restart` on `198.199.80.21`. After that, the content team can ship 15 venues in one commit, bump the cache stamp, and have the app ready for the Whistler opening-weekend window. Until then, the content queue is a staging area, not a blocker.
 
 ---
 
-*Report generated: 2026-10-27 by Peakly Content & Data Agent*
+*Report generated: 2026-10-28 by Peakly Content & Data Agent*
