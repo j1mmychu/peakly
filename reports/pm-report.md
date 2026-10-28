@@ -1,144 +1,158 @@
-# Peakly PM Report v193 — 2026-10-27 (LAUNCH DAY +9)
+# Peakly PM Report v194 — 2026-10-28 (LAUNCH DAY +10)
 
-**Status: 🔴 RED — VPS Day 80. Whistler window = 14 days. Jack SSH deadline = TODAY/TOMORROW. Sprint queue Day 4. Nothing shipped since Aug 11.**
+**Status: 🔴 RED — VPS Day 80. Today is Jack's SSH deadline (Oct 28 "preferred" per v192). Whistler opens Nov 10 = 13 days. Zero code shipped since Aug 11 (78 days). Sprint queue unchanged Day 5.**
 
-> **Stale prompt notice — Day 21 (unchanged):** The stored cron prompt still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404–406 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface.
+> **Stale prompt notice — Day 22 (unchanged):** The stored cron prompt still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface.
 
 ---
 
-## Shipped Since Last Report (v192 → v193)
+## Shipped Since Last Report (v193 → v194)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `3d8b6fc` | DevOps Oct 27 — RED, VPS Day 79, 14 days to Whistler, PRECACHE mismatch day 3, venue count drift (406 vs 404) | ✅ reporting |
-| `a729e3f` | Content Oct 27 — 88/100, tag-depth gap persists (225 venues), venue suggestion queue now 10 deep | ✅ reporting |
+| `f811e24` | DevOps Oct 28 — RED, VPS Day 80 (Oct 30 deadline), PRECACHE mismatch day 4, venue count 404 confirmed | ✅ reporting |
+| `28c9601` | Content Oct 28 — 88/100, 5 new venues added to queue (INN/SZG ski + KBV/NAP/LRH beach), queue at 15 | ✅ reporting |
 
-**Four consecutive days post-code-freeze. Zero app.jsx / sw.js / index.html commits. Sprint queue untouched day 4.**
+**Five consecutive days post-code-freeze. Zero app.jsx / sw.js / index.html commits. Sprint queue untouched day 5.**
+
+**New finding:** 15+ unmerged `claude/*` branches accumulated on origin (analyze-test-coverage, code-review-cleanup, condense-alert-page, enhance-loading-screen, fix-app-jsx-content, improve-peakly-ui, improve-scoring-system, redesign-front-page, review-peakly-ux, simplify-alerts-page, simplify-profile-page, streamline-onboarding-account, etc.). These are cloud agent exploration branches — nothing merged, nothing shipped. This is ambient noise. They do not block anything but Jack should be aware they exist and delete them after a quick review.
 
 ---
 
 ## Bug Triage
 
-### P0-A — VPS Redeploy: Day 80. Jack SSH Required TODAY. 🚨
+### P0-A — VPS Redeploy: Today Is The Day. 🚨
 
-v192 said "Oct 30 at the latest, Oct 28 preferably." It's Oct 27. The "preferably" date is tomorrow.
+Today is Oct 28 — the "preferred" deadline from v192. Oct 30 is the hard deadline. **Jack, this is TODAY.**
 
-**The math is simple:** Whistler opens Nov 10. Reddit post needs a Whistler screenshot. Screenshot needs `forecast_days:14` live. Today's 14-day window reaches Nov 10 exactly. Tomorrow still reaches Nov 9. Oct 29 reaches Nov 8 — the resort is technically open but not in the forecast window. **The screenshot window is open right now and closes in 48 hours.**
+The Whistler forecast window math: today's 14-day Open-Meteo window reaches Nov 11. Tomorrow still reaches Nov 10 (opening day). Oct 30 reaches Nov 9 — one day before opening, still technically usable for a screenshot but cutting it extremely close. **The window is open right now and closes within 48 hours.**
 
-Four bugs blocked on this single SSH action:
-1. `forecast_days: 7` → Two-weekend scoring broken, Whistler/Tignes invisible on front page
-2. `capacitor://localhost` absent from CORS → Every iOS native API call blocked
+Four bugs blocked by this one 5-minute SSH action:
+1. `forecast_days:7` → Two-weekend scoring broken, Whistler/Tignes invisible on front page
+2. `capacitor://localhost` absent from CORS → Every iOS native API call silently blocked
 3. `DELETE` absent from allowed methods → Alert deletion silently fails
-4. `_wxCache` in-memory only → Cold cache on restart fans out ~406 Open-Meteo requests
+4. `_wxCache` in-memory only → Cold cache on restart fans out 404 Open-Meteo requests simultaneously
 
-**Jack's 5-minute fix:**
+**Jack's exact commands:**
 ```bash
-scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 'pm2 restart peakly-proxy && pm2 save'
-curl -s https://peakly-api.duckdns.org/health
-# Look for: forecast_days_weather:14
+ssh root@198.199.80.21
+cd /tmp && git clone https://github.com/j1mmychu/peakly.git peakly-deploy 2>/dev/null || (cd /tmp/peakly-deploy && git pull)
+cp /tmp/peakly-deploy/server/proxy.js /opt/peakly-proxy/proxy.js
+cd /opt/peakly-proxy && pm2 restart peakly-proxy
+curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
+# Expect: forecast_days_weather:14, apns:configured
 ```
 
-### P0-B — Sprint Queue: Day 4 Overdue, Requires Local Session 🚨
+### P0-B — Sprint Queue: Day 5 Overdue, BLOCKED-HUMAN-ACTION 🚨
 
-The sprint queue has been "ships next session" for 4 consecutive PM reports. Nothing ships without a Jack-initiated local Claude Code session. The auto-push hook fires only from local Claude Code.
+Per v193 decision: these are BLOCKED-HUMAN-ACTION, not deferred. They require Jack to open a local Claude Code session. Auto-push hook only fires from there.
 
-**Items — all <10 min, no design decisions:**
-1. Cache stamp bump (`20260914a` → `20261027a`) + PRECACHE → `[]`
-2. `origin/master` delete + `deploy.yml` master trigger removal
-3. Gili Trawangan dedup (remove `gili-trawangan/DPS`, keep `beach_gilit/LOP`)
-4. JSON-LD structured data (~30 min) — SEO 3-week lag starts on ship day
+**Items in priority order (all <30 min total):**
+1. Cache stamp: `20260914a` → `20261028a` + `PRECACHE = []` — fixes P1-A SW mismatch
+2. `origin/master` delete + `deploy.yml` master trigger removal — Day 21 footgun
+3. Gili Trawangan: remove `gili-trawangan/DPS`, keep `beach_gilit/LOP`, or add via-suffix labels — Day 5 dup
+4. JSON-LD structured data (~30 min) — SEO 3-week lag, Whistler amplification window closing
 
-**JSON-LD urgency update:** If JSON-LD ships today, Google may index ski pages before the Reddit post. If it ships Nov 1, Google indexes after. The SEO amplification of the Reddit launch is determined by when JSON-LD lands, not when the post goes up. The window is closing daily.
+### P1-A — PRECACHE→CDN Mismatch (Day 4)
 
-### P1-A — PRECACHE→CDN Mismatch (Day 3)
+`sw.js` pre-caches `unpkg@7.29.7/babel.min.js`. Production never loads Babel (esbuild strips it). Dev loads from `cdnjs@7.24.7`. SW is fetching a 1.1MB file from the wrong CDN that nobody requests. Fix: `PRECACHE = []`. Blocked on sprint item 1.
 
-`sw.js` precaches `unpkg@7.29.7/babel.min.js`. Production strips Babel entirely. This wastes ~800 KB of SW cache on a file production never serves. Fix: `PRECACHE = []`. Blocked on sprint item 1.
+### P1-B — Venue Queue: 15 Deep, No Merge Path, Growing
 
-### P1-B — Venue Count Discrepancy: 404 vs 406
+Content added 5 more venues today despite the Day 3 freeze decision. Queue is now 15 (was 10 yesterday per v193 decision to halt at 10). The freeze decision isn't holding.
 
-DevOps (eval) reports 406. Content (eval) reports 404. Two venues added by Content 2026-10-10 may not have triggered a CLAUDE.md update. Before the next venue batch ships, get a definitive count. One source is wrong. Run `node -e "const src = require('fs').readFileSync('app.jsx','utf8'); const m = [...src.matchAll(/\bid:\s*[\"']([\w-]+)[\"']/g)]; console.log(m.length)"` from the repo root and reconcile with CLAUDE.md.
+### P2 — 15+ Unmerged `claude/*` Branches on Origin
 
-### P2 — Venue Suggestion Queue: 10 Deep, No Merge Path
-
-Content is generating 5 new venues/day into a queue with no execution path to ship. At this rate:
-- Day 5 (tomorrow): 15 queued
-- Day 10: 40 queued
-- Day 15 (Whistler opening): 65 queued
-
-The LAS duplicate (Lee Canyon queued twice: Oct 25 + Oct 26) will fail the dup-id guard and block any attempt to batch-ship the entire queue. This is a P2 now; it becomes a P1 the moment Jack tries to ship the queue.
+Cloud agent sessions from the past month left 15+ exploration branches on origin. None are merged. Some may contain useful work (redesign-front-page, improve-scoring-system, streamline-onboarding-account). Most are probably stale noise. **Jack should do a quick pass and delete them before they become confusing.** Not urgent, but worth a 10-minute cleanup.
 
 ---
 
-## Three Product Decisions — Oct 27
+## Three Product Decisions — Oct 28
 
-### Decision 1: VPS SSH is TODAY, not Oct 30.
+### Decision 1: Jack SSH TODAY. This report is the last one that will ask nicely.
 
-v192 said "Oct 30 at the latest, Oct 28 preferably." I'm moving the preferred date forward. It's Oct 27. The Whistler screenshot window opened yesterday. Waiting until Oct 30 is gambling on Open-Meteo's 14-day window — that window reaches Nov 10 only if the VPS is deployed by Oct 27.
+v192 set Oct 28 as the preferred date. v193 said "today or tomorrow." Today is Oct 28.
 
-**DECISION: Jack, SSH today or tomorrow (Oct 27–28). Every day you wait, the forecast window for the Whistler opening-day screenshot shrinks. This is not a planning item anymore — it's a NOW item.**
+**DECISION: VPS SSH happens today (Oct 28) or tomorrow morning (Oct 29) at the absolute latest. If it doesn't happen by Oct 29 EOD, the Whistler screenshot window closes and the Reddit launch plan needs to be reconsidered — either launch with a weaker screenshot or wait until December. Both options cost weeks. The SSH takes 5 minutes. There is no good reason to delay.**
 
-If this slips past Oct 29, the Reddit post either launches without a Whistler screenshot (weakest possible ski launch post) or waits until Whistler's full December opening. Either outcome costs weeks. The SSH takes 5 minutes.
+If this report reaches Jack and the VPS is still on the Aug 11 build: SSH now, before reading the rest of this report.
 
-### Decision 2: Venue suggestion queue — CAP at 10, HALT new suggestions.
+### Decision 2: Venue suggestion queue — HARD CAP at 15, freeze is FIRM, Content agent must enforce it.
 
-Content has been suggesting 5 new venues/day for 2+ days with zero merge rate. The queue is growing faster than it can ship. Continuing to add to it degrades the signal — good suggestions get buried under noise.
+v193 Decision 2 said halt new suggestions until queue drops below 3. Today Content added 5 more, bringing the queue to 15. The freeze decision from v193 was not enforced.
 
-**DECISION: Content agent should HALT new venue suggestions until the queue drops below 3. No new venue suggestions in the next 5 Content reports. If a venue is obviously exceptional (new ski resort opening, major travel milestone), flag it as a one-off exception to PM — don't add it to the queue silently.**
+**DECISION: The venue suggestion queue is FROZEN at 15. Content agent must not add new venues until Jack ships the existing queue. This is a firm instruction, not a suggestion. The only exception: a venue that would be embarrassing to miss at launch (e.g., a top-10 globally recognized resort with zero representation). Everything else waits. The queue cannot grow faster than it ships — it's already at 15 with zero merge rate.**
 
-The queue currently has a known LAS duplicate blocker. Resolve that first. Then ship the remaining 9 (or 8) in a single batch, not piecemeal.
+To ship the queue: Jack opens a local session, runs `validate-venues.mjs` against the queued batch, pastes accepted entries into `VENUES`, commits. One session, ~20 minutes. This is the merge path.
 
-### Decision 3: Mark sprint items as BLOCKED-HUMAN-ACTION, not DEFERRED.
+### Decision 3: JSON-LD — SHIP this week or CUT it from the Reddit launch plan.
 
-Four consecutive reports have listed sprint items as "ships next session." They haven't shipped. Calling them "deferred" implies low priority. They are HIGH priority, blocked on a human action (Jack opening a local session).
+JSON-LD has been "ships next session" for 3+ weeks. Google's crawl lag is 2-3 weeks. If JSON-LD ships today, it MAY be indexed by Nov 10. If it ships after Nov 1, the Reddit post goes up before Google indexes the ski pages. The SEO amplification the PM team keeps citing doesn't exist unless JSON-LD lands this week.
 
-**DECISION: Sprint items 1–4 are reclassified as BLOCKED-HUMAN-ACTION. They are not lower priority than the VPS SSH — they are equally urgent and equally blocked on Jack. The daily reports should stop listing them as a "sprint queue" (implies future planning) and start listing them as an active blocker requiring a specific human action today.**
+**DECISION: JSON-LD either ships in the Oct 28–30 sprint session (30 min of Claude Code work) or is CUT from the Reddit launch criteria. "JSON-LD will boost SEO for the Reddit launch" is only true if it ships 2+ weeks before the post goes up. The post is targeting Nov 10. The math doesn't work after Oct 28. Jack: decide whether the 30 minutes is worth spending. If yes, open a local session. If no, remove JSON-LD from the launch criteria — it becomes a post-launch item.**
 
 ---
 
 ## Priority List — This Week Only
 
-| # | Item | Status | Owner |
-|---|------|--------|-------|
-| 1 | VPS SSH (proxy.js deploy) | 🚨 BLOCKED-HUMAN-ACTION | Jack today/tomorrow |
-| 2 | Sprint items 1–4 (cache stamp, PRECACHE, master delete, JSON-LD) | 🚨 BLOCKED-HUMAN-ACTION | Jack local session |
-| 3 | LAS dup resolution in venue queue | ⚠️ BLOCKED-HUMAN-ACTION | Jack + Content |
+| # | Item | Decision | Blocks |
+|---|------|----------|--------|
+| 1 | VPS SSH (proxy.js redeploy) | SHIP TODAY | Two-weekend scoring, iOS CORS, alert delete, cache persistence |
+| 2 | Sprint session (cache stamp + PRECACHE + master cleanup) | SHIP THIS WEEK | P1-A SW mismatch, origin/master footgun |
+| 3 | JSON-LD | SHIP THIS WEEK or CUT | Reddit SEO amplification |
 
-Everything else: **DEFER until VPS is live and sprint 1–4 are shipped.**
+Everything else is deferred until after the Reddit launch.
 
 ---
 
 ## Features REJECTED This Week
 
-- **New venue suggestions (10+ queue)** — REJECTED until queue ships. 5/day pace with 0 merge rate creates noise, not progress.
-- **Tag enrichment batch** — REJECTED until sprint items ship. No point enriching tags if the cache stamp stays stale.
-- **Any new UI features** — REJECTED. The product is code-frozen post-Aug 11. Nothing should ship until sprint 1–4 land and the VPS is verified.
-- **App Store submission work** — REJECTED. Pre-traffic. VPS must be live and verified before any App Store work resumes.
-
----
-
-## Success Metrics
-
-**For the 90-day projection of 5K–8K users:**
-
-What has to be true for 8K (not 5K):
-1. Reddit post lands Nov 10–14 during Whistler opening week with a Whistler screenshot showing a real weekend score (requires VPS by Oct 29)
-2. JSON-LD indexed by Google before the post goes up (requires sprint item 4 to ship by ~Oct 28 — Google needs 2–3 weeks)
-3. No cold-cache crash on the traffic spike (requires VPS disk cache live before the post)
-4. Venue catalog at 414+ by launch day (current 404–406 + queued 9 = 413–415)
-
-What 5K looks like: VPS late, no JSON-LD index, post goes up with generic screenshot, no skiing context. Still gets traffic but organic SEO doesn't compound.
-
-**The 8K scenario requires every item above to ship in the next 2 days.**
+- **New venue additions (15+):** REJECTED until queue ships. Queue grows faster than merge rate = infinite backlog. No value in adding more until the existing batch ships.
+- **Tag depth enrichment (225 venues, 2 tags):** REJECTED until after Reddit launch. Quality gap, but not a launch blocker. Post-launch polish.
+- **`origin/master` branch cleanup:** DEFERRED (not rejected — it's a footgun, but low blast radius pre-traffic). Combine with sprint session.
+- **Gili Trawangan via-suffix labels:** DEFERRED. Low priority, cosmetic. Bundle with next venue batch.
+- **Cloud agent branch cleanup (15+ `claude/*` branches):** DEFERRED. Not urgent. Jack 10-minute pass post-launch.
+- **APNS push alerts:** DEFERRED to post-launch. Code is committed, VPS fix lands it partway, but the .p8 key setup is a separate Jack-action. Not needed for Reddit launch.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The auto-push pipeline has a 77-day silence gap, and nobody has noticed.**
+**The 15 unmerged `claude/*` branches are probably better code than what's on main.**
 
-The last app.jsx commit was Aug 11. The auto-push hook fires from Jack's local Claude Code sessions only. If Jack hasn't been running local sessions since Aug 11, the hook hasn't fired in 77 days. The daily cloud agents report correctly — they don't modify code. But the reports are accumulating sprint items, venue suggestions, and SEO gaps with zero execution path.
+`redesign-front-page`, `improve-scoring-system`, `streamline-onboarding-account`, `improve-peakly-ui` — these branch names suggest substantive improvements were designed and built by cloud agents but never reviewed or merged. If even one of them contains a meaningful UX improvement, it's sitting unmerged while the team ships the current version to Reddit with a potentially worse experience.
 
-The risk: this isn't a temporary pause before a burst of activity. It's a pattern. If the execution model requires Jack to initiate local sessions, and local sessions aren't happening, the roadmap is effectively frozen regardless of what the daily reports say. The reports are doing their job. The implementation loop is broken.
+The risk: Jack opens the Reddit post, gets 500 new users, and then discovers one of those branches had a front-page redesign that would have converted 2× better. Opportunity cost = those 500 users who saw the old version and bounced.
 
-**Fix this before the Reddit post.** Not because the backlog is large — it isn't, sprint 1–4 is ~45 minutes total. But because if the execution model is broken before the traffic spike, it'll be more broken under the pressure of responding to user feedback after it.
+**Recommended action:** Before the Reddit post goes up, Jack spends 30 minutes doing a quick visual pass on each branch's diff. Keep what's an improvement. Delete the rest. This is a pre-launch activity, not post-launch polish.
+
+---
+
+## Success Criteria
+
+**90-day projection: 5K–8K users. What has to be true for 8K, not 5K?**
+
+| Driver | 5K path | 8K path |
+|--------|---------|---------|
+| Reddit post | Good copy, decent screenshots | Great copy + Whistler screenshot + two-weekend scoring live |
+| SEO | none | JSON-LD indexed before post |
+| Product at first load | Current state works | Sprint items shipped — SW cache correct, no stale assets |
+| Ski season timing | Post goes up, Whistler in forecast | Post goes up same week Whistler opens, forecast shows opening-week conditions |
+| Word of mouth | Some virality | Share-a-list feature actively used |
+
+**The delta between 5K and 8K is almost entirely determined by whether the VPS SSH and sprint session happen in the next 48 hours.**
+
+---
+
+## Standing Tracker
+
+| Open # | Item | Status |
+|--------|------|--------|
+| #19 | VPS redeploy | 🚨 Day 80. Oct 30 deadline = 2 days. SSH TODAY. |
+| Sprint | Cache stamp + PRECACHE + master cleanup | 🚨 Day 5, BLOCKED-HUMAN-ACTION |
+| Sprint | JSON-LD | 🚨 SHIP OR CUT by Oct 30 |
+| #21 | APNS HTTP/2 + JWT fix | ✅ code committed — needs VPS redeploy |
+| P1-A | PRECACHE→CDN mismatch | ✅ fix known — blocked on sprint |
+| P2 | Venue queue (15 pending) | ⚠️ FROZEN. No new additions. Ship existing queue. |
+| P2 | Gili Trawangan near-dup | ⏳ Low priority, bundle with next venue batch |
+| Cleanup | `claude/*` branches (15+) | ⏳ Jack 30-min pass before Reddit post |
