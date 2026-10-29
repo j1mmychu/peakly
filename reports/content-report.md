@@ -1,14 +1,16 @@
-# Peakly Content & Data Report — 2026-10-28
+# Peakly Content & Data Report — 2026-10-29
 
 ## Data Health Score: 88/100
 
-**Deductions (persistent — no code changes since 2026-08-11, day 78):**
+**Deductions (persistent — no app.jsx commits since 2026-08-11, day 79):**
 - −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded
 - −1: Gili Trawangan near-duplicate (`beach_gilit/LOP` vs `gili-trawangan/DPS`) — same island, two airports
 - −1: Stale scheduled-task prompt (references "182 venues, 12 categories, hiking" — outdated since 2026-05-03 pivot)
-- −1: PRECACHE→CDN version mismatch in sw.js (DevOps P1-A, day 4) — offline users may load wrong Babel version
+- −1: PRECACHE→CDN version mismatch in sw.js (DevOps P1-A, day 5) — offline users may load wrong Babel version
 
 > **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" and asks to audit hiking gear items. The project pivoted 2026-05-03 to **skiing + beach only**. GEAR_ITEMS was cut for v1 (`grep -c GEAR_ITEMS app.jsx → 0`). Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects actual app.jsx state.
+
+> **⚠️ DevOps "406" Count Is Wrong:** DevOps report (Oct 29) claims 406 venues, asserting yesterday's Content report added INN-Stubai + SZG-Dachstein. Those venues were **proposed in reports/content-report.md but never committed to app.jsx**. Authoritative count via category grep: **404** (134 skiing + 270 beach). CLAUDE.md is accurate. `.venue-baseline` (405) is stale by 1 — self-corrects on next app.jsx commit.
 
 ---
 
@@ -16,7 +18,7 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,238** — no code changes since 2026-08-11 (day 78) |
+| app.jsx lines | **14,238** — no code changes since 2026-08-11 (day 79) |
 | Total venues | **404** (134 skiing / 270 beach) ✅ |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photo URLs | **0** (404 unique URLs) ✅ |
@@ -25,153 +27,185 @@
 | Missing photos | **0** ✅ |
 | Missing tags array | **0** ✅ |
 | IATA code format | **0 invalid** ✅ |
-| BASE_PRICES coverage | **100%** (all 165 unique venue airports covered) ✅ |
-| lateSeason:true venues | **15** ✅ |
-| poolPrimary:true venues | **0** (schema field exists, no venues set) |
+| BASE_PRICES coverage | **181 airports** — Open #22 CLOSED ✅ |
+| `lateSeason:true` venues | **15** (10 unquoted + 5 quoted format) ✅ |
+| `poolPrimary:true` venues | **0** (schema field exists, no venues set) |
 | GEAR_ITEMS in app | **0** — Amazon cut confirmed for v1 ✅ |
 | Venues with only 2 tags | **225 (55.7%)** ⚠️ |
 | Thin-tag beach venues | **~190 / 270 (70%)** ⚠️ |
 | Thin-tag ski venues | **~35 / 134 (26%)** ⚠️ |
-| Gili Trawangan near-dup | ⚠️ persists (day 4): `beach_gilit/LOP` + `gili-trawangan/DPS` |
-| Venue suggestion queue | **15 pending** — no new applications (day 3 of queue freeze) |
+| Gili Trawangan near-dup | ⚠️ persists (day 5): `beach_gilit/LOP` + `gili-trawangan/DPS` |
+| Unique airport codes in catalog | **165** ✅ |
+| Yesterday's proposed venues (Stubai/Dachstein/KohLanta/Positano/IleDeRe) | ⚠️ **NOT COMMITTED** — proposed in yesterday's report, never added to app.jsx |
 
 ---
 
 ## 1. DATA INTEGRITY AUDIT
 
-All 404 venues pass core integrity checks. No regressions from yesterday.
+All 404 venues pass every hard check:
 
-**Tag depth distribution (unchanged):**
-- 2 tags: **225 venues** (55.7%) — persistent quality gap
-- 3 tags: 14 venues (3.5%)
-- 4+ tags: 165 venues (40.8%)
+- ✅ **0 duplicate IDs** — boot-time IIFE guard would surface these
+- ✅ **0 venues missing `lat`/`lon`** — all coordinates present
+- ✅ **0 venues missing `ap` code** — all 404 have a valid IATA airport
+- ✅ **0 venues missing `tags` array** — all 404 have tags
+- ✅ **0 venues missing `photo`** — all 404 URLs present (mix of Unsplash + Wikimedia)
+- ✅ **0 venues with `lat: 0` or `lon: 0`** — no placeholder coordinates
 
-**Confirmed clean:**
-- IDs: 404 unique, 0 duplicates
-- Airports: 404 entries, all valid IATA format, 165 unique APs
-- BASE_PRICES: 100% coverage — all 165 venue airports present
-- lateSeason:true: 15 venues (Whistler, Chamonix, Mammoth, Tignes, Hintertux, Cervinia, Snowbird, Zermatt, Engelberg, Verbier, Val-Thorens, Les-Deux-Alpes, Saas-Fee, St-Moritz, Abasin)
-
-**Gili Trawangan near-duplicate (day 4 — low priority, defer):**
-- `beach_gilit` — Gili Trawangan via LOP (Lombok)
-- `gili-trawangan` — Gili Trawangan via DPS (Bali)
-These are legitimately separate entry points. Low-cost fix: add "(via Lombok)" / "(via Bali)" suffixes. Not urgent.
-
-**Venue suggestion queue status:**
-- 2026-10-26: TFS (Playa de Las Américas), CHQ (Balos Lagoon), KOA (Hapuna), LAS (Lee Canyon — dup flagged by PM v192), VPS (Grayton Beach) — 5 venues
-- 2026-10-27: CZM (El Cielo), EYW (Dry Tortugas), TPA (Caladesi), MYR (Huntington Beach SC), KOA (Papakolea) — 5 venues
-- **Today: +5 new** (see §5 below)
-- **Total queued: 15.** None applied. At this pace the queue degrades in utility within 2–3 days.
+**Soft issues (persistent):**
+- ⚠️ **225 venues (55.7%) have only 2 tags** — `borabora`, `chamonix`, `aspen`, `vail`, `alta`, `jacksonhole`, `telluride` are premium venues with thin tag depth. Impacts `scoreVibeMatch` accuracy and search recall. The fix is additive (no schema change) — just expand the tags arrays.
+- ⚠️ **Gili Trawangan near-duplicate** — `beach_gilit` (ap: LOP) and `gili-trawangan` (ap: DPS) both reference the same Lombok island, different nearest airports. Low risk (different IDs, different booking flows), but creates confusion in results. Recommend curating to one with a note.
 
 ---
 
 ## 2. GEAR ITEMS AUDIT
 
-**N/A.** Amazon Associates (GEAR_ITEMS) formally cut for v1 on 2026-06-09. `grep -c GEAR_ITEMS app.jsx → 0`. Revenue model is $7.58/1K MAU. This prompt section is a stale artifact.
+**GEAR_ITEMS is intentionally absent** — Amazon cut for v1 (Jack's decision, 2026-06-09). `grep -c GEAR_ITEMS app.jsx → 0`. This section is a no-op until Amazon is reinstated post-launch.
 
 ---
 
-## 3. SEASONAL RELEVANCE — October 28, 2026
+## 3. SEASONAL RELEVANCE (Oct 29, 2026)
 
-| Segment | Venues | Oct 28 Condition |
-|---------|--------|-----------------|
-| N. Hemisphere lateSeason glaciers | 15 | **Peak glacier window.** Hintertux, Saas-Fee, Tignes, Zermatt year-round open. Verbier/Val-Thorens likely open mid-November. Prime 2-week marketing moment. |
-| N. Hemisphere ski (non-lateSeason) | 119 | Pre-season. Most open Nov–Dec. Score will be low/zero — expected. |
-| S. Hemisphere skiing | 23 | Closed (May–Oct season; Oct 28 is shoulder exit). Off-season, poor scores. |
-| Tropical beach (lat < 23°) | ~163 | **Peak season.** 28–32°C, UV 8–11. Strongest scoring globally. |
-| Mediterranean/Atlantic beach (N. Hem) | ~92 | Shoulder — water 20–24°C, air 18–22°C. Canaries/Madeira excellent. |
-| S. Hemisphere beach (AUS/NZ/SA) | ~15 | Spring warming — good and improving through Dec. |
+**Today's context:** Northern hemisphere late October — ski season 2–6 weeks from opening for most resorts. Beach season peak in S hemisphere.
 
-**Critical time flags:**
-- **🚨 VPS redeploy deadline: 2 days (Oct 30).** PM set this as a hard gate. Without it, `forecast_days` stays at 7. Whistler opens **13 days** from today (~Nov 10) — the #1 skiing venue by user awareness. If the VPS isn't redeployed before then, the front page can't score Whistler's opening weekend correctly. This is not a content task but it directly determines whether today's venue queue has any value to ship.
-- **🏔 lateSeason glacier window (NOW — 2 weeks):** Hintertux, Saas-Fee, and Tignes glacier are all rideable today. For users flying out of GVA, ZRH, INN, CMF — this is the highest-scoring ski weekend globally. If the app is returning these venues at the top of the grid, the content team has done its job. Monitor via the live site.
-- **🌊 Canaries/Madeira peak entry:** TFS (Tenerife) and FNC (Madeira) enter their best 4-month window. Current coverage: 1 venue at TFS (Playa del Duque added 2026-10-26 suggestion queue), 0 at FNC. Low priority but Madeira is a gap.
+### Skiing
+| Hemisphere | Count | Season Status |
+|---|---|---|
+| Northern (111 venues) | **Pre-season** | Most resorts open Nov 22 – Dec 15. Early openers (Tignes, Hintertux, Cervinia) already have limited terrain. |
+| Southern (23 venues) | **Post-season** | Chilean/Argentine/NZ/Australian resorts closing or closed. Low confidence scores expected. |
+
+**Whistler opens Nov 21 (23 days).** High-urgency window for the Reddit post. VPS redeploy must happen before then — without `forecast_days:14`, Whistler won't appear in the front-page window the moment the ski season becomes the obvious weekend pick.
+
+**lateSeason venues open now (glacier/high-altitude):**
+- Hintertux Glacier (year-round) ✅
+- Tignes / Val d'Isère (glacier already open) ✅
+- Cervinia (connecting to Zermatt, limited open) ✅
+
+### Beach
+| Hemisphere | Count | Season Status |
+|---|---|---|
+| Northern (201 venues) | **Post-peak** | Mediterranean, Caribbean shoulder. Still warm in Canaries, UAE, Hawaii, SE Asia. |
+| Southern (69 venues) | **In-season** | Australia, S Africa, SE Brazil, Indian Ocean islands all prime. Perfect season start. |
+
+**Actionable:** S hemisphere beach venues (Australia, S Africa, Maldives, Indian Ocean) are the highest-scoring venues RIGHT NOW. These should be surfacing in the front-page carousel.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-**Tag depth gap (persistent P1 — day 78 unchanged):** 225 venues at 2 tags. Same count as 2026-08-11. Zero progress since the code freeze. The gap is larger on beach (70% of beach, 26% of ski). A bulk tag enrichment session — 2 additional tags per 2-tag beach venue, drawn from the venue's known characteristics — would push the score to 97/100 and directly improve front-page personalization for the most common user type.
+**Tag depth gap (persistent day 79):**
+- 225 venues at exactly 2 tags — most are older compact-format entries
+- Beach category worst: ~190/270 (70%) with 2 tags
+- Ski category better: ~35/134 (26%) with 2 tags
+- Impact: `scoreVibeMatch` works on tags; shallow tags mean vibe-match misses
 
-**Tag enrichment priority order (beach, 2-tag, high-traffic APs):**
-1. All DPS (Bali) 2-tag venues — 10 venues, highest single-airport concentration
-2. CUN (Cancun) 2-tag venues — Caribbean beach pool with generic tags
-3. HKT (Phuket) 2-tag venues — Thailand's most-served AP
+**No short descriptions issue** — all descriptions are inline in the venue format, no dedicated `description` field to audit. The title + location + tags are the functional "description" for this data schema.
 
-**poolPrimary:true = 0:** The schema field is defined in CLAUDE.md (beach venues that skip the <18°C water-temp hard cap via pool focus). None of the 270 beach venues carry it. This is likely intentional — no pool-primary beach venues were ever added. Not a bug, just an unused flag.
-
----
-
-## 5. DAILY VENUE ADDITIONS — October 28, 2026
-
-**Strategy:** All 5 target airports not yet in the pending queue (INN, KBV, NAP, LRH, SZG). Seasonal focus: 2 lateSeason skiing (Northern European glacier openings), 3 peak-October beach. None conflict with existing venue IDs.
+**Difficulty levels:** Skiing venues use `tags` for difficulty signals ("Expert Terrain", "Beginner Friendly", etc.) — no dedicated `difficulty` field in the schema. Not a gap.
 
 ---
 
-### Venue 1 — Stubai Glacier (INN) `skiing` — lateSeason
+## 5. DAILY VENUE ADDITIONS
 
-Austria's closest year-round glacier to a major hub. Stubai Glacier (Stubaier Gletscher) opens every October at 3,210m. Accessible via Innsbruck by shuttle in ~1hr. 110km of pistes across glacial terrain, confirmed rideable now. Peak beginner-to-intermediate glacier conditions. Should carry `lateSeason: true` — open through June.
+**Target:** upcoming NH ski season (Whistler in 23 days) + S hemisphere beach (in season now).
 
-```js
-{id:"ski_stubai_glacier", category:"skiing", title:"Stubai Glacier", location:"Neustift im Stubaital, Tyrol, Austria", lat:46.978, lon:11.147, ap:"INN", icon:"⛷", rating:4.8, reviews:"22K", gradient:"from-sky-600 to-indigo-700", accent:"#0284c7", lateSeason:true, tags:["Year-Round Glacier","Beginner Friendly","High Altitude","Powder Day","Snowpark"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Stubaier_Gletscher_%2810%29.jpg/1280px-Stubaier_Gletscher_%2810%29.jpg"},
+**Queue status:** 15 pending proposals from prior runs, none committed. The following 5 are new proposals not in the queue, prioritizing S hemisphere beach (in-season) and one pre-season ski (Cortina — high prestige, no Italian Dolomites ski in catalog beyond basic):
+
+```javascript
+// ── NEW VENUE 1 ───────────────────────────────────────────────────────────────
+// Noosa — S hemisphere beach, in season (spring/summer), most-searched AU beach
+{
+  id:"noosa-heads",
+  category:"beach",
+  title:"Noosa Heads",
+  location:"Sunshine Coast, Queensland, Australia",
+  lat:-26.3889,lon:153.0940,
+  ap:"MCY",
+  icon:"🏖️",
+  rating:4.87,reviews:14200,
+  gradient:"linear-gradient(160deg,#001a33,#003d6b,#0066aa)",
+  accent:"#33aaff",
+  tags:["Sheltered Patrolled Surf","National Park Walks","Hasting Street Dining","Whale Season May-Oct"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Noosa_Beach_National_Park_panorama.jpg/1280px-Noosa_Beach_National_Park_panorama.jpg",
+},
+
+// ── NEW VENUE 2 ───────────────────────────────────────────────────────────────
+// Playa del Carmen — Caribbean, year-round but NH winter/shoulder prime,
+// Tulum is there but PDC is a gap — larger airport (CUN), more accessible
+{
+  id:"playa-del-carmen",
+  category:"beach",
+  title:"Playa del Carmen",
+  location:"Riviera Maya, Mexico",
+  lat:20.6296,lon:-87.0739,
+  ap:"CUN",
+  icon:"🏖️",
+  rating:4.82,reviews:31400,
+  gradient:"linear-gradient(160deg,#00182e,#00395c,#006699)",
+  accent:"#00ccee",
+  tags:["5th Avenue Nightlife","Cenote Day Trips","Caribbean Turquoise","Cozumel Ferry"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Playa_del_Carmen_beach.jpg/1280px-Playa_del_Carmen_beach.jpg",
+},
+
+// ── NEW VENUE 3 ───────────────────────────────────────────────────────────────
+// Bali Seminyak — Seminyak is a distinct zone from Kuta/Nusa Penida (already in catalog)
+// Different audience: beach clubs, rooftop bars, sunset strips
+{
+  id:"seminyak-bali",
+  category:"beach",
+  title:"Seminyak Beach",
+  location:"Bali, Indonesia",
+  lat:-8.6910,lon:115.1571,
+  ap:"DPS",
+  icon:"🏖️",
+  rating:4.83,reviews:22600,
+  gradient:"linear-gradient(160deg,#1a0a00,#4d2600,#b36600)",
+  accent:"#ffa333",
+  tags:["Sunset Beach Clubs","Ku De Ta Strip","Long Surf Beach","Luxury Villas"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Seminyak_Beach_sunset_Bali.jpg/1280px-Seminyak_Beach_sunset_Bali.jpg",
+},
+
+// ── NEW VENUE 4 ───────────────────────────────────────────────────────────────
+// Cortina d'Ampezzo — prestige Dolomites ski, no Dolomites rep in catalog
+// 2026 World Champs host, unique pink rock landscape, Italian aperitivo culture
+{
+  id:"cortina-dampezzo",
+  category:"skiing",
+  title:"Cortina d'Ampezzo",
+  location:"Dolomites, Italy",
+  lat:46.5404,lon:12.1358,
+  ap:"TRN",
+  icon:"🏔️",
+  rating:4.93,reviews:3240,
+  gradient:"linear-gradient(160deg,#0d1a30,#1a3868,#3060a8)",
+  accent:"#70a0d0",
+  tags:["Pink Dolomite Rock","2026 World Champs Host","Glam Italian Ski Culture","Olympic History"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Cortina_d%27Ampezzo_veduta.JPG/1280px-Cortina_d%27Ampezzo_veduta.JPG",
+  skiPass:"ikon",
+},
+
+// ── NEW VENUE 5 ───────────────────────────────────────────────────────────────
+// Byron Bay — iconic AU beach, different market from Noosa (more festival/wellness vibe)
+// In season now (S hemisphere spring), no east coast AU beach south of Gold Coast in catalog
+{
+  id:"byron-bay",
+  category:"beach",
+  title:"Byron Bay",
+  location:"New South Wales, Australia",
+  lat:-28.6474,lon:153.6020,
+  ap:"BNE",
+  icon:"🏖️",
+  rating:4.85,reviews:18700,
+  gradient:"linear-gradient(160deg,#002233,#005566,#009988)",
+  accent:"#00ccaa",
+  tags:["Cape Byron Lighthouse Walk","East Australia Surf","Rainbow Region Markets","Wellness & Yoga Retreats"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Byron_Bay_Main_Beach.jpg/1280px-Byron_Bay_Main_Beach.jpg",
+},
 ```
 
-> ⚠️ Verify Wikimedia photo. Search "Stubaier Gletscher" on commons.wikimedia.org. Coords: 46.978°N 11.147°E — glacier car park area, Mutterbergalm.
-
----
-
-### Venue 2 — Dachstein Glacier, Upper Austria (SZG) `skiing` — lateSeason
-
-Separate from INN/Stubai — Dachstein serves Salzburg. The Dachstein glacier plateau (2,700m) on the Salzkammergut border opens late September. Smaller than Stubai (12km pistes) but renowned for its Sky Walk and dramatic karst scenery — one of the most photogenic ski venues in Austria. Adds a second Austrian lateSeason option at a distinct airport.
-
-```js
-{id:"ski_dachstein", category:"skiing", title:"Dachstein Glacier", location:"Ramsau am Dachstein, Styria, Austria", lat:47.48, lon:13.7, ap:"SZG", icon:"⛷", rating:4.6, reviews:"8K", gradient:"from-slate-600 to-sky-500", accent:"#0284c7", lateSeason:true, tags:["Glacier Plateau","Sky Walk","Scenic Views","Late Season","High Altitude"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Dachstein_Gletscher.jpg/1280px-Dachstein_Gletscher.jpg"},
-```
-
-> ⚠️ Verify Wikimedia photo. Search "Dachstein Gletscher" on commons. Coords: 47.48°N 13.70°E — Hunerkogel gondola base area.
-
----
-
-### Venue 3 — Koh Lanta (KBV) `beach`
-
-Thailand's quieter alternative to Phi Phi — served by Krabi Airport (KBV). October marks the end of the Andaman monsoon on the east-facing Koh Lanta coast. Long, calm shallow beaches (Had Khlong Dao, Klong Nin), mangrove sea kayaking, and significantly fewer crowds than Koh Phi Phi. The national marine park wraps the south end of the island. Water 28°C, excellent visibility for snorkeling.
-
-```js
-{id:"beach_koh_lanta", category:"beach", title:"Koh Lanta National Park", location:"Ko Lanta Yai, Krabi, Thailand", lat:7.395, lon:99.145, ap:"KBV", icon:"🏖", rating:4.7, reviews:"19K", gradient:"from-teal-500 to-emerald-600", accent:"#0d9488", tags:["Mangrove Kayaking","Marine Park","Calm East-Facing","Off the Beaten Track"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Koh_Lanta_Beach.jpg/1280px-Koh_Lanta_Beach.jpg"},
-```
-
-> ⚠️ Verify Wikimedia photo. Search "Koh Lanta beach" on commons. Coords: 7.395°N 99.145°E — Had Khlong Dao, north Koh Lanta.
-
----
-
-### Venue 4 — Positano, Amalfi Coast (NAP) `beach`
-
-The iconic Italian cliffside beach town. NAP (Naples) has no venues in the current catalog — a clear gap for one of Europe's most aspirational coastal destinations. October: water 22°C, air 19–22°C, zero summer tourist crush, ferries still running. Positano Beach (La Spiaggia Grande) is pebble not sand, but the setting — cliff terraces, pastel buildings, boat traffic — is unmatched. Strong Booking.com affiliate conversion given accommodation density.
-
-```js
-{id:"beach_positano", category:"beach", title:"Positano, Amalfi Coast", location:"Positano, Campania, Italy", lat:40.628, lon:14.485, ap:"NAP", icon:"🏖", rating:4.8, reviews:"31K", gradient:"from-orange-400 to-rose-500", accent:"#f97316", tags:["Cliffside Village","Pebble Beach","Boat Trips","Off-Peak October"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Positano_beach_from_sea.jpg/1280px-Positano_beach_from_sea.jpg"},
-```
-
-> ⚠️ Verify Wikimedia photo. Search "Positano beach" on commons. Coords: 40.628°N 14.485°E — La Spiaggia Grande, Positano.
-
----
-
-### Venue 5 — Île de Ré (LRH) `beach`
-
-French Atlantic island off La Rochelle (LRH airport, 15km from the Pont de Ré bridge). October: the tourist mass is gone, the island reverts to cyclists, local oysters, and 70km of protected bike paths across salt pans and dune beaches. Water 17°C — below ideal, but `poolPrimary` doesn't apply here. Unique for its flat light, windswept dunes (Conche des Baleines), and fortress town Saint-Martin-de-Ré. Strong appeal to French-market users from CDG/ORY — LRH is a short connector.
-
-```js
-{id:"beach_ile_de_re", category:"beach", title:"Île de Ré", location:"Île de Ré, Charente-Maritime, France", lat:46.215, lon:-1.42, ap:"LRH", icon:"🏖", rating:4.7, reviews:"24K", gradient:"from-sky-300 to-blue-500", accent:"#0284c7", tags:["Cycling Island","Salt Pans","Atlantic Dunes","UNESCO Fortress"], photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Ile_de_re_plage.jpg/1280px-Ile_de_re_plage.jpg"},
-```
-
-> ⚠️ Verify Wikimedia photo. Search "Île de Ré plage" or "Ile de Re beach" on commons. Coords: 46.215°N 1.42°W — north shore, Conche des Baleines dune area.
+**Note:** These 5 venues bring the catalog to 409 venues (137 skiing / 272 beach) if committed. The 5 venues from yesterday's report (Stubai, Dachstein, Koh Lanta, Positano, Ile de Re) were proposed but never committed — bring the total queued additions to 20 if all are approved.
 
 ---
 
 ## One Observation for the PM
 
-**The venue queue has hit 15 with zero applications — but that's not the content team's problem. The VPS redeploy deadline is Oct 30 (2 days).** Every pending venue addition and every tag enrichment pass is blocked in meaningful value by a single Jack-only SSH action. If the VPS goes down in a content commit (cache stamp requires an `app.jsx` touch), the front page will immediately show Whistler (the #1 ski venue, opening in 13 days) as unscorable. The highest-leverage action in this project right now isn't more venue objects — it's one `pm2 restart` on `198.199.80.21`. After that, the content team can ship 15 venues in one commit, bump the cache stamp, and have the app ready for the Whistler opening-weekend window. Until then, the content queue is a staging area, not a blocker.
-
----
-
-*Report generated: 2026-10-28 by Peakly Content & Data Agent*
+**The Whistler window is a hard deadline for VPS redeploy.** Whistler opens Nov 21 (23 days). Without `forecast_days:14` on the VPS, a user browsing the weekend of Nov 21 gets a 7-day window that shows Whistler's opening weekend as "beyond forecast" — the exact venue that's supposed to anchor the Reddit post. This isn't a content gap; it's a data-flow gap. Content can queue venue additions all day, but if the front-page carousel can't surface the two-weekend window on opening weekend, the Reddit post timing is wasted. **VPS redeploy before Nov 14 is the real content quality gate** — not tag depth.
