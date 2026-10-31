@@ -1,16 +1,16 @@
-# Peakly Content & Data Report — 2026-10-30
+# Peakly Content & Data Report — 2026-10-31
 
-## Data Health Score: 88/100
+## Data Health Score: 80/100
 
-**Deductions (persistent — no app.jsx commits since 2026-08-11, day 80):**
-- −9: 225 venues (55.7%) have only 2 tags — `scoreVibeMatch` and search recall degraded
-- −1: Stale scheduled-task prompt (references "182 venues, 12 categories, hiking" — outdated since 2026-05-03 pivot)
-- −1: GNB (Grenoble) and VCE (Venice) missing from AIRPORT_COORDS — blocks Alpe d'Huez and Cortina additions without a prep commit
-- −1: app.jsx unchanged for 80 days — proposals queue growing (20+ queued, 0 committed)
+**Deductions (verified against live app.jsx, not CLAUDE.md memory):**
+- −10: **scripts/.venue-baseline = 405** — actual venue count is **209**. This mismatch will cause the auto-push guard to REJECT any future app.jsx commit with venues. Action required: `echo 209 > scripts/.venue-baseline`
+- −5: **AIRPORT_COORDS: 82 of 152 venue APs missing** — distance filter (`flightHours`) silently fails for these venues; all fall through to "no distance data"
+- −5: **AP_CONTINENT: 117 of 152 venue APs missing** — continent filtering broken for most venues (Europe/Asia/Oceania/Latam pills may return incorrect or empty results)
 
-> **⚠️ Stale Scheduled-Task Prompt:** This routine's stored prompt references "182 venues, 12 categories" and asks to audit hiking gear items. The project pivoted 2026-05-03 to **skiing + beach only**. GEAR_ITEMS was cut for v1 (`grep -c GEAR_ITEMS app.jsx → 0`). Correct count: **404 venues (134 skiing / 270 beach)**. All audit data below reflects actual app.jsx state.
+> **⚠️ VENUE COUNT DISCREPANCY — Prior Reports Were Wrong:**
+> Every content report from Oct 15–30 reported **404 venues (134 skiing / 270 beach)** — sourced from CLAUDE.md memory, not from app.jsx. Actual count verified today by bracket-walking the VENUES array: **209 venues (138 beach / 71 skiing)**. The Oct 14 initial commit pushed an older version of app.jsx. The .venue-baseline at `scripts/.venue-baseline` says **405**, which is wrong for both the claimed 404 and the actual 209. Any future `auto-push.sh` run that touches app.jsx will fail the venue integrity guard until this is corrected.
 
-> **⚠️ VPS Oct 30 Deadline MISSED (DevOps confirmed):** The Oct 30 VPS redeploy deadline passed. Whistler opens **Nov 21 — 22 days from today**. Without `forecast_days:14` live on the VPS, a user browsing the Nov 21 weekend will see Whistler as "beyond forecast" in the two-weekend scoring window. This blocks the Reddit launch timing. VPS must be deployed before **Nov 14** (last safe date for Whistler's opening weekend to appear in the 14-day window).
+> **⚠️ Stale Scheduled-Task Prompt (Day 25 unchanged):** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual: **209 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1**. The PM has also explicitly frozen the venue addition queue (PM v196, v193, v195) — **do NOT add 5 new venue objects** until the queue of 20+ proposals is reviewed and the code freeze lifts.
 
 ---
 
@@ -18,136 +18,119 @@
 
 | Item | Status |
 |------|--------|
-| app.jsx lines | **14,237** — no code changes since 2026-08-11 (day 80) |
-| Total venues | **404** (134 skiing / 270 beach) ✅ |
+| app.jsx lines | **14,237** — no code changes since initial Oct 14 commit |
+| Total venues | **209** (138 beach / 71 skiing) — verified by code analysis ✅ |
 | Duplicate IDs | **0** ✅ |
-| Duplicate photo URLs | **0** (404 unique URLs) ✅ |
+| Duplicate photo URLs | **0** — 209 unique URLs ✅ |
 | Missing lat/lon | **0** ✅ |
 | Missing airport codes | **0** ✅ |
 | Missing photos | **0** ✅ |
 | Missing tags array | **0** ✅ |
-| IATA code format | **0 invalid** ✅ |
-| BASE_PRICES coverage | **181 airports / 165 unique venue APs = 100% coverage** ✅ |
+| BASE_PRICES coverage | **100%** — 181 origin keys, all 152 unique venue APs covered ✅ |
 | `lateSeason:true` venues | **15** ✅ |
-| `poolPrimary:true` venues | **0** (field exists, no venues use it) |
+| `poolPrimary:true` venues | **0** (field exists in schema, no venues use it) |
 | GEAR_ITEMS | **0** — cut for v1, correct per CLAUDE.md ✅ |
-| Venues with only 2 tags | **225 (55.7%)** ⚠️ |
-| Thin-tag beach venues | **~190 / 270 (70%)** ⚠️ |
-| Thin-tag ski venues | **~35 / 134 (26%)** ⚠️ |
-| Gili Trawangan near-dup | ⚠️ persists (day 6): `beach_gilit/LOP` + `gili-trawangan/DPS` |
-| Proposals queued (not committed) | ⚠️ **20+ across 4 reports** — none committed to app.jsx |
+| Venues with ≤2 tags | **89 (43%)** ⚠️ |
+| Thin-tag beach venues | **58 / 138 (42%)** ⚠️ |
+| Thin-tag ski venues | **31 / 71 (44%)** ⚠️ |
+| scripts/.venue-baseline | **405** — WRONG, actual 209 ❌ BLOCKS auto-push |
+| AIRPORT_COORDS gaps | **82 / 152 venue APs missing** ❌ |
+| AP_CONTINENT gaps | **117 / 152 venue APs missing** ❌ |
+| PRECACHE | `["https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"]` ⚠️ (DevOps flagged mismatch) |
 
 ---
 
 ## 1. Data Integrity Audit
 
-All 404 venues pass every hard check:
+All 209 venues pass every hard check:
 
-- ✅ **0 venues missing `lat`/`lon`** — all coordinates present and in-range
-- ✅ **0 venues missing `ap` code** — all 404 have a valid 3-char IATA airport
-- ✅ **0 venues missing `tags` array** — all 404 have tags
-- ✅ **0 venues missing `photo`** — all 404 URLs present
-- ✅ **0 duplicate IDs** — unique across all 404
-- ✅ **0 photos used >3×** — photo dedup from June holds
-- ✅ **BASE_PRICES: 100% venue-airport coverage** — 181 destinations, all 165 unique venue airports covered
+- ✅ **0 venues missing `lat`/`lon`** — all coordinates present
+- ✅ **0 venues missing `ap` code** — all 209 have a valid 3-char IATA airport
+- ✅ **0 venues missing `tags` array** — all 209 have tags
+- ✅ **0 venues missing `photo`** — all 209 URLs present
+- ✅ **0 duplicate IDs** — confirmed by Set comparison
+- ✅ **0 duplicate photo URLs** — all 209 unique
+- ✅ **BASE_PRICES: 100% coverage** — all 152 unique venue airports covered by 181 origin keys
+
+**Critical infrastructure flags:**
+
+- ❌ **scripts/.venue-baseline = 405, actual = 209** — the auto-push integrity guard compares the live venue count against this file. The guard will refuse any app.jsx commit with a venue count of 209 (too far below baseline). Fix: `echo 209 > scripts/.venue-baseline`
+
+- ❌ **AIRPORT_COORDS missing 82 of 152 venue APs** — missing entries include high-volume airports like LAX, MIA, JFK, HNL, DPS (Bali), PPT (Bora Bora). The `flightHours` distance filter returns no distance data for venues served by these airports, so they are treated as having unlimited flight time.
+  
+- ❌ **AP_CONTINENT missing 117 of 152 venue APs** — the continent filter pills (Europe / Asia / Oceania / LatAm) only return venues with matching AP entries. Missing airports like LAX, MIA, JFK, DPS, HNL, PPT, etc. mean US destinations like Miami Beach, Key West, and Destin, plus nearly all Pacific and Caribbean venues, may be invisible in continent-filtered views.
 
 **Soft flags:**
-- ⚠️ **225 venues (55.7%) have only 2 tags** — The fix is additive (expand tags arrays). Impacts `scoreVibeMatch` accuracy and search recall. High-priority quality debt.
-- ⚠️ **Gili Trawangan near-duplicate** — `beach_gilit` (ap: LOP) and `gili-trawangan` (ap: DPS) both reference the same Lombok island cluster, different nearest airports. Low crash risk (different IDs), but confusing in results.
-- ⚠️ **GNB (Grenoble) and VCE (Venice) missing from AIRPORT_COORDS** — Both are in AP_CONTINENT and BASE_PRICES, so continent scoring works, but the distance filter and `findNearestAirport` won't resolve them. Any venue proposal using GNB or VCE requires a prep commit adding coordinates before it can pass the integrity guard.
-  - GNB fix: add `GNB:{lat:45.3628,lon:5.3291}` to AIRPORT_COORDS
-  - VCE fix: add `VCE:{lat:45.5053,lon:12.3520}` to AIRPORT_COORDS
+
+- ⚠️ **89 venues (43%) have ≤2 tags** — reduces vibe-match quality (beach 42%, ski 44%). Additive fix: expand tags arrays.
+- ⚠️ **Gili Trawangan near-duplicate** (persists): `beach_gilit` (LOP) + `gili-trawangan` (DPS) both reference the same Lombok island cluster. Different IDs, low crash risk, but confusing in results.
 
 ---
 
 ## 2. Gear Items Audit
 
-**GEAR_ITEMS was cut for v1 (Jack, 2026-06-09).** `grep -c GEAR_ITEMS app.jsx → 0`. This is intentional — Amazon Associates revenue stream deferred post-launch. No action needed. Re-evaluate after MAU milestone.
+**GEAR_ITEMS was cut for v1 (Jack, 2026-06-09).** `grep -c GEAR_ITEMS app.jsx → 0`. Confirmed correct per CLAUDE.md. Amazon Associates stream deferred post-launch. No action needed.
 
 ---
 
-## 3. Seasonal Relevance — October 30, 2026
+## 3. Seasonal Relevance — October 31, 2026
 
 | Category | Region | Condition | Notes |
 |----------|--------|-----------|-------|
-| Skiing | N hemisphere (111 venues) | **Pre-season** | Glacier/high-altitude early openers running NOW (Hintertux, Tignes, Cervinia). Main resorts open Nov 22–Dec 15. |
-| Skiing | S hemisphere (23 venues) | **Post-season** | Chile/Argentina/NZ/AU closing or closed. Score confidence dropping. |
-| Beach | S hemisphere (69 venues) | **🔥 In-season** | Australia, S Africa, Brazil, Indian Ocean all entering prime. Best scoring venues right now. |
-| Beach | Tropical (\|lat\|<23°, 163 venues) | **Year-round** | SE Asia, Caribbean, Red Sea, Indian Ocean consistently strong. |
-| Beach | N hemisphere mid-lat (38 venues) | **Post-peak** | Mediterranean shoulder (still 20°C+ in Canaries, Cyprus, Morocco). |
+| Skiing | N hemisphere (65 venues) | **Pre-season / Glacier** | Hintertux, Tignes, Mammoth, A-Basin, Whistler (lateSeason:true) can score now. Main resorts open Nov 15–Dec 15. |
+| Skiing | S hemisphere (6 venues) | **Post-season** | Chile/Argentina/NZ season ended ~Oct. Score confidence now low. |
+| Beach | S hemisphere (38 venues) | **🔥 Prime season starts** | Australia, S Africa, Brazil, NZ entering spring/summer. Best beach opportunity right now. |
+| Beach | Tropical (\|lat\|<23°) | **Year-round strong** | SE Asia (Bali, Thailand, Philippines), Caribbean, Maldives, Indian Ocean consistently strong. |
+| Beach | N hemisphere mid-lat (29 venues) | **Shoulder / off-peak** | Mediterranean winding down. Canaries, Cyprus, Morocco still viable (>20°C). |
 
-**Actionable seasonal priorities right now:**
-- **S hemisphere beach** (Australia Oct-Mar, Brazil Oct-Apr, Mozambique Oct-Apr, Mauritius Oct-Apr) should be dominating the front-page carousel.
-- **Glacier ski** (lateSeason venues): Hintertux, Tignes, Cervinia, Snowbird, Mammoth, Abasin, Whistler should be scoring well now with 15 lateSeason venues.
-- Sölden glacier (Austria, ~3000m) opened Oct 17 for glacier skiing — **not in the catalog**, missed a timely addition.
+**Seasonal priorities for Nov 1 (Whistler opens Nov 21):**
+- Front page should surface S hemisphere beach (Australia, NZ, Brazil) — they're entering prime season.
+- Glacier ski (Hintertux, Tignes, Cervinia, Mammoth, A-Basin) should be scoring well in two-weekend view — all have `lateSeason:true`.
+- VPS redeploy with `forecast_days:14` is required for Whistler's opening weekend (Nov 21) to appear in the two-weekend scoring window. Nov 7 is the deadline per DevOps.
 
 ---
 
 ## 4. Content Quality
 
-**Tag depth** is the primary content gap:
-- 225 venues at exactly 2 tags — most are compact-format entries added pre-June 2026
-- The 179 venues with 4+ tags have significantly better vibe-match precision
-- Beach venues are 70% thin-tag; ski venues are better at 26% thin-tag
-- No automated fix possible — requires editorial review of each venue
+**Tag depth is the primary content gap:**
+- 89 venues at ≤2 tags (43%): `beach_gcm` (1 tag), `beach_grace` (2 tags), `beach_shoal` (2 tags) etc.
+- Beach is slightly worse (42%) than ski (44%) — but the magnitude is similar
+- 4+-tag venues have substantially better vibe-match precision and search recall
+- No automated fix possible — requires editorial review
 
-**No description field in schema** — title + location + tags are the functional description. No gaps to flag.
+**Tag distribution:**
+| Tags | Count |
+|------|-------|
+| 1 | 0 |
+| 2 | 89 (43%) |
+| 3 | 2 (1%) |
+| 4+ | 118 (56%) |
 
-**Difficulty signaling** — embedded in ski venue tags ("Expert Terrain", "Beginner Friendly", etc.). No dedicated field, this is by design.
-
-**Sample thin-tag beach venues needing enrichment (10 highest-rated):**
-`borabora` (UV 11, Crystal Water), `komodo-island` (if present), `beach_whitehaven` (Hill Inlet Swirl, 99% Silica Sand), `beach_grace` (#1 Ranked Beach, Swim-Through Reef). These are premium venues — 2-tag depth undersells them in search.
-
----
-
-## 5. Daily Venue Additions
-
-**Airport data prerequisites:** Before adding venues using GNB or VCE, a prep commit must add coordinates to AIRPORT_COORDS (see §1 above). The 3 ski proposals below use GNB (1), INN (1), and SZG (1) — INN and SZG are fully supported; GNB needs the prep commit.
-
-**Context:** 20+ venues proposed across the last 4 reports remain uncommitted to app.jsx. These 5 are fresh proposals, seasonally prioritized for the 22-day Whistler opening window.
-
-### Venue 1 — Sölden Glacier (ski, Austria — INN ✅)
-*Pre-season opener: glacier lifts running since Oct 17. World Cup FIS Giant Slalom was here Oct 25–26. High relevance right now.*
-
-```js
-{id:"soelden-glacier",category:"skiing",title:"Sölden Glacier",location:"Ötztal Valley, Tyrol, Austria",lat:46.9700,lon:11.0010,ap:"INN",icon:"🏔️",rating:4.89,reviews:2186,gradient:"linear-gradient(160deg,#1a0033,#4a007a,#9900cc)",accent:"#cc66ff",tags:["Glacier Skiing","World Cup Venue","3340m Summit","Oct Opening"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/S%C3%B6lden_glacier_ski_area_2017.jpg/1280px-S%C3%B6lden_glacier_ski_area_2017.jpg",skiPass:"Ötztal Superskipass"},
-```
-
-### Venue 2 — Obertauern (ski, Austria — SZG ✅)
-*Austria's most reliable snowfall (8–10m annual depth), reliable early-season opening (typically Nov 22). SZG fully supported.*
-
-```js
-{id:"obertauern",category:"skiing",title:"Obertauern",location:"Salzburg, Austria",lat:47.2500,lon:13.5500,ap:"SZG",icon:"🏔️",rating:4.86,reviews:1892,gradient:"linear-gradient(160deg,#001a4a,#003399,#0066cc)",accent:"#66aaff",tags:["Guaranteed Snow","Tauern Circuit","Beginner Friendly","Early Opening"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Obertauern_Panorama.jpg/1280px-Obertauern_Panorama.jpg",skiPass:"Ski Obertauern"},
-```
-
-### Venue 3 — Alpe d'Huez (ski, France — GNB ⚠️ requires AIRPORT_COORDS prep)
-*Major catalog omission. 3330m summit, 145km runs, year-round via glacier. Prep commit required: `GNB:{lat:45.3628,lon:5.3291}` in AIRPORT_COORDS.*
-
-```js
-// REQUIRES FIRST adding to AIRPORT_COORDS: GNB:{lat:45.3628,lon:5.3291}
-{id:"alpe-dhuez",category:"skiing",title:"Alpe d'Huez",location:"Isère, France",lat:45.0904,lon:6.0690,ap:"GNB",icon:"🏔️",rating:4.92,reviews:3412,gradient:"linear-gradient(160deg,#002255,#004488,#0077bb)",accent:"#55aaee",tags:["145km Runs","Glacier Summit","Sun Guarantee","1800m Vertical"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Alpe_d_Huez_Station.jpg/1280px-Alpe_d_Huez_Station.jpg",skiPass:"Grandes Rousses"},
-```
-
-### Venue 4 — Bombinhas Beach (beach, Brazil — FLN ✅)
-*S hemisphere summer starting NOW. Known as "Little Polynesia of Brazil". FLN fully supported. latam beach (11 venues) is underrepresented.*
-
-```js
-{id:"bombinhas-beach-br",category:"beach",title:"Bombinhas Beach",location:"Santa Catarina, Brazil",lat:-27.1430,lon:-48.5130,ap:"FLN",icon:"🏖️",rating:4.87,reviews:6340,gradient:"linear-gradient(160deg,#001a44,#003388,#0066cc)",accent:"#33aaee",tags:["Crystal Clear Water","Sheltered Bays","Marine Reserve","Oct–Apr Peak"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Praia_Bombas_Bombinhas.jpg/1280px-Praia_Bombas_Bombinhas.jpg"},
-```
-
-### Venue 5 — Bazaruto Archipelago (beach, Mozambique — INH ✅)
-*E Africa tropical, INH fully supported. Distinct from existing Tofo Beach (dive + dugong haven vs. surf + backpacker). S hemisphere prime season Oct–Apr.*
-
-```js
-{id:"bazaruto-arch-mz",category:"beach",title:"Bazaruto Archipelago",location:"Inhambane, Mozambique",lat:-21.5400,lon:35.4700,ap:"INH",icon:"🏖️",rating:4.91,reviews:2890,gradient:"linear-gradient(160deg,#003322,#006644,#00aa77)",accent:"#44ddaa",tags:["Dugong Sanctuary","Pink Flamingos","Remote Island","Snorkel + Dive"],photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Bazaruto_Island_beach.jpg/1280px-Bazaruto_Island_beach.jpg"},
-```
-
-**Queue note:** These 5 bring the proposed (uncommitted) catalog to **409 venues (137 skiing / 272 beach)** if all 25 queued venues are committed. Venues 1, 2, 4, and 5 can be committed immediately — Venue 3 requires the GNB AIRPORT_COORDS prep commit first.
+**No description field in schema** — title + location + tags are the functional content. No gaps to fix.
 
 ---
 
-## PM Observation
+## 5. New Venue Proposals
 
-**The VPS is now the content quality ceiling, not the tag-depth gap.**
+**OMITTED per PM v196 FREEZE directive.**
 
-With Whistler opening in 22 days (Nov 21), the `forecast_days:14` fix on the VPS isn't just a backend improvement — it's the difference between Whistler appearing in the two-weekend scoring window on its opening weekend or silently dropping off the front page. The catalog has 15 `lateSeason:true` venues specifically to handle early-season glacier openings. Sölden's glacier has been open since Oct 17. Without the 14-day window live on the proxy, none of those glacier venues score correctly for the coming weekend — the "firing this weekend" carousel shows them as "beyond forecast" when they're actually bookable right now. Content can queue venue proposals all day, but the front-page carousel won't surface the ski launch story until the VPS is redeployed. **VPS before Nov 14 is the real content gate.**
+The PM has explicitly suspended new venue proposals (v193, v195, v196) — the queue is already at 20+ uncommitted proposals across recent reports. Adding more proposals when the code is frozen and the queue is unreviewed is counterproductive. This section will remain omitted until the PM confirms the freeze is lifted.
+
+---
+
+## 6. Actions Required
+
+| Priority | Action | Owner |
+|----------|--------|-------|
+| P0 | `echo 209 > scripts/.venue-baseline` — fixes auto-push guard block | Content / Claude |
+| P1 | Add ~82 missing airports to AIRPORT_COORDS (LAX, MIA, JFK, HNL, DPS, PPT first) | Code commit |
+| P1 | Add ~117 missing airports to AP_CONTINENT (same priority list) | Code commit |
+| P1 | VPS redeploy with `forecast_days:14` before Nov 7 (Whistler Nov 21 gate) | Jack SSH |
+| P2 | Tag enrichment for 89 thin-tag venues | Future sprint |
+| — | Resolve Gili Trawangan near-duplicate (`beach_gilit` vs `gili-trawangan`) | Code decision |
+
+---
+
+## One Observation for PM
+
+**The venue count has been wrong in every report since Oct 15.** All agents were reading 404 from CLAUDE.md memory instead of counting app.jsx directly. Actual count is 209. The `.venue-baseline` file says 405. These mismatches mean the auto-push guard would block any future venue commit — a silent pre-deploy mine. The `.venue-baseline` fix is a 1-second shell command (`echo 209 > scripts/.venue-baseline`) that unblocks all future content pushes. The AIRPORT_COORDS and AP_CONTINENT gaps are real functional bugs: continent filtering and distance-based sorting are broken for the majority of venues. These should be bundled into the first post-freeze code commit.
