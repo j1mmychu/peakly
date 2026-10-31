@@ -157,6 +157,12 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 
 **Corollary:** the Cowork sandbox has **no network egress for git**. If `git fetch` fails there, say so out loud and treat all repo state as unverified — do not fall back to the stale ref and call it current.
 
+## Current State (2026-10-31 — ship pass)
+
+> **App Review:** v1.0 builds 1 and 2 were flagged ITMS-90068 (MinimumOSVersion 13.0). The Xcode app target and Podfile are now **iOS 15.0**. `CURRENT_PROJECT_VERSION` is **3**. Release entitlements use `aps-environment` = production (Debug uses `App.debug.entitlements`). Submission `468d466e-ab22-4db5-bc51-d897a9bcfb8e` was Guideline **2.1** (information needed). Paste-ready reply, recording shot list, and screenshot checklist: `docs/APP_REVIEW_NOTES.md`. Support page: `support.html`. Account deletion is in Profile. Public list-sharing stays off (`CLOUD_SHARE_ENABLED = false`), so there is no user content for other people to report.
+>
+> **Pages:** `deploy.yml` no longer cancels an in-progress Pages deploy (that left runs stuck on `updating_pages` until timeout). One retry covers the “artifact uploaded but not visible yet” race. The web build strips cdnjs `babel-standalone`, not only the `@babel/standalone` URL.
+
 ## Current State (2026-08-11 evening — local Claude Code session, networked, verified against origin)
 
 > **VPS redeployed 2026-08-11 evening (Jack, SSH)** — Open #19 CLOSED. `forecast_days:14` + disk cache + CORS/rate-limiter fixes are live. `/health` confirms `apns:configured`, uptime resets to seconds (fresh restart). Two-weekend scoring, iOS native proxy access, and alert deletion are all unblocked. Reddit gate cleared.

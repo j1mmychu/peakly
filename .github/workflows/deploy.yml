@@ -7,10 +7,13 @@ on:
       - master
   workflow_dispatch:
 
-# Allow only one concurrent deployment
+# Queue deploys. Do not cancel an in-flight Pages deployment.
+# cancel-in-progress: true aborts GitHub's "updating_pages" step, and the
+# next run then sits on that status until the 10-minute timeout
+# (failures on 2026-09-21 and 2026-10-14).
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -22,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -31,7 +34,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install deps
         run: npm ci
@@ -51,3 +54,19 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      # 2026-10-08: the artifact upload reported success, then deploy-pages
+      # immediately said it found 0 artifacts. One delayed retry covers that race.
+      - name: Pause before Pages retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+
+      - name: Retry Pages deploy
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+
+      - name: Require a successful deploy
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome != 'success'
+        run: exit 1
