@@ -22,7 +22,7 @@ const DIST = path.join(ROOT, "dist");
 // Only these web-servable assets ship. Strict allowlist — NEVER copy-everything:
 // the working tree carries gitignored business-plan PDFs/PPTX that must never
 // reach a public CDN (the 2026-05-09 leak that forced a history scrub).
-const STATIC_FILES = ["manifest.json", "robots.txt", "sitemap.xml", "terms.html", "privacy.html", ".nojekyll"];
+const STATIC_FILES = ["manifest.json", "robots.txt", "sitemap.xml", "terms.html", "privacy.html", "support.html", ".nojekyll"];
 
 async function main() {
   fs.rmSync(DIST, { recursive: true, force: true });
@@ -53,13 +53,16 @@ async function main() {
   // 3. dist/index.html — drop Babel, load pre-built app.min.js.
   let html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   html = html
-    // Babel preload + script + its comment
-    .replace(/^\s*<!--\s*Babel standalone[^>]*-->\s*\n/gm, "")
-    .replace(/^\s*<link[^>]+@babel\/standalone[^>]*\/?>\s*\n/gm, "")
-    .replace(/^\s*<script[^>]+@babel\/standalone[^>]*><\/script>\s*\n/gm, "")
+    // Babel preload + script + its comment. Match both the npm scope
+    // (@babel/standalone) and cdnjs's hyphenated babel-standalone path.
+    .replace(/^\s*<!--\s*Babel standalone[\s\S]*?-->\s*\n/gm, "")
+    .replace(/^\s*<link[^>]+(?:@babel\/standalone|babel-standalone)[^>]*\/?>\s*\n/gm, "")
+    .replace(/^\s*<script[^>]+(?:@babel\/standalone|babel-standalone)[^>]*><\/script>\s*\n/gm, "")
     // app.jsx (text/babel) → app.min.js
     .replace(/<script\s+type="text\/babel"\s+src="\.\/app\.jsx[^"]*"[^>]*><\/script>/,
-             `<script src="./app.min.js?v=${stamp}"></script>`);
+             `<script src="./app.min.js?v=${stamp}"></script>`)
+    .replace(/<!--\s*Load app \(Babel transforms JSX on the fly\)\s*-->/,
+             "<!-- Precompiled app bundle -->");
   fs.writeFileSync(path.join(DIST, "index.html"), html);
 
   // 4. dist/sw.js — precache the shell (stamped URLs so cache.match hits).
@@ -69,7 +72,7 @@ async function main() {
   fs.writeFileSync(path.join(DIST, "sw.js"), sw);
 
   // 5. Fail loud if Babel survived anywhere in dist/.
-  const forbidden = /@babel\/standalone|text\/babel/;
+  const forbidden = /@babel\/standalone|babel-standalone|babel\.min\.js|text\/babel/;
   const offenders = [];
   for (const f of fs.readdirSync(DIST)) {
     const p = path.join(DIST, f);

@@ -43,12 +43,12 @@ ski,snowboard,powder,resort,beach,travel,flight,cheap,deals,forecast,snow,trip,v
 *(Editable any time without a new build — good for seasonal swaps.)*
 
 ```
-Southern-hemisphere ski season is firing right now. Peakly scores every Fri–Mon window across 373 spots and shows you the ones you can actually fly to.
+Southern-hemisphere ski season is firing right now. Peakly scores every Fri–Mon window across 404 spots and shows you the ones you can actually fly to.
 ```
 
 Winter-season swap, for later:
 ```
-Powder season is here. Peakly scores every Fri–Mon window across 373 ski and beach spots and shows you which ones are worth the flight this weekend.
+Powder season is here. Peakly scores every Fri–Mon window across 404 ski and beach spots and shows you which ones are worth the flight this weekend.
 ```
 
 ---
@@ -60,7 +60,7 @@ Every weekend, somewhere is perfect. Peakly tells you where.
 
 Most travel apps show you flights. Weather apps show you forecasts. Neither tells you the thing you actually want to know: is this weekend worth booking?
 
-Peakly scores 373 ski resorts and beaches worldwide for the upcoming Friday–Monday window — combining live conditions with real round-trip flight prices from your home airport — and ranks them so the best trip you can actually take is at the top.
+Peakly scores 404 ski resorts and beaches worldwide for the upcoming Friday–Monday window — combining live conditions with real round-trip flight prices from your home airport — and ranks them so the best trip you can actually take is at the top.
 
 THE WEEKEND SCORE
 Every venue gets a 0–100 score for the specific weekend ahead, not a generic rating. We analyze the best two consecutive days in the window, so a washed-out Saturday doesn't sink a perfect Sunday–Monday. Snowfall, base depth, temperature, wind, and sun all factor in — weighted differently for powder days than for beach days.
@@ -77,8 +77,8 @@ Filter by flight time so you're only seeing places you can reach in an afternoon
 HOME SCREEN WIDGET
 Add the Peakly widget to see your best weekend pick at a glance: the venue, its score, and the current fare. Tap to open it.
 
-373 VENUES, TWO CATEGORIES DONE PROPERLY
-131 ski resorts and 242 beaches, each with verified coordinates so the forecast you see is genuinely for that mountain or that stretch of sand. From Whistler and Chamonix to Bora Bora and Santorini, plus Southern-hemisphere resorts for northern summers.
+404 VENUES, TWO CATEGORIES DONE PROPERLY
+134 ski resorts and 270 beaches, each with verified coordinates so the forecast you see is genuinely for that mountain or that stretch of sand. From Whistler and Chamonix to Bora Bora and Santorini, plus Southern-hemisphere resorts for northern summers.
 
 FREE
 No subscription, no paywall, no ads. Peakly earns through optional booking partners when you book — never by charging you.
@@ -91,7 +91,7 @@ Weather data from Open-Meteo. Flight pricing via Travelpayouts. Peakly is not af
 ## What's New (v1.0)
 
 ```
-First release. Peakly scores 373 ski resorts and beaches for the weekend ahead, pairs each with live flight prices, and tells you which trip is actually worth taking — including a home screen widget for your top pick.
+First release. Peakly scores 404 ski resorts and beaches for the weekend ahead, pairs each with live flight prices, and tells you which trip is actually worth taking — including a home screen widget for your top pick.
 ```
 
 ---
@@ -100,7 +100,7 @@ First release. Peakly scores 373 ski resorts and beaches for the weekend ahead, 
 
 | Field | Value |
 |---|---|
-| Support URL | `https://j1mmychu.github.io/peakly/` *(swap to peakly.app once registered)* |
+| Support URL | `https://j1mmychu.github.io/peakly/support.html` |
 | Marketing URL | *(optional — leave blank)* |
 | Privacy Policy URL | `https://j1mmychu.github.io/peakly/privacy.html` |
 
@@ -113,11 +113,11 @@ First release. Peakly scores 373 ski resorts and beaches for the weekend ahead, 
 
 # App Review Notes
 
-Paste into App Store Connect → your build → **Notes for Review**. This is written to pre-empt the two things most likely to get a v1 wrapper app rejected.
+The Guideline 2.1 reply (submission 468d466e-ab22-4db5-bc51-d897a9bcfb8e) is the paste-ready block in `docs/APP_REVIEW_NOTES.md`. Use that for the review reply and the Notes field. The older block below is background only.
 
 ```
 WHAT PEAKLY DOES
-Peakly scores 373 ski resorts and beaches for the upcoming Friday–Monday window by combining live weather forecasts with real round-trip flight prices, so a user can see at a glance which weekend trip is worth booking.
+Peakly scores 404 ski resorts and beaches for the upcoming Friday–Monday window by combining live weather forecasts with real round-trip flight prices, so a user can see at a glance which weekend trip is worth booking.
 
 NO ACCOUNT NEEDED — NO DEMO CREDENTIALS REQUIRED
 Every feature is fully usable without signing in. Please browse, filter, open venue details, view score breakdowns, and use the widget without creating an account. Sign-in is entirely optional and only adds cloud sync of saved venues across devices. It uses a passwordless email magic link, so there is no username/password pair to provide — but none is needed to review the app. If you would like to test the signed-in path, entering any email you control on the Profile tab will send a working sign-in link.
@@ -151,7 +151,7 @@ Weather from Open-Meteo (free, no key). Flight pricing from Travelpayouts via ou
 ## Notes on choices made here
 
 - **The description leads with the problem, not the feature list.** "Most travel apps show you flights. Weather apps show you forecasts." — that framing is your actual moat and it's the first thing a browsing user should read.
-- **Every number is real** — 373 venues, 131/242 split, all verified by eval against the catalog on 2026-07-24. If the count changes, update it; Apple doesn't check, but a user who counts will.
+- **Every number is real** — 404 venues, 134 ski / 270 beach, counted from the catalog on 2026-10-31. If the count changes, update it.
 - **No push/notification language anywhere in the listing**, matching the in-app copy gating. A reviewer comparing listing promises to app behavior finds no gap.
 - **The review notes answer the demo-credentials question before it's asked.** Magic-link auth is a known review friction point; leading with "no account needed" converts it from a blocker into a non-issue.
 - **The 4.2 defense is specific and checkable**, not a plea. Each claim is something a reviewer can verify in under a minute — especially Airplane Mode, which is unusually strong evidence for a Capacitor app.

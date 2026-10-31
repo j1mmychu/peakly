@@ -14,7 +14,7 @@ if (typeof Sentry !== "undefined" && Sentry.init) {
 
 // Build stamp — bump in lockstep with sw.js CACHE_NAME on each ship.
 // Rendered in Profile footer so "what version am I on?" takes 1 second.
-const PEAKLY_BUILD = "20260914a";
+const PEAKLY_BUILD = "20261031a";
 
 // ─── Cloud sync (Supabase) — lazy-loaded ──────────────────────────────────────
 // Sync is "configured" when both URL + anon key are set. The Supabase JS lib
@@ -322,6 +322,29 @@ async function forceCleanReload() {
     input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(2,132,199,0.1); }
     input[type=date].date-filled { background: #0066FF; color: #fff; border-color: #0066FF !important; }
     input[type=date].date-filled::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.9; }
+    /* 100vh on iOS Safari includes the area behind the browser chrome and
+       hides the tab bar. 100dvh tracks the visible viewport; 100vh stays as
+       the fallback for older WebViews. */
+    .pk-app {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+    }
+    .pk-shell {
+      width: min(430px, 100%);
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100vh;
+      max-height: 100dvh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
   `;
   document.head.appendChild(s);
 })();
@@ -11410,8 +11433,8 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
         }}>
           App v{PEAKLY_BUILD} · Refresh
         </button>
-        {/* Legal links — App Store review requires reachable ToS + Privacy pages */}
-        <div style={{ display:"flex", gap:14 }}>
+        {/* Legal links — App Store review requires reachable ToS, Privacy, and Support */}
+        <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
           <a href="terms.html" target="_blank" rel="noopener" style={{
             fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
             textDecoration:"underline", textUnderlineOffset:"3px",
@@ -11420,6 +11443,13 @@ function ProfileTab({ profile, setProfile, onShowOnboarding, cloudSync, openAcco
             fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
             textDecoration:"underline", textUnderlineOffset:"3px",
           }}>Privacy Policy</a>
+          <a href="support.html" target="_blank" rel="noopener" style={{
+            fontSize:11, fontWeight:600, color:"#bbb", fontFamily:F,
+            textDecoration:"underline", textUnderlineOffset:"3px",
+          }}>Support</a>
+        </div>
+        <div style={{ fontSize:10, color:"#ccc", fontFamily:F, lineHeight:1.45, maxWidth:280 }}>
+          Weather by Open-Meteo (CC BY 4.0). Maps © OpenStreetMap. Photos via the Unsplash License.
         </div>
       </div>
     </div>
@@ -13103,7 +13133,7 @@ function BottomNav({ active, setActive, alertCount, showAlerts = true }) {
   return (
     <div style={{
       display:"flex", justifyContent:"space-around", alignItems:"center",
-      padding:"4px 8px 18px", background:"#fff",
+      padding:"4px 8px calc(env(safe-area-inset-bottom, 0px) + 10px)", background:"#fff",
       borderTop:"1px solid #e8e8e8", flexShrink:0,
     }}>
       {tabs.map(t => (
@@ -13151,8 +13181,9 @@ class ErrorBoundary extends React.Component {
         try { navigator.clipboard?.writeText(payload); } catch {}
       };
       return React.createElement("div", {
+        className: "pk-app",
         style: { display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                 minHeight:"100vh", fontFamily:F, padding:32, textAlign:"center", background:"#f5f5f5" }
+                 fontFamily:F, padding:32, textAlign:"center", background:"#f5f5f5" }
       },
         React.createElement("div", { style:{ fontSize:28, fontWeight:900, color:"#222", marginBottom:12 } }, "Something went wrong"),
         React.createElement("div", { style:{ fontSize:14, color:"#717171", marginBottom:16, maxWidth:360, lineHeight:1.5 } },
@@ -14047,14 +14078,8 @@ function App() {
   // list and the "Save to your Peakly" CTA — no nav, no tabs, no onboarding.
   if (sharedListView) {
     return (
-      <div style={{
-        width:"100%", minHeight:"100vh", background:"#f5f5f5",
-        display:"flex", justifyContent:"center", fontFamily:F,
-      }}>
-        <div style={{
-          width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
-          display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
-        }}>
+      <div className="pk-app" style={{ fontFamily:F }}>
+        <div className="pk-shell">
           <SharedListView
             snapshot={sharedListView}
             listings={listings}
@@ -14071,14 +14096,8 @@ function App() {
   }
 
   return (
-    <div style={{
-      width:"100%", minHeight:"100vh", background:"#f5f5f5",
-      display:"flex", justifyContent:"center", fontFamily:F,
-    }}>
-      <div style={{
-        width:430, height:"100vh", maxHeight:"100vh", background:"#fff",
-        display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
-      }}>
+    <div className="pk-app" style={{ fontFamily:F }}>
+      <div className="pk-shell">
         {/* Toast — appears after a friend's list is imported via magic link */}
         {importToast && (
           <div className="bounce-in" style={{
@@ -14094,7 +14113,7 @@ function App() {
         {activeTab !== "map" && (
           activeTab === "explore" ? (
             <div style={{ background:"#fff", flexShrink:0 }}>
-              <div style={{ padding:"48px 16px 12px", display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ paddingTop:"calc(env(safe-area-inset-top, 0px) + 12px)", paddingLeft:16, paddingRight:16, paddingBottom:12, display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1, flexShrink:0 }}>
                   peakly
                 </span>
@@ -14104,7 +14123,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <div style={{ padding:"52px 20px 14px", background:"#fff", display:"flex", alignItems:"center", flexShrink:0 }}>
+            <div style={{ paddingTop:"calc(env(safe-area-inset-top, 0px) + 12px)", paddingLeft:20, paddingRight:20, paddingBottom:14, background:"#fff", display:"flex", alignItems:"center", flexShrink:0 }}>
               <span style={{ fontSize:22, fontWeight:900, color:"#0284c7", letterSpacing:"-0.6px", fontFamily:F, lineHeight:1 }}>
                 peakly
               </span>

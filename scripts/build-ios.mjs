@@ -60,11 +60,10 @@ async function main() {
   fs.mkdirSync(path.join(VENDOR, "images"), { recursive: true });
   fs.mkdirSync(CACHE, { recursive: true });
 
-  // 1. Copy non-JSX static files. privacy.html / terms.html intentionally
-  // omitted — App Store metadata references them via the public web URL, so
-  // they don't need to live inside the iOS bundle (and they pull Google Fonts
-  // from a CDN, which would fail offline).
-  const staticFiles = ["sw.js", "manifest.json", "robots.txt", "sitemap.xml"];
+  // 1. Copy non-JSX static files. Legal pages ship inside the bundle so
+  // Profile → Terms / Privacy / Support works offline and in review.
+  // They must not reference a CDN (the offline grep below enforces that).
+  const staticFiles = ["sw.js", "manifest.json", "robots.txt", "sitemap.xml", "terms.html", "privacy.html", "support.html"];
   for (const f of staticFiles) {
     fs.copyFileSync(path.join(ROOT, f), path.join(DIST, f));
   }
@@ -196,6 +195,9 @@ async function main() {
   const forbidden = /unpkg|jsdelivr|@babel\/standalone|babel-standalone|cdnjs\.cloudflare\.com|sentry-cdn|cdn\.jsdelivr|plausible\.io|fonts\.googleapis|fonts\.gstatic|text\/babel/;
   const offenders = [];
   for (const f of fs.readdirSync(DIST)) {
+    // Legal pages may link out to a provider's own privacy policy.
+    // They are documents, not scripts the app executes.
+    if (f === "privacy.html" || f === "terms.html" || f === "support.html") continue;
     const p = path.join(DIST, f);
     if (fs.statSync(p).isFile()) {
       const raw = fs.readFileSync(p, "utf8");

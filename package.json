@@ -1,7 +1,7 @@
 {
   "name": "peakly",
   "version": "1.0.0",
-  "description": "Peakly \u2014 discover surf, ski, and adventure spots when conditions and cheap flights align",
+  "description": "Peakly — ski and beach weekends, scored against live conditions and flight prices",
   "private": true,
   "dependencies": {
     "@capacitor/app": "^6.0.0",
