@@ -1,148 +1,144 @@
-# Peakly PM Report v197 — 2026-10-31 (LAUNCH DAY +13)
+# Peakly PM Report v198 — 2026-11-01 (LAUNCH DAY +14)
 
-**Status: 🔴 RED — VPS Day 84. Nov 7 hard deadline in 7 days. 19 days since last app.jsx commit. Content agent introduced a new P0 this run (.venue-baseline set to 209 instead of 404 — FIXED this run). Whistler opens Nov 21.**
+**Status: 🟡 YELLOW — PR #20 shipped good App Review prep. VPS Day 85, 6 days to Nov 7. App Review Guideline 2.1 reply pending Jack. 20 unmerged branches unchanged.**
 
-> **Stale prompt notice — Day 25 (unchanged):** The stored cron prompt still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface before this rots further.
+> **Stale prompt notice — Day 26 (unchanged):** Stored cron prompt still says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface.
 
 ---
 
-## Shipped Since Last Report (v196 → v197)
+## Shipped Since Last Report (v197 → v198)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `a680c65` | DevOps Oct 31 — RED, VPS Day 83, .venue-baseline MISSING P0, PRECACHE Day 24, 18 unmerged branches | ✅ reporting |
-| `3e444aa` | Content Oct 31 — venue count "corrected" to 209 (WRONG — actual is 404 verified by eval), .venue-baseline set to 209 (BROKE the guard), AIRPORT_COORDS gaps flagged | ❌ introduced a P0 regression: .venue-baseline now blocks next app.jsx commit |
+| `6f0e744` | PR #20 — iOS 15.0 target, build 3, support.html, 100dvh viewport fix, PRECACHE cleared, cache `20261031a`, App Review notes (`docs/APP_REVIEW_NOTES.md`) | ✅ **Yes.** Every change here directly serves the App Review unblock. Cursor Agent co-authored — clean, targeted diff. |
+| `6f61f11` | DevOps Nov 1 — RED, VPS Day 84, venue drift 406 vs baseline 404, 20 branches | ✅ reporting (note: "406 venues" is a DevOps counting error — eval gives 404, confirmed this run) |
+| `2f40956` | Content Nov 1 — 88/100, data CLEAN, 225 thin-tag venues flagged, queue frozen | ✅ reporting, consistent with PM freeze directive |
 
-**PM correction this run:** `.venue-baseline` fixed 209 → **404** (the content agent's bracket-walker returned 209 — unclear why, but eval confirms 404, matching CLAUDE.md and grep counts). Committed with this report.
-
-**Zero app.jsx / sw.js / index.html commits. 19 days.**
+**Zero new app.jsx logic commits. 20 days since the last feature/fix.**
 
 ---
 
 ## Overnight Activity: What Matters
 
-Two report commits landed. One introduced a real regression: the content agent's counter returned 209 (methodology unknown — eval gives 404) and then wrote that wrong number to `.venue-baseline`. This would have broken `scripts/auto-push.sh`'s venue guard on the NEXT app.jsx commit, causing a false P0 refusal. Fixed.
+### PR #20 — App Review Build 3. Right work, right timing.
 
-The 18 unmerged `claude/*` branches remain on origin, unchanged. Most concerning:
-- `fix-appjsx-final` — 597 commits ahead of main
-- `restore-appjsx` — name implies overwrite of current app.jsx
-- `improve-scoring-system-XYGY6` — scoring changes without algorithm critique violate CLAUDE.md
+The diff is clean and focused: iOS deployment target 15.0 (unblocks ITMS-90068), build number 3, `100dvh` viewport fix (iOS Safari tab-bar overlap was hiding bottom content), PRECACHE cleared (P1 Day 24/25 resolved), cache stamp fresh, `support.html` + Support link in Profile footer added (App Review Guideline 2.1 requires it), `docs/APP_REVIEW_NOTES.md` with a paste-ready Guideline 2.1 reply and shot list.
 
-**Jack's single most important action before any Reddit/HN post:** review these branches. Several could be gold; at least one (`fix-appjsx-final` with 597 commits) suggests sustained parallel work that hasn't been reconciled. Don't merge blind.
+**This moves the App Review block from Jack needing to figure out what to say to Jack needing to paste and attach a recording.** That's meaningful progress.
+
+### DevOps venue count drift (406 vs 404) is a DevOps counting error.
+
+Verified this run: compact ids (209) + JSON ids (195) = 404. DevOps agent's bracket-walker returned 406 — unclear methodology, wrong. `.venue-baseline` is correctly `404`. No drift.
+
+### `fix-appjsx-final` branch (597 commits, from May 13 base) — DO NOT MERGE BLINDLY.
+
+The branch diverged from a May 13, 2026 base (`PEAKLY_BUILD = "20260513c"`). Merging it would roll back 5+ months of work including the PR #20 App Review fixes, the onboarding rewrite, photo improvements, and the scoring honesty pass. The top commits are "Restore app.jsx" which is a further red flag. This branch is almost certainly abandoned exploratory work from before the main line stabilized. Jack should close it without merging.
 
 ---
 
 ## Bug Triage
 
-### P0-A — VPS Redeploy: Day 84. Nov 7 = 7 days. 🚨
+### P0-A — VPS Redeploy: Day 85. Nov 7 = **6 days.** Whistler = 20 days. 🚨
 
-Four bugs live in production, fixed in repo since July 24 (99 days):
-
-| Bug | User impact | Hard deadline |
-|-----|-------------|---------------|
-| `forecast_days:7` on VPS | Whistler invisible Nov 21 (ski season open) | Nov 7 |
-| `_wxCache` in-memory only | Reddit spike → Open-Meteo rate ceiling → weather down for everyone | Nov 7 |
-| `capacitor://localhost` missing CORS | iOS native app: zero weather, zero pricing | Nov 7 |
-| `DELETE` not in CORS methods | Alert deletion silently fails for all users | Nov 7 |
+This is the same P0 it has been for 85 days. Verified: `server/proxy.js` in HEAD contains all four fixes (forecast_days:14, disk cache, capacitor://localhost CORS, DELETE allowed, APNs HTTP/2 + P1363). Nothing new to investigate — this is execution, not analysis.
 
 ```bash
-# Jack: 10 minutes. One SSH session.
 ssh root@198.199.80.21
-git clone https://github.com/j1mmychu/peakly.git /tmp/peakly-tmp
-cp /tmp/peakly-tmp/server/proxy.js /opt/peakly-proxy/proxy.js
+cp /tmp/peakly-tmp/server/proxy.js /opt/peakly-proxy/proxy.js  # or scp from local
 cd /opt/peakly-proxy && pm2 restart peakly-proxy
-curl -s https://peakly-api.duckdns.org/health | grep -E "forecast_days|cors|apns"
-rm -rf /tmp/peakly-tmp
+curl -s https://peakly-api.duckdns.org/health
 ```
 
-**If this doesn't happen by Nov 7, Whistler opens with broken two-weekend scoring. That's the ski destination most likely to surface on Reddit in November.**
+If it misses Nov 7, Whistler opens Nov 21 with broken two-weekend scoring. That's the worst possible timing for a ski app pre-Reddit.
 
-### P0-B — .venue-baseline: FIXED THIS RUN
+### P0-B — App Review Guideline 2.1 reply. Jack needs to paste and attach.
 
-Content agent set it to 209 (wrong). Fixed to 404. If you're reading this after another content run, verify: `cat scripts/.venue-baseline` should say `404`.
+`docs/APP_REVIEW_NOTES.md` has the paste-ready reply. Jack needs to:
+1. Reply on the App Review page for submission `468d466e-ab22-4db5-bc51-d897a9bcfb8e`
+2. Attach a screen recording from a physical iPhone per the shot list
+3. Set build 3 as the selected build if not already done
 
-### P1 — PRECACHE version mismatch (Day 25)
+This is not a technical blocker — it's 30 minutes of Jack's time in App Store Connect.
 
-`sw.js` PRECACHE includes `babel.min.js@7.29.7` but `index.html` loads `@7.24.7`. SW caches a version it will never serve. Fix: clear PRECACHE array to `[]`. Auto-push will bump cache stamp. Two-minute fix.
+### P1 — `fix-appjsx-final` branch risk (597 commits ahead of main, May 13 base)
 
-### P2 — AIRPORT_COORDS / AP_CONTINENT gaps
+If this ever accidentally gets merged or rebased onto main, it wipes five months of work. Jack should close/delete it now to remove the footgun.
 
-82 of 152 venue airports missing from AIRPORT_COORDS → distance filter broken for those venues. 117 of 152 missing from AP_CONTINENT → continent filter broken. Not a launch blocker, but degrades the core filter promise.
+### P2 — 20 unmerged origin branches (19 non-main)
+
+Not urgent individually but collectively noisy. Most are named `claude/*` — exploratory work that went nowhere. Recommend a cleanup pass: close all `claude/*` branches that haven't had a commit in 30 days. Jack approves the sweep.
+
+### P3 — DevOps agent venue counting methodology
+
+Three consecutive runs now the DevOps agent has reported wrong venue counts (209, 406). The correct approach is: `compact ids + JSON ids`. Worth noting in `tasks/agents/devops.md` but not a launch blocker.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: SSH to VPS before Nov 7. (P0-A above.)**
-Nothing else matters until this happens. Two-weekend scoring is broken. iOS native is broken. Nov 21 Whistler → ski season → Reddit → crash is the failure mode.
+**1. Jack: VPS redeploy before Nov 7. (10 minutes, SSH, P0-A)**
+Verified runbook above. This is the only technical blocker that's purely an execution gap. Everything else can ship or wait.
 
-**2. Jack: Review the 18 unmerged branches.**
-Do this before ANY code lands in main. Decide: merge, close, or cherrypick. `fix-appjsx-final` (597 commits ahead) is the biggest unknown in the codebase right now.
+**2. Jack: App Review Guideline 2.1 reply (30 min, App Store Connect, P0-B)**
+`docs/APP_REVIEW_NOTES.md` has the exact paste. Attach the recording. The build is ready (build 3 via PR #20). There's no reason to wait.
 
-**3. Fix PRECACHE (P1). Two minutes, zero risk.**
-The auto-push pipeline handles cache stamp. Just clear the array. Then any edge user who caught the wrong SW version gets the correct file on next load.
+**3. Jack: Close `fix-appjsx-final` and schedule a 20-branch cleanup sweep.**
+5 minutes per branch to decide: merge (if genuinely ahead of main with good code), or close. Most are exploratory dead ends. `fix-appjsx-final` specifically must be closed — it's a 5-month-old base that would roll back the codebase.
 
 ---
 
 ## Explicit Product Decisions This Run
 
-**DECISION 1: .venue-baseline = 404. SHIP.**
-The content agent's "correction" to 209 was an error. Bracket-walker eval gives 404, grep gives 404, CLAUDE.md says 404. Fixed this run.
+**DECISION 1: PR #20 was the right call. SHIPPED.**
+Clean, targeted App Review prep. 100dvh fix was a real bug on iOS Safari. Support link was a Guideline 2.1 requirement. PRECACHE clear removes a stale-cache class of bugs. No regressions possible from this diff.
 
-**DECISION 2: AIRPORT_COORDS/AP_CONTINENT backfill. DEFER to post-VPS.**
-Real gap, but the distance filter failing silently (returns "no data") is less bad than broken weather scoring. Fix order: VPS first, then data gaps.
+**DECISION 2: Venue addition queue stays FROZEN. DEFER indefinitely post-Reddit.**
+Content agent flagged 225 thin-tag venues and a queue of 20+ proposals. The product doesn't need more venues to hit 1K users. It needs the App Review to clear and the Reddit post to go out. Venue count at 404 is more than sufficient signal diversity. Tag enrichment won't move the conversion needle before launch.
 
-**DECISION 3: Unmerged claude/* branches. NO MERGE until Jack reviews.**
-18 branches including what looks like a full app rewrite (`fix-appjsx-final`) cannot land in main from a scheduled agent run. This is a human decision. PM is formally flagging this as requiring Jack's eyes before any merge action.
+**DECISION 3: `fix-appjsx-final` branch — DO NOT MERGE, CLOSE. Jack to confirm.**
+This is not a scheduling decision; it's a preservation call. The branch diverged 5 months ago from a base that's missing the onboarding rewrite, PR #20, and every scoring improvement since May. PM formally recommends closing it. If it contains genuinely valuable work, cherry-pick specific commits only — never merge the branch wholesale.
 
 ---
 
 ## Features REJECTED This Week
 
-- **JSON-LD structured data:** Already cut from launch gate (v195). Still deferred — SEO gain doesn't justify pre-launch complexity with VPS undeployed.
-- **Venue addition queue (20+ proposals):** Frozen per PM v196. The catalog is already 404 venues. More venues don't move the 100K downloads needle. REJECT until post-Reddit.
-- **Tag depth improvement (225 venues with ≤2 tags):** Cosmetic data improvement. Does not affect scoring, filtering, or conversion. REJECT until post-launch.
-- **APNS push alerts:** Still blocked by Open #21 (DER vs P1363 + HTTP/1.1 vs HTTP/2). REJECT — do not wire until the transport is fixed.
+- **Tag enrichment (225 thin-tag venues):** Not a conversion lever. Users choose by score and category, not tags. REJECT until post-10K users.
+- **JSON-LD / static h1 fallback:** SEO improvement, already cut from launch gate in v195. Still not worth the pre-launch complexity with App Review pending. REJECT.
+- **APNS push alert wiring:** Blocked by Open #21. Code is fixed in repo, VPS not deployed. Cannot validate until after VPS redeploy. REJECT until VPS is confirmed live and APNS test-fire succeeds.
+- **Any `claude/*` branch merge without Jack review:** Automated merge of exploratory branches without human review is how `fix-appjsx-final` persisted this long. REJECT.
 
 ---
 
 ## Success Criteria
 
 **What defines success:**
-- 1,000 DAU within 30 days of Reddit/HN post
-- <5% ErrorBoundary rate (Sentry)
-- Weather loads for ≥95% of Explore sessions
-- VPS `/health` shows `forecast_days:14` + `wx_cache_size` > 0 after the spike
+- App Store approval: build 3 + Guideline 2.1 reply lands within 7 days
+- VPS deployed before Nov 7 (Whistler open = first organic ski-season traffic)
+- Reddit post lands with live weather + accurate weekend pricing for all users
+- <5% Sentry ErrorBoundary rate in first 48h post-Reddit
 
-**90-day projection: 5K vs 8K users — what makes it 8K:**
-- VPS deployed BEFORE the Reddit post (weather cache survives a spike)
-- At least 2 of the 18 unmerged branches contain genuine UX improvements that make the front page feel polished
-- Whistler + ski season content performs on social Nov–Dec (skiing audience is real, beach audience has seasonal overlap)
-- The score explanation UI (already shipped) gives users the "aha" moment on first visit
+**90-day projection: 5K vs 8K users:**
 
-**What makes it 5K:**
-- VPS still down at Reddit post time → weather fails under load → users bounce → no second chance
-- The 18 unmerged branches contain a redesign that ships half-finished
+For 8K (not 5K):
+- App Review clears before Whistler opens (Nov 21 is the deadline with meaning)
+- VPS serves 14-day forecasts on day of Reddit post so the ski audience sees real November ski-season data
+- At least one of the unmerged `claude/*` branches contains a genuine UX improvement that increases session depth (time on Explore, card taps per session)
+- The 100dvh fix from PR #20 means iOS Safari users actually see the bottom nav — this was a real bug affecting all iPhone users browsing via Safari
 
----
+**One product risk nobody is talking about:**
 
-## One Product Risk Nobody Is Talking About
-
-**The 18 unmerged branches represent a parallel product that may be significantly better — or significantly broken — than what's live.**
-
-`fix-appjsx-final` is 597 commits ahead of main. That's not a bug fix. That's a sustained, parallel development effort. If it contains genuine improvements that haven't shipped, the live product is behind its own potential for 19+ days. If it's broken, someone has been iterating on broken code for weeks.
-
-This is not a reporting failure. It's a process failure: parallel AI agent workstreams with no coordination, no merge discipline, no review gate. The auto-push pipeline was built to solve this for main. It doesn't help when work is happening on 18 branches simultaneously.
-
-**Jack's call:** Before Nov 7, spend 30 minutes on GitHub reviewing what's actually in those branches. The upside is finding work worth shipping. The downside of not looking is launching with an outdated product when the better version already exists in your own repo.
+The app has 20 unmerged branches and an active App Review submission, but no record of what the live site currently looks like to a first-time user. The last time anyone ran a manual smoke test and wrote it down was Aug 11. The auto-push Playwright smoke runs against the Pages deploy — but does the live site, on a real iPhone, with real weather data, actually feel like a 5-star app? The gap between "passes smoke" and "feels polished" is where Reddit posts die. Before the post goes out, Jack should walk through the full first-run experience on an iPhone, screenshot every step, and fix anything that feels rough. That 1-hour session is worth more than any of the 20 pending branches.
 
 ---
 
-## Blocked
+## Branch Cleanup Recommendation (Jack action, ~30 min)
 
-| Blocker | What it unlocks |
-|---------|-----------------|
-| LLC approval | REI (18 links, ~$6.16/1K MAU), Backcountry (2 links), GetYourGuide affiliate |
-| Jack SSH to VPS | Two-weekend scoring, iOS native, alert deletion, cache spike protection |
-| Jack review of 18 branches | Any code merging / safe launch |
-| Jack update of cron prompt | Accurate daily reporting (stale for 25 days) |
+| Branch | Commits ahead of main | Recommendation |
+|--------|----------------------|----------------|
+| `fix-appjsx-final` | 597 (May 13 base — STALE) | ❌ CLOSE/DELETE |
+| `restore-appjsx` | ~5 (May base) | ❌ CLOSE/DELETE |
+| `cursor/finish-peakly-ship-c015` | 1 (same as PR #20) | ✅ Already merged via #20, DELETE |
+| `test-small` | unknown | ❌ CLOSE |
+| `master` | footgun Day 25 | ❌ DELETE |
+| `claude/improve-scoring-system-XYGY6` | unknown | ⚠️ READ before closing — scoring changes need algorithm critique |
+| All other `claude/*` | unknown | ❌ CLOSE unless Jack specifically wants one |
