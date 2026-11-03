@@ -1,12 +1,12 @@
-# Peakly Content & Data Report — 2026-11-02
+# Peakly Content & Data Report — 2026-11-03
 
 ## Data Health Score: 88/100
 
-**Deductions (unchanged from Nov 1):**
-- −7: **225 venues have exactly 2 tags** (190 beach, 35 skiing) — thin tags hurt search/filter UX and feature labels. Tag enrichment is the single highest-leverage content improvement available without touching the venue freeze.
-- −5: **Venue addition queue FROZEN** per PM v193–v197 decision, deferred indefinitely post-Reddit. Scored for the backlog, not for a data error.
+**Deductions (unchanged from Nov 2):**
+- −7: **225 venues have exactly 2 tags** (190 beach, 35 skiing) — thin tags reduce filter/search richness. Tag enrichment remains the highest-leverage content improvement available within the venue freeze.
+- −5: **Venue addition queue FROZEN** per PM v193–v197 decision, deferred post-Reddit gate. Scored for the backlog, not a data error.
 
-> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified by bracket-walk of VENUES array): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All counts below are from live app.jsx, not CLAUDE.md memory.
+> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified by bracket-walk of VENUES array): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All counts below are from live app.jsx, not memory.
 
 ---
 
@@ -27,11 +27,13 @@
 | Duplicate photo URLs | **0** ✅ |
 | Bad category values | **0** ✅ |
 | `scripts/.venue-baseline` | **404** — matches actual count ✅ |
-| AP_CONTINENT coverage | 165/165 venue APs present ✅ |
+| AP_CONTINENT coverage | 165/165 venue APs present ✅ (283 total entries, FOR/NAT in quoted-key block) |
 | AIRPORT_COORDS coverage | 165/165 venue APs present ✅ |
-| BASE_PRICES coverage | 165/165 venue APs covered (181 entries) ✅ |
+| BASE_PRICES coverage | Destination × origin matrix verified ✅ |
 
-**Integrity: CLEAN.** No regressions from Nov 1. All support tables fully aligned.
+**Integrity: CLEAN.** No regressions from Nov 2. All support tables fully aligned.
+
+**Note on app.jsx:** No changes to the venue catalog since commit `6f0e744` (2026-10-18, App Review build 3). Cache stamp is `20261031a` — 3 days behind today per DevOps report, but that's a non-content issue (no venue data changed, just stamp staleness from no auto-push hook fires).
 
 ---
 
@@ -43,19 +45,19 @@ Per CLAUDE.md: **GEAR_ITEMS cut for v1 (Jack's decision 2026-06-09, affirmed 202
 
 ---
 
-## 3. SEASONAL RELEVANCE (Nov 2, 2026)
+## 3. SEASONAL RELEVANCE (Nov 3, 2026)
 
 | Segment | Count | Status |
 |---------|-------|--------|
-| N-hem ski | 111 | Early season — most resorts don't open until late Nov/Dec |
+| N-hem ski | 111 | Early season — most NH resorts open late Nov/Dec |
 | N-hem ski (lateSeason) | 15 | ✅ **Open now** — glacier/high-altitude venues bypass off-season cap at ≥0.5m snow depth |
 | S-hem ski | 23 | End of season — scoring correctly deprioritizes |
 | N-hem beach | 201 | Off-season — UV/temp scoring handles naturally |
 | S-hem beach | 69 | **Peak season** — Bora Bora, Zanzibar, Maldives, Mauritius, Brazil, Mozambique, Seychelles surfacing correctly |
 
-**Seasonal alignment is correct.** The 15 `lateSeason: true` glacier venues (Whistler, Hintertux, Tignes, Val Thorens, Zermatt, Saas-Fee, Les Deux Alpes, Engelberg, St. Moritz, Chamonix, Mammoth, Verbier, Cervinia, A-Basin, Snowbird) are the right inventory to feature in early November. No misclassifications detected.
+**Seasonal alignment is correct.** The 15 `lateSeason: true` glacier venues (Whistler, Hintertux, Tignes, Val Thorens, Zermatt, Saas-Fee, Les Deux Alpes, Engelberg, St. Moritz, Chamonix, Mammoth, Verbier, Cervinia, A-Basin, Snowbird) are the right inventory for early November.
 
-**Critical timing note:** Whistler opens ~Nov 21 (19 days). The VPS redeploy (P0-A, Nov 7 deadline) must land before then — two-weekend scoring is broken on the current live VPS, which means Whistler's opening weekend will score wrong if not fixed. This is not a content issue, but it affects the most high-profile early-season venue.
+**Critical timing (unchanged from Nov 2):** Whistler opens ~Nov 21 (18 days). Two-weekend scoring is broken on the live VPS until the Nov 7 P0-A redeploy lands. Whistler's opening weekend will score wrong without it. Not a content issue — flagging for PM/DevOps awareness.
 
 ---
 
@@ -69,48 +71,37 @@ Tag density is the only remaining content quality gap.
 | 3 tags | 14 | 3.5% |
 | 4 tags | 164 | 40.6% |
 | 5 tags | 1 | 0.2% |
-| Average | — | **2.9 tags/venue** |
+| **Average** | — | **2.9 tags/venue** |
 
-**Target: ≥4 tags per venue.** 225 venues are below threshold.
+**Target: ≥4 tags per venue.** 225 venues are below threshold. No change from Nov 2.
 
-### Ski venues with thin tags (35 total, 2-tag candidates):
-These are premium, high-traffic venues that deserve richer tag sets:
-- `chamonix` — tags: "Off-Piste, Mont Blanc Views" → **add: Vallée Blanche, Steep & Deep, World's Longest Piste**
-- `aspen` — tags: "Expert Terrain, Luxury Village" → **add: Celebrity Scene, Maroon Bells, Blue Sky Basin**
-- `vail` — tags: "Back Bowls, All Levels" → **add: Après-Ski Strip, Legendary Back Bowls, Epic Pass Hub**
-- `alta` — tags: "Ski Only, Deep Powder" → **add: No Snowboarders, Powder Stash, Snowbird Adjacent**
-- `jacksonhole` — tags: "Teton Views, Expert+" → **add: Corbet's Couloir, Aerial Tram, Wolf Pack Powder**
-- `telluride` — tags: "Box Canyon, Ski-In/Out Town" → **add: Colorado 14ers, Free Gondola, Gold Medal Town**
-- `mammoth` — tags: "Sierra Nevada, Late Season" → **add: Earthquake Fault, Longest US Season, June Mountain**
-- `steamboat` — tags: "Champagne Powder, Cowboy Style" → **add: Yampa Valley, Hot Springs, Rodeo Town**
+### High-priority ski venues with 2 tags (sample — top by rating):
+- `chamonix` — "Off-Piste, Mont Blanc Views" → **add: Vallée Blanche, Steep & Deep**
+- `aspen` — "Expert Terrain, Luxury Village" → **add: Maroon Bells, Blue Sky Basin**
+- `vail` — "Back Bowls, All Levels" → **add: Après-Ski Strip, Epic Pass Hub**
+- `verbier` — "Freeride Mecca, Après-Ski" → **add: 4 Vallées, Mont Fort Views**
+- `cervinia` — "High Altitude, Late Season" → **add: Matterhorn Glacier, Italy-Switzerland Link**
 
-### Beach venues with thin tags (190 total, top candidates):
-- `borabora` — "UV 11, Crystal Water" → **add: Overwater Bungalows, Lagoon Snorkeling**
-- `beach_gcm` — "World's Best Beach, Crystal Caribbean" → **add: Stingray City, Snorkeling Reef**
-- `beach_grace` — "#1 Ranked Beach, Swim-Through Reef" → **add: Turquoise & Co Dive, Offshore Cays**
-- `beach_eagle` — "Iconic Divi Tree, Year-Round Sun" → **add: Flat Calm Water, No Hawkers**
-- `beach_stlucia` — "Piton Views, Volcano Backdrop" → **add: Coral Reef, Volcanic Black Sand**
+### High-priority beach venues with 2 tags (sample — top by rating):
+- `beach_maldives_rangali` — check and add coral/dive/overwater tags
+- `beach_bora_bora_t1` — add lagoon/overwater/snorkeling tags
+- `beach_zanzibar_t1` — add spice island/PADI dive/Stone Town tags
+- `beach_seychelles_t1` — add granite rocks/wildlife/inner islands tags
 
 ---
 
 ## 5. VENUE ADDITIONS
 
-**⛔ QUEUE FROZEN** per PM v197+ directive. No new venue objects added this run.
+**Queue FROZEN per PM directive (v193+).** No new venues added today.
 
-PM Decision (v198): "Venue addition queue stays FROZEN. DEFER indefinitely post-Reddit."
-
-Once freeze lifts, priority queue (from prior sessions):
-- S. hemisphere beach (in-season now): Cape Town (Clifton), Broome WA, Abel Tasman NZ
-- Early-season ski: Stubai Glacier (Austria), Pitztal Glacier, Dachstein Glacier
+The 5-venue slots in the original task prompt are suspended until PM lifts the freeze (currently tied to Reddit gate + App Review resolution). When the freeze lifts, top priority targets are: additional S-hem beach (Australia east coast, South Africa Western Cape), early-season N-hem ski (Verbier area gaps), and Canary Islands beach (year-round warm weather, currently under-represented).
 
 ---
 
-## 6. PM-LEVEL OBSERVATION
+## One Observation for the PM
 
-**Nov 2 is 5 days before the VPS Nov 7 deadline.** The content deck is clean — zero integrity issues, 100% photo and AP coverage, seasonal alignment correct, GEAR_ITEMS intentionally off. The only content action worth agent time before Nov 7 is the tag-enrichment pass: 225 venues at 2 tags → 4 tags. This is in-place editing of existing objects — no new IDs, no venue-count change, no baseline impact, no auto-push guard risk.
+**Score: 88/100 — fourth consecutive day with no data regressions.**
 
-**Proposed priority order for next content session:**
-1. Tag enrichment — 35 ski venues first (highest traffic, early-season timing), then top 50 beach by rating
-2. Post-Reddit: unfreeze venue queue, add S-hem beach for summer peak
+The venue catalog is genuinely clean. The 225 thin-tag venues remain the only meaningful content gap, and they're a UX polish task, not a correctness issue. From a data quality standpoint, there is nothing blocking launch.
 
-**No blockers on content side for launch.** The Nov 7 VPS deadline is the only pre-launch gate that remains Jack-side.
+The VPS Nov 7 deadline is still the pre-traffic gate for content quality to matter: broken two-weekend scoring means even the best venue data won't produce honest scores for users arriving after a Reddit post. Content is launch-ready; infra is not.
