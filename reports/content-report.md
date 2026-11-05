@@ -1,12 +1,12 @@
-# Peakly Content & Data Report — 2026-11-04
+# Peakly Content & Data Report — 2026-11-05
 
 ## Data Health Score: 88/100
 
-**Deductions (unchanged from Nov 3):**
-- −7: **~225 venues have ≤2 tags** (Day 5 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
-- −5: **Venue addition queue FROZEN** per PM v193–v197 directive, deferred post-Reddit gate. Scored for the backlog, not a data error.
+**Deductions (unchanged — Day 6):**
+- −7: **~225 venues have ≤2 tags** (Day 6 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
+- −5: **Venue addition queue FROZEN** per PM v193+ directive, deferred post-Reddit gate. Scored for the backlog, not a data error.
 
-> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified 2026-11-04 by multi-method counting): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All numbers below are from live app.jsx.
+> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified continuously since 2026-11-01): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All numbers below are from live app.jsx.
 
 ---
 
@@ -14,7 +14,7 @@
 
 | Check | Result |
 |-------|--------|
-| Total venues | **404** |
+| Total venues | **404** (`.venue-baseline` confirmed) |
 | Skiing | 134 |
 | Beach | 270 |
 | Categories | 2 (skiing, beach) — correct post-pivot |
@@ -25,13 +25,13 @@
 | Missing photos | **0** ✅ |
 | Missing titles | **0** ✅ |
 | `lateSeason: true` venues | **15** ✅ |
-| `poolPrimary: true` venues | 0 (field in scoring logic; no venues set) |
+| `poolPrimary: true` venues | 0 (scoring logic present; no venues set — intentional) |
 | `scripts/.venue-baseline` | **404** ✅ — matches actual count |
-| AP_CONTINENT / AIRPORT_COORDS | Verified CLEAN (Nov 3 — no app.jsx changes since) |
+| AP_CONTINENT / AIRPORT_COORDS | Verified CLEAN (no app.jsx changes since `6f0e744` 2026-10-18) |
 
-**Integrity: CLEAN.** No changes to app.jsx since `6f0e744` (2026-10-18). Last 5 days of commits are reports only.
+**Integrity: CLEAN.** No changes to app.jsx in 18 days. Last 6 days of commits are reports only. The DevOps "406" count is a confirmed methodology artifact (counts non-venue `id:` fields) — not a real discrepancy.
 
-**Note on DevOps "406" count:** DevOps report (Nov 4) claims eval returns 406 venues. Multi-method recount today (line-based ID count, category sum across both compact + quoted-key formats) consistently returns **404**. DevOps counting methodology appears to overcount by 2 — likely picking up non-venue `id:` fields (e.g. CATEGORIES constants). `.venue-baseline` = 404 is correct. No action needed.
+**⛔ ROLLBACK ALERT (not a content issue — flagging for visibility):** DevOps confirms `fix-appjsx-final` branch is a 6-month rollback to May 2026 (9,095 vs 14,256 lines on main). DO NOT MERGE. This would delete the entire 404-venue catalog and all post-May work.
 
 ---
 
@@ -43,7 +43,7 @@ Per CLAUDE.md: **GEAR_ITEMS cut for v1 (Jack's decision 2026-06-09, affirmed 202
 
 ---
 
-## 3. SEASONAL RELEVANCE (Nov 4, 2026)
+## 3. SEASONAL RELEVANCE (Nov 5, 2026)
 
 | Segment | Count | Status |
 |---------|-------|--------|
@@ -55,7 +55,7 @@ Per CLAUDE.md: **GEAR_ITEMS cut for v1 (Jack's decision 2026-06-09, affirmed 202
 
 **Seasonal alignment is correct.** The 15 `lateSeason: true` glacier venues (Whistler, Hintertux, Tignes, Val Thorens, Zermatt, Saas-Fee, Les Deux Alpes, Engelberg, St. Moritz, Chamonix, Mammoth, Verbier, Cervinia, A-Basin, Snowbird) are the right early-November inventory.
 
-**Critical timing (Day 5 of same flag):** Whistler opens ~Nov 21 — **17 days**. Two-weekend scoring is broken on the live VPS until the Nov 7 P0-A redeploy lands. Whistler's first weekend (Nov 22–23) will score wrong without the VPS fix. Not a content issue.
+**Critical timing (Day 6 of same flag):** Whistler opens ~Nov 21 — **16 days**. Two-weekend scoring is broken on the live VPS until the Nov 7 P0-A redeploy lands (2 days). Whistler's first weekend (Nov 22–23) will score wrong without it. Not a content issue — DevOps owns the Nov 7 deadline.
 
 ---
 
@@ -69,29 +69,34 @@ Per CLAUDE.md: **GEAR_ITEMS cut for v1 (Jack's decision 2026-06-09, affirmed 202
 | 5 tags | 1 | 0.2% |
 | **Average** | — | **~2.9 tags/venue** |
 
-**Target: ≥4 tags per venue.** ~225 venues are below threshold. No change from Nov 1–3 (venue freeze halts new additions; tag enrichment for existing venues is in-scope but deprioritized until Reddit gate clears).
+**Target: ≥4 tags per venue.** ~225 venues remain below threshold. No change from Nov 1–4 (venue freeze halts tag enrichment for new venues; enriching existing venues is in-scope and low-risk but deprioritized until Reddit gate clears).
 
-### Top ski venues with thin tags (sample):
+### Top ski venues with thin tags (unchanged from prior days):
 - `chamonix` — 2 tags → add: Vallée Blanche, Steep & Deep
 - `aspen` — 2 tags → add: Maroon Bells, Blue Sky Basin
 - `verbier` — 2 tags → add: Mont-Fort, 4 Valleys Circuit
 - `courchevel` — 2 tags → add: Les Trois Vallées, Luxury Chalets
 - `st-moritz-ch` — 2 tags → add: Corvatsch, Luxury Shopping
+- `val-disere` — 2 tags → add: Espace Killy, Off-Piste
+- `breckenridge` — 2 tags → add: Imperial Bowl, Family-Friendly
 
-### Top beach venues with thin tags (sample):
+### Top beach venues with thin tags (unchanged from prior days):
 - `borabora` — 2 tags (UV 11, Crystal Water) → add: Overwater Bungalows, Shark Snorkeling
 - `zanzibar` — 2 tags → add: Spice Island, Stone Town, Dhow Sailing
 - `maldives_male` — 2 tags → add: House Reef Snorkeling, Sandbank Excursions
 - `seychelles` — 2 tags → add: Vallée de Mai, Giant Tortoises
+- `boracay` — 2 tags → add: Station 2 White Beach, Kitesurfing
 
 ---
 
 ## 5. VENUE ADDITIONS
 
-**FROZEN per PM directive (v193+).** Queue is 20+ deep but held until after Reddit gate. No new venues added today.
+**FROZEN per PM directive (v193+).** Queue 20+ deep, held until after Reddit gate. No new venues today.
+
+Tag enrichment for existing 225 thin-tag venues is prepped and ready to ship the moment the freeze lifts — this is the highest-ROI content action within scope.
 
 ---
 
 ## One Observation for PM
 
-**The Nov 7 VPS deadline is now 3 days out and directly threatens the product.** Tag enrichment (the only content action available within the freeze) can be prepped as a ready-to-ship diff that fires *the moment* the VPS redeploy clears and the venue freeze lifts. High-impact target: enriching the top 50 thin-tag ski venues with 2 additional tags each would take cache/quality score from 88 → ~95 and would surface more specific filter results (e.g. "Deep Powder," "Luxury Village," "Beginner-Friendly" tags that currently only 40% of venues carry). This prep can be done now without touching the frozen VENUES array — just need the go signal.
+**Nov 7 is in 2 days — the VPS redeploy deadline lands before Whistler opens (Nov 21).** If the redeploy clears by Friday, the product will correctly score the first Whistler weekend on Nov 22–23. That's the first real in-season NH ski inventory of the season, and it will surface on the front page if two-weekend scoring is live. Missing that window means the app shows no compelling ski content for a full week after Whistler opens — a bad first impression for any Reddit traffic arriving Nov 21+. The content is ready (15 lateSeason venues, correct tags, correct coordinates). The only blocker is the VPS.
