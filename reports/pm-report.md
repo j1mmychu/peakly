@@ -1,120 +1,125 @@
-# Peakly PM Report v203 — 2026-11-06 (LAUNCH DAY +19)
+# Peakly PM Report v204 — 2026-11-07 (LAUNCH DAY +20)
 
-**Status: 🔴 RED — VPS deadline is TODAY (Nov 7 = tomorrow UTC, Nov 6 = today PST). App Review reply still pending. No app code in 20 days. Whistler opens in 15 days. The deadline arrived.**
+**Status: 🔴 RED — VPS deadline has officially PASSED (Nov 7 = today). App Review reply still pending. No app code in 21 days. Whistler opens in 14 days. Entering critical window.**
 
-> **Stale prompt notice — Day 31 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice will stay in every report until it's fixed.
+> **Stale prompt notice — Day 32 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice will stay in every report until it's fixed.
 
 ---
 
-## Shipped Since Last Report (v202 → v203)
+## Shipped Since Last Report (v203 → v204)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `4808567` | DevOps report Nov 6 — VPS Day 90, Nov 7 deadline TOMORROW, `fix-appjsx-final` rollback bomb Day 6 | ✅ routine |
-| `3c27897` | Content report Nov 6 — CLEAN (404 venues), 225 thin-tag venues Day 7, Whistler 15 days out | ✅ routine |
+| `50711ad` | DevOps report Nov 7 — VPS Day 91, deadline PASSED, `fix-appjsx-final` Day 7 | ✅ routine |
+| `1f78b47` | Content report Nov 7 — CLEAN (404 venues), lateSeason 15 confirmed, Day 8 thin-tag | ✅ routine |
 
-**Twenty consecutive days with zero app code commits.** This is correct. The human-gated blockers have not moved. Reports only.
+**21 consecutive days with zero app code commits.** Still correct — no human-gated blockers have moved. No code should ship until VPS is redeployed and App Review is answered.
 
 ---
 
-## Overnight Activity: What Changed
+## Overnight Activity
 
-Nothing of substance changed. The DevOps and Content agents filed clean routine reports. No app.jsx changes. No VPS update. No App Review reply. The 15+ automated `claude/*` branches on origin remain unmerged (correct).
+Nothing changed. DevOps and Content filed clean routine reports. The lateSeason count discrepancy (DevOps said 10, Content said 15) is resolved — Content's eval-based method is authoritative, count is 15. Branch count dropped from 21 to 19 (two were deleted upstream).
 
-**Nov 7 is tomorrow.** This is the third VPS deadline. The first was August 11 (missed). The second was two weeks ago (missed). This is the last one the PM is setting. After today, the VPS situation becomes a permanent product defect in the KNOWN-BROKEN state, not an "open item with a deadline."
+**The Nov 7 VPS deadline expired unactioned.** This is the third missed deadline. As promised in v203, this report formally reclassifies the VPS status.
 
 ---
 
 ## Bug Triage
 
-### P0-A — VPS Redeploy: **DEADLINE IS TODAY/TOMORROW.** Day 90. 🚨
+### P0-A — App Review Guideline 2.1 reply: STILL PENDING. This is now the last pre-launch gate. 🚨
 
-This is the third and final deadline. What breaks without this:
-- Two-weekend scoring broken on 15 lateSeason venues during Whistler's opening (Nov 21)
-- iOS native CORS-blocked on every flight price fetch
-- Alert deletion silently fails forever
-- Open-Meteo rate limit risk during Reddit spike (disk cache not live)
+The App Store submission `468d466e-ab22-4db5-bc51-d897a9bcfb8e` is waiting for a reply. `docs/APP_REVIEW_NOTES.md` has paste-ready text. Thanksgiving window math:
 
-**Complete task (Jack, 10 min):**
-```bash
-ssh root@198.199.80.21
-# From local machine first:
-scp /path/to/peakly/server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-# On VPS:
-cd /opt/peakly-proxy && pm2 restart peakly-proxy
-curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
-# Confirm: forecast_days:14, CORS includes capacitor://localhost
-```
-Bundle Open #23 (disk cache) — it's already in `server/proxy.js`, same file, same deploy.
+- Submit reply **today (Nov 7)** → review 1–3 days → app live by Nov 8–10 → 18 days before Thanksgiving peak
+- Submit reply **Nov 10** → app live Nov 11–13 → 14 days before peak
+- Submit reply **Nov 14** → app live Nov 15–17 → 10 days before peak — this is where conversion materially suffers
 
-**If this is not done by end of Friday Nov 7:** The PM is formally moving VPS redeploy to KNOWN-BROKEN status. It will stop receiving P0 treatment in reports. The product ships with the defect. Users on iOS native get CORS-blocked flight prices. That is the consequence of 90 days of deferral.
+Each day without a reply is 24 hours of Thanksgiving coverage gone. This is the highest-leverage 30-minute action in the product right now. Nothing else matters until this is submitted.
 
-### P0-B — App Review Guideline 2.1 reply still pending.
+### KNOWN-BROKEN (formerly P0) — VPS Redeploy: Day 91. Deadline EXPIRED. Reclassified.
 
-`docs/APP_REVIEW_NOTES.md` has paste-ready text. Thanksgiving window math: submit today → review 1-3 days → app live Nov 7-10 → 18 days before Thanksgiving peak. Each day this slips is a day less of Thanksgiving-window coverage. This window does not come back.
+Per the commitment in v203: the VPS redeploy exits P0 treatment after Nov 7. It is now KNOWN-BROKEN. The product ships with these defects:
 
-### P0-C — `fix-appjsx-final` rollback bomb. Delete it. This is Day 6.
+- Two-weekend scoring returns single-weekend data (second weekend silently empty)
+- Alert deletion silently fails on all platforms
+- iOS native CORS-blocked on flight/weather fetches
+- Disk cache not live (pm2 restart wipes wx cache)
 
-DevOps confirmed: 9,095 lines vs main's 14,256. Merging this deletes 6 months of work.
-**Action: GitHub → Branches → delete `fix-appjsx-final`.** Two clicks. Zero risk. This has been the top ask for 6 days.
+**This will visibly hurt the Whistler moment (Nov 21).** That is the consequence of three missed deadlines. It is documented. The fix remains: `scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/ && pm2 restart peakly-proxy` — 10 minutes at any time.
 
-### P2 — Cache stamp `20261031a` — Day 7 stale.
+The PM will note VPS status in every report. It won't set new deadlines for it.
 
-Auto-bumps on the next app.jsx commit. The VPS redeploy should include a cache stamp bump. DevOps report has the exact `perl -pi` commands. Bundle this with P0-A.
+### P0-C — `fix-appjsx-final` rollback bomb: Day 8. Still not deleted.
 
-### P2 — 21 unmerged branches on origin.
+This branch forks from the **initial commit** and would silently overwrite 6 months of work if merged. It has been the top 2-minute action request for 8 days.
 
-No change. Mass-delete after `fix-appjsx-final` is gone. All `claude/*` branches are pre-Reddit experiments — none ship before the launch gates clear.
+**Delete it:** GitHub → Branches → `fix-appjsx-final` → Delete. Same for `restore-appjsx` (same risk profile).
+
+No new deadline. It's just sitting as a live landmine.
+
+### P2 — Cache stamp `20261031a` — Day 8 stale.
+
+Auto-bumps on next app.jsx commit. Not actionable until VPS redeploy triggers a cache bump anyway.
+
+### P2 — 19 unmerged branches on origin.
+
+`fix-appjsx-final` deletion first. Then mass-delete the `claude/*` experiments.
 
 ---
 
 ## This Week's Top 3 Priorities Only
 
-**1. Jack: Delete `fix-appjsx-final` on GitHub. (2 min)** This is Day 6. This one task eliminates the highest single-action risk in the repo. It is inexplicable that it hasn't happened yet.
+**1. Jack: App Review reply. (30 min — today, Nov 7).** `docs/APP_REVIEW_NOTES.md` has the text. The Thanksgiving window is closing by 24h/day. Nothing else ships while the app is not on the App Store.
 
-**2. Jack: VPS redeploy + disk cache + cache stamp bump. (20 min, P0-A + Open #23 + P2).** The deadline is today. This is the last report that calls it a deadline.
+**2. Jack: VPS redeploy. (10 min — this weekend at latest).** It's KNOWN-BROKEN, not P0, but Whistler opens Nov 21 and the second-weekend scoring will be visibly wrong on the launch day Reddit post. The fix window before the Reddit moment closes Nov 21.
 
-**3. Jack: App Review Guideline 2.1 reply. (30 min, P0-B).** Thanksgiving window is narrowing by 24 hours per day. This week is the last week it matters.
+**3. Jack: Delete `fix-appjsx-final` on GitHub. (2 min).** A live rollback bomb sitting on origin for 8 days. Two clicks.
 
-**Nothing else ships this week. Nothing else is even discussed this week.**
+**Nothing else ships this week. No new features, no branch work, no experiments.**
 
 ---
 
 ## Explicit Product Decisions This Run
 
-**DECISION 1: After Nov 7, VPS redeploy exits P0 and enters KNOWN-BROKEN.** It stops receiving deadline treatment. Reports will note the defect but won't set new deadlines. The product ships with CORS-blocked iOS flight prices and broken alert deletion. This is the consequence of three missed deadlines.
+**DECISION 1: VPS redeploy is now KNOWN-BROKEN, not P0.** No more PM deadlines for it. It remains fixable in 10 minutes at any time. The consequence (wrong Whistler scoring on Nov 21 Reddit day) is documented. Jack's call.
 
-**DECISION 2: 225 thin-tag venues — DEFER past Reddit launch.** Content has flagged this for 7 days. Tag enrichment is correct work, but it's invisible to users. It doesn't affect the launch decision. Post-Reddit, with real user data on which venues are being viewed, tag enrichment gets prioritized by traffic. Not before.
+**DECISION 2: 225 thin-tag venues — DEFER past Reddit launch.** Day 8 of this finding. Post-Reddit, with traffic data showing which venues are viewed, tag enrichment is prioritized by actual demand. Not before. DEFER is the same decision as yesterday and will be the same next week.
 
-**DECISION 3: All `claude/*` branch work — FROZEN until VPS + App Review clear.** The automated sessions have produced redesign-front-page, improve-scoring-system, improve-peakly-ui, simplify-alerts-page, streamline-onboarding. All are pre-Reddit speculation. None ship. The product is validated by Reddit users, not by automated session taste. After Reddit, pick the top-trafficked venue flows to improve and work from real data.
+**DECISION 3: All `claude/*` branch work — FROZEN, do not evaluate or merge until post-Reddit.** The automated sessions (redesign-front-page, improve-scoring-system, improve-peakly-ui, simplify-alerts-page, streamline-onboarding, simplify-profile-page, condense-alert-page) are all pre-Reddit speculation produced with no user data. None of them ship. Post-Reddit, evaluate the 2–3 most-trafficked flows against real user behavior, then pick one to improve.
 
 ---
 
 ## Success Criteria Check
 
-**90-day projection: 5K–8K users. What gets us to 8K vs 5K?**
+**90-day projection: 5K–8K users. The gap is narrowing.**
 
-The 8K path requires this exact sequence, all executable this week:
-1. ✅ VPS redeploy by Nov 7 (two-weekend scoring correct before Whistler opens)
-2. ✅ App Review reply submitted by Nov 7 (app live by Nov 8-10)
-3. ✅ Reddit post Nov 21-23 during Whistler opening weekend (highest ski discovery moment of the year)
+The 8K path required: (1) VPS by Nov 7, (2) App on App Store by Nov 8–10, (3) Reddit post Nov 21 (Whistler opening). Path (1) missed. Path (2) is still open today — if the App Review reply goes in now, the app can be live before Thanksgiving. Path (3) is still achievable.
 
-**Current trajectory without action: 5K.** The gap is 48 hours of Jack's time that hasn't been spent.
+**Current best-case trajectory with App Review reply submitted today:**
+- App live ~Nov 9–11
+- Reddit post Nov 21 (Whistler opening)
+- Scoring partially correct (single-weekend, not two-weekend — Whistler won't show second weekend)
+- Thanksgiving window: ~16–19 days of coverage
+- Realistic: 6K–7K. 8K required the VPS too.
 
-The window is not permanently closed. But Thanksgiving is 20 days away. The Reddit post drives installs. The App Store app captures them on mobile. The VPS makes the scores correct. All three need to work for the Thanksgiving window to convert.
+**Current worst-case trajectory without App Review reply this week:**
+- App Store miss before Thanksgiving
+- Reddit post web-only
+- 3K–4K, primarily web PWA installs
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**Whistler opens in 15 days. The scoring will be wrong when it does.**
+**The 19 open branches are a morale and focus drain that compounds over time.**
 
-Whistler is the top-ranked ski venue in the app. It has `lateSeason: true`. When it opens Nov 21, the two-weekend scoring window tries to fetch 14 days of forecast data from the proxy. The VPS is serving 7-day data. The second weekend (the ACTUAL opening weekend for most users who'd be booking 1-2 weeks ahead) will silently return no data and score as "unavailable."
+Right now there are 19 unmerged branches on origin, most of them automated Claude experiments. Each one represents a path not taken. Each automated session that produces a "redesign-front-page" or "improve-scoring-system" branch adds cognitive overhead: someone has to look at it, evaluate it, decide whether to merge or delete it. That overhead accumulates.
 
-The Reddit post is planned for the Whistler opening window. That means the most visible venue in the app will score incorrectly on the day users arrive from Reddit.
+More concretely: the next human who touches the GitHub repo will see 19 branches suggesting that work is in flight across multiple directions simultaneously. It signals chaos, not launch focus. When Jack goes to submit the App Review reply or demo the app to a potential partner, those branches are visible.
 
-The VPS redeploy fixes this. That's what makes it a launch gate, not just infrastructure hygiene. The connection between "10-minute SSH session" and "top venue scores correctly on launch day" is not abstract. It is the specific thing that determines whether the Nov 21 Reddit moment converts or not.
+Delete the rollback bombs this week. After Reddit launch (not before), do a 30-minute branch cleanup: evaluate the automated work in bulk, cherry-pick anything genuinely useful onto a single PR, delete the rest. The branches should reflect what's actually shipping, not what automated sessions thought might be interesting.
 
 ---
 
-*Next report: 2026-11-07. VPS deadline expires. This report will note the outcome — fixed or formally moved to KNOWN-BROKEN.*
+*Next report: 2026-11-08. Tracking: App Review reply status (did it go in?), VPS (did it get fixed before Whistler?). Both are Jack-only. This report can only observe and pressure.*
