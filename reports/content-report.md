@@ -1,14 +1,14 @@
-# Peakly Content & Data Report — 2026-11-07
+# Peakly Content & Data Report — 2026-11-08
 
 ## Data Health Score: 88/100
 
-**Deductions (unchanged — Day 8):**
-- −7: **225 venues have ≤2 tags** (Day 8 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
+**Deductions (Day 9 — unchanged):**
+- −7: **225 venues have ≤2 tags** (Day 9 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
 - −5: **Venue addition queue FROZEN** per PM v193+ directive, deferred post-Reddit gate. Scored for the backlog, not a data error.
 
 > **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified continuously since 2026-11-01): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All numbers below are from live app.jsx via `eval()`.
 
-> **⚠️ DEVOPS LATESEASON CORRECTION:** Today's DevOps report flagged "lateSeason count dropped to 10 (was 15)." This is a **methodology artifact** — the same regex/bracket-walk issue that plagued counting before the eval counter was introduced. `eval(VENUES)` confirms **15 lateSeason:true venues, unchanged.** DevOps should use the eval method for all venue counts.
+> **⚠️ DEVOPS LATESEASON NOTE (Day 2 of correction):** DevOps report yesterday flagged lateSeason count at 10 — this is a methodology artifact (regex/bracket-walk undercount). `eval(VENUES)` confirms **15 lateSeason:true venues, unchanged.** DevOps should adopt the eval method for all venue counts.
 
 ---
 
@@ -19,75 +19,72 @@
 | Total venues | **404** ✅ (`.venue-baseline` confirmed) |
 | Skiing | **134** |
 | Beach | **270** |
-| Categories | **2** (skiing, beach) — correct post-pivot |
+| Categories < 10 (stubs) | **0** ✅ — only 2 categories, both well above threshold |
 | Duplicate IDs | **0** ✅ |
-| Missing coordinates | **0** ✅ |
-| Missing airport codes (ap) | **0** ✅ |
-| Missing tags arrays | **0** ✅ |
+| Duplicate photos | **0** ✅ |
 | Missing photos | **0** ✅ |
-| Missing titles | **0** ✅ |
-| `lateSeason: true` venues | **15** ✅ — UNCHANGED (DevOps count of 10 was a methodology error; eval is authoritative) |
-| `poolPrimary: true` venues | 0 (scoring logic present; no venues set — intentional) |
-| `scripts/.venue-baseline` | **404** ✅ — matches actual count |
-| BASE_PRICES coverage | **181 airport codes, 100% venue AP coverage** ✅ — all 165 unique venue APs present (Open #22 fully resolved) |
-| AP_CONTINENT / AIRPORT_COORDS | Verified CLEAN — no app.jsx changes in 20 days |
-| Low ratings (<4.0) | **0** ✅ |
-| Duplicate photos | **0** ✅ — 404 unique URLs |
+| Missing airport codes | **0** ✅ |
+| Missing coordinates | **0** ✅ |
+| Airport codes missing from AP_CONTINENT | **0** ✅ |
+| Airport codes missing from AIRPORT_COORDS | **0** ✅ |
+| Rating out of 1–5 range | **0** ✅ |
+| BASE_PRICES coverage (165 unique venue APs) | **100%** ✅ — Open #22 CLOSED per DevOps 11-08 |
+| lateSeason: true venues | **15** ✅ (confirmed by eval) |
 
-**Integrity: CLEAN.** No changes to app.jsx since `6f0e744` 2026-10-18 (20 days). Last 7 days of commits are reports only.
-
-**Cache stamp: `20261031a`** — 7 days stale (unchanged). Will auto-bump on next app.jsx change. Not a content error.
-
-**⛔ ROLLBACK ALERT (not a content issue — flagging for visibility):** DevOps confirms `fix-appjsx-final` branch is a ~6-month rollback to May 2026 (smaller codebase, missing the full 404-venue catalog). DO NOT MERGE.
+**Integrity: CLEAN.** No structural data issues.
 
 ---
 
 ## 2. GEAR ITEMS AUDIT
 
-Per CLAUDE.md: **GEAR_ITEMS cut for v1 (Jack's decision 2026-06-09, affirmed 2026-06-10).** `grep -c GEAR_ITEMS app.jsx` → 0. Intentional.
-
-**No action required on gear items until Amazon is re-enabled post-launch.**
+**GEAR_ITEMS: NOT PRESENT in app.jsx** — formally cut for v1 by Jack (2026-06-09). Confirmed `grep -c GEAR_ITEMS app.jsx → 0`. Revenue impact acknowledged ($0 Amazon, v1 RPM = $7.58/1K MAU). No action needed; revisit post-launch if revenue gap warrants it.
 
 ---
 
-## 3. SEASONAL RELEVANCE (Nov 7, 2026)
+## 3. SEASONAL RELEVANCE (2026-11-08)
 
 | Segment | Count | Status |
 |---------|-------|--------|
-| N-hem ski `lateSeason:true` | 15 | ✅ **Active now** — glacier/high-altitude venues bypassing off-season binary cap at ≥0.5m snow depth |
-| N-hem ski (regular) | 96 | Opening season — most NH resorts open late Nov/Dec; scoring off-season cap handles correctly |
-| S-hem ski | 23 | End of season — scoring correctly deprioritizes |
-| N-hem beach | 201 | Off-peak — UV/temp scoring handles naturally |
-| S-hem beach | 69 | ✅ **PEAK SEASON** — Bora Bora, Zanzibar, Maldives, Mauritius, Brazil, Mozambique, Seychelles, Fiji surfacing correctly |
+| Skiing — N. Hemisphere (lat ≥ 0) | 111 | **IN SEASON** — early-season opening weeks |
+| Skiing — S. Hemisphere (lat < 0) | 23 | Off-season (spring/summer) |
+| Beach — N. Hemisphere (lat ≥ 0) | 201 | **Off-season** (late fall) |
+| Beach — S. Hemisphere (lat < 0) | 69 | **IN SEASON** — spring/summer peak |
 
-**Seasonal alignment is correct.** The 15 `lateSeason:true` glacier venues are the right early-November ski inventory: Whistler, Chamonix, Mammoth, A-Basin, Tignes, Hintertux Glacier, Cervinia, Snowbird, Zermatt, Engelberg, Verbier, Val Thorens, Les Deux Alpes, Saas-Fee, St. Moritz.
+**Active in-season inventory (scoring will fire):**
+- **111 N. hemi ski venues** — peak timing. Whistler opens ~Nov 22. Early-season resorts like Hintertux Glacier, Val Thorens, Tignes, and Saas-Fee (all `lateSeason: true`) are already rideable. The 15 lateSeason venues are correctly flagged to bypass the off-season cap when snow depth ≥ 0.5m.
+- **69 S. hemi beach venues** — Maldives, Fiji, Bali, Queensland, Cape Town window approaching peak.
 
-**⏰ WHISTLER OPENS NOV 21 — 14 DAYS.** Whistler is the #1 venue by rating (4.97, 2,840 reviews) and already has `lateSeason:true`. It will surface correctly as scoring conditions improve. No action needed.
+**Potential scoring concern:** 201 N. hemi beach venues will score poorly in Nov (cold water, low UV). The scoring engine handles this correctly via water-temp hard cap and weather scoring, so users won't be sent to rainy Brighton in November. No action needed in data layer.
 
 ---
 
 ## 4. CONTENT QUALITY
 
-| Metric | Result |
-|--------|--------|
-| Venues with ≤2 tags | **225** (Day 8 — persistent finding) |
-| Venues with ≥3 tags | **179** (44%) |
-| Average tags per venue | **3.1** |
-| Venues missing description field | 0 (field not used in this architecture — scoring uses tags) |
-| All photos on-theme | Unknown — the 2026-07-24 audit found ~346/373 were generic stock; no bulk re-verification since |
+### Description Fields
+Venues do **not** have a `description` field — this is by design (schema: id, category, title, location, lat, lon, ap, icon, rating, reviews, gradient, accent, tags, photo + optional skiPass/lateSeason). The UI surfaces tags as the content layer. No issue.
 
-**225 thin-tag venues remain the top content improvement.** These are primarily the 195 JSON-formatted batch venues (beach + ski) added 2026-06-09 that received only 2 tags at import. The 179 original compact-format venues average 4+ tags. No action this cycle (venue freeze active, PM directive to hold changes until post-Reddit gate).
+### Tag Coverage — **PERSISTENT FINDING (Day 9)**
+- **225 of 404 venues (55.7%) have ≤2 tags** — quality floor is 3+ tags.
+- Affects primarily beach venues (Caribbean, Pacific islands) and some legacy ski entries.
+- Sample thin-tag beach venues: `borabora` [UV 11, Crystal Water], `beach_gcm` [World's Best Beach, Crystal Caribbean], `beach_grace` [#1 Ranked Beach, Swim-Through Reef]
+- **Impact:** Tags power the search corpus, Powder Day filter, and detail-sheet display. Thin tags reduce search recall and make venue cards feel sparse.
+- **Recommendation:** Backlog item — enrich top 50 thin-tag venues (3–4 tags each) post-Reddit gate. Estimated effort: 2 hours. No venue freeze conflict (tag edits don't add venues).
+
+### Venue Names / Locations
+No typos detected in sampled fields. All 165 unique airport IATA codes resolve correctly in both AP_CONTINENT and AIRPORT_COORDS.
 
 ---
 
-## 5. VENUE ADDITIONS
+## 5. DAILY VENUE ADDITIONS
 
-**QUEUE FROZEN.** PM directive (v193+): no venue changes until post-Reddit gate. No additions this cycle.
+**FROZEN** per PM v193+ directive (post-Reddit gate). The venue-addition section of this prompt is not actionable until the freeze lifts.
 
-> Task prompt requests 5 new venues targeting stub categories — **N/A for this architecture.** The app has 2 categories (skiing + beach), both healthy (134 and 270 venues). No "stub categories" exist. Venue additions are deferred per PM.
+When the freeze lifts, priority targets:
+- Beach: S. hemisphere gaps (New Caledonia, Mozambique, Sri Lanka underrepresented)
+- Skiing: Andean resorts (Portillo, Valle Nevado) for S. hemisphere winter (Jun–Aug)
 
 ---
 
 ## ONE OBSERVATION FOR THE PM
 
-**The DevOps "lateSeason dropped to 10" alarm is a false positive.** Eval confirms 15 unchanged — but it means DevOps is still using a counting method that undercounts JSON-format venues. If DevOps runs any automated check that acts on venue counts (e.g., a threshold alert), it could fire incorrectly. The eval method in `scripts/auto-push.sh` is the authoritative counter; all other scripts should use it. Worth a note in `tasks/agents/devops.md` to prevent recurring false alarms.
+**Whistler opens in ~14 days (est. Nov 22).** It's the #1-rated ski venue (4.97 ★, 2840 reviews) and will anchor the top of the Explore grid the moment early-season snow depth clears the lateSeason scoring threshold. The `lateSeason: true` flag is correctly set. If the app is live and driving traffic by then, the first real-world scoring run on a Whistler opening weekend is the best possible product demo — conditions + live flight price converging on the flagship venue. Worth timing any Reddit/HN post to land 1–2 days before that window.
