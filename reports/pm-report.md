@@ -1,58 +1,57 @@
-# Peakly PM Report v207 — 2026-11-10 (LAUNCH DAY +23)
+# Peakly PM Report v208 — 2026-11-11 (LAUNCH DAY +24)
 
-**Status: 🔴 RED — VPS KNOWN-BROKEN (Day 94). App Review reply still not submitted. 11 days to Whistler. 16 days to Thanksgiving.**
+**Status: 🔴 RED — VPS KNOWN-BROKEN (Day 95). App Review reply still not submitted. 10 days to Whistler. 15 days to Thanksgiving.**
 
-> **Stale prompt notice — Day 35 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice will stay in every report until it's fixed.
+> **Stale prompt notice — Day 36 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice will stay in every report until it's fixed.
 
 ---
 
-## Shipped Since Last Report (v206 → v207)
+## Shipped Since Last Report (v207 → v208)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `3100249` | DevOps report Nov 10 — VPS Day 94, eval/content discrepancy flagged | ✅ routine |
-| `59c445c` | Content report Nov 10 — CLEAN (404 venues), Thanksgiving window note | ✅ routine |
+| `2808441` | DevOps report Nov 11 — VPS Day 95, cache 11d stale, `.venue-baseline` restored | ✅ routine |
+| `36a2f51` | Content report Nov 11 — CLEAN (404 venues), Thanksgiving/Whistler note | ✅ routine |
 
-**24 consecutive days with zero app code commits.** Still correct. The two Jack-gated blockers have not moved.
+**25 consecutive days with zero app code commits.** Correct. Both Jack-gated blockers remain unresolved.
 
-**New finding today:** DevOps flagged `eval=406` vs `content=404` venue count discrepancy. Content has consistently verified 404 via two-format regex (unquoted + quoted keys) with no integrity issues (0 dup IDs, 406 lat/lon entries explained as 2 non-venue uses). The discrepancy is a methodology difference (eval vs. regex), not a data corruption issue. No action on venue count.
+**Notable:** `.venue-baseline` is now confirmed on `origin/main` (file appears in today's git pull). DevOps "MISSING Day 3" flag is a false alarm — same methodology issue as before (sandbox running stale checkout). No data issue.
 
 ---
 
 ## Overnight Activity
 
-Three signals, one new finding:
+Three signals, same pattern as prior 7 days:
 
-- **DevOps:** VPS Day 94. `.venue-baseline` MISSING Day 2 (see note below). +2 new branches on origin (`claude/analyze-test-coverage-WVIsT`, one more). Eval/content venue discrepancy flagged for first time — addressed above.
-- **Content:** Data CLEAN. 404 venues, 0 integrity issues. Thanksgiving window note added.
-- **New branches:** Two new `claude/*` experiment branches appeared overnight. These are **not ship candidates** — they are remote worktrees from agent sessions. Add them to the branch cleanup list.
-
-**On `.venue-baseline` MISSING (Day 2 from DevOps):** This was confirmed as a false alarm yesterday (Day 1). File is present on origin/main. DevOps continues flagging it because its local checkout is running stale — it is not pulling from origin before analysis. This will continue to report MISSING until the DevOps agent prompt is fixed to run `git pull origin main` before analysis. File is real, guard is intact. No action on the data side.
+- **DevOps:** VPS Day 95. Cache stamp 11d stale. `.venue-baseline` MISSING Day 3 (false alarm — file restored in today's pull). No new code commits. 21 branches.
+- **Content:** CLEAN. 404 venues, 0 integrity issues. Thanksgiving 15 days, Whistler 10 days.
+- **New branches this week:** `claude/analyze-test-coverage-WVIsT`, `claude/code-review-cleanup-HjoCS`, `claude/condense-alert-page-jzdLo`, `claude/enhance-loading-screen-rZ1dc`, `claude/fix-app-jsx-content`, `claude/implement-todo-lNL7W`, `claude/improve-peakly-ui-UHCHG`, `claude/improve-scoring-system-XYGY6`, `claude/product-reliability-assessment-w0poL`, `claude/redesign-front-page-EndKs`, `claude/review-peakly-ux-UQ0Qu`, `claude/simplify-alerts-page-2ejGB`, `claude/simplify-profile-page-Bi2Tc`, `claude/standardize-venue-data-CufiQ`, `claude/streamline-onboarding-account-97XRR`. **15 new exploratory agent branches.** Not merge candidates. Delete post-Reddit with the existing cleanup list.
 
 ---
 
 ## Bug Triage
 
-### P0-A — App Review Guideline 2.1 reply: STILL NOT SUBMITTED. 🚨
+### P0-A — App Review Guideline 2.1 reply: NOT SUBMITTED. 🚨 CLOSING WINDOW.
 
 Submission `468d466e-ab22-4db5-bc51-d897a9bcfb8e`. Paste-ready reply: `docs/APP_REVIEW_NOTES.md`.
 
-**Thanksgiving window math (Day +23) — now CRITICAL:**
-- Submit today (Nov 10) → review 1–3 days → app live ~Nov 11–13 → **13–15 days before Thanksgiving** ← still strong
-- Submit Nov 13 → app live ~Nov 14–16 → **10–12 days** ← acceptable
-- Submit Nov 17 → app live ~Nov 18–20 → **6–8 days** ← marginal, misses organic discovery build-up
-- Submit Nov 20 → app live Nov 21–23 → Whistler opening day at best — **not a Thanksgiving play anymore**
+**Window math updated for Day +24:**
+- Submit today (Nov 11) → review 1–3 days → app live ~Nov 12–14 → **13–15 days before Thanksgiving** ← still strong
+- Submit Nov 14 → app live ~Nov 15–17 → **10–12 days** ← acceptable
+- Submit Nov 17 → app live ~Nov 18–20 → **7–9 days** ← marginal
+- **Submit Nov 20 or later → NOT a Thanksgiving play.** Missed window.
 
-The window where iOS App Store contributes meaningfully to Thanksgiving traffic **closes around Nov 15**. That is 5 days from today.
+**The hard stop is Nov 14.** Submit by end of day Thursday or the Thanksgiving ski window is gone.
 
-### KNOWN-BROKEN — VPS Redeploy: Day 94. 🔧
+### KNOWN-BROKEN — VPS Redeploy: Day 95. 🔧
 
-No change from yesterday. Whistler opens in 11 days. What breaks on opening day without this fix:
+Whistler opens in 10 days. This is no longer a theoretical problem — it's a countdown.
 
-1. Two-weekend scoring returns `confidence:low` for any venue beyond day 6 → half ski catalog invisible on front page
-2. iOS native app: zero live weather/flight data (CORS)
-3. Alert deletion: silently fails, ghost alerts keep firing
-4. Post-Reddit spike: no disk cache → Open-Meteo rate ceiling breach
+**Broken on live VPS:**
+1. `forecast_days=7` → two-weekend scoring dead → ski venues invisible on front page beyond day 6
+2. `capacitor://localhost` absent from CORS → iOS shows zero live data
+3. `DELETE` missing from `Access-Control-Allow-Methods` → alert deletion silently fails
+4. `_wxCache` in-memory only → pm2 restart wipes it → cold traffic spike risks Open-Meteo rate ceiling
 
 **Fix is 10 minutes:**
 ```bash
@@ -60,91 +59,91 @@ scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
-No `npm install`. Verify: `forecast_days:14` in health response.
+Verify `forecast_days:14` in health response. No `npm install` needed.
 
-### P0-C — `fix-appjsx-final` rollback bomb: Day 11.
+### P0-C — `fix-appjsx-final` + `restore-appjsx` rollback bombs: Day 12.
 
-Branch has no common ancestor with main. Merging via GitHub UI rewrites all commit history. Same for `restore-appjsx`.
+No common ancestor with main. Merging via GitHub UI rewrites all commit history.
 
-**Delete now:** GitHub → Branches → delete `fix-appjsx-final` and `restore-appjsx`. Two clicks each. These branches existing on origin is a live risk every time anyone opens a PR UI.
+**Delete now:** GitHub → Branches → delete `fix-appjsx-final` and `restore-appjsx`. Two clicks each.
 
-### P2 — 21 branches on origin (+2 new overnight).
+### P2 — Cache stamp `20261031a`: Day 11 stale.
 
-21 total. 2 new `claude/*` experiment branches appeared today. These are exploratory agent runs — not code reviews, not features, not candidates for merge. Add to mass-delete list post-Reddit.
+Auto-push hook bumps the stamp on code changes. 25 days no code commits = 11 days stale stamp (started stale when code froze). Users cached at this stamp will get fresh code on first visit post-VPS-redeploy or next app.jsx change. Not a P0 — no regression, just housekeeping lag.
 
-**Branches by risk:**
-- 🔴 DELETE NOW: `fix-appjsx-final`, `restore-appjsx` (rollback bombs, no common ancestor)
-- 🟡 DELETE AFTER REDDIT: all `claude/*` (13 experiment branches), `cursor/*` (1), `test-small` (1)
-- 🟢 KEEP: `main`, `master` (master stays until GitHub default branch is changed, then delete)
+**Decision: DEFER.** Stamp bumps on next code commit. No manual bump needed.
 
-### P2 — Cache stamp `20261031a` — Day 10 stale.
+### P2 — 36 branches on origin (21 non-main/master + 15 new from this week).
 
-Auto-bumps on next app.jsx commit. No action until code ships.
+Reached 36 branches. Weekly agent sessions keep spawning exploratory branches.
 
-### P2 — DevOps agent running stale (`.venue-baseline` false alarm pattern).
-
-DevOps prompt at `tasks/agents/devops.md` doesn't run `git pull origin main` before analysis. Generating false alarms. Jack: add `git fetch && git pull origin main` as the first step in that file. 2-minute fix that eliminates a recurring false-alarm class.
-
-### CLOSED — Open #22 BASE_PRICES Coverage
-
-100% confirmed. Removed from active tracking.
+**Decision:**
+- 🔴 DELETE NOW: `fix-appjsx-final`, `restore-appjsx`
+- 🟡 DELETE POST-REDDIT: All `claude/*` (28 branches), `cursor/*` (1), `test-small` (1)
+- 🟢 KEEP: `main`, `master` (delete `master` after GitHub default branch changed)
 
 ---
 
-## This Week's Top 3 Priorities Only
+## This Week's Top 3 Priorities
 
-**1. Jack: Submit App Review reply. (30 min — today, Nov 10).** The paste-ready text is in `docs/APP_REVIEW_NOTES.md`. Today is likely the last day to get iOS live with meaningful runway before Thanksgiving. Nov 15 is the practical deadline; submit today and you have a 5-day buffer for a re-review if Apple comes back with another question.
+**#1 — App Review reply. Due: Nov 14 at the absolute latest.**
+Open `docs/APP_REVIEW_NOTES.md`. Copy the paste-ready reply into App Store Connect. Done in 10 minutes. Every day this slips is a day off the Thanksgiving window. No other work matters until this is submitted.
 
-**2. Jack: VPS redeploy. (10 min — before Nov 21).** Whistler opens in 11 days. That is the natural Reddit post hook. Posting without fixing VPS means users experience broken two-weekend scoring on the product's most important seasonal event. The fix is committed and sitting in `server/proxy.js` — it just hasn't been copied to the VPS.
+**#2 — VPS Redeploy. Due: Before Whistler opens (Nov 21).**
+10-minute SSH task. Ski season starts in 10 days. Two-weekend scoring is dead without it — ski venues fall off the front page exactly when ski traffic peaks. This is the highest-ROI 10 minutes in the project right now.
 
-**3. Jack: Delete `fix-appjsx-final` and `restore-appjsx` on GitHub. (2 min).** These are live rollback bombs. No analysis needed — no common ancestor with main means they cannot be safely merged through any normal flow. Just delete them.
-
-**Nothing else ships this week. No new features, no experiments, no branch work.**
-
----
-
-## Explicit Product Decisions This Run
-
-**DECISION 1: Eval=406 vs content=404 discrepancy — FALSE ALARM, NO ACTION.** DevOps flagged a methodology difference (eval counting all lat/lon objects including 2 non-venue uses vs. regex counting venue objects). Content confirms 404 venues with 0 integrity issues. No data fix needed.
-
-**DECISION 2: 2 new `claude/*` branches — DEFER DELETION to Reddit launch.** `claude/analyze-test-coverage-WVIsT` and the other new branch are not live risks (unlike the rollback bombs). Add to the post-Reddit mass cleanup. No cherry-picking or PR work from these.
-
-**DECISION 3: 225 thin-tag venues — DEFER past Reddit launch. Day 11.** Same call, 11th day. No new data changes this. Post-Reddit analytics will reveal which venues actually get traffic; enrich those first.
+**#3 — Delete rollback bomb branches.**
+Two clicks in GitHub UI. `fix-appjsx-final` and `restore-appjsx` have no common ancestor with main. They are live risks every time anyone opens a PR interface. Delete them today.
 
 ---
 
-## Success Criteria Check
+## Explicit Product Decisions
 
-**90-day projection: 5K–8K users. The 8K path requires action in the next 5 days (not 8 — that was yesterday's number).**
+**Decision 1: Peakly Pro — DEFER indefinitely.**
+Stored prompt asks about $9/mo vs $79/yr discrepancy. Pro UI was removed in April 2026. There is no Pro pricing showing anywhere. This "bug" does not exist. Status: not in codebase, not in roadmap. Revisit after 1K MAU.
 
-| Action | Deadline | Impact if missed |
-|--------|----------|-----------------|
-| App Review reply | Nov 15 (practical hard stop) | No iOS at Thanksgiving — lose 30–40% of potential user base |
-| VPS redeploy | Nov 21 (Whistler opens) | Broken scoring on Reddit launch day |
-| Reddit post | Nov 21 (Whistler hook) | Loses the season-opening natural hook + built-up iOS installs |
+**Decision 2: JSON-LD structured data — SHIP, but after App Review.**
+SEO gap. Estimated impact: 10–20% organic search lift on venue-name queries. Implementation: 2–4 hours. No risk to app stability. Add to first post-launch sprint. Do NOT ship before App Review clears — zero code changes until iOS is live.
 
-**Projections (updated for Day +23):**
-- App Review today + VPS before Nov 21 + Reddit Nov 21 → **7K–8K**
-- App Review by Nov 13 + VPS before Nov 21 + Reddit Nov 21 → **6K–7K**
-- VPS only + Reddit Nov 21, no iOS → **4K–5K**
-- No action by Nov 21 → **3K–4K**
+**Decision 3: 225 thin-tag venues (≤2 tags) — DEFER.**
+Day 12 finding. Tags affect search corpus and filter accuracy. Enriching 225 venues is a 4–6 hour content task. Scheduled for the week after Reddit launch. Does not affect scoring, does not affect Thanksgiving traffic. Defer.
 
-The delta between 8K and 4K is 40 minutes of Jack's time. This is not a build problem. It is a "do the two things" problem.
+**Decision 4: Static h1 fallback — SHIP, after App Review.**
+Same sprint as JSON-LD. 30-minute SEO fix. Bundle with structured data work.
+
+**Decision 5: Branch cleanup (non-rollback-bombs) — DEFER to post-Reddit.**
+28 claude/ branches are exploratory artifacts, not merge candidates. Clutters branch list but poses no data risk. Mass-delete in one session post-Reddit when Jack has hands on the repo.
+
+---
+
+## Features Rejected This Week
+
+- **Scoring improvements** (branch `claude/improve-scoring-system-XYGY6`): The algorithm was audited in depth in August. No regression has been reported. Do not touch scoring 10 days before peak ski season. REJECTED — timing risk outweighs any improvement.
+- **Front page redesign** (branch `claude/redesign-front-page-EndKs`): No user data showing the current design is a problem. Redesigning without usage data is guesswork. REJECTED — no signal.
+- **Loading screen enhancement** (branch `claude/enhance-loading-screen-rZ1dc`): Nice-to-have. Zero evidence this is a retention or conversion issue. REJECTED — opportunity cost.
+- **Alert page simplification** (branches `claude/condense-alert-page-jzdLo`, `claude/simplify-alerts-page-2ejGB`): Alerts tab is APNS-gated on iOS and already clean on web. No user complaints. REJECTED — no problem to solve.
+- **Profile page simplification** (branch `claude/simplify-profile-page-Bi2Tc`): Same. No user complaints. REJECTED.
+
+---
+
+## Success Criteria
+
+**What defines success:**
+- 90-day projection (from Reddit launch): 5K–8K users
+- For 8K, not 5K, what has to be true:
+  1. App Store live before Thanksgiving (Thanksgiving ski weekend is the highest organic discovery event of the year)
+  2. VPS deployed before Whistler opens (without it, ski venues disappear on opening day)
+  3. Reddit post lands in first 2 weeks of November (before Thanksgiving traffic peaks)
+  4. At least one organic share or media pickup (product is good enough — it just needs exposure)
+
+**Current trajectory:** Without App Review submission by Nov 14 and VPS deploy by Nov 21, the 90-day ceiling is closer to 5K than 8K. Both are 10-minute tasks. The gap between 5K and 8K is entirely execution, not product.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 7 lateSeason photos are probably wrong — and those 7 venues will be in every new user's first viewport on Nov 21.**
-
-v206 raised the abstract version of this ("346 venues have generic photos"). Here's the specific version: Whistler, Chamonix, Mammoth, Verbier, Zermatt, Tignes, Val-Thorens are the venues that will naturally surface on Whistler opening weekend. If the app review clears, VPS is fixed, and Jack posts to Reddit on Nov 21, those 7 venues are what every new user sees first.
-
-A "generic powder shot" on Whistler is not catastrophic — it's what every other ski app does. But there's one failure mode that is: if any of those 7 venues shows a photo of a *different mountain* (the 2026-07-24 session confirmed this was real — before the marquee-venue photo pass, photos were generic stock, not venue-specific), that's the first thing a Whistler local sees when they open the app. Local knowledge kills social proof.
-
-The 2026-07-24 session applied real photos to 27 marquee venues including all 7 of the above. Verify those 7 are still on correct photos — a 10-minute grep of the photo URLs for those venue IDs against the Unsplash queries used. This is not a build task — it is a verification task.
-
-If those 7 are correct, the first-impression problem is solved for Reddit launch day. The other 339 venues are a post-launch project.
+**The 25-day code freeze has been the right call, but the lack of any user feedback loop means we're shipping into a vacuum.** Once App Review clears and the Reddit post goes up, the first week of real user behavior will surface issues that no audit could catch — and there will be no PM report covering it because the daily agents don't have access to Plausible or Sentry data. Jack will need to be watching Sentry and Plausible manually during launch week and feeding critical findings back to the agent team. The post-launch monitoring plan doesn't exist yet. Build it before the Reddit post goes up, not after.
 
 ---
 
-*Next report: 2026-11-11. Tracking: App Review reply (did it go in? what day is it in review?), VPS (10 days to Whistler). Both are Jack-only. The window is 5 days.*
+*Next report: v209, 2026-11-12. Same blockers expected unless App Review or VPS moves.*
