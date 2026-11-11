@@ -1,16 +1,16 @@
-# Peakly Content & Data Report — 2026-11-10
+# Peakly Content & Data Report — 2026-11-11
 
 ## Data Health Score: 88/100
 
-**Deductions (Day 11 — unchanged):**
-- −7: **225 venues have ≤2 tags** (Day 11 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
+**Deductions (Day 12 — unchanged):**
+- −7: **225 venues have ≤2 tags** (Day 12 of finding) — tag enrichment remains the highest-leverage content improvement within the venue freeze.
 - −5: **Venue addition queue FROZEN** per PM v193+ directive, deferred post-Reddit gate. Scored for the backlog, not a data error.
 
-> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified continuously): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All numbers below are from live app.jsx via Python regex (dual-format: unquoted + quoted keys).
+> **⚠️ STALE TASK PROMPT NOTE:** This routine's stored prompt references "182 venues, 12 categories, hiking gear items." Actual state (verified continuously): **404 venues, 2 categories (skiing + beach), GEAR_ITEMS cut for v1.** All numbers below are from live app.jsx via Node.js eval (dual-format: unquoted + quoted keys).
 
-> **⚠️ LATESEASON COUNT (Day 4 of correction):** DevOps gets 10 via single-pattern regex (`lateSeason:\s*true` only). Actual count is **15** — 10 unquoted-key venues + 5 JSON-quoted-key venues (`"lateSeason": true`). Both formats are valid in the mixed catalog. Authoritative count: **15**.
+> **⚠️ LATESEASON COUNT (Day 5 of correction):** DevOps gets 10 via single-pattern regex (`lateSeason:\s*true` only). Actual count is **15** — 10 unquoted-key venues + 5 JSON-quoted-key venues (`"lateSeason": true`). Both formats are valid in the mixed catalog. Authoritative count: **15**.
 
-> **⚠️ CACHE STAMP:** `PEAKLY_BUILD = 20261031a` / `sw.js CACHE_NAME = peakly-20261031a` — **10 days stale** (today is 2026-11-10). Stamp last bumped 2026-10-31. This is a DevOps/deploy concern (auto-push.sh should bump on each app.jsx edit). Content catalog itself is current.
+> **⚠️ CACHE STAMP:** `PEAKLY_BUILD = 20261031a` / `sw.js CACHE_NAME = peakly-20261031a` — **11 days stale** (today is 2026-11-11). This is a DevOps/deploy concern, not a content issue.
 
 ---
 
@@ -19,18 +19,18 @@
 | Check | Result |
 |-------|--------|
 | Total venues | **404** ✅ |
-| Skiing | **134** (71 unquoted + 63 quoted keys) |
-| Beach | **270** (138 unquoted + 132 quoted keys) |
+| Skiing | **134** (111 N-hemi + 23 S-hemi) |
+| Beach | **270** (201 N-hemi + 69 S-hemi) |
 | Duplicate IDs | **0** ✅ |
 | Duplicate photos | **0** ✅ (404 unique photo URLs) |
-| lat/lon entries | **406** (2 non-venue uses expected; all 404 venues accounted for) |
-| Missing airport codes | **0** ✅ (404 ap: entries) |
-| Missing tags array | **0** ✅ (404 tags arrays) |
-| Empty descriptions | N/A — no description field in schema |
+| Missing lat/lon | **0** ✅ |
+| Missing airport codes | **0** ✅ |
+| Missing tags array | **0** ✅ |
 | APs missing from BASE_PRICES | **0** ✅ (165 unique venue APs, all covered — Open #22 CLOSED) |
-| lateSeason:true venues | **15** ✅ (10 unquoted + 5 quoted) |
+| lateSeason:true venues | **15** ✅ (10 unquoted + 5 quoted-key) |
+| GEAR_ITEMS occurrences | **0** ✅ (cut for v1 — deliberate) |
 
-**No integrity issues found. Catalog is clean.**
+**No integrity issues found. Catalog is clean. No change from yesterday.**
 
 ---
 
@@ -44,9 +44,9 @@ This is not a gap — deliberate revenue decision. Amazon Associates deferred po
 
 ---
 
-## 3. SEASONAL RELEVANCE — November 10, 2026
+## 3. SEASONAL RELEVANCE — November 11, 2026
 
-**Current season: Northern Hemisphere ski season OPEN. Southern Hemisphere summer in swing.**
+**Current season: Northern Hemisphere ski season OPEN (Day 2). Southern Hemisphere summer in full swing.**
 
 | Segment | Count | Status |
 |---------|-------|--------|
@@ -55,10 +55,10 @@ This is not a gap — deliberate revenue decision. Amazon Associates deferred po
 | N-hemi beach (lat ≥ 0) | 201 | Mixed — tropical (Caribbean, SE Asia, Maldives) year-round; temperate off-peak |
 | S-hemi beach (lat < 0) | 69 | ✅ IN SEASON — Southern summer (Nov–Feb peak) |
 
-**lateSeason:true venues (15)** — these high-altitude N-hemi resorts bypass off-season cap when `snow_depth ≥ 0.5m`. Now entering the exact window where the flag earns its value:
+**lateSeason:true venues (15)** — these high-altitude N-hemi resorts bypass off-season cap when `snow_depth ≥ 0.5m`. All 15 are in peak relevance window now:
 > whistler, chamonix, mammoth, abasin, tignes, hintertux-glacier, cervinia, snowbird, zermatt, engelberg, verbier, val-thorens, les-deux-alpes-fr, saas-fee-ch, st-moritz-ch
 
-Thanksgiving window (Nov 21–30) opens in 11 days — the lateSeason glacier resorts + early-open Rockies (Abasin, Mammoth) are likely to surface in front-page recommendations if snowfall is live.
+**Thanksgiving window (Nov 21) opens in 10 days.** See PM observation below.
 
 ---
 
@@ -66,19 +66,19 @@ Thanksgiving window (Nov 21–30) opens in 11 days — the lateSeason glacier re
 
 | Check | Result |
 |-------|--------|
-| Venues with ≤2 tags | **225** ⚠️ Day 11 of finding |
+| Venues with ≤2 tags | **225** ⚠️ Day 12 of finding |
 | Venues with ≥3 tags | **179** ✅ |
 | Venue descriptions | Not in schema — N/A |
-| Difficulty levels | Not in schema for beach; skiing venues use tags |
+| Difficulty levels | Tags-based for skiing; not applicable for beach |
 
-**Tag quality:** Same as yesterday. 225 venues with 1–2 tags remain the single largest content gap. Frozen per PM v193+ directive; flag for first post-launch content sprint.
+**Tag quality:** Unchanged. 225 venues with 1–2 tags remain the single largest content gap. Frozen per PM v193+ directive; flag for first post-launch content sprint.
 
-**Sample thin-tag ski venues entering peak season relevance:**
-- `abasin` — likely 1–2 tags; add "Opening Day Leader", "High Alpine", "Denver Day-Trip"
-- `hintertux-glacier` — likely 1–2 tags; add "Year-Round Glacier", "Advanced Terrain"
+**Highest-value thin-tag ski venues now entering peak season:**
+- `abasin` — add "Opening Day Leader", "High Alpine", "Denver Day-Trip"
+- `hintertux-glacier` — add "Year-Round Glacier", "Advanced Terrain", "Austria"
 - `snowbird` — add "Longest Season Utah", "Expert Runs", "Alta Adjacent"
 - `verbier` — add "Freeride World Tour", "4 Vallées", "Expert Terrain"
-- `val-thorens` — add "Highest Ski Resort Europe", "Three Valleys", "Long Season"
+- `val-thorens` — add "Highest Resort Europe", "Three Valleys", "Long Season"
 
 ---
 
@@ -88,7 +88,7 @@ Thanksgiving window (Nov 21–30) opens in 11 days — the lateSeason glacier re
 
 Candidates documented for post-Reddit-gate sprint, priority-ordered by seasonal relevance (November = ski season opening):
 
-**Skiing — Early Season Openers (highest priority now):**
+**Skiing — Early Season Openers (highest priority now, Thanksgiving window):**
 ```js
 {
   id: "breckenridge-co",
@@ -162,8 +162,10 @@ Candidates documented for post-Reddit-gate sprint, priority-ordered by seasonal 
 
 ## ONE OBSERVATION FOR THE PM
 
-**Thanksgiving window opens in 11 days (Nov 21) — this is the first major US ski travel event post-launch.** The catalog has strong coverage for the most-searched destinations (Vail, Breckenridge-adjacent Keystone, Whistler, Park City, Jackson Hole, Tahoe), and the lateSeason flags on Abasin/Mammoth/Snowbird mean early-season openers will surface if snowpack is real. If the Reddit post hasn't happened yet, launching *before* Thanksgiving positions the app to capture the highest-intent weekend-ski search traffic of the year — people actively looking for "where to ski Thanksgiving weekend" in the next 7 days. The scoring engine is built exactly for this. Miss the Thanksgiving window and the next comparable event is Christmas (Dec 20).
+**Thanksgiving window opens in 10 days (Nov 21) — this remains the single highest-leverage launch timing available.** The lateSeason glaciers (Hintertux, Tignes, Saas-Fee) are already in-season and would likely show real scores right now. The scoring engine built for exactly this. If the Reddit post hasn't happened yet, the Thanksgiving window is the last natural deadline before Christmas (Dec 20) — both are peak weekend-ski search windows when spontaneous travelers are actively looking for "where to ski this weekend." The catalog is ready; App Review is the only gate. Miss Thanksgiving and the next comparable event is Christmas week.
+
+**New today:** App Review hard stop is 5 days out per PM v207. If that deadline lands (Nov 16), Thanksgiving submission window is achievable if submission goes in by Nov 14–15.
 
 ---
 
-*Report generated: 2026-11-10 15:14 UTC | 404 venues verified via Python dual-format regex (unquoted + quoted keys) | lateSeason via dual-pattern count | BASE_PRICES via brace-walk*
+*Report generated: 2026-11-11 15:14 UTC | 404 venues verified via Node.js eval (unquoted + quoted keys) | lateSeason via dual-pattern count | BASE_PRICES via bracket-walk (181 keys covering all 165 venue APs) | No integrity changes from yesterday*
