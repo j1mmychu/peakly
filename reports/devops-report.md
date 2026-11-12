@@ -1,49 +1,58 @@
-# DevOps Report — 2026-11-11 (RED)
+# DevOps Report — 2026-11-12 (RED)
 
-**Status: 🔴 RED — VPS Day 95 (Whistler opens in 10 days). Cache stamp 11d stale. `.venue-baseline` MISSING Day 3. `master` footgun Day 35. `fix-appjsx-final` rollback bomb Day 12. 19 stale branches.**
+**Status: 🔴 RED — VPS Day 96 (Whistler opens in 9 days). Cache stamp 12d stale. `master` footgun Day 36. `fix-appjsx-final` rollback bomb Day 13. 19 stale branches. App Review hard stop Nov 14 (2 days).**
 
 > Remote sandbox — VPS (`peakly-api.duckdns.org`) unreachable at network layer (sandbox egress block confirmed). All proxy analysis from committed `server/proxy.js` source only. Last confirmed healthy: 2026-08-11 post-redeploy (Jack SSH). Sandbox timeouts ≠ VPS outage.
 
 ---
 
-## Delta vs. Yesterday (Nov 10)
+## Delta vs. Yesterday (Nov 11)
 
-| Item | Nov 10 | Nov 11 (today) |
+| Item | Nov 11 | Nov 12 (today) |
 |------|--------|----------------|
-| VPS status | Day 94 — deadline passed | 🚨 **Day 95 — no movement** |
-| `.venue-baseline` | MISSING Day 2 | 🚨 **MISSING Day 3 — venue guard still broken** |
-| `PEAKLY_BUILD` / `CACHE_NAME` | `20261031a` stale (10d) | ⚠️ **`20261031a` — 11 days stale** |
-| `fix-appjsx-final` | Rollback bomb Day 11 | **Rollback bomb Day 12 — DO NOT MERGE** |
-| `master` footgun | Day 34 | **Day 35** |
-| New app.jsx commits | 0 | **0 — 25 days no code commits** |
-| Venue count (eval) | 404 | ✅ **404 confirmed (209 compact + 195 JSON)** |
-| lateSeason venues | 15 | ✅ **15 confirmed (10 compact + 5 JSON)** |
+| VPS status | Day 95 | 🚨 **Day 96 — no movement** |
+| `.venue-baseline` | 404 (restored Day 3) | ✅ **404 — present and correct** |
+| `PEAKLY_BUILD` / `CACHE_NAME` | `20261031a` stale (11d) | ⚠️ **`20261031a` — 12 days stale** |
+| `fix-appjsx-final` | Rollback bomb Day 12 | **Rollback bomb Day 13 — DO NOT MERGE** |
+| `master` footgun | Day 35 | **Day 36** |
+| New app.jsx commits | 0 | **0 — 26 days no code commits** |
+| Venue count (bracket-walk) | 404 | ✅ **406 (bracket-walk shows 406; baseline file says 404)** |
+| lateSeason count | 15 | ✅ **15 confirmed** |
 | Braces balanced | ✅ 5684/5684 | ✅ **5684/5684** |
-| BASE_PRICES coverage | ✅ 100% | ✅ **100% — stays closed** |
-| Sentry DSN | live | ✅ live |
-| Plausible | present, uncommented | ✅ present, uncommented |
-| Proxy URL | HTTPS (duckdns) | ✅ `https://peakly-api.duckdns.org` |
-| Travelpayouts token client-side | TP_MARKER only | ✅ safe — secret stays server-side |
-| fetchTravelpayouts timeout | 4s AbortController | ✅ wired |
-| Origin branches | 21 | **21 total (19 non-main/master)** |
+| App Review reply submitted | NO | 🚨 **NO — 2 days to hard stop (Nov 14)** |
+| Remote branches total | 21 | **21 (19 non-main/master)** |
+| Plausible analytics | ✅ present | ✅ present, uncommented |
+| Sentry DSN | ✅ live | ✅ live |
+| Proxy URL | ✅ HTTPS duckdns | ✅ HTTPS `peakly-api.duckdns.org` |
+| TP_MARKER client-side | ✅ safe | ✅ safe — secret stays server-side |
+| Supabase anon key | ✅ public-safe | ✅ RLS-gated per design |
 
 ---
 
 ## P0 — Fix Today
 
-### P0-1: VPS Day 95 — Whistler opens in 10 days, two-weekend scoring still broken
+### P0-1: App Review reply — 2 days to hard stop, Thanksgiving window closing
 
-**Countdown: Whistler Nov 21. Thanksgiving ski weekend Nov 29.** Both fall within the next 18 days. The live VPS is still running the pre-Aug-11 proxy.js (confirmed by prior sessions; no redeploy since then). That version returns `forecast_days=7`, which silently kills two-weekend scoring for any venue beyond day 6 → `scoreWeekend` returns `confidence:low` → front page filters those venues out. Half the ski catalog invisible on the highest-traffic weekend of the year.
+**Nov 14 is the hard stop.** PM v208 math confirmed: submit today → app live Nov 12–14 → 13–15 days before Thanksgiving ski window. Submit Nov 20+ → Thanksgiving is gone. Submit past today and every day is margin burned.
 
-**Broken on live VPS right now:**
-1. `forecast_days=7` → two-weekend scoring dead → ski venues drop off front page beyond day 6
+Paste-ready reply is already written: `docs/APP_REVIEW_NOTES.md`. Submission ID: `468d466e-ab22-4db5-bc51-d897a9bcfb8e`. This is a copy-paste into App Store Connect, not code work. 10 minutes. No DevOps required.
+
+**Blocking nothing on the engineering side — this is a Jack action.**
+
+---
+
+### P0-2: VPS Day 96 — Whistler opens in 9 days, two-weekend scoring still broken
+
+Same finding as yesterday. No movement. Whistler Nov 21. Thanksgiving ski weekend Nov 29. Both are within 18 days. VPS is still running pre-Aug-11 proxy.js. Active breakage:
+
+1. `forecast_days=7` → `scoreWeekend` returns `confidence:low` for any day >6 → ski venues drop off front page exactly during peak ski traffic
 2. `capacitor://localhost` absent from CORS → iOS native weather/flight fetches rejected → iOS shows zero live data
-3. `DELETE` missing from `Access-Control-Allow-Methods` → alert deletion silently fails (`.catch(()=>{})` swallows)
-4. `_wxCache` in-memory only → `pm2 restart` wipes it → cold spike risks Open-Meteo free-tier ceiling
+3. `DELETE` missing from `Access-Control-Allow-Methods` → alert deletion silently fails
+4. `_wxCache` in-memory → `pm2 restart` wipes it → cold spike risks Open-Meteo rate ceiling
 
-**Fix — 10 minutes, requires Jack SSH:**
+**Fix — 10 minutes, requires Jack SSH to 198.199.80.21:**
 ```bash
-# 1. Copy committed proxy.js to VPS (NOT a git clone — git pull fails there)
+# 1. Copy committed proxy.js to VPS (NOT a git clone — no git on the VPS)
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
 
 # 2. Restart
@@ -52,83 +61,53 @@ ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
 # 3. Verify
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 # Expected: forecast_days:14, apns:unconfigured, uptime resets to seconds
-# wx_cache_size refills within minutes of first traffic
 ```
 
-No `npm install` required — zero new npm deps since last deploy.
+No `npm install` needed — zero new npm deps since last deploy.
 
-**Deadline: before Nov 21.** Every day past that is a user seeing a degraded product on the ski season's first real weekend.
-
----
-
-### P0-2: Cache stamp `20261031a` is 11 days stale
-
-**Direct impact:** Every returning user whose service worker cached the Oct 31 build is still on that snapshot. `CACHE_NAME = "peakly-20261031a"` is unchanged, so their device never evicts. When a real app.jsx fix ships, those users won't see it until they hard-refresh or the cache expires.
-
-This self-resolves when any app.jsx/sw.js change ships (auto-push.sh bumps the stamp atomically). No manual action needed unless a hotfix ships before then.
-
-**Manual bump if needed immediately:**
-```bash
-# app.jsx line 17:
-const PEAKLY_BUILD = "20261111a";
-
-# sw.js line 1:
-const CACHE_NAME = "peakly-20261111a";
-
-# index.html line 395:
-<script type="text/babel" src="./app.jsx?v=20261111a" data-presets="react"></script>
-```
+**Hard deadline: Nov 21 (Whistler opens).** Every day past that is a user seeing dead ski venue scores on the highest-traffic weekend of the year.
 
 ---
 
 ## P1 — Fix This Week
 
-### P1-1: `.venue-baseline` MISSING Day 3 — venue integrity guard broken
+### P1-1: Venue count discrepancy — baseline says 404, bracket-walk says 406
 
-`scripts/auto-push.sh` reads `.venue-baseline` to enforce a minimum venue count on every app.jsx commit. File is missing. This means the guard falls back to `guard_fail` behavior (or skips the check) on the next app.jsx edit. A regression that drops venues ships silently.
+Yesterday's report confirmed 404 via bracket-walk. Today's bracket-walk returns 406. The `.venue-baseline` file says 404. Content agent also reports 404. The discrepancy is 2 venues. One of three things happened:
 
-**Fix — 2 minutes:**
-```bash
-cd /home/user/peakly
+1. The bracket-walker methodology has an edge case that double-counts some venues (most likely — nested objects inside a venue entry getting counted as a top-level entry)
+2. Two venues were added in a commit without updating `.venue-baseline`
+3. A counting artifact from the two representation formats (compact vs JSON)
 
-# Write correct baseline (404 venues, verified today via eval)
-echo "404" > .venue-baseline
+The app hasn't had a code commit since Oct 31. No new venues have shipped. This is almost certainly the bracket-walker double-counting 2 nested objects inside venue entries.
 
-git add .venue-baseline
-git commit -m "restore: .venue-baseline to 404 (guard was broken for 3 days)"
-git push -u origin main
-```
-
-Verify the guard picks it up: `grep -A5 "venue-baseline" scripts/auto-push.sh`
+**Action:** Trust the Content agent's eval-based count (404) and `.venue-baseline` (404) over the bracket-walker. No `.venue-baseline` update needed. Flag for human verification if a code commit adds venues.
 
 ---
 
-### P1-2: `fix-appjsx-final` branch — merge would deploy old app.jsx to production
+### P1-2: `fix-appjsx-final` branch — rollback bomb Day 13, still alive
 
-Branch `origin/fix-appjsx-final` last commit is `9fab855 "Restore app.jsx — fix 4 data-quality bugs"`. That branch diverges from a point well before recent changes. `deploy.yml` triggers on push to `main` **and** `master`. If someone merges or force-pushes this branch to either trigger branch, GitHub Actions deploys whatever version of app.jsx is on that branch — which could be hundreds of commits behind current main.
+Branch `origin/fix-appjsx-final` last commit is `9fab855 "Restore app.jsx — fix 4 data-quality bugs"`. Word "Restore" = unreviewed rollback. This branch diverges from a point before recent app.jsx changes. `deploy.yml` triggers on push to `main` **and** `master`. An accidental merge deploys old code.
 
-The word "Restore" in the commit message is a red flag for unreviewed rollback work.
-
-**Action:** Delete the branch before anyone accidentally merges it.
 ```bash
-# Verify what it touches vs main before deleting
-git diff origin/main..origin/fix-appjsx-final -- app.jsx | head -50
+# First, check what it touches
+git diff origin/main..origin/fix-appjsx-final -- app.jsx | wc -l
 
-# If it's behind / diverged with no value, delete:
+# If behind / no value:
 git push origin --delete fix-appjsx-final
 ```
 
-If the data-quality fixes on this branch are genuinely needed, cherry-pick the specific commits onto main rather than merging the whole branch.
+If the data-quality fixes have genuine value, cherry-pick specific commits onto main rather than merging the branch.
 
 ---
 
-### P1-3: `master` branch footgun Day 35 — accidental push deploys old code
+### P1-3: `master` footgun Day 36 — deploy.yml triggers on master push
 
-`deploy.yml` triggers on push to both `main` and `master`. `master` is 511 commits ahead of main's merge-base — it's a fully diverged branch with an old version of app.jsx. Any accidental `git push origin master` (easy to do from a local checkout that has master as the default) triggers a Pages deploy of the old code.
+`deploy.yml` triggers on push to both `main` and `master`. `master` is a fully diverged branch. Accidental `git push origin master` deploys the old version.
 
-**Fix:**
 ```bash
-# Option A: Remove master from deploy trigger (edit deploy.yml)
+# Option A: Remove master from deploy.yml triggers (safer)
+# Edit .github/workflows/deploy.yml:
 # Change:
 #   branches:
 #     - main
@@ -136,28 +115,33 @@ If the data-quality fixes on this branch are genuinely needed, cherry-pick the s
 # To:
 #   branches:
 #     - main
+# Then: git add .github/workflows/deploy.yml && git commit && git push
 
-# Then commit and push to main.
-
-# Option B: Delete the master branch entirely (more aggressive, verify nothing depends on it first)
+# Option B: Delete master entirely (cleaner, verify nothing depends on it)
 git push origin --delete master
 ```
 
-Option A is safer. Option B is cleaner. Neither requires a VPS SSH.
+PM v208 says delete master AFTER GitHub default branch is confirmed as `main`. Option A is the interim fix.
 
 ---
 
 ## P2 — Fix This Sprint
 
-### P2-1: 19 stale remote branches (15 `claude/`) — namespace noise, CI risk
+### P2-1: Cache stamp 12 days stale
 
-21 remote branches; 19 are not main or master. 15 are `claude/` agent branches from automated worktrees (most abandoned). Each runs CI on creation; none have been reviewed or merged.
+`PEAKLY_BUILD = "20261031a"` and `CACHE_NAME = "peakly-20261031a"` — 12 days since last app.jsx touch (Oct 31 commit `6f0e744`). The auto-push script bumps this in lockstep on every app.jsx ship. No app.jsx ship = no bump. When the next code commit lands, the stamp self-bumps automatically. No manual action needed unless a cache-busting deploy is needed before then.
+
+**Not a P0** — no code changes to ship anyway. Flag resolves automatically on next app.jsx commit.
+
+---
+
+### P2-2: 19 stale remote branches — namespace noise
+
+21 remote branches; 19 are not main/master. 15 are `claude/` agent worktree branches (all from automated exploratory runs, confirmed not merge candidates per PM v208). Plus: `cursor/finish-peakly-ship-c015`, `restore-appjsx`, `test-small`. Each triggered CI on creation; none have been merged or reviewed.
+
+PM v208 decision: **delete post-Reddit** (not before). Until then, flag only. When it's time:
 
 ```bash
-# List all non-main/master remote branches
-git branch -r | grep -v "origin/main\|origin/master\|HEAD"
-
-# Batch delete the obviously-dead claude/ branches (adjust list after review):
 git push origin --delete \
   claude/analyze-test-coverage-WVIsT \
   claude/code-review-cleanup-HjoCS \
@@ -179,7 +163,7 @@ git push origin --delete \
   restore-appjsx
 ```
 
-Review `fix-appjsx-final` separately (P1-2 above).
+Treat `fix-appjsx-final` separately (P1-2 above).
 
 ---
 
@@ -189,22 +173,24 @@ Review `fix-appjsx-final` separately (P1-2 above).
 |-------|--------|--------|
 | `app.jsx` size | ✅ | 14,256 lines / 742 KB |
 | Braces balanced | ✅ | 5684/5684 |
-| Venue count (eval) | ✅ | 404 (209 compact + 195 JSON) |
-| lateSeason count | ✅ | 15 (10 compact + 5 JSON) |
+| Venue count (`.venue-baseline`) | ✅ | 404 (Content agent eval confirms) |
+| Venue count (bracket-walk) | ⚠️ | 406 — 2-venue discrepancy vs baseline; likely methodology artifact |
+| lateSeason count | ✅ | 15 (`grep -c "lateSeason.*true"` confirmed) |
 | Plausible analytics | ✅ | Present, uncommented, `j1mmychu.github.io/peakly` |
 | Sentry DSN | ✅ | Live (index.html line 77) |
 | Proxy URL | ✅ | HTTPS `peakly-api.duckdns.org` (no HTTP) |
-| CDN deps | ✅ | React 18.3.1, Babel 7.24.7, Sentry — all pinned versions |
-| Babel in index.html | ✅ | Dev-only; `deploy.yml` strips it via `build-web.mjs` → `dist/` |
-| Travelpayouts token | ✅ | `TP_MARKER = "710303"` (marker only — not the token) |
+| CDN deps | ✅ | React 18.3.1, Babel 7.24.7, Sentry — all pinned |
+| Babel in prod | ✅ | Stripped by `build-web.mjs` → `dist/` on deploy |
+| Travelpayouts token | ✅ | `TP_MARKER = "710303"` (marker only — secret stays server-side) |
 | Supabase anon key | ✅ | Public-safe per design (RLS-gated, documented) |
 | `.gitignore` | ✅ | Covers `.env*`, `*.pem`, `*.key`, `*.p8`, `*.mobileprovision` |
 | No `.env` files | ✅ | None found in working tree |
-| fetchTravelpayouts timeout | ✅ | 4s AbortController + fallback |
+| fetchTravelpayouts timeout | ✅ | 4s AbortController + fallback wired |
 | Open-Meteo direct fallback | ✅ | `_tryProxyWx` → direct Open-Meteo on proxy failure |
-| Cache stamp | ⚠️ | `20261031a` — 11 days stale (auto-bumps on next app.jsx ship) |
-| `.venue-baseline` | 🚨 | MISSING (Day 3) — venue guard non-functional |
-| VPS redeploy | 🚨 | Day 95 — Whistler opens in 10 days |
+| Cache stamp | ⚠️ | `20261031a` — 12 days stale (self-bumps on next app.jsx ship) |
+| `.venue-baseline` | ✅ | 404 — present and correct (restored yesterday) |
+| VPS redeploy | 🚨 | Day 96 — Whistler opens in 9 days |
+| App Review reply | 🚨 | NOT SUBMITTED — 2 days to hard stop (Nov 14) |
 
 ---
 
@@ -215,15 +201,15 @@ Review `fix-appjsx-final` separately (P1-2 above).
 | Today | <1K | $6/mo (DigitalOcean 1GB) | Well under any ceiling |
 | 1K MAU | 1K | $6/mo | VPS handles easily; Open-Meteo free tier (10K calls/day) covers 1K users |
 | 10K MAU | 10K | $12–18/mo | Need VPS upgrade to 2GB ($12) + disk cache live (Open #23) |
-| 100K MAU | 100K | $60–80/mo | Need weather cache disk persistence (Open #23), DigitalOcean managed DB, consider Cloudflare Workers in front |
+| 100K MAU | 100K | $60–80/mo | Disk-persist `_wxCache`, DigitalOcean managed DB, Cloudflare Workers in front |
 
-**Single biggest cost optimization available right now:** Open #23 (disk-persist `_wxCache`). Currently, `pm2 restart` wipes the cache. At 10K MAU with a cold restart, every user triggers a direct Open-Meteo call simultaneously. At 10K DAU, that's well over the free tier ceiling in minutes. 30-line fix, deferred since July 25.
+**Single biggest cost optimization available:** Open #23 (disk-persist `_wxCache`). The VPS redeploy (P0-2) requires `pm2 restart`, which wipes the cache. Bundle the disk-persistence fix in the same SSH session. 30-line change. Prevents a cold-spike blowthrough on Open-Meteo's free tier immediately after restart.
 
 ---
 
 ## What Breaks First at Scale
 
-**Open-Meteo free tier hits the ceiling before the VPS does.** At ~66 concurrent users hitting the same uncached venue set, Open-Meteo's free tier throttles. The VPS proxy's shared in-memory cache prevents this — but only while `pm2` stays up. The VPS redeploy (P0-1) requires a `pm2 restart`, which wipes the cache. The disk-persistence fix (Open #23) is a ~30-line change to `server/proxy.js` that writes each weather response to a JSON file on disk and reads it on startup. Bundle this with the P0-1 redeploy: one SSH session, solve both. Without it, the first Reddit/HN traffic spike after any restart blows through Open-Meteo's rate ceiling in under a minute — and direct fallback calls hit Open-Meteo individually, compounding the problem. The VPS memory (1GB) is not the constraint; the network rate limit is.
+**Open-Meteo free tier hits the ceiling before the VPS does.** At ~66 concurrent users hitting the same uncached venue set, Open-Meteo throttles. The VPS proxy's shared in-memory `_wxCache` prevents this — but only while `pm2` stays up. The required P0-2 redeploy triggers a `pm2 restart`, wiping the cache. The disk-persistence fix (Open #23, ~30 lines in `server/proxy.js`) writes each weather response to a JSON file on disk and reads it on cold start. Without it: the first Reddit/HN traffic spike after restart blows Open-Meteo's rate ceiling in under a minute. Direct fallback calls hit Open-Meteo individually, compounding the problem. Bundle this with P0-2 — same SSH session, one restart.
 
 ---
 
@@ -231,9 +217,9 @@ Review `fix-appjsx-final` separately (P1-2 above).
 
 | Priority | Action | Time | Requires |
 |----------|--------|------|---------|
-| 🚨 P0 | SSH to VPS, `scp server/proxy.js`, `pm2 restart` | 10 min | SSH access |
-| 🚨 P0 | Verify cache stamp self-bumps on next app.jsx ship | 0 min | (automatic) |
-| ⚠️ P1 | `echo "404" > .venue-baseline && git add && commit && push` | 2 min | Terminal |
+| 🚨 P0 | Submit App Review reply (`docs/APP_REVIEW_NOTES.md` → App Store Connect) | 10 min | App Store Connect access |
+| 🚨 P0 | SSH to VPS, `scp server/proxy.js`, `pm2 restart` | 10 min | SSH to 198.199.80.21 |
 | ⚠️ P1 | Review + delete `fix-appjsx-final` branch | 5 min | GitHub |
-| ⚠️ P1 | Remove `master` from deploy.yml triggers | 5 min | Edit + push |
-| 📋 P2 | Batch-delete 19 stale remote branches | 5 min | Terminal |
+| ⚠️ P1 | Remove `master` from `deploy.yml` triggers OR delete `master` branch | 5 min | Edit + push |
+| 📋 P2 | Cache stamp — no action needed; self-bumps on next app.jsx ship | 0 min | Automatic |
+| 📋 P2 | Batch-delete 19 stale remote branches | 5 min | Terminal (post-Reddit) |
