@@ -1,21 +1,21 @@
-# Peakly PM Report v212 — 2026-11-15 (LAUNCH DAY +28)
+# Peakly PM Report v213 — 2026-11-16 (LAUNCH DAY +29)
 
-**Status: 🔴 RED — App Review MISSED +2 days (reply NOW). VPS Day 99 (Whistler opens in 6 days). 29 days no code commits.**
+**Status: 🔴 RED — App Review MISSED +3 days (reply NOW). VPS Day 100 (Whistler opens in 5 days). 30 days no code commits.**
 
-> **Stale prompt notice — Day 40 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice stays in every report until it's fixed.
+> **Stale prompt notice — Day 41 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice stays in every report until it's fixed.
 
 ---
 
-## Shipped Since Last Report (v211 → v212)
+## Shipped Since Last Report (v212 → v213)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `033a2b1` | Content report Nov 15 — 89/100, FOR/NAT false alarm corrected, catalog clean | ✅ routine + correction |
-| `2bbc538` | DevOps report Nov 15 — Red, App Review MISSED +1d, VPS Day 99, FOR/NAT false alarm cleared | ✅ routine |
+| `51c86bf` | Content report Nov 16 — 89/100, .venue-baseline drift FALSE ALARM confirmed (2 comment lats, not venues), Whistler in 6d | ✅ routine + drift resolved |
+| `fd3e054` | DevOps report Nov 16 — Red, VPS Day 100, cache 16d stale, .venue-baseline drift raised | ✅ routine |
 
-**29 consecutive days with zero app code commits.** Still correct. No code churn until App Review resolves.
+**30 consecutive days with zero app code commits.** Still correct. No code churn until App Review resolves.
 
-**FOR/NAT false alarm closed:** Yesterday's Content report flagged `FOR` and `NAT` airports as missing from `AP_CONTINENT`. Confirmed false alarm — both are present in quoted-key format (`"FOR":"latam"`, `"NAT":"latam"` on lines 442/462). No fix needed. The 2 Brazilian beach venues are scoring correctly. Content score restored to 89/100.
+**Venue-baseline drift false alarm closed:** DevOps flagged eval count 406 vs baseline 404. Content confirmed the 2 extra matches are coordinate comments in app.jsx code (`// CPT:{lat:...}` and `// GIG:{lat:...}`), not venue objects. Actual venue count = **404**, matching the baseline exactly. No baseline update needed.
 
 ---
 
@@ -23,29 +23,29 @@
 
 No app code changes. Two reports, one finding closed:
 
-- **DevOps (Red):** App Review now MISSED +1 day. VPS at Day 99 (unchanged). Cache stamp 15d stale. All structural integrity checks green (5684 braces, 404 venues, 15 lateSeason). FOR/NAT false alarm cleared by DevOps cross-check.
-- **Content (89/100):** Score recovered from 87 after false alarm correction. Catalog fully clean — 0 integrity issues across all 15 checks. 225 thin-tag venues remain the only standing deduction (Day 16, deferred).
+- **DevOps (Red):** VPS hits **Day 100** — same proxy.js sitting undeployed since Aug 11. App Review now MISSED +2d. Cache stamp 16d stale. Baseline drift raised as new finding.
+- **Content (89/100):** Drift false alarm resolved — `.venue-baseline` is correct at 404. All 15 lateSeason venues confirmed. 225 thin-tag venues remain the only standing deduction (Day 17, deferred).
 
 ---
 
 ## Bug Triage
 
-### 🚨 P0-A — App Review: MISSED +2 days. Reply NOW.
+### 🚨 P0-A — App Review: MISSED +3 days. Whistler opens in 5 days (Nov 21).
 
 **Submission ID:** `468d466e-ab22-4db5-bc51-d897a9bcfb8e`
 **Paste-ready reply:** `docs/APP_REVIEW_NOTES.md`
 
-The submission is Guideline 2.1 (Information Needed) — Apple has not auto-rejected it yet, but the window is narrowing. Whistler opens in **6 days (Nov 21)**. The window math has shifted further:
+The window math is now critical:
 
-- Submit today (Nov 15) → review 1–3 days → app live Nov 16–18 → **5–7 days before Thanksgiving** ← marginal
-- Submit Nov 16 → app live Nov 17–19 → **4–6 days** ← very tight
-- Submit Nov 17+ → Thanksgiving effectively lost for new installs; App Store discovery misses the highest-intent ski week of the year
+- Reply today (Nov 16) → review 1–3 days → app live Nov 17–19 → **2–4 days before Thanksgiving** ← still viable
+- Reply Nov 17 → app live Nov 18–20 → **1–3 days before Thanksgiving** ← razor thin
+- Reply Nov 18+ → Thanksgiving and Whistler opener both lost for new installs
 
-**This is a 10-minute action. The reply is already written.**
+**This is a 10-minute action. The reply is already written. 5 days to Whistler.**
 
-### 🚨 P0-B — VPS Redeploy: Day 99. Whistler opens Nov 21 (6 days).
+### 🚨 P0-B — VPS Redeploy: Day 100. Whistler opens Nov 21 (5 days).
 
-No movement since Aug 11. Hard deadline Nov 20 (one day before Whistler opens). Active live breakage:
+100 days with the same committed `server/proxy.js` changes sitting undeployed. Hard deadline Nov 20. Active live breakage:
 1. `forecast_days=7` → two-weekend scoring disabled when proxy is healthy
 2. `capacitor://localhost` missing from CORS → iOS shows zero live weather/flight data
 3. `DELETE` missing from allowed methods → alert deletion silently fails
@@ -53,21 +53,22 @@ No movement since Aug 11. Hard deadline Nov 20 (one day before Whistler opens). 
 
 **Fix — 10 minutes SSH (Jack only):**
 ```bash
-scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
-ssh root@198.199.80.21 "cd /opt/peakly-proxy && pm2 restart peakly-proxy"
+ssh root@198.199.80.21
+curl -sSL https://raw.githubusercontent.com/j1mmychu/peakly/main/server/proxy.js -o /opt/peakly-proxy/proxy.js
+pm2 restart peakly-proxy
 curl -s https://peakly-api.duckdns.org/health | python3 -m json.tool
 ```
 Verify `forecast_days:14`. No `npm install` needed.
 
-### P0-C — `fix-appjsx-final` + `restore-appjsx` rollback bombs: Day 16.
+### P0-C — `fix-appjsx-final` + `restore-appjsx` rollback bombs: Day 17.
 
-Delete in GitHub UI → Branches. Two clicks each. No code risk. Still not done.
+Delete in GitHub UI → Branches. Two clicks each. Still not done.
 
-### P2 — Cache stamp `20261031a`: Day 15 stale.
+### P2 — Cache stamp `20261031a`: Day 16 stale.
 
-DEFER. Auto-bumps on next app.jsx commit. No action needed until code lands.
+DEFER. Auto-bumps on next app.jsx commit.
 
-### P2 — 21 stale non-main/master branches.
+### P2 — 19 stale non-main/master branches.
 
 DEFER to post-Reddit (except P0-C rollback bombs above).
 
@@ -75,68 +76,67 @@ DEFER to post-Reddit (except P0-C rollback bombs above).
 
 ## This Week's Top 3 Priorities
 
-**#1 — Submit App Review reply. OVERDUE by 2 days.**
-`docs/APP_REVIEW_NOTES.md` → App Store Connect → paste + screen recording → Submit Reply. 10 minutes. The Thanksgiving window is bleeding out every day this waits.
+**#1 — Submit App Review reply. OVERDUE by 3 days.**
+`docs/APP_REVIEW_NOTES.md` → App Store Connect → paste + screen recording → Submit Reply. 10 minutes. The Thanksgiving and Whistler windows are both closing fast.
 
-**#2 — VPS Redeploy. Due: Nov 20 (5 days, hard).**
-10-minute SSH. Must land before Whistler opens or two-weekend scoring is broken during peak ski traffic. `server/proxy.js` already committed — just needs to be copied to the VPS.
+**#2 — VPS Redeploy. Due: Nov 20 (4 days, hard).**
+10-minute SSH. Must land before Whistler opens or two-weekend scoring is broken during peak ski traffic week.
 
 **#3 — Delete `fix-appjsx-final` and `restore-appjsx` branches (P0-C).**
-Two clicks in GitHub UI. These are rollback bombs sitting in the branch list. Zero upside to leaving them. Zero risk to deleting them.
+Two clicks in GitHub UI. Rollback bombs with zero upside. This keeps getting deferred.
 
 ---
 
 ## Explicit Product Decisions
 
-**Decision 1: App Review reply — SHIP NOW. The only P0 action that moves the needle today.**
-Every hour of delay tightens the Thanksgiving window. The reply is ready. The build is uploaded. This is a pure execution gap, not a product gap.
+**Decision 1: App Review reply — SHIP NOW. Every day of delay costs days from the Thanksgiving window.**
+Thanksgiving is the highest-intent ski discovery event we'll see until Christmas. We are losing real users every hour this waits.
 
-**Decision 2: VPS redeploy — SHIP before Nov 20 (non-negotiable hard stop).**
-Two-weekend scoring is the product's core moat. It is broken in production until this lands. The Whistler opening weekend is the year's highest-intent ski discovery event and we will serve broken scoring through it if this doesn't happen.
+**Decision 2: VPS redeploy — SHIP before Nov 20 (non-negotiable).**
+Two-weekend scoring is the product's core moat. It is **broken in production** until this lands. Any user who opens the app during Whistler's opening weekend will see single-weekend scoring, not the best-2-of-4 Fri–Mon window we built. That's a failure of the product's core promise.
 
-**Decision 3: 225 thin-tag venues — DEFER past Reddit launch (unchanged, Day 16).**
-Tags affect search corpus, not scoring. Zero impact on the Thanksgiving/Whistler traffic window. Ship this in week 2 post-Reddit.
-
-**Decision 4: FOR/NAT AP_CONTINENT fix — CUT (false alarm confirmed).**
-Both airports are already correctly present in AP_CONTINENT in quoted-key format. No fix needed. P1-A from v211 is closed.
-
-**Decision 5: JSON-LD structured data + static h1 fallback — SHIP in sprint 1 post-App-Review.**
-~2–4 hours total, 10–20% organic SEO lift. No App Review risk. Bundle into the first post-review code sprint alongside the cache stamp bump.
-
----
-
-## Features Rejected This Week
-
-- **Loading screen enhancement** (`claude/enhance-loading-screen-rZ1dc`): Zero user complaints about loading screens. No data showing this causes bounce. With App Review pending, this is aesthetics at the wrong moment. REJECTED.
-- **Scoring system improvement** (`claude/improve-scoring-system-XYGY6`): Scoring changes require an algorithm audit per CLAUDE.md. No user data to anchor changes to. REJECTED until post-Reddit with real usage data.
-- **Front page redesign** (`claude/redesign-front-page-EndKs`): With App Review pending, any visual redesign introduces regression risk and may restart the review clock if it touches UI. REJECTED.
-- **UX review** (`claude/review-peakly-ux-UQ0Qu`): Without real user data (Plausible drop-off analysis), UX hunches are speculation. REJECTED until post-Reddit.
-- **Alert page condense/simplify** (`claude/condense-alert-page-jzdLo`, `claude/simplify-alerts-page-2ejGB`): Alerts gated on iOS. With App Review unresolved, changing alert UI is the wrong priority. REJECTED.
-- **Profile page simplify** (`claude/simplify-profile-page-Bi2Tc`): No user data on where Profile causes friction. REJECTED.
+**Decision 3: 225 thin-tag venues — DEFER past Reddit launch (Day 17, unchanged).**
+Tags affect search corpus, not scoring. Zero impact on the Thanksgiving/Whistler traffic window.
 
 ---
 
 ## Success Criteria
 
-**90-day projection from Reddit launch (target: Reddit post Nov 21–25):**
-- **5K users:** App Store live by Nov 20, VPS deployed before Whistler, Reddit post in November
-- **8K users:** App Store live by Nov 15–17 (now Nov 16–18 at earliest), VPS deployed before Whistler, Reddit post Nov 21–22 (hook: Whistler + Thanksgiving convergence), one organic share
+**90-day projection: 5K–8K users. What gets us to 8K, not 5K:**
 
-**What has to be true for 8K, not 5K:**
-1. App Review reply submitted TODAY → app live Nov 16–18 → inside Thanksgiving planning window
-2. VPS deployed by Nov 20 → two-weekend scoring works on Whistler opening weekend
-3. Reddit post timed to Nov 21 (hook: "Whistler just opened — here's where the best ski conditions are right now")
-4. Post-launch monitoring active before the Reddit spike
-5. No "conditions unavailable" banner greeting the spike (requires disk cache fix — Open #23 — bundled with VPS redeploy)
+| Lever | Impact | Status |
+|-------|--------|--------|
+| App Store live by Thanksgiving | +1,500 potential installs from holiday discovery | ❌ blocked on App Review reply |
+| VPS deployed → two-weekend scoring live | Differentiating feature working as designed | ❌ Day 100 |
+| Reddit launch with working scoring | First impression = core product promise met | ❌ blocked on both above |
+| Whistler opener + Thanksgiving search peak | Highest organic discovery window of the year | ❌ window closing |
 
-**Current trajectory:** Both unresolved P0s are still 10-minute Jack actions. The gap between 5K and 8K is execution, not engineering. The 8K scenario is now contingent on the App Review reply going out today.
+**The 8K scenario requires the App Store to be live before Thanksgiving and both P0s resolved.** We're currently on track for the 5K floor unless both blockers clear in the next 4 days.
+
+---
+
+## Features REJECTED This Week
+
+- **Venue deep links** — DEFER post-Reddit. Right call, unchanged. Building during launch prep is scope creep.
+- **JSON-LD structured data** — DEFER. SEO gap, yes, but won't move the needle in the 5-day window that matters.
+- **Static h1 fallback** — DEFER. Same reasoning.
+- **225 thin-tag venue enrichment** — DEFER post-Reddit.
+- **Any new venues** — FROZEN per PM v193+ directive. Queue exists; fill it post-Reddit gate.
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The cold-cache window.** When Jack does the VPS redeploy (must happen by Nov 20), `pm2 restart` wipes `_wxCache` in-memory — and Whistler opening weekend is the exact moment when traffic spikes. A cold VPS cache on Nov 21 could exceed Open-Meteo's free-tier rate ceiling within the first hour of a Reddit post, flipping every venue card to "conditions unavailable" at the precise moment new users are forming their first impression. Open #23 (disk persistence for `_wxCache`, ~30 lines) must be bundled into the same VPS SSH session as the redeploy, not deferred. It's a 20-minute addition to a session Jack already needs to open. If it ships without disk cache, the redeploy itself creates a new failure mode on the highest-traffic day of the year.
+**The 29-claude/* branch proliferation is a code-churn signal, not a cleanup problem.**
+
+The repo currently has 15+ `claude/*` branches, 2 `cursor/*` branches, and stale branches with names like `redesign-front-page-EndKs`, `improve-scoring-system-XYGY6`, `streamline-onboarding-account-97XRR`. These aren't just cleanup debt — they represent **29+ parallel attempts at uncoordinated changes** to the product while the app is under App Review. If any of those branches were accidentally merged or if the app.jsx on main drifted from what Apple reviewed, we could face a Guideline 2.3.1 violation (misrepresentation) or a fresh rejection for a different build than what was submitted.
+
+**Current risk:** LOW (no merges visible in main log). **Potential risk:** HIGH if merged during App Review window.
+
+**Recommendation:** Branch freeze. No new claude/* or cursor/* branches until App Review resolves and the app ships. This is a 5-day hold, not a policy change.
 
 ---
 
-*Next report: v213, 2026-11-16. If App Review reply submitted: status upgrades to AMBER. If VPS redeployed: Green on P0-B.*
+## Stale Prompt Fix Needed
+
+The stored cron prompt still references: "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." All four are wrong. Fix: Claude.ai → Scheduled Tasks → Peakly Product Manager Agent → edit prompt. Update venue count to 404, categories to 2 (skiing + beach), remove Pro reference, remove Sentry DSN note. This notice has been in every report for 41 days.
