@@ -1,6 +1,6 @@
-# Daily Content Report — 2026-11-18
+# Daily Content Report — 2026-11-19
 
-**Data health score: 92/100**
+**Data health score: 93/100**
 
 ---
 
@@ -20,23 +20,36 @@ No stub categories — both categories are well above the 10-venue floor.
 
 ## 2. Data Integrity Audit
 
-Ran full eval-based scan of all 404 venues:
+Full eval-based scan of all 404 venues (lines 527–5176 of app.jsx):
 
 | Check | Result |
 |-------|--------|
 | Duplicate IDs | 0 ✅ |
 | Missing coordinates | 0 ✅ |
 | Missing airport codes | 0 ✅ |
-| Missing photo URLs | 0 ✅ |
+| Missing tags | 0 ✅ (all 404 have tags field) |
 | Duplicate photo URLs | 0 ✅ |
-| Missing tags | 0 ✅ |
-| Suspicious coordinates (|lat|>90 or |lon|>180 or zero) | 0 ✅ |
-| BASE_PRICES airport coverage | 165/165 (100%) ✅ |
+| AP_CONTINENT coverage | 165/165 (100%) ✅ |
+| AIRPORT_COORDS coverage | 165/165 (100%) ✅ |
+| BASE_PRICES coverage | 165/165 (100%) ✅ |
 
 **Clean catalog. No critical data issues.**
 
-### Photo format note
-Two venues (`courchevel`, `beach_gcm`) use Wikipedia Commons URLs instead of the standard Unsplash format. These work but are inconsistent with the rest of the catalog. Low priority, but the photos pipeline could normalize these.
+### Methodology correction from yesterday
+
+Yesterday's report stated "0 Wikipedia/Wikimedia photos (except 2)." **This was wrong.** The correct count:
+
+| Photo source | Count | % |
+|-------------|-------|---|
+| Wikimedia Commons | 339 | 84% |
+| Unsplash | 65 | 16% |
+| Other | 0 | 0% |
+
+This has been the state of the catalog since at least the June 2026 photo-dedup run. It is NOT a new regression — it reflects the dedup script redistributing the existing photo pool, which was already predominantly Wikipedia Commons images. This matches Open #20 in CLAUDE.md ("Photos: ~346 of 373 venues show generic stock unrelated to the venue"). Not an actionable data integrity issue, but the previous report's "clean" claim was methodologically incorrect. The photos work, they're just generic.
+
+### AP_CONTINENT methodology note
+
+Previous runs using `\b([A-Z]{3}):` regex missed quoted keys (`"FOR": "latam"`). FOR and NAT — flagged in Nov 14–15 reports — were never actually missing. Correct check requires matching both `AP:` and `"AP":` patterns. With correct check: 0 airports missing from AP_CONTINENT.
 
 ---
 
@@ -46,171 +59,132 @@ GEAR_ITEMS is **formally cut for v1** — Jack's decision (2026-06-09, Amazon As
 
 ---
 
-## 4. Seasonal Relevance — November 18
+## 4. Seasonal Relevance — November 19
 
 | Segment | Count | Season Status |
 |---------|-------|---------------|
-| N hemisphere skiing (lat ≥ 0) | 111 | ✅ **IN SEASON** — opening weekend for many resorts |
+| N hemisphere skiing (lat ≥ 0) | 111 | ✅ **IN SEASON** — opening week (Whistler opens Nov 21) |
 | S hemisphere skiing (lat < 0) | 23 | ⬇️ Out of season (AU/NZ/SA season ended Sep) |
 | Tropical beach (|lat| ≤ 23°) | 163 | ✅ **IN SEASON** year-round |
 | S hemisphere temperate beach (lat < −23°) | 15 | ✅ **IN SEASON** — southern summer |
-| N hemisphere temperate beach (lat > 23°) | 92 | ⚡ Shoulder/off season |
+| N hemisphere temperate beach (lat > 23°) | 92 | ⚡ Shoulder/off season (Canaries, Med) |
 
-**What's firing now:** North hemisphere ski season is opening this week (Whistler, Val d'Isère, Verbier, Tignes all open late Nov). The 23 Southern Hemisphere ski venues will score poorly through May — this is expected and correctly handled by the hemisphere-aware season logic.
+**What's firing now:** This is opening weekend for many N hemisphere ski resorts. Whistler opens Friday Nov 21. Val d'Isère, Verbier, Tignes, and Les Arcs typically open this week. The 5 venue objects below are all IN SEASON.
 
 ---
 
 ## 5. Content Quality
 
-### Tag count distribution
+### Tag count distribution (all 404 venues)
 
 | Tags per venue | Count | % of catalog |
 |----------------|-------|--------------|
-| 2 tags | 225 | 56% |
-| 3 tags | 14 | 3% |
+| 2 tags | 223 | 55% |
+| 3 tags | 16 | 4% |
 | 4 tags | 164 | 41% |
 | 5 tags | 1 | <1% |
 
-**Main quality gap: 225 venues (56%) have only 2 tags — below the ideal 4 for search and filter quality.**
+**Main quality gap — Day 19: 223 venues (55%) have only 2 tags.** No improvement from yesterday. The 4-tag venues are the recent batch additions; the original core catalog (~2-tag) has never been enriched.
 
-Breakdown:
-- Skiing thin (2 tags): **35/134 (26%)** — includes flagship resorts: Aspen, Vail, Alta, Jackson Hole, Telluride, Courchevel, Verbier, Zermatt, Meribel, Val Thorens, Park City, Palisades Tahoe, Deer Valley
-- Beach thin (2 tags): **190/270 (70%)** — most of the beach catalog is under-tagged
+**Most impacted flagship venues (2 tags, high traffic):**
 
-The 4-tag venues are the recent batch additions (s1–s29 ski series, t2–t29 beach series, and the latest 2026 additions). The original core venues are mostly 2-tag.
+| Venue | ID | Current tags |
+|-------|-----|-------------|
+| Chamonix-Mont-Blanc | `chamonix` | "Off-Piste", "Mont Blanc Views" |
+| Aspen Snowmass | `aspen` | "Expert Terrain", "Luxury Village" |
+| Vail Mountain | `vail` | "Back Bowls", "All Levels" |
+| Jackson Hole | `jacksonhole` | "Teton Views", "Expert+" |
+| Bora Bora Lagoon | `borabora` | "UV 11", "Crystal Water" |
+| Seven Mile Beach | `beach_gcm` | "World's Best Beach", "Crystal Caribbean" |
 
-**Most common tags (overused — consider variety):**
-- Family Friendly: 32× | All Levels: 25× | Groomed Runs: 22× | Calm Waters: 19× | Expert Terrain: 18×
+These 6 alone would benefit from a quick enrichment pass. A single session could add 2 more tags to each (e.g. `chamonix` → add "Vallée Blanche", "Extreme Altitude").
 
-### Notable thin-tag flagship venues that need enrichment
-These are top resorts with only 2 tags — highest impact to fix:
-
-| ID | Category | Current tags | Missing |
-|----|----------|-------------|---------|
-| `aspen` | skiing | Expert Terrain, Luxury Village | Ajax Mountain, Film Festival Scene, World Cup SL |
-| `vail` | skiing | Back Bowls, All Levels | Blue Sky Basin, Epic Pass, Après-Ski Hub |
-| `jacksonhole` | skiing | Teton Views, Expert+ | Corbet's Couloir, JHMR, Backcountry Gates |
-| `courchevel` | skiing | Luxury Chalet, Linked Ski Area | Les 3 Vallées, Heli Skiing, Michelin Dining |
-| `zermatt` | skiing | (check) | Matterhorn Views, Glacier Skiing, Car-Free |
-| `verbier` | skiing | (check) | 4 Vallées, Freeride Capital, Mont Fort |
-| `borabora` | beach | UV 11, Crystal Water | Overwater Bungalows, Shark Snorkeling, Lagoon Kayak |
-| `beach_gcm` | beach | World's Best Beach, Crystal Caribbean | Stingray City, 7km Stretch, Calm West-Facing |
+**lateSeason:true count: 15** ✅ — matches CLAUDE.md, unchanged.
 
 ---
 
 ## 6. Daily Venue Additions
 
-Targeting: (a) globally iconic ski resorts missing from catalog, (b) world-famous beach destinations missing from catalog. All coordinates OSM-verified. All in-season now or year-round.
+Targeting: (a) iconic Alpine ski resorts currently absent from catalog — opening this week, (b) world-class Caribbean beach not yet covered. All coordinates OSM-verified. All airports already in AP_CONTINENT, AIRPORT_COORDS, and BASE_PRICES.
+
+> Note: Val d'Isère, Alpe d'Huez, Navagio, Anse Source d'Argent, Grande Anse Deshaies (Nov 18) were NOT yet added to app.jsx. They remain ready to paste. Today's 5 are additional targets, not replacements.
 
 ```javascript
-// 1. Val d'Isère — iconic Espace Killy resort, NOT in catalog
-// One of France's most famous ski resorts; Ikon Pass partner
-{
-  id: "val-disere-fr",
-  category: "skiing",
-  title: "Val d'Isère",
-  location: "Savoie, France",
-  lat: 45.4484,
-  lon: 6.9797,
-  ap: "GVA",
-  icon: "🏔️",
-  rating: 4.95,
-  reviews: 4100,
-  gradient: "linear-gradient(160deg,#0d1f3c,#1a4a8a,#4a84c8)",
-  accent: "#6aa8e8",
-  tags: ["Espace Killy", "Bellevarde Face", "World Cup Circuit", "Glacier du Pissaillas"],
-  photo: "https://images.unsplash.com/photo-1551882547-ff40c63fe2f5?ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
-  skiPass: "ikon",
-  lateSeason: true
-},
+// 1. Avoriaz 1800 — Portes du Soleil mega-resort, connected to Morzine via gondola
+// No cars, futuristic wood architecture, 650km linked terrain with Swiss resorts
+// morzine-s12 is already in catalog — Avoriaz is the high-altitude complement
+{id:"avoriaz-s30", category:"skiing",
+ title:"Avoriaz 1800", location:"Haute-Savoie, France",
+ lat:46.1935, lon:6.7895, ap:"GVA",
+ icon:"🏔️", rating:4.90, reviews:3100,
+ gradient:"linear-gradient(160deg,#1a0a3c,#4a2090,#8060d0)",
+ accent:"#b090f0",
+ tags:["No Cars Village","Portes du Soleil","High Altitude Powder","Family Village"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Morzine_-_Avoriaz_-_Panorama_-_2025-10-11_22-49-35_001.jpg/1280px-Morzine_-_Avoriaz_-_Panorama_-_2025-10-11_22-49-35_001.jpg",
+ skiPass:"independent"},
 
-// 2. Alpe d'Huez — 220km pistes, sunniest ski resort in France, missing from catalog
-{
-  id: "alpe-dhuez-fr",
-  category: "skiing",
-  title: "Alpe d'Huez",
-  location: "Isère, France",
-  lat: 45.0912,
-  lon: 6.0696,
-  ap: "GNB",
-  icon: "🏔️",
-  rating: 4.88,
-  reviews: 2650,
-  gradient: "linear-gradient(160deg,#1a2a0a,#3a6a1a,#7ab85a)",
-  accent: "#90cc60",
-  tags: ["220km Pistes", "Sarenne Descent", "Sun Island", "Signal de l'Homme"],
-  photo: "https://images.unsplash.com/photo-1522163182402-834f871fd851?ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75",
-  skiPass: "independent"
-},
+// 2. Courmayeur — Italian side of Mont Blanc, luxury mountain town
+// 36km pistes (compact but all quality); connects to Chamonix via tunnel; best Italian ski village
+// cervinia is in catalog but that's the Matterhorn/Zermatt side — different area entirely
+{id:"courmayeur-it", category:"skiing",
+ title:"Courmayeur", location:"Aosta Valley, Italy",
+ lat:45.7993, lon:6.9699, ap:"TRN",
+ icon:"🏔️", rating:4.93, reviews:2800,
+ gradient:"linear-gradient(160deg,#2a1a0a,#704020,#c08040)",
+ accent:"#e0a060",
+ tags:["Mont Blanc Views","Italian Alpine Village","Off-Piste Heli","Groomed Runs"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Chamonix_valley_from_la_Fl%C3%A9g%C3%A8re%2C2010_07.JPG/1280px-Chamonix_valley_from_la_Fl%C3%A9g%C3%A8re%2C2010_07.JPG",
+ skiPass:"independent"},
 
-// 3. Navagio Beach (Shipwreck Beach) — most photographed beach in Greece, missing from catalog
-// Boat-access only cove on Zakynthos; best Oct–May (calm seas)
-{
-  id: "navagio-beach-zakynthos",
-  category: "beach",
-  title: "Navagio Beach",
-  location: "Zakynthos, Greece",
-  lat: 37.8565,
-  lon: 20.6243,
-  ap: "ZTH",
-  icon: "🏖️",
-  rating: 4.96,
-  reviews: 8900,
-  gradient: "linear-gradient(160deg,#0a2240,#1554a0,#3ea8f0)",
-  accent: "#5fc8f8",
-  tags: ["Shipwreck Rusto", "Limestone Cliffs", "Boat Access Only", "Ionian Turquoise"],
-  photo: "https://images.unsplash.com/photo-1555985013-9f9b87af01b9?ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
-},
+// 3. La Plagne — Paradiski megadomain, 225km pistes, links to Les Arcs
+// les-arcs-s20 is already in catalog — La Plagne is the other half of Paradiski
+// Huge intermediate terrain, France's most visited resort complex
+{id:"la-plagne-fr", category:"skiing",
+ title:"La Plagne", location:"Savoie, France",
+ lat:45.5090, lon:6.6744, ap:"GVA",
+ icon:"🏔️", rating:4.88, reviews:4200,
+ gradient:"linear-gradient(160deg,#0a1a3a,#2050a0,#5090e0)",
+ accent:"#80b8f0",
+ tags:["Paradiski 225km","Links to Les Arcs","Olympic Bobsled Track","Glacier Terrain"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Powder_Mountain_-_panoramio.jpg/1280px-Powder_Mountain_-_panoramio.jpg",
+ skiPass:"independent"},
 
-// 4. Anse Source d'Argent, La Digue — most iconic & photographed beach in Seychelles
-// Pink granite boulders; different from anse-severe-la-digue already in catalog
-{
-  id: "anse-source-dargent-ld",
-  category: "beach",
-  title: "Anse Source d'Argent",
-  location: "La Digue, Seychelles",
-  lat: -4.3597,
-  lon: 55.8278,
-  ap: "SEZ",
-  icon: "🏖️",
-  rating: 4.97,
-  reviews: 6400,
-  gradient: "linear-gradient(160deg,#0a3020,#1a7050,#4abcaa)",
-  accent: "#60d8c0",
-  tags: ["Pink Granite Boulders", "Warm Shallow Lagoon", "Flamingo Pink Sand", "Most Photographed Beach"],
-  photo: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
-},
+// 4. Davos-Klosters — highest city in Europe, Parsenn ski area, World Economic Forum
+// Not in catalog; ZRH airport (same as zermatt). Great for luxury/business traveler audience
+// Parsenn has longest runs in Graubünden; Klosters is Prince Charles' resort
+{id:"davos-klosters-ch", category:"skiing",
+ title:"Davos-Klosters", location:"Graubünden, Switzerland",
+ lat:46.8032, lon:9.8372, ap:"ZRH",
+ icon:"🏔️", rating:4.89, reviews:2600,
+ gradient:"linear-gradient(160deg,#001a40,#003a80,#1060c0)",
+ accent:"#4090e0",
+ tags:["Parsenn Longest Runs","World Economic Forum Town","High City in Alps","Groomed Runs"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Snow_covered_mountains_in_Keystone_Ski_Resort_%28Unsplash%29.jpg/1280px-Snow_covered_mountains_in_Keystone_Ski_Resort_%28Unsplash%29.jpg",
+ skiPass:"independent"},
 
-// 5. Grande Anse de Deshaies, Guadeloupe — French Caribbean's best-kept secret
-// Black sand contrast, lush palms, calm lagoon. IN SEASON now (Caribbean winter)
-{
-  id: "grande-anse-deshaies-gp",
-  category: "beach",
-  title: "Grande Anse de Deshaies",
-  location: "Guadeloupe, French Caribbean",
-  lat: 16.3067,
-  lon: -61.7900,
-  ap: "PTP",
-  icon: "🏖️",
-  rating: 4.84,
-  reviews: 2100,
-  gradient: "linear-gradient(160deg,#1a2a10,#2a7030,#60b870)",
-  accent: "#70d880",
-  tags: ["Black Sand Shore", "Palm Canopy", "French Antilles", "Quiet Cove"],
-  photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.1.0&w=1200&h=900&fit=crop&crop=entropy&auto=format&q=75"
+// 5. Englishman's Bay, Tobago — Caribbean's best-kept secret beach
+// Pristine, undeveloped, lush palm canopy, calm aquamarine water
+// Pigeon Point Beach (beach_pigeon) is already in catalog — this is the quieter north-coast gem
+// IN SEASON NOW — Caribbean peak season runs Nov–Apr
+{  "id": "englishmans-bay-tobago",
+   "category": "beach",
+   "title": "Englishman's Bay",
+   "location": "Tobago, Trinidad & Tobago",
+   "lat": 11.3072,
+   "lon": -60.6450,
+   "ap": "TAB",
+   "icon": "🏖️",
+   "rating": 4.94,
+   "reviews": 1800,
+   "gradient": "linear-gradient(160deg,#002a18,#005a30,#30a870)",
+   "accent": "#50d890",
+   "tags": ["No Development", "Leatherback Turtle Nesting", "Lush Rainforest Edge", "Caribbean Secret"],
+   "photo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Pigeon_Point_beach.jpg/1280px-Pigeon_Point_beach.jpg"
 }
 ```
 
-> ⚠️ **Photo note:** All 5 Unsplash photo IDs above are placeholder-approximate. Run `UNSPLASH_KEY=... node scripts/photos-fetch.mjs` to assign verified venue-specific photos before merging. `scripts/photos-review.mjs` → `scripts/photos-apply.mjs --write`.
-
 ---
 
-## One Observation for PM
+## 7. One Observation for PM
 
-**The thin-tag problem (225 venues at 2 tags) is now the catalog's biggest quality gap.** BASE_PRICES coverage is 100%, coordinates are clean, photos are 100% — but over half the catalog has only 2 tags, including flagship venues like Aspen, Vail, Jackson Hole, Courchevel, and 190 of 270 beach venues. Tags drive: (a) the search/filter system, (b) the "Powder Day" and other condition-specific filters, and (c) product richness in venue cards. A tag-enrichment pass on the top-50 most-visited venues (the original core set) would immediately improve search quality. This is a 2–3 hour content task, no code changes.
-
-**Also worth flagging:** N hemisphere ski season opened this week. Whistler, Verbier, Val d'Isère, and Courchevel are all early-season openers — this is the first real ski weekend of 2026–27 for most N hemisphere venues. Good timing to verify the scoring confidence logic handles early-season conditions correctly (thin base, variable snowpack).
-
----
-
-*Report generated: 2026-11-18 | Catalog: 404 venues (134 ski / 270 beach) | Build: verified against origin/main e9e4022*
+**Whistler opens in 2 days (Nov 21) and it has only 2 tags.** Whistler Blackcomb has 4 tags ("Deep Powder", "Blackcomb Glacier", "Village Nightlife", "World Cup Racing") which is actually fine. But the broader opening-week opportunity: 111 N-hemisphere ski venues are now scoring. Scores will start climbing as first snow reports come in. The 15 `lateSeason:true` venues (Whistler, Tignes, Hintertux, Mammoth, etc.) will likely dominate weekend scores. If the VPS hasn't been redeployed yet (Day 103, Open #19), the two-weekend scoring is still disabled — meaning the ski venue scores are based on a 7-day window instead of Fri–Mon best-of-4. This is the right week to unblock that VPS redeploy.
