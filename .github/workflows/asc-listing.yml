@@ -1,0 +1,36 @@
+# Set Support URL, Privacy Policy URL, and App Review notes on iOS 1.0.
+# Manual only. Does not submit for review, reply to Apple, or change the
+# selected build. Uses the same API key as the TestFlight workflow.
+#
+# Notes text is docs/APP_REVIEW_NOTES_SHORT.txt (under 4000 characters).
+name: App Store listing (no submit)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the review-notes file and the API-key signer
+        run: node scripts/asc.mjs self-test
+
+      - name: Set support URL, privacy URL, and review notes
+        run: node scripts/asc.mjs set-listing
