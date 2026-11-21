@@ -7,7 +7,9 @@ Paste the block under **“Paste this”** into both places:
 1. The reply on the App Review page for that submission.
 2. App Store Connect → the version → **App Review Information → Notes**.
 
-Attach the screen recording from the shot list below to that same reply. Do not submit a new binary until build 3 is the selected build and the recording is attached.
+Attach the screen recording from the shot list below to that same reply. Do not submit a new binary until the TestFlight build is processed and the recording is attached.
+
+No Mac: follow `docs/PHONE_ONLY_RELEASE.md`. The **App Store listing (no submit)** workflow pastes `docs/APP_REVIEW_NOTES_SHORT.txt` (under 4000 characters) into the notes field. It does not submit and does not change the selected build.
 
 Support URL: `https://j1mmychu.github.io/peakly/support.html`
 Privacy Policy URL: `https://j1mmychu.github.io/peakly/privacy.html`
@@ -84,7 +86,7 @@ Do this on a **physical iPhone** on the **latest iOS**, using the **TestFlight b
 Before you press record:
 
 1. In the Supabase SQL editor, run `server/sql/delete-account.sql` once. Until that function exists, Delete account tells the user to email you, and the recording will not satisfy “account deletion is required.”
-2. Archive in Xcode from this repo (deployment target 15.0, build 3), upload, install that build from TestFlight.
+2. Install the TestFlight build from the **TestFlight** GitHub workflow (or archive in Xcode if you have a Mac). Deployment target is 15.0. The build number is 3 unless that number was already uploaded.
 3. Have Mail on the phone able to open the address you will type. The magic link has to be tapped on that phone.
 
 Shot list, in order:
@@ -117,6 +119,6 @@ Apple’s completeness note says screenshots must be the real app in use, and th
 ## What only you can do
 
 - Paste `server/sql/delete-account.sql` into Supabase before the recording.
-- Archive, upload build 3, install it from TestFlight, record on the phone, and attach the video.
+- Run the TestFlight workflow (or archive on a Mac), install that build from TestFlight, record on the phone, and attach the video. Phone steps: `docs/PHONE_ONLY_RELEASE.md`.
 - Paste the block above into the review reply and into Notes.
 - Select build 3 and resubmit yourself. This change set does not submit the app.

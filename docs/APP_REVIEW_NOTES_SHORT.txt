@@ -1,0 +1,45 @@
+Guideline 2.1 — Peakly 1.0. A screen recording on a physical iPhone (latest iOS) is attached. It starts at launch and shows normal use, including account creation, the magic link, and account deletion.
+
+PURPOSE
+Peakly tells adults which ski resort or beach is worth a flight this weekend. It scores the Friday–Monday window from a live forecast and pairs that score with a round-trip fare from the home airport, and it says so when the forecast is too far out to trust. Free. No subscription. No in-app purchase.
+
+HOW TO USE
+No account is required. Browsing works signed out.
+First launch asks for location once, only to suggest the nearest home airport. Decline is fine: pick an airport (JFK) and tap Get Started.
+Explore is the ranked weekend list. Skiing and Beach filters are at the top.
+Open a card for the weekend score, why that score, a short forecast, and a flight price. Book opens the airline or hotel site in the browser. Peakly never takes payment.
+The heart saves the place on the device. Profile holds the optional account, saved places, and Delete account.
+Alerts are optional and send a push only after notification permission. The rest of the app does not depend on them.
+The home-screen widget (WidgetKit) shows the top weekend pick. It is in this binary. Adding it is optional.
+
+DEMO LOGIN
+There is no password and no shared demo account. Sign-in is a one-time magic link from Supabase. Enter any inbox you can open on the device, then tap the link. The recording shows that sign-in, then deletion.
+Deletion is in the app: Profile → Delete account → type DELETE. That removes the signed-in user’s cloud data and login. Data that never left the phone stays until the app is deleted.
+
+NO USER CONTENT
+There is no user-generated content other people can see. Saved places are private. Public list sharing is off and is not in the UI. Venue share only opens the system share sheet with a catalog link. Nothing to report or block. No paid content. No StoreKit product.
+
+EXTERNAL SERVICES
+• Open-Meteo Forecast API (api.open-meteo.com) — weather, no key, CC BY 4.0.
+• Open-Meteo Marine API (marine-api.open-meteo.com) — beach water temperature only, no key, same license.
+• https://peakly-api.duckdns.org — our server. It asks Travelpayouts for round-trip fares. The Travelpayouts token stays on the server. The app sends origin, destination, and dates only.
+• Aviasales/Travelpayouts (tp.media, marker 710303) — flight links. Affiliate. We do not take payment.
+• Booking.com (aid 2311236) — hotel search links. Affiliate. We do not take payment.
+• SafetyWing (referenceID=peakly) — insurance link. Affiliate. We do not take payment.
+• Supabase (wsoqcfwkvvemtlddcgfc.supabase.co) — optional magic-link sign-in and sync of wishlists, lists, alerts, trips, and profile. Public client key. Row-level security.
+• Apple Push Notification service — optional, only after permission.
+• Apple Core Location — one shot, to suggest the home airport. Not in the background.
+• Maps — OpenStreetMap tiles (tile.openstreetmap.org). Leaflet is inside the binary.
+• Photos — Unsplash License (https://unsplash.com/license). Not official resort photos.
+No payment processor, no AI or LLM API (vibe search is on-device keyword matching), no ad SDK. Plausible and Sentry are website-only and are not in the iOS app.
+
+REGIONS
+One binary, English, same behavior in every App Store region. Global catalog. Prices in US dollars. The home airport only changes which fares are shown. No country lock.
+
+LICENSING
+Weather: Open-Meteo, CC BY 4.0, attributed in Profile. Not a paid snow product.
+Maps: © OpenStreetMap contributors, ODbL.
+Photos: Unsplash License. Names only identify places.
+Fares: Travelpayouts affiliate data. We do not claim airline content.
+No gambling, health, finance, or children’s product. No extra trademark license.
+The app is free. There is no in-app purchase to configure.

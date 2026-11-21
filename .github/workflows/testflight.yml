@@ -1,0 +1,93 @@
+# Build Peakly 1.0 on a GitHub macOS runner and upload it to TestFlight.
+# Manual only. Does not submit for App Review and does not change the
+# selected build. Signing uses an App Store Connect API key
+# (no Mac, no certificates checked into the repo).
+#
+# Secrets: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, APPLE_TEAM_ID.
+# ASC_KEY_P8 is the .p8 PEM or base64 of that file. See docs/PHONE_ONLY_RELEASE.md.
+name: TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Leave empty to use 3, or the next free number if 3 is already uploaded"
+        required: false
+        default: ""
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the review-notes file and the API-key signer
+        run: node scripts/asc.mjs self-test
+
+      - name: Show the default Xcode
+        run: xcodebuild -version
+
+      - name: Choose the build number and install the API key
+        id: prep
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          KEY_PATH="$(node scripts/asc.mjs install-key)"
+          NUM="$(node scripts/asc.mjs next-build)"
+          echo "key_path=${KEY_PATH}" >> "$GITHUB_OUTPUT"
+          echo "number=${NUM}" >> "$GITHUB_OUTPUT"
+          echo "Will archive 1.0 (${NUM})"
+
+      - name: Install npm dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci --no-audit --no-fund
+
+      - name: Build the offline iOS web bundle
+        run: node scripts/build-ios.mjs
+
+      - name: Sync Capacitor and install pods
+        run: |
+          set -euo pipefail
+          npx cap sync ios
+          node scripts/register-widget-plugin.mjs
+          (cd ios/App && pod install)
+          grep -q "platform :ios, '15.0'" ios/App/Podfile
+          test -f ios/App/App.xcworkspace/contents.xcworkspacedata
+
+      - name: Archive, export, and upload to TestFlight
+        env:
+          KEY_PATH: ${{ steps.prep.outputs.key_path }}
+          BUILD_NUMBER: ${{ steps.prep.outputs.number }}
+        run: bash scripts/ci-testflight.sh
+
+      - name: Keep the IPA for a week
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Peakly-1.0-ipa
+          path: build/export/*.ipa
+          retention-days: 7
+          if-no-files-found: error

@@ -162,6 +162,8 @@ This is not hypothetical. On **2026-07-24** a session ran against a clone frozen
 > **App Review:** v1.0 builds 1 and 2 were flagged ITMS-90068 (MinimumOSVersion 13.0). The Xcode app target and Podfile are now **iOS 15.0**. `CURRENT_PROJECT_VERSION` is **3**. Release entitlements use `aps-environment` = production (Debug uses `App.debug.entitlements`). Submission `468d466e-ab22-4db5-bc51-d897a9bcfb8e` was Guideline **2.1** (information needed). Paste-ready reply, recording shot list, and screenshot checklist: `docs/APP_REVIEW_NOTES.md`. Support page: `support.html`. Account deletion is in Profile. Public list-sharing stays off (`CLOUD_SHARE_ENABLED = false`), so there is no user content for other people to report.
 >
 > **Pages:** `deploy.yml` no longer cancels an in-progress Pages deploy (that left runs stuck on `updating_pages` until timeout). One retry covers the “artifact uploaded but not visible yet” race. The web build strips cdnjs `babel-standalone`, not only the `@babel/standalone` URL.
+>
+> **Phone-only TestFlight (2026-11-21):** manual workflows `TestFlight` and `App Store listing (no submit)`. API key secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID`. Steps: `docs/PHONE_ONLY_RELEASE.md`. The listing workflow writes `docs/APP_REVIEW_NOTES_SHORT.txt` and does not submit or change the selected build.
 
 ## Current State (2026-08-11 evening — local Claude Code session, networked, verified against origin)
 
