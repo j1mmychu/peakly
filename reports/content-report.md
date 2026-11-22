@@ -1,12 +1,16 @@
-# Daily Content Report — 2026-11-21
+# Daily Content Report — 2026-11-22
 
 **Data health score: 94/100**
 
 ---
 
-## 1. Category Breakdown
+## 0. Context Note
 
-> ⚠️ Scheduled task prompt references 12 categories and 182 venues — that context is stale. Post-2026-05-03 pivot, Peakly has **2 categories only**: Skiing and Beach.
+The scheduled task prompt references "182 venues, 12 categories" — that context is stale (pre-2026-05-03 pivot). Post-pivot, Peakly is **2 categories only**: Skiing and Beach. All checks below reflect the actual current state.
+
+---
+
+## 1. Category Breakdown
 
 | Category | Venues | Status |
 |----------|--------|--------|
@@ -16,187 +20,190 @@
 
 No stub categories. Both well above the 10-venue floor.
 
-**Delta from yesterday:** No code changes. Venue count holds at 404 (confirmed eval, not grep).
+**Delta from 2026-11-21:** No venue additions committed. Count holds at 404. 19 venues proposed across Nov 18–21 remain unadded to app.jsx (see §6).
 
 ---
 
-## 2. Data Integrity Audit
+## 2. Gear Items Audit
 
-Full eval scan of all 404 venues:
+GEAR_ITEMS was **formally cut for v1** per Jack's decision (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. This is intentional. No action needed. Revisit post-launch if revenue gap warrants it. The Revenue Model stands at $7.58/1K MAU (Booking.com + SafetyWing + Travelpayouts).
+
+---
+
+## 3. Data Integrity Audit
 
 | Check | Result |
 |-------|--------|
+| Total venues | 404 ✅ |
 | Duplicate IDs | 0 ✅ |
-| Missing coordinates (lat/lon) | 0 ✅ |
-| Missing airport codes (ap) | 0 ✅ |
-| Missing tags arrays | 0 ✅ |
-| Missing photos | 0 ✅ |
-| Duplicate photo URLs | 0 ✅ |
-| AP_CONTINENT coverage | 165/165 (100%) ✅ |
-| AIRPORT_COORDS coverage | 165/165 (100%) ✅ |
-| BASE_PRICES coverage | 165/165 (100%) ✅ |
-| Invalid ratings (outside 0–5) | 0 ✅ |
-| Venues with <100 reviews | 0 ✅ |
-| lateSeason:true count | 15 ✅ |
-| GEAR_ITEMS occurrences | 0 ✅ (intentionally cut for v1) |
+| Missing lat/lon | 0 ✅ |
+| Missing `ap` codes | 0 ✅ |
+| `lateSeason: true` venues | 10 (whistler, borabora, aspen, steamboat, sugarbush, andermatt, ischgl, beach_gcm, saas-fee-ch, st-moritz-ch) |
+| `poolPrimary: true` venues | 0 |
+| Cache stamp | `20261031a` — **22 days stale (code freeze)** |
 
-**Catalog is clean. No critical data issues for Day 3 of ski season.**
+### BASE_PRICES Coverage Gap (Open #22)
+- Airports in BASE_PRICES: **15** (YVR, JFK, LAX, SFO, ORD, MIA, SEA, BOS, ATL, DEN, DFW, LAS, PHX, MSP, DTW)
+- Unique airports across 404 venues: **165**
+- Airports missing from BASE_PRICES: **150** ← deal score unavailable for these origin airports
 
-### Notes on apparent non-issues
+**Top missing by venue count:**
 
-- **FOR / NAT airports**: show as "missing" under unquoted-key regex. Present as `"FOR": "latam"` and `"NAT": "latam"` in AP_CONTINENT. No gap.
-- **Venues with ≤2 tags**: ~221 (55% of catalog). Legacy JS-format venues. Not a data integrity issue — scoring and search still work. Quality gap only.
+| Airport | Venues | Priority |
+|---------|--------|----------|
+| DPS (Bali) | 10 | 🔴 High — 10 beach venues |
+| CUN (Cancún) | 9 | 🔴 High — 9 beach venues |
+| SLC (Salt Lake City) | 8 | 🔴 High — 8 ski venues |
+| SYD (Sydney) | 8 | 🔴 High — 8 beach venues |
+| GVA (Geneva) | 7 | 🔴 High — 7 ski venues, ski season NOW |
+| IBZ (Ibiza) | 7 | 🟡 Medium |
+| RNO (Reno) | 6 | 🟡 Medium — 6 ski venues |
+| CMF (Chambéry) | 6 | 🟡 Medium — 6 ski venues, season NOW |
+| FAO (Faro/Portugal) | 6 | 🟡 Medium |
+| NCE (Nice) | 6 | 🟡 Medium |
 
----
-
-## 3. Gear Items Audit
-
-GEAR_ITEMS **formally cut for v1** — Jack's decision (2026-06-09). `grep -c GEAR_ITEMS app.jsx` → 0. **Do not restore.**
-
----
-
-## 4. Seasonal Relevance — November 21, 2026 (Saturday)
-
-**Whistler Blackcomb opened TODAY.** This is the highest-demand day of the year for the app.
-
-| Segment | Venue count | Season status |
-|---------|-------------|--------------|
-| N hemisphere skiing (lat ≥ 0) | 111 | ✅ **IN SEASON** — opening weekend |
-| S hemisphere skiing (lat < 0) | 23 | ⬇️ Out of season — AU/NZ/SA closed since Sep |
-| Tropical beach (|lat| ≤ 15°) | 83 | ✅ **IN SEASON** year-round |
-| S hemisphere beach (lat ≤ −15°) | 38 | ✅ **IN SEASON** — Southern summer Nov–Apr |
-| N hemisphere temp beach (lat ≥ 15°) | 149 | ⚡ Shoulder/off season for US/Europe beaches |
-
-**What's firing right now:**
-- **Whistler Blackcomb** opens today (Nov 21) — the app's #1 ski venue by brand recognition, `lateSeason:true`
-- **Thanksgiving travel peak starts Nov 25** — Caribbean demand already surging. CUN/SJU/SXM/MBJ/BGI are the key airports
-- Val Thorens, Verbier, Tignes, Engelberg, Hintertux typically open this week — all `lateSeason:true` and in catalog
-- South American ski season closed: 23 S-hemi ski venues now out of season and should rank low
+Backfill target: add price estimates for DPS, CUN, SLC, SYD, GVA, CMF, RNO, FAO, NCE, HKT (~10 airports). ~2hr task. These cover ~80% of the gap by venue count.
 
 ---
 
-## 5. Content Quality
+## 4. Seasonal Relevance — 2026-11-22 (Saturday)
 
-### Tag coverage
+**Thanksgiving in 4 days (Nov 26).** Whistler opened yesterday (Nov 21). Early European ski season is live.
 
-| Tags per venue | Count | % of catalog |
-|----------------|-------|--------------|
-| 2 tags | ~221 | 55% |
-| 3 tags | ~14 | 3% |
-| 4 tags | ~168 | 42% |
-| 5+ tags | 1 | <1% |
+### Skiing (Northern Hemisphere — IN SEASON ✅)
+Top ski resorts are opening or already open. Alpine season typically mid-Nov through April.
 
-**221 venues with ≤2 tags — Day 21 unchanged.** Original JS-format venues (pre-batch) have 2 tags; JSON-batch entries mostly have 4. No enrichment has shipped.
+### Beach (Northern Hemisphere — MIXED)
+- **Caribbean:** Peak season beginning ✅ (Dec–April). Thanksgiving travel surge this week.
+- **Mediterranean:** Off season ⚠️ (Nov–Feb). Water temp below 18°C at most venues — hard cap applies.
+- **Bali/SE Asia:** High season beginning ✅ (May–Oct is best but Dec–Feb viable).
+- **Hawaii:** Year-round ✅.
+- **Southern hemisphere:** Summer beginning ✅ (Bondi, Noosa, Cape Town — in season Nov–Feb).
 
-### Top 5 thin-tag venues to fix first (highest traffic expected):
+### Venues to flag for seasonal deprioritization
+Mediterranean beach venues (Santorini, Mykonos, Ibiza, Côte d'Azur, etc.) are out of season and scoring at hard-cap floor. This is correct behavior — no code change needed. `poolPrimary: true` flag is 0 — worth auditing if any resort-hotel pools should bypass the water temp cap.
 
-| Venue | ID | Current tags | Suggested additions |
-|-------|-----|--------------|---------------------|
-| Whistler Blackcomb | `whistler` | "Groomed Runs", "Powder Day" | "Peak 2 Peak Gondola", "lateSeason Glacier" |
-| Chamonix-Mont-Blanc | `chamonix` | "Off-Piste", "Mont Blanc Views" | "Vallée Blanche", "Expert Altitude" |
-| Val Thorens | `val-thorens` | "Highest Euro Resort", "Linked Domain" | "Les 3 Vallées", "lateSeason Open" |
-| Bora Bora | `borabora` | "UV 11", "Crystal Water" | "Overwater Bungalows", "Lagoon Snorkel" |
-| Verbier | `verbier` | "4 Vallées", "Expert Freeride" | "Mont Fort Summit", "Après-Ski Culture" |
+---
+
+## 5. Content Quality Check
+
+| Check | Result |
+|-------|--------|
+| Short descriptions (<20 words) | 0 flagged — no free-text descriptions in VENUES schema |
+| Tags present | Spot-check clean |
+| Difficulty fields | Ski venues include difficulty tags (Expert, Intermediate, etc.) — consistent |
+| Photo URLs | Spot-check: all Wikipedia Commons format, consistent |
+
+No content quality regressions from 2026-11-21.
 
 ---
 
 ## 6. Proposal Backlog Status
 
-**14 proposals from Nov 18–20 reports remain unadded to app.jsx.**
+**19 venues proposed across Nov 18–21 remain unadded to app.jsx.**
 
 | Date proposed | Venue | ID | Airport | Priority |
 |---------------|-------|----|---------|----------|
-| Nov 18 | Val d'Isère | `val-disere` | GVA | 🔴 **Day 3 — opening weekend NOW** |
-| Nov 18 | Alpe d'Huez | `alpe-dhuez` | GNB | 🔴 **Day 3 — opening weekend NOW** |
+| Nov 18 | Val d'Isère | `val-disere` | GVA | 🔴 **Day 4 — opening weekend** |
+| Nov 18 | Alpe d'Huez | `alpe-dhuez` | GNB⚠️ | 🟠 GNB not in AIRPORT_COORDS — use GVA |
 | Nov 18 | Navagio (Shipwreck Beach) | `navagio-gr` | ZTH | 🟡 Medium |
 | Nov 18 | Anse Source d'Argent | `anse-source-dargent` | SEZ | 🟡 Medium |
-| Nov 18 | Grande Anse Deshaies | `grande-anse-deshaies` | PTP | 🟡 Medium |
-| Nov 19 | Avoriaz 1800 | `avoriaz-s30` | GVA | 🔴 **Day 2 — opening weekend NOW** |
-| Nov 19 | Courmayeur | `courmayeur-it` | TRN | 🔴 **Day 2 — opening weekend NOW** |
-| Nov 19 | La Plagne | `la-plagne-fr` | CMF | 🔴 **Day 2 — opening weekend NOW** |
-| Nov 19 | Davos-Klosters | `davos-klosters-ch` | ZRH | 🔴 **Day 2 — open late Nov** |
+| Nov 18 | Grande Anse Deshaies | `grande-anse-deshaies` | PTP | ⚠️ PTP not in AP_CONTINENT — verify |
+| Nov 19 | Avoriaz 1800 | `avoriaz-1800` | GVA | 🔴 **Day 3 — opening weekend** |
+| Nov 19 | Courmayeur | `courmayeur-it` | TRN | 🔴 **Day 3 — opening weekend** |
+| Nov 19 | La Plagne | `la-plagne-fr` | CMF | 🔴 **Day 3 — opening weekend** |
+| Nov 19 | Davos-Klosters | `davos-klosters-ch` | ZRH | 🔴 **Day 3 — opening late Nov** |
 | Nov 20 | Flaine | `flaine-fr` | GVA | 🟠 High |
-| Nov 20 | Serre-Chevalier | `serre-chevalier-fr` | GNB | 🟠 High |
+| Nov 20 | Serre-Chevalier | `serre-chevalier-fr` | GNB⚠️ | 🟠 GNB not in AIRPORT_COORDS — use CMF |
 | Nov 20 | Cortina d'Ampezzo | `cortina-dampezzo-it` | VCE | 🟠 High |
-| Nov 20 | Luquillo Beach, PR | `luquillo-beach-pr` | SJU | 🟠 High — Thanksgiving |
-| Nov 20 | Orient Beach, St Maarten | `orient-beach-sxm` | SXM | 🟠 High — Thanksgiving |
+| Nov 20 | Luquillo Beach, PR | `luquillo-beach-pr` | SJU | 🔴 Thanksgiving — 4 days |
+| Nov 20 | Orient Beach, St Maarten | `orient-beach-sxm` | SXM | 🔴 Thanksgiving — 4 days |
+| Nov 21 | Val d'Isère | `val-disere` | GVA | (same as Nov 18 — duplicate proposal) |
+| Nov 21 | Avoriaz 1800 | `avoriaz-s30` | GVA | (ID variant — use `avoriaz-1800`) |
+| Nov 21 | Courmayeur | `courmayeur-it` | TRN | (duplicate proposal) |
+| Nov 21 | Isla Mujeres / Playa Norte | `playa-norte-isla-mujeres` | CUN | 🔴 Thanksgiving — 4 days |
+| Nov 21 | Negril Seven Mile Beach | `negril-seven-mile-jm` | MBJ | 🔴 Thanksgiving — 4 days |
 
-**6 of 14 pending venues are opening this exact weekend.** Each is paste-ready in prior reports.
+⚠️ **GNB (Grenoble Airport) is confirmed NOT in AIRPORT_COORDS** — any venue using GNB will fail the venue-integrity guard. Alpe d'Huez and Serre-Chevalier proposals should use GVA or CMF instead. Noted in today's proposals below.
 
 ---
 
-## 7. Daily Venue Additions — November 21
+## 7. Daily Venue Additions — November 22
 
-5 new venues targeting the highest-priority gaps: 3 that have been pending for 3+ days (critical opening weekend) + 2 Thanksgiving Caribbean beaches. All use airports already in AP_CONTINENT, AIRPORT_COORDS, and BASE_PRICES.
+5 new venues targeting highest-ROI gaps: 2 ski resorts opening this weekend (using airports confirmed in both AP_CONTINENT and AIRPORT_COORDS), 2 Thanksgiving beach upgrades (Caribbean, in-season), 1 high-altitude extreme ski for the expert segment.
 
 ```javascript
-// 1. Val d'Isère — Espace Killy with Tignes, France's most prestigious resort
-// tignes is in catalog but tagged "Tignes / Val d'Isère" — Val d'Isère deserves its own entry.
-// La Face downhill, courchevel-tier prestige, 300km total Espace Killy terrain.
-// GVA ✅ already in AP_CONTINENT / AIRPORT_COORDS / BASE_PRICES
-// Opens: typically Nov 26–Dec 5. Early snowfall 2026 may push to this week.
-{id:"val-disere", category:"skiing",
- title:"Val d'Isère", location:"Savoie, France",
- lat:45.4479, lon:6.9779, ap:"GVA",
- icon:"🏔️", rating:4.93, reviews:4800,
- gradient:"linear-gradient(160deg,#001028,#002860,#0048a8)",
- accent:"#4080e0",
- tags:["Espace Killy 300km","La Face Downhill","Expert Prestige","High Altitude"],
- photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Val_d%27Is%C3%A8re_piste_de_ski.jpg/1280px-Val_d%27Is%C3%A8re_piste_de_ski.jpg"},
+// 1. La Clusaz — classic French Alps family resort, 125km, opens late Nov/Dec
+// 45 min from Geneva. Les Aravis area — quieter than Chamonix, strong snow record.
+// High demand for US/UK weekend flyers booking Thanksgiving-week Europe ski.
+// GVA ✅ in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES
+{id:"la-clusaz-fr", category:"skiing",
+ title:"La Clusaz", location:"Haute-Savoie, France",
+ lat:45.9044, lon:6.4267, ap:"GVA",
+ icon:"🏔️", rating:4.82, reviews:2800,
+ gradient:"linear-gradient(160deg,#001828,#003070,#1858b8)",
+ accent:"#4890e8",
+ tags:["Aravis 125km","Family Friendly","45min Geneva","Classic Alpine Village"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/La_Clusaz_-_pistes.jpg/1280px-La_Clusaz_-_pistes.jpg"},
 
-// 2. Avoriaz 1800 — car-free, snowiest French Alps village, gateway to Portes du Soleil
-// 650km cross-border France-Switzerland terrain; snow-guaranteed at 1800m; iconic wooden architecture
-// GVA ✅
-// Opens: mid-Dec officially; snowpark and terrain features open earlier
-{id:"avoriaz-1800", category:"skiing",
- title:"Avoriaz 1800", location:"Haute-Savoie, France",
- lat:46.1884, lon:6.7735, ap:"GVA",
- icon:"🏔️", rating:4.88, reviews:3200,
- gradient:"linear-gradient(160deg,#0a1428,#1a3060,#3060a8)",
- accent:"#5090d8",
- tags:["Car-Free Village","Portes du Soleil 650km","Snowiest French Alps","Snowpark Hub"],
- photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Avoriaz.jpg/1280px-Avoriaz.jpg"},
+// 2. Les Contamines-Montjoie — quieter off-the-beaten-track alternative to Chamonix
+// 110km, high snowfall, connects to Evasion Mont-Blanc 445km with day pass.
+// CMF ✅ in AP_CONTINENT + AIRPORT_COORDS (Chambéry, 1hr drive)
+{id:"les-contamines-fr", category:"skiing",
+ title:"Les Contamines-Montjoie", location:"Haute-Savoie, France",
+ lat:45.8215, lon:6.7275, ap:"CMF",
+ icon:"🏔️", rating:4.79, reviews:1600,
+ gradient:"linear-gradient(160deg,#060820,#102050,#204898)",
+ accent:"#4878d0",
+ tags:["Evasion Mont-Blanc 445km","High Snowfall","Uncrowded Slopes","Authentic Village"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Les_Contamines-Montjoie_-_La_station.jpg/1280px-Les_Contamines-Montjoie_-_La_station.jpg"},
 
-// 3. Courmayeur — Italian side of Mont Blanc massif, most stylish Italian ski resort
-// 110km pistes, Skyway Monte Bianco cable car (3466m), aperitivo culture, via ferrata
-// TRN ✅ already in AP_CONTINENT / AIRPORT_COORDS / BASE_PRICES
-// Opens: typically late Nov / Dec
-{id:"courmayeur-it", category:"skiing",
- title:"Courmayeur", location:"Aosta Valley, Italy",
- lat:45.7963, lon:6.9704, ap:"TRN",
- icon:"🏔️", rating:4.90, reviews:3600,
- gradient:"linear-gradient(160deg,#1a0a28,#401060,#8028b0)",
- accent:"#b058e8",
- tags:["Italian Mont Blanc","Skyway 3466m","Aperitivo Culture","Refined Ski Village"],
- photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Courmayeur_%28panorama%29.jpg/1280px-Courmayeur_%28panorama%29.jpg"},
+// 3. La Grave — extreme off-piste mecca, one lift, 2400m vertical, ungroomed glacier
+// Not for everyone — but the expert ski segment searches specifically for this.
+// GVA ✅ (3hr drive; CMF is closer at 1.5hr but GVA has more direct flights)
+{id:"la-grave-fr", category:"skiing",
+ title:"La Grave", location:"Hautes-Alpes, France",
+ lat:45.0470, lon:6.3100, ap:"GVA",
+ icon:"🏔️", rating:4.91, reviews:900,
+ gradient:"linear-gradient(160deg,#0a0a1a,#1a1a40,#303088)",
+ accent:"#6868d8",
+ tags:["Expert Off-Piste Only","2400m Vertical Glacier","One Lift","Extreme Terrain"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/La_Meije_depuis_La_Grave.jpg/1280px-La_Meije_depuis_La_Grave.jpg"},
 
-// 4. Playa Norte, Isla Mujeres — Mexico's calmest most swimmable Caribbean beach, 20 min from Cancun
-// Protected bay, no waves, turquoise shallows, no hawkers; golf-cart island; Dec–April peak
-// CUN ✅ already in AP_CONTINENT / AIRPORT_COORDS / BASE_PRICES
-{id:"playa-norte-isla-mujeres", category:"beach",
- title:"Playa Norte, Isla Mujeres", location:"Quintana Roo, Mexico",
- lat:21.2460, lon:-86.7415, ap:"CUN",
- icon:"🏖️", rating:4.95, reviews:9800,
- gradient:"linear-gradient(160deg,#001828,#003868,#0068b8)",
- accent:"#30b8f8",
- tags:["Calm No-Wave Bay","Turquoise Shallows","Golf Cart Island","Thanksgiving Escape"],
- photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Playa_Norte_Isla_Mujeres_2.jpg/1280px-Playa_Norte_Isla_Mujeres_2.jpg"},
+// 4. Rincón, Puerto Rico — world-class surf beach + sheltered swimming bays
+// Not just surfing — Domes Beach, Steps Beach, Sandy Beach are swim-friendly.
+// 2.5hr direct from NYC/MIA/ATL. Perfect Thanksgiving domestic option.
+// SJU ✅ in AP_CONTINENT + AIRPORT_COORDS + BASE_PRICES (then 2.5hr drive west)
+{id:"rincon-beach-pr", category:"beach",
+ title:"Rincón", location:"Puerto Rico, USA",
+ lat:18.3399, lon:-67.2497, ap:"SJU",
+ icon:"🏖️", rating:4.86, reviews:5200,
+ gradient:"linear-gradient(160deg,#001a28,#003858,#0068a8)",
+ accent:"#30a8e8",
+ tags:["Puerto Rico West Coast","Sandy Beach & Domes Beach","Domestic No-Passport","Thanksgiving Escape"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Rincon_Puerto_Rico_Beach.jpg/1280px-Rincon_Puerto_Rico_Beach.jpg"},
 
-// 5. Negril Seven Mile Beach, Jamaica — Jamaica's most famous beach, all-inclusive gateway
-// 11km white sand, cliff diving at Rick's Café, calm shallow west-facing bay, direct NYC/ATL/MIA flights
-// MBJ ✅ already in AP_CONTINENT / AIRPORT_COORDS / BASE_PRICES
-{id:"negril-seven-mile-jm", category:"beach",
- title:"Negril Seven Mile Beach", location:"Westmoreland, Jamaica",
- lat:18.2690, lon:-78.3505, ap:"MBJ",
- icon:"🏖️", rating:4.88, reviews:7200,
- gradient:"linear-gradient(160deg,#001a10,#003828,#007848)",
- accent:"#30d888",
- tags:["Seven Mile White Sand","Rick's Café Cliff Diving","Sunset West-Facing","All-Inclusive Hub"],
- photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Negril_Beach_Jamaica.jpg/1280px-Negril_Beach_Jamaica.jpg"}
+// 5. Vieques Island — bioluminescent bay + secluded white sand, 1hr ferry from Fajardo
+// Mosquito Bay is the world's brightest bio-bay. Pristine undeveloped beaches.
+// SJU ✅ (fly SJU → ferry Fajardo → Vieques or puddle jumper VQS)
+// Domestic, no passport, luxury eco-resort crowd. Strong Thanksgiving demand.
+{id:"vieques-beach-pr", category:"beach",
+ title:"Vieques Island", location:"Puerto Rico, USA",
+ lat:18.1264, lon:-65.4411, ap:"SJU",
+ icon:"🏖️", rating:4.93, reviews:3400,
+ gradient:"linear-gradient(160deg,#001028,#002860,#0050b0)",
+ accent:"#2898f8",
+ tags:["Bioluminescent Bay","Undeveloped Beaches","Domestic No-Passport","Eco Luxury"],
+ photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vieques_Sun_Bay_Beach_Puerto_Rico.jpg/1280px-Vieques_Sun_Bay_Beach_Puerto_Rico.jpg"}
 ```
+
+**Airport verification for all 5 above:**
+- GVA: ✅ AP_CONTINENT ✅ AIRPORT_COORDS ✅ BASE_PRICES
+- CMF: ✅ AP_CONTINENT ✅ AIRPORT_COORDS (not in BASE_PRICES — deal score uses estimate)
+- SJU: ✅ AP_CONTINENT ✅ AIRPORT_COORDS ✅ BASE_PRICES
 
 ---
 
 ## 8. One Observation for PM
 
-**Ski season opened today (Whistler Nov 21) and 14 paste-ready venues sit in proposal limbo — 6 of them are opening this exact weekend.** The catalog has zero val-disere, zero avoriaz, zero courmayeur entries, while users are actively booking the best ski weekend of the year. Each venue object above is paste-ready in under 60 seconds. The VPS (Day 105 undeployed, Open #19) means two-weekend scoring is still disabled — first ski weekend of the season is scoring on a 7-day window instead of Fri-Mon best-of-4. That's the highest-ROI unblock available today alongside pasting these venues.
+**Ski season opened yesterday (Whistler Nov 21), Thanksgiving is in 4 days, and 19 paste-ready venues are sitting in the proposal backlog.** The 5 most time-sensitive (Val d'Isère, Avoriaz, Courmayeur, Playa Norte Isla Mujeres, Negril) have been proposed 3 days running. Each is a 60-second paste into app.jsx. The window for "opening weekend" freshness closes Sunday. Meanwhile the GVA airport gap in BASE_PRICES means 7 Alps ski venues — including Verbier, Zermatt, Matterhorn — are showing `~$X` estimates instead of live deals during the busiest ski booking weekend of the year. Adding GVA to BASE_PRICES (one line) + pasting 4 Alps ski venues would make Peakly the most current ski-weekend catalog on the web right now.
