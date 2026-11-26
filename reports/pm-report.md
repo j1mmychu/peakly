@@ -1,54 +1,56 @@
-# Peakly PM Report v222 — 2026-11-25 (LAUNCH DAY +38)
+# Peakly PM Report v223 — 2026-11-26 (LAUNCH DAY +39, Thanksgiving)
 
-**Status: 🔴 RED — Thanksgiving is TODAY. App Review MISSED +12 days. VPS Day 106. Code freeze Day 25.**
+**Status: 🔴 RED — Thanksgiving is TODAY. App Review MISSED +13 days. VPS Day 107. Code freeze Day 26.**
 
-> **Stale prompt notice — Day 50 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice stays in every report until it's fixed.
+> **Stale prompt notice — Day 51 (still unchanged):** Stored cron prompt says "182 venues, 12 categories, Peakly Pro $9/mo, Sentry DSN empty." Reality: **404 venues (134 skiing / 270 beach), 2 categories, Pro cut, Sentry live, BASE_PRICES 100%.** Jack: 2-minute fix in the Claude.ai interface. This notice stays in every report until it's fixed.
 
 ---
 
-## Shipped Since Last Report (v221 → v222)
+## Shipped Since Last Report (v222 → v223)
 
 | Commit | What | Right call? |
 |--------|------|-------------|
-| `7e5e061` | DevOps report Nov 25 — RED, Day 106 VPS, Thanksgiving TOMORROW | ✅ routine |
-| `3f3890a` | Content report Nov 25 — 95/100, 404 venues, 35 backlog, 5 new proposals (Negril, Orient Beach SXM, Avoriaz 1800, Courmayeur, La Plagne) | ✅ routine |
+| `27f3d49` | DevOps report Nov 26 — RED, Day 107 VPS, Thanksgiving TODAY peak risk | ✅ routine |
+| `e4f56c1` | Content report Nov 26 — 95/100, 404 venues, 40-venue backlog, 5 new proposals (Negril, Key West, Davos-Klosters, Flaine, Alpe d'Huez) | ✅ routine |
 
-**Zero app code commits for 25 consecutive days.** Code freeze holds. Correct.
+**Zero app code commits for 26 consecutive days.** Code freeze holds. Correct until App Review resolves.
 
-**Overnight finding worth carrying forward:** DevOps and Content both flagged a `lateSeason:true` discrepancy (CLAUDE.md says 15, grep found 10). This was a **false alarm** — a methodology bug in the grep. The 15th venue has 10 compact-format entries (`lateSeason:true`) and 5 JSON-format entries (`"lateSeason": true`). Both are valid JS. `grep -c "lateSeason.*true" app.jsx` → **15**, matching CLAUDE.md exactly. No fix needed. Carrying this forward so agents stop re-flagging it.
+**Overnight:**
+- lateSeason discrepancy officially CLOSED in both DevOps and Content reports. 15 confirmed. Stop flagging.
+- Stale branch count down from 22 → 20 (net -2). Modest progress. 20 still open.
+- 40-venue backlog continues to accumulate. All frozen until code freeze lifts.
+- No new P0s introduced overnight.
 
 ---
 
-## Overnight Activity (Nov 24 → Nov 25)
+## Overnight Activity (Nov 25 → Nov 26)
 
-1. **Thanksgiving arrived.** The window for catching Thanksgiving browse traffic is now. It's not "in 2 days" anymore — it's today and tomorrow. App Review reply sent today = live tomorrow (Nov 26, Thanksgiving). App Review reply sent tomorrow = post-Thanksgiving. This is the actual last day.
+1. **Thanksgiving arrived.** The window everyone has been warning about is open right now. If Jack replies to App Review today, Apple's fastest known turnaround (24–48h over a holiday) means earliest live date: Nov 27–28. That still catches Black Friday ski search traffic (second biggest ski booking weekend after Christmas). Today is not fully lost.
 
-2. **35-venue backlog, all frozen.** Today's 5 proposals: Negril/Seven Mile Beach (MBJ ✅), Orient Beach SXM (SXM — AIRPORT_COORDS gap noted by Content), Avoriaz 1800 (GVA ✅), Courmayeur (TRN ✅), La Plagne (CMF ✅). Negril and Orient Beach SXM are peak Thanksgiving/Christmas Caribbean destinations. SXM airport gap needs to be resolved before that venue can ship — flag for the post-freeze batch.
+2. **40-venue backlog.** Content now at 40 proposals (35 from yesterday + 5 new: Negril, Key West/Smathers, Davos-Klosters, Flaine, Alpe d'Huez). All Caribbean and Alps — peak Thanksgiving/Christmas demand. SXM airport gap still blocking Orient Beach SXM specifically. All 40 ship as single post-freeze batch.
 
-3. **VPS Day 106.** Unchanged. iOS CORS blocked, two-weekend scoring dead, alert deletion broken. If the App Review reply goes out today and Apple approves by tomorrow, the first App Store users hit a broken mobile experience. This cannot be deferred past the same afternoon as the reply.
+3. **VPS Day 107.** In-memory weather cache on the live VPS is healthy but would reset on any `pm2 restart`. If Thanksgiving traffic spikes — even modest family-scrolling volume — and the VPS needs a restart, the cold cache could spike Open-Meteo above free tier before `_wxCache` refills. The disk-cache fix (Open #23) is committed, needs 1 SSH session.
 
-4. **`fix-appjsx-final` Day 26, 597 commits ahead.** Still a live rollback bomb. Every day it exists it accumulates more divergence.
-
-5. **22 stale branches.** +1 since yesterday. The count will continue climbing with every agent run that opens a branch. Needs a systematic delete pass.
+4. **`fix-appjsx-final` Day 27, 647 commits ahead.** Still present. Still a bomb.
 
 ---
 
 ## Bug Triage
 
-### 🚨 P0-A — App Review: MISSED +12 days. Thanksgiving is TODAY.
+### 🚨 P0-A — App Review: MISSED +13 days. Thanksgiving is HERE.
 
-**The window:** Reply today → live Nov 26 (Thanksgiving). Reply tomorrow → post-Thanksgiving. After today, the holiday is gone.
+**Still the single most leveraged action in this entire project.** One person. One reply. 10 minutes.
+
+Reply today (Nov 26) → Apple fastest approval Nov 27–28 → app live Black Friday weekend. Black Friday is the #2 ski booking weekend of the year. Still worth it.
+Reply after today → pivot fully to Christmas week (Dec 23–Jan 1). Still a strong window, different messaging.
 
 **Submission:** `468d466e-ab22-4db5-bc51-d897a9bcfb8e`
-**Reply:** `docs/APP_REVIEW_NOTES_SHORT.txt` — <4000 chars, paste-ready. No Mac needed.
-**Full notes:** `docs/APP_REVIEW_NOTES.md`
-**Phone path:** `docs/PHONE_ONLY_RELEASE.md`
+**Reply:** `docs/APP_REVIEW_NOTES_SHORT.txt` — <4000 chars, paste-ready.
+**No Mac needed.** `docs/PHONE_ONLY_RELEASE.md` has the full path.
 
-If the Thanksgiving window is already closed (reply goes out Nov 25 PM or later), pivot messaging to **Christmas week (Dec 23–Jan 1)** — equal or larger ski search volume, strong Caribbean beach traffic. Not a failure, just a different launch window.
+### 🚨 P0-B — VPS Redeploy: Day 107. Same afternoon as App Review reply.
 
-### 🚨 P0-B — VPS Redeploy: Day 106. Same afternoon as App Review reply.
-
-Same 4 live breakages. Same 15-minute SSH fix. Same commands as every prior report.
+Four live breakages. 15-minute SSH fix. Same commands as every prior report:
 
 ```bash
 scp server/proxy.js root@198.199.80.21:/opt/peakly-proxy/proxy.js
@@ -56,91 +58,91 @@ ssh root@198.199.80.21 "pm2 restart peakly-proxy && pm2 status"
 curl -s https://peakly-api.duckdns.org/health | jq .
 ```
 
-Non-negotiable. First App Store users on iOS hit a broken product if this doesn't happen on launch day.
+Must happen same day as App Review reply. First App Store users on iOS hit broken two-weekend scoring, broken alert deletion, and blocked iOS CORS if this doesn't happen on launch day.
 
-### 🚨 P0-C — `fix-appjsx-final` + `restore-appjsx` rollback bombs: Day 26.
+### 🚨 P0-C — `fix-appjsx-final` + `restore-appjsx` rollback bombs: Day 27.
 
-Delete from GitHub while logged in for the App Review reply. 30 seconds. No evaluation, no cherry-picks.
+647 commits ahead. Single catastrophic risk in the project. Delete from GitHub while logged in for App Review reply. 30 seconds.
 
-### P1 — SXM (St. Maarten/Orient Beach) AIRPORT_COORDS gap.
+### P1 — SXM AIRPORT_COORDS gap (blocks Orient Beach SXM venue).
 
-Orient Beach SXM is in the content backlog. `SXM` is not in `AIRPORT_COORDS`. Without it, the venue can't ship (would fail the venue-integrity guard). Two options: (a) add SXM to AIRPORT_COORDS (SXM: Princess Juliana, lat 18.0410, lon -63.1089, continent `north_america`) before adding the venue, or (b) sub in `SJU` (San Juan, closest major hub). Option (a) is correct. First post-freeze commit.
+`SXM` missing from `AIRPORT_COORDS`. Two-line fix: add `SXM: {lat:18.0410, lon:-63.1089}` to `AIRPORT_COORDS` and `SXM` → `"north_america"` to `AP_CONTINENT`. First post-freeze commit, before the 40-venue batch.
 
-### P2 — 22 stale branches.
+### P2 — 20 stale branches.
 
-DEFER except the two P0-C targets. Systematic delete pass post-App Review.
+DEFER. Systematic delete pass post-App Review. Not a live risk.
 
-### P2 — Cache stamp `20261031a`: 25 days stale.
+### P2 — Cache stamp `20261031a`: 26 days stale.
 
-DEFER. Auto-bumps on next app.jsx commit. No action until code freeze lifts.
+DEFER. Auto-bumps on next app.jsx commit. Correct behavior during freeze.
 
-### ✅ CLOSED — lateSeason:true discrepancy (DevOps/Content Nov 25).
+### ✅ CLOSED — lateSeason:true discrepancy.
 
-False alarm. `grep -c "lateSeason.*true" app.jsx` → **15** (10 compact + 5 JSON format = 15 total). CLAUDE.md count is correct. Stop re-flagging.
+15 confirmed. CLAUDE.md correct. Methodology bug in grep, not a code issue. Stop re-flagging.
 
 ### ✅ CLOSED — BASE_PRICES coverage.
 
-100% — 181 airports (confirmed), 0 gaps. Closed.
+100%. 181 airports. 0 gaps.
 
 ---
 
 ## This Week's Top 3 Priorities
 
-**#1 — App Review reply. 12 days overdue. 10 minutes. Jack only. Last possible day for Thanksgiving.**
-`docs/APP_REVIEW_NOTES_SHORT.txt`. No Mac needed. If this doesn't go out today, pivot to Christmas-week launch messaging.
+**#1 — App Review reply. 13 days overdue. Reply TODAY for a shot at Black Friday (Nov 27–28).**
+`docs/APP_REVIEW_NOTES_SHORT.txt`. No Mac. No Xcode. Just paste and submit. Black Friday ski search traffic is the last adjacent window before Christmas.
 
-**#2 — VPS Redeploy. Same afternoon as the App Review reply.**
-Day 106. iOS CORS blocked = damaged first impressions on every App Store install. Bundle Open #23 (disk cache) into the same SSH session — documented and ready, 30 lines.
+**#2 — VPS Redeploy. Same afternoon as the reply.**
+Day 107. iOS broken on launch day without it. Bundle Open #23 disk cache — same session, 30 extra lines, documented and ready.
 
-**#3 — Delete `fix-appjsx-final` + `restore-appjsx` from GitHub. While logged in for P0-A.**
-30 seconds. Single catastrophic rollback risk in the project, Day 26.
+**#3 — Delete `fix-appjsx-final` + `restore-appjsx`. While logged into GitHub for P0-A.**
+30 seconds. Removes the only catastrophic rollback risk in the project. No evaluation needed.
 
 ---
 
 ## Explicit Product Decisions
 
-**Decision 1: Post-Thanksgiving if App Review slips — PIVOT TO CHRISTMAS WEEK, don't treat as failure.**
-Christmas week (Dec 23–Jan 1) is equal or larger search volume for ski destinations. If the reply goes out today PM and we miss Thanksgiving, the first Reddit/HN post slots into the Christmas window. The catalog is 404 venues, BASE_PRICES is 100%, two-weekend scoring works post-VPS. A Dec 1 App Store live date with a Dec 23 Reddit post is a viable path. Not the preferred path, but not a failure.
+**Decision 1: Thanksgiving window is NOT fully closed — reply today still catches Black Friday.**
+Apple's minimum turnaround is 24h when all information is in hand. A reply sent Nov 26 by end of day has a reasonable shot at approval Nov 27 or Nov 28 (Black Friday). Black Friday is #2 ski booking weekend of the year. The Thanksgiving browse window is narrowing but Black Friday is still open. Not "do it later" — do it today.
 
-**Decision 2: 35-venue backlog — DEFER to first post-App Review commit as a single batch. No exceptions.**
-Negril/Seven Mile Beach (MBJ) and Courmayeur (TRN) and Avoriaz 1800 (GVA) are genuinely high-quality additions. SXM venue requires airport gap fix first. All 35 ship together, one commit, the moment the freeze lifts. Piecemeal adds during code freeze are off the table.
+**Decision 2: Christmas week (Dec 23–Jan 1) is the confirmed fallback launch window if App Review slips past today.**
+404 venues. BASE_PRICES 100%. Two-weekend scoring works post-VPS. Catalog is at peak depth for both ski (Alps fully open by Dec 23) and Caribbean beach. Reddit/HN post slots into Dec 23–28. Christmas week is not a consolation prize — ski search volume matches or exceeds Thanksgiving. Reframe internally as "Christmas launch" and stop calling it a miss.
 
-**Decision 3: lateSeason discrepancy is a FALSE ALARM — do not add missing flags.**
-All 15 venues listed in CLAUDE.md are confirmed flagged. The reporting agents had a grep methodology bug (not reading JSON-format keys). No code change needed. Update agent instructions to use `grep -c "lateSeason.*true"` not `grep -c "lateSeason:true"`.
+**Decision 3: 40-venue backlog ships as a single batch. No piecemeal adds during freeze. No exceptions.**
+Negril, Key West, Davos-Klosters, Flaine, Alpe d'Huez are all high-quality. SXM venue ships only after the airport gap fix is committed first. One commit, all 40, the moment freeze lifts post-App-Review.
 
 ---
 
 ## Features REJECTED This Week
 
-- **Scoring improvements** (`claude/improve-scoring-system-XYGY6`) — REJECTED. No algorithm changes during App Review. The current algorithm passed smoke tests and ships.
-- **Front page redesign** (`claude/redesign-front-page-EndKs`) — REJECTED. Code freeze. Ship first; optimize based on actual user behavior.
-- **UI overhaul** (`claude/improve-peakly-ui-UHCHG`) — REJECTED. Post-launch with analytics. Zero users means zero signal.
-- **Alert page consolidation** (`claude/condense-alert-page-jzdLo`, `claude/simplify-alerts-page-2ejGB`) — REJECTED. Alerts tab is iOS-gated until APNS live. UI-only change with no active users.
-- **UX review suggestions** (`claude/review-peakly-ux-UQ0Qu`) — REJECTED. Same reasoning as UI overhaul.
-- **Profile page simplification** (`claude/simplify-profile-page-Bi2Tc`) — REJECTED. Code freeze.
+- **Scoring improvements** (`claude/improve-scoring-system-XYGY6`) — REJECTED. No algorithm changes during App Review.
+- **Front page redesign** (`claude/redesign-front-page-EndKs`) — REJECTED. Ship first. Zero users means zero signal.
+- **UI overhaul** (`claude/improve-peakly-ui-UHCHG`) — REJECTED. Post-launch with analytics.
+- **Alert page consolidation** (two branches) — REJECTED. Alerts tab iOS-gated until APNS live.
+- **UX review suggestions** (`claude/review-peakly-UQ0Qu`) — REJECTED. No data, no changes.
+- **Profile simplification** (`claude/simplify-profile-page-Bi2Tc`) — REJECTED. Code freeze.
 - **Onboarding changes** (`claude/streamline-onboarding-account-97XRR`) — REJECTED. Rebuilt Aug 2026. No changes without A/B data.
+- **Test coverage analysis** (`claude/analyze-test-coverage-WVIsT`) — REJECTED. No test suite exists in this project; the value here is zero.
 
 ---
 
 ## Success Criteria
 
 **90-day projection (Feb 2027): 5K–8K users. What gets you to 8K:**
-- App Review reply today → live by Nov 26 → Thanksgiving organic discovery → installs before Christmas
-- VPS deployed same day → iOS two-weekend scoring correct from first user → no 1-star reviews about "broken" features
-- Reddit post Christmas week (Dec 23–28) → ski season peak + Caribbean Christmas demand → 2K+ organic in 72h
-- 35-venue batch post-freeze → catalog depth competitive with Christmas destinations
+- App Review reply today → live Nov 27–28 (Black Friday) → first organic installs from holiday browse
+- VPS deployed same day → iOS two-weekend scoring works from first user → no 1-star reviews
+- 40-venue batch post-freeze → catalog depth competitive at Christmas (Alps fully open, Caribbean peak)
+- Christmas week Reddit post (Dec 23–28) → ski + Caribbean double-peak → 2K+ organic in 72h
+- VPS disk cache live → survives a Reddit traffic spike without Open-Meteo rate-limit
 
 **What keeps you at 5K:**
-- App Review reply slips past today → misses Thanksgiving → cold December launch
-- VPS still undeployed on launch day → first iOS impressions damaged
+- App Review reply slips past today → Black Friday gone, cold December launch
+- VPS still undeployed on launch day → first iOS impressions damaged → 1-star reviews about "wrong dates" and broken alerts
 - Reddit post delayed to January → ski season past peak, beach season not yet
 
 ---
 
 ## One Product Risk Nobody Is Talking About
 
-**The 35-venue backlog contains SXM (Orient Beach) with a broken airport code.**
+**The App Review process is running 13 days without a reply. At some point Apple closes the submission and you re-queue.**
 
-`SXM` is not in `AIRPORT_COORDS`. If the venue ships with `ap:"SXM"`, the venue-integrity guard will catch it at commit time — which means it fails silently and blocks the commit, or it passes (if the guard has a gap) and ships with broken flight pricing and no continent routing. This isn't just a missing venue. It's a data integrity failure that can silently corrupt the batch commit that ships all 35 venues at once.
-
-**The fix is trivial:** add `SXM: {lat:18.0410, lon:-63.1089}` to `AIRPORT_COORDS` and `SXM` → `"north_america"` to `AP_CONTINENT`. Two lines. First post-freeze commit, before the batch. Flag this for the first coding session.
+Apple's standard is to close a submission that hasn't received a reply within 30 days. We're at day 13. That's not imminent, but it's real. If this drags past day 25–28, the submission `468d466e` gets auto-closed, and Jack has to resubmit a fresh build, re-queue, and restart the review clock — adding another estimated 1–3 weeks. The window between "reply now" and "re-queue from scratch" is shrinking. Every day without a reply is a day of that clock running. This is not abstract. It's a concrete deadline that agents haven't been naming by number.
