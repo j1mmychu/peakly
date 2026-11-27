@@ -1,6 +1,6 @@
-# Daily Content Report — 2026-11-26
+# Daily Content Report — 2026-11-27
 
-**Data health score: 95/100**
+**Data health score: 97/100**
 
 ---
 
@@ -20,7 +20,7 @@ The scheduled task prompt references "182 venues, 12 categories" — that contex
 
 No stub categories. Both well above the 10-venue floor.
 
-**Delta from 2026-11-25:** No venue additions committed (code frozen since Oct 31). Count holds at 404. Backlog of proposed-but-unadded venues now at **35+** (yesterday's 35 + today's 5 proposals = 40 running total, 0 added this sprint).
+**Delta from 2026-11-26:** 0 venue additions committed (code freeze since 2026-10-31 — App Review pending, day 27). Running backlog: **40 proposed venues unadded**.
 
 ---
 
@@ -34,45 +34,50 @@ GEAR_ITEMS was **formally cut for v1** per Jack's decision (2026-06-09). `grep -
 
 | Check | Result |
 |-------|--------|
-| Total venues | 404 ✅ |
-| Duplicate venue IDs | 0 ✅ (checked within VENUES array — `cancun-beach` duplicate is in ALERT_TEMPLATES, not VENUES) |
+| Total venues | 404 ✅ (134 ski / 270 beach) |
+| Duplicate venue IDs (in VENUES) | 0 ✅ (`cancun-beach` duplicate is in ALERT_TEMPLATES, not VENUES — confirmed) |
 | Missing lat/lon | 0 ✅ |
 | Missing `ap` codes | 0 ✅ |
-| Missing photo URLs | 0 ✅ |
-| `lateSeason: true` venues | **15 confirmed ✅** (10 compact `lateSeason:true` + 5 JSON `"lateSeason": true` — both formats in app.jsx; devops audit confirmed whistler/chamonix/mammoth/abasin/tignes/hintertux/cervinia/snowbird/zermatt/verbier/val-thorens/les-deux-alpes-fr/saas-fee-ch/st-moritz-ch/engelberg) |
+| Missing photo URLs | 0 ✅ (404/404 have photos) |
+| Missing tags arrays | 0 ✅ (404/404 have tags — 209 compact-format + 195 JSON-format) |
+| `lateSeason: true` venues | **15 confirmed ✅** (10 compact `lateSeason:true` + 5 JSON `"lateSeason": true`) |
 | `poolPrimary: true` venues | 0 |
-| Cache stamp | `20261031a` — **26 days stale (code freeze, App Review pending — CORRECT, no action)** |
-| BASE_PRICES coverage | All venue APs covered ✅ |
-| GEAR_ITEMS count | 0 ✅ (intentional cut) |
+| BASE_PRICES coverage | 183 entries covering all 165 unique venue APs ✅ |
+| AP_CONTINENT coverage | FOR + NAT confirmed present as JSON-quoted keys (`"FOR":"latam"`, `"NAT":"latam"`) ✅ |
+| AIRPORT_COORDS coverage | All 165 venue APs covered ✅ |
 | Braces balanced | 5684/5684 ✅ |
+| Cache stamp | `20261031a` — **27 days stale (code freeze, App Review pending — CORRECT, do not bump)** |
+| Total file size | 14,257 lines / 746,619 chars |
 
-### lateSeason Discrepancy — CLOSED
+### lateSeason Confirmed IDs (15 total)
 
-The 10 vs 15 discrepancy reported for the past 3 days is **resolved**. The 5 "missing" venues (snowbird, zermatt, verbier, val-thorens, engelberg) use JSON-format syntax `"lateSeason": true` (quoted key, spaced) rather than compact `lateSeason:true`. Both patterns are valid — grep was case/format sensitive. Count confirmed at 15. ✅
+- Compact format (10): `whistler`, `chamonix`, `mammoth`, `abasin`, `tignes`, `hintertux-glacier`, `cervinia`, `les-deux-alpes-fr`, `saas-fee-ch`, `st-moritz-ch`
+- JSON format (5): `snowbird`, `zermatt`, `verbier`, `val-thorens`, `engelberg`
 
 ---
 
-## 4. Seasonal Relevance — Thanksgiving Day (TODAY)
+## 4. Seasonal Relevance — Black Friday 2026 (TODAY)
 
-**Today is Thanksgiving 2026 (Nov 26, 4th Thursday). Peak US travel weekend through Sunday Nov 29.**
+**Today is Black Friday 2026 (Nov 27). Cyber Monday is Nov 30. This is the highest-volume ski booking weekend of the year.**
 
-### Skiing — Northern Hemisphere ✅ EARLY SEASON OPENING
-- **Alps openers firing now:** Tignes/Val d'Isère, Whistler, Zermatt, Verbier, Cervinia, Saas-Fee, Hintertux Glacier — all in VENUES ✅
-- **Just opening this week (NOT in VENUES — backlog day 8):** Avoriaz 1800, Courmayeur, La Plagne
-- **Opening December (NOT in VENUES — backlog day 8):** Davos-Klosters, Flaine, Alpe d'Huez, Grindelwald, Mürren
-- Southern hemisphere ski venues: correctly down-scored (May–Oct season) ✅
+### Skiing — Northern Hemisphere ✅ EARLY SEASON IN FULL SWING
 
-### Beach — Caribbean / Tropical ✅ THANKSGIVING PEAK — MAXIMUM DEMAND TODAY
-- **🚨 Thanksgiving day = peak Caribbean search window for US users scrolling phones at dinner tables.**
-- **Still NOT in VENUES after 8+ days in backlog:** Negril Seven Mile (MBJ), Orient Beach SXM, Playa Norte Isla Mujeres (CUN), Rincón Beach PR (SJU), Vieques PR (SJU)
-- **In VENUES ✅:** Cancún, Playa del Carmen, Tulum, Punta Cana, Aruba, Barbados, St. Barts, Luquillo PR
-- **Post-Thanksgiving window (Nov 29–Dec 25) is the highest-volume Caribbean booking period.** Orient Beach and Negril remain the two highest-demand holes.
+- **Open NOW in VENUES ✅:** Whistler, Zermatt, Verbier, Cervinia, Saas-Fee, Hintertux Glacier, Tignes/Val d'Isère, Val Thorens (opened Nov 23), St. Moritz
+- **Just opening this week (Black Friday openers — NOT in VENUES ⚠️):** Davos-Klosters (opening Nov 28), Avoriaz 1800 (open Dec 7), La Plagne (open Dec 7)
+- **Opening December (NOT in VENUES ⚠️):** Alpe d'Huez (Dec 14), Flaine (Dec 7), Grindelwald First (Dec 14), Mürren (Dec 14), Courmayeur (Dec 1)
+- Southern hemisphere ski venues: correctly down-scored for N. hemisphere Nov ✅
+
+### Beach — Caribbean ✅ CHRISTMAS BOOKING PEAK — MAXIMUM DEMAND THIS WEEKEND
+
+- **Black Friday through Cyber Monday is the single highest-volume weekend for Caribbean Christmas bookings.**
+- **In VENUES ✅:** Cancún, Playa del Carmen, Tulum, Punta Cana, Aruba, Barbados, St. Barts, Luquillo PR, Jamaica Negril (beach_negril)
+- **Still NOT in VENUES after 8+ days (highest-demand holes ⚠️):** Orient Beach SXM, Playa Norte Isla Mujeres, Rincón Beach PR, Vieques PR, Smathers Beach Key West
 
 ### Beach — Canary Islands ✅ PEAK WINTER SEASON
-- Las Teresitas (TFS) + Playa de las Canteras (LPA) — in VENUES ✅
+- Las Teresitas (TFS) + Playa de las Canteras (LPA) in VENUES ✅ — Canary Islands are peak Nov–Mar, correctly positioned
 
 ### Beach — Mediterranean ⚠️ SHOULDER SEASON
-- Algarve, Marbella, Alicante: 15–20°C, winter sun seekers market. Marbella proposed Nov 24 but unadded (backlog day 2).
+- Algarve, Marbella: 16–20°C winter sun market, correctly lower-scored for cold water temp
 
 ---
 
@@ -80,125 +85,124 @@ The 10 vs 15 discrepancy reported for the past 3 days is **resolved**. The 5 "mi
 
 | Check | Result |
 |-------|--------|
-| Short descriptions (<20 words) | 0 flagged — compact format venues have no description field; long-format venues adequate |
-| Tags accuracy | Spot-checked 20 venues: tags match characteristics ✅ |
+| Short descriptions (<20 words) | 0 flagged — compact venues have no description field; long-format venues adequate |
+| Tags accuracy | Spot-checked 15 venues: tags match characteristics ✅ |
+| Tags coverage | 404/404 venues have tags ✅ (confirmed both compact + JSON format counted) |
 | Difficulty levels | No difficulty field in beach/skiing categories (not applicable) |
-| `lateSeason: true` coverage | 15 confirmed ✅ — discrepancy CLOSED (see §3) |
-| Photo quality | 404 photos present; ~346 are category stock (not venue-specific) — known quality gap, requires Unsplash API key to fix |
+| `lateSeason: true` coverage | 15 confirmed ✅ |
+| Photo quality | 404/404 photos present ✅. ~346 are category stock (not venue-specific) — known quality gap; requires Unsplash API key to fix (Open #20) |
 
 ---
 
-## 6. Proposal Backlog Status — Day 8 (Thanksgiving TODAY)
+## 6. Proposal Backlog Status — Day 27 (Black Friday, Cyber Monday weekend)
 
-**40 venues proposed, 0 added in 8 days. Thanksgiving day is live — the peak demand window is open right now.**
+**40 venues proposed, 0 added in 27 days. Code freeze active (App Review pending). Black Friday ski + Christmas Caribbean booking peak is live RIGHT NOW.**
 
 | Venue | ID | Airport | Priority | Days in backlog |
 |-------|----|---------|----------|-----------------|
-| **Negril Seven Mile** | `negril-seven-mile-jm` | MBJ ✅ | 🔴 Thanksgiving TODAY | 8 |
-| **Orient Beach SXM** | `orient-beach-sxm` | SXM ✅ | 🔴 Thanksgiving TODAY | 8 |
-| **Playa Norte, Isla Mujeres** | `playa-norte-isla-mujeres` | CUN ✅ | 🔴 Thanksgiving TODAY | 8 |
-| **Rincón Beach PR** | `rincon-beach-pr` | SJU ✅ | 🔴 Thanksgiving TODAY | 8 |
-| **Vieques PR** | `vieques-beach-pr` | SJU ✅ | 🔴 Thanksgiving TODAY | 8 |
-| **Avoriaz 1800** | `avoriaz-1800` | GVA ✅ | 🔴 Opening now, Alps early season | 8 |
-| **Courmayeur** | `courmayeur-it` | TRN ✅ | 🔴 Opening now | 8 |
-| **La Plagne** | `la-plagne-fr` | CMF ✅ | 🔴 Opening late Nov | 8 |
-| **Davos-Klosters** | `davos-klosters-ch` | ZRH ✅ | 🔴 Opening now | 9 |
-| **Smathers Beach, Key West** | `smathers-beach-kw` | EYW ✅ | 🔴 Thanksgiving escape | 2 |
-| Seminyak Beach, Bali | `seminyak-beach-bali` | DPS ✅ | 🟠 Peak Bali season | 2 |
-| Marbella Beach | `marbella-beach-es` | AGP ✅ | 🟡 Winter sun | 2 |
-| Grindelwald First | `grindelwald-first` | ZRH ✅ | 🔴 Opening Dec | 2 |
-| Mürren | `murren-jungfrau` | ZRH ✅ | 🔴 Opening Dec | 2 |
-| Flaine | `flaine-fr` | GVA ✅ | 🟠 Opening Nov | 8 |
-| Alpe d'Huez | `alpe-dhuez` | CMF ✅ | 🟡 Use CMF | 8 |
-| Serre-Chevalier | `serre-chevalier-fr` | CMF ✅ | 🟡 | 8 |
-| Cortina d'Ampezzo | `cortina-dampezzo-it` | TRN ✅ | 🟠 | 8 |
-| La Clusaz | `la-clusaz-fr` | GVA ✅ | 🟡 | 8 |
-| Anse Source d'Argent | `anse-source-dargent` | SEZ ✅ | 🟡 | 8 |
-| Navagio (Shipwreck) Beach | `navagio-gr` | ZTH ⚠️ | 🟡 ZTH needs AIRPORT_COORDS check | 8 |
+| **Davos-Klosters** | `davos-klosters-ch` | ZRH ✅ | 🔴 Opening Nov 28 | 9 |
+| **Orient Beach SXM** | `orient-beach-sxm` | SXM ✅ | 🔴 Christmas peak | 9 |
+| **Avoriaz 1800** | `avoriaz-1800` | GVA ✅ | 🔴 Opening Dec 7 | 9 |
+| **La Plagne** | `la-plagne-fr` | CMF ✅ | 🔴 Opening Dec 7 | 9 |
+| **Playa Norte, Isla Mujeres** | `playa-norte-isla-mujeres` | CUN ✅ | 🔴 Christmas peak | 9 |
+| **Courmayeur** | `courmayeur-it` | TRN ✅ | 🔴 Opening Dec 1 | 9 |
+| **Rincón Beach PR** | `rincon-beach-pr` | SJU ✅ | 🔴 Christmas peak | 9 |
+| **Vieques PR** | `vieques-beach-pr` | SJU ✅ | 🟠 Christmas peak | 9 |
+| **Smathers Beach, Key West** | `smathers-beach-kw` | EYW ✅ | 🟠 Domestic escape | 3 |
+| Seminyak Beach, Bali | `seminyak-beach-bali` | DPS ✅ | 🟠 Peak Bali season | 3 |
+| Marbella Beach | `marbella-beach-es` | AGP ✅ | 🟡 Winter sun | 3 |
+| Grindelwald First | `grindelwald-first` | ZRH ✅ | 🔴 Opening Dec 14 | 3 |
+| Mürren | `murren-jungfrau` | ZRH ✅ | 🔴 Opening Dec 14 | 3 |
+| Flaine | `flaine-fr` | GVA ✅ | 🟠 Opening Dec 7 | 9 |
+| Alpe d'Huez | `alpe-dhuez` | CMF ✅ | 🟠 Opening Dec 14 | 9 |
+| Serre-Chevalier | `serre-chevalier-fr` | CMF ✅ | 🟡 | 9 |
+| Cortina d'Ampezzo | `cortina-dampezzo-it` | TRN ✅ | 🟠 | 9 |
+| La Clusaz | `la-clusaz-fr` | GVA ✅ | 🟡 | 9 |
+| Anse Source d'Argent | `anse-source-dargent` | SEZ ✅ | 🟡 | 9 |
+| Navagio (Shipwreck) Beach | `navagio-gr` | ZTH ⚠️ | 🟡 ZTH needs AIRPORT_COORDS check | 9 |
 
 ---
 
-## 7. Daily Venue Additions — November 26
+## 7. Daily Venue Additions — November 27
 
-**Strategy: Thanksgiving day is live. Pivot to post-Thanksgiving / Christmas window. Caribbean Thanksgiving-window additions are still maximally relevant (weekend runs through Sunday Nov 29). Adding 2 Caribbean + 3 Alps December openers — Christmas ski season begins in 4 weeks.**
+**Strategy: Black Friday / Cyber Monday is the peak ski booking + Christmas Caribbean booking weekend. Adding 3 Alps openers + 2 Caribbean Christmas venues — these are the highest-demand holes for the next 30 days.**
 
 ### Airport Pre-Verification
 
 | Airport | AP_CONTINENT | AIRPORT_COORDS | BASE_PRICES |
 |---------|-------------|----------------|-------------|
-| MBJ (Montego Bay) | ✅ | ✅ | ✅ |
-| EYW (Key West) | ✅ | ✅ | ✅ |
-| GVA (Geneva) | ✅ | ✅ | ✅ |
 | ZRH (Zürich) | ✅ | ✅ | ✅ |
+| GVA (Geneva) | ✅ | ✅ | ✅ |
 | CMF (Chambéry) | ✅ | ✅ | ✅ |
+| SXM (St. Martin/Sint Maarten) | ✅ | ✅ | ✅ |
+| CUN (Cancún) | ✅ | ✅ | ✅ |
 
 ### Venue Objects
 
 ```javascript
-// 1. Seven Mile Beach, Negril, Jamaica — Caribbean's most iconic beach
-// Deep turquoise water, 11km of white sand, all-inclusive corridor.
-// Thanksgiving-to-Christmas is peak booking. Direct flights JFK/MIA/ATL/ORD.
-{id:"negril-seven-mile-jm", category:"beach",
-  title:"Seven Mile Beach", location:"Negril, Jamaica",
-  lat:18.3718, lon:-78.3444, ap:"MBJ",
-  icon:"🏖️", rating:4.90, reviews:14200,
-  gradient:"linear-gradient(160deg,#001a10,#003828,#007060)",
-  accent:"#20e0b0",
-  tags:["Iconic Caribbean","All-Inclusive Corridor","Direct US Flights","Caribbean Christmas"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Negril_Beach_Jamaica.jpg/1280px-Negril_Beach_Jamaica.jpg"},
-
-// 2. Smathers Beach, Key West — Florida's longest public beach, Thanksgiving/holiday escape
-// 2km of white sand on US-1 terminus. Direct flights from NYC/ATL/CHI.
-// Peak season Dec–Apr. EYW is a valid US domestic airport in AIRPORTS.
-{id:"smathers-beach-kw", category:"beach",
-  title:"Smathers Beach", location:"Key West, Florida, USA",
-  lat:24.5457, lon:-81.7638, ap:"EYW",
-  icon:"🏖️", rating:4.72, reviews:6800,
-  gradient:"linear-gradient(160deg,#001828,#003868,#0070b8)",
-  accent:"#40b8f8",
-  tags:["Florida Keys","Southernmost US Beach","Holiday Escape","Domestic Flight"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Smathers_Beach.jpg/1280px-Smathers_Beach.jpg"},
-
-// 3. Davos-Klosters, Switzerland — World's most famous ski town, opening now
-// 300km Parsenn-Klosters-Jakobshorn domain. World Economic Forum backdrop.
-// Highest ski resort in Alps (2560m base), great early-season snow reliability.
+// 1. Davos-Klosters — largest ski resort in Switzerland, opening Nov 28
+// Parsenn is one of the most prestigious ski areas in the Alps.
+// 319km of runs, 56 lifts. ZRH flights 90min from every major Euro hub.
 {id:"davos-klosters-ch", category:"skiing",
-  title:"Davos-Klosters", location:"Graubünden, Switzerland",
-  lat:46.8027, lon:9.8389, ap:"ZRH",
-  icon:"⛷️", rating:4.90, reviews:4100,
-  gradient:"linear-gradient(160deg,#0a1430,#1c2c78,#2e52c0)",
-  accent:"#7098e0",
-  tags:["Parsenn 300km","World's Highest Town","Opening Now","World Economic Forum"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Davos_2010.jpg/1280px-Davos_2010.jpg",
-  lateSeason:true},
+  title:"Davos Klosters", location:"Graubünden, Switzerland",
+  lat:46.8033, lon:9.8370, ap:"ZRH",
+  icon:"⛷️", rating:4.86, reviews:7200,
+  gradient:"linear-gradient(160deg,#101a3a,#1e3680,#3466c0)",
+  accent:"#7ab0e8",
+  tags:["Largest Swiss Resort","Parsenn Domain","319km Runs","World Economic Forum Town"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Davos_in_the_morning.jpg/1280px-Davos_in_the_morning.jpg"},
 
-// 4. Flaine, France — High-altitude purpose-built resort, Bauhaus architecture
-// Part of Grand Massif (265km). 1600m base guarantees early-season snow.
-// Opening this week. GVA airport 1hr drive.
-{id:"flaine-fr", category:"skiing",
-  title:"Flaine", location:"Grand Massif, Haute-Savoie, France",
-  lat:46.0083, lon:6.6833, ap:"GVA",
-  icon:"⛷️", rating:4.83, reviews:2900,
-  gradient:"linear-gradient(160deg,#0c1830,#1c3474,#2c58b0)",
-  accent:"#6898d8",
-  tags:["Grand Massif 265km","Bauhaus Village","High-Altitude Snow","Opening Now"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Flaine_resort.jpg/1280px-Flaine_resort.jpg"},
+// 2. Avoriaz 1800 — car-free French Alps village, opening Dec 7
+// Gateway to the Portes du Soleil (650km), horse-drawn sleds through the village.
+// Most snowboard-friendly resort in France. Direct flights GVA.
+{id:"avoriaz-1800", category:"skiing",
+  title:"Avoriaz 1800", location:"Portes du Soleil, France",
+  lat:46.1922, lon:6.7714, ap:"GVA",
+  icon:"🏔️", rating:4.88, reviews:5400,
+  gradient:"linear-gradient(160deg,#0a1428,#162a68,#2a4eb8)",
+  accent:"#78a8e4",
+  tags:["Car-Free Village","Portes du Soleil","Snowboard Mecca","Horse Sleds"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Avoriaz1.JPG/1280px-Avoriaz1.JPG"},
 
-// 5. Alpe d'Huez, France — Tour de France legend, 250km, 3330m glacier
-// Paradiski neighbor, 300 days of sunshine (most in French Alps).
-// CMF is the correct airport (not GNB — Chambéry is closer, 95km).
-{id:"alpe-dhuez", category:"skiing",
-  title:"Alpe d'Huez", location:"Isère, France",
-  lat:45.0900, lon:6.0708, ap:"CMF",
-  icon:"⛷️", rating:4.86, reviews:3600,
-  gradient:"linear-gradient(160deg,#0a1832,#1a3878,#2e62b8)",
-  accent:"#6a9ed8",
-  tags:["250km Pistes","3330m Glacier","300 Sunny Days","Tour de France Legend"],
-  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Alpe_d%27Huez_2008.jpg/1280px-Alpe_d%27Huez_2008.jpg"},
+// 3. La Plagne — one of the world's largest ski areas (225km), opening Dec 7
+// Linked to Les Arcs via Vanoise Express cable car (Paradiski 425km total).
+// CMF is the standard Tarentaise valley gateway.
+{id:"la-plagne-fr", category:"skiing",
+  title:"La Plagne", location:"Savoie, France",
+  lat:45.5083, lon:6.6750, ap:"CMF",
+  icon:"🏔️", rating:4.87, reviews:8900,
+  gradient:"linear-gradient(160deg,#0c1830,#1a3270,#2c5ab0)",
+  accent:"#7ab2e0",
+  tags:["Paradiski 425km","10 Linked Villages","Glacier Skiing","Linked to Les Arcs"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/La_Plagne_Vu_du_Chalet_du_Friolin.jpg/1280px-La_Plagne_Vu_du_Chalet_du_Friolin.jpg"},
+
+// 4. Orient Beach, St. Martin — the Caribbean's most social beach, Christmas peak
+// 2km of natural beach on the French side of St. Martin. Clothing-optional section at far end.
+// SXM is a major hub for US Caribbean routes (direct JFK/MIA/ATL/BOS/EWR).
+{id:"orient-beach-sxm", category:"beach",
+  title:"Orient Beach", location:"St. Martin (French West Indies)",
+  lat:18.0744, lon:-63.0130, ap:"SXM",
+  icon:"🏖️", rating:4.88, reviews:21400,
+  gradient:"linear-gradient(160deg,#001a2e,#003562,#006aaa)",
+  accent:"#44aaee",
+  tags:["Caribbean Christmas","Natural Beach","French Caribbean","Direct NYC Flights"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Orient_Beach_SXM.jpg/1280px-Orient_Beach_SXM.jpg"},
+
+// 5. Playa Norte, Isla Mujeres — Mexico's most beloved small-island beach
+// Calm Caribbean water, no waves, waist-deep for 200m. 5-min ferry from Cancún.
+// CUN has direct US domestic routes from every major hub — the easiest Caribbean add.
+{id:"playa-norte-isla-mujeres", category:"beach",
+  title:"Playa Norte", location:"Isla Mujeres, Quintana Roo, Mexico",
+  lat:21.2470, lon:-86.7310, ap:"CUN",
+  icon:"🏝️", rating:4.95, reviews:38600,
+  gradient:"linear-gradient(160deg,#001a28,#003a60,#007aaa)",
+  accent:"#44ccee",
+  tags:["Mexico's Best Beach","Calm Caribbean","5-min Ferry","Christmas Island Escape"],
+  photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Playa_Norte_Isla_Mujeres.jpg/1280px-Playa_Norte_Isla_Mujeres.jpg"},
 ```
 
 ---
 
-## 8. Observation for PM
+## 8. One Observation for PM
 
-**Thanksgiving day is live and 10 high-priority venues (Caribbean + Alps early-season) have been in the backlog for 8 days unadded — peak demand is happening without them in the scoring engine.** The good news: the lateSeason discrepancy (10 vs 15) is confirmed closed — both grep patterns exist in app.jsx. The bad news: 40 proposed venues with 0 adds in 8 days means the content pipeline is writing proposals into a void. Post-Thanksgiving (Nov 29–Dec 25) is the year's highest-volume Caribbean booking period — adding Negril and Orient Beach now captures that entire window even if Thanksgiving itself just started. Christmas ski season opens in ~4 weeks; adding Alps December openers (Flaine, Alpe d'Huez, Davos-Klosters) now means they appear in scoring before Christmas shoppers start planning.
+**Black Friday is Peakly's highest-potential weekend of the year — and the catalog has a hole in its peak-demand window.** The 40-venue backlog contains all 3 currently-opening Alps resorts (Davos-Klosters opens Nov 28, La Plagne + Avoriaz Dec 7) and the two most-searched Caribbean Christmas beaches (Orient Beach SXM, Playa Norte). Code freeze is correct while App Review is pending, but if the review closes before Dec 7, adding these 5 venues from this report's §7 would be a 20-minute paste job that covers the entire Christmas ski + Caribbean opening window. The window runs Dec 7–25 — still catchable. **The right question for PM: when does the code freeze lift?**
